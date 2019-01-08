@@ -271,6 +271,10 @@ message StringList {
     repeated string Values = 1;
 }
 
+message ULongList {
+    repeated uint64 Values = 1;
+}
+
 message BlockAbstract {
     string MinerPublicKey = 1;
     google.protobuf.Timestamp Time = 2;

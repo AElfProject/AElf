@@ -56,9 +56,17 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
                     candidateHistoryInformation.Aliases.Add(alias);
+                    candidateHistoryInformation.CurrentAlias = alias;
                 }
 
                 _collection.HistoryMap.SetValue(publicKey.ToStringValue(), candidateHistoryInformation);
+            }
+            else
+            {
+                _collection.HistoryMap.SetValue(publicKey.ToStringValue(), new CandidateInHistory
+                {
+                    CurrentAlias = alias
+                });
             }
         }
 

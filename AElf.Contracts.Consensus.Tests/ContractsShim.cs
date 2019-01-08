@@ -120,21 +120,21 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
-        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
+        public TicketsDictionary GetPageableElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfo), SenderKeyPair, startIndex, length, orderBy);
+            ExecuteAction(ConsensusContractAddress, nameof(GetPageableElectionInfo), SenderKeyPair, startIndex, length, orderBy);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TicketsDictionary>();
         }
 
-        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
+        public string GetPageableElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(GetTicketsInfo), SenderKeyPair, startIndex, length, orderBy);
+            ExecuteAction(ConsensusContractAddress, nameof(GetPageableElectionInfoToFriendlyString), SenderKeyPair, startIndex, length, orderBy);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
         public ulong GetBlockchainAge()
         {
-            ExecuteAction(ConsensusContractAddress, nameof(GetCurrentVictories), SenderKeyPair);
+            ExecuteAction(ConsensusContractAddress, nameof(GetBlockchainAge), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 

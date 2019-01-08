@@ -129,25 +129,25 @@ namespace AElf.Contracts.Dividends
 
             return 0;
         }
-
+        
         [View]
-        public ulong CheckDividendsOfPreviousTerm(ulong ticketsAmount, int lockTime)
+        public ULongList CheckDividendsOfPreviousTerm()
         {
-            var currentTermNumber = Api.GetCurrentTermNumber();
-            Api.Assert(currentTermNumber > 1, "Cannot check dividends of term zero.");
-            return CheckDividends(ticketsAmount, lockTime, currentTermNumber - 1);
+            var termNumber = Api.GetCurrentTermNumber() - 1;
+            var result = new ULongList();
+            const ulong ticketsAmount = 10_000;
+            var lockTimes = new List<int> {30, 180, 365, 730, 1095};
+            foreach (var lockTime in lockTimes)
+            {
+                result.Values.Add(CheckDividends(ticketsAmount, lockTime, termNumber));
+            }
+
+            return result;
         }
 
-        [View]
-        public ulong CheckStandardDividends(ulong termNumber)
+        public string CheckDividendsOfPreviousTermToFriendlyString()
         {
-            return CheckDividends(StandardTicketsAmount, StandardLockTime, termNumber);
-        }
-
-        [View]
-        public ulong CheckStandardDividendsOfPreviousTerm()
-        {
-            return CheckDividendsOfPreviousTerm(StandardTicketsAmount, StandardLockTime);
+            return CheckDividendsOfPreviousTerm().ToString();
         }
 
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)

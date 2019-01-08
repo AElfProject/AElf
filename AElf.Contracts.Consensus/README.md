@@ -163,7 +163,7 @@ Result Type:
 
 To get the term number of provided round number.
 
-### `GetCurrentElectionInfo` / `GetCurrentElectionInfoToFriendlyString`
+### `GetPageableElectionInfo` / `GetPageableElectionInfoToFriendlyString`
 
 Params:
 - `int` startIndex
@@ -253,6 +253,25 @@ Result Type:
 `ulong`
 
 To query current round number.
+
+### `GetPageableCandidatesHistoryInfo` / `GetPageableCandidatesHistoryInfoToFriendlyString`
+
+Params:
+- `int` startIndex
+- `int` length
+
+Result Type:
+`CandidateInHistoryDictionary` / `string`
+
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result Type:
+`Tickets` / `string`
 
 # 投票/选举系统
 
@@ -419,7 +438,7 @@ To query current round number.
 
 获取所提供轮数所在的届数。
 
-### `GetCurrentElectionInfo` / `GetCurrentElectionInfoToFriendlyString`
+### `GetPageableElectionInfo` / `GetPageableElectionInfoToFriendlyString`
 
 参数:
 - `int` startIndex
@@ -522,6 +541,29 @@ orderBy:
 
 根据公钥查询候选人别名。（不存在则返回公钥前20位）
 
+### `GetPageableCandidatesHistoryInfo` / `GetPageableCandidatesHistoryInfoToFriendlyString`
+
+参数：
+- `int` startIndex
+- `int` length
+
+返回类型：
+`CandidateInHistoryDictionary` / `string`
+
+分页获取当前候选人的历史信息。
+
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+参数：
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+`Tickets` / `string`
+
+分页获取所提供公钥的投票信息。
+
 ## Data Structure
 
 ```Protobuf
@@ -530,6 +572,7 @@ orderBy:
 message Miners {
     uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
+    string Remark = 3;
 }
 
 // To query to first round number of each term.
@@ -547,6 +590,7 @@ message Candidates {
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
     uint64 TotalTickets = 2;
+    uint64 VotingRecordsCount = 3;
 }
 
 // A voting record.
@@ -572,6 +616,7 @@ message TermSnapshot {
     uint64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
     uint64 TermNumber = 4;
+    string Remark = 5;
 }
 
 // The information of a candidate of a specific term.
@@ -586,6 +631,7 @@ message Round {
     map<string, MinerInRound> RealTimeMinersInfo = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
+    string Remark = 5;
 }
 
 // The information of a miner in a specific round.
@@ -602,6 +648,8 @@ message MinerInRound {
     uint64 RoundNumber = 10;
     string PublicKey = 11;
     uint64 PackagedTxsCount = 12;
+    uint64 LatestMissedTimeSlots = 13;
+    bool IsMissed = 14;
 }
 
 // The information of a candidate.
@@ -613,5 +661,19 @@ message CandidateInHistory {
     uint64 ContinualAppointmentCount = 5;
     uint64 ReappointmentCount = 6;
     repeated string Aliases = 7;
+    string CurrentAlias = 8;
+    uint64 CurrentVotesNumber = 9;
 }
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
+    string Remark = 2;
+}
+
+message CandidateInHistoryDictionary {
+    map<string, CandidateInHistory> Maps = 1;
+    string Remark = 2;
+    int32 CandidatesNumber = 3;
+}
+
 ```

@@ -57,6 +57,7 @@ message Candidates {
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
     uint64 TotalTickets = 2;
+    uint64 VotingRecordsCount = 3;
 }
 
 // A voting record.
@@ -127,9 +128,17 @@ message CandidateInHistory {
     uint64 ContinualAppointmentCount = 5;
     uint64 ReappointmentCount = 6;
     repeated string Aliases = 7;
+    string CurrentAlias = 8;
+    uint64 CurrentVotesNumber = 9;
 }
 
 message TicketsDictionary {
     map<string, Tickets> Maps = 1;
     string Remark = 2;
+}
+
+message CandidateInHistoryDictionary {
+    map<string, CandidateInHistory> Maps = 1;
+    string Remark = 2;
+    int32 CandidatesNumber = 3;
 }

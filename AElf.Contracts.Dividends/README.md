@@ -56,25 +56,6 @@ Result type:
 
 To get current available dividends of the provided voting information.
 
-### `CheckStandardDividends`
-
-Params:
-- `ulong` termNumber
-
-Result type:
-- `ulong`
-
-To check the final dividends of 10,000 tickets locking 90 days of provided term.
-
-### `CheckStandardDividendsOfPreviousTerm`
-
-*No params*
-
-Result type:
-- `ulong`
-
-To check the final dividends of 10,000 tickets locking 90 days of previous term.
-
 ### `CheckDividends`
 
 Params:
@@ -87,16 +68,14 @@ Result type:
 
 To check the final dividends of a given voting of provided term.
 
-### `CheckDividendsOfPreviousTerm`
+### `CheckDividendsOfPreviousTerm` / `CheckDividendsOfPreviousTermToFriendlyString`
 
-Params:
-- `ulong` ticketsAmount
-- `int` lockTime
+*No params*
 
-Result type:
-- `ulong`
+Result Type:
+- `ULongList` / `string`
 
-To check the final dividends of a given voting of previous term.
+10000 tickets of previous term, locking 30, 180, 365, 730, 1095.
 
 ## How to calculate dividends
 
@@ -172,25 +151,6 @@ To check the final dividends of a given voting of previous term.
 
 用于获取所提供投票信息相关投票实例当前可领取的出块奖励分红。
 
-### `CheckStandardDividends`
-
-参数:
-- `ulong` termNumber
-
-返回类型:
-- `ulong`
-
-查看10000票、锁仓90天在提供届可领取的出块奖励分红。
-
-### `CheckStandardDividendsOfPreviousTerm`
-
-*无参数*
-
-返回类型:
-- `ulong`
-
-查看10000票、锁仓90天在上一届可领取的出块奖励分红。
-
 ### `CheckDividends`
 
 参数:
@@ -203,16 +163,14 @@ To check the final dividends of a given voting of previous term.
 
 查看某投票参数在某一届可领取的出块奖励分红。
 
-### `CheckDividendsOfPreviousTerm`
+### `CheckDividendsOfPreviousTerm` / `CheckDividendsOfPreviousTermToFriendlyString`
 
-参数:
-- `ulong` ticketsAmount
-- `int` lockTime
+*无参数*
 
 返回类型:
-- `ulong`
+- `ULongList` / `string`
 
-查看某投票参数在上一届可领取的出块奖励分红。
+查看10000票在上一届分别锁仓30、180、365、730、1095天可获取分红。
 
 ## 如何计算可领取分红
 

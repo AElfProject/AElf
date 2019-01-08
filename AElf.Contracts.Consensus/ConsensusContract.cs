@@ -151,7 +151,75 @@ namespace AElf.Contracts.Consensus
         {
             return GetCandidateHistoryInfo(publicKey).ToString();
         }
+        
+        [View]
+        public CandidateInHistoryDictionary GetCandidatesHistoryInfo()
+        {
+            var result = new CandidateInHistoryDictionary();
+            
+            var candidates = Collection.CandidatesField.GetValue();
+            result.CandidatesNumber = candidates.PublicKeys.Count;
+            
+            var age = Collection.AgeField.GetValue();
+            foreach (var candidate in candidates.PublicKeys)
+            {
+                if (Collection.HistoryMap.TryGet(candidate.ToStringValue(), out var info))
+                {
+                    if (Collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
+                    {
+                        ulong number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
+                            .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
 
+                        info.CurrentVotesNumber = number;
+                        result.Maps.Add(candidate, info);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        [View]
+        public string GetCandidatesHistoryInfoToFriendlyString()
+        {
+            return GetCandidatesHistoryInfo().ToString();
+        }
+        
+        [View]
+        public CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(int startIndex, int length)
+        {
+            var result = new CandidateInHistoryDictionary();
+
+            var candidates = Collection.CandidatesField.GetValue();
+            result.CandidatesNumber = candidates.PublicKeys.Count;
+            
+            var age = Collection.AgeField.GetValue();
+
+            var take = Math.Min(result.CandidatesNumber - startIndex, length - startIndex);
+            foreach (var candidate in candidates.PublicKeys.Skip(startIndex).Take(take))
+            {
+                if (Collection.HistoryMap.TryGet(candidate.ToStringValue(), out var info))
+                {
+                    if (Collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
+                    {
+                        var number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
+                            .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
+
+                        info.CurrentVotesNumber = number;
+                        result.Maps.Add(candidate, info);
+                    }
+                }
+            }
+
+            return result;
+        }
+        
+        [View]
+        public string GetPageableCandidatesHistoryInfoToFriendlyString(int startIndex, int length)
+        {
+            return GetPageableCandidatesHistoryInfo(startIndex, length).ToString();
+        }
+        
         [View]
         public Miners GetCurrentMiners()
         {
@@ -178,33 +246,16 @@ namespace AElf.Contracts.Consensus
             return GetCurrentMiners().ToString();
         }
 
+        // TODO: Add an API to get unexpired tickets info.
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
+                tickets.VotingRecordsCount = (ulong) tickets.VotingRecords.Count;
                 return tickets;
             }
 
-            return new Tickets
-            {
-                TotalTickets = 0
-            };
-        }
-
-        [View]
-        public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
-        {
-            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
-            {
-                var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
-                return new Tickets
-                {
-                    TotalTickets = tickets.TotalTickets,
-                    VotingRecords = { tickets.VotingRecords.Skip(startIndex).Take(take)}
-                };
-            }
-            
             return new Tickets
             {
                 TotalTickets = 0
@@ -217,6 +268,32 @@ namespace AElf.Contracts.Consensus
             return GetTicketsInfo(publicKey).ToString();
         }
 
+        [View]
+        public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
+        {
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
+                var result = new Tickets
+                {
+                    TotalTickets = tickets.TotalTickets,
+                    VotingRecords = { tickets.VotingRecords.Skip(startIndex).Take(take)}
+                };
+                result.VotingRecordsCount = (ulong) result.VotingRecords.Count;
+                return result;
+            }
+            
+            return new Tickets
+            {
+                TotalTickets = 0
+            };
+        }
+
+        public string GetPageableTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
+        {
+            return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
+        }
+        
         /// <summary>
         /// Order by:
         /// 0 - Announcement order. (Default)
@@ -228,7 +305,7 @@ namespace AElf.Contracts.Consensus
         /// <param name="orderBy"></param>
         /// <returns></returns>
         [View]
-        public TicketsDictionary GetCurrentElectionInfo(int startIndex, int length, int orderBy)
+        public TicketsDictionary GetPageableElectionInfo(int startIndex, int length, int orderBy)
         {
             if (orderBy == 0)
             {
@@ -297,9 +374,9 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public string GetCurrentElectionInfoToFriendlyString(int startIndex, int length, int orderBy)
+        public string GetPageableElectionInfoToFriendlyString(int startIndex, int length, int orderBy)
         {
-            return GetCurrentElectionInfo(startIndex, length, orderBy).ToString();
+            return GetPageableElectionInfo(startIndex, length, orderBy).ToString();
         }
         
         [View]
