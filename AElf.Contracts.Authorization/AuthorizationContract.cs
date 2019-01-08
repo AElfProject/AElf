@@ -230,6 +230,16 @@ namespace AElf.Contracts.Authorization
             return auth;
         }
 
+        public bool IsMultiSigAccount(Address address)
+        {
+            if (address.Equals(Genesis) || _multiSig.GetValue(address) != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         /*private bool GetAuth(Address address, out Authorization authorization)
         {
             // case 1

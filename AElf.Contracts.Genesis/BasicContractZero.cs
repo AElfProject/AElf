@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -94,6 +93,8 @@ namespace AElf.Contracts.Genesis
         
         private readonly ContractSerialNumber _contractSerialNumber = ContractSerialNumber.Instance;
 
+        private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
+
         #endregion Fields
 
         [View]
@@ -113,10 +114,11 @@ namespace AElf.Contracts.Genesis
 
             return info.ToString();
         }
-        
+
         public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
             Api.Assert(Api.GetCurrentHeight() < 1, "The current height should be less than 1.");
+            Api.Assert(Api.GetFromAddress().Equals(Api.Genesis));
             
             var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
             
@@ -126,6 +128,7 @@ namespace AElf.Contracts.Genesis
             {
                 SerialNumber = serialNumber,
                 Category = category,
+                Owner = Address.Genesis,
                 ContractHash = contractHash
             };
             _contractInfos[contractAddress] = info;
@@ -138,7 +141,7 @@ namespace AElf.Contracts.Genesis
                 SerialNumber = serialNumber
             };
             
-            await Api.InitContractAsync(contractAddress, reg);
+            await Api.DeployContractAsync(contractAddress, reg);
 
             Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
@@ -171,33 +174,38 @@ namespace AElf.Contracts.Genesis
 
             await Api.DeployContractAsync(contractAddress, reg);
 
-            /*
-            // TODO: Enable back
-            // This is a quick fix, see https://github.com/AElfProject/AElf/issues/377
-            new ContractHasBeenDeployed()
-            {
-                Creator = creator,
-                Address = address,
-                CodeHash = SHA256.Create().ComputeHash(code)
-            }.Fire();
-            */
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
-        public async Task<bool> UpdateSmartContract(Address contractAddress, byte[] code)
+        public async Task<byte[]> UpdateSmartContract(Address contractAddress, byte[] code)
         {
             var isExistContract = _contractInfos.TryGet(contractAddress, out var existContract);
-            
-            Api.Assert(isExistContract,"Contract is not exist.");
-            
+
+            Api.Assert(isExistContract, "Contract is not exist.");
+
+            var fromAddress = Api.GetFromAddress();
+            var isMultiSigAccount = Api.IsMultiSigAccount(existContract.Owner);
+            if (!existContract.Owner.Equals(fromAddress))
+            {
+                Api.Assert(isMultiSigAccount, "no permission.");
+                var proposeHash = Api.Propose("UpdateSmartContract", DeployWaitingPeriod, existContract.Owner,
+                    Api.GetContractAddress(), "UpdateSmartContract", contractAddress, code);
+                return proposeHash.DumpByteArray();
+            }
+
+            if (isMultiSigAccount)
+            {
+                Api.CheckAuthority(fromAddress);
+            }
+
             var contractHash = Hash.FromRawBytes(code);
-            Api.Assert(!existContract.ContractHash.Equals(contractHash),"Contract is not changed.");
+            Api.Assert(!existContract.ContractHash.Equals(contractHash), "Contract is not changed.");
 
             existContract.ContractHash = contractHash;
             _contractInfos.SetValue(contractAddress, existContract);
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = existContract.Category,
@@ -208,13 +216,15 @@ namespace AElf.Contracts.Genesis
 
             await Api.UpdateContractAsync(contractAddress, reg);
             
-            return true;
+            Console.WriteLine("BasicContractZero - update success: " + contractAddress.GetFormatted());
+            return contractAddress.DumpByteArray();
         }
 
         public void ChangeContractOwner(Address contractAddress, Address newOwner)
         {
             var info = _contractInfos[contractAddress];
-            Api.Assert(info.Owner.Equals(Api.GetFromAddress()));
+            Api.Assert(info.Owner.Equals(Api.GetFromAddress()), "no permission.");
+            
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             _contractInfos[contractAddress] = info;
@@ -226,12 +236,14 @@ namespace AElf.Contracts.Genesis
             }.Fire();
         }
 
+        [View]
         public Address GetContractOwner(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
             return info?.Owner;
         }
         
+        [View]
         public Hash GetContractHash(Address contractAddress)
         {
             var info = _contractInfos[contractAddress];
