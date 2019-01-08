@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.ABI.CSharp\AElf.ABI.CSharp.csproj" />
       <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 
