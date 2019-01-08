@@ -101,9 +101,9 @@ namespace AElf.Kernel.Consensus
 
                     return candidates;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
+                    _logger?.Trace(ex, "No candidate, so the miners of next term will still be the initial miners.");
                     var initialMiners = _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
@@ -168,9 +168,9 @@ namespace AElf.Kernel.Consensus
                     _logger.Error("No such Block Producer in current round.");
                     return default(MinerInRound);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    _logger.Error(e, "Failed to get Block Producer information of current round.");
+                    _logger.Error(ex, "Failed to get Block Producer information of current round.");
                     return default(MinerInRound);
                 }
             }
@@ -188,8 +188,9 @@ namespace AElf.Kernel.Consensus
                     var round = Round.Parser.ParseFrom(bytes);
                     return round;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    _logger?.Trace(ex, $"Error while getting Round information of round {roundNumber.Value}.");
                     return default(Round);
                 }
             }
@@ -205,7 +206,7 @@ namespace AElf.Kernel.Consensus
                 ticketsMap[candidate] = tickets.TotalTickets;
             }
 
-            victories = ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
             return !candidates.IsInitialMiners;
         }
@@ -320,7 +321,27 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - Start");
             _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
                            $". Current height: {height}. Current term: {CurrentTermNumber.Value}");
+            _logger?.Trace(GetCurrentElectionInformation());
             _logger?.Trace("Log dpos information - End");
+        }
+
+        private string GetCurrentElectionInformation()
+        {
+            var result = "";
+            if (!TryToGetVictories(out var victories)) 
+                return result;
+
+            result += "Election information:\n";
+            foreach (var victory in victories)
+            {
+                var tickets = GetTickets(victory);
+                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == victory)
+                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
+                    
+                result += $"[{GetAlias(victory)}]\n{number}\n";
+            }
+
+            return result;
         }
 
         public Round GetCurrentRoundInfo()

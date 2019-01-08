@@ -54,10 +54,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-//            Api.Assert(ValidateMiners(term.FirstRound),
-//                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
-//            Api.Assert(ValidateMiners(term.SecondRound),
-//                $"Miners list is wrong of round {term.SecondRound.RoundNumber}.");
+            Api.Assert(ValidateMiners(term.FirstRound.RealTimeMinersInfo.Keys.ToList()),
+                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
 
             CountMissedTimeSlots();
             SnapshotAndDividends();
@@ -310,9 +308,8 @@ namespace AElf.Contracts.Consensus.Contracts
             return roundInfo;
         }
 
-        private bool ValidateMiners(Round roundInfo)
+        private bool ValidateMiners(IEnumerable<string> minersList)
         {
-            var minersList = roundInfo.RealTimeMinersInfo.Keys;
             return !GetVictories().Except(minersList).Any();
         }
 
