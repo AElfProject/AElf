@@ -181,8 +181,16 @@ namespace AElf.Contracts.Dividends
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)
         {
-            Console.WriteLine($"Allowed {dividendsAmount} dividends to term {termNumber}");
-            _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
+            Console.WriteLine($"Added {dividendsAmount} dividends to term {termNumber}");
+            if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends))
+            {
+                var finalDividends = dividends.Value + dividendsAmount;
+                _dividendsMap.SetValue(termNumber.ToUInt64Value(), finalDividends.ToUInt64Value());
+            }
+            else
+            {
+                _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
+            }
         }
 
         public void AddWeights(ulong weights, ulong termNumber)
