@@ -289,9 +289,9 @@ namespace AElf.Miner.Rpc.Client
             // Size of result is GlobalConfig.MaximalCountForIndexingParentChainBlock if it is mining process.
             int length = parentChainBlocks?.Length ?? GlobalConfig.MaximalCountForIndexingParentChainBlock;
             int i = 0;
-            while (i++ < length)
+            while (i < length)
             {
-                var pcb = parentChainBlocks?[i];
+                var pcb = parentChainBlocks?[i++];
                 var isMining = pcb == null;
                 if (!isMining && (!pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
                     return null;
