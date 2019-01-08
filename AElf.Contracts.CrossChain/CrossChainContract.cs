@@ -292,7 +292,7 @@ namespace AElf.Contracts.CrossChain
         public void IndexParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
         {
             // only miner can do this.
-            //Api.IsMiner("Not authorized to do this.");
+            Api.IsMiner("Not authorized to do this.");
             Api.Assert(parentChainBlockInfo.Length <= GlobalConfig.MaximalCountForIndexingParentChainBlock,
                 "Beyond maximal capacity for once indexing.");
             foreach (var blockInfo in parentChainBlockInfo)
@@ -331,7 +331,7 @@ namespace AElf.Contracts.CrossChain
         public byte[] IndexSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfo)
         {
             // only miner can do this.
-            //Api.IsMiner("Not authorized to do this.");
+            Api.IsMiner("Not authorized to do this.");
             Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
             //Console.WriteLine("Index side chain block..");
@@ -340,8 +340,8 @@ namespace AElf.Contracts.CrossChain
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                // Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
-                // Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
+                Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
+                Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
                 var currentHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();

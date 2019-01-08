@@ -205,7 +205,7 @@ namespace AElf.Kernel.Consensus
                 ticketsMap[candidate] = tickets.TotalTickets;
             }
 
-            victories = ticketsMap.OrderBy(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
             return !candidates.IsInitialMiners;
         }
@@ -320,7 +320,26 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - Start");
             _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
                            $". Current height: {height}. Current term: {CurrentTermNumber.Value}");
+            _logger?.Trace(GetCurrentElectionInformation());
             _logger?.Trace("Log dpos information - End");
+        }
+
+        private string GetCurrentElectionInformation()
+        {
+            var result = "";
+            if (!TryToGetVictories(out var victories)) 
+                return result;
+            
+            foreach (var victory in victories)
+            {
+                var tickets = GetTickets(victory);
+                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == victory)
+                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
+                    
+                result += $"[{GetAlias(victory)}]\n{number}\n";
+            }
+
+            return result;
         }
 
         public Round GetCurrentRoundInfo()

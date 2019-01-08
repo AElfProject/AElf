@@ -143,16 +143,6 @@ namespace AElf.Sdk.CSharp
             return miners;
         }
         
-        public static List<string> GetCurrentMiners()
-        {
-            if (Call(ConsensusContractAddress, "GetCurrentMiners"))
-            {
-                return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
-            }
-            
-            throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
-        }
-
         public static ulong GetCurrentRoundNumber()
         {
             if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
@@ -462,10 +452,10 @@ namespace AElf.Sdk.CSharp
             Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
-        /*public static void IsMiner(string err)
+        public static void IsMiner(string err)
         {
             Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
-        }*/
+        }
         
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
