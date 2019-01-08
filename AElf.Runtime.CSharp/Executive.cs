@@ -111,10 +111,6 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public void Cleanup()
-        {
-        }
-
         public async Task Apply()
         {
             if (_currentTransactionContext.CallDepth > _maxCallDepth)

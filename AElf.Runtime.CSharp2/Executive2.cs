@@ -91,7 +91,7 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public void Cleanup()
+        private void Cleanup()
         {
             _smartContractProxy.Cleanup();
         }
