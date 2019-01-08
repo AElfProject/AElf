@@ -37,7 +37,6 @@ namespace AElf.Contracts.Consensus.Contracts
             
             _collection.BlockchainStartTimestamp.SetValue(firstTerm.Timestamp);
 
-            Console.WriteLine("Set miners.");
             _collection.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
 
             SetAliases(firstTerm);
@@ -258,7 +257,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 var alias = Config.Aliases[index];
                 _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
                     new StringValue {Value = alias});
-                ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
                 index++;
             }
         }
@@ -338,8 +336,6 @@ namespace AElf.Contracts.Consensus.Contracts
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
-            Console.WriteLine($"Mined {minedBlocks} blocks in current term.");
-
             Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
 
             var candidateInTerms = new List<CandidateInTerm>();
@@ -408,8 +404,6 @@ namespace AElf.Contracts.Consensus.Contracts
             };
             
             _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
-
-            Console.WriteLine($"{currentTermNumber.Value} - {snapshot}");
 
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
         }

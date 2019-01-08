@@ -117,7 +117,6 @@ namespace AElf.Contracts.Dividends
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
             Api.Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
-            Console.WriteLine($"Tickets amount: {ticketsAmount}, Lock time: {lockTime}, Term number: {termNumber}");
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
                 if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var totalDividends))
@@ -170,7 +169,6 @@ namespace AElf.Contracts.Dividends
                     {
                         actualTermNumber = i;
                         var dividendsAmount = dividends.Value * votingRecord.Weight / totalWeights.Value;
-                        Console.WriteLine($"Transferred {dividendsAmount} dividends to {owner}");
                         Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
                     }
                 }
@@ -191,7 +189,6 @@ namespace AElf.Contracts.Dividends
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
             
-            Console.WriteLine($"Added {dividendsAmount} dividends to term {termNumber}");
         }
 
         public void AddWeights(ulong weights, ulong termNumber)
@@ -206,7 +203,6 @@ namespace AElf.Contracts.Dividends
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
             }
 
-            Console.WriteLine($"Added {weights} weights to {termNumber} term.");
         }
         
         public void KeepWeights()
@@ -216,12 +212,10 @@ namespace AElf.Contracts.Dividends
             if (_totalWeightsMap.TryGet((currentTermNumber - 1).ToUInt64Value(), out var totalWeights))
             {
                 _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), totalWeights);
-                Console.WriteLine($"Kept {totalWeights} weights to {currentTermNumber} term.");
             }
             else
             {
                 _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), ((ulong) 0).ToUInt64Value());
-                Console.WriteLine($"Kept {0} weights to {currentTermNumber} term.");
             }
         }
 

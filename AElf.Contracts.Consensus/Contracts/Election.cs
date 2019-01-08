@@ -141,11 +141,8 @@ namespace AElf.Contracts.Consensus.Contracts
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
-            Console.WriteLine("Add weights:" + votingRecord.Weight);
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
-
-            Console.WriteLine($"Voted {amount} tickets to {candidatePublicKey}.");
         }
 
         public void ReceiveDividends(string candidatePublicKey, ulong amount, int lockDays)
