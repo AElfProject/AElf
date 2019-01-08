@@ -390,7 +390,7 @@ namespace AElf.Network.Peers
                 _peers.Add(peer);
             }
 
-            Logger.LogInformation($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress}, bp: {peer.IsBp} }}");
+            Logger.LogInformation($"Peer authentified and added : {{ addr: {peer}, key: {peer.DistantNodeAddress},  bp: {peer.IsBp}, height: {peer.KnownHeight}}}");
 
             peer.MessageReceived += OnPeerMessageReceived;
 

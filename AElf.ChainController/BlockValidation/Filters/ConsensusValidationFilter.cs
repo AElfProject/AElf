@@ -118,7 +118,7 @@ namespace AElf.ChainController
 
         private async Task<BlockValidationResult> PoWValidation(IBlock block)
         {
-            return BlockValidationResult.Success;
+            return await Task.FromResult(BlockValidationResult.Success);
         }
 
         private Transaction GetTransactionToValidateBlock(BlockAbstract blockAbstract)

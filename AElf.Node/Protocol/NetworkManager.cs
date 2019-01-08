@@ -170,9 +170,9 @@ namespace AElf.Node.Protocol
                 // Note - This should not happen during header this
                 if (UnlinkableHeaderIndex != 0)
                     return;
-                
+            
                 LocalHeight = (int) inBlock.Block.Index;
-                
+            
                 DoNext(inBlock.Block);
             });
 
@@ -339,17 +339,30 @@ namespace AElf.Node.Protocol
                         return;
                 
                     Logger.LogTrace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
-                
-                    // If this peer still has announcements and the next one is the next block we need.
-                    if (CurrentSyncSource.AnyStashed)
-                    {
-                        if (CurrentSyncSource.SyncNextAnnouncement())
-                        {
-                            Logger.LogTrace($"{CurrentSyncSource} has the next block - started sync.");
-                            return;
-                        }
                     
-                        Logger.LogWarning($"{CurrentSyncSource} Failed to start announcement sync.");
+                    CurrentSyncSource = null;
+
+                    var next = _peers
+                        .Where(p => !p.IsDisposed && p.AnyStashed && p.KnownHeight > LocalHeight)
+                        .Select(p => new
+                        {
+                            PeerMinAnnouncement = p.GetLowestAnnouncement(),
+                            Peer = p
+                        })
+                        .OrderBy(p => p.PeerMinAnnouncement)
+                        .FirstOrDefault();
+
+                    if (next == null)
+                    {
+                        Logger.LogWarning($"History blocks synced and no announcements to get.");
+                    }
+                    else if (LocalHeight+1 != next.PeerMinAnnouncement)
+                    {
+                        CurrentSyncSource = next.Peer;
+                        Logger.LogDebug($"Re-sync because lowest peer, {CurrentSyncSource} is too high {next.PeerMinAnnouncement}.");
+                            
+                        CurrentSyncSource.SyncToHeight(LocalHeight+1, next.PeerMinAnnouncement-1);
+                        return;
                     }
                 }
                 else if (CurrentSyncSource.IsSyncingAnnounced)
@@ -650,7 +663,7 @@ namespace AElf.Node.Protocol
                     HandleAnnouncement(args.Message, args.Peer);
                     break;
                 case AElfProtocolMsgType.Block:
-                    MessageHub.Instance.Publish(new BlockLinked(args.Block));
+                    MessageHub.Instance.Publish(new BlockReceived(args.Block));
                     break;
                 case AElfProtocolMsgType.NewTransaction:
                     HandleNewTransaction(args.Message);
@@ -782,6 +795,31 @@ namespace AElf.Node.Protocol
 
                     if (CurrentSyncSource == null)
                     {
+                        var next = _peers
+                            .Where(p => !p.IsDisposed && p.AnyStashed && p.KnownHeight > LocalHeight)
+                            .Select(p => new {
+                                PeerMinAnnouncement = p.GetLowestAnnouncement(),
+                                Peer = p
+                            })
+                            .OrderBy(p => p.PeerMinAnnouncement)
+                            .FirstOrDefault();
+
+                        if (next == null)
+                        {
+                            Logger.LogError($"An annoucement should be stashed.");
+                            return;
+                        }
+                        
+                        if (LocalHeight+1 != next.PeerMinAnnouncement)
+                        {
+                            CurrentSyncSource = next.Peer;
+                            Logger.LogDebug($"Re-sync because next, {CurrentSyncSource} is {next.PeerMinAnnouncement}.");
+                            
+                            CurrentSyncSource.SyncToHeight(LocalHeight+1, next.PeerMinAnnouncement-1);
+                            
+                            return;
+                        }
+                        
                         CurrentSyncSource = peer;
                         CurrentSyncSource.SyncNextAnnouncement();
 
