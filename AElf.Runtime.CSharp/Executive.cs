@@ -62,21 +62,32 @@ namespace AElf.Runtime.CSharp
             _currentSmartContractContext.DataProvider.ClearCache();
         }
 
+        private T GetSetterHandler<T>(Type apiType)
+        {
+            var methodName = typeof(T).Name.Replace("Handler", "");
+            var methodInfo = apiType.GetMethod(methodName,
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+            if (methodInfo == null)
+            {
+                return (T) (object) null;
+            }
+
+            return (T) (object) Delegate.CreateDelegate(typeof(T), methodInfo);
+        }
+
         // ReSharper disable once InconsistentNaming
         internal Executive SetApi(Type ApiType)
         {
-            var scc = ApiType.GetMethod("SetSmartContractContext", BindingFlags.Public | BindingFlags.Static);
-            var stc = ApiType.GetMethod("SetTransactionContext", BindingFlags.Public | BindingFlags.Static);
-            var scch = Delegate.CreateDelegate(typeof(SetSmartContractContextHandler), scc);
-            var stch = Delegate.CreateDelegate(typeof(SetTransactionContextHandler), stc);
+            var setSmartContractContext = GetSetterHandler<SetSmartContractContextHandler>(ApiType);
+            var setTransactionContext = GetSetterHandler<SetTransactionContextHandler>(ApiType);
 
-            if (scch == null || stch == null)
+            if (setSmartContractContext == null || setTransactionContext == null)
             {
                 throw new InvalidOperationException("Input is not a valid Api type");
             }
 
-            _setSmartContractContextHandler = (SetSmartContractContextHandler) scch;
-            _setTransactionContextHandler = (SetTransactionContextHandler) stch;
+            _setSmartContractContextHandler = setSmartContractContext;
+            _setTransactionContextHandler = setTransactionContext;
             return this;
         }
 

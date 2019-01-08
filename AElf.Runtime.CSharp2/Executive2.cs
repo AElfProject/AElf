@@ -55,20 +55,6 @@ namespace AElf.Runtime.CSharp
             _stateManager.Cache = cache;
         }
 
-        private T GetHandler<T>(Type apiType)
-        {
-            var methodName = nameof(T).Replace("Handler", "");
-            var methodInfo = apiType.GetMethod(methodName,
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-            return (T) (object) Delegate.CreateDelegate(typeof(T), methodInfo);
-        }
-
-        // ReSharper disable once InconsistentNaming
-        public Executive2 SetApi(Type ApiType)
-        {
-            return this;
-        }
-
         public Executive2 SetSmartContract(ISmartContract smartContract)
         {
             _smartContract = smartContract;
