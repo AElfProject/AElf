@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;
 
 namespace AElf.FullNodeHosting
@@ -19,24 +20,25 @@ namespace AElf.FullNodeHosting
         {
             services.AddApplication<FullNodeHostingAElfModule>(options =>
             {
+                options.Services
+                    .RemoveAll((
+                        p => p.ServiceType == typeof(IServiceProviderFactory<IServiceCollection>)));
                 options.UseAutofac();
             });
 
-            return services.BuildAutofacServiceProvider();
+            return services.BuildServiceProviderFromFactory();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            
-            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             var service = app.ApplicationServices;
-            
+
 
             //app.Run(async (context) => { await context.Response.WriteAsync("Hello World!"); });
 
