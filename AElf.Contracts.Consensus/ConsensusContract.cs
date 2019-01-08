@@ -171,8 +171,8 @@ namespace AElf.Contracts.Consensus
                             .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
 
                         info.CurrentVotesNumber = number;
-                        result.Maps.Add(candidate, info);
                     }
+                    result.Maps.Add(candidate, info);
                 }
             }
 

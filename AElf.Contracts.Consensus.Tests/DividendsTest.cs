@@ -139,6 +139,8 @@ namespace AElf.Contracts.Consensus.Tests
 
             var dkw1 = _contracts.CheckDividendsOfPreviousTerm();
 
+            var dkw2 = _contracts.CheckDividendsOfPreviousTermToFriendlyString();
+            
             var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(standardDividendsOfPreviousTerm > 0);

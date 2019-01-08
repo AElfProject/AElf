@@ -342,6 +342,12 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<ULongList>();
         }
 
+        public string CheckDividendsOfPreviousTermToFriendlyString()
+        {
+            ExecuteAction(DividendsContractAddress, nameof(CheckDividendsOfPreviousTermToFriendlyString), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
+        }
+
         public ulong CheckStandardDividends(ulong termNumber)
         {
             ExecuteAction(DividendsContractAddress, nameof(CheckStandardDividends), SenderKeyPair, termNumber);
