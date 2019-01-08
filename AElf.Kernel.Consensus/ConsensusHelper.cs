@@ -101,9 +101,9 @@ namespace AElf.Kernel.Consensus
 
                     return candidates;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    _logger?.Trace(ex, "No candidate, so the miners of next term will still be the initial miners.");
+                    _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
                     var initialMiners = _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
@@ -111,7 +111,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        private Round CurrentRoundInfo
+        private Round CurrentRoundInformation
         {
             get
             {
@@ -302,7 +302,7 @@ namespace AElf.Kernel.Consensus
         /// <returns></returns>
         public bool CanRecoverDPoSInformation()
         {
-            return false;
+            return GlobalConfig.BlockProducerNumber == 1;
         }
 
         public ulong CalculateBlockchainAge()

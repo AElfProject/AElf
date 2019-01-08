@@ -111,16 +111,24 @@ namespace AElf.Kernel.Consensus
             return Observable.Return(ConsensusBehavior.NextTerm).Subscribe(this);
         }
 
-        public IDisposable SubscribeMiningProcess(Round roundInfo)
+        public IDisposable SubscribeMiningProcess(Round roundInformation)
         {
-            var publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
-            if (!roundInfo.RealTimeMinersInfo.ContainsKey(publicKey))
+            if (roundInformation?.RealTimeMinersInfo == null)
             {
                 return null;
             }
-            var welcome = roundInfo.RealTimeMinersInfo[publicKey];
-            var extraBlockTimeSlot = roundInfo.GetEBPMiningTime(Interval).ToTimestamp();
-            var myMiningTime = welcome.ExpectedMiningTime;
+            
+            var publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
+            
+            if (!roundInformation.RealTimeMinersInfo.ContainsKey(publicKey))
+            {
+                // This node isn't current miner.
+                return null;
+            }
+            
+            var profile = roundInformation.RealTimeMinersInfo[publicKey];
+            var extraBlockTimeSlot = roundInformation.GetEBPMiningTime(Interval).ToTimestamp();
+            var myMiningTime = profile.ExpectedMiningTime;
             var now = DateTime.UtcNow.ToTimestamp();
             var distanceToProduceNormalBlock = (myMiningTime - now).Seconds;
 
@@ -134,6 +142,14 @@ namespace AElf.Kernel.Consensus
                 _logger?.Trace($"Will produce normal block after {distanceToProduceNormalBlock} seconds - " +
                                $"{myMiningTime.ToDateTime():HH:mm:ss.fff}.");
             }
+            else
+            {
+                // Single node can recover mining if something wrong happened to the process of node.
+                if (GlobalConfig.BlockProducerNumber == 1)
+                {
+                    return RecoverMining();
+                }
+            }
 
             var distanceToProduceExtraBlock = (extraBlockTimeSlot - now).Seconds;
 
@@ -142,7 +158,7 @@ namespace AElf.Kernel.Consensus
             {
                 // No time, give up.
             }
-            else if (welcome.IsExtraBlockProducer)
+            else if (profile.IsExtraBlockProducer)
             {
                 if (distanceToProduceExtraBlock >= 0)
                 {
@@ -155,14 +171,14 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                var distanceToHelpProducingExtraBlock = distanceToProduceExtraBlock + Interval * welcome.Order / 1000;
+                var distanceToHelpProducingExtraBlock = distanceToProduceExtraBlock + Interval * profile.Order / 1000;
                 if (distanceToHelpProducingExtraBlock >= 0)
                 {
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
                     _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
-                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * welcome.Order):HH:mm:ss.fff}");
+                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * profile.Order):HH:mm:ss.fff}");
                 }
             }
 
