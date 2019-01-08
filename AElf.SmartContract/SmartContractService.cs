@@ -227,21 +227,18 @@ namespace AElf.SmartContract
                 }
             };
 
-            Task.Factory.StartNew(async () =>
+            var executive = await GetExecutiveAsync(contractAddress, chainId);
+            var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
+            dataProvider.StateManager = _stateManager;
+            executive.SetDataCache(dataProvider.StateCache);
+            try
             {
-                var executive = await GetExecutiveAsync(contractAddress, chainId);
-                var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
-                dataProvider.StateManager = _stateManager;
-                executive.SetDataCache(dataProvider.StateCache);
-                try
-                {
-                    await executive.SetTransactionContext(smartContractContext).Apply();
-                }
-                finally
-                {
-                    await PutExecutiveAsync(chainId, contractAddress, executive);
-                }
-            }).Unwrap().Wait();
+                await executive.SetTransactionContext(smartContractContext).Apply();
+            }
+            finally
+            {
+                await PutExecutiveAsync(chainId, contractAddress, executive);
+            }
 
             if (!isReadonly && smartContractContext.Trace.IsSuccessful())
             {
