@@ -17,7 +17,7 @@ else
 fi
 
 echo "Pull latest aelf/node image ..."
-sudo docker pull aelf/node:dev-v0.1.1
+sudo docker pull aelf/node:latest
 
 echo "Check docker environment ..."
 app=`sudo docker -v |grep version |wc -l`
@@ -40,4 +40,4 @@ then
 fi
 
 echo "Start launcher container ..."
-sudo docker run -it -p 6800:6800 -v /home/aelf:/app/aelf -v /home/aelf/ChainInfo.json:/app/ChainInfo.json --name aelf-node-launcher aelf/node:dev-v0.1.1 dotnet AElf.Launcher.dll -t keyvalue --host 0.0.0.0 --b 172.31.13.96:6800 172.31.15.149:6800 172.31.7.19:6800 -m true --nodeaccount $ACCOUNT --port 6800 --rpc.port $PORT
+sudo docker run -it -p 6800:6800 -v /Users/peng/.local/share/aelf:/app/aelf --name aelf-node-launcher aelf/node:latest dotnet AElf.Launcher.dll --db.type inmemory --node.account $ACCOUNT --mine.enable true --node.port 6800 --rpc.host 0.0.0.0 --rpc.port $PORT

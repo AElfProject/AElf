@@ -2,6 +2,7 @@
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Tests;
 using AElf.SmartContract;
 using Autofac;
 using Xunit;
@@ -42,11 +43,12 @@ namespace AElf.Runtime.CSharp2.Tests
             builder.RegisterModule(new SmartContractAutofacModule());
             
             var smartContractRunnerFactory = new SmartContractRunnerContainer();
+            var runner0 = new SmartContractRunner(ContractCodes.TestContractZeroFolder);
             var runner = new SmartContractRunnerForCategoryTwo(
                 "../../../../AElf.Sdk.CSharp2.Tests.TestContract/bin/Debug/netstandard2.0/"
             );
-            smartContractRunnerFactory.AddRunner(0, runner);
-            smartContractRunnerFactory.AddRunner(1, runner);
+            smartContractRunnerFactory.AddRunner(0, runner0);
+            smartContractRunnerFactory.AddRunner(2, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerContainer>().SingleInstance();
             // configure your container
             // e.g. builder.RegisterModule<TestOverrideModule>();

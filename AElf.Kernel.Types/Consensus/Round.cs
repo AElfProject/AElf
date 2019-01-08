@@ -79,7 +79,7 @@ namespace AElf.Kernel
             {
                 if (minerInRound.Value.Signature == null)
                 {
-                    throw new Exception("Signature can't be null.");
+                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
                 }
             }
             
@@ -90,13 +90,27 @@ namespace AElf.Kernel
 
         public Hash MinersHash()
         {
-            return Hash.FromMessage(RealTimeMinersInfo.Keys.ToMiners());
+            return Hash.FromMessage(RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
         }
 
         public ulong GetMinedBlocks()
         {
             return RealTimeMinersInfo.Values.Select(mi => mi.ProducedBlocks)
                 .Aggregate<ulong, ulong>(0, (current, @ulong) => current + @ulong);
+        }
+
+        public bool CheckWhetherMostMinersMissedTimeSlots()
+        {
+            var missedMinersCount = 0;
+            foreach (var minerInRound in RealTimeMinersInfo)
+            {
+                if (minerInRound.Value.LatestMissedTimeSlots == GlobalConfig.ForkDetectionRoundNumber)
+                {
+                    missedMinersCount++;
+                }
+            }
+
+            return missedMinersCount >= GlobalConfig.BlockProducerNumber - 1;
         }
     }
 }

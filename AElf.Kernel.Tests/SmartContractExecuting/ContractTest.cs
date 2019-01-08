@@ -52,7 +52,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             _chainContextService = chainContextService;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager, _functionMetadataService);
+            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager, _functionMetadataService, _chainService);
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             var chain = await _chainCreationService.CreateNewChainAsync(ChainId, new List<SmartContractRegistration>{reg});
            
             var contractAddressZero = ContractHelpers.GetSystemContractAddress(ChainId, GlobalConfig.GenesisBasicContract);
-            var copy = await _smartContractManager.GetAsync(contractAddressZero);
+            var copy = await _smartContractManager.GetAsync(reg.ContractHash);
 
             // throw exception if not registered
             Assert.Equal(reg, copy);
@@ -113,7 +113,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateManager);
+            await txnCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             
             Assert.True(string.IsNullOrEmpty(txnCtxt.Trace.StdErr));
             
@@ -125,8 +125,8 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 ContractBytes = ByteString.CopyFrom(code),
                 ContractHash = Hash.FromRawBytes(code)
             };
-            var copy = await _smartContractManager.GetAsync(address);
-
+            var copy = await _smartContractService.GetContractByAddressAsync(ChainId, address);
+            
             Assert.Equal(regExample.ContractHash, copy.ContractHash);
             Assert.Equal(regExample.ContractBytes, copy.ContractBytes);
         }
@@ -166,7 +166,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
 
             var executive = await _smartContractService.GetExecutiveAsync(contractAddressZero, ChainId);
             await executive.SetTransactionContext(txnCtxt).Apply();
-            await txnCtxt.Trace.CommitChangesAsync(_stateManager);
+            await txnCtxt.Trace.SmartCommitChangesAsync(_stateManager);
 
             var returnVal = txnCtxt.Trace.RetVal;
             var address = Address.FromBytes(returnVal.Data.DeserializeToBytes());
@@ -187,7 +187,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             };
             var executiveUser = await _smartContractService.GetExecutiveAsync(address, ChainId);
             await executiveUser.SetTransactionContext(txnInitCtxt).Apply();
-            await txnInitCtxt.Trace.CommitChangesAsync(_stateManager);
+            await txnInitCtxt.Trace.SmartCommitChangesAsync(_stateManager);
             
             #endregion initialize account balance
 
@@ -223,7 +223,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
                 Transaction = txnBal
             };
             await executiveUser.SetTransactionContext(txnPrintcxt).Apply();
-            await txnPrintcxt.Trace.CommitChangesAsync(_stateManager);
+            await txnPrintcxt.Trace.SmartCommitChangesAsync(_stateManager);
 
             //Assert.Equal((ulong)101, txnBalCtxt.Trace.RetVal.DeserializeToUInt64());
             #endregion

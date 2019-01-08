@@ -11,6 +11,8 @@ namespace AElf.Kernel.Types.Transaction
         private static Address CrossChainContractAddress { get; } =
             ContractHelpers.GetCrossChainContractAddress(ChainId);
 
+        private static Address TokenContractAddress { get; } = ContractHelpers.GetTokenContractAddress(ChainId);
+
         public static bool IsDposTransaction(this Kernel.Transaction transaction)
         {
             return transaction.To.Equals(DPosContractAddress);
@@ -21,7 +23,7 @@ namespace AElf.Kernel.Types.Transaction
             return transaction.To.Equals(CrossChainContractAddress) &&
                    transaction.MethodName.Equals(ContractHelpers.IndexingSideChainMethodName);
         }
-        
+
         public static bool IsIndexingParentChainTransaction(this Kernel.Transaction transaction)
         {
             return transaction.To.Equals(CrossChainContractAddress) &&
@@ -32,10 +34,15 @@ namespace AElf.Kernel.Types.Transaction
         {
             return transaction.IsIndexingParentChainTransaction() || transaction.IsIndexingSideChainTransaction();
         }
-        
+
         public static bool IsSystemTransaction(this Kernel.Transaction transaction)
         {
             return transaction.IsDposTransaction() || transaction.IsCrossChainIndexingTransaction();
+        }
+
+        public static bool IsClaimFeesTransaction(this Kernel.Transaction transaction)
+        {
+            return transaction.To.Equals(TokenContractAddress) && transaction.MethodName.Equals("ClaimTransactionFees");
         }
     }
 }

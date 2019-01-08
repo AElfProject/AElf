@@ -129,7 +129,11 @@ namespace AElf.Network.Peers
         /// The data received in the handshake message.
         /// </summary>
         [JsonProperty(PropertyName = "address")]
-        public NodeData DistantNodeData => _lastReceivedHandshake?.NodeInfo;
+        public NodeData DistantNodeData => _lastReceivedHandshake?.NodeInfo ?? new NodeData
+        {
+            IpAddress = IsDisposed ? "disposed" : ((IPEndPoint)_client.Client.RemoteEndPoint).Address.ToString(),
+            Port = IsDisposed ? 0 : ((IPEndPoint)_client.Client.RemoteEndPoint).Port
+        };
 
         private Handshake _lastReceivedHandshake;
 

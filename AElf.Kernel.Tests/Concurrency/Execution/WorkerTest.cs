@@ -37,7 +37,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             var tx1 = _mock.GetTransferTxn1(from, to, 10);
 
             _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, new List<Transaction>() {tx1}, TestActor,
-                TestActor));
+                TestActor, DateTime.UtcNow, null, TransactionType.ContractTransaction, true));
 
 /*
  Temporarily disabled.
@@ -115,7 +115,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 tx3
             };
 
-            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor, TestActor));
+            _mock.Worker1.Tell(new JobExecutionRequest(0, _mock.ChainId1, job1, TestActor, TestActor, DateTime.UtcNow, null, TransactionType.ContractTransaction, true));
 
             // Start processing
 

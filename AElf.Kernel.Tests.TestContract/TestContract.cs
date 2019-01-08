@@ -4,6 +4,7 @@ using AElf.Types.CSharp.MetadataAttribute;
 using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Tests.TestContract
@@ -23,6 +24,7 @@ namespace AElf.Kernel.Tests.TestContract
         public MapToString<Hash> TransactionEndTimes = new MapToString<Hash>("TransactionEndTimes");
 
         [SmartContractFunction("${this}.Initialize", new string[]{}, new []{"${this}.Balances"})]
+        [Fee(0)]
         public bool Initialize(Address account, UInt64Value qty)
         {
             Console.WriteLine($"Initialize {account.GetFormatted()} to {qty.Value}");
@@ -30,12 +32,14 @@ namespace AElf.Kernel.Tests.TestContract
             return true;
         }
 
+        [Fee(0)]
         public void SleepMilliseconds(int milliSeconds)
         {
             // Used to test timeout
             Api.Sleep(milliSeconds);
         }
 
+        [Fee(0)]
         public string NoAction()
         {
             // Don't delete, this is needed to test placeholder transactions
@@ -45,6 +49,7 @@ namespace AElf.Kernel.Tests.TestContract
         }
         
         [SmartContractFunction("${this}.Transfer", new string[]{}, new []{"${this}.Balances", "${this}.TransactionStartTimes", "${this}.TransactionEndTimes"})]
+        [Fee(0)]
         public bool Transfer(Address from, Address to, UInt64Value qty)
         {
             Console.WriteLine("From: " + from.GetFormatted());
@@ -74,6 +79,7 @@ namespace AElf.Kernel.Tests.TestContract
         }
 
         [SmartContractFunction("${this}.GetBalance", new string[]{}, new []{"${this}.Balances"})]
+        [Fee(0)]
         public ulong GetBalance(Address account)
         {
             var b = Balances.GetValue(account);
@@ -82,6 +88,7 @@ namespace AElf.Kernel.Tests.TestContract
         }
 
         [SmartContractFunction("${this}.GetTransactionStartTime", new string[]{}, new []{"${this}.TransactionStartTimes"})]
+        [Fee(0)]
         public string GetTransactionStartTime(Hash transactionHash)
         {
             var startTime = TransactionStartTimes.GetValue(transactionHash);
@@ -89,6 +96,7 @@ namespace AElf.Kernel.Tests.TestContract
         }
 
         [SmartContractFunction("${this}.GetTransactionEndTime", new string[]{}, new []{"${this}.TransactionEndTimes"})]
+        [Fee(0)]
         public string GetTransactionEndTime(Hash transactionHash)
         {
             var endTime = TransactionEndTimes.GetValue(transactionHash);
@@ -101,11 +109,13 @@ namespace AElf.Kernel.Tests.TestContract
             return dtStr;
         }
 
+        [Fee(0)]
         public void Print(string name)
         {
             Console.WriteLine("Hello, {0}", name);
         }
 
+        [Fee(0)]
         public void InlineTxnBackToSelf(int recurseCount)
         {
             if (recurseCount > 0)

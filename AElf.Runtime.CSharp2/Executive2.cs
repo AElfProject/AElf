@@ -194,6 +194,16 @@ namespace AElf.Runtime.CSharp
             _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 
+        public ulong GetFee(string methodName)
+        {
+            if (!_methodMap.TryGetValue(methodName, out var methodAbi))
+            {
+                throw new InvalidMethodNameException($"Method name {methodName} not found.");
+            }
+
+            return methodAbi.Fee;
+        }
+
         #region Cached handlers for this contract
 
         private readonly Dictionary<Method, Func<byte[], Task<RetVal>>> _asyncHandlersCache =

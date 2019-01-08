@@ -2,77 +2,89 @@
 
 ## Available Methods
 
-### GetTermDividends
+### `GetTermDividends`
 
 Params:
-- ulong termNumber
+- `ulong` termNumber
 
 Result type:
-- ulong
+- `ulong`
 
 To get the max dividends of provided term number.
 
 The dividends amount of specific term depends of mined blocks of this term.
 
-### GetTermTotalWeights
+### `GetTermTotalWeights`
 
 Params:
-- ulong termNumber
+- `ulong` termNumber
 
 Result type:
-- ulong
+- `ulong`
 
 To get the total weights of provided term number.
 
-### GetAvailableDividends
+### `GetAvailableDividends`
 
 Params:
-- VotingRecord votingRecord
+- `VotingRecord` votingRecord
 
 Result type:
-- ulong
+- `ulong`
 
 To get current available dividends of the provided VotingRecord instance.
 
-### CheckStandardDividends
+### `GetAvailableDividendsByVotingInformation`
 
 Params:
-- ulong termNumber
+- `Hash` transctionId
+- `ulong` termNumber
+- `ulong` weight
 
 Result type:
-- ulong
+- `ulong`
+
+To get current available dividends of the provided voting information.
+
+### `CheckStandardDividends`
+
+Params:
+- `ulong` termNumber
+
+Result type:
+- `ulong`
 
 To check the final dividends of 10,000 tickets locking 90 days of provided term.
 
-### CheckStandardDividendsOfPreviousTerm
+### `CheckStandardDividendsOfPreviousTerm`
 
 *No params*
 
 Result type:
-- ulong
+- `ulong`
 
 To check the final dividends of 10,000 tickets locking 90 days of previous term.
 
-### CheckDividends
+### `CheckDividends`
 
 Params:
-- ulong ticketsAmount
-- int lockTime
-- ulong termNumber
+- `ulong` ticketsAmount
+- `int` lockTime
+- `ulong` termNumber
 
 Result type:
-- ulong
+- `ulong`
 
 To check the final dividends of a given voting of provided term.
 
-### CheckDividendsOfPreviousTerm
+### `CheckDividendsOfPreviousTerm`
 
 Params:
-- ulong ticketsAmount
-- int lockTime
+- `ulong` ticketsAmount
+- `int` lockTime
 
 Result type:
-- ulong
+- `ulong`
 
 To check the final dividends of a given voting of previous term.
 
@@ -96,77 +108,89 @@ To check the final dividends of a given voting of previous term.
 
 ## 可用方法
 
-### GetTermDividends
+### `GetTermDividends`
 
 参数:
-- ulong termNumber
+- `ulong` termNumber
 
 返回类型:
-- ulong
+- `ulong`
 
 获取某一届为分配的最大出块奖励分红额度。
 
 某届的出块奖励分红额度取决于这一届出块数量。
 
-### GetTermTotalWeights
+### `GetTermTotalWeights`
 
 参数:
-- ulong termNumber
+- `ulong` termNumber
 
 返回类型:
-- ulong
+- `ulong`
 
 获取某一届的投票的总权重。
 
-### GetAvailableDividends
+### `GetAvailableDividends`
 
 参数:
-- VotingRecord votingRecord
+- `VotingRecord` votingRecord
 
 返回类型:
-- ulong
+- `ulong`
 
 用于获取所提供VotingRecord实例当前可领取的出块奖励分红。
 
-### CheckStandardDividends
+### `GetAvailableDividendsByVotingInformation`
 
-参数:
-- ulong termNumber
+参数：
+- `Hash` transctionId
+- `ulong` termNumber
+- `ulong` weight
 
 返回类型:
-- ulong
+- `ulong`
+
+用于获取所提供投票信息相关投票实例当前可领取的出块奖励分红。
+
+### `CheckStandardDividends`
+
+参数:
+- `ulong` termNumber
+
+返回类型:
+- `ulong`
 
 查看10000票、锁仓90天在提供届可领取的出块奖励分红。
 
-### CheckStandardDividendsOfPreviousTerm
+### `CheckStandardDividendsOfPreviousTerm`
 
 *无参数*
 
 返回类型:
-- ulong
+- `ulong`
 
 查看10000票、锁仓90天在上一届可领取的出块奖励分红。
 
-### CheckDividends
+### `CheckDividends`
 
 参数:
-- ulong ticketsAmount
-- int lockTime
-- ulong termNumber
+- `ulong` ticketsAmount
+- `int` lockTime
+- `ulong` termNumber
 
 返回类型:
-- ulong
+- `ulong`
 
 查看某投票参数在某一届可领取的出块奖励分红。
 
-### CheckDividendsOfPreviousTerm
+### `CheckDividendsOfPreviousTerm`
 
 参数:
-- ulong ticketsAmount
-- int lockTime
+- `ulong` ticketsAmount
+- `int` lockTime
 
 返回类型:
-- ulong
+- `ulong`
 
 查看某投票参数在上一届可领取的出块奖励分红。
 

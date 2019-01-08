@@ -1,3 +1,0 @@
-[submodule "AElf.CLI2/aelf-sdk"]
-	path = AElf.CLI2/aelf-sdk
-	url = https://github.com/AElfProject/aelf-sdk.js.git

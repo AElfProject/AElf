@@ -100,7 +100,7 @@ namespace AElf.Runtime.CSharp2.Tests
             Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
             Console.WriteLine(tc.Trace);
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
         }
 
         public bool Transfer(Address from, Address to, ulong qty)
@@ -119,7 +119,7 @@ namespace AElf.Runtime.CSharp2.Tests
             };
             Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
-            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
 

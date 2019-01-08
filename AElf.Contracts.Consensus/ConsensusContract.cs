@@ -22,10 +22,12 @@ namespace AElf.Contracts.Consensus
             CandidatesField = new PbField<Candidates>(GlobalConfig.AElfDPoSCandidatesString),
             TermNumberLookupField = new PbField<TermNumberLookUp>(GlobalConfig.AElfDPoSTermNumberLookupString),
             AgeField = new UInt64Field(GlobalConfig.AElfDPoSAgeFieldString),
-            CurrentTermNumberField= new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
-            BlockchainStartTimestamp= new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
+            CurrentTermNumberField = new UInt64Field(GlobalConfig.AElfDPoSCurrentTermNumber),
+            BlockchainStartTimestamp = new PbField<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp),
             VotesCountField = new UInt64Field(GlobalConfig.AElfVotesCountString),
             TicketsCountField = new UInt64Field(GlobalConfig.AElfTicketsCountString),
+            // TODO: To implement.
+            TwoThirdsMinersMinedCurrentTermField = new BoolField(GlobalConfig.AElfTwoThirdsMinerMinedString),
 
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
@@ -34,27 +36,38 @@ namespace AElf.Contracts.Consensus
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
             AliasesLookupMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesLookupMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
+            AgeToRoundNumberMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSAgeToRoundNumberMapString)
         };
 
         private Process Process => new Process(Collection);
 
         private Election Election => new Election(Collection);
+        
+        private Validation Validation => new Validation(Collection);
 
         #region Process
         
         [View]
         public Round GetRoundInfo(ulong roundNumber)
         {
-            Api.Assert(Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo), GlobalConfig.RoundNumberNotFound);
-            return roundInfo;
+            if (Collection.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out var roundInfo))
+            {
+                return roundInfo;
+            }
+            
+            return new Round
+            {
+                Remark = "Round information not found."
+            };
         }
 
         [View]
-        public ulong GetCurrentRoundNumber(string empty)
+        public ulong GetCurrentRoundNumber()
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
-        
+
+        [Fee(0)]
         public void InitialTerm(Term term, int logLevel)
         {
             Api.Assert(term.FirstRound.RoundNumber == 1);
@@ -62,28 +75,32 @@ namespace AElf.Contracts.Consensus
             
             Process.InitialTerm(term, logLevel);
         }
-        
+
+        [Fee(0)]
         public void NextTerm(Term term)
         {
             Process.NextTerm(term);
         }
 
+        [Fee(0)]
         public void NextRound(Forwarding forwarding)
         {
             Process.NextRound(forwarding);
         }
 
+        [Fee(0)]
         public void PackageOutValue(ToPackage toPackage)
         {
             Process.PublishOutValue(toPackage);
         }
 
+        [Fee(0)]
         public void BroadcastInValue(ToBroadcast toBroadcast)
         {
             Process.PublishInValue(toBroadcast);
         }
         
-        #endregion
+        #endregion Process
 
         #region Election
         
@@ -100,67 +117,202 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public StringList GetCandidatesList(string empty)
+        public StringList GetCandidatesList()
         {
             return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
+        }
+        
+        [View]
+        public string GetCandidatesListToFriendlyString()
+        {
+            return GetCandidatesList().ToString();
         }
 
         [View]
         public CandidateInHistory GetCandidateHistoryInfo(string publicKey)
         {
-            Api.Assert(Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info),
-                GlobalConfig.CandidateNotFound);
-            return info;
+            if (Collection.HistoryMap.TryGet(publicKey.ToStringValue(), out var info))
+            {
+                return info;
+            }
+
+            return new CandidateInHistory
+            {
+                PublicKey = publicKey,
+                ContinualAppointmentCount = 0,
+                MissedTimeSlots = 0,
+                ProducedBlocks = 0,
+                ReappointmentCount = 0
+            };
         }
 
         [View]
-        public Miners GetCurrentMiners(string empty)
+        public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
+        {
+            return GetCandidateHistoryInfo(publicKey).ToString();
+        }
+
+        [View]
+        public Miners GetCurrentMiners()
         {
             var currentTermNumber = Collection.CurrentTermNumberField.GetValue();
-            Api.Assert(Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners),
-                GlobalConfig.TermNumberNotFound);
-            return currentMiners;
+            if (currentTermNumber == 0)
+            {
+                currentTermNumber = 1;
+            }
+
+            if (Collection.MinersMap.TryGet(currentTermNumber.ToUInt64Value(), out var currentMiners))
+            {
+                return currentMiners;
+            }
+            
+            return new Miners
+            {
+                Remark = "Can't get current miners."
+            };
+        }
+        
+        [View]
+        public string GetCurrentMinersToFriendlyString()
+        {
+            return GetCurrentMiners().ToString();
         }
 
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
-            Api.Assert(Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets), GlobalConfig.TicketsNotFound);
-            return tickets;
-        }
-
-        [View]
-        public TicketsDictionary GetCurrentElectionInfo(string empty)
-        {
-            var dict = new Dictionary<string, Tickets>();
-            foreach (var publicKey in Collection.CandidatesField.GetValue().PublicKeys)
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
-                {
-                    dict.Add(publicKey, tickets);
-                }
+                return tickets;
             }
 
-            return dict.ToTicketsDictionary();
+            return new Tickets
+            {
+                TotalTickets = 0
+            };
         }
         
         [View]
-        public ulong GetBlockchainAge(string empty)
+        public string GetTicketsInfoToFriendlyString(string publicKey)
+        {
+            return GetTicketsInfo(publicKey).ToString();
+        }
+
+        /// <summary>
+        /// Order by:
+        /// 0 - Announcement order. (Default)
+        /// 1 - Tickets count ascending.
+        /// 2 - Tickets count descending.
+        /// </summary>
+        /// <param name="startIndex"></param>
+        /// <param name="length"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
+        [View]
+        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            if (orderBy == 0)
+            {
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
+                {
+                    length = publicKeys.Count;
+                }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.ToTicketsDictionary();
+            }
+
+            if (orderBy == 1)
+            {
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
+                {
+                    length = publicKeys.Count;
+                }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys)
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.OrderBy(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
+            }
+            
+            if (orderBy == 2)
+            {
+                var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
+                if (length == 0)
+                {
+                    length = publicKeys.Count;
+                }
+                var dict = new Dictionary<string, Tickets>();
+                foreach (var publicKey in publicKeys)
+                {
+                    if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+                    {
+                        dict.Add(publicKey, tickets);
+                    }
+                }
+
+                return dict.OrderByDescending(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
+            }
+
+            return new Dictionary<string, Tickets>().ToTicketsDictionary();
+        }
+        
+        [View]
+        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
+        {
+            return GetCurrentElectionInfo(startIndex, length, orderBy).ToString();
+        }
+        
+        [View]
+        public ulong GetBlockchainAge()
         {
             return Collection.AgeField.GetValue();
         }
 
         [View]
-        public StringList GetCurrentVictories(string empty)
+        public StringList GetCurrentVictories()
         {
-            return Process.GetCurrentVictories();
+            return Process.GetVictories().ToStringList();
+        }
+        
+        [View]
+        public string GetCurrentVictoriesToFriendlyString()
+        {
+            return GetCurrentVictories().ToString();
         }
   
         [View]
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            Api.Assert(Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot), GlobalConfig.TermSnapshotNotFound);
-            return snapshot;
+            if (Collection.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot))
+            {
+                return snapshot;
+            }
+            
+            return new TermSnapshot
+            {
+                Remark = "Invalid term number."
+            };
+        }
+        
+        [View]
+        public string GetTermSnapshotToFriendlyString(ulong termNumber)
+        {
+            return GetTermSnapshot(termNumber).ToString();
         }
 
         [View]
@@ -168,39 +320,39 @@ namespace AElf.Contracts.Consensus
         {
             var map = Collection.TermNumberLookupField.GetValue().Map;
             Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
-            return map?.OrderBy(p => p.Key).First(p => roundNumber >= p.Value).Key ?? (ulong) 0;
+            return map?.OrderBy(p => p.Key).Last(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
         
         [View]
-        public ulong GetVotesCount(string empty)
+        public ulong GetVotesCount()
         {
             return Collection.VotesCountField.GetValue();
         }
 
         [View]
-        public ulong GetTicketsCount(string empty)
+        public ulong GetTicketsCount()
         {
             return Collection.TicketsCountField.GetValue();
         }
 
         [View]
-        public ulong QueryCurrentDividendsForVoters(string empty)
+        public ulong QueryCurrentDividendsForVoters()
         {
-            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber(empty).ToUInt64Value(), out var roundInfo)
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
                 ? Config.GetDividendsForVoters(roundInfo.GetMinedBlocks())
                 : 0;
         }
 
         [View]
-        public ulong QueryCurrentDividends(string empty)
+        public ulong QueryCurrentDividends()
         {
-            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber(empty).ToUInt64Value(), out var roundInfo)
+            return Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var roundInfo)
                 ? Config.GetDividendsForAll(roundInfo.GetMinedBlocks())
                 : 0;
         }
 
         [View]
-        public StringList QueryAliasesInUse(string empty)
+        public StringList QueryAliasesInUse()
         {
             var candidates = Collection.CandidatesField.GetValue();
             var result = new StringList();
@@ -214,13 +366,33 @@ namespace AElf.Contracts.Consensus
 
             return result;
         }
+
+        [View]
+        public ulong QueryMinedBlockCountInCurrentTerm(string publicKey)
+        {
+            if (Collection.RoundsMap.TryGet(GetCurrentRoundNumber().ToUInt64Value(), out var round))
+            {
+                if (round.RealTimeMinersInfo.ContainsKey(publicKey))
+                {
+                    return round.RealTimeMinersInfo[publicKey].ProducedBlocks;
+                }
+            }
+
+            return 0;
+        }
+        
+        [View]
+        public string QueryAliasesInUseToFriendlyString()
+        {
+            return QueryAliasesInUse().ToString();
+        }
         
         public void AnnounceElection(string alias)
         {
             Election.AnnounceElection(alias);
         }
 
-        public void QuitElection(string empty)
+        public void QuitElection()
         {
             Election.QuitElection();
         }
@@ -230,19 +402,19 @@ namespace AElf.Contracts.Consensus
             Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        public void GetDividendsByDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public void ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
-            Election.GetDividends(candidatePublicKey, amount, lockDays);
+            Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
         }
 
-        public void GetDividendsByTransactionId(Hash transactionId)
+        public void ReceiveDividendsByTransactionId(Hash transactionId)
         {
-            Election.GetDividends(transactionId);
+            Election.ReceiveDividends(transactionId);
         }
         
-        public void GetAllDividends(string empty)
+        public void ReceiveAllDividends()
         {
-            Election.GetDividends();
+            Election.ReceiveDividends();
         }
         
         public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
@@ -255,11 +427,31 @@ namespace AElf.Contracts.Consensus
             Election.Withdraw(transactionId);
         }
 
-        public void WithdrawAll(string empty)
+        public void WithdrawAll(bool withoutLimitation)
         {
-            Election.Withdraw();
+            Election.Withdraw(withoutLimitation);
+        }
+
+        public void InitialBalance(Address address, ulong amount)
+        {
+            var sender = Api.RecoverPublicKey().ToHex();
+            Api.Assert(Collection.RoundsMap.TryGet(((ulong) 1).ToUInt64Value(), out var firstRound),
+                "First round not found.");
+            Api.Assert(firstRound.RealTimeMinersInfo.ContainsKey(sender),
+                "Sender should be one of the initial miners.");
+            
+            Api.SendInlineByContract(Api.TokenContractAddress, "Transfer", address, amount);
         }
         
-        #endregion
+        #endregion Election
+        
+        #region Validation
+
+        public BlockValidationResult ValidateBlock(BlockAbstract blockAbstract)
+        {
+            return Validation.ValidateBlock(blockAbstract);
+        }
+        
+        #endregion Validation
     }
 }

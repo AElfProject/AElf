@@ -38,7 +38,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterAssemblyTypes(assembly3).AsImplementedInterfaces();
             var assembly4 = typeof(BlockValidationService).Assembly;
             builder.RegisterAssemblyTypes(assembly4).AsImplementedInterfaces();
-            var assembly5 = typeof(Execution.ParallelTransactionExecutingService).Assembly;
+            var assembly5 = typeof(Execution.NoFeeParallelTransactionExecutingService).Assembly;
             builder.RegisterAssemblyTypes(assembly5).AsImplementedInterfaces();
             var assembly6 = typeof(AElf.Node.Node).Assembly;
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
@@ -55,7 +55,7 @@ namespace AElf.Kernel.Tests
             builder.RegisterType<Grouper>().As<IGrouper>();
             builder.RegisterType<ServicePack>().PropertiesAutowired();
             builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
-            builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
+            builder.RegisterType<NoFeeSimpleExecutingService>().As<IExecutingService>();
 
             var smartContractRunnerFactory = new SmartContractRunnerContainer();
             var runner = new SmartContractRunner(ContractCodes.TestContractFolder);

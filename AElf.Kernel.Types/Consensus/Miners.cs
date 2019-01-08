@@ -15,7 +15,7 @@ namespace AElf.Kernel
             return !PublicKeys.Any();
         }
 
-        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1, ulong termNumber = 1)
+        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1, ulong termNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
@@ -98,12 +98,12 @@ namespace AElf.Kernel
 
             var term = new Term
             {
-                TermNumber = termNumber,
+                TermNumber = termNumber + 1,
                 FirstRound = infosOfRound1,
                 SecondRound = infosOfRound2,
                 Miners = new Miners
                 {
-                    TermNumber = termNumber,
+                    TermNumber = termNumber + 1,
                     PublicKeys = {PublicKeys}
                 },
                 MiningInterval = miningInterval,
@@ -186,15 +186,19 @@ namespace AElf.Kernel
             var newEBP = CalculateNextExtraBlockProducer(round);
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
 
-            // Exchange
-            var oldOrder = round.RealTimeMinersInfo[extraBlockProducer].Order;
-            var tempTime = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
-            round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
-            round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
-                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
-
-            round.RealTimeMinersInfo.First().Value.Order = oldOrder;
-            round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = tempTime;
+            if (GlobalConfig.BlockProducerNumber != 1)
+            {
+                // Exchange
+                var orderOfEBP = round.RealTimeMinersInfo[extraBlockProducer].Order;
+                var expectedMiningTimeOfEBP = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
+                
+                round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
+                round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
+                    round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
+                
+                round.RealTimeMinersInfo.First().Value.Order = orderOfEBP;
+                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = expectedMiningTimeOfEBP;
+            }
 
             round.MiningInterval = previousRound.MiningInterval;
 

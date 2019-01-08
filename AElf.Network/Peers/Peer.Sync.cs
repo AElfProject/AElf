@@ -37,12 +37,12 @@ namespace AElf.Network.Peers
         public bool IsSyncingHistory => SyncTarget != 0;
 
         /// <summary>
-        /// When syncing an annoucements, this is the current one.
+        /// When syncing an announcements, this is the current one.
         /// </summary>
         public Announce SyncedAnnouncement { get; private set; }
 
         /// <summary>
-        /// True if syncing an annoucement.
+        /// True if syncing an announcement.
         /// </summary>
         public bool IsSyncingAnnounced => SyncedAnnouncement != null;
 
@@ -109,7 +109,7 @@ namespace AElf.Network.Peers
             
             _logger?.Debug($"[{this}] Syncing to height {SyncTarget}.");
 
-            // request 
+            // request first
             RequestBlockByIndex(CurrentlyRequestedHeight);
 
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
@@ -119,20 +119,12 @@ namespace AElf.Network.Peers
         /// This method will request the next block based on the current value of <see cref="CurrentlyRequestedHeight"/>.
         /// If target was reached, the state is reset and the method returns false.
         /// </summary>
-        /// <returns>Returns weither or no this call has completed the sync.</returns>
+        /// <returns>Returns whether or no this call has completed the sync.</returns>
         public bool SyncNextHistory()
         {
             if (CurrentlyRequestedHeight == SyncTarget)
             {
-                if (_announcements.Any())
-                {
-                    var aa = _announcements.OrderBy(a => a.Height).FirstOrDefault();
-                    if (aa != null && aa.Height != SyncTarget+1)
-                        _logger?.Warn($"[{this}] We're missing a block, first announce {aa.Height} sync target {SyncTarget}");
-                    else
-                        _logger?.Debug($"[{this}] All synced : next {aa?.Height} sync target {SyncTarget}");
-                }
-                
+                // Clean any announcements that are lower than current height
                 SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
                 MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
@@ -172,7 +164,7 @@ namespace AElf.Network.Peers
         public bool SyncNextAnnouncement()
         {
             if (!IsSyncingAnnounced && !_announcements.Any())
-                throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed annoucements.");
+                throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed announcements.");
 
             if (!_announcements.Any())
             {
@@ -180,9 +172,9 @@ namespace AElf.Network.Peers
                 return false;
             }
 
-            var nextAnouncement = _announcements.OrderBy(a => a.Height).First();
+            var nextAnnouncement = _announcements.OrderBy(a => a.Height).First();
 
-            SyncedAnnouncement = nextAnouncement;
+            SyncedAnnouncement = nextAnnouncement;
             _announcements.Remove(SyncedAnnouncement);
 
             RequestBlockById(SyncedAnnouncement.Id.ToByteArray(), SyncedAnnouncement.Height);
@@ -229,7 +221,7 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
+            _logger.Info($"[{this}] Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
                          $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");
 
             lock (_blockReqLock)
@@ -321,7 +313,7 @@ namespace AElf.Network.Peers
 
                     EnqueueOutgoing(req.Message, (_) =>
                     {
-                        // last check for cancelation
+                        // last check for cancellation
                         if (req.IsCanceled)
                             return;
 

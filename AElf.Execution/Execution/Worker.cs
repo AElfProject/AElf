@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Execution.Execution;
 using Akka.Actor;
@@ -87,13 +88,6 @@ namespace AElf.Execution
                     _cancellationTokenSource?.Cancel();
                     Sender.Tell(JobExecutionCancelAckMessage.Instance);
                     break;
-                
-                case UpdateContractMessage updateContractMessage:
-                    foreach (var address in updateContractMessage.ContractAddress)
-                    {
-                        _servicePack.SmartContractService.ClearPool(address);
-                    }
-                    break;
 
 /*
  Temporarily disabled.
@@ -120,7 +114,9 @@ namespace AElf.Execution
  TODO: https://github.com/AElfProject/AElf/issues/338
             _state = State.Running;
 */
-            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId, _cancellationTokenSource.Token);
+            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId,
+                request.CurrentBlockTime, _cancellationTokenSource.Token, request.DisambiguationHash,
+                request.TransactionType, request.SkipFee);
             request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
 
             // TODO: What if actor died in the middle

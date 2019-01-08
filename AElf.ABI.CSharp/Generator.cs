@@ -21,14 +21,14 @@ namespace AElf.ABI.CSharp
                 {
                     container.AddType(t);
                 }
-            
+
                 var contractTypePath = container.GetSmartContractTypePath();
                 module.Name = contractTypePath.Last().FullName;
                 module.Methods.AddRange(GetMethods(contractTypePath));
                 module.Events.AddRange(GetEvents(container));
                 module.Types_.AddRange(GetTypes(container));
 
-                return module;                
+                return module;
             }
         }
 
@@ -72,6 +72,16 @@ namespace AElf.ABI.CSharp
                     ? "void"
                     : rt.Replace("System.Threading.Tasks.Task`1<", "").Replace(">", "");
                 method.ReturnType = method.ReturnType.ToShorterName();
+                var feeAttribute = m.CustomAttributes.SingleOrDefault(x => x.AttributeType.Name == "FeeAttribute");
+                if (feeAttribute == null)
+                {
+                    method.Fee = 1;
+                }
+                else
+                {
+                    method.Fee = (ulong) feeAttribute.ConstructorArguments[0].Value;
+                }
+
                 methods.Add(method);
             }
 

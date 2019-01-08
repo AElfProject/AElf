@@ -48,6 +48,7 @@ namespace AElf.Runtime.CSharp
 
         public void SetStateManager(IStateManager stateManager)
         {
+            Console.WriteLine($"stateManager {stateManager==null} _instance {_instance==null} _methodInfos[nameof(SetStateManager)] {_methodInfos[nameof(SetStateManager)]==null}");
             _methodInfos[nameof(SetStateManager)].Invoke(_instance, new object[] {stateManager});
         }
 
