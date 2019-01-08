@@ -532,18 +532,19 @@ namespace AElf.Node.Consensus
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     _logger?.Trace("Current blockchain age: " + calculatedAge);
 
-                    if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                    if (CanStartNextTerm())
                     {
-                        // TODO: Recover after testing
-                        if (/*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
-                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
-                            (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
-                             _helper.TryToGetVictories(out var victories) &&
-                             victories.Count == GlobalConfig.BlockProducerNumber))
-                        {
-                            _logger?.Trace("Will change term.");
-                            throw new NextTermException();
-                        }
+                        Thread.VolatileWrite(ref _lockFlag, 0);
+
+                        MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
+                        
+                        _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                        _logger?.Trace("Will change term.");
+                        
+                        ConsensusDisposable?.Dispose();
+                        ConsensusDisposable = ConsensusObserver.NextTerm();
+
+                        return;
                     }
 
                     var miners = Miners;
@@ -585,10 +586,6 @@ namespace AElf.Node.Consensus
                     await Mine();
                 }
             }
-            catch (NextTermException)
-            {
-                goNextTerm = true;
-            }
             catch (Exception e)
             {
                 _logger?.Trace(e, $"Error in {nameof(NextRound)}");
@@ -602,12 +599,6 @@ namespace AElf.Node.Consensus
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
                 _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-
-                if (goNextTerm)
-                {
-                    ConsensusDisposable?.Dispose();
-                    ConsensusDisposable = ConsensusObserver.NextTerm();
-                }
             }
         }
 
@@ -815,6 +806,16 @@ namespace AElf.Node.Consensus
         private static bool MiningLocked()
         {
             return _lockNumber != 0;
+        }
+
+        private bool CanStartNextTerm()
+        {
+            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
+                   /*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
+                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
+                   (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
+                    _helper.TryToGetVictories(out var victories) &&
+                    victories.Count == GlobalConfig.BlockProducerNumber);
         }
     }
 }

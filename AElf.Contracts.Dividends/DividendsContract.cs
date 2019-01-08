@@ -181,7 +181,6 @@ namespace AElf.Contracts.Dividends
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)
         {
-            Console.WriteLine($"Added {dividendsAmount} dividends to term {termNumber}");
             if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends))
             {
                 var finalDividends = dividends.Value + dividendsAmount;
@@ -191,14 +190,16 @@ namespace AElf.Contracts.Dividends
             {
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
+            
+            Console.WriteLine($"Added {dividendsAmount} dividends to term {termNumber}");
         }
 
         public void AddWeights(ulong weights, ulong termNumber)
         {
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
-                var newWeights = totalWeights.Value + weights;
-                _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
+                var finalWeights = totalWeights.Value + weights;
+                _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), finalWeights.ToUInt64Value());
             }
             else
             {
