@@ -153,7 +153,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp2.Tests", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp2", "AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj", "{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.VM", "AElf.Runtime.CSharp.VM\AElf.Runtime.CSharp.VM.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core", "AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp2.Tests", "AElf.Runtime.CSharp2.Tests\AElf.Runtime.CSharp2.Tests.csproj", "{D40BEB6B-C370-4A8E-A628-47B6842C975A}"
 EndProject
