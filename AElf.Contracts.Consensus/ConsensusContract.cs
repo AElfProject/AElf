@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -177,7 +178,6 @@ namespace AElf.Contracts.Consensus
             return GetCurrentMiners().ToString();
         }
 
-        // TODO: Test case.
         [View]
         public Tickets GetTicketsInfo(string publicKey)
         {
@@ -186,6 +186,25 @@ namespace AElf.Contracts.Consensus
                 return tickets;
             }
 
+            return new Tickets
+            {
+                TotalTickets = 0
+            };
+        }
+
+        [View]
+        public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
+        {
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
+                return new Tickets
+                {
+                    TotalTickets = tickets.TotalTickets,
+                    VotingRecords = { tickets.VotingRecords.Skip(startIndex).Take(take)}
+                };
+            }
+            
             return new Tickets
             {
                 TotalTickets = 0
@@ -209,7 +228,7 @@ namespace AElf.Contracts.Consensus
         /// <param name="orderBy"></param>
         /// <returns></returns>
         [View]
-        public TicketsDictionary GetCurrentElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
+        public TicketsDictionary GetCurrentElectionInfo(int startIndex, int length, int orderBy)
         {
             if (orderBy == 0)
             {
@@ -219,7 +238,8 @@ namespace AElf.Contracts.Consensus
                     length = publicKeys.Count;
                 }
                 var dict = new Dictionary<string, Tickets>();
-                foreach (var publicKey in publicKeys.Skip(startIndex).Take(length - startIndex))
+                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
+                foreach (var publicKey in publicKeys.Skip(startIndex).Take(take))
                 {
                     if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
                     {
@@ -245,8 +265,9 @@ namespace AElf.Contracts.Consensus
                         dict.Add(publicKey, tickets);
                     }
                 }
-
-                return dict.OrderBy(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
+                
+                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
+                return dict.OrderBy(p => p.Value.TotalTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
             }
             
             if (orderBy == 2)
@@ -265,14 +286,18 @@ namespace AElf.Contracts.Consensus
                     }
                 }
 
-                return dict.OrderByDescending(p => p.Value.TotalTickets).Skip(startIndex).Take(length - startIndex).ToTicketsDictionary();
+                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
+                return dict.OrderByDescending(p => p.Value.TotalTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
             }
 
-            return new Dictionary<string, Tickets>().ToTicketsDictionary();
+            return new TicketsDictionary
+            {
+                Remark = "Failed to get election information."
+            };
         }
         
         [View]
-        public string GetCurrentElectionInfoToFriendlyString(int startIndex = 0, int length = 0, int orderBy = 0)
+        public string GetCurrentElectionInfoToFriendlyString(int startIndex, int length, int orderBy)
         {
             return GetCurrentElectionInfo(startIndex, length, orderBy).ToString();
         }

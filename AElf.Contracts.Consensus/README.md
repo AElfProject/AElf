@@ -113,6 +113,18 @@ To get the tickets information of provided public key.
 
 If this public key ever joined election, the voting records will also contain his supportters'.
 
+### `GetPageableTicketsInfo`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `Tickets`
+
+To get the tickets information of provided public key with specific amount of voting records.
+
 ### `GetBlockchainAge`
 
 *No params*
@@ -356,6 +368,18 @@ To query current round number.
 获取所提供公钥的投票详情，
 
 如果该公钥曾经参与过竞选，其投票详情中会包括其支持者对他的投票。
+
+### `GetPageableTicketsInfo`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `Tickets`
+
+获取所提供公钥的投票详情，可定制返回的投票记录数量，
 
 ### `GetBlockchainAge`
 

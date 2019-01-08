@@ -131,4 +131,5 @@ message CandidateInHistory {
 
 message TicketsDictionary {
     map<string, Tickets> Maps = 1;
+    string Remark = 2;
 }
