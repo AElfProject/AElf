@@ -137,15 +137,17 @@ namespace AElf.Sdk.CSharp
         
         public static Miners GetMiners()
         {
-            Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>();
+            var res = Call(ConsensusContractAddress, "GetCurrentMiners");
+            Assert(res,"Failed to get current miners.");
+            Miners miners = GetCallResult().DeserializeToPbMessage<Miners>();
+            return miners;
         }
         
         public static List<string> GetCurrentMiners()
         {
             if (Call(ConsensusContractAddress, "GetCurrentMiners"))
             {
-                return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
+                return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
             }
             
             throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
@@ -155,7 +157,7 @@ namespace AElf.Sdk.CSharp
         {
             if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
             
             throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
@@ -165,7 +167,7 @@ namespace AElf.Sdk.CSharp
         {
             if (Call(ConsensusContractAddress, "GetCurrentTermNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
             
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
@@ -460,10 +462,10 @@ namespace AElf.Sdk.CSharp
             Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
         }
 
-        public static void IsMiner(string err)
+        /*public static void IsMiner(string err)
         {
             Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
-        }
+        }*/
         
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.

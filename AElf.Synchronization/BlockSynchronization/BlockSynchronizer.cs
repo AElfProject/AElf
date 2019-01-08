@@ -53,7 +53,6 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<string> _currentMiners;
 
         private Hash _chainId;
-        private string _nodePubKey;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
@@ -217,7 +216,6 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
                 _blockChain = _chainService.GetBlockChain(_chainId);
-                _nodePubKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
             
                 Miners miners = _minersManager.GetMiners().Result;
             
@@ -388,6 +386,9 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     // not really invalid, just to go back to catching
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                    
+                    _logger?.Debug($"Block {block} has been linked.");
+                    MessageHub.Instance.Publish(new BlockLinked(block));
                 }
             }
             catch (Exception e)

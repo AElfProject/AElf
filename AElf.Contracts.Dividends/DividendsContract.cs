@@ -104,6 +104,7 @@ namespace AElf.Contracts.Dividends
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
             Api.Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
+            Console.WriteLine($"Tickets amount: {ticketsAmount}, Lock time: {lockTime}, Term number: {termNumber}");
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
                 if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var totalDividends))
@@ -120,7 +121,8 @@ namespace AElf.Contracts.Dividends
         public ulong CheckDividendsOfPreviousTerm(ulong ticketsAmount, int lockTime)
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
-            return CheckDividends(ticketsAmount, lockTime, currentTermNumber);
+            Api.Assert(currentTermNumber > 1, "Cannot check dividends of term zero.");
+            return CheckDividends(ticketsAmount, lockTime, currentTermNumber - 1);
         }
 
         [View]
@@ -130,7 +132,7 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        public ulong CheckStandardDividendsOfPreviousTerm(string empty)
+        public ulong CheckStandardDividendsOfPreviousTerm()
         {
             return CheckDividendsOfPreviousTerm(StandardTicketsAmount, StandardLockTime);
         }
@@ -183,6 +185,22 @@ namespace AElf.Contracts.Dividends
             }
 
             Console.WriteLine($"Added {weights} weights to {termNumber} term.");
+        }
+        
+        public void KeepWeights()
+        {
+            var currentTermNumber = Api.GetCurrentTermNumber();
+
+            if (_totalWeightsMap.TryGet(currentTermNumber.ToUInt64Value(), out var totalWeights))
+            {
+                _totalWeightsMap.SetValue((currentTermNumber + 1).ToUInt64Value(), totalWeights);
+                Console.WriteLine($"Kept {totalWeights} weights to {currentTermNumber + 1} term.");
+            }
+            else
+            {
+                _totalWeightsMap.SetValue((currentTermNumber + 1).ToUInt64Value(), ((ulong) 0).ToUInt64Value());
+                Console.WriteLine($"Kept {0} weights to {currentTermNumber + 1} term.");
+            }
         }
 
         public void SubWeights(ulong weights, ulong termNumber)

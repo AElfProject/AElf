@@ -167,71 +167,10 @@ namespace AElf.Node.Protocol
                 // Note - This should not happen during header this
                 if (UnlinkableHeaderIndex != 0)
                     return;
-                
+            
                 LocalHeight = (int) inBlock.Block.Index;
-
-                IBlock acceptedBlock = inBlock.Block;
-                
-                var blockHash = acceptedBlock.GetHash().DumpByteArray();
-                var blockHeight = acceptedBlock.Header.Index;
-                
-                lock (_syncLock)
-                {
-                    if (CurrentSyncSource == null)
-                    {
-                        _logger?.Warn("Unexpected situation, executed a block but no peer is currently syncing.");
-                    }
-                    else if (!CurrentSyncSource.IsSyncing)
-                    {
-                        _logger?.Warn($"{CurrentSyncSource} is sync source but not in sync state.");
-                    }
-                    else if (CurrentSyncSource.IsSyncingHistory)
-                    {
-                        if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
-                            _logger?.Warn($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
-                    
-                        bool hasReqNext = CurrentSyncSource.SyncNextHistory();
-
-                        if (hasReqNext)
-                            return;
-                    
-                        _logger?.Trace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
-                    
-                        // If this peer still has announcements and the next one is the next block we need.
-                        if (CurrentSyncSource.AnyStashed)
-                        {
-                            if (CurrentSyncSource.SyncNextAnnouncement())
-                            {
-                                _logger?.Trace($"{CurrentSyncSource} has the next block - started sync.");
-                                return;
-                            }
-                        
-                            _logger?.Warn($"{CurrentSyncSource} Failed to start announcement sync.");
-                        }
-                    }
-                    else if (CurrentSyncSource.IsSyncingAnnounced)
-                    {
-                        // we check if the hash of the accepted block is the one the sync source fetched 
-                        if (!CurrentSyncSource.SyncedAnnouncement.Id.ToByteArray().BytesEqual(blockHash))
-                            _logger?.Warn($"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
-                        
-                        foreach (var peer in _peers)
-                        {
-                            // Clear the announcement or any previous announcement to not request 
-                            // again.
-                            peer.CleanAnnouncements((int)blockHeight);
-                        }
-                        
-                        bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
-
-                        if (hasReqNext)
-                            return;
-                    
-                        _logger?.Trace($"Catched up to announcements with {CurrentSyncSource}.");
-                    }
-                    
-                    SyncNext();
-                }
+            
+                DoNext(inBlock.Block);
             });
 
             MessageHub.Instance.Subscribe<UnlinkableHeader>(unlinkableHeaderMsg =>
@@ -389,6 +328,94 @@ namespace AElf.Node.Protocol
                     }
                 }
             });
+            
+            MessageHub.Instance.Subscribe<BlockLinked>(msg =>
+            {
+                if (msg?.Block == null)
+                {
+                    _logger?.Warn($"{nameof(BlockLinked)} Message or block was null.");
+                    return;
+                }
+                
+                DoNext(msg.Block);
+            });
+        }
+
+        private void DoNext(IBlock acceptedBlock)
+        {
+            var blockHash = acceptedBlock.GetHash().DumpByteArray();
+            var blockHeight = acceptedBlock.Header.Index;
+            
+            lock (_syncLock)
+            {
+                if (CurrentSyncSource == null)
+                {
+                    _logger?.Warn("Unexpected situation, executed a block but no peer is currently syncing.");
+                }
+                else if (!CurrentSyncSource.IsSyncing)
+                {
+                    _logger?.Warn($"{CurrentSyncSource} is sync source but not in sync state.");
+                }
+                else if (CurrentSyncSource.IsSyncingHistory)
+                {
+                    if ((int)blockHeight != CurrentSyncSource.CurrentlyRequestedHeight)
+                        _logger?.Warn($"{CurrentSyncSource} unexpected situation, the block executed was not the exepected height.");
+                
+                    bool hasReqNext = CurrentSyncSource.SyncNextHistory();
+
+                    if (hasReqNext)
+                        return;
+                
+                    _logger?.Trace($"{CurrentSyncSource} history blocks synced, local height {LocalHeight}.");
+                    
+                    CurrentSyncSource = null;
+
+                    var next = _peers
+                        .Where(p => !p.IsDisposed && p.AnyStashed && p.KnownHeight > LocalHeight)
+                        .Select(p => new
+                        {
+                            PeerMinAnnouncement = p.GetLowestAnnouncement(),
+                            Peer = p
+                        })
+                        .OrderBy(p => p.PeerMinAnnouncement)
+                        .FirstOrDefault();
+
+                    if (next == null)
+                    {
+                        _logger?.Warn($"History blocks synced and no announcements to get.");
+                    }
+                    else if (LocalHeight+1 != next.PeerMinAnnouncement)
+                    {
+                        CurrentSyncSource = next.Peer;
+                        _logger?.Debug($"Re-sync because lowest peer, {CurrentSyncSource} is too high {next.PeerMinAnnouncement}.");
+                            
+                        CurrentSyncSource.SyncToHeight(LocalHeight+1, next.PeerMinAnnouncement-1);
+                        return;
+                    }
+                }
+                else if (CurrentSyncSource.IsSyncingAnnounced)
+                {
+                    // we check if the hash of the accepted block is the one the sync source fetched 
+                    if (!CurrentSyncSource.SyncedAnnouncement.Id.ToByteArray().BytesEqual(blockHash))
+                        _logger?.Warn($"Block {blockHash.ToHex()} accepted by the chain but not currently synced.");
+                    
+                    foreach (var peer in _peers)
+                    {
+                        // Clear the announcement or any previous announcement to not request 
+                        // again.
+                        peer.CleanAnnouncements((int)blockHeight);
+                    }
+                    
+                    bool hasReqNext = CurrentSyncSource.SyncNextAnnouncement();
+
+                    if (hasReqNext)
+                        return;
+                
+                    _logger?.Trace($"Catched up to announcements with {CurrentSyncSource}.");
+                }
+                
+                SyncNext();
+            }
         }
 
         private void OnMinorityForkDetected()
@@ -791,6 +818,31 @@ namespace AElf.Node.Protocol
                     
                     if (CurrentSyncSource == null)
                     {
+                        var next = _peers
+                            .Where(p => !p.IsDisposed && p.AnyStashed && p.KnownHeight > LocalHeight)
+                            .Select(p => new {
+                                PeerMinAnnouncement = p.GetLowestAnnouncement(),
+                                Peer = p
+                            })
+                            .OrderBy(p => p.PeerMinAnnouncement)
+                            .FirstOrDefault();
+
+                        if (next == null)
+                        {
+                            _logger?.Error($"An annoucement should be stashed.");
+                            return;
+                        }
+                        
+                        if (LocalHeight+1 != next.PeerMinAnnouncement)
+                        {
+                            CurrentSyncSource = next.Peer;
+                            _logger?.Debug($"Re-sync because next, {CurrentSyncSource} is {next.PeerMinAnnouncement}.");
+                            
+                            CurrentSyncSource.SyncToHeight(LocalHeight+1, next.PeerMinAnnouncement-1);
+                            
+                            return;
+                        }
+                        
                         CurrentSyncSource = peer;
                         CurrentSyncSource.SyncNextAnnouncement();
                         
