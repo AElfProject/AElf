@@ -163,22 +163,22 @@ namespace AElf.Contracts.CrossChain
             Api.Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
                 Api.GetFromAddress().Equals(request.Proposer), "Invalid chain creation request.");
-            
+
             var serialNumber = _sideChainSerialNumber.Increment().Value;
             var raw = ChainHelpers.GetChainId(serialNumber);
             var chainId = Hash.LoadByteArray(raw);
-            
+
             Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()),
                 "Chain creation request already exists.");
-            
+
             // lock token and resource
             request.ChainId = chainId;
             Api.Assert(_indexingBalance[chainId] == 0, "Chain Id already used"); // This should not happen.  
             LockTokenAndResource(request);
 
             // side chain creation proposal
-            Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
-                CreateSideChainMethodName, raw.ToPlainBase58());
+            Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
+                Api.GetContractAddress(), CreateSideChainMethodName, raw.ToPlainBase58());
             request.SideChainStatus = SideChainStatus.Review;
             _sideChainInfos.SetValue(chainId, request);
             return hash.DumpByteArray();
@@ -241,13 +241,13 @@ namespace AElf.Contracts.CrossChain
             Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Active,
                 "Side chain not found");
             Api.Assert(Api.GetFromAddress().Equals(request.Proposer), "Not authorized to dispose.");
-                        
+
             // side chain disposal
-            Hash proposalHash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.GetContractAddress(),
-                DisposeSideChainMethodName, chainId);
+            Hash proposalHash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.Genesis,
+                Api.GetContractAddress(), DisposeSideChainMethodName, chainId);
             return proposalHash.DumpByteArray();
         }
-        
+
         /// <summary>
         /// Dispose side chain. It is a proposal result from system address. 
         /// </summary>
