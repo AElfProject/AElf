@@ -13,6 +13,7 @@ using AElf.Execution.Execution;
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
 {
+    // ReSharper disable UnusedMember.Global
     public class ContractsShim
     {
         private readonly MockSetup _mock;
@@ -348,6 +349,7 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
+        // ReSharper disable once InconsistentNaming
         public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
         {
             ExecuteAction(DividendsContractAddress, nameof(TransferDividends), SenderKeyPair, votingRecord,
