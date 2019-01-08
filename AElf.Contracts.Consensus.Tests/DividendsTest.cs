@@ -135,6 +135,10 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter >= balanceBefore);
 
+            var dkw = _contracts.GetCandidatesHistoryInfo();
+
+            var dkw1 = _contracts.CheckDividendsOfPreviousTerm();
+
             var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(standardDividendsOfPreviousTerm > 0);

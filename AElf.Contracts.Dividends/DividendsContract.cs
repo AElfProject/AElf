@@ -133,6 +133,15 @@ namespace AElf.Contracts.Dividends
         public ULongList CheckDividendsOfPreviousTerm()
         {
             var termNumber = Api.GetCurrentTermNumber() - 1;
+            
+            if (termNumber < 1)
+            {
+                return new ULongList
+                {
+                    Remark = "Current term number should be greater than 1."
+                };
+            }
+            
             var result = new ULongList();
             const ulong ticketsAmount = 10_000;
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};

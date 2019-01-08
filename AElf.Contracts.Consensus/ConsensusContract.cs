@@ -167,7 +167,7 @@ namespace AElf.Contracts.Consensus
                 {
                     if (Collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
                     {
-                        ulong number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
+                        var number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
                             .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
 
                         info.CurrentVotesNumber = number;

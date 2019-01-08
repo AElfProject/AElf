@@ -269,10 +269,12 @@ message BinaryMerkleTree{
 
 message StringList {
     repeated string Values = 1;
+    string Remark = 2;
 }
 
 message ULongList {
     repeated uint64 Values = 1;
+    string Remark = 2;
 }
 
 message BlockAbstract {

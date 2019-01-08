@@ -216,6 +216,12 @@ namespace AElf.Contracts.Consensus.Tests
             ExecuteAction(ConsensusContractAddress, nameof(QueryAliasesInUseToFriendlyString), SenderKeyPair);
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
+        
+        public CandidateInHistoryDictionary GetCandidatesHistoryInfo()
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetCandidatesHistoryInfo), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<CandidateInHistoryDictionary>();
+        }
 
         #endregion
 
@@ -330,11 +336,10 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
         }
 
-        public ulong CheckDividendsOfPreviousTerm(ulong ticketsAmount, int lockTime)
+        public ULongList CheckDividendsOfPreviousTerm()
         {
-            ExecuteAction(DividendsContractAddress, nameof(CheckDividendsOfPreviousTerm), SenderKeyPair, ticketsAmount,
-                lockTime);
-            return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64() ?? 0;
+            ExecuteAction(DividendsContractAddress, nameof(CheckDividendsOfPreviousTerm), SenderKeyPair);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<ULongList>();
         }
 
         public ulong CheckStandardDividends(ulong termNumber)
