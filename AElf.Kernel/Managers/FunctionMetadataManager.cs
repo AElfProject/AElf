@@ -8,9 +8,9 @@ namespace AElf.Kernel.Managers
     public class FunctionFunctionMetadataManager : IFunctionMetadataManager
     {
         private readonly IFunctionMetadataStore _functionMetadataStore;
-        private readonly ICanonicalStore _callGraphStore;
+        private readonly ICallGraphStore _callGraphStore;
         
-        public FunctionFunctionMetadataManager(IFunctionMetadataStore functionMetadataStore, ICanonicalStore callGraphStore)
+        public FunctionFunctionMetadataManager(IFunctionMetadataStore functionMetadataStore, ICallGraphStore callGraphStore)
         {
             _functionMetadataStore = functionMetadataStore;
             _callGraphStore = callGraphStore;
