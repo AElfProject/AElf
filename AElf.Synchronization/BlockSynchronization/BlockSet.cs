@@ -94,8 +94,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _blocks.Add(newState);
 
-                    if (isMined)
-                        return;
+/*                    if (isMined)
+                        return;*/
                     
                     // update LIB
                     ulong libIndex = CurrentLib == null ? 0UL : CurrentLib.Index;

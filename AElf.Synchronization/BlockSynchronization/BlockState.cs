@@ -63,14 +63,10 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public bool AddConfirmation(string pubKey)
         {
-            if (!_confirmations.Any(c => c.Equals(pubKey)))
-            {
-                _confirmations.Add(pubKey);
-                if (_confirmations.Count >= Math.Ceiling(2d / 3d * _miners.Count))
-                    return true;
-            }
-
-            return false;
+            if (_confirmations.Any(c => c.Equals(pubKey))) 
+                return false;
+            _confirmations.Add(pubKey);
+            return _confirmations.Count >= Math.Ceiling(2d / 3d * _miners.Count);
         }
 
         public IBlock GetClonedBlock()
