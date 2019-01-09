@@ -58,6 +58,7 @@ message Tickets {
     repeated VotingRecord VotingRecords = 1;
     uint64 TotalTickets = 2;
     uint64 VotingRecordsCount = 3;
+    string Remark = 4;
 }
 
 // A voting record.

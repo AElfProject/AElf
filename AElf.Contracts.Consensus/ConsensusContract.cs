@@ -278,18 +278,17 @@ namespace AElf.Contracts.Consensus
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
                 var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
-                var result = new Tickets
+                return new Tickets
                 {
                     TotalTickets = tickets.TotalTickets,
-                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)}
+                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                    VotingRecordsCount = (ulong) tickets.VotingRecords.Count
                 };
-                result.VotingRecordsCount = (ulong) result.VotingRecords.Count;
-                return result;
             }
 
             return new Tickets
             {
-                TotalTickets = 0
+                Remark = "Tickets information not found."
             };
         }
 

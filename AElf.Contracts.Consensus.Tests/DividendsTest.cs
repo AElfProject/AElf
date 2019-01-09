@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter.PublicKey.ToHex());
-            var pagedTicketsInformation = _contracts.GetPageableTicketsInfo(mustVotedVoter.PublicKey.ToHex(), 0, 10);
+            var pagedTicketsInformation = _contracts.GetPageableTicketsInfo(mustVotedVoter.PublicKey.ToHex(), 0, 100);
             var votedTickets = ticketsInformation.TotalTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
