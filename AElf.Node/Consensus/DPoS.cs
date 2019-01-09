@@ -31,7 +31,7 @@ namespace AElf.Node.Consensus
     {
         private ulong LatestRoundNumber { get; set; }
 
-        private ulong LatestTermNumber { get; set; }
+        private ulong LatestTermNumber { get; set; } = 0;
 
         private static IDisposable ConsensusDisposable { get; set; }
 
@@ -723,6 +723,11 @@ namespace AElf.Node.Consensus
                 MessageHub.Instance.Publish(new MinorityForkDetected());
             }
 
+            if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 0)
+            {
+                _latestTermChangedRoundNumber = LatestRoundNumber;
+            }
+            
             // Update current round number and current term number.
             LatestRoundNumber = _helper.CurrentRoundNumber.Value;
             LatestTermNumber = _helper.CurrentTermNumber.Value;

@@ -554,60 +554,51 @@ namespace AElf.Contracts.Consensus
         
         #region Election
         
-        [View]
         public ActionResult AnnounceElection(string alias)
         {
             return Election.AnnounceElection(alias);
         }
         
-        [View]
         public ActionResult QuitElection()
         {
             return Election.QuitElection();
         }
 
-        [View]
         public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             return Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        [View]
         public ActionResult ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
             return new ActionResult {Success = true};
         }
 
-        [View]
         public ActionResult ReceiveDividendsByTransactionId(Hash transactionId)
         {
             Election.ReceiveDividends(transactionId);
             return new ActionResult {Success = true};
         }
         
-        [View]
         public ActionResult ReceiveAllDividends()
         {
             Election.ReceiveDividends();
             return new ActionResult {Success = true};
         }
         
-        [View]
         public ActionResult WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.Withdraw(candidatePublicKey, amount, lockDays);
             return new ActionResult {Success = true};
         }
         
-        [View]
         public ActionResult WithdrawByTransactionId(Hash transactionId)
         {
             Election.Withdraw(transactionId);
             return new ActionResult {Success = true};
         }
 
-        [View]
         public ActionResult WithdrawAll(bool withoutLimitation)
         {
             Election.Withdraw(withoutLimitation);
