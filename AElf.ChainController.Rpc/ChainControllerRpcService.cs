@@ -434,8 +434,7 @@ namespace AElf.ChainController.Rpc
             {
                 var transaction = receipt.Transaction;
                 txInfo = transaction.GetTransactionInfo();
-                ((JObject) txInfo["tx"]).Add("params",
-                    string.Join(", ", await this.GetTransactionParameters(transaction)));
+                ((JObject) txInfo["tx"]).Add("params", await this.GetTransactionParameters(transaction));
                 ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
                 ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
                 ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());

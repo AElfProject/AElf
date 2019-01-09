@@ -30,7 +30,7 @@ namespace AElf.SmartContract
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction);
+//        Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction);
 
         Task<SmartContractRegistration> GetContractByAddressAsync(Hash chainId, Address address);
 

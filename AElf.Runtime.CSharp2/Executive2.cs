@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Type = System.Type;
-using Module = AElf.ABI.CSharp.Module;
-using Method = AElf.ABI.CSharp.Method;
+using Module = AElf.Kernel.ABI.Module;
+using Method = AElf.Kernel.ABI.Method;
 using AElf.SmartContract;
 
 namespace AElf.Runtime.CSharp
@@ -159,6 +160,20 @@ namespace AElf.Runtime.CSharp
             }
 
             return methodAbi.Fee;
+        }
+
+        public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
+        {
+            // method info 
+            var methodInfo = _smartContract.GetType().GetMethod(methodName);
+            var parameters = ParamsPacker.Unpack(paramsBytes,
+                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+            // get method in abi
+            var method =
+                _methodMap[methodName];
+
+            // deserialize
+            return string.Join(",", method.DeserializeParams(parameters));
         }
     }
 }

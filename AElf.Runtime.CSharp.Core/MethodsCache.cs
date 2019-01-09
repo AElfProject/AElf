@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Method = AElf.ABI.CSharp.Method;
+using Method = AElf.Kernel.ABI.Method;
 
 namespace AElf.Runtime.CSharp
 {

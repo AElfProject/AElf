@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.ABI.CSharp;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
@@ -13,8 +12,8 @@ using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
-using Mono.Cecil;
-using Module = AElf.ABI.CSharp.Module;
+using Generator = AElf.Runtime.CSharp.Core.ABI.Generator;
+using Module = AElf.Kernel.ABI.Module;
 using Resource = AElf.Kernel.SmartContract.Resource;
 using Type = System.Type;
 

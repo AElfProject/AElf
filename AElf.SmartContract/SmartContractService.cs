@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using AElf.ABI.CSharp;
+//using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Kernel;
 using AElf.Configuration;
-using AElf.Types.CSharp;
 using Type = System.Type;
 using AElf.Common;
-using Akka.Util.Internal;
+using AElf.Kernel.ABI;
+using AElf.Types.CSharp;
 
 namespace AElf.SmartContract
 {
@@ -182,21 +179,21 @@ namespace AElf.SmartContract
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction)
-        {
-            var reg = await GetContractByAddressAsync(chainId, transaction.To);
-            var abi = (Module) GetAbiAsync(reg);
-            
-            // method info 
-            var methodInfo = GetContractType(reg).GetMethod(transaction.MethodName);
-            var parameters = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
-                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
-            // get method in abi
-            var method = abi.Methods.First(m => m.Name.Equals(transaction.MethodName));
-            
-            // deserialize
-            return method.DeserializeParams(parameters);
-        }
+//        public async Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction)
+//        {
+//            var reg = await GetContractByAddressAsync(chainId, transaction.To);
+//            var abi = (Module) GetAbiAsync(reg);
+//            
+//            // method info 
+//            var methodInfo = GetContractType(reg).GetMethod(transaction.MethodName);
+//            var parameters = ParamsPacker.Unpack(transaction.Params.ToByteArray(),
+//                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+//            // get method in abi
+//            var method = abi.Methods.First(m => m.Name.Equals(transaction.MethodName));
+//            
+//            // deserialize
+//            return method.DeserializeParams(parameters);
+//        }
 
         private IMessage GetAbiAsync(SmartContractRegistration reg)
         {

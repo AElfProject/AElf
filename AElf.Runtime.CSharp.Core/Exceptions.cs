@@ -12,7 +12,7 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
-    
+
     public class RuntimeException : Exception
     {
         public RuntimeException() : base()
@@ -23,7 +23,7 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
-    
+
     public class InvalidCodeException : Exception
     {
         public InvalidCodeException() : base()
@@ -34,4 +34,5 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
+
 }

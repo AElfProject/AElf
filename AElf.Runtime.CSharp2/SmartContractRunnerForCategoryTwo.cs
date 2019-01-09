@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.ABI.CSharp;
+using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
 using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
@@ -15,6 +15,7 @@ using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
 using Type = System.Type;
+using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp
 {
@@ -93,12 +94,12 @@ namespace AElf.Runtime.CSharp
 //                throw new InvalidCodeException("No Api was found.");
 //            }
 
-            Executive2 executive = new Executive2(abiModule).SetSmartContract(instance);//.SetApi(ApiSingleton);
+            Executive2 executive = new Executive2(abiModule).SetSmartContract(instance); //.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
         }
 
-        private AElf.ABI.CSharp.Module GetAbiModule(SmartContractRegistration reg)
+        private Module GetAbiModule(SmartContractRegistration reg)
         {
             var code = reg.ContractBytes.ToByteArray();
             var abiModule = Generator.GetABIModule(code);
