@@ -55,36 +55,44 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             // TODO: Check the miners are correct.
             
+            // Count missed time slot of current round.
             CountMissedTimeSlots();
-            SnapshotAndDividends();
-
-            _collection.CurrentTermNumberField.SetValue(term.TermNumber);
             
+            // To cope with the aftermaths of last term.
+            SnapshotAndDividendsStuff();
+
+            // Update current term number and current round number.
+            _collection.CurrentTermNumberField.SetValue(term.TermNumber);
             _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
+            // Reset some fields of next two rounds.
             foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
-
             foreach (var minerInRound in term.SecondRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
 
+            // Update produced block number of this node.
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
             
+            // Update miners list.
             _collection.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
             
+            // Update term number lookup. (Using term number to get first round number of related term.)
             var lookUp = _collection.TermNumberLookupField.GetValue();
             lookUp.Map[term.TermNumber] = term.FirstRound.RoundNumber;
             _collection.TermNumberLookupField.SetValue(lookUp);
 
+            // Update blockchain age of next two rounds.
             term.FirstRound.BlockchainAge = CurrentAge;
             term.SecondRound.BlockchainAge = CurrentAge;
 
+            // Update rounds information of next two rounds.
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
         }
@@ -328,15 +336,16 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        private void SnapshotAndDividends()
+        private void SnapshotAndDividendsStuff()
         {
             var currentRoundInfo = GetCurrentRoundInfo();
 
+            // Snapshot to history information.
             UpdateCandidatesInfoInHistory(currentRoundInfo, GetPreviousTerm());
 
+            // Set dividends of related term to Dividends Contract.
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-
             Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
 
             var candidateInTerms = new List<CandidateInTerm>();
@@ -396,6 +405,7 @@ namespace AElf.Contracts.Consensus.Contracts
             var currentTermNumber =
                 CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
 
+            // Set snapshot of related term.
             var snapshot = new TermSnapshot
             {
                 TermNumber = currentTermNumber.Value,
@@ -403,7 +413,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
             };
-            
             _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
 
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights");

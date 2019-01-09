@@ -31,7 +31,7 @@ namespace AElf.Node.Consensus
     {
         private ulong LatestRoundNumber { get; set; }
 
-        private ulong LatestTermNumber { get; set; } = 0;
+        private ulong LatestTermNumber { get; set; }
 
         private static IDisposable ConsensusDisposable { get; set; }
 
@@ -156,12 +156,12 @@ namespace AElf.Node.Consensus
 
         private Miners Miners => _minersManager.GetMiners().Result;
 
-        public void Start(bool willToMine)
+        public void Start(bool willingToMine)
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
             _ownPubKey = _nodeKey.PublicKey;
 
-            if (!willToMine)
+            if (!willingToMine)
             {
                 return;
             }
