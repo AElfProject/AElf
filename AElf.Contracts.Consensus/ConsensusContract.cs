@@ -292,6 +292,7 @@ namespace AElf.Contracts.Consensus
             };
         }
 
+        [View]
         public string GetPageableTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
         {
             return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
