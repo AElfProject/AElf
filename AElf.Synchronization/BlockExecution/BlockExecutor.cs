@@ -143,12 +143,11 @@ namespace AElf.Synchronization.BlockExecution
                 // 2. Transaction for indexing side chain block, if exists. 
                 Hash crossChainIndexingSideChainTransactionId;
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
-                if (result.IsFailed())
+                if (res.IsFailed())
                 {
                     _logger?.Warn(
-                        $"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                        $"Collect transaction from block failed: {res}, block height: {block.Header.Index}, " +
                         $"block hash: {block.BlockHashToHex}.");
-                    res = result;
                     return res;
                 }
 
@@ -183,10 +182,9 @@ namespace AElf.Synchronization.BlockExecution
 //                    return res;
 //                }
 
-                if ((result = UpdateWorldState(block, txnRes)).IsFailed())
+                if ((res = UpdateWorldState(block, txnRes)).IsFailed())
                 {
-                    res = result;
-                    throw new InvalidBlockException(result.ToString());
+                    throw new InvalidBlockException(res.ToString());
                 }
 
                 // BlockExecuting -> BlockAppending

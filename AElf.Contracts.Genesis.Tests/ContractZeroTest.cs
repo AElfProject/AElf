@@ -50,17 +50,19 @@ namespace AElf.Contracts.Genesis.Tests
             _contractShim.GetContractOwner(address);
             var owner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(_contractShim.Sender, owner);
-
+            
+            _contractShim.UpdateSmartContract(address, CodeNew);
+            Assert.Equal(address, _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>());
+            
             // chang owner and query again, owner will be new owner
             var newOwner = Address.Generate();
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(newOwner, queryNewOwner);
-
+            
             _contractShim.UpdateSmartContract(address, CodeNew);
-            Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
-            Assert.True(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBool());
+            Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>());
         }
     }
 }

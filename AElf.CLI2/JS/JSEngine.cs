@@ -12,6 +12,7 @@ using AElf.CLI2.JS.IO;
 using AElf.CLI2.JS.Net;
 using AElf.CLI2.Utils;
 using AElf.Common;
+using AElf.JSDK;
 using Alba.CsConsoleFormat;
 using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET;
@@ -93,8 +94,8 @@ namespace AElf.CLI2.JS
 
         private void LoadAelfJs()
         {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI2.Scripts.aelf.js"));
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(StaticResource)).Location)
+                .GetManifestResourceStream("AElf.JSDK.content.aelf.js"));
             RunScript(@"Aelf = require('aelf');");
         }
 
