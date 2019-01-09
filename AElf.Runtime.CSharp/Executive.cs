@@ -201,14 +201,17 @@ namespace AElf.Runtime.CSharp
         {
             // method info 
             var methodInfo = _smartContract.GetType().GetMethod(methodName);
-            var parameters = ParamsPacker.Unpack(paramsBytes,
-                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+            var parameterNames = methodInfo.GetParameters().Select(y => y.Name);
+            var parameterTypes = methodInfo.GetParameters().Select(y => y.ParameterType).ToArray();
+            var parameters = ParamsPacker.Unpack(paramsBytes, parameterTypes);
             // get method in abi
-            var method =
-                _methodMap[methodName];
+            var method = _methodMap[methodName];
 
             // deserialize
-            return string.Join(",", method.DeserializeParams(parameters));
+            var values = method.DeserializeParams(parameters, parameterTypes);
+            var formattedParams = parameterNames.Zip(values, Tuple.Create).Select(x => $@"""{x.Item1}"": {x.Item2}");
+
+            return $"{{{string.Join(", ", formattedParams)}}}";
         }
     }
 }

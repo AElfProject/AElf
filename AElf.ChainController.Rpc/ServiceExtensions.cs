@@ -180,7 +180,7 @@ namespace AElf.ChainController.Rpc
             try
             {
                 executive = await s.SmartContractService.GetExecutiveAsync(address, chainId);
-                executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
+                output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
             finally
             {

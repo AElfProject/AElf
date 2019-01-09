@@ -106,7 +106,12 @@ namespace AElf.Types.CSharp
             }
         }
 
-        public static Func<string, object> GetStringParserFor(string typeName)
+        private static Dictionary<string, Type> GetTypeLookup(IEnumerable<Type> types)
+        {
+            return types.ToDictionary(t => t.FullName.ToShorterName(), t => t);
+        }
+
+        public static Func<string, object> GetStringParserFor(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
             {
@@ -116,17 +121,45 @@ namespace AElf.Types.CSharp
                 }
             }
 
+            if (types != null)
+            {
+                var injected = GetTypeLookup(types);
+                if (injected.TryGetValue(typeName, out type))
+                {
+                    if (type.IsPbMessageType())
+                    {
+                        return s =>
+                        {
+                            var obj = (IMessage) Activator.CreateInstance(type);
+                            return JsonParser.Default.Parse(s, obj.Descriptor);
+                        };
+                    }
+                }
+            }
+
             throw new Exception($"Not Found parser for type {typeName}");
         }
 
 
-        public static Func<object, string> ParseToStringFor(string typeName)
+        public static Func<object, string> ParseToStringFor(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
             {
                 if (ObjectHandlers.TryGetValue(type, out var parser))
                 {
                     return parser;
+                }
+            }
+
+            if (types != null)
+            {
+                var injected = GetTypeLookup(types);
+                if (injected.TryGetValue(typeName, out type))
+                {
+                    if (type.IsPbMessageType())
+                    {
+                        return o => JsonFormatter.Default.Format((IMessage) o);
+                    }
                 }
             }
 

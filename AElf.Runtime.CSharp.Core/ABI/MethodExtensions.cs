@@ -21,7 +21,8 @@ namespace AElf.Runtime.CSharp.Core.ABI
             return ParamsPacker.Pack(parsed);
         }
 
-        public static IEnumerable<string> DeserializeParams(this Method method, IEnumerable<object> args)
+        public static IEnumerable<string> DeserializeParams(this Method method, IEnumerable<object> args,
+            IEnumerable<Type> types = null)
         {
             var argsList = args.ToList();
             if (argsList.Count != method.Params.Count)
@@ -29,7 +30,7 @@ namespace AElf.Runtime.CSharp.Core.ABI
                 throw new InvalidInputException("Input doen't have the required number of parameters.");
             }
 
-            var deserializers = method.Params.Select(x => StringInputParsers.ParseToStringFor(x.Type));
+            var deserializers = method.Params.Select(x => StringInputParsers.ParseToStringFor(x.Type, types));
             var parsed = deserializers.Zip(argsList, Tuple.Create).Select(x => x.Item1(x.Item2)).ToList();
             return parsed;
         }
