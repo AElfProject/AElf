@@ -291,13 +291,16 @@ namespace AElf.Miner.Rpc.Client
             ulong targetHeight = await GetParentChainTargetHeight();
 
             List<ParentChainBlockInfo> parentChainBlockInfos = new List<ParentChainBlockInfo>();
+            var isMining = parentChainBlocks == null;
             // Size of result is GlobalConfig.MaximalCountForIndexingParentChainBlock if it is mining process.
+            if (!isMining && parentChainBlocks.Length > GlobalConfig.MaximalCountForIndexingParentChainBlock)
+                return null;
             int length = parentChainBlocks?.Length ?? GlobalConfig.MaximalCountForIndexingParentChainBlock;
+            
             int i = 0;
             while (i < length)
             {
-                var pcb = parentChainBlocks?[i++];
-                var isMining = pcb == null;
+                var pcb = parentChainBlocks?[i];
                 if (!isMining && (!pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
                     return null;
 
@@ -313,6 +316,7 @@ namespace AElf.Miner.Rpc.Client
                     return null;
                 parentChainBlockInfos.Add((ParentChainBlockInfo) blockInfo);
                 targetHeight++;
+                i++;
             }
             
             return parentChainBlockInfos;
