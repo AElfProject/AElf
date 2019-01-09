@@ -6,15 +6,15 @@ Hello
 package "Application" {
   [Service]
   [Event]
-  [Controller]
+  [Saga]
   
 
 
-  [Controller] -> [Service] : injection
+  [Saga] -> [Service] : injection
 
-  [EventHandler] ..> [Event] : subscribe
+  [EventHandler] <.. [Event] : subscribe
 
-  [EventHandler] -> [Controller] : injection
+  [EventHandler] -> [Saga] : injection
   [EventHandler] -> [Service] : injection
 
   [Service] ..> [Event] : publish
@@ -29,7 +29,7 @@ package "Domain" {
   [FSM]
 
 
-  [Controller] ..> [Context] : create
+  [Saga] ..> [Context] : create
   [Service] ..> [Context] : parameters
   [Context] -down-> [FSM]
   [Context] -> [Manager] 
@@ -41,6 +41,8 @@ package "Domain" {
 
 note top of [Context]
   context is stateful.
+  in the aelf project, BlockChain and Light chain is a context.
+  but can a context in the Domain Layer?
 end note
 }
 
