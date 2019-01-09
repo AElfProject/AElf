@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Configuration;
@@ -40,7 +41,6 @@ namespace AElf.Miner.Miner
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly IBlockValidationService _blockValidationService;
-        private readonly IChainContextService _chainContextService;
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private ECKeyPair _keyPair;
@@ -54,8 +54,7 @@ namespace AElf.Miner.Miner
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             ILogger logger, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IChainContextService chainContextService
-            , IChainManager chainManager,IStateManager stateManager)
+            IBlockValidationService blockValidationService, IStateManager stateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -64,12 +63,8 @@ namespace AElf.Miner.Miner
             _logger = logger;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
-            _chainContextService = chainContextService;
-
             Config = config;
-            
             _consensusDataProvider = new ConsensusDataProvider(stateManager);
-
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
@@ -84,7 +79,11 @@ namespace AElf.Miner.Miner
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             _blockGenerator = new BlockGenerator(_chainService, Config.ChainId);
+            
+            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
+
+        private ulong LibHeight { get; set; }
 
         /// <inheritdoc />
         /// <summary>
@@ -228,17 +227,28 @@ namespace AElf.Miner.Miner
         /// <returns></returns>
         private async Task GenerateCrossTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
         {
+            // Do not index cross chain information if no LIB found.
+            if (LibHeight <= GlobalConfig.GenesisBlockHeight)
+                return;
+            
             var address = Address.FromPublicKey(_keyPair.PublicKey);
             var txnForIndexingSideChain = await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
+            {
+                _logger.Debug($"txnForIndexingSideChain {txnForIndexingSideChain.GetHash()}");
                 await SignAndInsertToPool(txnForIndexingSideChain);
-
+            }
+                
             var txnForIndexingParentChain =
                 await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingParentChain != null)
+            {
+                _logger.Debug($"txnForIndexingParentChain {txnForIndexingParentChain.GetHash()}");
                 await SignAndInsertToPool(txnForIndexingParentChain);
+            }
+                
         }
 
         private async Task SignAndInsertToPool(Transaction notSignerTransaction)

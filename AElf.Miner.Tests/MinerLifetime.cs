@@ -254,7 +254,6 @@ namespace AElf.Kernel.Tests.Miner
             _mock.ClearDirectory(dir);
             try
             {
-                GlobalConfig.InvertibleChainHeight = 0;
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
@@ -325,7 +324,6 @@ namespace AElf.Kernel.Tests.Miner
             _mock.ClearDirectory(dir);
             try
             {
-                GlobalConfig.InvertibleChainHeight = 0;
                 var port = 50053;
                 var address = "127.0.0.1";
                 
@@ -404,7 +402,6 @@ namespace AElf.Kernel.Tests.Miner
             // create the miners keypair, this is the miners identity
             var minerKeypair = new KeyPairGenerator().Generate();
             
-            GlobalConfig.InvertibleChainHeight = 0;
             string dir = @"/tmp/minerpems";
             
             var chain = await _mock.CreateChain();

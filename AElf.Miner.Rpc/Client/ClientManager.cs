@@ -193,18 +193,23 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="targetChainId"></param>
         /// <param name="isClientToSideChain"> the client is connected to side chain or parent chain </param>
         /// <returns>
-        /// return <see cref="ClientToParentChain"/>> if the client is to parent chain
-        /// return <see cref="ClientToSideChain"/>> if the client is to side chain 
+        /// return <see cref="ClientToParentChain"/>> Client is to parent chain if <param name="isClientToSideChain"/> is false.
+        /// return <see cref="ClientToSideChain"/>> Client is to side chain if <param name="isClientToSideChain"/> is true. 
         /// </returns>    
         private ClientBase CreateClient(Uri uri, string targetChainId, bool isClientToSideChain)
         {
             var uriStr = uri.ToString();
             var channel = CreateChannel(uriStr, targetChainId);
             var chainId = Hash.LoadBase58(targetChainId);
+            
             if (isClientToSideChain)
-                return new ClientToSideChain(channel, _logger, chainId, _interval,  GlobalConfig.InvertibleChainHeight, GlobalConfig.MaximalCountForIndexingSideChainBlock);
-            return new ClientToParentChain(channel, _logger, chainId, _interval, 
-                GlobalConfig.InvertibleChainHeight,  GlobalConfig.MaximalCountForIndexingParentChainBlock);
+                return new ClientToSideChain(channel, _logger, chainId, _interval,
+                    GlobalConfig.MinimalBlockInfoCacheThreshold,
+                    GlobalConfig.MaximalCountForIndexingSideChainBlock);
+            
+            return new ClientToParentChain(channel, _logger, chainId, _interval,
+                GlobalConfig.MinimalBlockInfoCacheThreshold,
+                GlobalConfig.MaximalCountForIndexingParentChainBlock);
         }
 
         /// <summary>
@@ -244,7 +249,7 @@ namespace AElf.Miner.Rpc.Client
                 // index only one block from one side chain.
                 // this could be changed later.
                 var targetHeight = await GetSideChainTargetHeight(_.Key);
-                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, cachingThreshold: true))
+                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, needToCheckCachingCount: true))
                     continue;
                 
                 res.Add((SideChainBlockInfo) blockInfo);

@@ -68,7 +68,8 @@ namespace AElf.Miner.Rpc.Client
                     
                     _next++;
                     _realInterval = _interval;
-                    _logger?.Trace($"Received response from chain {response.BlockInfoResult.ChainId} at height {response.Height}");
+                    _logger?.Trace(
+                        $"Received response from chain {response.BlockInfoResult.ChainId.DumpBase58()} at height {response.Height}");
                 }
             });
 
@@ -114,6 +115,13 @@ namespace AElf.Miner.Rpc.Client
             
             using (var call = Call())
             {
+                while (_channel.State != ChannelState.Ready)
+                {
+                    await _channel.WaitForStateChangedAsync(_channel.State);
+                    _logger?.Warn($"Channel state targeted for {_targetChainId.DumpBase58()}: {_channel.State}");
+                }
+                
+                _logger?.Warn("Ready for cross chain.");
                 try
                 {
                     // response reader task
@@ -129,12 +137,7 @@ namespace AElf.Miner.Rpc.Client
                     if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                     {
                         var detail = e.Status.Detail;
-                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}.");
-                        while (_channel.State != ChannelState.Ready && _channel.State != ChannelState.Idle)
-                        {
-                            //_logger?.Warn($"Channel state: {_channel.State}");
-                            await Task.Delay(UnavailableConnectionInterval);
-                        }
+                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}, with channel state {_channel.State}.");
 
                         // TODO: maybe improvement for NO wait call, or change the try solution
                         var task = StartDuplexStreamingCall(cancellationToken, _next);
@@ -197,14 +200,15 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="millisecondsTimeout"></param>
         /// <param name="height">the height of block info needed</param>
         /// <param name="blockInfo"></param>
-        /// <param name="cachingThreshold">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
+        /// <param name="needToCheckCachingCount">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool cachingThreshold = false)
+        public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool needToCheckCachingCount = false)
         {
             var first = First();
             
-            // only mining process needs cachingThreshold, for most nodes have this block.
-            if (first != null && first.Height == height && (!cachingThreshold || ToBeIndexedInfoQueue.Count >= _irreversible))
+            // only mining process needs needToCheckCachingCount, for most nodes have this block.
+            if (first != null 
+                && first.Height == height && !(needToCheckCachingCount && ToBeIndexedInfoQueue.LastOrDefault()?.Height < height + (ulong) _irreversible))
             {
                 var res = ToBeIndexedInfoQueue.TryTake(out blockInfo, millisecondsTimeout);
                 if(res)
@@ -219,7 +223,7 @@ namespace AElf.Miner.Rpc.Client
             // this is because of rollback 
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
-                return !cachingThreshold ||
+                return !needToCheckCachingCount ||
                        ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
                        _cachedBoundedCapacity;
             

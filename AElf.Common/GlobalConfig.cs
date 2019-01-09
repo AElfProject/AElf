@@ -35,9 +35,6 @@ namespace AElf.Common
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
         public static readonly ulong DividendsContract = 6;
-
-        public static int InvertibleChainHeight = 4;
-
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 
@@ -84,8 +81,9 @@ namespace AElf.Common
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
         public const string AElfCurrentSideChainHeight = "__SideChainHeight__";
         public const string AElfBinaryMerkleTreeForSideChainTxnRoot = "__BinaryMerkleTreeForSideChainTxnRoot__";
-        public const int MaximalCountForIndexingParentChainBlock = 256;
-        public const int MaximalCountForIndexingSideChainBlock = 1;
+        public const int MaximalCountForIndexingParentChainBlock = 256; // Index maximal 256 blocks from parent chain.
+        public const int MaximalCountForIndexingSideChainBlock = 1; // Index maximal one block from one side chain.
+        public const int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
         #endregion
 
         #region Authorization
