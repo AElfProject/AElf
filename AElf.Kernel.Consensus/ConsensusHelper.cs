@@ -199,18 +199,32 @@ namespace AElf.Kernel.Consensus
         public bool TryToGetVictories(out List<string> victories)
         {
             var ticketsMap = new Dictionary<string, ulong>();
+            victories = new List<string>();
             var candidates = Candidates;
+            if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
+            {
+                return false;
+            }
+            
             foreach (var candidate in candidates.PublicKeys)
             {
                 var tickets = GetTickets(candidate);
-                ticketsMap[candidate] = tickets.TotalTickets;
+                if (tickets.VotingRecords.Count > 0)
+                {
+                    ticketsMap[candidate] = tickets.TotalTickets;
+                }
+            }
+
+            if (ticketsMap.Keys.Count < GlobalConfig.BlockProducerNumber)
+            {
+                return false;
             }
 
             victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
             return !candidates.IsInitialMiners;
         }
-
+        
         private Tickets GetTickets(string candidatePublicKey)
         {
             var bytes = _reader.ReadMap<Tickets>(candidatePublicKey.ToStringValue(),
@@ -325,20 +339,40 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - End");
         }
 
+        /// <summary>
+        /// Valid candidate means someone has voted him.
+        /// </summary>
+        /// <param name="validCandidates"></param>
+        /// <returns></returns>
+        private bool TryToGetValidCandidates(out List<string> validCandidates)
+        {
+            validCandidates = new List<string>();
+            var age = BlockchainAge.Value;
+            foreach (var candidate in Candidates.PublicKeys)
+            {
+                if (GetTickets(candidate).VotingRecords.Any(vr => vr.To == candidate && !vr.IsExpired(age)))
+                {
+                    validCandidates.Add(candidate);
+                }
+            }
+
+            return validCandidates.Any();
+        }
+
         private string GetCurrentElectionInformation()
         {
             var result = "";
-            if (!TryToGetVictories(out var victories)) 
+            if (!TryToGetValidCandidates(out var candidates)) 
                 return result;
 
             result += "Election information:\n";
-            foreach (var victory in victories)
+            foreach (var candidatePublicKey in candidates)
             {
-                var tickets = GetTickets(victory);
-                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == victory)
+                var tickets = GetTickets(candidatePublicKey);
+                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == candidatePublicKey)
                     .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
                     
-                result += $"[{GetAlias(victory)}]\n{number}\n";
+                result += $"[{GetAlias(candidatePublicKey)}]\n{number}\n";
             }
 
             return result;
