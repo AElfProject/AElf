@@ -60,7 +60,7 @@ namespace AElf.Contracts.Dividends
             {
                 start = history.Value + 1;
             }
-            
+
             for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Dividends
 
             return dividends;
         }
-        
+
         [View]
         public ulong GetAllAvailableDividends(string publicKey)
         {
@@ -97,7 +97,7 @@ namespace AElf.Contracts.Dividends
             {
                 start = history.Value + 1;
             }
-            
+
             for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
@@ -128,21 +128,24 @@ namespace AElf.Contracts.Dividends
 
             return 0;
         }
-        
+
         [View]
         public ULongList CheckDividendsOfPreviousTerm()
         {
             var termNumber = Api.GetCurrentTermNumber() - 1;
-            
+            var result = new ULongList();
+
             if (termNumber < 1)
             {
-                return new ULongList
+                for (var i = 0; i < 5; i++)
                 {
-                    Remark = "Current term number should be greater than 1."
-                };
+                    result.Values.Add(0);
+                }
+                result.Remark = "Current term number should be greater than 1.";
+
+                return result;
             }
-            
-            var result = new ULongList();
+
             const ulong ticketsAmount = 10_000;
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};
             foreach (var lockTime in lockTimes)
@@ -197,7 +200,7 @@ namespace AElf.Contracts.Dividends
             {
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
-            
+
         }
 
         public void AddWeights(ulong weights, ulong termNumber)
@@ -213,7 +216,7 @@ namespace AElf.Contracts.Dividends
             }
 
         }
-        
+
         public void KeepWeights()
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
