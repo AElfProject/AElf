@@ -38,7 +38,6 @@ namespace AElf.Launcher
         //create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseUrls("http://localhost:8000")
                 .ConfigureLogging(builder => { builder.ClearProviders(); })
                 .ConfigureAppConfiguration(builder => { LauncherAElfModule.Configuration = builder.Build(); })
                 .UseStartup<Startup>();
