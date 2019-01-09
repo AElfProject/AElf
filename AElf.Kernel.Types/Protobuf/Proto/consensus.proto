@@ -143,3 +143,22 @@ message CandidateInHistoryDictionary {
     string Remark = 2;
     int32 CandidatesNumber = 3;
 }
+
+message TicketsHistories {
+    repeated TicketsHistory Values = 1;
+    uint64 HistoriesNumber = 2;
+    string Remark = 3;
+}
+
+message TicketsHistory {
+    string CandidateAlias = 1;
+    uint64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    TicketsHistoryType Type = 5;
+}
+
+enum TicketsHistoryType {
+    Vote = 0;
+    Redeem = 1;
+}

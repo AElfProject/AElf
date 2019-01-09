@@ -298,6 +298,55 @@ namespace AElf.Contracts.Consensus
             return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
         }
         
+        [View]
+        public TicketsHistories GetPageableTicketsHistories(string publicKey, int startIndex, int length)
+        {
+            var histories = new TicketsHistories();
+            var result = new TicketsHistories();
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                foreach (var votingRecord in tickets.VotingRecords)
+                {
+                    Collection.AliasesMap.TryGet(votingRecord.To.ToStringValue(), out var alias);
+                    histories.Values.Add(new TicketsHistory
+                    {
+                        CandidateAlias = alias.Value,
+                        Timestamp = votingRecord.VoteTimestamp,
+                        Type = TicketsHistoryType.Vote,
+                        VotesNumber = votingRecord.Count,
+                        State = true
+                    });
+                    if (votingRecord.IsWithdrawn)
+                    {
+                        histories.Values.Add(new TicketsHistory
+                        {
+                            CandidateAlias = alias.Value,
+                            Timestamp = votingRecord.VoteTimestamp,
+                            Type = TicketsHistoryType.Vote,
+                            VotesNumber = votingRecord.Count,
+                            State = true
+                        });
+                    }
+                }
+
+                var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
+                result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
+                result.HistoriesNumber = (ulong) histories.Values.Count;
+            }
+            else
+            {
+                result.Remark = "Not found.";
+            }
+            
+            return result;
+        }
+
+        [View]
+        public string GetPageableTicketsHistoriesToFriendlyString(string publicKey, int startIndex, int length)
+        {
+            return GetPageableTicketsHistories(publicKey, startIndex, length).ToString();
+        }
+        
         /// <summary>
         /// Order by:
         /// 0 - Announcement order. (Default)
