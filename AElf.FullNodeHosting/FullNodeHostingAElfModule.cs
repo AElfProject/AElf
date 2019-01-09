@@ -11,6 +11,8 @@ using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
 using AElf.Wallet.Rpc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
@@ -37,11 +39,18 @@ namespace AElf.FullNodeHosting
         typeof(ConsensusKernelAElfModule))]
     public class FullNodeHostingAElfModule : AElfModule
     {
+        public static IConfigurationRoot Configuration;
+        
         public ILogger<FullNodeHostingAElfModule> Logger { get; set; }
 
         public FullNodeHostingAElfModule()
         {
             Logger = NullLogger<FullNodeHostingAElfModule>.Instance;
+        }
+
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.SetConfiguration(Configuration);
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)

@@ -44,6 +44,8 @@ namespace AElf.FullNodeHosting
                 {
                     builder.ClearProviders();
                 })
+                .ConfigureAppConfiguration(builder => { FullNodeHostingAElfModule.Configuration = builder.Build(); })
+
                 .UseStartup<Startup>();
     }
 }

@@ -11,11 +11,15 @@ using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
 using AElf.Wallet.Rpc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
+using Volo.Abp.Data;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
@@ -37,11 +41,18 @@ namespace AElf.Launcher
         typeof(ConsensusKernelAElfModule))]
     public class LauncherAElfModule : AElfModule
     {
+        public static IConfigurationRoot Configuration;
+        
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
         public LauncherAElfModule()
         {
             Logger = NullLogger<LauncherAElfModule>.Instance;
+        }
+
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.SetConfiguration(Configuration);
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -50,6 +61,7 @@ namespace AElf.Launcher
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var connectionStrings = context.ServiceProvider.GetService<IOptions<DbConnectionOptions>>();
             
         }
 

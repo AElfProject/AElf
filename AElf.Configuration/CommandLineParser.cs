@@ -16,7 +16,16 @@ namespace AElf.Configuration
     {
         public void Parse(string[] args)
         {
-            Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(MapOptions);
+            //Parser.Default.Settings.IgnoreUnknownArguments = true;
+            var parser=new Parser(settings =>
+            {
+                settings.CaseSensitive = false;
+                settings.IgnoreUnknownArguments = true;
+            });
+            parser
+                .ParseArguments<CommandLineOptions>(args)
+                .WithParsed(MapOptions)
+                .WithNotParsed(o=>{});
         }
 
         private void MapOptions(CommandLineOptions opts)
