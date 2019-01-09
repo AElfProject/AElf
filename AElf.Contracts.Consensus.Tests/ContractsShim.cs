@@ -120,6 +120,13 @@ namespace AElf.Contracts.Consensus.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToString();
         }
 
+        public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
+        {
+            ExecuteAction(ConsensusContractAddress, nameof(GetPageableTicketsInfo), SenderKeyPair,
+                publicKey, startIndex, length);
+            return TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<Tickets>();
+        }
+
         public TicketsDictionary GetPageableElectionInfo(int startIndex = 0, int length = 0, int orderBy = 0)
         {
             ExecuteAction(ConsensusContractAddress, nameof(GetPageableElectionInfo), SenderKeyPair, startIndex, length, orderBy);

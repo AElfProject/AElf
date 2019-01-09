@@ -53,9 +53,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            Api.Assert(ValidateMiners(term.FirstRound.RealTimeMinersInfo.Keys.ToList()),
-                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
-
+            // TODO: Check the miners are correct.
+            
             CountMissedTimeSlots();
             SnapshotAndDividends();
 

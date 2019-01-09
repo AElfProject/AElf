@@ -281,12 +281,12 @@ namespace AElf.Contracts.Consensus
                 var result = new Tickets
                 {
                     TotalTickets = tickets.TotalTickets,
-                    VotingRecords = { tickets.VotingRecords.Skip(startIndex).Take(take)}
+                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)}
                 };
                 result.VotingRecordsCount = (ulong) result.VotingRecords.Count;
                 return result;
             }
-            
+
             return new Tickets
             {
                 TotalTickets = 0

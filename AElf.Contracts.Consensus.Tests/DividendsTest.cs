@@ -80,6 +80,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter.PublicKey.ToHex());
+            var pagedTicketsInformation = _contracts.GetPageableTicketsInfo(mustVotedVoter.PublicKey.ToHex(), 0, 10);
             var votedTickets = ticketsInformation.TotalTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
@@ -145,10 +146,7 @@ namespace AElf.Contracts.Consensus.Tests
             var history4 = _contracts.GetCandidatesHistoryInfo();
 
             var dividendsList = _contracts.CheckDividendsOfPreviousTerm();
-
-            var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
-            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(standardDividendsOfPreviousTerm > 0);
+            Assert.True(dividendsList.Values.Any());
         }
 
         private ECKeyPair GetCandidateKeyPair(string publicKey)
