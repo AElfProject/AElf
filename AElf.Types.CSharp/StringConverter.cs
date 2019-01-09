@@ -11,7 +11,7 @@ using Type = System.Type;
 
 namespace AElf.Types.CSharp
 {
-    public static class StringInputParsers
+    public static class StringConverter
     {
         private static readonly Dictionary<string, System.Type> _nameToType;
 
@@ -93,7 +93,7 @@ namespace AElf.Types.CSharp
                 }
             };
 
-        static StringInputParsers()
+        static StringConverter()
         {
             _nameToType = new Dictionary<string, System.Type>();
             foreach (var t in ObjectHandlers.Keys)
@@ -111,7 +111,7 @@ namespace AElf.Types.CSharp
             return types.ToDictionary(t => t.FullName.ToShorterName(), t => t);
         }
 
-        public static Func<string, object> GetStringParserFor(string typeName, IEnumerable<Type> types = null)
+        public static Func<string, object> GetTypeParser(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
             {
@@ -141,7 +141,7 @@ namespace AElf.Types.CSharp
         }
 
 
-        public static Func<object, string> ParseToStringFor(string typeName, IEnumerable<Type> types = null)
+        public static Func<object, string> GetTypeFormatter(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
             {

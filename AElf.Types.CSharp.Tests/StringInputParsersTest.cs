@@ -8,8 +8,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void BoolTest()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(bool).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(bool).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(bool).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(bool).FullName.ToShorterName());
             Assert.True((bool)parser1("true"));
             Assert.True((bool)parser2("true"));
             Assert.False((bool)parser1("false"));
@@ -21,8 +21,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void IntTest()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(int).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(int).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(int).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(int).FullName.ToShorterName());
             Assert.Equal((int)10, parser1("10"));
             Assert.Equal((int)10, parser2("10"));
             Assert.Equal((int)16, parser1("0x10"));
@@ -47,8 +47,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void UIntTest()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(uint).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(uint).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(uint).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(uint).FullName.ToShorterName());
             Assert.Equal((uint)10, parser1("10"));
             Assert.Equal((uint)10, parser2("10"));
             Assert.Equal((uint)16, parser1("0x10"));
@@ -76,8 +76,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void Int64Test()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(long).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(long).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(long).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(long).FullName.ToShorterName());
             Assert.Equal((long)10, parser1("10"));
             Assert.Equal((long)10, parser2("10"));
             Assert.Equal((long)16, parser1("0x10"));
@@ -102,8 +102,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void UInt64Test()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(ulong).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(ulong).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(ulong).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(ulong).FullName.ToShorterName());
             Assert.Equal((ulong)10, parser1("10"));
             Assert.Equal((ulong)10, parser2("10"));
             Assert.Equal((ulong)16, parser1("0x10"));
@@ -131,8 +131,8 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void BytesTest()
         {
-            var parser1 = StringInputParsers.GetStringParserFor(typeof(byte[]).FullName);
-            var parser2 = StringInputParsers.GetStringParserFor(typeof(byte[]).FullName.ToShorterName());
+            var parser1 = StringConverter.GetTypeParser(typeof(byte[]).FullName);
+            var parser2 = StringConverter.GetTypeParser(typeof(byte[]).FullName.ToShorterName());
 
             Assert.Equal(new byte[] { 0x10, 0x10 }, parser1("1010"));
             Assert.Equal(new byte[] { 0x10, 0x10 }, parser2("1010"));

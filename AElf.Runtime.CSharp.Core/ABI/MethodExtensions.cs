@@ -16,7 +16,7 @@ namespace AElf.Runtime.CSharp.Core.ABI
                 throw new InvalidInputException("Input doen't have the required number of parameters.");
             }
 
-            var parsers = method.Params.Select(x => StringInputParsers.GetStringParserFor(x.Type));
+            var parsers = method.Params.Select(x => StringConverter.GetTypeParser(x.Type));
             var parsed = parsers.Zip(argsList, Tuple.Create).Select(x => x.Item1(x.Item2)).ToArray();
             return ParamsPacker.Pack(parsed);
         }
@@ -30,8 +30,8 @@ namespace AElf.Runtime.CSharp.Core.ABI
                 throw new InvalidInputException("Input doen't have the required number of parameters.");
             }
 
-            var deserializers = method.Params.Select(x => StringInputParsers.ParseToStringFor(x.Type, types));
-            var parsed = deserializers.Zip(argsList, Tuple.Create).Select(x => x.Item1(x.Item2)).ToList();
+            var formatter = method.Params.Select(x => StringConverter.GetTypeFormatter(x.Type, types));
+            var parsed = formatter.Zip(argsList, Tuple.Create).Select(x => x.Item1(x.Item2)).ToList();
             return parsed;
         }
     }
