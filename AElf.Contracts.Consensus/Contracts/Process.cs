@@ -257,6 +257,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 var alias = Config.Aliases[index];
                 _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
                     new StringValue {Value = alias});
+                _collection.HistoryMap.SetValue(new StringValue {Value = publicKey},
+                    new CandidateInHistory {CurrentAlias = alias});
                 index++;
             }
         }
@@ -416,15 +418,25 @@ namespace AElf.Contracts.Consensus.Contracts
                 // Initial history information for initial miners.
                 foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
                 {
-                    candidateInHistory = new CandidateInHistory
+                    if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var history))
                     {
-                        PublicKey = candidate.Key,
-                        MissedTimeSlots = candidate.Value.MissedTimeSlots,
-                        ProducedBlocks = candidate.Value.ProducedBlocks,
-                        ContinualAppointmentCount = 0,
-                        ReappointmentCount = 0,
-                        Terms = {1}
-                    };
+                        candidateInHistory = history;
+                        candidateInHistory.MissedTimeSlots = candidate.Value.MissedTimeSlots;
+                        candidateInHistory.ProducedBlocks = candidate.Value.ProducedBlocks;
+                        candidateInHistory.Terms.Add(1);
+                    }
+                    else
+                    {
+                        candidateInHistory = new CandidateInHistory
+                        {
+                            PublicKey = candidate.Key,
+                            MissedTimeSlots = candidate.Value.MissedTimeSlots,
+                            ProducedBlocks = candidate.Value.ProducedBlocks,
+                            ContinualAppointmentCount = 0,
+                            ReappointmentCount = 0,
+                            Terms = {1},
+                        };
+                    }
                     
                     _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                 }
@@ -451,6 +463,7 @@ namespace AElf.Contracts.Consensus.Contracts
                                     ? historyInfo.ContinualAppointmentCount + 1
                                     : 0,
                             ReappointmentCount = historyInfo.ReappointmentCount + 1,
+                            CurrentAlias = historyInfo.CurrentAlias,
                             Terms = {terms}
                         };
                         

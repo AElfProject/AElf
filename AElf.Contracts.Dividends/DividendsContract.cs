@@ -28,9 +28,6 @@ namespace AElf.Contracts.Dividends
         private readonly Map<Hash, UInt64Value> _lastRequestDividendsMap =
             new Map<Hash, UInt64Value>(GlobalConfig.TransferMapString);
 
-        private const ulong StandardTicketsAmount = 10_000;
-        private const int StandardLockTime = 90;
-
         [View]
         public ulong GetTermDividends(ulong termNumber)
         {
@@ -135,7 +132,10 @@ namespace AElf.Contracts.Dividends
             var termNumber = Api.GetCurrentTermNumber() - 1;
             var result = new ULongList();
 
-            Api.Assert(termNumber < 1, "Current term number should be greater than 1.");
+            if (termNumber < 1)
+            {
+                return new ULongList {Values = {0}, Remark = "Not found."};
+            }
 
             const ulong ticketsAmount = 10_000;
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};
@@ -152,7 +152,7 @@ namespace AElf.Contracts.Dividends
             return CheckDividendsOfPreviousTerm().ToString();
         }
 
-        public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
+        public ActionResult TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
         {
             var owner = votingRecord.From;
             var ownerAddress =
@@ -178,9 +178,11 @@ namespace AElf.Contracts.Dividends
             }
 
             _lastRequestDividendsMap.SetValue(votingRecord.TransactionId, actualTermNumber.ToUInt64Value());
+
+            return new ActionResult {Success = true};
         }
 
-        public void AddDividends(ulong termNumber, ulong dividendsAmount)
+        public ActionResult AddDividends(ulong termNumber, ulong dividendsAmount)
         {
             if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends))
             {
@@ -192,9 +194,10 @@ namespace AElf.Contracts.Dividends
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
 
+            return new ActionResult {Success = true};
         }
 
-        public void AddWeights(ulong weights, ulong termNumber)
+        public ActionResult AddWeights(ulong weights, ulong termNumber)
         {
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
@@ -206,9 +209,10 @@ namespace AElf.Contracts.Dividends
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
             }
 
+            return new ActionResult {Success = true};
         }
 
-        public void KeepWeights()
+        public ActionResult KeepWeights()
         {
             var currentTermNumber = Api.GetCurrentTermNumber();
 
@@ -220,15 +224,19 @@ namespace AElf.Contracts.Dividends
             {
                 _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), ((ulong) 0).ToUInt64Value());
             }
+
+            return new ActionResult {Success = true};
         }
 
-        public void SubWeights(ulong weights, ulong termNumber)
+        public ActionResult SubWeights(ulong weights, ulong termNumber)
         {
             if (_totalWeightsMap.TryGet(termNumber.ToUInt64Value(), out var totalWeights))
             {
                 var newWeights = totalWeights.Value - weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
             }
+
+            return new ActionResult {Success = true};
         }
     }
 }

@@ -206,8 +206,12 @@ namespace AElf.Contracts.Consensus
                             .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
 
                         info.CurrentVotesNumber = number;
-                        result.Maps.Add(candidate, info);
                     }
+                    result.Maps.Add(candidate, info);
+                }
+                else
+                {
+                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
                 }
             }
 
@@ -501,19 +505,19 @@ namespace AElf.Contracts.Consensus
         
         #region Election
         
-        public void AnnounceElection(string alias)
+        public ActionResult AnnounceElection(string alias)
         {
-            Election.AnnounceElection(alias);
+            return Election.AnnounceElection(alias);
         }
 
-        public void QuitElection()
+        public ActionResult QuitElection()
         {
-            Election.QuitElection();
+            return Election.QuitElection();
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
-            Election.Vote(candidatePublicKey, amount, lockTime);
+            return Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
         public void ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)

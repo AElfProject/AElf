@@ -495,7 +495,6 @@ namespace AElf.Node.Consensus
         private async Task NextRound()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
-            var goNextTerm = false;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 

@@ -117,8 +117,7 @@ namespace AElf.Miner.Miner
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    var toRemove = _txFilter.Execute(sysTxs);
-                    // TODO: Remove useless consensus txs.
+                    _txFilter.Execute(sysTxs);
                     _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
                     traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");

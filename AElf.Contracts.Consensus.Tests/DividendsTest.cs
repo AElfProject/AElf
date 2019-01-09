@@ -51,6 +51,8 @@ namespace AElf.Contracts.Consensus.Tests
             InitializeCandidates();
             InitializeVoters();
 
+            var history0 = _contracts.GetCandidatesHistoryInfo();
+
             var candidatesList = _contracts.GetCandidatesListToFriendlyString();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.Contains(_candidates[1].PublicKey.ToHex(), candidatesList);
@@ -80,6 +82,8 @@ namespace AElf.Contracts.Consensus.Tests
             var votedTickets = ticketsInformation.TotalTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
+
+            var history1 = _contracts.GetCandidatesHistoryInfo();
 
             // Get victories of first term of election, they are miners then.
             var victories = _contracts.GetCurrentVictories().Values;
@@ -117,6 +121,8 @@ namespace AElf.Contracts.Consensus.Tests
                 });
             }
 
+            var history3 = _contracts.GetCandidatesHistoryInfo();
+
             // Third item.
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
@@ -135,12 +141,10 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter >= balanceBefore);
 
-            var dkw = _contracts.GetCandidatesHistoryInfo();
+            var history4 = _contracts.GetCandidatesHistoryInfo();
 
-            var dkw1 = _contracts.CheckDividendsOfPreviousTerm();
+            var dividendsList = _contracts.CheckDividendsOfPreviousTerm();
 
-            var dkw2 = _contracts.CheckDividendsOfPreviousTermToFriendlyString();
-            
             var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(standardDividendsOfPreviousTerm > 0);

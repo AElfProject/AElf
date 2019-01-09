@@ -130,6 +130,7 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     uint64 CurrentVotesNumber = 9;
+    string Remark = 10;
 }
 
 message TicketsDictionary {

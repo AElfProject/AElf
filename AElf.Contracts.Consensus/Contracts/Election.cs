@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void AnnounceElection(string alias = "")
+        public ActionResult AnnounceElection(string alias = "")
         {
             var publicKey = Api.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
@@ -42,11 +42,12 @@ namespace AElf.Contracts.Consensus.Contracts
                 alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
             }
 
-            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) && publicKey == publicKeyOfThisAlias.Value)
+            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) &&
+                publicKey == publicKeyOfThisAlias.Value)
             {
-                return;
+                return new ActionResult {Success = true};
             }
-            
+
             _collection.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
             _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
 
@@ -68,17 +69,21 @@ namespace AElf.Contracts.Consensus.Contracts
                     CurrentAlias = alias
                 });
             }
+
+            return new ActionResult {Success = true};
         }
 
-        public void QuitElection()
+        public ActionResult QuitElection()
         {
             Api.UnlockToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
+            
+            return new ActionResult {Success = true};
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             //TODO: Recover after testing.
 //            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
@@ -143,6 +148,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
                 _collection.CurrentTermNumberField.GetValue());
+            
+            return new ActionResult {Success = true};
         }
 
         public void ReceiveDividends(string candidatePublicKey, ulong amount, int lockDays)
@@ -163,7 +170,7 @@ namespace AElf.Contracts.Consensus.Contracts
             }
         }
 
-        public void ReceiveDividends(Hash transactionId)
+        public ActionResult ReceiveDividends(Hash transactionId)
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
@@ -177,9 +184,11 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
+            
+            return new ActionResult {Success = true};
         }
 
-        public void ReceiveDividends()
+        public ActionResult ReceiveDividends()
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
@@ -191,9 +200,11 @@ namespace AElf.Contracts.Consensus.Contracts
                     Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
                 }
             }
+            
+            return new ActionResult {Success = true};
         }
 
-        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult Withdraw(string candidatePublicKey, ulong amount, int lockDays)
         {
             var voterPublicKey = Api.RecoverPublicKey().ToHex();
             if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var ticketsOfVoter))
@@ -236,9 +247,11 @@ namespace AElf.Contracts.Consensus.Contracts
             
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), ticketsOfVoter);
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
+            
+            return new ActionResult {Success = true};
         }
 
-        public void Withdraw(Hash transactionId)
+        public ActionResult Withdraw(Hash transactionId)
         {
             var voterPublicKey = Api.RecoverPublicKey().ToHex();
             var candidatePublicKey = "";
@@ -280,9 +293,11 @@ namespace AElf.Contracts.Consensus.Contracts
             
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
+            
+            return new ActionResult {Success = true};
         }
 
-        public void Withdraw(bool withoutLimitation = false)
+        public ActionResult Withdraw(bool withoutLimitation = false)
         {
             var voterPublicKey = Api.RecoverPublicKey().ToHex();
             var candidatePublicKeys = new List<string>();
@@ -334,6 +349,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
                 _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
             }
+            
+            return new ActionResult {Success = true};
         }
     }
 }

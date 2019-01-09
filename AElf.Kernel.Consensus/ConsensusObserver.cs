@@ -171,6 +171,7 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
+                // TODO: Maybe the time slots are incorrect.
                 var distanceToHelpProducingExtraBlock = distanceToProduceExtraBlock + Interval * profile.Order / 1000;
                 if (distanceToHelpProducingExtraBlock >= 0)
                 {
