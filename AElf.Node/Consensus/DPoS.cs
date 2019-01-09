@@ -764,6 +764,7 @@ namespace AElf.Node.Consensus
             if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
                 MessageHub.Instance.Publish(new MinorityForkDetected());
+                _logger?.Debug("Finished Launching events.");
             }
             
             // Update current round number and current term number.
