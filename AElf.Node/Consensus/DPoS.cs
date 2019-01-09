@@ -82,6 +82,8 @@ namespace AElf.Node.Consensus
 
         private static bool _announcedElection;
 
+        private static ulong _latestTermChangedRoundNumber;
+
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
@@ -536,6 +538,7 @@ namespace AElf.Node.Consensus
 
                     if (CanStartNextTerm())
                     {
+                        _latestTermChangedRoundNumber = currentRoundNumber.Value;
                         Thread.VolatileWrite(ref _lockFlag, 0);
 
                         MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -815,12 +818,21 @@ namespace AElf.Node.Consensus
 
         private bool CanStartNextTerm()
         {
-            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
-                   /*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
-                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
-                   LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
-                   _helper.TryToGetVictories(out var victories) &&
-                   victories.Count == GlobalConfig.BlockProducerNumber;
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
+                _helper.TryToGetVictories(out var victories) &&
+                victories.Count == GlobalConfig.BlockProducerNumber)
+            {
+                if (_latestTermChangedRoundNumber != 0)
+                {
+                    return (LatestRoundNumber - _latestTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
+                           LatestTermNumber;
+                }
+                
+                _latestTermChangedRoundNumber = LatestRoundNumber;
+                return true;
+            }
+
+            return false;
         }
     }
 }
