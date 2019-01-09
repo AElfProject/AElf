@@ -147,6 +147,7 @@ namespace AElf.Contracts.Dividends
             return result;
         }
 
+        [View]
         public string CheckDividendsOfPreviousTermToFriendlyString()
         {
             return CheckDividendsOfPreviousTerm().ToString();
