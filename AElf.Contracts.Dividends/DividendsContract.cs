@@ -135,16 +135,7 @@ namespace AElf.Contracts.Dividends
             var termNumber = Api.GetCurrentTermNumber() - 1;
             var result = new ULongList();
 
-            if (termNumber < 1)
-            {
-                for (var i = 0; i < 5; i++)
-                {
-                    result.Values.Add(0);
-                }
-                result.Remark = "Current term number should be greater than 1.";
-
-                return result;
-            }
+            Api.Assert(termNumber < 1, "Current term number should be greater than 1.");
 
             const ulong ticketsAmount = 10_000;
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};

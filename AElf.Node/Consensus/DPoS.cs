@@ -78,6 +78,8 @@ namespace AElf.Node.Consensus
 
         private static bool _executedBlockFromOtherMiners;
 
+        private static bool _amIMined;
+
         private static bool _announcedElection;
 
         private ConsensusObserver ConsensusObserver =>
@@ -115,6 +117,7 @@ namespace AElf.Node.Consensus
 
                 if (option == UpdateConsensus.UpdateAfterMining)
                 {
+                    _amIMined = true;
                     _logger?.Trace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
                 }
@@ -710,7 +713,7 @@ namespace AElf.Node.Consensus
                 }
             }
 
-            if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
+            if (_executedBlockFromOtherMiners && _amIMined && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
                 MessageHub.Instance.Publish(new MinorityForkDetected());
             }
