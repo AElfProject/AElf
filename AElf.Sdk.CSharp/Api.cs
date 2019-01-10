@@ -381,11 +381,6 @@ namespace AElf.Sdk.CSharp
             Assert(expected.Equals(actual), message);
         }
 
-        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
-        {
-            Assert(!expected.Equals(actual), message);
-        }
-
         internal static void FireEvent(LogEvent logEvent)
         {
             _transactionContext.Trace.Logs.Add(logEvent);

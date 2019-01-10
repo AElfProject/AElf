@@ -301,7 +301,7 @@ namespace AElf.Miner.Rpc.Client
             while (i < length)
             {
                 var pcb = parentChainBlocks?[i];
-                if (!isMining && (!pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
+                if (!isMining && (pcb == null || !pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
                     return null;
 
                 if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, isMining))

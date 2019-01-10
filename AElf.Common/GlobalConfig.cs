@@ -83,7 +83,7 @@ namespace AElf.Common
         public const string AElfBinaryMerkleTreeForSideChainTxnRoot = "__BinaryMerkleTreeForSideChainTxnRoot__";
         public const int MaximalCountForIndexingParentChainBlock = 256; // Index maximal 256 blocks from parent chain.
         public const int MaximalCountForIndexingSideChainBlock = 1; // Index maximal one block from one side chain.
-        public const int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
+        public static int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
         #endregion
 
         #region Authorization

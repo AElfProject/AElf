@@ -135,7 +135,7 @@ namespace AElf.Contracts.CrossChain
         public ulong LockedToken(string chainId)
         {
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out _), "Not existed side chain.");
             var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
@@ -144,7 +144,7 @@ namespace AElf.Contracts.CrossChain
         public byte[] LockedAddress(string chainId)
         {
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out _), "Not existed side chain.");
             var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
@@ -168,8 +168,7 @@ namespace AElf.Contracts.CrossChain
             var raw = ChainHelpers.GetChainId(serialNumber);
             var chainId = Hash.LoadByteArray(raw);
 
-            Api.Assert(_sideChainInfos[chainId].Equals(new SideChainInfo()),
-                "Chain creation request already exists.");
+            Api.Assert(!_sideChainInfos.TryGet(chainId, out _),"Chain creation request already exists.");
 
             // lock token and resource
             request.ChainId = chainId;
@@ -188,11 +187,13 @@ namespace AElf.Contracts.CrossChain
         {
             // no need to check authority since invoked in transaction from normal address
             var chainIdHash = Hash.LoadBase58(chainId);
-            var sideChainInfo = _sideChainInfos[chainIdHash];
             
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
-            Api.Assert(!sideChainInfo.Equals(new SideChainInfo()) && sideChainInfo.SideChainStatus == SideChainStatus.Review,
+            Api.Assert(
+                _sideChainInfos.TryGet(chainIdHash, out var sideChainInfo) &&
+                sideChainInfo.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
+            
             Api.Assert(Api.GetFromAddress().Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
             UnlockTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
@@ -210,11 +211,11 @@ namespace AElf.Contracts.CrossChain
             // side chain creation should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
             Api.CheckAuthority(Api.Genesis);
-            var request = _sideChainInfos[chainIdHash];
             
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
-            Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Review,
-                "Side chain creation request not found.");
+            Api.Assert(
+                _sideChainInfos.TryGet(chainIdHash, out var request) &&
+                request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;          
             _sideChainInfos[chainIdHash] = request;
@@ -237,9 +238,10 @@ namespace AElf.Contracts.CrossChain
         {
             // no need to check authority since invoked in transaction from normal address
             var chainIdHash = Hash.LoadBase58(chainId);
-            var request = _sideChainInfos[chainIdHash];
-            Api.Assert(!request.Equals(new SideChainInfo()) && request.SideChainStatus == SideChainStatus.Active,
-                "Side chain not found");
+            Api.Assert(
+                _sideChainInfos.TryGet(chainIdHash, out var request) &&
+                request.SideChainStatus == SideChainStatus.Active,"Side chain not found");
+            
             Api.Assert(Api.GetFromAddress().Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
@@ -258,9 +260,9 @@ namespace AElf.Contracts.CrossChain
             // side chain disposal should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
             Api.CheckAuthority(Api.Genesis);
-            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out var info), "Not existed side chain.");
+            
             // TODO: Only privileged account can trigger this method
-            var info = _sideChainInfos[chainIdHash];
             Api.Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
             
             UnlockTokenAndResource(info);
@@ -276,8 +278,7 @@ namespace AElf.Contracts.CrossChain
         public int GetChainStatus(string chainId)
         {
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.Assert(!_sideChainInfos[chainIdHash].Equals(new SideChainInfo()), "Not existed side chain.");
-            var info = _sideChainInfos[chainIdHash];
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out var info), "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
         
@@ -306,7 +307,7 @@ namespace AElf.Contracts.CrossChain
                 Console.WriteLine("ParentChainBlockInfo.Height is correct."); // Todo: only for debug
             
                 var key = new UInt64Value {Value = parentChainHeight};
-                Api.Assert(_parentChainBlockInfo[key].Equals(new ParentChainBlockInfo()),
+                Api.Assert(!_parentChainBlockInfo.TryGet(key, out _),
                     $"Already written parent chain block info at height {parentChainHeight}");
                 Console.WriteLine("Writing ParentChainBlockInfo..");
                 foreach (var indexedBlockInfo in blockInfo.IndexedBlockInfo)
@@ -340,32 +341,36 @@ namespace AElf.Contracts.CrossChain
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                Api.NotEqual(new SideChainInfo(), _sideChainInfos[chainId], "Not registered side chain");
-                Api.Equal(SideChainStatus.Active, _sideChainInfos[chainId].SideChainStatus, "Side chain is not active.");
+                Api.Assert(_sideChainInfos.TryGet(chainId, out var info), "Not registered side chain");
+                Api.Equal(SideChainStatus.Active, info.SideChainStatus, "Side chain is not active.");
                 var currentHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();
-                //Console.WriteLine("Side chain Id: {0}", chainIdBase58);
                 Api.Equal(target, sideChainHeight,
                     $"Side chain block info at height {target} is needed from {chainIdBase58}, not {sideChainHeight}");
             
-                _sideChainHeight[chainId] = target;
-                // Todo: only for debug
-                Console.WriteLine($"Side chain block info at {target}");
-                
-                // indexing fee
                 var indexingPrice = _sideChainInfos[chainId].IndexingPrice; 
+                var lockedToken = _indexingBalance.GetValue(chainId);
+                
+                // locked token not enough 
+                if(lockedToken < indexingPrice)
+                    continue;
+                
+                _sideChainHeight[chainId] = target;
+                // indexing fee
+                _indexingBalance[chainId] = lockedToken - indexingPrice;
                 Api.UnlockToken(Api.GetFromAddress(), indexingPrice);
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
+                // Todo: only for debug
+                Console.WriteLine($"Side chain block info at {target}");
             }
 
             var height = Api.GetCurrentHeight() + 1;
             var wrappedHeight = new UInt64Value {Value = height};
-            Api.Equal(new BinaryMerkleTree(), _sideChainTxnRootMerklePath[wrappedHeight],
+            Api.Assert(!_sideChainTxnRootMerklePath.TryGet(wrappedHeight, out _),
                 $"Already recorded BinaryMerkleTree at height {height}"); // this should not fail.
             
             // calculate merkle tree for side chain txn roots
-            
             binaryMerkleTree.ComputeRootHash();
             _sideChainTxnRootMerklePath[wrappedHeight] = binaryMerkleTree;
             return binaryMerkleTree.Root.DumpByteArray();
@@ -382,7 +387,7 @@ namespace AElf.Contracts.CrossChain
         public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)
         {
             var key = new UInt64Value {Value = parentChainHeight};
-            Api.Assert(!_parentChainBlockInfo[key].Equals(new ParentChainBlockInfo()),
+            Api.Assert(_parentChainBlockInfo.TryGet(key, out _),
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated =  path.ComputeRootWith(tx);
             var parentRoot = _parentChainBlockInfo[key]?.Root?.SideChainTransactionsRoot;
@@ -415,7 +420,7 @@ namespace AElf.Contracts.CrossChain
         private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
         {
             var key = new UInt64Value {Value = height};
-            Api.Assert(_txRootMerklePathInParentChain[key].Equals(new MerklePath()), 
+            Api.Assert(!_txRootMerklePathInParentChain.TryGet(key, out _), 
                 $"Merkle path already bound at height {height}.");
             _txRootMerklePathInParentChain[key] = path;
         }

@@ -87,13 +87,10 @@ namespace AElf.Contracts.Authorization
         [View]
         public Proposal GetProposal(Hash proposalHash)
         {
-            var proposal = _proposals[proposalHash];
-            Api.NotEqual(proposal, new Proposal(), "Not found proposal.");
+            Api.Assert(_proposals.TryGet(proposalHash, out var proposal), "Not found proposal.");
             return proposal;
         }
-
         #endregion view
-        
         
         #region Actions
 
@@ -205,8 +202,6 @@ namespace AElf.Contracts.Authorization
         }
 
         #endregion
-
-        
 
         public Kernel.Authorization GetAuth(Address address)
         {
