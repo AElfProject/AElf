@@ -5,7 +5,7 @@ using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public interface IBlock : IHashProvider, ISerializable
+    public interface IBlock : IHashProvider
     {
         byte[] GetHashBytes();
         bool AddTransaction(Transaction tx);

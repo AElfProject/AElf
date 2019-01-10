@@ -4,7 +4,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class SmartContractRegistration : ISerializable
+    public partial class SmartContractRegistration 
     {
         public byte[] Serialize()
         {
