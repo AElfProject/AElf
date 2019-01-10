@@ -74,12 +74,6 @@ namespace AElf.Kernel
             AddValue(bytes);
         }
 
-        public void AddValue(ISerializable serializable)
-        {
-            var bytes = serializable.Serialize();
-            AddValue(bytes);
-        }
-
         public void AddSha256Hash(byte[] hash256)
         {
             if (hash256.Length != 32)

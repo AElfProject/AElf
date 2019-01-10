@@ -510,6 +510,11 @@ namespace AElf.Network.Peers
                 _messageReader.StreamClosed -= MessageReaderOnStreamClosed;
             }
 
+            foreach (var request in BlockRequests)
+            {
+                request.Cancel();
+            }
+
             _messageReader?.Close();
             _messageWriter?.Close();
 

@@ -2,7 +2,7 @@
 
 namespace AElf.Kernel
 {
-    public partial class SmartContractDeployment : ISerializable
+    public partial class SmartContractDeployment 
     {
         public byte[] Serialize()
         {

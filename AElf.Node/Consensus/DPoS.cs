@@ -721,7 +721,8 @@ var logLevel = new Int32Value {Value = 0};
 
             if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
-                MessageHub.Instance.Publish(new MinorityForkDetected());
+                //MessageHub.Instance.Publish(new MinorityForkDetected());
+                Logger.LogDebug("Finished Launching events.");
             }
             
             // Update current round number and current term number.

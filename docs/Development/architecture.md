@@ -8,6 +8,8 @@ package "Application" {
   [Event]
   [Saga]
   
+  [FSM]
+  
 
 
   [Saga] -> [Service] : injection
@@ -25,13 +27,13 @@ package "Domain" {
 
   [Entity]
 
-  [FSM]
+  
 
 
   [Saga] ..> [Context] : create
   [Service] ..> [Context] : parameters
   [Context] -down-> [FSM]
-  [Context] -> [Manager] 
+  [Context] -down-> [Manager] 
 
 
   [Service] -down-> [Manager]
@@ -40,11 +42,12 @@ package "Domain" {
 
   [Manager] ..> [Event] : publish
 
+note top of [Manager]
+  manager is a domain service
+end note
 
 note top of [Context]
-  context is stateful.
-  in the aelf project, BlockChain and Light chain is a context.
-  but can a context in the Domain Layer?
+  context is just use to share data
 end note
 }
 
