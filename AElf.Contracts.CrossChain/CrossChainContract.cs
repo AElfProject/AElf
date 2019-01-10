@@ -375,9 +375,8 @@ namespace AElf.Contracts.CrossChain
                 // Todo: only for debug
                 Console.WriteLine($"Side chain block info at {target}");
             }
-            
-//            Api.Assert(!_sideChainTxnRootMerklePath.TryGet(wrappedHeight, out _),
-//                $"Already recorded BinaryMerkleTree at height {height}"); // this should not fail.
+
+            _indexedSideChainBlockInfoResult[wrappedHeight] = indexedSideChainBlockInfoResult;
             
             // calculate merkle tree for side chain txn roots
             binaryMerkleTree.ComputeRootHash();

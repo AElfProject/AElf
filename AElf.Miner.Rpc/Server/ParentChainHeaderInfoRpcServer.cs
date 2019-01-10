@@ -88,12 +88,14 @@ namespace AElf.Miner.Rpc.Server
                         var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
                         if (indexedSideChainBlockInfoResult != null)
                         {
+                            _logger?.Debug($"IndexedSideChainBlockInfoResult count {indexedSideChainBlockInfoResult.SideChainBlockInfos.Count}");
                             var binaryMerkleTree = new BinaryMerkleTree();
                             foreach (var blockInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
                             {
                                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                             }
-                            
+
+                            binaryMerkleTree.ComputeRootHash();
                             // This is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
                             // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
                             for (int i = 0; i < indexedSideChainBlockInfoResult.SideChainBlockInfos.Count; i++)
@@ -104,6 +106,7 @@ namespace AElf.Miner.Rpc.Server
                                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                                 if (merklePath == null)
                                 {
+                                    // todo: this should not happen, only for debug
                                     _logger?.Debug($"tree.Root == null: {binaryMerkleTree.Root == null}");
                                     _logger?.Debug($"tree.LeafCount = {binaryMerkleTree.LeafCount}, index = {i}");
                                 }
