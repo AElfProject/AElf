@@ -3,7 +3,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
@@ -17,11 +16,9 @@ namespace AElf.Contracts.CrossChain
         public static readonly string SideChainSerialNumber = "__SideChainSerialNumber__";
         public static readonly string SideChainInfos = "__SideChainInfos__";
         public static readonly string ParentChainBlockInfo = GlobalConfig.AElfParentChainBlockInfo;
-        //public static readonly string SideChainBlockInfo = GlobalConfig.AElfSideChainBlockInfo;
         public static readonly string AElfBoundParentChainHeight = GlobalConfig.AElfBoundParentChainHeight;
         public static readonly string TxRootMerklePathInParentChain = GlobalConfig.AElfTxRootMerklePathInParentChain;
         public static readonly string CurrentParentChainHeight = GlobalConfig.AElfCurrentParentChainHeight;
-        public static readonly string NewChainCreationRequest = "_NewChainCreationRequest_";
         public static readonly string IndexingBalance = "__IndexingBalance__";
         public static readonly string SideChainHeight = GlobalConfig.AElfCurrentSideChainHeight;
         public static readonly string IndexedSideChainBlockInfoResult = GlobalConfig.IndexedSideChainBlockInfoResult;
@@ -300,7 +297,7 @@ namespace AElf.Contracts.CrossChain
             {
                 ulong parentChainHeight = blockInfo.Height;
                 var currentHeight = _currentParentChainHeight.GetValue();
-                var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight; 
+                var target = currentHeight != 0 ? currentHeight + 1: GlobalConfig.GenesisBlockHeight;
                 Api.Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
                 

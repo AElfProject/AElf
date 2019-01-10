@@ -88,7 +88,6 @@ namespace AElf.Miner.Rpc.Server
                         var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
                         if (indexedSideChainBlockInfoResult != null)
                         {
-                            _logger?.Debug($"IndexedSideChainBlockInfoResult count {indexedSideChainBlockInfoResult.SideChainBlockInfos.Count}");
                             var binaryMerkleTree = new BinaryMerkleTree();
                             foreach (var blockInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
                             {

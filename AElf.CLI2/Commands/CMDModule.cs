@@ -42,7 +42,8 @@ namespace AElf.CLI2.Commands
                 [typeof(ChainDisposalRequestOption)] = typeof(ChainDisposalRequestCommand),
                 [typeof(CheckChainStatusOption)] = typeof(CheckChainStatusCommand),
                 [typeof(VerifyCrossChainTransactionOption)] = typeof(VerifyCrossChainTransactionCommand),
-                [typeof(CertificateGenerationOption)] =typeof(CertificateGenerationCommand)
+                [typeof(CertificateGenerationOption)] = typeof(CertificateGenerationCommand),
+                [typeof(WithdrawChainCreationRequestOption)] = typeof(WithdrawChainCreationRequestCommand)
             };
         }
 

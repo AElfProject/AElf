@@ -37,6 +37,21 @@
         }, 3000);
     };
 
+    withdraw_chain_creation_request = function (chain_id) {
+        var hash = chain.crossChainContract.WithdrawRequest(chain_id).hash;
+        console.log('tx_hash is: ', hash);
+        _repeatedCalls(function () {
+            var res = aelf.chain.getTxResult(hash).result;
+            if (res.tx_status !== 'Pending') {
+                console.log('TxStatus is: ', res.tx_status);
+            }
+            if (res.tx_status === 'Mined') {
+                console.log('Chain creation request already withdrawn now.');
+            }
+            return res.tx_status !== 'Pending';
+        }, 3000);
+    };
+
     check_sidechain_status = function (chain_id) {
         var res =  chain.crossChainContract.GetChainStatus(chain_id);
         var resStr = JSON.stringify(res, null, 2);
