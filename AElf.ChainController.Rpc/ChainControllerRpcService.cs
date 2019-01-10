@@ -258,8 +258,8 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Invalid Address Format");
                 }
                 var txResult = await this.GetTransactionResult(txHash);
-                if(txResult.Status != Status.Mined)
-                   throw new Exception("Transaction is not mined.");
+                /*if(txResult.Status != Status.Mined)
+                   throw new Exception("Transaction is not mined.");*/
                 var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
                 var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if(merklePath == null)
