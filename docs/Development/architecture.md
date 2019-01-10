@@ -2,19 +2,15 @@ Hello
 
 ```puml
 @startuml
+scale max 768 width
 
 package "Application" {
   [Service]
-  [Event]
   [Saga]
   
   [FSM]
   
-
-
   [Saga] -> [Service] : injection
-
-  [EventHandler] <.. [Event] : subscribe
 
   [EventHandler] -> [Saga] : injection
   [EventHandler] -> [Service] : injection
@@ -24,27 +20,25 @@ package "Application" {
 package "Domain" {
   [Manager]
   [Context]
-
+  [Event]
   [Entity]
+  [FacadeService] -> [Manager]
 
   
+  [EventHandler] <.. [Event] : subscribe
 
 
   [Saga] ..> [Context] : create
+  [Saga] -> [FSM] : injection
   [Service] ..> [Context] : parameters
-  [Context] -down-> [FSM]
-  [Context] -down-> [Manager] 
+  [Context] -> [Manager] 
 
 
-  [Service] -down-> [Manager]
+  [Service] -> [Manager]
 
   [Manager] -> [Entity]
 
   [Manager] ..> [Event] : publish
-
-note top of [Manager]
-  manager is a domain service
-end note
 
 note top of [Context]
   context is just use to share data
@@ -60,9 +54,12 @@ AELF project
 @startuml
 
 package "AElf.Kernel.Application" {
+  [Service]
 }
 
 package "AElf.Kernel.Domain" {
+  [Entity]
+  
 }
 
 
