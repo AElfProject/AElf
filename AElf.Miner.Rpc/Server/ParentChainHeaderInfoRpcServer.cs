@@ -85,21 +85,27 @@ namespace AElf.Miner.Rpc.Server
                                 ChainId = header?.ChainId
                             }
                         };
-                        var tree = await _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRootAsync(requestedHeight);
-                        if (tree != null)
+                        var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
+                        if (indexedSideChainBlockInfoResult != null)
                         {
+                            var binaryMerkleTree = new BinaryMerkleTree();
+                            foreach (var blockInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
+                            {
+                                binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
+                            }
+                            
                             // This is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
                             // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
-                            for (int i = 0; i < body?.IndexedInfo.Count; i++)
+                            for (int i = 0; i < indexedSideChainBlockInfoResult.SideChainBlockInfos.Count; i++)
                             {
-                                var info = body.IndexedInfo[i];
+                                var info = indexedSideChainBlockInfoResult.SideChainBlockInfos[i];
                                 if (!info.ChainId.Equals(sideChainId))
                                     continue;
-                                var merklePath = tree.GenerateMerklePath(i);
+                                var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                                 if (merklePath == null)
                                 {
-                                    _logger?.Trace($"tree.Root == null: {tree.Root == null}");
-                                    _logger?.Trace($"tree.LeafCount = {tree.LeafCount}, index = {i}");
+                                    _logger?.Debug($"tree.Root == null: {binaryMerkleTree.Root == null}");
+                                    _logger?.Debug($"tree.LeafCount = {binaryMerkleTree.LeafCount}, index = {i}");
                                 }
                                 res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
                             }

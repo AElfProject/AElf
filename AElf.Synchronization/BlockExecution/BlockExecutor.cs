@@ -428,8 +428,7 @@ namespace AElf.Synchronization.BlockExecution
                     var sideChainBlockInfos = (SideChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(SideChainBlockInfo[])})[0];
 
-                    if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray())
-                        || !await ValidateSideChainBlockInfo(sideChainBlockInfos))
+                    if (!await ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidSideChainBlockInfo;

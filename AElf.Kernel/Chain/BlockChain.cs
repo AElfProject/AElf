@@ -175,14 +175,14 @@ namespace AElf.Kernel
             }
         }
 
-        private async Task RollbackSideChainInfo(IBlock block)
-        {
-            foreach (var info in block.Body.IndexedInfo)
-            {
-                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
-                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
-            }
-        }
+//        private async Task RollbackSideChainInfo(IBlock block)
+//        {
+//            foreach (var info in block.Body.IndexedInfo)
+//            {
+//                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
+//                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
+//            }
+//        }
 
         private async Task RollbackStateForBlock(IBlock block)
         {

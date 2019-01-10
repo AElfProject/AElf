@@ -12,6 +12,12 @@ message SideChainBlockInfo{
     Hash ChainId = 4;
 }
 
+message IndexedSideChainBlockInfoResult{
+    uint64 Height = 1;
+    Address Miner = 2;
+    repeated SideChainBlockInfo SideChainBlockInfos = 3;
+}
+
 message ParentChainBlockInfo{
     ParentChainBlockRootInfo Root = 1;
 

@@ -112,7 +112,6 @@ namespace AElf.Miner.Miner
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
                 var traces = new List<TransactionTrace>();
                 Hash sideChainTransactionsRoot = null;
-                byte[] indexedSideChainBlockInfo = null;
                 if (txGrp.TryGetValue(true, out var sysRcpts))
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
@@ -123,20 +122,7 @@ namespace AElf.Miner.Miner
                     _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
                     
                     // need check result of cross chain transaction 
-                    var crossChainIndexingSideChainTransaction =
-                        sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction());
-                    if (crossChainIndexingSideChainTransaction != null)
-                    {
-                        var txHash = crossChainIndexingSideChainTransaction.GetHash();
-                        var sideChainIndexingTxnTrace = traces.FirstOrDefault(trace =>
-                            trace.TransactionId.Equals(txHash) &&
-                            trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted);
-                        sideChainTransactionsRoot = sideChainIndexingTxnTrace != null
-                            ? Hash.LoadByteArray(sideChainIndexingTxnTrace.RetVal.ToFriendlyBytes())
-                            : null;
-                        indexedSideChainBlockInfo = sideChainTransactionsRoot != null ? crossChainIndexingSideChainTransaction
-                            .Params.ToByteArray() : null;
-                    }
+                    sideChainTransactionsRoot = ExtractSideChainTransactionRoot(sysTxs, traces);
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
@@ -169,8 +155,7 @@ namespace AElf.Miner.Miner
                 ExtractTransactionResults(traces, out var results);
 
                 // generate block
-                var block = await GenerateBlock(results, sideChainTransactionsRoot, indexedSideChainBlockInfo,
-                    currentBlockTime);
+                var block = await GenerateBlock(results, sideChainTransactionsRoot, currentBlockTime);
                 _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
@@ -250,6 +235,31 @@ namespace AElf.Miner.Miner
             }
                 
         }
+
+        /// <summary>
+        /// Extract side chain indexing result from transaction traces.
+        /// </summary>
+        /// <returns>
+        /// Merkle tree root of side chain block transaction roots.
+        /// </returns>
+        private Hash ExtractSideChainTransactionRoot(IEnumerable<Transaction> sysTxs, List<TransactionTrace> sysTxnTraces)
+        {
+            if (sysTxnTraces == null) throw new ArgumentNullException(nameof(sysTxnTraces));
+            var crossChainIndexingSideChainTransaction =
+                sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction());
+            if (crossChainIndexingSideChainTransaction == null)
+            {
+                return null;
+            }
+            var txHash = crossChainIndexingSideChainTransaction.GetHash();
+            var sideChainIndexingTxnTrace = sysTxnTraces.FirstOrDefault(trace =>
+                trace.TransactionId.Equals(txHash) &&
+                trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted);
+            return  sideChainIndexingTxnTrace != null
+                ? Hash.LoadByteArray(sideChainIndexingTxnTrace.RetVal.ToFriendlyBytes())
+                : null;
+        }
+            
 
         private async Task SignAndInsertToPool(Transaction notSignerTransaction)
         {
@@ -422,14 +432,12 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="results"></param>
         /// <param name="sideChainTransactionsRoot"></param>
-        /// <param name="indexedSideChainBlockInfo"></param>
         /// <param name="currentBlockTime"></param>
         /// <returns></returns>
-        private async Task<IBlock> GenerateBlock(HashSet<TransactionResult> results,
-            Hash sideChainTransactionsRoot, byte[] indexedSideChainBlockInfo, DateTime currentBlockTime)
+        private async Task<IBlock> GenerateBlock(HashSet<TransactionResult> results, Hash sideChainTransactionsRoot,  
+            DateTime currentBlockTime)
         {
-            var block = await _blockGenerator.GenerateBlockAsync(results, sideChainTransactionsRoot,
-                indexedSideChainBlockInfo, currentBlockTime);
+            var block = await _blockGenerator.GenerateBlockAsync(results, sideChainTransactionsRoot, currentBlockTime);
             block.Sign(_keyPair);
             return block;
         }

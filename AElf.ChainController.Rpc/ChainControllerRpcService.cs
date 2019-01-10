@@ -536,7 +536,7 @@ namespace AElf.ChainController.Rpc
                     ["Body"] = new JObject
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlockInfo()
+                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(blockinfo.Header.Index)
                     }
                 }
             };
