@@ -307,10 +307,10 @@ namespace AElf.Node.Protocol
                 lock (_syncLock)
                 {
                     if (msg?.Block == null)
-                        _logger?.Warn("[event] Block rejected: block null.");
+                        Logger.LogWarning("[event] Block rejected: block null.");
                     
                     if (CurrentSyncSource == null)
-                        _logger?.Warn("Unexpected situation, rejected a block but no peer is currently syncing.");
+                        Logger.LogWarning("Unexpected situation, rejected a block but no peer is currently syncing.");
 
                     if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
                     {
@@ -319,7 +319,7 @@ namespace AElf.Node.Protocol
 
                         if (next == null)
                         {
-                            _logger?.Warn("Rejected block but no other peer to sync from. ");
+                            Logger.LogWarning("Rejected block but no other peer to sync from. ");
                             return;
                         }
                         
