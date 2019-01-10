@@ -348,25 +348,23 @@ namespace AElf.Contracts.CrossChain
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
                 Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
-                Api.Assert(_sideChainInfos.TryGet(chainId, out var info), "Not registered side chain");
-                Api.Equal(SideChainStatus.Active, info.SideChainStatus, "Side chain is not active.");
+                if(!_sideChainInfos.TryGet(chainId, out var info) || info.SideChainStatus != SideChainStatus.Active)
+                    continue;
                 var currentSideChainHeight = _sideChainHeight.GetValue(chainId);
                 var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1: GlobalConfig.GenesisBlockHeight;
-                var chainIdBase58 = blockInfo.ChainId.DumpByteArray().ToPlainBase58();
-                Api.Equal(target, sideChainHeight,
-                    $"Side chain block info at height {target} is needed from {chainIdBase58}, not {sideChainHeight}");
-            
-                var indexingPrice = _sideChainInfos[chainId].IndexingPrice;
-                var lockedToken = _indexingBalance.GetValue(chainId);
-                
-                // locked token not enough 
-                if(lockedToken < indexingPrice)
+                if(target != sideChainHeight)
                     continue;
                 
-                _sideChainHeight[chainId] = target;
                 // indexing fee
+                var indexingPrice = _sideChainInfos[chainId].IndexingPrice;
+                var lockedToken = _indexingBalance.GetValue(chainId);
+                // locked token not enough 
+                if(lockedToken < indexingPrice)
+                    continue;            
                 _indexingBalance[chainId] = lockedToken - indexingPrice;
                 Api.UnlockToken(Api.GetFromAddress(), indexingPrice);
+                
+                _sideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 indexedSideChainBlockInfoResult.SideChainBlockInfos.Add(blockInfo);
                 // Todo: only for debug
