@@ -585,8 +585,24 @@ namespace AElf.Node.Protocol
 
                         lock (_syncLock)
                         {
-                            _logger?.Debug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
-                            SyncNext();
+                            if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                            {
+                                IPeer nextHistSyncSource = _peers.FirstOrDefault(p => p.KnownHeight >= peer.Peer.SyncTarget);
+
+                                if (nextHistSyncSource == null)
+                                {
+                                    _logger?.Warn("No other peer to sync from.");
+                                    return;
+                                }
+
+                                CurrentSyncSource = nextHistSyncSource;
+                                nextHistSyncSource.SyncToHeight(LocalHeight+1, nextHistSyncSource.KnownHeight);
+                            }
+                            else
+                            {
+                                _logger?.Debug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
+                                SyncNext();
+                            }
                         }
                     }
                 }
@@ -616,8 +632,24 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
-                    _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
-                    SyncNext();
+                    if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                    {
+                        IPeer nextHistSyncSource = _peers.FirstOrDefault(p => p.KnownHeight >= args.Peer.SyncTarget);
+
+                        if (nextHistSyncSource == null)
+                        {
+                            _logger?.Warn("No other peer to sync from.");
+                            return;
+                        }
+
+                        CurrentSyncSource = nextHistSyncSource;
+                        nextHistSyncSource.SyncToHeight(LocalHeight+1, nextHistSyncSource.KnownHeight);
+                    }
+                    else
+                    {
+                        _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
+                        SyncNext();
+                    }
                 }
             }
         }
