@@ -335,7 +335,7 @@ namespace AElf.Contracts.Consensus
                         {
                             CandidateAlias = alias.Value,
                             Timestamp = votingRecord.VoteTimestamp,
-                            Type = TicketsHistoryType.Vote,
+                            Type = TicketsHistoryType.Redeem,
                             VotesNumber = votingRecord.Count,
                             State = true
                         });

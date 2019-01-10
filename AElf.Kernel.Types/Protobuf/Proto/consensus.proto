@@ -160,6 +160,7 @@ message TicketsHistory {
 }
 
 enum TicketsHistoryType {
-    Vote = 0;
+    None = 0;
     Redeem = 1;
+    Vote = 2;
 }
