@@ -285,6 +285,16 @@ Params:
 Result Type:
 `Tickets` / `string`
 
+### `QueryObtainedNotExpiredVotes`
+
+Params:
+- `string` publicKeyHexString
+
+Result Type:
+`ulong`
+
+To query obtained and not expired votes number of a candidate.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -587,6 +597,16 @@ orderBy:
 `Tickets` / `string`
 
 分页获取所提供公钥的投票信息。
+
+### `QueryObtainedNotExpiredVotes`
+
+参数：
+- `string` publicKeyHexString
+
+返回类型：
+`ulong`
+
+查询某候选人所获得没有过期的选票数。
 
 ## Data Structure
 

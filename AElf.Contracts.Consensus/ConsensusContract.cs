@@ -273,6 +273,19 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
+        public ulong QueryObtainedNotExpiredVotes(string publicKey)
+        {
+            var tickets = GetTicketsInfo(publicKey);
+            if (!tickets.VotingRecords.Any())
+            {
+                return 0;
+            }
+            return tickets.VotingRecords
+                .Where(vr => vr.To == publicKey && !vr.IsExpired(Collection.AgeField.GetValue()))
+                .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
+        }
+
+        [View]
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))

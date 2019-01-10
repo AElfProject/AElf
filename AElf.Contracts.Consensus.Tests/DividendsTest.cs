@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.Tests
     public class DividendsTest
     {
         private const int CandidatesCount = 18;
-        private const int VotersCount = 2;
+        private const int VotersCount = 100;
 
         private readonly ContractsShim _contracts;
 
@@ -66,11 +66,8 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 foreach (var candidate in _candidates)
                 {
-                    if (new Random().Next(0, 10) < 5)
-                    {
-                        mustVotedVoter = voter;
-                        _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
-                    }
+                    mustVotedVoter = voter;
+                    _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
                 }
             }
 
@@ -93,6 +90,8 @@ namespace AElf.Contracts.Consensus.Tests
             // Second term.
             var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
+            Console.WriteLine("Term message:");
+            Console.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
 
             var secondRound = _contracts.GetRoundInfo(2);
@@ -129,6 +128,9 @@ namespace AElf.Contracts.Consensus.Tests
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
+            Console.WriteLine("Term message:");
+            Console.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             var snapshotOfSecondTerm = _contracts.GetTermSnapshot(2);
             Assert.True(snapshotOfSecondTerm.TotalBlocks == 18);
