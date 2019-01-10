@@ -423,12 +423,13 @@ namespace AElf.Contracts.Consensus.Contracts
             CandidateInHistory candidateInHistory;
             if (previousTerm == null)
             {
-                // Initial history information for initial miners.
+                // Current term is 1. Initial history information for initial miners.
                 foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
                 {
                     if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var history))
                     {
                         candidateInHistory = history;
+                        candidateInHistory.PublicKey = candidate.Key;
                         candidateInHistory.MissedTimeSlots = candidate.Value.MissedTimeSlots;
                         candidateInHistory.ProducedBlocks = candidate.Value.ProducedBlocks;
                         candidateInHistory.Terms.Add(1);
@@ -442,7 +443,7 @@ namespace AElf.Contracts.Consensus.Contracts
                             ProducedBlocks = candidate.Value.ProducedBlocks,
                             ContinualAppointmentCount = 0,
                             ReappointmentCount = 0,
-                            Terms = {1},
+                            Terms = {1}
                         };
                     }
                     
@@ -507,6 +508,11 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private TermSnapshot GetPreviousTerm()
         {
+            if (CurrentTermNumber == 1)
+            {
+                return null;
+            }
+            
             if (_collection.SnapshotField.TryGet((CurrentTermNumber - 1).ToUInt64Value(), out var previousTerm))
             {
                 return previousTerm;

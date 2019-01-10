@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
@@ -15,7 +16,7 @@ namespace AElf.Contracts.Consensus.Tests
     public class DividendsTest
     {
         private const int CandidatesCount = 18;
-        private const int VotersCount = 100;
+        private const int VotersCount = 10;
 
         private readonly ContractsShim _contracts;
 
@@ -90,9 +91,10 @@ namespace AElf.Contracts.Consensus.Tests
             // Second term.
             var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
-            Console.WriteLine("Term message:");
-            Console.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
+            Debug.WriteLine("Term message:");
+            Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
 
             var secondRound = _contracts.GetRoundInfo(2);
 
@@ -128,12 +130,13 @@ namespace AElf.Contracts.Consensus.Tests
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
-            Console.WriteLine("Term message:");
-            Console.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Debug.WriteLine("Term message:");
+            Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             var snapshotOfSecondTerm = _contracts.GetTermSnapshot(2);
-            Assert.True(snapshotOfSecondTerm.TotalBlocks == 18);
+            Assert.Equal(18.ToString(), snapshotOfSecondTerm.TotalBlocks.ToString());
 
             var dividendsOfSecondTerm = _contracts.GetTermDividends(2);
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
@@ -143,7 +146,7 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(balanceAfter >= balanceBefore);
+            Assert.True(balanceAfter > balanceBefore);
 
             var history4 = _contracts.GetCandidatesHistoryInfo();
 

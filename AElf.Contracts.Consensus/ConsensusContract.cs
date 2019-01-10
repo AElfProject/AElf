@@ -596,8 +596,7 @@ namespace AElf.Contracts.Consensus
         
         public ActionResult ReceiveAllDividends()
         {
-            Election.ReceiveDividends();
-            return new ActionResult {Success = true};
+            return Election.ReceiveDividends();
         }
         
         public ActionResult WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)

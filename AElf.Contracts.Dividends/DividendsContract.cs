@@ -171,9 +171,10 @@ namespace AElf.Contracts.Dividends
                 {
                     if (_dividendsMap.TryGet(i.ToUInt64Value(), out var dividends))
                     {
-                        actualTermNumber = i;
                         var dividendsAmount = dividends.Value * votingRecord.Weight / totalWeights.Value;
                         Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
+                        Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
+                        actualTermNumber = i;
                     }
                 }
             }

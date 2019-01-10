@@ -192,12 +192,18 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
+                if (!tickets.VotingRecords.Any())
+                {
+                    return new ActionResult {Success = false, ErrorMessage = "Voting records not found."};
+                }
+                
                 foreach (var votingRecord in tickets.VotingRecords)
                 {
                     var maxTermNumber = votingRecord.TermNumber +
                                         votingRecord.GetDurationDays(CurrentAge) /
                                         GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord,
+                        Math.Max(maxTermNumber, _collection.CurrentTermNumberField.GetValue()));
                 }
             }
             
