@@ -763,7 +763,7 @@ namespace AElf.Node.Consensus
 
             if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
-                MessageHub.Instance.Publish(new MinorityForkDetected());
+                //MessageHub.Instance.Publish(new MinorityForkDetected());
                 _logger?.Debug("Finished Launching events.");
             }
             

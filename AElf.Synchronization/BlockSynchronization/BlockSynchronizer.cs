@@ -560,7 +560,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             try
             {
-                _blockSet.PushBlock(block, true);
+                _blockSet.PushBlock(block);
                         
                 // if the current chain has just been extended update
                 if (HeadBlock == _blockSet.CurrentHead.PreviousState)
