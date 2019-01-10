@@ -55,7 +55,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return CurrentHead;
         }
 
-        public void PushBlock(IBlock block, bool isMined = false)
+        public void PushBlock(IBlock block)
         {
             _rwLock.AcquireReaderLock(Timeout);
             
@@ -96,9 +96,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 try
                 {
                     _blocks.Add(newState);
-
-                    if (isMined)
-                        return;
                     
                     // update LIB
                     ulong libIndex = CurrentLib == null ? 0UL : CurrentLib.Index;
