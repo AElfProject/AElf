@@ -419,8 +419,11 @@ namespace AElf.Kernel.Consensus
 
         private string GetAlias(string publicKey)
         {
-            return StringValue.Parser.ParseFrom(_reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
-                GlobalConfig.AElfDPoSAliasesMapString)).Value;
+            var bytes = _reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
+                GlobalConfig.AElfDPoSAliasesMapString);
+            return bytes == null
+                ? publicKey.Substring(0, GlobalConfig.AliasLimit)
+                : StringValue.Parser.ParseFrom(bytes).Value;
         }
     }
 }
