@@ -573,8 +573,11 @@ namespace AElf.Node.Consensus
                         miners.PublicKeys.Add(luckyGuyPublicKey);
                     }
 
-                    await _minersManager.SetMiners(miners);
-
+                    if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                    {
+                        await _minersManager.SetMiners(miners);
+                    }
+                    
                     var parameters = new List<object>
                     {
                         new Forwarding
@@ -707,7 +710,8 @@ namespace AElf.Node.Consensus
             }
 
             // Update miners list in database.
-            if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
+                _helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
             {
                 var currentRoundInfo = _helper.GetCurrentRoundInfo();
                 if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())

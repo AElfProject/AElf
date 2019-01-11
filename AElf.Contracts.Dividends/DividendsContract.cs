@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -52,13 +53,15 @@ namespace AElf.Contracts.Dividends
         public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
             ulong dividends = 0;
-            var age = Api.GetBlockchainAge();
-            var maxTermNumber = votingRecord.TermNumber + votingRecord.GetDurationDays(age) / GlobalConfig.DaysEachTerm;
+            
             var start = votingRecord.TermNumber;
-            if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
+            if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var lastRequestTermNumber))
             {
-                start = history.Value + 1;
+                start = lastRequestTermNumber.Value + 1;
             }
+            
+            var maxTermNumber = votingRecord.TermNumber +
+                                votingRecord.GetDurationDays(Api.GetBlockchainAge()) / GlobalConfig.DaysEachTerm;
 
             for (var i = start; i <= maxTermNumber; i++)
             {
@@ -79,7 +82,7 @@ namespace AElf.Contracts.Dividends
         {
             var votingRecords = Api.GetVotingRecords(publicKey);
             ulong dividends = 0;
-            foreach (var votingRecord in votingRecords)
+            foreach (var votingRecord in votingRecords.Where(vr => vr.From == publicKey))
             {
                 dividends += GetAvailableDividends(votingRecord);
             }

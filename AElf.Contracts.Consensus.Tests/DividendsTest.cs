@@ -142,11 +142,14 @@ namespace AElf.Contracts.Consensus.Tests
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
 
+            var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
+
             var balanceBefore = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.True(balanceAfter > balanceBefore);
+            Assert.Equal(availableDividends, balanceAfter - balanceBefore);
 
             var history4 = _contracts.GetCandidatesHistoryInfo();
 
