@@ -119,6 +119,7 @@ namespace AElf.Kernel
             {
                 return new Round {RoundNumber = 0};
             }
+            
             var miningInterval = previousRound.MiningInterval;
             var round = new Round {RoundNumber = previousRound.RoundNumber + 1};
 
@@ -130,37 +131,48 @@ namespace AElf.Kernel
 
             var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
 
-            foreach (var miner in previousRound.RealTimeMinersInfo.Values)
+            if (previousRound.RealTimeMinersInfo.Keys.Union(PublicKeys).Count() == PublicKeys.Count)
             {
-                var s = miner.Signature;
-                if (s == null)
+
+                foreach (var miner in previousRound.RealTimeMinersInfo.Values)
                 {
-                    s = Hash.Generate();
+                    var s = miner.Signature;
+                    if (s == null)
+                    {
+                        s = Hash.Generate();
+                    }
+
+                    signatureDict[s] = miner.PublicKey;
                 }
 
-                signatureDict[s] = miner.PublicKey;
-            }
-
-            foreach (var sig in signatureDict.Keys)
-            {
-                var sigNum = BitConverter.ToUInt64(
-                    BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-                var order = Math.Abs(GetModulus(sigNum, blockProducerCount));
-
-                if (orderDict.ContainsKey(order))
+                foreach (var sig in signatureDict.Keys)
                 {
-                    for (var i = 0; i < blockProducerCount; i++)
+                    var sigNum = BitConverter.ToUInt64(
+                        BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
+                    var order = Math.Abs(GetModulus(sigNum, blockProducerCount));
+
+                    if (orderDict.ContainsKey(order))
                     {
-                        if (!orderDict.ContainsKey(i))
+                        for (var i = 0; i < blockProducerCount; i++)
                         {
-                            order = i;
+                            if (!orderDict.ContainsKey(i))
+                            {
+                                order = i;
+                            }
                         }
                     }
+
+                    orderDict.Add(order, signatureDict[sig]);
                 }
-
-                orderDict.Add(order, signatureDict[sig]);
             }
-
+            else
+            {
+                for (var i = 0; i < blockProducerCount; i++)
+                {
+                    orderDict.Add(i, PublicKeys[i]);
+                }
+            }
+            
             var extraBlockMiningTime = previousRound.GetEBPMiningTime(miningInterval).ToTimestamp();
 
             // Maybe because something happened with setting extra block time slot.
@@ -172,18 +184,20 @@ namespace AElf.Kernel
 
             for (var i = 0; i < orderDict.Count; i++)
             {
+                var minerPublicKey = orderDict[i];
                 var minerInRound = new MinerInRound
                 {
                     ExpectedMiningTime =
                         GetTimestampWithOffset(extraBlockMiningTime, i * miningInterval + miningInterval),
                     Order = i + 1,
-                    PublicKey = orderDict[i]
+                    PublicKey = minerPublicKey
                 };
 
-                round.RealTimeMinersInfo[orderDict[i]] = minerInRound;
+                round.RealTimeMinersInfo[minerPublicKey] = minerInRound;
             }
 
-            var newEBP = CalculateNextExtraBlockProducer(round);
+            var newEBPOrder = CalculateNextExtraBlockProducerOrder(round);
+            var newEBP = round.RealTimeMinersInfo.Keys.ToList()[newEBPOrder];
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
 
             if (GlobalConfig.BlockProducerNumber != 1)
@@ -201,11 +215,11 @@ namespace AElf.Kernel
             }
 
             round.MiningInterval = previousRound.MiningInterval;
-
+            
             return round;
         }
 
-        private string CalculateNextExtraBlockProducer(Round roundInfo)
+        private int CalculateNextExtraBlockProducerOrder(Round roundInfo)
         {
             var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInfo();
             var sig = firstPlaceInfo.Signature;
@@ -219,9 +233,7 @@ namespace AElf.Kernel
             var blockProducerCount = roundInfo.RealTimeMinersInfo.Count;
             var order = GetModulus(sigNum, blockProducerCount);
 
-            var nextEBP = roundInfo.RealTimeMinersInfo.Keys.ToList()[order];
-
-            return nextEBP;
+            return order;
         }
 
         /// <summary>
