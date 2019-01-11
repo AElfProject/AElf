@@ -54,18 +54,49 @@ AELF project
 @startuml
 
 package "AElf.Kernel.Application" {
+  
   [Service]
+
 }
 
 package "AElf.Kernel.Domain" {
   [Entity]
-  
+  [Facade]
+
 }
 
 
 @enduml
 ```
 
+
+```puml
+@startuml
+
+package "AElf.Kernel.Application" {
+  
+  
+
+}
+
+package "AElf.Kernel.Domain" {
+  class BlockHeader{
+    Hash Hash {get;set;}
+  }
+
+  class Chain{
+
+  }
+
+  class ChainBlockHeader{
+    
+  }
+
+}
+
+
+@enduml
+```
 
 Some basic defines
 ```csharp
