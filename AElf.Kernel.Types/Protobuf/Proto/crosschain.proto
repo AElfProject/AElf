@@ -45,7 +45,8 @@ enum SideChainStatus
     Apply = 0;
     Review = 1;
     Active = 2;
-    Terminated = 3;
+    InsufficientBalance = 3;
+    Terminated = 4;
 }
 
 message SideChainInfo{

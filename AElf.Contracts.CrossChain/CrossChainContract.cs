@@ -227,6 +227,28 @@ namespace AElf.Contracts.CrossChain
         }
 
         /// <summary>
+        /// Recharge for side chain.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="amount"></param>
+        public void Recharge(string chainId, ulong amount)
+        {
+            var chainIdHash = Hash.LoadBase58(chainId);
+            Api.Assert(
+                _sideChainInfos.TryGet(chainIdHash, out var sideChainInfo) &&
+                (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
+                 sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
+                "Side chain not found or not able to be recharged.");
+            _indexingBalance[chainIdHash] = _indexingBalance[chainIdHash] + amount;
+            if (_indexingBalance[chainIdHash] > sideChainInfo.IndexingPrice)
+            {
+                sideChainInfo.SideChainStatus = SideChainStatus.Active;
+                _sideChainInfos[chainIdHash] = sideChainInfo;
+            }
+            Api.LockToken(amount);
+        }
+
+        /// <summary>
         /// Request form normal address to dispose side chain
         /// </summary>
         /// <param name="chainId"></param>
@@ -359,8 +381,12 @@ namespace AElf.Contracts.CrossChain
                 var indexingPrice = _sideChainInfos[chainId].IndexingPrice;
                 var lockedToken = _indexingBalance.GetValue(chainId);
                 // locked token not enough 
-                if(lockedToken < indexingPrice)
+                if (lockedToken < indexingPrice)
+                {
+                    info.SideChainStatus = SideChainStatus.InsufficientBalance;
+                    _sideChainInfos[chainId] = info;
                     continue;            
+                }
                 _indexingBalance[chainId] = lockedToken - indexingPrice;
                 Api.UnlockToken(Api.GetFromAddress(), indexingPrice);
                 
