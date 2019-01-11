@@ -105,7 +105,7 @@ namespace AElf.Kernel.Consensus
                 .Concat(recoverMining)
                 .Subscribe(this);
         }
-        
+
         public IDisposable NextTerm()
         {
             return Observable.Return(ConsensusBehavior.NextTerm).Subscribe(this);
@@ -118,6 +118,7 @@ namespace AElf.Kernel.Consensus
             {
                 return null;
             }
+
             var welcome = roundInfo.RealTimeMinersInfo[publicKey];
             var extraBlockTimeSlot = roundInfo.GetEBPMiningTime(Interval).ToTimestamp();
             var myMiningTime = welcome.ExpectedMiningTime;
@@ -138,6 +139,8 @@ namespace AElf.Kernel.Consensus
             var distanceToProduceExtraBlock = (extraBlockTimeSlot - now).Seconds;
 
             var produceExtraBlock = _nop;
+            var produceAnotherExtraBlock = _nop;
+
             if (distanceToProduceExtraBlock < 0 && GlobalConfig.BlockProducerNumber != 1)
             {
                 // No time, give up.
@@ -151,6 +154,11 @@ namespace AElf.Kernel.Consensus
                         .Select(_ => ConsensusBehavior.NextRound);
                     _logger?.Trace($"Will produce extra block after {distanceToProduceExtraBlock} seconds - " +
                                    $"{extraBlockTimeSlot.ToDateTime():HH:mm:ss.fff}.");
+                    produceAnotherExtraBlock = Observable
+                        .Timer(TimeSpan.FromSeconds(GlobalConfig.BlockProducerNumber * Interval / 1000))
+                        .Select(_ => ConsensusBehavior.NextRound);
+                    _logger?.Trace(
+                        $"Will produce another extra block after {distanceToProduceExtraBlock + GlobalConfig.BlockProducerNumber * Interval / 1000} seconds.");
                 }
             }
             else
@@ -161,14 +169,21 @@ namespace AElf.Kernel.Consensus
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
-                    _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
-                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * welcome.Order):HH:mm:ss.fff}");
+                    _logger?.Trace(
+                        $"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
+                        $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * welcome.Order):HH:mm:ss.fff}");
+                    produceAnotherExtraBlock = Observable
+                        .Timer(TimeSpan.FromSeconds(GlobalConfig.BlockProducerNumber * Interval / 1000))
+                        .Select(_ => ConsensusBehavior.NextRound);
+                    _logger?.Trace(
+                        $"Will produce another extra block after {distanceToHelpProducingExtraBlock + GlobalConfig.BlockProducerNumber * Interval / 1000} seconds.");
                 }
             }
 
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(produceNormalBlock)
                 .Concat(produceExtraBlock)
+                .Concat(produceAnotherExtraBlock)
                 .SubscribeOn(NewThreadScheduler.Default)
                 .Subscribe(this);
         }

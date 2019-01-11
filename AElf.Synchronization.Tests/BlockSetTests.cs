@@ -118,11 +118,9 @@ namespace AElf.Synchronization.Tests
             
             IBlock block4 = SyncTestHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
             
-
-            
             blockSet.PushBlock(block1);
             blockSet.PushBlock(block2);
-            blockSet.PushBlock(block3, true);
+            blockSet.PushBlock(block3);
             
             Assert.True(eventList.Count == 1);
             

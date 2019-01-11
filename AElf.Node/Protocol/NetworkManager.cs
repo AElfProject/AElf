@@ -296,6 +296,39 @@ namespace AElf.Node.Protocol
                 _currentLibNum = msg.Height;
                 _logger?.Debug($"Network lib updated : {_currentLibNum}.");
             });
+
+            MessageHub.Instance.Subscribe<BlockRejected>(msg =>
+            {
+                // the block that is currently been synced has failed 
+                lock (_syncLock)
+                {
+                    if (msg?.Block == null)
+                        _logger?.Warn("[event] Block rejected: block null.");
+                    
+                    if (CurrentSyncSource == null)
+                        _logger?.Warn("Unexpected situation, rejected a block but no peer is currently syncing.");
+
+                    if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                    {
+                        // If we're currently syncing history
+                        var next = _peers.FirstOrDefault(p => p != CurrentSyncSource && p.KnownHeight > LocalHeight);
+
+                        if (next == null)
+                        {
+                            _logger?.Warn("Rejected block but no other peer to sync from. ");
+                            return;
+                        }
+                        
+                        CurrentSyncSource = next;
+                        CurrentSyncSource.SyncToHeight(LocalHeight + 1, next.KnownHeight);
+                    }
+                    else
+                    {
+                        CurrentSyncSource.ResetSync();
+                        SyncNext(); // get another peer to sync from
+                    }
+                }
+            });
             
             MessageHub.Instance.Subscribe<BlockLinked>(msg =>
             {
@@ -352,7 +385,7 @@ namespace AElf.Node.Protocol
                     {
                         _logger?.Warn($"History blocks synced and no announcements to get.");
                     }
-                    else if (LocalHeight+1 != next.PeerMinAnnouncement)
+                    else if (LocalHeight+1 < next.PeerMinAnnouncement)
                     {
                         CurrentSyncSource = next.Peer;
                         _logger?.Debug($"Re-sync because lowest peer, {CurrentSyncSource} is too high {next.PeerMinAnnouncement}.");
@@ -436,9 +469,6 @@ namespace AElf.Node.Protocol
         internal void SyncNext()
         {
             var oldSyncSource = CurrentSyncSource;
-                    
-            // At this point the current sync source either doesn't have the next announcement 
-            // or has none at all.
             CurrentSyncSource = null;
             
             // Try and find a peer with an anouncement that corresponds to the next block we need.
@@ -555,8 +585,24 @@ namespace AElf.Node.Protocol
 
                         lock (_syncLock)
                         {
-                            _logger?.Debug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
-                            SyncNext();
+                            if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                            {
+                                IPeer nextHistSyncSource = _peers.FirstOrDefault(p => p.KnownHeight >= peer.Peer.SyncTarget);
+
+                                if (nextHistSyncSource == null)
+                                {
+                                    _logger?.Warn("No other peer to sync from.");
+                                    return;
+                                }
+
+                                CurrentSyncSource = nextHistSyncSource;
+                                nextHistSyncSource.SyncToHeight(LocalHeight+1, nextHistSyncSource.KnownHeight);
+                            }
+                            else
+                            {
+                                _logger?.Debug($"Peer {peer.Peer} has been removed, trying to find another peer to sync.");
+                                SyncNext();
+                            }
                         }
                     }
                 }
@@ -586,8 +632,24 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
-                    _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
-                    SyncNext();
+                    if (CurrentSyncSource != null && CurrentSyncSource.IsSyncingHistory)
+                    {
+                        IPeer nextHistSyncSource = _peers.FirstOrDefault(p => p.KnownHeight >= args.Peer.SyncTarget);
+
+                        if (nextHistSyncSource == null)
+                        {
+                            _logger?.Warn("No other peer to sync from.");
+                            return;
+                        }
+
+                        CurrentSyncSource = nextHistSyncSource;
+                        nextHistSyncSource.SyncToHeight(LocalHeight+1, nextHistSyncSource.KnownHeight);
+                    }
+                    else
+                    {
+                        _logger?.Debug($"Peer {args.Peer} has been removed, trying to find another peer to sync.");
+                        SyncNext();
+                    }
                 }
             }
         }
@@ -790,31 +852,6 @@ namespace AElf.Node.Protocol
                     
                     if (CurrentSyncSource == null)
                     {
-                        var next = _peers
-                            .Where(p => !p.IsDisposed && p.AnyStashed && p.KnownHeight > LocalHeight)
-                            .Select(p => new {
-                                PeerMinAnnouncement = p.GetLowestAnnouncement(),
-                                Peer = p
-                            })
-                            .OrderBy(p => p.PeerMinAnnouncement)
-                            .FirstOrDefault();
-
-                        if (next == null)
-                        {
-                            _logger?.Error($"An annoucement should be stashed.");
-                            return;
-                        }
-                        
-                        if (LocalHeight+1 != next.PeerMinAnnouncement)
-                        {
-                            CurrentSyncSource = next.Peer;
-                            _logger?.Debug($"Re-sync because next, {CurrentSyncSource} is {next.PeerMinAnnouncement}.");
-                            
-                            CurrentSyncSource.SyncToHeight(LocalHeight+1, next.PeerMinAnnouncement-1);
-                            
-                            return;
-                        }
-                        
                         CurrentSyncSource = peer;
                         CurrentSyncSource.SyncNextAnnouncement();
                         
@@ -862,6 +899,8 @@ namespace AElf.Node.Protocol
                 if (_lastBlocksReceived.Contains(blockHash))
                 {
                     _logger.Warn($"Block {blockHash.ToHex()} already in network cache.");
+                    DoNext(block);
+                    
                     return null;
                 }
 

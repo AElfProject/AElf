@@ -138,11 +138,12 @@ namespace AElf.Synchronization.BlockExecution
                 // 2. Transaction for indexing side chain block, if exists. 
                 Hash crossChainIndexingSideChainTransactionId;
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
-                if (res.IsFailed())
+                if (result.IsFailed())
                 {
                     _logger?.Warn(
-                        $"Collect transaction from block failed: {res}, block height: {block.Header.Index}, " +
+                        $"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
                         $"block hash: {block.BlockHashToHex}.");
+                    res = result;
                     return res;
                 }
 
@@ -169,17 +170,10 @@ namespace AElf.Synchronization.BlockExecution
 
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-//                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-//                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
-//                {
-//                    // Todo: this can happen? Why not rollback?
-//                    res = BlockExecutionResult.AlreadyAppended;
-//                    return res;
-//                }
-
-                if ((res = UpdateWorldState(block, txnRes)).IsFailed())
+                if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {
-                    throw new InvalidBlockException(res.ToString());
+                    res = result;
+                    throw new InvalidBlockException(result.ToString());
                 }
 
                 // BlockExecuting -> BlockAppending
@@ -212,10 +206,6 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 stopwatch.Stop();
-                if (res.CanExecuteAgain())
-                {
-                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
-                }
 
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, " +
                               $"{block.Body.Transactions.Count} txns, duration {stopwatch.ElapsedMilliseconds} ms.");
