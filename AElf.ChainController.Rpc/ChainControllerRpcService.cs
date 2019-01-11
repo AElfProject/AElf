@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using System.Transactions;
 using AElf.ChainController.CrossChain;
@@ -452,8 +453,9 @@ namespace AElf.ChainController.Rpc
                 ["tx_status"] = txResult.Status.ToString(),
                 ["tx_info"] = txInfo["tx"]
             };
-#if DEBUG
             var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+
+#if DEBUG
             response["tx_trc"] = txtrc?.ToString();
 #endif
             
@@ -466,12 +468,15 @@ namespace AElf.ChainController.Rpc
             {
                 response["block_number"] = txResult.BlockNumber;
                 response["block_hash"] = txResult.BlockHash.ToHex();
-#if DEBUG
-                response["return_type"] = txtrc.RetVal.Type.ToString();
-#endif
+                response["return_type"] = txtrc?.RetVal.Type.ToString();
                 try
                 {
-                    response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+                    if (txtrc?.RetVal.Type == RetVal.Types.RetType.String)
+                    {
+                        response["return"] = txResult.RetVal.ToStringUtf8();
+                    }
+                    else
+                        response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
                 }
                 catch (Exception)

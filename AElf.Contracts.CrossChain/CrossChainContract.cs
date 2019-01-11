@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
+using Newtonsoft.Json.Linq;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.CrossChain
@@ -154,7 +155,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public byte[] ReuqestChainCreation(SideChainInfo request)
+        public string ReuqestChainCreation(SideChainInfo request)
         {
             // no need to check authority since invoked in transaction from normal address
             Api.Assert(
@@ -169,15 +170,20 @@ namespace AElf.Contracts.CrossChain
 
             // lock token and resource
             request.ChainId = chainId;
-            Api.Assert(_indexingBalance[chainId] == 0, "Chain Id already used"); // This should not happen.  
             LockTokenAndResource(request);
 
             // side chain creation proposal
             Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
                 Api.GetContractAddress(), CreateSideChainMethodName, raw.ToPlainBase58());
             request.SideChainStatus = SideChainStatus.Review;
+            request.ProposalHash = hash;
             _sideChainInfos.SetValue(chainId, request);
-            return hash.DumpByteArray();
+            var res = new JObject
+            {
+                ["proposal_hash"] = hash.ToHex(),
+                ["chain_id"] = raw.ToPlainBase58()
+            };
+            return res.ToString();
         }
 
         public void WithdrawRequest(string chainId)
