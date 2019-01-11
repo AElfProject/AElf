@@ -175,14 +175,6 @@ namespace AElf.Synchronization.BlockExecution
 
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
 
-//                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-//                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
-//                {
-//                    // Todo: this can happen? Why not rollback?
-//                    res = BlockExecutionResult.AlreadyAppended;
-//                    return res;
-//                }
-
                 if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {
                     res = result;
@@ -219,10 +211,6 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 stopwatch.Stop();
-                if (res.CanExecuteAgain())
-                {
-                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
-                }
 
                 _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, " +
                               $"{block.Body.Transactions.Count} txns, duration {stopwatch.ElapsedMilliseconds} ms.");

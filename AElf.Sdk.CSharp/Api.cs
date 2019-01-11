@@ -49,21 +49,6 @@ namespace AElf.Sdk.CSharp
 
         #region Privileged API
 
-        public static void DeployContract(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            var task = _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address,
-                registration, false);
-            task.Wait();
-        }
-
-        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
-                true);
-        }
-
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
@@ -487,13 +472,13 @@ namespace AElf.Sdk.CSharp
         /// <param name="invokingMethod">The method to be invoked in packed transaction.</param>
         /// <param name="waitingPeriod">Expired time in second for proposal.</param>
         /// <param name="args">The arguments for packed transaction.</param>
-        public static Hash Propose(string proposalName, double waitingPeriod, Address targetAddress,
-            string invokingMethod, params object[] args)
+        public static Hash Propose(string proposalName, double waitingPeriod, Address fromAddress,
+            Address targetAddress, string invokingMethod, params object[] args)
         {
             // packed txn
             byte[] txnData = new Transaction
             {
-                From = Genesis,
+                From = fromAddress,
                 To = targetAddress,
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
@@ -504,7 +489,7 @@ namespace AElf.Sdk.CSharp
 
             Proposal proposal = new Proposal
             {
-                MultiSigAccount = Genesis,
+                MultiSigAccount = fromAddress,
                 Name = proposalName,
                 TxnData = ByteString.CopyFrom(txnData),
                 ExpiredTime = diff.TotalSeconds,
@@ -513,6 +498,12 @@ namespace AElf.Sdk.CSharp
             };
             SendInline(AuthorizationContractAddress, "Propose", proposal);
             return proposal.GetHash();
+        }
+
+        public static bool IsMultiSigAccount(Address address)
+        {
+            Call(AuthorizationContractAddress, "IsMultiSigAccount", address);
+            return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
         }
     }
 }

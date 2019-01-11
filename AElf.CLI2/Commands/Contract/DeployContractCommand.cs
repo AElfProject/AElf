@@ -1,16 +1,10 @@
-using System;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Xml.Serialization;
 using AElf.CLI2.JS;
-using AElf.Common;
 using Alba.CsConsoleFormat.Fluent;
-using Autofac;
-using ChakraCore.NET;
 using CommandLine;
 
-namespace AElf.CLI2.Commands
+namespace AElf.CLI2.Commands.Contract
 {
     [Verb("deploy", HelpText = "Deploy a smart contract.")]
     public class DeployContractOption : BaseOption

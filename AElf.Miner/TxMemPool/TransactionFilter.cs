@@ -228,8 +228,8 @@ namespace AElf.Miner.TxMemPool
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
-
-        public List<Transaction> Execute(List<Transaction> txs)
+        
+        public void Execute(List<Transaction> txs)
         {
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
@@ -242,8 +242,6 @@ namespace AElf.Miner.TxMemPool
                     {
                         txs.Remove(transaction);
                     }
-
-                    return toRemove;
                 }
                 catch (Exception e)
                 {
@@ -251,8 +249,6 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
-
-            return new List<Transaction>();
         }
 
         // ReSharper disable once UnusedMember.Local
