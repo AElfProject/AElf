@@ -470,6 +470,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _blockSet.RemoveInvalidBlock(block.GetHash());
                 
                 MessageHub.Instance.Publish(StateEvent.StateUpdated); // todo just get back to catching
+                MessageHub.Instance.Publish(UpdateConsensus.UpdateAfterExecution); // todo just get back to catching
                 MessageHub.Instance.Publish(StateEvent.BlockAppended); // todo just get back to catching
                 
                 MessageHub.Instance.Publish(new BlockRejected(block));
