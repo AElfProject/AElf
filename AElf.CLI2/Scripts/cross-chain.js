@@ -87,4 +87,19 @@
             return res.tx_status !== 'Pending';
         }, 3000);
     };
+
+    recharge_sidechain = function (chain_id, amount){
+        var hash = chain.crossChainContract.Recharge(chain_id, amount).hash;
+        console.log('tx_hash : ' + hash);
+        _repeatedCalls(function () {
+            var res = aelf.chain.getTxResult(hash).result;
+            if (res.tx_status !== 'Pending') {
+                console.log('tx_status : ', res.tx_status);
+            }
+            if (res.tx_status === 'Failed') {
+                console.log('Recharge failed. Unable to recharge chain ', chain_id, ".");
+            }
+            return res.tx_status !== 'Pending';
+        }, 3000);
+    }
 })();

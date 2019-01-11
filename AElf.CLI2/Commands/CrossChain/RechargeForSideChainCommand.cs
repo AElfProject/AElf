@@ -4,17 +4,20 @@ using CommandLine;
 
 namespace AElf.CLI2.Commands.CrossChain
 {
-    [Verb("withdraw-sidechain-creation", HelpText = "Withdraw chain creation request..")]
-    public class WithdrawChainCreationRequestOption : BaseOption
+    [Verb("recharge-sidechain", HelpText = "recharge for side chain.")]
+    public class RechargeForSideChainOption : BaseOption
     {
         [Value(0, HelpText = "Chain id.", Required = true)]
         public string ChainId { get; set; }
+        
+        [Value(1, HelpText = "Amount", Required = true)]
+        public int Amount { get; set; } 
     }
     
-    public class WithdrawChainCreationRequestCommand : Command
+    public class RechargeForSideChainCommand : Command
     {
-        private WithdrawChainCreationRequestOption _option;
-        public WithdrawChainCreationRequestCommand(WithdrawChainCreationRequestOption option) : base(option)
+        private RechargeForSideChainOption _option;
+        public RechargeForSideChainCommand(RechargeForSideChainOption option) : base(option)
         {
             _option = option;
         }
@@ -24,7 +27,7 @@ namespace AElf.CLI2.Commands.CrossChain
             InitChain();
             _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
                 .GetManifestResourceStream("AElf.CLI2.Scripts.cross-chain.js"));
-            _engine.GlobalObject.CallMethod("withdraw_chain_creation_request", _option.ChainId);
+            _engine.GlobalObject.CallMethod("recharge_sidechain", _option.ChainId, _option.Amount);
         }
     }
 }
