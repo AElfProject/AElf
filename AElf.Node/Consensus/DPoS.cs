@@ -728,7 +728,7 @@ namespace AElf.Node.Consensus
                 _logger?.Debug("Finished Launching events.");
             }
 
-            if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 0)
+            if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 1)
             {
                 _latestTermChangedRoundNumber = LatestRoundNumber;
             }
