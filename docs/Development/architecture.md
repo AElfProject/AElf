@@ -73,30 +73,118 @@ package "AElf.Kernel.Domain" {
 ```puml
 @startuml
 
-package "AElf.Kernel.Application" {
-  
-  
 
+package "AElf.Kernel.Application" {
+  interface IBlockchainService{
+    void AddBlock(ChainId chainId, Block block)
+    
+  }
 }
 
 package "AElf.Kernel.Domain" {
-  class BlockHeader{
-    Hash Hash {get;set;}
+
+  interface IBlockHeaderManager{
+    AddBlockHeader(BlockHeader blockHeader);
   }
+  IBlockchainService --> IBlockHeaderManager
+
+  interface IChainManager{
+    ChainBlockHeader AddBlockHeaderToChain(ChainId chainId, ChainBlockHeader chainBlockHeader)
+    ChainBlockHeader ConfirmLIBBlock(ChainId chainId,Hash blockHeaderHash)
+    ChainBlockHeader GetChainBlockHeader(ChainId chainId, blockHeader Header)
+
+    Dic<LastBlockHash,Height> GetBranches(ChainId chainId);
+
+    SetBestChain(ChainId chainId, Hash bestBlockHash)
+  }
+  note left: unit tests for fork and LIB
+  IBlockchainService --> IChainManager
 
   class Chain{
-
+    ChainId Id
+    Dictionary<LastBlockHash,Height> Branches
   }
+  IChainManager --> Chain
+
+
+  class BestChain{
+    ChainId Id
+    long LastHeight
+    Hash LastBlockHeaderHash
+  }
+
+  IChainManager --> BestChain
 
   class ChainBlockHeader{
-    
+    //key chain + block hash
+    Hash BlockHash
+    long Height
+    Hash PreviousBlockHeader
+    bool IsConfirmed // LIB
+    bool IsExecuted // State Db 
   }
+  IChainManager --> ChainBlockHeader
+}
+
+package "AElf.Kernel.Domain.Shared"{
+
+  class BlockHeader{
+    Hash BlockHash
+  }
+  IBlockHeaderManager --> BlockHeader
+
+  class BlockBody{
+    BlockHeaderHash blockHeaderHash
+    List<Transaction> Txs
+  }
+
+  class Block{
+    BlockHeader Header
+    BlockBody Body
+  }
+  IBlockchainService --> Block
+  Block --> BlockHeader
+  Block --> BlockBody
+
+  class Transaction{
+    //....
+  }
+
+  BlockBody --> Transaction
 
 }
 
 
 @enduml
 ```
+
+```puml
+@startuml
+
+Network -> IBlockchainService : ProcessValidBlock
+activate IBlockchainService
+
+  IBlockchainService -> IBlockHeaderManager : AddBlockHeader
+
+  IBlockchainService -> IChainManager : AddBlockHeaderToChain
+
+    activate IChainManager
+
+      IChainManager -> ChainBlockHeaderStore : Add new ChainBlockHeader
+
+      IChainManager -> IChainStore : Update Chain.Branches
+
+    deactivate IChainManager
+
+  IBlockchainService -> BlockExecutingService : ExecuteBlock
+  note right: execute all blocks even it's not on the best chain
+
+  IBlockchainService -> IChainSwitchingService : SwitchBestChain(chainId, blockHash);
+  note right: It depends on \nChainBlockHeader.IsConfirmed and \nChain.Branches
+
+@enduml
+```
+
 
 Some basic defines
 ```csharp
