@@ -43,7 +43,6 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private NodeState CurrentState => _stateFsm.CurrentState;
         
-        private bool _executeNextBlock;
         private IBlock _currentBlock;
 
         public int RollBackTimes { get; private set; }
@@ -54,6 +53,8 @@ namespace AElf.Synchronization.BlockSynchronization
         private List<string> _currentMiners;
 
         private Hash _chainId;
+        
+        private bool IsSwitching;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
             IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
@@ -70,7 +71,6 @@ namespace AElf.Synchronization.BlockSynchronization
             _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
 
             _terminated = false;
-            _executeNextBlock = true;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -171,6 +171,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private async Task OnMinorityForkDetected()
         {
+            IsSwitching = true;
             // Get ourselves into the Reverting state 
             MessageHub.Instance.Publish(StateEvent.LongerChainDetected);
             
@@ -200,10 +201,12 @@ namespace AElf.Synchronization.BlockSynchronization
             catch (Exception e)
             {
                 _logger?.Error(e, "Error while handling minority fork situation.");
-                MessageHub.Instance.Publish(StateEvent.RollbackFinished);
             }
             
             MessageHub.Instance.Publish(StateEvent.RollbackFinished);
+            IsSwitching = false;
+
+            var t = TryExecuteNextCachedBlock();
         }
 
         public void Init()
@@ -264,12 +267,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         private async Task TryExecuteNextCachedBlock()
         {
-            if (!_executeNextBlock)
-            {
-                _executeNextBlock = true;
-                return;
-            }
-            
             // no handling of blocks in other states than Catching/Caught (case where the node is busy).
             if (_stateFsm.CurrentState != NodeState.Catching && _stateFsm.CurrentState != NodeState.Caught)
             {
@@ -283,11 +280,20 @@ namespace AElf.Synchronization.BlockSynchronization
                 return;
             }
 
+            if (IsSwitching)
+            {
+                _logger?.Debug("Switching...");
+                return;
+            }
+
             IBlock next;
             lock (_blockCacheLock)
             {
                 if (!_blockCache.Any())
                     return;
+                
+                if (_blockCache.Count > 1)
+                    _logger?.Debug($"Info log cache count is high {_blockCache.Count}.");
 
                 // execute the block with the lowest index
                 next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
@@ -368,6 +374,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     _logger?.Warn($"Block unlinkable {block}");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     // todo event on unlinkable
+                    MessageHub.Instance.Publish(new BlockRejected(block));
                     return;
                 }
             
@@ -389,6 +396,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
                 else
                 {
+                    // not really invalid, just to go back to catching
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                     
                     _logger?.Debug($"Block {block} has been linked.");
@@ -422,6 +430,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
+                MessageHub.Instance.Publish(new BlockRejected(block));
                 MessageHub.Instance.Publish(new LockMining(false));
                 _blockSet.RemoveInvalidBlock(block.GetHash());
             }
@@ -441,19 +450,37 @@ namespace AElf.Synchronization.BlockSynchronization
             
             if (executionResult == BlockExecutionResult.AlreadyAppended)
             {
-                // good to go
+                // todo blocks should not be already appended when rollbacking
             }
-            else if (executionResult.CanExecuteAgain())
+            else if (executionResult == BlockExecutionResult.BlockIsNull || 
+                     executionResult == BlockExecutionResult.NoTransaction)
             {
-                // todo side chain logic
+                // todo Should be validated before => should throw exception
+            }
+            else if (executionResult == BlockExecutionResult.Mining 
+                     || executionResult == BlockExecutionResult.Terminated)
+            {
+                // todo should not happen, related to locking => should throw exception
+            }
+            else if (executionResult == BlockExecutionResult.Fatal
+                     || executionResult == BlockExecutionResult.ExecutionCancelled
+                     || executionResult == BlockExecutionResult.IncorrectStateMerkleTree)
+            {
+                // The block can be considered bad.
                 _blockSet.RemoveInvalidBlock(block.GetHash());
-                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
+                
+                MessageHub.Instance.Publish(StateEvent.StateUpdated); // todo just get back to catching
+                MessageHub.Instance.Publish(StateEvent.BlockAppended); // todo just get back to catching
+                
+                MessageHub.Instance.Publish(new BlockRejected(block));
                 return;
             }
-            else if (executionResult.CannotExecute())
+            else if (executionResult.IsSideChainError())
             {
-                _executeNextBlock = false;
+                // todo side chain logic
+                // these cases are currently unhandled 
                 _blockSet.RemoveInvalidBlock(block.GetHash());
+                MessageHub.Instance.Publish(StateEvent.StateNotUpdated);
                 return;
             }
 
@@ -513,6 +540,8 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 RollBackTimes++;
                 
+                MessageHub.Instance.Publish(new BlockExecuted(toexec.Last().GetClonedBlock()));
+                
                 // Reverting -> Catching
                 MessageHub.Instance.Publish(StateEvent.RollbackFinished);
             }
@@ -531,7 +560,7 @@ namespace AElf.Synchronization.BlockSynchronization
         {
             try
             {
-                _blockSet.PushBlock(block, true);
+                _blockSet.PushBlock(block);
                         
                 // if the current chain has just been extended update
                 if (HeadBlock == _blockSet.CurrentHead.PreviousState)
@@ -569,7 +598,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public IBlock GetBlockByHash(Hash blockHash)
         {
-            return _blockSet.GetBlockByHash(blockHash) ?? _blockChain.GetBlockByHashAsync(blockHash).Result;
+            return _blockCache.FirstOrDefault(b => b.GetHash() == blockHash) ?? _blockSet.GetBlockByHash(blockHash) ?? _blockChain.GetBlockByHashAsync(blockHash).Result;
         }
 
         public async Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count)

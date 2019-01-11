@@ -34,30 +34,14 @@ namespace AElf.Synchronization.BlockExecution
 
     public static class ExecutionResultExtensions
     {
-        public static bool IsSuccess(this BlockExecutionResult result)
-        {
-            return (int) result < 11;
-        }
-
-        public static bool CanExecuteAgain(this BlockExecutionResult result)
-        {
-            return (int) result > 10 && (int) result < 50;
-        }
-
         public static bool IsFailed(this BlockExecutionResult result)
         {
             return (int) result > 10;
         }
 
-        public static bool NeedToRollback(this BlockExecutionResult result)
+        public static bool IsSideChainError(this BlockExecutionResult result)
         {
-            return (int) result > 50;
-
-        }
-                
-        public static bool CannotExecute(this BlockExecutionResult result)
-        {
-            return (int) result > 100;
+            return (int) result >= 11 && (int) result <= 21;
         }
     }
 }
