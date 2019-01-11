@@ -57,4 +57,5 @@ message SideChainInfo{
     Address Proposer = 5;
     SideChainStatus SideChainStatus = 6;
     Hash ChainId = 7;
+    Hash ProposalHash = 8;
 }

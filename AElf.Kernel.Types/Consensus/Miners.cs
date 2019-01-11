@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
@@ -52,7 +53,7 @@ namespace AElf.Kernel
 
                 infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
-            
+
             // Second round
             dict = new Dictionary<string, int>();
 
@@ -83,7 +84,8 @@ namespace AElf.Kernel
                 }
 
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + totalSecondsOfFirstRound + GlobalConfig.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow(i * miningInterval + totalSecondsOfFirstRound +
+                                         GlobalConfig.AElfWaitFirstRoundTime);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
 
@@ -119,7 +121,7 @@ namespace AElf.Kernel
             {
                 return new Round {RoundNumber = 0};
             }
-            
+
             var miningInterval = previousRound.MiningInterval;
             var round = new Round {RoundNumber = previousRound.RoundNumber + 1};
 
@@ -131,9 +133,9 @@ namespace AElf.Kernel
 
             var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
 
-            if (previousRound.RealTimeMinersInfo.Keys.Union(PublicKeys).Count() == PublicKeys.Count)
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId ||
+                previousRound.RealTimeMinersInfo.Keys.Union(PublicKeys).Count() == PublicKeys.Count)
             {
-
                 foreach (var miner in previousRound.RealTimeMinersInfo.Values)
                 {
                     var s = miner.Signature;
@@ -172,7 +174,7 @@ namespace AElf.Kernel
                     orderDict.Add(i, PublicKeys[i]);
                 }
             }
-            
+
             var extraBlockMiningTime = previousRound.GetEBPMiningTime(miningInterval).ToTimestamp();
 
             // Maybe because something happened with setting extra block time slot.
@@ -205,17 +207,17 @@ namespace AElf.Kernel
                 // Exchange
                 var orderOfEBP = round.RealTimeMinersInfo[extraBlockProducer].Order;
                 var expectedMiningTimeOfEBP = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
-                
+
                 round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
                 round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
                     round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
-                
+
                 round.RealTimeMinersInfo.First().Value.Order = orderOfEBP;
                 round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = expectedMiningTimeOfEBP;
             }
 
             round.MiningInterval = previousRound.MiningInterval;
-            
+
             return round;
         }
 
