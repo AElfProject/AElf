@@ -215,7 +215,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void NextRoundTest()
         {
             InitialMiners();

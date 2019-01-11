@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
-            // TODO: I forget why its possible.
+            // When the node is in Round 1, gonna just update the data of Round 2 instead of re-generate the orders stuff.
             if (forwarding.NextRoundInfo.RoundNumber == 0)
             {
                 if (_collection.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(),
