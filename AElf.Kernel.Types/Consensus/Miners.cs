@@ -169,6 +169,7 @@ namespace AElf.Kernel
             }
             else
             {
+                extraBlockProducer = PublicKeys[0];
                 for (var i = 0; i < blockProducerCount; i++)
                 {
                     orderDict.Add(i, PublicKeys[i]);
@@ -198,7 +199,7 @@ namespace AElf.Kernel
                 round.RealTimeMinersInfo[minerPublicKey] = minerInRound;
             }
 
-            var newEBPOrder = CalculateNextExtraBlockProducerOrder(round);
+            var newEBPOrder = CalculateNextExtraBlockProducerOrder(previousRound);
             var newEBP = round.RealTimeMinersInfo.Keys.ToList()[newEBPOrder];
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
 

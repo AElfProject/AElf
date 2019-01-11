@@ -692,6 +692,13 @@ namespace AElf.Node.Consensus
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     _helper.TryToGetVictories(out var victories);
+                    
+                    _logger?.Trace("Miners of next term:");
+                    foreach (var victory in victories)
+                    {
+                        _logger?.Trace(victory);
+                    }
+                    
                     var parameters = new List<object>
                     {
                         victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,

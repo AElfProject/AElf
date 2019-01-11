@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -253,16 +254,30 @@ namespace AElf.Contracts.Consensus.Contracts
         private void SetAliases(Term term)
         {
             var index = 0;
-            foreach (var publicKey in term.Miners.PublicKeys)
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
             {
-                if (index >= Config.Aliases.Count)
-                    continue;
+                foreach (var publicKey in term.Miners.PublicKeys)
+                {
+                    if (index >= Config.Aliases.Count)
+                        return;
 
-                var alias = Config.Aliases[index];
-                _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
-                    new StringValue {Value = alias});
-                ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
-                index++;
+                    var alias = Config.Aliases[index];
+                    _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
+                        new StringValue {Value = alias});
+                    ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
+                    index++;
+                }
+            }
+            else
+            {
+                foreach (var publicKey in term.Miners.PublicKeys)
+                {
+                    var alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
+                    _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
+                        new StringValue {Value = alias});
+                    ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
+
+                }
             }
         }
 
