@@ -242,6 +242,12 @@ namespace AElf.Miner.TxMemPool
                     {
                         txs.Remove(transaction);
                     }
+
+                    _logger?.Trace("will package following consensus txs:");
+                    foreach (var tx in txs)
+                    {
+                        _logger?.Trace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
+                    }
                 }
                 catch (Exception e)
                 {

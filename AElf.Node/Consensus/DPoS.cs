@@ -724,8 +724,7 @@ namespace AElf.Node.Consensus
             if (_executedBlockFromOtherMiners && _amIMined &&
                 _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
-                //MessageHub.Instance.Publish(new MinorityForkDetected());
-                _logger?.Debug("Finished Launching events.");
+                MessageHub.Instance.Publish(new MinorityForkDetected());
             }
 
             if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 0)
