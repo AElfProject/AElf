@@ -54,13 +54,13 @@ namespace AElf.Contracts.Dividends
         {
             ulong dividends = 0;
             
-            var start = votingRecord.TermNumber;
+            var start = votingRecord.TermNumber + 1;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var lastRequestTermNumber))
             {
                 start = lastRequestTermNumber.Value + 1;
             }
             
-            var maxTermNumber = votingRecord.TermNumber +
+            var maxTermNumber = votingRecord.TermNumber - 1 +
                                 votingRecord.GetDurationDays(Api.GetBlockchainAge()) / GlobalConfig.DaysEachTerm;
 
             for (var i = start; i <= maxTermNumber; i++)
@@ -85,30 +85,6 @@ namespace AElf.Contracts.Dividends
             foreach (var votingRecord in votingRecords.Where(vr => vr.From == publicKey))
             {
                 dividends += GetAvailableDividends(votingRecord);
-            }
-
-            return dividends;
-        }
-
-        [View]
-        public ulong GetAvailableDividendsByVotingInformation(Hash transactionId, ulong termNumber, ulong weight)
-        {
-            ulong dividends = 0;
-            var start = termNumber;
-            if (_lastRequestDividendsMap.TryGet(transactionId, out var history))
-            {
-                start = history.Value + 1;
-            }
-
-            for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
-            {
-                if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
-                {
-                    if (_dividendsMap.TryGet(i.ToUInt64Value(), out var totalDividends))
-                    {
-                        dividends += totalDividends.Value * weight / totalWeights.Value;
-                    }
-                }
             }
 
             return dividends;
@@ -163,7 +139,7 @@ namespace AElf.Contracts.Dividends
             var owner = votingRecord.From;
             var ownerAddress =
                 Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
-            var start = votingRecord.TermNumber;
+            var start = votingRecord.TermNumber + 1;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;

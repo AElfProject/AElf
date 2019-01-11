@@ -44,18 +44,6 @@ Result type:
 
 To get current available dividends of the provided public key.
 
-### `GetAvailableDividendsByVotingInformation`
-
-Params:
-- `Hash` transctionId
-- `ulong` termNumber
-- `ulong` weight
-
-Result type:
-- `ulong`
-
-To get current available dividends of the provided voting information.
-
 ### `CheckDividends`
 
 Params:
@@ -138,18 +126,6 @@ Result Type:
 - `ulong`
 
 用于获取所提供私钥当前可领取的出块奖励分红。
-
-### `GetAvailableDividendsByVotingInformation`
-
-参数：
-- `Hash` transctionId
-- `ulong` termNumber
-- `ulong` weight
-
-返回类型:
-- `ulong`
-
-用于获取所提供投票信息相关投票实例当前可领取的出块奖励分红。
 
 ### `CheckDividends`
 

@@ -49,13 +49,6 @@ Params:
 
 To withdraw all the locked tokens of the caller.
 
-### `WithdrawByDetail`
-
-Params:
-- `string` publicKeyHexString
-- `ulong` ticketsAmount
-- `int` lockTime
-
 ### `WithdrawByTransactionId`
 
 Params:
@@ -345,13 +338,6 @@ To query obtained and not expired votes number of a candidate.
 - `bool` withoutLimitation
 
 投票者赎回自己的选票。
-
-### `WithdrawByDetail`
-
-参数:
-- string publicKeyHexString
-- ulong ticketsAmount
-- int lockTime
 
 ### `WithdrawByTransactionId`
 
