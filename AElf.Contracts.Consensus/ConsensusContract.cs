@@ -588,9 +588,9 @@ namespace AElf.Contracts.Consensus
             return new ActionResult {Success = true};
         }
 
-        public ActionResult ReceiveDividendsByTransactionId(Hash transactionId)
+        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
-            Election.ReceiveDividends(transactionId);
+            Election.ReceiveDividends(Hash.LoadHex(transactionId));
             return new ActionResult {Success = true};
         }
         
@@ -605,9 +605,9 @@ namespace AElf.Contracts.Consensus
             return new ActionResult {Success = true};
         }
         
-        public ActionResult WithdrawByTransactionId(Hash transactionId)
+        public ActionResult WithdrawByTransactionId(string transactionId)
         {
-            Election.Withdraw(transactionId);
+            Election.Withdraw(Hash.LoadHex(transactionId));
             return new ActionResult {Success = true};
         }
 

@@ -59,7 +59,7 @@ Params:
 ### `WithdrawByTransactionId`
 
 Params:
-- `Hash` transactionId
+- `string` transactionId
 
 ### `IsCandidate`
 
@@ -356,7 +356,7 @@ To query obtained and not expired votes number of a candidate.
 ### `WithdrawByTransactionId`
 
 参数:
-- Hash transactionId
+- string transactionId
 
 ### `IsCandidate`
 
