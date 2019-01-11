@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Storages;
 using NLog;
 
@@ -44,6 +45,10 @@ namespace AElf.Kernel.Managers
 
         public async Task SetMiners(Miners miners)
         {
+            if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
+            {
+                return;
+            }
             foreach (var publicKey in miners.PublicKeys)
             {
                 _logger?.Trace($"Set miner {publicKey} to data store.");
