@@ -58,6 +58,7 @@ message Tickets {
     repeated VotingRecord VotingRecords = 1;
     uint64 TotalTickets = 2;
     uint64 VotingRecordsCount = 3;
+    string Remark = 4;
 }
 
 // A voting record.
@@ -130,6 +131,7 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     uint64 CurrentVotesNumber = 9;
+    string Remark = 10;
 }
 
 message TicketsDictionary {
@@ -141,4 +143,24 @@ message CandidateInHistoryDictionary {
     map<string, CandidateInHistory> Maps = 1;
     string Remark = 2;
     int32 CandidatesNumber = 3;
+}
+
+message TicketsHistories {
+    repeated TicketsHistory Values = 1;
+    uint64 HistoriesNumber = 2;
+    string Remark = 3;
+}
+
+message TicketsHistory {
+    string CandidateAlias = 1;
+    uint64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    TicketsHistoryType Type = 5;
+}
+
+enum TicketsHistoryType {
+    None = 0;
+    Redeem = 1;
+    Vote = 2;
 }

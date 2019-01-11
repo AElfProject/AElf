@@ -78,7 +78,11 @@ namespace AElf.Node.Consensus
 
         private static bool _executedBlockFromOtherMiners;
 
+        private static bool _amIMined;
+
         private static bool _announcedElection;
+
+        private static ulong _latestTermChangedRoundNumber;
 
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
@@ -115,6 +119,7 @@ namespace AElf.Node.Consensus
 
                 if (option == UpdateConsensus.UpdateAfterMining)
                 {
+                    _amIMined = true;
                     _logger?.Trace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
                 }
@@ -151,12 +156,12 @@ namespace AElf.Node.Consensus
 
         private Miners Miners => _minersManager.GetMiners().Result;
 
-        public void Start(bool willToMine)
+        public void Start(bool willingToMine)
         {
             _nodeKey = NodeConfig.Instance.ECKeyPair;
             _ownPubKey = _nodeKey.PublicKey;
 
-            if (!willToMine)
+            if (!willingToMine)
             {
                 return;
             }
@@ -276,7 +281,7 @@ namespace AElf.Node.Consensus
 
             return null;
         }
-        
+
         private async Task InitialTerm()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
@@ -492,7 +497,6 @@ namespace AElf.Node.Consensus
         private async Task NextRound()
         {
             const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
-            var goNextTerm = false;
 
             _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
@@ -534,13 +538,14 @@ namespace AElf.Node.Consensus
 
                     if (CanStartNextTerm())
                     {
+                        _latestTermChangedRoundNumber = currentRoundNumber.Value;
                         Thread.VolatileWrite(ref _lockFlag, 0);
 
                         MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                        
+
                         _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
                         _logger?.Trace("Will change term.");
-                        
+
                         ConsensusDisposable?.Dispose();
                         ConsensusDisposable = ConsensusObserver.NextTerm();
 
@@ -551,9 +556,9 @@ namespace AElf.Node.Consensus
 
                     foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
                     {
-                        if (minerInRound.MissedTimeSlots < GlobalConfig.MaxMissedTimeSlots) 
+                        if (minerInRound.MissedTimeSlots < GlobalConfig.MaxMissedTimeSlots)
                             continue;
-                        
+
                         var poorGuyPublicKey = minerInRound.PublicKey;
                         var latestTermSnapshot = _helper.GetLatestTermSnapshot();
                         var luckyGuyPublicKey = latestTermSnapshot.GetNextCandidate(miners);
@@ -639,17 +644,19 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    _helper.TryToGetVictories(out var victories);
-                    var parameters = new List<object>
+                    if (_helper.TryToGetVictories(out var victories))
                     {
-                        victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
-                            _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
-                    };
+                        var parameters = new List<object>
+                        {
+                            victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
+                                _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
+                        };
 
-                    var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
+                        var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
 
-                    await BroadcastTransaction(txForNextTerm);
-                    await Mine();
+                        await BroadcastTransaction(txForNextTerm);
+                        await Mine();
+                    }
                 }
             }
             catch (Exception e)
@@ -710,10 +717,16 @@ namespace AElf.Node.Consensus
                 }
             }
 
-            if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
+            if (_executedBlockFromOtherMiners && _amIMined &&
+                _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {
                 //MessageHub.Instance.Publish(new MinorityForkDetected());
                 _logger?.Debug("Finished Launching events.");
+            }
+
+            if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 0)
+            {
+                _latestTermChangedRoundNumber = LatestRoundNumber;
             }
             
             // Update current round number and current term number.
@@ -811,12 +824,21 @@ namespace AElf.Node.Consensus
 
         private bool CanStartNextTerm()
         {
-            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
-                   /*(calculatedAge % GlobalConfig.DaysEachTerm == 0 &&
-                         calculatedAge / GlobalConfig.DaysEachTerm <= LatestTermNumber) ||*/
-                   (LatestRoundNumber / GlobalConfig.RoundsPerTerm + 1 != LatestTermNumber &&
-                    _helper.TryToGetVictories(out var victories) &&
-                    victories.Count == GlobalConfig.BlockProducerNumber);
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
+                _helper.TryToGetVictories(out var victories) &&
+                victories.Count == GlobalConfig.BlockProducerNumber)
+            {
+                if (_latestTermChangedRoundNumber != 0)
+                {
+                    return (LatestRoundNumber - _latestTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
+                           LatestTermNumber;
+                }
+                
+                _latestTermChangedRoundNumber = LatestRoundNumber;
+                return true;
+            }
+
+            return false;
         }
     }
 }

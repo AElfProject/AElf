@@ -37,7 +37,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
-        
+
         public UInt64Value CurrentTermNumber
         {
             get
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
-        
+
         public UInt64Value BlockchainAge
         {
             get
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus
                 }
             }
         }
-        
+
         public Timestamp BlockchainStartTimestamp
         {
             get
@@ -199,14 +199,29 @@ namespace AElf.Kernel.Consensus
         public bool TryToGetVictories(out List<string> victories)
         {
             var ticketsMap = new Dictionary<string, ulong>();
+            victories = new List<string>();
             var candidates = Candidates;
+            if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
+            {
+                return false;
+            }
+
             foreach (var candidate in candidates.PublicKeys)
             {
                 var tickets = GetTickets(candidate);
-                ticketsMap[candidate] = tickets.TotalTickets;
+                if (tickets.VotingRecords.Count > 0)
+                {
+                    ticketsMap[candidate] = tickets.TotalTickets;
+                }
             }
 
-            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
+            if (ticketsMap.Keys.Count < GlobalConfig.BlockProducerNumber)
+            {
+                return false;
+            }
+
+            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber)
+                .Select(tm => tm.Key)
                 .ToList();
             return !candidates.IsInitialMiners;
         }
@@ -217,7 +232,7 @@ namespace AElf.Kernel.Consensus
                 GlobalConfig.AElfDPoSTicketsMapString);
             return bytes == null ? new Tickets() : Tickets.Parser.ParseFrom(bytes);
         }
-        
+
         public StringValue GetDPoSInfoToString()
         {
             ulong count = 1;
@@ -325,23 +340,46 @@ namespace AElf.Kernel.Consensus
             _logger?.Trace("Log dpos information - End");
         }
 
+        /// <summary>
+        /// Valid candidate means someone has voted him.
+        /// </summary>
+        /// <param name="validCandidates"></param>
+        /// <returns></returns>
+        private bool TryToGetValidCandidates(out List<string> validCandidates)
+        {
+            validCandidates = new List<string>();
+            var age = BlockchainAge.Value;
+            foreach (var candidate in Candidates.PublicKeys)
+            {
+                if (GetTickets(candidate).VotingRecords.Any(vr => vr.To == candidate && !vr.IsExpired(age)))
+                {
+                    validCandidates.Add(candidate);
+                }
+            }
+
+            return validCandidates.Any();
+        }
+
         private string GetCurrentElectionInformation()
         {
             var result = "";
-            if (!TryToGetVictories(out var victories)) 
+            var dictionary = new Dictionary<string, ulong>();
+            if (!TryToGetValidCandidates(out var candidates))
                 return result;
 
-            result += "Election information:\n";
-            foreach (var victory in victories)
+            foreach (var candidatePublicKey in candidates)
             {
-                var tickets = GetTickets(victory);
-                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == victory)
+                var tickets = GetTickets(candidatePublicKey);
+                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == candidatePublicKey)
                     .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
-                    
-                result += $"[{GetAlias(victory)}]\n{number}\n";
+
+                dictionary.Add(GetAlias(candidatePublicKey), number);
             }
 
-            return result;
+            result += "\nElection information:\n";
+
+            return dictionary.OrderByDescending(kv => kv.Value)
+                .Aggregate(result, (current, pair) => current + $"[{pair.Key}]\n{pair.Value}\n");
         }
 
         public Round GetCurrentRoundInfo()
@@ -363,7 +401,7 @@ namespace AElf.Kernel.Consensus
             var snapshot = TermSnapshot.Parser.ParseFrom(bytes);
             return snapshot;
         }
-        
+
         public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
         {
             if (roundNumber == 0)
@@ -371,7 +409,7 @@ namespace AElf.Kernel.Consensus
                 roundInfo = null;
                 return false;
             }
-            
+
             var info = this[roundNumber.ToUInt64Value()];
             if (info != null)
             {
@@ -392,7 +430,8 @@ namespace AElf.Kernel.Consensus
                 var roundInfo = this[roundNumber];
                 foreach (var minerInfo in roundInfo.RealTimeMinersInfo.OrderBy(m => m.Value.Order))
                 {
-                    result += GetAlias(minerInfo.Key) + (minerInfo.Value.IsExtraBlockProducer ? " [Current EBP]:\n" : ":\n");
+                    result += GetAlias(minerInfo.Key) +
+                              (minerInfo.Value.IsExtraBlockProducer ? " [Current EBP]:\n" : ":\n");
                     result += "Order:\t\t" + minerInfo.Value.Order + "\n";
                     result += "Mining Time:\t" +
                               minerInfo.Value.ExpectedMiningTime.ToDateTime().ToLocalTime().ToString("u") + "\n";
@@ -410,7 +449,8 @@ namespace AElf.Kernel.Consensus
                     result += "Latest Missed:\t" + minerInfo.Value.LatestMissedTimeSlots + "\n";
                 }
 
-                return result + $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";
+                return result +
+                       $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";
             }
             catch (Exception e)
             {

@@ -113,7 +113,7 @@ To get the tickets information of provided public key.
 
 If this public key ever joined election, the voting records will also contain his supportters'.
 
-### `GetPageableTicketsInfo`
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
 
 Params:
 - `string` publicKeyHexString
@@ -121,7 +121,19 @@ Params:
 - `int` length
 
 Result type:
-- `Tickets`
+- `Tickets` / `string`
+
+To get the tickets information of provided public key with specific amount of voting records.
+
+### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `TicketsHistories` / `string`
 
 To get the tickets information of provided public key with specific amount of voting records.
 
@@ -273,6 +285,16 @@ Params:
 Result Type:
 `Tickets` / `string`
 
+### `QueryObtainedNotExpiredVotes`
+
+Params:
+- `string` publicKeyHexString
+
+Result Type:
+`ulong`
+
+To query obtained and not expired votes number of a candidate.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -388,7 +410,7 @@ Result Type:
 
 如果该公钥曾经参与过竞选，其投票详情中会包括其支持者对他的投票。
 
-### `GetPageableTicketsInfo`
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
 
 参数:
 - `string` publicKeyHexString
@@ -396,9 +418,21 @@ Result Type:
 - `int` length
 
 返回类型：
-- `Tickets`
+- `Tickets` / `string`
 
-获取所提供公钥的投票详情，可定制返回的投票记录数量，
+获取所提供公钥的投票详情，可定制返回的投票记录数量。
+
+### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `TicketsHistories` / `string`
+
+获取所提供公钥的投票记录，可定制返回的投票记录数量。
 
 ### `GetBlockchainAge`
 
@@ -564,6 +598,16 @@ orderBy:
 
 分页获取所提供公钥的投票信息。
 
+### `QueryObtainedNotExpiredVotes`
+
+参数：
+- `string` publicKeyHexString
+
+返回类型：
+`ulong`
+
+查询某候选人所获得没有过期的选票数。
+
 ## Data Structure
 
 ```Protobuf
@@ -663,6 +707,7 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     uint64 CurrentVotesNumber = 9;
+    string Remark = 10;
 }
 
 message TicketsDictionary {
@@ -674,6 +719,25 @@ message CandidateInHistoryDictionary {
     map<string, CandidateInHistory> Maps = 1;
     string Remark = 2;
     int32 CandidatesNumber = 3;
+}
+
+message TicketsHistories {
+    repeated TicketsHistory Values = 1;
+    uint64 HistoriesNumber = 2;
+    string Remark = 3;
+}
+
+message TicketsHistory {
+    string CandidateAlias = 1;
+    uint64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    TicketsHistoryType Type = 5;
+}
+
+enum TicketsHistoryType {
+    Vote = 0;
+    Redeem = 1;
 }
 
 ```

@@ -53,39 +53,46 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextTerm(Term term)
         {
-            Api.Assert(ValidateMiners(term.FirstRound.RealTimeMinersInfo.Keys.ToList()),
-                $"Miners list is wrong of round {term.FirstRound.RoundNumber}.");
-
-            CountMissedTimeSlots();
-            SnapshotAndDividends();
-
-            _collection.CurrentTermNumberField.SetValue(term.TermNumber);
+            // TODO: Check the miners are correct.
             
+            // Count missed time slot of current round.
+            CountMissedTimeSlots();
+            
+            // To cope with the aftermaths of last term.
+            SnapshotAndDividendsStuff();
+
+            // Update current term number and current round number.
+            _collection.CurrentTermNumberField.SetValue(term.TermNumber);
             _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
 
+            // Reset some fields of next two rounds.
             foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
-
             foreach (var minerInRound in term.SecondRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
 
+            // Update produced block number of this node.
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
             
+            // Update miners list.
             _collection.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
             
+            // Update term number lookup. (Using term number to get first round number of related term.)
             var lookUp = _collection.TermNumberLookupField.GetValue();
             lookUp.Map[term.TermNumber] = term.FirstRound.RoundNumber;
             _collection.TermNumberLookupField.SetValue(lookUp);
 
+            // Update blockchain age of next two rounds.
             term.FirstRound.BlockchainAge = CurrentAge;
             term.SecondRound.BlockchainAge = CurrentAge;
 
+            // Update rounds information of next two rounds.
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
         }
@@ -257,6 +264,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 var alias = Config.Aliases[index];
                 _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
                     new StringValue {Value = alias});
+                _collection.HistoryMap.SetValue(new StringValue {Value = publicKey},
+                    new CandidateInHistory {CurrentAlias = alias});
                 index++;
             }
         }
@@ -327,15 +336,16 @@ namespace AElf.Contracts.Consensus.Contracts
                 .ToList();
         }
 
-        private void SnapshotAndDividends()
+        private void SnapshotAndDividendsStuff()
         {
             var currentRoundInfo = GetCurrentRoundInfo();
 
+            // Snapshot to history information.
             UpdateCandidatesInfoInHistory(currentRoundInfo, GetPreviousTerm());
 
+            // Set dividends of related term to Dividends Contract.
             var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-
             Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
 
             var candidateInTerms = new List<CandidateInTerm>();
@@ -395,6 +405,7 @@ namespace AElf.Contracts.Consensus.Contracts
             var currentTermNumber =
                 CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
 
+            // Set snapshot of related term.
             var snapshot = new TermSnapshot
             {
                 TermNumber = currentTermNumber.Value,
@@ -402,7 +413,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
             };
-            
             _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
 
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
@@ -413,18 +423,29 @@ namespace AElf.Contracts.Consensus.Contracts
             CandidateInHistory candidateInHistory;
             if (previousTerm == null)
             {
-                // Initial history information for initial miners.
+                // Current term is 1. Initial history information for initial miners.
                 foreach (var candidate in currentRoundInfo.RealTimeMinersInfo)
                 {
-                    candidateInHistory = new CandidateInHistory
+                    if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var history))
                     {
-                        PublicKey = candidate.Key,
-                        MissedTimeSlots = candidate.Value.MissedTimeSlots,
-                        ProducedBlocks = candidate.Value.ProducedBlocks,
-                        ContinualAppointmentCount = 0,
-                        ReappointmentCount = 0,
-                        Terms = {1}
-                    };
+                        candidateInHistory = history;
+                        candidateInHistory.PublicKey = candidate.Key;
+                        candidateInHistory.MissedTimeSlots = candidate.Value.MissedTimeSlots;
+                        candidateInHistory.ProducedBlocks = candidate.Value.ProducedBlocks;
+                        candidateInHistory.Terms.Add(1);
+                    }
+                    else
+                    {
+                        candidateInHistory = new CandidateInHistory
+                        {
+                            PublicKey = candidate.Key,
+                            MissedTimeSlots = candidate.Value.MissedTimeSlots,
+                            ProducedBlocks = candidate.Value.ProducedBlocks,
+                            ContinualAppointmentCount = 0,
+                            ReappointmentCount = 0,
+                            Terms = {1}
+                        };
+                    }
                     
                     _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                 }
@@ -451,6 +472,7 @@ namespace AElf.Contracts.Consensus.Contracts
                                     ? historyInfo.ContinualAppointmentCount + 1
                                     : 0,
                             ReappointmentCount = historyInfo.ReappointmentCount + 1,
+                            CurrentAlias = historyInfo.CurrentAlias,
                             Terms = {terms}
                         };
                         
@@ -486,6 +508,11 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private TermSnapshot GetPreviousTerm()
         {
+            if (CurrentTermNumber == 1)
+            {
+                return null;
+            }
+            
             if (_collection.SnapshotField.TryGet((CurrentTermNumber - 1).ToUInt64Value(), out var previousTerm))
             {
                 return previousTerm;

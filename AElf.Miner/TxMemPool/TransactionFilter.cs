@@ -228,7 +228,7 @@ namespace AElf.Miner.TxMemPool
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
-        
+
         public void Execute(List<Transaction> txs)
         {
             var filterList = _txFilter.GetInvocationList();

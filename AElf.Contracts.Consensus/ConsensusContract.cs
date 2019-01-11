@@ -206,8 +206,12 @@ namespace AElf.Contracts.Consensus
                             .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
 
                         info.CurrentVotesNumber = number;
-                        result.Maps.Add(candidate, info);
                     }
+                    result.Maps.Add(candidate, info);
+                }
+                else
+                {
+                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
                 }
             }
 
@@ -269,29 +273,91 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
+        public ulong QueryObtainedNotExpiredVotes(string publicKey)
+        {
+            var tickets = GetTicketsInfo(publicKey);
+            if (!tickets.VotingRecords.Any())
+            {
+                return 0;
+            }
+            return tickets.VotingRecords
+                .Where(vr => vr.To == publicKey && !vr.IsExpired(Collection.AgeField.GetValue()))
+                .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
+        }
+
+        [View]
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
                 var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
-                var result = new Tickets
+                return new Tickets
                 {
                     TotalTickets = tickets.TotalTickets,
-                    VotingRecords = { tickets.VotingRecords.Skip(startIndex).Take(take)}
+                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                    VotingRecordsCount = (ulong) tickets.VotingRecords.Count
                 };
-                result.VotingRecordsCount = (ulong) result.VotingRecords.Count;
-                return result;
             }
-            
+
             return new Tickets
             {
-                TotalTickets = 0
+                Remark = "Tickets information not found."
             };
         }
 
+        [View]
         public string GetPageableTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
         {
             return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
+        }
+        
+        [View]
+        public TicketsHistories GetPageableTicketsHistories(string publicKey, int startIndex, int length)
+        {
+            var histories = new TicketsHistories();
+            var result = new TicketsHistories();
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                foreach (var votingRecord in tickets.VotingRecords)
+                {
+                    Collection.AliasesMap.TryGet(votingRecord.To.ToStringValue(), out var alias);
+                    histories.Values.Add(new TicketsHistory
+                    {
+                        CandidateAlias = alias.Value,
+                        Timestamp = votingRecord.VoteTimestamp,
+                        Type = TicketsHistoryType.Vote,
+                        VotesNumber = votingRecord.Count,
+                        State = true
+                    });
+                    if (votingRecord.IsWithdrawn)
+                    {
+                        histories.Values.Add(new TicketsHistory
+                        {
+                            CandidateAlias = alias.Value,
+                            Timestamp = votingRecord.VoteTimestamp,
+                            Type = TicketsHistoryType.Redeem,
+                            VotesNumber = votingRecord.Count,
+                            State = true
+                        });
+                    }
+                }
+
+                var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
+                result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
+                result.HistoriesNumber = (ulong) histories.Values.Count;
+            }
+            else
+            {
+                result.Remark = "Not found.";
+            }
+            
+            return result;
+        }
+
+        [View]
+        public string GetPageableTicketsHistoriesToFriendlyString(string publicKey, int startIndex, int length)
+        {
+            return GetPageableTicketsHistories(publicKey, startIndex, length).ToString();
         }
         
         /// <summary>
@@ -501,49 +567,54 @@ namespace AElf.Contracts.Consensus
         
         #region Election
         
-        public void AnnounceElection(string alias)
+        public ActionResult AnnounceElection(string alias)
         {
-            Election.AnnounceElection(alias);
+            return Election.AnnounceElection(alias);
+        }
+        
+        public ActionResult QuitElection()
+        {
+            return Election.QuitElection();
         }
 
-        public void QuitElection()
+        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
-            Election.QuitElection();
+            return Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
-        {
-            Election.Vote(candidatePublicKey, amount, lockTime);
-        }
-
-        public void ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
+            return new ActionResult {Success = true};
         }
 
-        public void ReceiveDividendsByTransactionId(Hash transactionId)
+        public ActionResult ReceiveDividendsByTransactionId(Hash transactionId)
         {
             Election.ReceiveDividends(transactionId);
+            return new ActionResult {Success = true};
         }
         
-        public void ReceiveAllDividends()
+        public ActionResult ReceiveAllDividends()
         {
-            Election.ReceiveDividends();
+            return Election.ReceiveDividends();
         }
         
-        public void WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
         {
             Election.Withdraw(candidatePublicKey, amount, lockDays);
+            return new ActionResult {Success = true};
         }
         
-        public void WithdrawByTransactionId(Hash transactionId)
+        public ActionResult WithdrawByTransactionId(Hash transactionId)
         {
             Election.Withdraw(transactionId);
+            return new ActionResult {Success = true};
         }
 
-        public void WithdrawAll(bool withoutLimitation)
+        public ActionResult WithdrawAll(bool withoutLimitation)
         {
             Election.Withdraw(withoutLimitation);
+            return new ActionResult {Success = true};
         }
 
         public void InitialBalance(Address address, ulong amount)

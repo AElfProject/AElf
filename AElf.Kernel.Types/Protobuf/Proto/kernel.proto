@@ -303,3 +303,8 @@ enum BlockValidationResult {
     IncorrectPoWResult = 108;
     NotImplementConsensus = 109;
 }
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
