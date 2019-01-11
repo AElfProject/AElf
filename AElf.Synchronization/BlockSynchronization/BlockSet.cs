@@ -115,7 +115,15 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (newLib != null)
                     {
                         CurrentLib = newLib;
-                        _blocks.RemoveAll(b => b.Index < newLib.Index);
+                        List<BlockState> blocksToRemove = _blocks.Where(b => b.Index < newLib.Index).ToList();
+
+                        foreach (var blockState in blocksToRemove)
+                        {
+                            blockState.PreviousState = null;
+                            _blocks.Remove(blockState);
+                        }
+
+                        CurrentLib.PreviousState = null;
                         
                         // todo clear branches
                         
