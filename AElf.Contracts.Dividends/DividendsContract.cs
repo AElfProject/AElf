@@ -52,13 +52,15 @@ namespace AElf.Contracts.Dividends
         public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
             ulong dividends = 0;
+            var age = Api.GetBlockchainAge();
+            var maxTermNumber = votingRecord.TermNumber + votingRecord.GetDurationDays(age) / GlobalConfig.DaysEachTerm;
             var start = votingRecord.TermNumber;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;
             }
 
-            for (var i = start; i <= Api.GetCurrentTermNumber(); i++)
+            for (var i = start; i <= maxTermNumber; i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {

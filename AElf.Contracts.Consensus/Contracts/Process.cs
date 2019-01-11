@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.Contracts
             LogLevel = logLevel;
         }
 
-        public void NextTerm(Term term)
+        public ActionResult NextTerm(Term term)
         {
             // TODO: Check the miners are correct.
             
@@ -95,6 +95,8 @@ namespace AElf.Contracts.Consensus.Contracts
             // Update rounds information of next two rounds.
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
+
+            return new ActionResult {Success = true};
         }
 
         public void NextRound(Forwarding forwarding)

@@ -57,9 +57,9 @@ namespace AElf.Contracts.Consensus
         }
 
         [Fee(0)]
-        public void NextTerm(Term term)
+        public ActionResult NextTerm(Term term)
         {
-            Process.NextTerm(term);
+            return Process.NextTerm(term);
         }
 
         [Fee(0)]

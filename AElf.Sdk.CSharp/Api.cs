@@ -159,6 +159,16 @@ namespace AElf.Sdk.CSharp
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
         }
 
+        public static ulong GetBlockchainAge()
+        {
+            if (Call(ConsensusContractAddress, "GetBlockchainAge"))
+            {
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+            }
+
+            throw new InternalError("Failed to get blockchain age.\n" + _lastCallContext.Trace.StdErr);
+        }
+
         public static List<VotingRecord> GetVotingRecords(string publicKey)
         {
             if (Call(ConsensusContractAddress, "GetTicketsInfo", publicKey))
