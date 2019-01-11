@@ -97,7 +97,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextRound(Forwarding forwarding)
         {
-            if (forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
+            if (IsMainchain() && forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
                 forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
                 _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(),
@@ -139,10 +139,13 @@ namespace AElf.Contracts.Consensus.Contracts
                 // Update missed time slots and  produced blocks for each miner.
                 foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
                 {
-                    forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
-                        minerInRound.Value.MissedTimeSlots;
-                    forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
-                        minerInRound.Value.ProducedBlocks;
+                    if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                    {
+                        forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
+                            minerInRound.Value.MissedTimeSlots;
+                        forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
+                            minerInRound.Value.ProducedBlocks;
+                    }
                 }
 
                 forwarding.NextRoundInfo.BlockchainAge = CurrentAge;
@@ -254,7 +257,7 @@ namespace AElf.Contracts.Consensus.Contracts
         private void SetAliases(Term term)
         {
             var index = 0;
-            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+            if (IsMainchain())
             {
                 foreach (var publicKey in term.Miners.PublicKeys)
                 {
@@ -559,6 +562,11 @@ namespace AElf.Contracts.Consensus.Contracts
         private bool CompareTimestamp(Timestamp ts1, Timestamp ts2)
         {
             return ts1.ToDateTime() >= ts2.ToDateTime();
+        }
+
+        private bool IsMainchain()
+        {
+            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId;
         }
     }
 }
