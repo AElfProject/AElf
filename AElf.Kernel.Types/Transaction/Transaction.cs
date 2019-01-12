@@ -13,19 +13,7 @@ namespace AElf.Kernel
 {
     public partial class Transaction
     {
-        private int _claimed;
-
-        public bool Claim()
-        {
-            var res = Interlocked.CompareExchange(ref _claimed, 1, 0);
-            return res == 0;
-        }
-
-        public bool Unclaim()
-        {
-            var res = Interlocked.CompareExchange(ref _claimed, 0, 1);
-            return res == 1;
-        }
+        
 
         public Hash GetHash()
         {

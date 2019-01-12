@@ -23,11 +23,11 @@ As the whitepaper already states the AElf kernel will be built in a similar way 
 
 **EventHandlers**: to subscribe a event and process it.they can use services and context. transient and stateless.
 
-Component | Description | stateless | lifetime
----------|----------|---------|---------
- A1 | B1 | C1
- A2 | B2 | C2
- A3 | B3 | C3
+| Component | stateless | lifetime  | creation  |
+| --------- | --------- | --------- | --------- |
+| Types     |           | transient | container |
+| Managers  | B2        | transient | container |
+| Contexts  | B3        | scoped    | new       |
 
 
 ## Data Structures
@@ -106,14 +106,14 @@ This section describes the components implemented in the kernel. It clarifies th
 
 ### **Storage**
 
-| Storage | Description |
-| --- | --- |
-| `BlockStore` | Insert and get `BLock` |
-| `ChainStore` | Insert, update and get `Chain` |
-| `ChangesStore` | Insert and get a change of `path-pointer` |
-| `PointerStore` | Insert and get `pointer` (by path) |
-| `TransactionStore` | Insert and get `Transaction` |
-| `WorldStateStore` | Insert and get `World State` of each `Block` |
+| Storage                   | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| `BlockStore`              | Insert and get `BLock`                           |
+| `ChainStore`              | Insert, update and get `Chain`                   |
+| `ChangesStore`            | Insert and get a change of `path-pointer`        |
+| `PointerStore`            | Insert and get `pointer` (by path)               |
+| `TransactionStore`        | Insert and get `Transaction`                     |
+| `WorldStateStore`         | Insert and get `World State` of each `Block`     |
 | `ChainBlockRelationStore` | Insert and get `chain-block` relations by `Hash` |
 
  

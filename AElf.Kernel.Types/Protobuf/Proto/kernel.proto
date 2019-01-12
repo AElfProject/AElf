@@ -230,10 +230,6 @@ message DataItem {
     Hash StateMerkleTreeLeaf = 3;
 }
 
-message WorldState {
-    repeated DataItem Data = 1;
-}
-
 message Chain {
     Hash Id = 1;
     Hash GenesisBlockHash = 2;

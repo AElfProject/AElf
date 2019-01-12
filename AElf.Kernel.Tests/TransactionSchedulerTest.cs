@@ -19,21 +19,6 @@ namespace AElf.Kernel.Tests
             return hash;
         }
         
-        
-        private IAccount CreateAccount(byte b)
-        {
-            var hash = CreateHash(b);
-            
-            
-            Mock <IAccount> account=new Mock<IAccount>();
-//            account.Setup(a => a.GetAddress()).Returns( hash.Object.Value.Take(18).ToArray());
-            account.Setup(a => a.GetAddress()).Returns(Hash.FromRawBytes(hash.Object.Value.Take(18).ToArray()));
-           
-            Mock.Get(account.Object).Setup(a => a.Equals(It.IsAny<Transaction>()))
-                .Returns<IAccount>(t =>t?.GetAddress() == account.Object.GetAddress());
-            return account.Object;
-        }
-        
         private List<Hash> CreateHashList(int accountCount)
         {
             List<Hash> hashes = new List<Hash>();
