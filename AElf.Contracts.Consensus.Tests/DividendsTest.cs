@@ -83,6 +83,11 @@ namespace AElf.Contracts.Consensus.Tests
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
 
+            var transactionId =
+                pagedTicketsInformation.VotingRecords.FirstOrDefault(vr => vr.From == mustVotedVoter.PublicKey.ToHex())?
+                    .TransactionId.ToHex();
+            Assert.NotNull(transactionId);
+
             var history1 = _contracts.GetCandidatesHistoryInfo();
 
             // Get victories of first term of election, they are miners then.
@@ -148,6 +153,10 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
+            var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
 
             _contracts.WithdrawAll(mustVotedVoter);
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
