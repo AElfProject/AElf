@@ -158,6 +158,7 @@ package "AElf.Kernel.Domain.Shared"{
 @enduml
 ```
 
+
 ```puml
 @startuml
 
@@ -186,7 +187,46 @@ activate IBlockchainService
 ```
 
 ```puml
+
+class BestChainState{
+  Hash Key
+  StateVersion Current // contains in the protobuf object
+}
+note left: Key: State.Key
+
+class StateVersion{
+  Hash StateKey
+  long BlockHeight
+  Hash BlockHash
+
+  Hash OriginBlockHash // where the origin state is
+
+  byte[] Value
+}
+note right: Key: State.Key + Block.Hash
+
+class StateManager{
+  StateVersion GetStateVersion(Hash blockHash,Hash key)
+  StateVersion GetBestChainState(Hash key)
+  StateVersion SetState(Hash key,Hash blockHash, long blockHeight, byte[] Value)
+}
+
+
+State *- StateVersion : have many >
+
+
+```
+
+"TB", "LR", "BT", "RL"
+
+```puml
 digraph g {
+size="15,!";
+ margin=0;
+
+graph [
+rankdir = "BT"
+];
 
 node [
 fontsize = "16"
@@ -196,20 +236,55 @@ edge [
 ];
 
 "node0" [
-label = "<f0> 0x10ba8| <f1>"
+label = "<f0> StateVersion | <f1> BlockHeight: 50 | <f2> BlockHash : A | <f3> Value: 1 | <f4> PreviousBlockHash : null"
 shape = "record"
 ];
 
 "node1" [
-label = "<f0> 0xf7fc4380| <f1> | <f2> |-1"
+label = "<f0> StateVersion | <f1> BlockHeight: 100 | <f2> BlockHash : B | <f3> Value: 2 | <f4> PreviousBlockHash : A"
 shape = "record"
 ];
 
-"node0":f1 -> "node1":f0 [
-id = 0
+"node2" [
+label = "<f0> StateVersion | <f1> BlockHeight: 170 | <f2> BlockHash : C | <f3> Value: 3 | <f4> PreviousBlockHash : B"
+shape = "record"
 ];
 
+"node3" [
+label = "<f0> StateVersion | <f1> BlockHeight: 180 | <f2> BlockHash : D | <f3> Value: 4 | <f4> PreviousBlockHash : B"
+shape = "record"
+];
+
+"node4" [
+label = "<f0> BestChainState | <f1> CurrentStateVersion"
+shape = "record"
+];
+
+
+"node1":f4 -> "node0":f2 
+
+"node2":f4 -> "node1":f2 
+
+"node3":f4 -> "node1":f2 
+
+"node4":f4 -> "node1":f0 
+
+
 }
+```
+
+```csharp
+// Hash B is the best chain.
+StateManager.GetBestChainState(key).Current.Value == 2
+StateManager.GetStateVersion(key,"A").Value == 1
+StateManager.GetStateVersion(key,"B").Value == 2
+
+StateManager.GetStateVersion(key,"C").Value == 3
+StateManager.GetStateVersion(key,"D").Value == 4
+StateManager.SetStateVersion(key,"E",200).Value == 5
+
+StateManager.GetStateVersion(key,"D").PreviousBlockHash == StateManager.GetStateVersion(key,"C").BlockHash 
+
 ```
 
 
