@@ -148,8 +148,11 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(balanceAfter > balanceBefore);
-            Assert.Equal(availableDividends, balanceAfter - balanceBefore);
+
+            _contracts.WithdrawAll(mustVotedVoter);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            var balanceAfterWithdraw = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdraw > balanceAfter);
 
             var history4 = _contracts.GetCandidatesHistoryInfo();
 

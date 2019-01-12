@@ -285,7 +285,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public void WithdrawAll(ECKeyPair ownerKeyPair)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(WithdrawAll), ownerKeyPair);
+            ExecuteAction(ConsensusContractAddress, nameof(WithdrawAll), ownerKeyPair, true);
         }
 
         public void InitialBalance(ECKeyPair minerKeyPair, Address address, ulong amount)

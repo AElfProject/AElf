@@ -200,7 +200,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation))
                 {
                     candidatePublicKey = votingRecord.To;
-                    Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
@@ -247,7 +247,12 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 foreach (var votingRecord in votingRecords)
                 {
-                    Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    if (votingRecord == null)
+                    {
+                        continue;
+                    }
+                    
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
                     
