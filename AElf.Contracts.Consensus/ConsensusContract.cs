@@ -582,16 +582,9 @@ namespace AElf.Contracts.Consensus
             return Election.Vote(candidatePublicKey, amount, lockTime);
         }
 
-        public ActionResult ReceiveDividendsByVotingDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
-            Election.ReceiveDividends(candidatePublicKey, amount, lockDays);
-            return new ActionResult {Success = true};
-        }
-
-        public ActionResult ReceiveDividendsByTransactionId(Hash transactionId)
-        {
-            Election.ReceiveDividends(transactionId);
-            return new ActionResult {Success = true};
+            return Election.ReceiveDividends(Hash.LoadHex(transactionId));
         }
         
         public ActionResult ReceiveAllDividends()
@@ -599,22 +592,14 @@ namespace AElf.Contracts.Consensus
             return Election.ReceiveDividends();
         }
         
-        public ActionResult WithdrawByDetail(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult WithdrawByTransactionId(string transactionId)
         {
-            Election.Withdraw(candidatePublicKey, amount, lockDays);
-            return new ActionResult {Success = true};
-        }
-        
-        public ActionResult WithdrawByTransactionId(Hash transactionId)
-        {
-            Election.Withdraw(transactionId);
-            return new ActionResult {Success = true};
+            return Election.Withdraw(Hash.LoadHex(transactionId));
         }
 
         public ActionResult WithdrawAll(bool withoutLimitation)
         {
-            Election.Withdraw(withoutLimitation);
-            return new ActionResult {Success = true};
+            return Election.Withdraw(withoutLimitation);
         }
 
         public void InitialBalance(Address address, ulong amount)

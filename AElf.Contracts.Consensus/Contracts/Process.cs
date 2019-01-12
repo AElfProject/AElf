@@ -101,6 +101,11 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public void NextRound(Forwarding forwarding)
         {
+            Api.Assert(
+                forwarding.NextRoundInfo.RoundNumber == 0 || _collection.CurrentRoundNumberField.GetValue() <
+                forwarding.NextRoundInfo.RoundNumber,
+                "Incorrect round number of next round.");
+            
             if (forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
                 forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {

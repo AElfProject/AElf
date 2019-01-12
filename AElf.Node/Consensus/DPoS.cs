@@ -82,7 +82,7 @@ namespace AElf.Node.Consensus
 
         private static bool _announcedElection;
 
-        private static ulong _latestTermChangedRoundNumber;
+        private static ulong _firstTermChangedRoundNumber;
 
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
@@ -538,7 +538,6 @@ namespace AElf.Node.Consensus
 
                     if (CanStartNextTerm())
                     {
-                        _latestTermChangedRoundNumber = currentRoundNumber.Value;
                         Thread.VolatileWrite(ref _lockFlag, 0);
 
                         MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
@@ -727,13 +726,16 @@ namespace AElf.Node.Consensus
                 MessageHub.Instance.Publish(new MinorityForkDetected());
             }
 
-            if (_helper.CurrentTermNumber.Value == 2 && LatestTermNumber == 0)
+            // Update current round number.
+            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
+
+            // Term number just changed from 1 to 2.
+            if (LatestTermNumber == 1 && _helper.CurrentTermNumber.Value == 2)
             {
-                _latestTermChangedRoundNumber = LatestRoundNumber;
+                _firstTermChangedRoundNumber = LatestRoundNumber;
             }
             
-            // Update current round number and current term number.
-            LatestRoundNumber = _helper.CurrentRoundNumber.Value;
+            // Update current term number.
             LatestTermNumber = _helper.CurrentTermNumber.Value;
 
             // Whether this node willing to mine.
@@ -831,13 +833,12 @@ namespace AElf.Node.Consensus
                 _helper.TryToGetVictories(out var victories) &&
                 victories.Count == GlobalConfig.BlockProducerNumber)
             {
-                if (_latestTermChangedRoundNumber != 0)
+                if (_firstTermChangedRoundNumber != 0)
                 {
-                    return (LatestRoundNumber - _latestTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
+                    return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
                            LatestTermNumber;
                 }
                 
-                _latestTermChangedRoundNumber = LatestRoundNumber;
                 return true;
             }
 
