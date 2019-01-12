@@ -204,7 +204,13 @@ namespace AElf.Contracts.Consensus.Contracts
                 var votingRecord =
                     tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId.ToHex() == transactionId);
 
-                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation))
+                if (votingRecord != null && votingRecord.IsWithdrawn)
+                {
+                    return new ActionResult {Success = false, ErrorMessage = "This ticket has already withdrawn."};
+                }
+
+                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation) &&
+                    votingRecord.IsWithdrawn == false)
                 {
                     candidatePublicKey = votingRecord.To;
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
@@ -236,7 +242,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 var votingRecord =
                     ticketsOfCandidate.VotingRecords.FirstOrDefault(vr => vr.TransactionId.ToHex() == transactionId);
 
-                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation))
+                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation) &&
+                    votingRecord.IsWithdrawn == false)
                 {
                     var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
                     votingRecord.WithdrawTimestamp =
@@ -265,8 +272,8 @@ namespace AElf.Contracts.Consensus.Contracts
             if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
             {
                 var votingRecords = withoutLimitation
-                    ? tickets.VotingRecords.ToList()
-                    : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge).ToList();
+                    ? tickets.VotingRecords.Where(vr => vr.IsWithdrawn == false).ToList()
+                    : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge && vr.IsWithdrawn == false).ToList();
 
                 foreach (var votingRecord in votingRecords)
                 {
@@ -299,8 +306,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var ticketsOfCandidate))
                 {
                     var votingRecords = withoutLimitation
-                        ? ticketsOfCandidate.VotingRecords.ToList()
-                        : ticketsOfCandidate.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge).ToList();
+                        ? tickets.VotingRecords.Where(vr => vr.IsWithdrawn == false).ToList()
+                        : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge && vr.IsWithdrawn == false).ToList();
 
                     foreach (var votingRecord in votingRecords)
                     {
