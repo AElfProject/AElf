@@ -205,6 +205,18 @@ class StateVersion{
 }
 note right: Key: State.Key + Block.Hash
 
+class BranchChainChanges{
+  //key: BaseBlockHash-CurrentBlockHash
+
+  Hash BaseBlockHash
+  long BaseBlockHeight
+
+  Hash CurrentBlockHeight
+  long CurrentBlockHash
+  Dic<string key, StateVersion> changes
+}
+note left: Provider will load the BaseBlockHash-PreviousBlockHash changes. \n if it's best chain, it will create an empty one.
+
 class StateManager{
   StateVersion GetStateVersion(Hash blockHash,Hash key)
   StateVersion GetBestChainState(Hash key)
@@ -212,7 +224,9 @@ class StateManager{
 }
 
 
-State *- StateVersion : have many >
+State *- StateVersion : map many >
+
+
 
 
 ```
