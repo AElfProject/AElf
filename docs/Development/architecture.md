@@ -185,6 +185,33 @@ activate IBlockchainService
 @enduml
 ```
 
+```puml
+digraph g {
+
+node [
+fontsize = "16"
+shape = "ellipse"
+];
+edge [
+];
+
+"node0" [
+label = "<f0> 0x10ba8| <f1>"
+shape = "record"
+];
+
+"node1" [
+label = "<f0> 0xf7fc4380| <f1> | <f2> |-1"
+shape = "record"
+];
+
+"node0":f1 -> "node1":f0 [
+id = 0
+];
+
+}
+```
+
 
 Some basic defines
 ```csharp
