@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming.")]
         public void DividendsInitializationTest()
         {
             InitializeMiners();
@@ -159,7 +159,6 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
             
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
-            Assert.NotEqual(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             _contracts.WithdrawAll(mustVotedVoter);
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
