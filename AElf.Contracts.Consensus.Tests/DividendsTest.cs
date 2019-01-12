@@ -157,6 +157,9 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
             var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
+            Assert.NotEqual(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
             _contracts.WithdrawAll(mustVotedVoter);
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
