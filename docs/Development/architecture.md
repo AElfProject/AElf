@@ -2,19 +2,15 @@ Hello
 
 ```puml
 @startuml
+scale max 768 width
 
 package "Application" {
   [Service]
-  [Event]
   [Saga]
   
   [FSM]
   
-
-
   [Saga] -> [Service] : injection
-
-  [EventHandler] <.. [Event] : subscribe
 
   [EventHandler] -> [Saga] : injection
   [EventHandler] -> [Service] : injection
@@ -24,27 +20,25 @@ package "Application" {
 package "Domain" {
   [Manager]
   [Context]
-
+  [Event]
   [Entity]
+  [FacadeService] -> [Manager]
 
   
+  [EventHandler] <.. [Event] : subscribe
 
 
   [Saga] ..> [Context] : create
+  [Saga] -> [FSM] : injection
   [Service] ..> [Context] : parameters
-  [Context] -down-> [FSM]
-  [Context] -down-> [Manager] 
+  [Context] -> [Manager] 
 
 
-  [Service] -down-> [Manager]
+  [Service] -> [Manager]
 
   [Manager] -> [Entity]
 
   [Manager] ..> [Event] : publish
-
-note top of [Manager]
-  manager is a domain service
-end note
 
 note top of [Context]
   context is just use to share data
@@ -60,13 +54,237 @@ AELF project
 @startuml
 
 package "AElf.Kernel.Application" {
+  
+  [Service]
+
 }
 
 package "AElf.Kernel.Domain" {
+  [Entity]
+  [Facade]
+
 }
 
 
 @enduml
+```
+
+
+```puml
+@startuml
+
+
+package "AElf.Kernel.Application" {
+  interface IBlockchainService{
+    void AddBlock(ChainId chainId, Block block)
+    
+  }
+}
+
+package "AElf.Kernel.Domain" {
+
+  interface IBlockHeaderManager{
+    AddBlockHeader(BlockHeader blockHeader);
+  }
+  IBlockchainService --> IBlockHeaderManager
+
+  interface IChainManager{
+    ChainBlockHeader AddBlockHeaderToChain(ChainId chainId, ChainBlockHeader chainBlockHeader)
+    ChainBlockHeader ConfirmLIBBlock(ChainId chainId,Hash blockHeaderHash)
+    ChainBlockHeader GetChainBlockHeader(ChainId chainId, blockHeader Header)
+
+    Dic<LastBlockHash,Height> GetBranches(ChainId chainId);
+
+    SetBestChain(ChainId chainId, Hash bestBlockHash)
+  }
+  note left: unit tests for fork and LIB
+  IBlockchainService --> IChainManager
+
+  class Chain{
+    ChainId Id
+    Dictionary<LastBlockHash,Height> Branches
+  }
+  IChainManager --> Chain
+
+
+  class BestChain{
+    ChainId Id
+    long LastHeight
+    Hash LastBlockHeaderHash
+  }
+
+  IChainManager --> BestChain
+
+  class ChainBlockHeader{
+    //key chain + block hash
+    Hash BlockHash
+    long Height
+    Hash PreviousBlockHeader
+    bool IsConfirmed // LIB
+    bool IsExecuted // State Db 
+  }
+  IChainManager --> ChainBlockHeader
+}
+
+package "AElf.Kernel.Domain.Shared"{
+
+  class BlockHeader{
+    Hash BlockHash
+  }
+  IBlockHeaderManager --> BlockHeader
+
+  class BlockBody{
+    BlockHeaderHash blockHeaderHash
+    List<Transaction> Txs
+  }
+
+  class Block{
+    BlockHeader Header
+    BlockBody Body
+  }
+  IBlockchainService --> Block
+  Block --> BlockHeader
+  Block --> BlockBody
+
+  class Transaction{
+    //....
+  }
+
+  BlockBody --> Transaction
+
+}
+
+
+@enduml
+```
+
+
+```puml
+@startuml
+
+Network -> IBlockchainService : ProcessValidBlock
+activate IBlockchainService
+
+  IBlockchainService -> IBlockHeaderManager : AddBlockHeader
+
+  IBlockchainService -> IChainManager : AddBlockHeaderToChain
+
+    activate IChainManager
+
+      IChainManager -> ChainBlockHeaderStore : Add new ChainBlockHeader
+
+      IChainManager -> IChainStore : Update Chain.Branches
+
+    deactivate IChainManager
+
+  IBlockchainService -> BlockExecutingService : ExecuteBlock
+  note right: execute all blocks even it's not on the best chain
+
+  IBlockchainService -> IChainSwitchingService : SwitchBestChain(chainId, blockHash);
+  note right: It depends on \nChainBlockHeader.IsConfirmed and \nChain.Branches
+
+@enduml
+```
+
+```puml
+
+class BestChainState{
+  Hash Key
+  StateVersion Current // contains in the protobuf object
+}
+note left: Key: State.Key
+
+class StateVersion{
+  Hash StateKey
+  long BlockHeight
+  Hash BlockHash
+
+  Hash OriginBlockHash // where the origin state is
+
+  byte[] Value
+}
+note right: Key: State.Key + Block.Hash
+
+class StateManager{
+  StateVersion GetStateVersion(Hash blockHash,Hash key)
+  StateVersion GetBestChainState(Hash key)
+  StateVersion SetState(Hash key,Hash blockHash, long blockHeight, byte[] Value)
+}
+
+
+State *- StateVersion : have many >
+
+
+```
+
+"TB", "LR", "BT", "RL"
+
+```puml
+digraph g {
+size="15,!";
+ margin=0;
+
+graph [
+rankdir = "BT"
+];
+
+node [
+fontsize = "16"
+shape = "ellipse"
+];
+edge [
+];
+
+"node0" [
+label = "<f0> StateVersion | <f1> BlockHeight: 50 | <f2> BlockHash : A | <f3> Value: 1 | <f4> PreviousBlockHash : null"
+shape = "record"
+];
+
+"node1" [
+label = "<f0> StateVersion | <f1> BlockHeight: 100 | <f2> BlockHash : B | <f3> Value: 2 | <f4> PreviousBlockHash : A"
+shape = "record"
+];
+
+"node2" [
+label = "<f0> StateVersion | <f1> BlockHeight: 170 | <f2> BlockHash : C | <f3> Value: 3 | <f4> PreviousBlockHash : B"
+shape = "record"
+];
+
+"node3" [
+label = "<f0> StateVersion | <f1> BlockHeight: 180 | <f2> BlockHash : D | <f3> Value: 4 | <f4> PreviousBlockHash : B"
+shape = "record"
+];
+
+"node4" [
+label = "<f0> BestChainState | <f1> CurrentStateVersion"
+shape = "record"
+];
+
+
+"node1":f4 -> "node0":f2 
+
+"node2":f4 -> "node1":f2 
+
+"node3":f4 -> "node1":f2 
+
+"node4":f4 -> "node1":f0 
+
+
+}
+```
+
+```csharp
+// Hash B is the best chain.
+StateManager.GetBestChainState(key).Current.Value == 2
+StateManager.GetStateVersion(key,"A").Value == 1
+StateManager.GetStateVersion(key,"B").Value == 2
+
+StateManager.GetStateVersion(key,"C").Value == 3
+StateManager.GetStateVersion(key,"D").Value == 4
+StateManager.SetStateVersion(key,"E",200).Value == 5
+
+StateManager.GetStateVersion(key,"D").PreviousBlockHash == StateManager.GetStateVersion(key,"C").BlockHash 
+
 ```
 
 
