@@ -312,6 +312,32 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
+        public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
+        {
+            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            {
+                var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
+                return new Tickets
+                {
+                    TotalTickets = tickets.TotalTickets,
+                    VotingRecords = {tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).Skip(startIndex).Take(take)},
+                    VotingRecordsCount = (ulong) tickets.VotingRecords.Count
+                };
+            }
+
+            return new Tickets
+            {
+                Remark = "Tickets information not found."
+            };
+        }
+
+        [View]
+        public Tickets GetPageableNotWithdrawnTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
+        {
+            return GetPageableNotWithdrawnTicketsInfo(publicKey, startIndex, length);
+        }
+        
+        [View]
         public TicketsHistories GetPageableTicketsHistories(string publicKey, int startIndex, int length)
         {
             var histories = new TicketsHistories();
