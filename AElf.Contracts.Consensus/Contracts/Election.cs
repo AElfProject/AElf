@@ -160,10 +160,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 
                 if (votingRecord != null)
                 {
-                    var maxTermNumber = votingRecord.TermNumber - 1 +
-                                        votingRecord.GetDurationDays(CurrentAge) /
-                                        GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
                 }
                 else
                 {
@@ -185,17 +182,14 @@ namespace AElf.Contracts.Consensus.Contracts
                 
                 foreach (var votingRecord in tickets.VotingRecords)
                 {
-                    var maxTermNumber = votingRecord.TermNumber - 1 +
-                                        votingRecord.GetDurationDays(CurrentAge) /
-                                        GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
+                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
                 }
             }
             
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Withdraw(Hash transactionId)
+        public ActionResult Withdraw(Hash transactionId, bool withoutLimitation)
         {
             var voterPublicKey = Api.RecoverPublicKey().ToHex();
             var candidatePublicKey = "";
@@ -203,7 +197,7 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
-                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
+                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation))
                 {
                     candidatePublicKey = votingRecord.To;
                     Api.SendInline(Api.ConsensusContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
@@ -226,7 +220,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 var votingRecord =
                     ticketsOfCandidate.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
 
-                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
+                if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation))
                 {
                     var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
                     votingRecord.WithdrawTimestamp =

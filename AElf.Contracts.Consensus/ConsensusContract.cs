@@ -592,9 +592,9 @@ namespace AElf.Contracts.Consensus
             return Election.ReceiveDividends();
         }
         
-        public ActionResult WithdrawByTransactionId(string transactionId)
+        public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
         {
-            return Election.Withdraw(Hash.LoadHex(transactionId));
+            return Election.Withdraw(Hash.LoadHex(transactionId), withoutLimitation);
         }
 
         public ActionResult WithdrawAll(bool withoutLimitation)

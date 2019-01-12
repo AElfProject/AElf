@@ -59,11 +59,11 @@ namespace AElf.Contracts.Dividends
             {
                 start = lastRequestTermNumber.Value + 1;
             }
-            
-            var maxTermNumber = votingRecord.TermNumber - 1 +
-                                votingRecord.GetDurationDays(Api.GetBlockchainAge()) / GlobalConfig.DaysEachTerm;
 
-            for (var i = start; i <= maxTermNumber; i++)
+            var end = Math.Min(votingRecord.GetExpireTermNumber(Api.GetBlockchainAge()),
+                Api.GetCurrentTermNumber() - 1);
+
+            for (var i = start; i <= end; i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
@@ -134,31 +134,45 @@ namespace AElf.Contracts.Dividends
             return CheckDividendsOfPreviousTerm().ToString();
         }
 
-        public ActionResult TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
+        public ActionResult TransferDividends(VotingRecord votingRecord)
         {
             var owner = votingRecord.From;
             var ownerAddress =
                 Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
+            
             var start = votingRecord.TermNumber + 1;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;
             }
 
+            var end = Math.Min(votingRecord.GetExpireTermNumber(Api.GetBlockchainAge()), Api.GetCurrentTermNumber() - 1);
+
             var actualTermNumber = start;
-            for (var i = start; i <= maxTermNumber; i++)
+            ulong dividendsAmount = 0;
+            for (var i = start; i <= end; i++)
             {
                 if (_totalWeightsMap.TryGet(i.ToUInt64Value(), out var totalWeights))
                 {
                     if (_dividendsMap.TryGet(i.ToUInt64Value(), out var dividends))
                     {
-                        var dividendsAmount = dividends.Value * votingRecord.Weight / totalWeights.Value;
-                        Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
-                        Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
+                        dividendsAmount += dividends.Value * votingRecord.Weight / totalWeights.Value;
                         actualTermNumber = i;
                     }
+                    else
+                    {
+                        return new ActionResult{Success = false, ErrorMessage = $"Dividends of term {i} not found."};
+                    }
+                }
+                else
+                {
+                    return new ActionResult{Success = false, ErrorMessage = $"Total weights of term {i} not found."};
                 }
             }
+            
+            Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
+            
+            Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
 
             _lastRequestDividendsMap.SetValue(votingRecord.TransactionId, actualTermNumber.ToUInt64Value());
 
@@ -195,17 +209,15 @@ namespace AElf.Contracts.Dividends
             return new ActionResult {Success = true};
         }
 
-        public ActionResult KeepWeights()
+        public ActionResult KeepWeights(ulong oldTermNumber)
         {
-            var currentTermNumber = Api.GetCurrentTermNumber();
-
-            if (_totalWeightsMap.TryGet((currentTermNumber - 1).ToUInt64Value(), out var totalWeights))
+            if (_totalWeightsMap.TryGet(oldTermNumber.ToUInt64Value(), out var totalWeights))
             {
-                _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), totalWeights);
+                _totalWeightsMap.SetValue((oldTermNumber + 1).ToUInt64Value(), totalWeights);
             }
             else
             {
-                _totalWeightsMap.SetValue(currentTermNumber.ToUInt64Value(), ((ulong) 0).ToUInt64Value());
+                _totalWeightsMap.SetValue((oldTermNumber + 1).ToUInt64Value(), ((ulong) 0).ToUInt64Value());
             }
 
             return new ActionResult {Success = true};

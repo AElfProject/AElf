@@ -368,10 +368,9 @@ namespace AElf.Contracts.Consensus.Tests
         }
 
         // ReSharper disable once InconsistentNaming
-        public void TransferDividends(VotingRecord votingRecord, ulong maxTermNumber)
+        public void TransferDividends(VotingRecord votingRecord)
         {
-            ExecuteAction(DividendsContractAddress, nameof(TransferDividends), SenderKeyPair, votingRecord,
-                maxTermNumber);
+            ExecuteAction(DividendsContractAddress, nameof(TransferDividends), SenderKeyPair, votingRecord);
         }
 
         public void AddDividends(ulong termNumber, ulong dividendsAmount)
@@ -384,9 +383,9 @@ namespace AElf.Contracts.Consensus.Tests
             ExecuteAction(DividendsContractAddress, nameof(AddWeights), SenderKeyPair, weights, termNumber);
         }
 
-        public void KeepWeights()
+        public void KeepWeights(ulong oldTermNumber)
         {
-            ExecuteAction(DividendsContractAddress, nameof(KeepWeights), SenderKeyPair);
+            ExecuteAction(DividendsContractAddress, nameof(KeepWeights), SenderKeyPair, oldTermNumber);
         }
 
         public void SubWeights(ulong weights, ulong termNumber)
