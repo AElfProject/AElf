@@ -73,7 +73,6 @@ package "AElf.Kernel.Domain" {
 ```puml
 @startuml
 
-
 package "AElf.Kernel.Application" {
   interface IBlockchainService{
     void AddBlock(ChainId chainId, Block block)
@@ -187,6 +186,14 @@ activate IBlockchainService
 ```
 
 ```puml
+left to right direction
+
+class StateKey{
+  ByteString Key
+  Hash BlockHash
+}
+note right: protobuf
+
 
 class BestChainState{
   Hash Key
@@ -205,6 +212,22 @@ class StateVersion{
 }
 note right: Key: State.Key + Block.Hash
 
+class BranchChainChangesSet{
+  //key: BaseBlockHash-CurrentBlockHash
+  Hash PreviousHash 
+  Hash BlockHeight
+  long BlockHash
+  Dic<string key, StateVersion> Changes
+}
+
+class BlockTransactionExecutingChangesSet{
+  int Version
+  Dic<string key, StateVersion> Writes
+  Dic<string key, StateVersion> Reads
+}
+
+note left: Provider will load the BaseBlockHash-PreviousBlockHash changes. \n if it's best chain, it will create an empty one.
+
 class StateManager{
   StateVersion GetStateVersion(Hash blockHash,Hash key)
   StateVersion GetBestChainState(Hash key)
@@ -212,7 +235,9 @@ class StateManager{
 }
 
 
-State *- StateVersion : have many >
+State *- StateVersion : map many >
+
+
 
 
 ```
@@ -285,6 +310,65 @@ StateManager.SetStateVersion(key,"E",200).Value == 5
 
 StateManager.GetStateVersion(key,"D").PreviousBlockHash == StateManager.GetStateVersion(key,"C").BlockHash 
 
+```
+
+
+
+```puml
+digraph g {
+size="15,!";
+ margin=0;
+
+graph [
+rankdir = "BT"
+];
+
+node [
+fontsize = "16"
+shape = "ellipse"
+];
+edge [
+];
+
+"seq0" [
+label = "<f0> SEQ | <f1> 1 "
+shape = "record"
+];
+
+"grp0" [
+label = "<f0> Tx Grp | <f1> Txs "
+shape = "record"
+];
+grp0 -> seq0:f1
+
+"grp1" [
+label = "<f0> Tx Grp | <f1> Txs "
+shape = "record"
+];
+grp1 -> seq0:f1
+
+
+"seq1" [
+label = "<f0> SEQ | <f1> 2 "
+shape = "record"
+];
+
+"grp3" [
+label = "<f0> Tx Grp | <f1> Txs "
+shape = "record"
+];
+grp3 -> seq1:f1
+
+"seq2" [
+label = "<f0> SEQ | <f1> 3 "
+shape = "record"
+];
+
+seq0 -> seq1 -> seq2
+
+
+
+}
 ```
 
 
