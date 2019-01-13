@@ -29,14 +29,14 @@ namespace AElf.Kernel.Storages
             _collection = keyValueDbContext.Collection(DataPrefix);
         }
 
-        public virtual async Task<bool> SetAsync(string key, object value)
+        public virtual async Task SetAsync(string key, object value)
         {
-            return await _collection.SetAsync(key, ByteSerializer.Serialize(value));
+            await _collection.SetAsync(key, ByteSerializer.Serialize(value));
         }
 
-        public virtual async Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet)
+        public virtual async Task PipelineSetAsync(Dictionary<string, object> pipelineSet)
         {
-            return await _collection.PipelineSetAsync(
+            await _collection.PipelineSetAsync(
                 pipelineSet.ToDictionary(k => k.Key, v => ByteSerializer.Serialize(v.Value)));
         }
 
@@ -47,9 +47,9 @@ namespace AElf.Kernel.Storages
             return result == null ? default(T) : ByteSerializer.Deserialize<T>(result);
         }
 
-        public virtual async Task<bool> RemoveAsync(string key)
+        public virtual async Task RemoveAsync(string key)
         {
-            return await _collection.RemoveAsync(key);
+            await _collection.RemoveAsync(key);
         }
     }
 }

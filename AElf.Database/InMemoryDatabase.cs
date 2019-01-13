@@ -21,7 +21,7 @@ namespace AElf.Database
             return _dictionary.TryGetValue(key, out var value) ? Task.FromResult(value) : Task.FromResult<byte[]>(null);
         }
 
-        public Task<bool> SetAsync(string key, byte[] bytes)
+        public Task SetAsync(string key, byte[] bytes)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -32,7 +32,7 @@ namespace AElf.Database
             return Task.FromResult(true);
         }
 
-        public Task<bool> RemoveAsync(string key)
+        public Task RemoveAsync(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -43,22 +43,13 @@ namespace AElf.Database
             return Task.FromResult(true);
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        public Task PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
-            if (cache.Count == 0)
+            foreach (var change in cache)
             {
-                return true;
+                _dictionary[change.Key] = change.Value;
             }
-
-            return await Task.Factory.StartNew(() =>
-            {
-                foreach (var change in cache)
-                {
-                    _dictionary[change.Key] = change.Value;
-                }
-
-                return true;
-            });
+            return Task.FromResult(true);
         }
 
         public bool IsConnected()

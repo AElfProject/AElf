@@ -7,9 +7,9 @@ namespace AElf.Database
         where TKeyValueDbContext: KeyValueDbContext<TKeyValueDbContext>
     {
         Task<byte[]> GetAsync(string key);
-        Task<bool> SetAsync(string key, byte[] bytes);
-        Task<bool> RemoveAsync(string key);
-        Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache);
+        Task SetAsync(string key, byte[] bytes);
+        Task RemoveAsync(string key);
+        Task PipelineSetAsync(Dictionary<string, byte[]> cache);
         bool IsConnected();
     }
 }

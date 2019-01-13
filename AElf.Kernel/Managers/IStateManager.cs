@@ -9,6 +9,6 @@ namespace AElf.Kernel.Managers
 
         Task<byte[]> GetAsync(StatePath path);
 
-        Task<bool> PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet);
+        Task PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet);
     }
 }

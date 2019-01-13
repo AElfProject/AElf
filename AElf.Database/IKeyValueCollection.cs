@@ -8,10 +8,10 @@ namespace AElf.Database
     {
         string Name { get; }
         Task<byte[]> GetAsync(string key);
-        Task<bool> SetAsync(string key, byte[] value);
-        Task<bool> RemoveAsync(string key);
+        Task SetAsync(string key, byte[] value);
+        Task RemoveAsync(string key);
         
-        Task<bool> PipelineSetAsync(IDictionary<string, byte[]> cache);
+        Task PipelineSetAsync(IDictionary<string, byte[]> cache);
 
     }
 
@@ -32,9 +32,9 @@ namespace AElf.Database
             return _keyValueDatabase.GetAsync(GetKey(key));
         }
 
-        public async Task<bool> SetAsync(string key, byte[] value)
+        public async Task SetAsync(string key, byte[] value)
         {
-            return await _keyValueDatabase.SetAsync(GetKey(key), value);
+            await _keyValueDatabase.SetAsync(GetKey(key), value);
         }
 
 
@@ -43,15 +43,15 @@ namespace AElf.Database
             return Name + key;
         }
         
-        public async Task<bool> RemoveAsync(string key)
+        public async Task RemoveAsync(string key)
         {
-            return await _keyValueDatabase.RemoveAsync(GetKey(key));
+            await _keyValueDatabase.RemoveAsync(GetKey(key));
         }
 
-        public async Task<bool> PipelineSetAsync(IDictionary<string, byte[]> cache)
+        public async Task PipelineSetAsync(IDictionary<string, byte[]> cache)
         {
             var dic =  cache.ToDictionary(k=> GetKey(k.Key),v => v.Value);
-            return await _keyValueDatabase.PipelineSetAsync(dic);
+            await _keyValueDatabase.PipelineSetAsync(dic);
         }
     }
 }

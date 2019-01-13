@@ -35,27 +35,27 @@ namespace AElf.Database
             return await Task.Run(() => _pooledRedisLite.Get(key));
         }
 
-        public async Task<bool> SetAsync(string key, byte[] bytes)
+        public async Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key,nameof(key));
             
-            return await Task.Run(() => _pooledRedisLite.Set(key,bytes));
+            await Task.Run(() => _pooledRedisLite.Set(key,bytes));
         }
 
-        public async Task<bool> RemoveAsync(string key)
+        public async Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key,nameof(key));
 
-            return await Task.Run(() => _pooledRedisLite.Remove(key));
+            await Task.Run(() => _pooledRedisLite.Remove(key));
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<string, byte[]> cache)
+        public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
             {
-                return true;
+                return ;
             }
-            return await Task.Run(() =>
+            await Task.Run(() =>
             {
                 _pooledRedisLite.SetAll(cache);
                 return true;

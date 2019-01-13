@@ -5,9 +5,9 @@ namespace AElf.Kernel.Storages
 {
     public interface IKeyValueStore
     {
-        Task<bool> SetAsync(string key, object value);
-        Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet);
+        Task SetAsync(string key, object value);
+        Task PipelineSetAsync(Dictionary<string, object> pipelineSet);
         Task<T> GetAsync<T>(string key);
-        Task<bool> RemoveAsync(string key);
+        Task RemoveAsync(string key);
     }
 }
