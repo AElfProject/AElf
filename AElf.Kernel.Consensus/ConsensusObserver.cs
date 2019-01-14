@@ -125,10 +125,10 @@ namespace AElf.Kernel.Consensus
                 // This node isn't current miner.
                 return null;
             }
-            
             var profile = roundInformation.RealTimeMinersInfo[publicKey];
             var extraBlockTimeSlot = roundInformation.GetEBPMiningTime(Interval).ToTimestamp();
             var myMiningTime = profile.ExpectedMiningTime;
+            
             var now = DateTime.UtcNow.ToTimestamp();
             var distanceToProduceNormalBlock = (myMiningTime - now).Seconds;
 
@@ -185,6 +185,8 @@ namespace AElf.Kernel.Consensus
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
+                    _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
+                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * profile.Order):HH:mm:ss.fff}");
                     _logger?.Trace(
                         $"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
                         $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * profile.Order):HH:mm:ss.fff}");

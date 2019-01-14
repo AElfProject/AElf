@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
-        [Fact]
+        [Fact(Skip = "Time consuming.")]
         public void DividendsInitializationTest()
         {
             InitializeMiners();
@@ -41,8 +41,8 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
         }
 
-        [Fact]
-        //[Fact(Skip = "Time consuming")]
+        //[Fact]
+        [Fact(Skip = "Time consuming")]
         public void ReceiveDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
@@ -82,6 +82,11 @@ namespace AElf.Contracts.Consensus.Tests
             var votedTickets = ticketsInformation.TotalTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
+
+            var transactionId =
+                pagedTicketsInformation.VotingRecords.FirstOrDefault(vr => vr.From == mustVotedVoter.PublicKey.ToHex())?
+                    .TransactionId.ToHex();
+            Assert.NotNull(transactionId);
 
             var history1 = _contracts.GetCandidatesHistoryInfo();
 
@@ -148,8 +153,17 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(balanceAfter > balanceBefore);
-            Assert.Equal(availableDividends, balanceAfter - balanceBefore);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
+            var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
+
+            _contracts.WithdrawAll(mustVotedVoter);
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            var balanceAfterWithdraw = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdraw > balanceAfter);
 
             var history4 = _contracts.GetCandidatesHistoryInfo();
 

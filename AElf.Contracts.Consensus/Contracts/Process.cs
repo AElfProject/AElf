@@ -55,6 +55,8 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             // TODO: Check the miners are correct.
             
+            Api.SendInline(Api.DividendsContractAddress, "KeepWeights", CurrentTermNumber);
+
             // Count missed time slot of current round.
             CountMissedTimeSlots();
             
@@ -421,8 +423,6 @@ namespace AElf.Contracts.Consensus.Contracts
                 CandidatesSnapshot = {candidateInTerms}
             };
             _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
-
-            Api.SendInline(Api.DividendsContractAddress, "KeepWeights");
         }
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)

@@ -53,6 +53,7 @@ To withdraw all the locked tokens of the caller.
 
 Params:
 - `string` transactionId
+- `bool` withoutLimitation
 
 ### `IsCandidate`
 
@@ -354,7 +355,8 @@ To query obtained and not expired votes number of a candidate.
 ### `WithdrawByTransactionId`
 
 参数:
-- string transactionId
+- `string` transactionId
+- `bool` withoutLimitation
 
 ### `IsCandidate`
 

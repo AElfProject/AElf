@@ -1,4 +1,5 @@
 using System;
+using AElf.Common;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -33,6 +34,11 @@ namespace AElf.Kernel
             }
 
             return lockExpiredAge <= currentAge;
+        }
+
+        public ulong GetExpireTermNumber(ulong currentAge)
+        {
+            return TermNumber + GetDurationDays(currentAge) / GlobalConfig.DaysEachTerm;
         }
     }
 }

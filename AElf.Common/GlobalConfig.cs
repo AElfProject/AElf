@@ -52,7 +52,7 @@ namespace AElf.Common
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
         public const int ProducerRepetitions = 8;
-        public const int AElfWaitFirstRoundTime = 8000;
+        public const int AElfWaitFirstRoundTime = 4000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSMinersString = "__AElfBlockProducer__";
         public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
