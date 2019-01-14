@@ -47,7 +47,7 @@ namespace AElf.Common
         public const ulong BalanceForInitialization = 100_000_000;
         public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
-        public const ulong DaysEachTerm = 2;
+        public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;

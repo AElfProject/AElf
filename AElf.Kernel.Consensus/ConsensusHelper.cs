@@ -255,7 +255,7 @@ namespace AElf.Kernel.Consensus
             var res = new StringValue
             {
                 Value =
-                    infoOfOneRound + "Current Round : " + CurrentRoundNumber?.Value
+                    infoOfOneRound + "Current round number : " + CurrentRoundNumber?.Value
             };
 
             return res;
@@ -335,7 +335,7 @@ namespace AElf.Kernel.Consensus
         {
             _logger?.Trace("Log dpos information - Start");
             _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
-                           $". Current height: {height}. Current term: {CurrentTermNumber.Value}");
+                           $". Current height: {height}. Current term: {CurrentTermNumber.Value}. Current age: {BlockchainAge.Value}");
             _logger?.Trace(GetCurrentElectionInformation());
             _logger?.Trace("Log dpos information - End");
         }

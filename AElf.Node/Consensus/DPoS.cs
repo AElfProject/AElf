@@ -659,6 +659,20 @@ namespace AElf.Node.Consensus
                         await BroadcastTransaction(txForNextTerm);
                         await Mine();
                     }
+                    else
+                    {
+                        var parameters = new List<object>
+                        {
+                            (await _minersManager.GetMiners()).GenerateNewTerm(
+                                ConsensusConfig.Instance.DPoSMiningInterval,
+                                _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
+                        };
+
+                        var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
+
+                        await BroadcastTransaction(txForNextTerm);
+                        await Mine();
+                    }
                 }
             }
             catch (Exception e)
@@ -829,19 +843,23 @@ namespace AElf.Node.Consensus
 
         private bool CanStartNextTerm()
         {
-            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+            {
+                return _helper.BlockchainAge.Value / GlobalConfig.DaysEachTerm != LatestTermNumber - 1;
+            }
+            
+            /*if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
                 _helper.TryToGetVictories(out var victories) &&
                 victories.Count == GlobalConfig.BlockProducerNumber)
             {
-                return _helper.BlockchainAge.Value / GlobalConfig.DaysEachTerm != LatestTermNumber;
-//                if (_firstTermChangedRoundNumber != 0)
-//                {
-//                    return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
-//                           LatestTermNumber;
-//                }
-//
-//                return true;
-            }
+                if (_firstTermChangedRoundNumber != 0)
+                {
+                    return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
+                           LatestTermNumber;
+                }
+
+                return true;
+            }*/
 
             return false;
         }

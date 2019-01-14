@@ -242,18 +242,18 @@ namespace AElf.Miner.TxMemPool
                     {
                         txs.Remove(transaction);
                     }
-
-                    _logger?.Trace("will package following consensus txs:");
-                    foreach (var tx in txs)
-                    {
-                        _logger?.Trace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
-                    }
                 }
                 catch (Exception e)
                 {
                     _logger?.Trace(e, "Failed to execute dpos txs filter.");
                     throw;
                 }
+            }
+            
+            _logger?.Trace("will package following consensus txs:");
+            foreach (var tx in txs)
+            {
+                _logger?.Trace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
             }
         }
 
