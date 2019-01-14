@@ -260,10 +260,7 @@ namespace AElf.Contracts.Consensus
                 return tickets;
             }
 
-            return new Tickets
-            {
-                TotalTickets = 0
-            };
+            return new Tickets();
         }
         
         [View]
@@ -290,13 +287,14 @@ namespace AElf.Contracts.Consensus
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                var take = Math.Min(length - startIndex, tickets.VotingRecords.Count - startIndex);
-                return new Tickets
-                {
-                    TotalTickets = tickets.TotalTickets,
-                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
-                    VotingRecordsCount = (ulong) tickets.VotingRecords.Count
-                };
+                var count = tickets.VotingRecords.Count;
+                var take = Math.Min(length - startIndex, count - startIndex);
+                var result = tickets;
+                result.VotingRecords.Clear();
+                result.VotingRecords.AddRange(tickets.VotingRecords.Skip(startIndex).Take(take));
+                result.VotingRecordsCount = (ulong) count;
+
+                return result;
             }
 
             return new Tickets
@@ -319,12 +317,13 @@ namespace AElf.Contracts.Consensus
                 var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
                 var count = notWithdrawnVotingRecords.Count;
                 var take = Math.Min(length - startIndex, count - startIndex);
-                return new Tickets
-                {
-                    TotalTickets = tickets.TotalTickets,
-                    VotingRecords = {notWithdrawnVotingRecords.Skip(startIndex).Take(take)},
-                    VotingRecordsCount = (ulong) count
-                };
+                
+                var result = tickets;
+                result.VotingRecords.Clear();
+                result.VotingRecords.AddRange(tickets.VotingRecords.Skip(startIndex).Take(take));
+                result.VotingRecordsCount = (ulong) count;
+
+                return result;
             }
 
             return new Tickets
@@ -391,8 +390,8 @@ namespace AElf.Contracts.Consensus
         /// <summary>
         /// Order by:
         /// 0 - Announcement order. (Default)
-        /// 1 - Tickets count ascending.
-        /// 2 - Tickets count descending.
+        /// 1 - Obtained votes ascending.
+        /// 2 - Obtained votes descending.
         /// </summary>
         /// <param name="startIndex"></param>
         /// <param name="length"></param>
@@ -438,7 +437,7 @@ namespace AElf.Contracts.Consensus
                 }
                 
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
-                return dict.OrderBy(p => p.Value.TotalTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
+                return dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
             }
             
             if (orderBy == 2)
@@ -458,7 +457,7 @@ namespace AElf.Contracts.Consensus
                 }
 
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
-                return dict.OrderByDescending(p => p.Value.TotalTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
+                return dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
             }
 
             return new TicketsDictionary

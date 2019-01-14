@@ -337,7 +337,7 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 ticketsMap.Add(candidate,
                     _collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets)
-                        ? tickets.TotalTickets
+                        ? tickets.ObtainedTickets
                         : 0);
             }
 

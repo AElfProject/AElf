@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.Tests
             contracts.Vote(voters[0], candidates[3].PublicKey.ToHex(), 10_000, 90);
 
             var ticketsOfCandidate = contracts.GetTicketsInfo(candidates[3].PublicKey.ToHex());
-            Assert.True(ticketsOfCandidate.TotalTickets > 0);
+            Assert.True(ticketsOfCandidate.ObtainedTickets > 0);
 
             contracts.QuitElection(candidates[3]);
             Assert.False(contracts.IsCandidate(candidates[3].PublicKey.ToHex()));
@@ -107,7 +107,8 @@ namespace AElf.Contracts.Consensus.Tests
             // Check tickets of voter
             var ticketsOfVoter = contracts.GetTicketsInfo(voters[1].PublicKey.ToHex());
             Assert.True(ticketsOfVoter.VotingRecords.Count == 1);
-            Assert.True(ticketsOfVoter.TotalTickets == amount);
+            Assert.True(ticketsOfVoter.ObtainedTickets == 0);
+            Assert.True(ticketsOfVoter.VotedTickets == amount);
             var votingRecordOfVoter = ticketsOfVoter.VotingRecords.First();
             Assert.NotNull(votingRecordOfVoter);
             Assert.False(votingRecordOfVoter.IsExpired(1));
@@ -118,8 +119,8 @@ namespace AElf.Contracts.Consensus.Tests
             // Check tickets of candidate
             var ticketsOfCandidate = contracts.GetTicketsInfo(candidates[4].PublicKey.ToHex());
             Assert.True(ticketsOfCandidate.VotingRecords.Count == 1);
-            Assert.True(ticketsOfVoter.VotingRecords.Count == 1);
-            Assert.True(ticketsOfVoter.TotalTickets == amount);
+            Assert.True(ticketsOfCandidate.VotedTickets == 0);
+            Assert.True(ticketsOfCandidate.ObtainedTickets == amount);
             var votingRecordOfCandidate = ticketsOfVoter.VotingRecords.First();
             Assert.NotNull(votingRecordOfCandidate);
             Assert.False(votingRecordOfCandidate.IsExpired(1));

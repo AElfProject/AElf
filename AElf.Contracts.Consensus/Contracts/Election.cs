@@ -126,7 +126,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 tickets.VotingRecords.Add(votingRecord);
             }
 
-            tickets.TotalTickets += votingRecord.Count;
+            tickets.VotedTickets += votingRecord.Count;
+            tickets.HistoryVotedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
 
             if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
@@ -139,7 +140,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 candidateTickets.VotingRecords.Add(votingRecord);
             }
 
-            candidateTickets.TotalTickets += votingRecord.Count;
+            candidateTickets.ObtainedTickets += votingRecord.Count;
+            candidateTickets.HistoryObtainedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
             var currentCount = _collection.VotesCountField.GetValue();
@@ -198,6 +200,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             var voterPublicKey = Api.RecoverPublicKey().ToHex();
             var candidatePublicKey = "";
+            ulong amount = 0;
 
             if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
             {
@@ -212,8 +215,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (votingRecord != null && (votingRecord.UnlockAge >= CurrentAge || withoutLimitation) &&
                     votingRecord.IsWithdrawn == false)
                 {
+                    amount = votingRecord.Count;
+
                     candidatePublicKey = votingRecord.To;
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), amount);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
 
@@ -223,7 +228,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     votingRecord.IsWithdrawn = true;
 
                     var ticketsCount = _collection.TicketsCountField.GetValue();
-                    ticketsCount -= votingRecord.Count;
+                    ticketsCount -= amount;
                     _collection.TicketsCountField.SetValue(ticketsCount);
                 }
             }
@@ -254,6 +259,8 @@ namespace AElf.Contracts.Consensus.Contracts
 
             if (ticketsOfCandidate != null)
             {
+                tickets.VotedTickets -= amount;
+                ticketsOfCandidate.ObtainedTickets -= amount;
                 _collection.TicketsMap.SetValue(voterPublicKey.ToStringValue(), tickets);
                 _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
             }
@@ -282,7 +289,9 @@ namespace AElf.Contracts.Consensus.Contracts
                         continue;
                     }
 
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                    var amount = votingRecord.Count;
+
+                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), amount);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
 
@@ -294,20 +303,24 @@ namespace AElf.Contracts.Consensus.Contracts
                     candidatePublicKeys.Add(votingRecord.To);
 
                     var ticketsCount = _collection.TicketsCountField.GetValue();
-                    ticketsCount -= votingRecord.Count;
+                    ticketsCount -= amount;
                     _collection.TicketsCountField.SetValue(ticketsCount);
+
+                    tickets.VotedTickets -= amount;
                 }
+                
+                _collection.TicketsMap.SetValue(voterPublicKey.ToStringValue(), tickets);
             }
 
-            _collection.TicketsMap.SetValue(voterPublicKey.ToStringValue(), tickets);
-
+            // Handle tickets of all the related candidates.
             foreach (var candidatePublicKey in candidatePublicKeys)
             {
                 if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var ticketsOfCandidate))
                 {
                     var votingRecords = withoutLimitation
-                        ? tickets.VotingRecords.Where(vr => vr.IsWithdrawn == false).ToList()
-                        : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge && vr.IsWithdrawn == false).ToList();
+                        ? tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.From == voterPublicKey).ToList()
+                        : tickets.VotingRecords.Where(vr =>
+                            vr.UnlockAge >= CurrentAge && !vr.IsWithdrawn && vr.From == voterPublicKey).ToList();
 
                     foreach (var votingRecord in votingRecords)
                     {
@@ -318,10 +331,12 @@ namespace AElf.Contracts.Consensus.Contracts
                         votingRecord.WithdrawTimestamp =
                             blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
                         votingRecord.IsWithdrawn = true;
-                    }
-                }
 
-                _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
+                        ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
+                    }
+                    
+                    _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), ticketsOfCandidate);
+                }
             }
 
             return new ActionResult {Success = true};

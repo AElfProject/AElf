@@ -56,9 +56,12 @@ message Candidates {
 // The ticket / voting information for one user.
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
-    uint64 TotalTickets = 2;
-    uint64 VotingRecordsCount = 3;
-    string Remark = 4;
+    uint64 VotingRecordsCount = 2;
+    uint64 ObtainedTickets = 3;
+    uint64 VotedTickets = 4;
+    uint64 HistoryObtainedTickets = 5;
+    uint64 HistoryVotedTickets = 6;
+    string Remark = 7;
 }
 
 // A voting record.

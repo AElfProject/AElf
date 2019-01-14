@@ -211,7 +211,7 @@ namespace AElf.Kernel.Consensus
                 var tickets = GetTickets(candidate);
                 if (tickets.VotingRecords.Count > 0)
                 {
-                    ticketsMap[candidate] = tickets.TotalTickets;
+                    ticketsMap[candidate] = tickets.ObtainedTickets;
                 }
             }
 

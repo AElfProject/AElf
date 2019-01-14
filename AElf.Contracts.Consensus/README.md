@@ -195,8 +195,8 @@ To get the election information during the election.
 
 orderBy:
 0 - Announcement order. (Default)
-1 - Tickets count ascending.
-2 - Tickets count descending.
+1 - Obtained votes ascending.
+2 - Obtained votes descending.
 
 ### `GetVotesCount`
 
@@ -645,8 +645,12 @@ message Candidates {
 // The ticket / voting information for one user.
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
-    uint64 TotalTickets = 2;
-    uint64 VotingRecordsCount = 3;
+    uint64 VotingRecordsCount = 2;
+    uint64 ObtainedTickets = 3;
+    uint64 VotedTickets = 4;
+    uint64 HistoryObtainedTickets = 5;
+    uint64 HistoryVotedTickets = 6;
+    string Remark = 7;
 }
 
 // A voting record.
@@ -748,8 +752,9 @@ message TicketsHistory {
 }
 
 enum TicketsHistoryType {
-    Vote = 0;
+    None = 0;
     Redeem = 1;
+    Vote = 2;
 }
 
 ```
