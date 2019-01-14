@@ -306,6 +306,14 @@ namespace AElf.Contracts.CrossChain
             Api.Assert(_sideChainInfos.TryGet(chainIdHash, out var info), "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
+
+        [View]
+        public ulong LockedBalance(string chainId)
+        {
+            var chainIdHash = Hash.LoadBase58(chainId);
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out _), "Not existed side chain.");
+            return _indexingBalance[chainIdHash];
+        }
         
         #endregion Side chain lifetime actions
 
