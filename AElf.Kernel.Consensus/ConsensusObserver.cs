@@ -178,15 +178,12 @@ namespace AElf.Kernel.Consensus
             }
             else
             {
-                // TODO: Maybe the time slots are incorrect.
                 var distanceToHelpProducingExtraBlock = distanceToProduceExtraBlock + Interval * profile.Order / 1000;
                 if (distanceToHelpProducingExtraBlock >= 0)
                 {
                     produceExtraBlock = Observable
                         .Timer(TimeSpan.FromSeconds(distanceToHelpProducingExtraBlock - distanceToProduceNormalBlock))
                         .Select(_ => ConsensusBehavior.NextRound);
-                    _logger?.Trace($"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
-                                   $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * profile.Order):HH:mm:ss.fff}");
                     _logger?.Trace(
                         $"Will help to produce extra block after {distanceToHelpProducingExtraBlock} seconds - " +
                         $"{extraBlockTimeSlot.ToDateTime().AddMilliseconds(Interval * profile.Order):HH:mm:ss.fff}");

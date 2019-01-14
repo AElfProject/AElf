@@ -43,16 +43,17 @@ namespace AElf.Contracts.Consensus
         private Process Process => new Process(Collection);
 
         private Election Election => new Election(Collection);
-        
+
         private Validation Validation => new Validation(Collection);
 
         #region Process
-        
+
         [Fee(0)]
         public void InitialTerm(Term term, int logLevel)
         {
             Api.Assert(term.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
-            Api.Assert(term.SecondRound.RoundNumber == 2, "It seems that the term number of initial term is incorrect.");
+            Api.Assert(term.SecondRound.RoundNumber == 2,
+                "It seems that the term number of initial term is incorrect.");
             Process.InitialTerm(term, logLevel);
         }
 
@@ -79,11 +80,11 @@ namespace AElf.Contracts.Consensus
         {
             Process.BroadcastInValue(toBroadcast);
         }
-        
+
         #endregion Process
 
         #region Query
-        
+
         [View]
         public Round GetRoundInfo(ulong roundNumber)
         {
@@ -91,7 +92,7 @@ namespace AElf.Contracts.Consensus
             {
                 return roundInfo;
             }
-            
+
             return new Round
             {
                 Remark = "Round information not found."
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CurrentRoundNumberField.GetValue();
         }
-        
+
         [View]
         public ulong GetCurrentTermNumber()
         {
@@ -115,13 +116,13 @@ namespace AElf.Contracts.Consensus
         {
             return Collection.CandidatesField.GetValue().PublicKeys.Contains(publicKey);
         }
-        
+
         [View]
         public StringList GetCandidatesList()
         {
             return Collection.CandidatesField.GetValue().PublicKeys.ToList().ToStringList();
         }
-        
+
         [View]
         public string GetCandidatesListToFriendlyString()
         {
@@ -151,15 +152,15 @@ namespace AElf.Contracts.Consensus
         {
             return GetCandidateHistoryInfo(publicKey).ToString();
         }
-        
+
         [View]
         public CandidateInHistoryDictionary GetCandidatesHistoryInfo()
         {
             var result = new CandidateInHistoryDictionary();
-            
+
             var candidates = Collection.CandidatesField.GetValue();
             result.CandidatesNumber = candidates.PublicKeys.Count;
-            
+
             var age = Collection.AgeField.GetValue();
             foreach (var candidate in candidates.PublicKeys)
             {
@@ -169,6 +170,7 @@ namespace AElf.Contracts.Consensus
                     {
                         info.CurrentVotesNumber = tickets.ObtainedTickets;
                     }
+
                     result.Maps.Add(candidate, info);
                 }
             }
@@ -181,7 +183,7 @@ namespace AElf.Contracts.Consensus
         {
             return GetCandidatesHistoryInfo().ToString();
         }
-        
+
         [View]
         public CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(int startIndex, int length)
         {
@@ -189,7 +191,7 @@ namespace AElf.Contracts.Consensus
 
             var candidates = Collection.CandidatesField.GetValue();
             result.CandidatesNumber = candidates.PublicKeys.Count;
-            
+
             var take = Math.Min(result.CandidatesNumber - startIndex, length - startIndex);
             foreach (var candidate in candidates.PublicKeys.Skip(startIndex).Take(take))
             {
@@ -199,6 +201,7 @@ namespace AElf.Contracts.Consensus
                     {
                         info.CurrentVotesNumber = tickets.ObtainedTickets;
                     }
+
                     result.Maps.Add(candidate, info);
                 }
                 else
@@ -209,13 +212,13 @@ namespace AElf.Contracts.Consensus
 
             return result;
         }
-        
+
         [View]
         public string GetPageableCandidatesHistoryInfoToFriendlyString(int startIndex, int length)
         {
             return GetPageableCandidatesHistoryInfo(startIndex, length).ToString();
         }
-        
+
         [View]
         public Miners GetCurrentMiners()
         {
@@ -229,13 +232,13 @@ namespace AElf.Contracts.Consensus
             {
                 return currentMiners;
             }
-            
+
             return new Miners
             {
                 Remark = "Can't get current miners."
             };
         }
-        
+
         [View]
         public string GetCurrentMinersToFriendlyString()
         {
@@ -254,7 +257,7 @@ namespace AElf.Contracts.Consensus
 
             return new Tickets();
         }
-        
+
         [View]
         public string GetTicketsInfoToFriendlyString(string publicKey)
         {
@@ -269,6 +272,7 @@ namespace AElf.Contracts.Consensus
             {
                 return 0;
             }
+
             return tickets.VotingRecords
                 .Where(vr => vr.To == publicKey && !vr.IsExpired(Collection.AgeField.GetValue()))
                 .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
@@ -319,7 +323,7 @@ namespace AElf.Contracts.Consensus
         {
             return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
         }
-        
+
         [View]
         public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
         {
@@ -328,7 +332,7 @@ namespace AElf.Contracts.Consensus
                 var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
                 var count = notWithdrawnVotingRecords.Count;
                 var take = Math.Min(length - startIndex, count - startIndex);
-                
+
                 var result = new Tickets
                 {
                     VotingRecords = {notWithdrawnVotingRecords.Skip(startIndex).Take(take)},
@@ -354,7 +358,7 @@ namespace AElf.Contracts.Consensus
         {
             return GetPageableNotWithdrawnTicketsInfo(publicKey, startIndex, length).ToString();
         }
-        
+
         [View]
         public TicketsHistories GetPageableTicketsHistories(string publicKey, int startIndex, int length)
         {
@@ -394,7 +398,7 @@ namespace AElf.Contracts.Consensus
             {
                 result.Remark = "Not found.";
             }
-            
+
             return result;
         }
 
@@ -403,7 +407,7 @@ namespace AElf.Contracts.Consensus
         {
             return GetPageableTicketsHistories(publicKey, startIndex, length).ToString();
         }
-        
+
         /// <summary>
         /// Order by:
         /// 0 - Announcement order. (Default)
@@ -424,6 +428,7 @@ namespace AElf.Contracts.Consensus
                 {
                     length = publicKeys.Count;
                 }
+
                 var dict = new Dictionary<string, Tickets>();
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 foreach (var publicKey in publicKeys.Skip(startIndex).Take(take))
@@ -444,6 +449,7 @@ namespace AElf.Contracts.Consensus
                 {
                     length = publicKeys.Count;
                 }
+
                 var dict = new Dictionary<string, Tickets>();
                 foreach (var publicKey in publicKeys)
                 {
@@ -452,11 +458,11 @@ namespace AElf.Contracts.Consensus
                         dict.Add(publicKey, tickets);
                     }
                 }
-                
+
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
             }
-            
+
             if (orderBy == 2)
             {
                 var publicKeys = Collection.CandidatesField.GetValue().PublicKeys;
@@ -464,6 +470,7 @@ namespace AElf.Contracts.Consensus
                 {
                     length = publicKeys.Count;
                 }
+
                 var dict = new Dictionary<string, Tickets>();
                 foreach (var publicKey in publicKeys)
                 {
@@ -474,7 +481,8 @@ namespace AElf.Contracts.Consensus
                 }
 
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
-                return dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToTicketsDictionary();
+                return dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                    .ToTicketsDictionary();
             }
 
             return new TicketsDictionary
@@ -482,13 +490,13 @@ namespace AElf.Contracts.Consensus
                 Remark = "Failed to get election information."
             };
         }
-        
+
         [View]
         public string GetPageableElectionInfoToFriendlyString(int startIndex, int length, int orderBy)
         {
             return GetPageableElectionInfo(startIndex, length, orderBy).ToString();
         }
-        
+
         [View]
         public ulong GetBlockchainAge()
         {
@@ -500,13 +508,13 @@ namespace AElf.Contracts.Consensus
         {
             return Process.GetVictories().ToStringList();
         }
-        
+
         [View]
         public string GetCurrentVictoriesToFriendlyString()
         {
             return GetCurrentVictories().ToString();
         }
-  
+
         [View]
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
@@ -514,13 +522,13 @@ namespace AElf.Contracts.Consensus
             {
                 return snapshot;
             }
-            
+
             return new TermSnapshot
             {
                 Remark = "Invalid term number."
             };
         }
-        
+
         [View]
         public string GetTermSnapshotToFriendlyString(ulong termNumber)
         {
@@ -542,7 +550,7 @@ namespace AElf.Contracts.Consensus
             Api.Assert(map != null, GlobalConfig.TermNumberLookupNotFound);
             return map?.OrderBy(p => p.Key).Last(p => roundNumber >= p.Value).Key ?? (ulong) 0;
         }
-        
+
         [View]
         public ulong GetVotesCount()
         {
@@ -600,22 +608,22 @@ namespace AElf.Contracts.Consensus
 
             return 0;
         }
-        
+
         [View]
         public string QueryAliasesInUseToFriendlyString()
         {
             return QueryAliasesInUse().ToString();
         }
-        
+
         #endregion
-        
+
         #region Election
-        
+
         public ActionResult AnnounceElection(string alias)
         {
             return Election.AnnounceElection(alias);
         }
-        
+
         public ActionResult QuitElection()
         {
             return Election.QuitElection();
@@ -630,12 +638,12 @@ namespace AElf.Contracts.Consensus
         {
             return Election.ReceiveDividends(transactionId);
         }
-        
+
         public ActionResult ReceiveAllDividends()
         {
             return Election.ReceiveDividends();
         }
-        
+
         public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
         {
             return Election.Withdraw(transactionId, withoutLimitation);
@@ -653,19 +661,19 @@ namespace AElf.Contracts.Consensus
                 "First round not found.");
             Api.Assert(firstRound.RealTimeMinersInfo.ContainsKey(sender),
                 "Sender should be one of the initial miners.");
-            
+
             Api.SendInlineByContract(Api.TokenContractAddress, "Transfer", address, amount);
         }
-        
+
         #endregion Election
-        
+
         #region Validation
 
         public BlockValidationResult ValidateBlock(BlockAbstract blockAbstract)
         {
             return Validation.ValidateBlock(blockAbstract);
         }
-        
+
         #endregion Validation
     }
 }

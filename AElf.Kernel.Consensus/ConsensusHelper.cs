@@ -6,7 +6,6 @@ using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
 using NLog;
-using NLog.Fluent;
 
 namespace AElf.Kernel.Consensus
 {
@@ -254,8 +253,7 @@ namespace AElf.Kernel.Consensus
 
             var res = new StringValue
             {
-                Value =
-                    infoOfOneRound + "Current round number : " + CurrentRoundNumber?.Value
+                Value = infoOfOneRound + "Current round: " + CurrentRoundNumber?.Value
             };
 
             return res;
@@ -300,9 +298,7 @@ namespace AElf.Kernel.Consensus
                     i++;
                 }
 
-                return
-                    infoOfOneRound
-                    + $"Current Round : {CurrentRoundNumber.Value}";
+                return infoOfOneRound + $"Current round: {CurrentRoundNumber.Value}";
             }
             catch (Exception e)
             {
