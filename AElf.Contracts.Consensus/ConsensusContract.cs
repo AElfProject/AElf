@@ -193,8 +193,6 @@ namespace AElf.Contracts.Consensus
             var candidates = Collection.CandidatesField.GetValue();
             result.CandidatesNumber = candidates.PublicKeys.Count;
             
-            var age = Collection.AgeField.GetValue();
-
             var take = Math.Min(result.CandidatesNumber - startIndex, length - startIndex);
             foreach (var candidate in candidates.PublicKeys.Skip(startIndex).Take(take))
             {
@@ -202,10 +200,7 @@ namespace AElf.Contracts.Consensus
                 {
                     if (Collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
                     {
-                        var number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
-                            .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
-
-                        info.CurrentVotesNumber = number;
+                        info.CurrentVotesNumber = tickets.ObtainedTickets;
                     }
                     result.Maps.Add(candidate, info);
                 }

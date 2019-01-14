@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
-
+            
             // Update produced block number of this node.
             term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
             
@@ -98,6 +98,28 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
 
+            return new ActionResult {Success = true};
+        }
+
+        public ActionResult SnapshotForTerm(ulong snapshotTermNumber)
+        {
+            if (_collection.SnapshotField.TryGet(snapshotTermNumber.ToUInt64Value(), out _))
+            {
+                return new ActionResult
+                {
+                    Success = false, 
+                    ErrorMessage = $"Snapshot of term {snapshotTermNumber} already taken."
+                };
+            }
+            
+            
+            
+            return new ActionResult {Success = true};
+        }
+
+        public ActionResult SnapshotForMiners()
+        {
+            
             return new ActionResult {Success = true};
         }
 
@@ -125,7 +147,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
-            // TODO: I forget why its possible.
             if (forwarding.NextRoundInfo.RoundNumber == 0)
             {
                 if (_collection.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(),

@@ -576,7 +576,7 @@ namespace AElf.Node.Consensus
                     {
                         await _minersManager.SetMiners(miners);
                     }
-                    
+
                     var parameters = new List<object>
                     {
                         new Forwarding
@@ -734,7 +734,7 @@ namespace AElf.Node.Consensus
             {
                 _firstTermChangedRoundNumber = LatestRoundNumber;
             }
-            
+
             // Update current term number.
             LatestTermNumber = _helper.CurrentTermNumber.Value;
 
@@ -838,7 +838,7 @@ namespace AElf.Node.Consensus
                     return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
                            LatestTermNumber;
                 }
-                
+
                 return true;
             }
 
