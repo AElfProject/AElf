@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
 using CSharpx;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Managers
@@ -42,9 +43,9 @@ namespace AElf.Kernel.Managers
         /// <param name="blockHash">should already in store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public async Task<VersionedState> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
         {
-            VersionedState value = null;
+            ByteString value = null;
 
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
@@ -53,7 +54,7 @@ namespace AElf.Kernel.Managers
             {
                 if (bestChainState.BlockHash == blockHash)
                 {
-                    value = bestChainState;
+                    value = bestChainState.Value;
                 }
                 else
                 {
@@ -91,7 +92,7 @@ namespace AElf.Kernel.Managers
                         {
                             //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
                             //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
-                            value = bestChainState;
+                            value = bestChainState.Value;
                         }
                     }
                 }

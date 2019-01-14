@@ -52,30 +52,73 @@ namespace AElf.Kernel.Tests
                 {
                     {
                         _tv[1].Key,
-                        new VersionedState()
-                        {
-                            Key = _tv[1].Key,
-                            Value = _tv[1].Value
-                        }
+                        _tv[1].Value
                     },
                     {
                         _tv[2].Key,
-                        new VersionedState()
-                        {
-                            Key = _tv[2].Key,
-                            Value = _tv[2].Value
-                        }
+                        _tv[2].Value
                     },
                 }
             });
             
             (await _blockchainStateManager.GetStateAsync(_tv[1].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .Value.ShouldBe(_tv[1].Value);
+                .ShouldBe(_tv[1].Value);
             
             (await _blockchainStateManager.GetStateAsync(_tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .Value.ShouldBe(_tv[2].Value);
+                .ShouldBe(_tv[2].Value);
             
             //two level tests without best chain state
+            
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[2].BlockHash,
+                BlockHeight = _tv[2].BlockHeight,
+                PreviousHash = _tv[1].BlockHash,
+                Changes =
+                {
+                    //override key 1
+                    {
+                        _tv[1].Key,
+                        _tv[2].Value
+                    },
+                }
+            });
+            
+            //key 1 was changed, value was changed to value 2
+            (await _blockchainStateManager.GetStateAsync( _tv[1].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            //but when we we can get value at the height of block height 1, also block hash 1
+            (await _blockchainStateManager.GetStateAsync(_tv[1].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
+                .ShouldBe(_tv[1].Value);
+            
+            
+            (await _blockchainStateManager.GetStateAsync(_tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            
+            
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[3].BlockHash,
+                BlockHeight = _tv[3].BlockHeight,
+                PreviousHash = _tv[2].BlockHash,
+                Changes =
+                {
+                    //override key 2 at height 3
+                    {
+                        _tv[2].Key,
+                        _tv[4].Value
+                    },
+                }
+            });
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[3].BlockHeight,_tv[3].BlockHash))
+                .ShouldBe(_tv[4].Value);
         }
     }
 }

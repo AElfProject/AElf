@@ -53,8 +53,8 @@ namespace AElf.Kernel.Storages
             await _collection.RemoveAsync(key);
         }
     }
-    
-    public abstract class KeyValueStoreBase<TKeyValueDbContext,T> : IKeyValueStore<T>
+
+    public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
         protected readonly TKeyValueDbContext _keyValueDbContext;
@@ -100,14 +100,14 @@ namespace AElf.Kernel.Storages
     }
 
 
-    public interface IStateStore<T>: IKeyValueStore<T>
+    public interface IStateStore<T> : IKeyValueStore<T>
     {
-        
     }
+
     public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
     {
-        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix)
+        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix + typeof(T).Name)
         {
         }
     }
