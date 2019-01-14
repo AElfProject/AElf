@@ -833,13 +833,14 @@ namespace AElf.Node.Consensus
                 _helper.TryToGetVictories(out var victories) &&
                 victories.Count == GlobalConfig.BlockProducerNumber)
             {
-                if (_firstTermChangedRoundNumber != 0)
-                {
-                    return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
-                           LatestTermNumber;
-                }
-
-                return true;
+                return _helper.BlockchainAge.Value / GlobalConfig.DaysEachTerm != LatestTermNumber;
+//                if (_firstTermChangedRoundNumber != 0)
+//                {
+//                    return (LatestRoundNumber - _firstTermChangedRoundNumber) / GlobalConfig.RoundsPerTerm + 2 !=
+//                           LatestTermNumber;
+//                }
+//
+//                return true;
             }
 
             return false;

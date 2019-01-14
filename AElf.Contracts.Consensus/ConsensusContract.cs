@@ -275,6 +275,18 @@ namespace AElf.Contracts.Consensus
         }
 
         [View]
+        public ulong QueryObtainedVotes(string publicKey)
+        {
+            var tickets = GetTicketsInfo(publicKey);
+            if (tickets.VotingRecords.Any())
+            {
+                return tickets.ObtainedTickets;
+            }
+
+            return 0;
+        }
+
+        [View]
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
@@ -309,16 +321,17 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
+        public Tickets GetPageableNot`WithdrawnTicketsInfo(string publicKey, int startIndex, int length)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                var count = tickets.VotingRecords.Count;
+                var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
+                var count = notWithdrawnVotingRecords.Count;
                 var take = Math.Min(length - startIndex, count - startIndex);
                 
                 var result = new Tickets
                 {
-                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                    VotingRecords = {notWithdrawnVotingRecords.Skip(startIndex).Take(take)},
                     ObtainedTickets = tickets.ObtainedTickets,
                     VotedTickets = tickets.VotedTickets,
                     HistoryObtainedTickets = tickets.HistoryObtainedTickets,
