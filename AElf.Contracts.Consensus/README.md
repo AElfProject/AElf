@@ -118,6 +118,18 @@ Result type:
 
 To get the tickets information of provided public key with specific amount of voting records.
 
+### `GetPageableNotWithdrawnTicketsInfo` / `GetPageableNotWithdrawnTicketsInfoToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `Tickets` / `string`
+
+To get the not withdrawn tickets information of provided public key with specific amount of voting records.
+
 ### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
 
 Params:
@@ -407,6 +419,18 @@ To query obtained and not expired votes number of a candidate.
 - `Tickets` / `string`
 
 获取所提供公钥的投票详情，可定制返回的投票记录数量。
+
+### `GetPageableNotWithdrawnTicketsInfo` / `GetPageableNotWithdrawnTicketsInfoToFriendlyString`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `Tickets` / `string`
+
+获取所提供公钥的未赎回的投票详情，可定制返回的投票记录数量。
 
 ### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
 
