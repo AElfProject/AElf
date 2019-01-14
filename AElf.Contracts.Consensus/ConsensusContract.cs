@@ -321,7 +321,7 @@ namespace AElf.Contracts.Consensus
         }
         
         [View]
-        public Tickets GetPageableNot`WithdrawnTicketsInfo(string publicKey, int startIndex, int length)
+        public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
