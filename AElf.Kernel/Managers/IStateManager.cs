@@ -131,6 +131,15 @@ namespace AElf.Kernel.Managers
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
+        public async Task MergeBlockState(Hash blockStateHash)
+        {
+            var blockState = await _blockStateSets.GetAsync(blockStateHash.ToHex());
+            foreach (var change in blockState.Changes)
+            {
+                var origin = await _versionedStates.GetAsync(change.Key);
+            }
+        }
+
         private string GetKey(BlockStateSet blockStateSet)
         {
             return blockStateSet.BlockHash.ToHex();

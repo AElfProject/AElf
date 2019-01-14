@@ -119,6 +119,30 @@ namespace AElf.Kernel.Tests
             
             (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[3].BlockHeight,_tv[3].BlockHash))
                 .ShouldBe(_tv[4].Value);
+            
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[4].BlockHash,
+                BlockHeight = _tv[3].BlockHeight, // it's a branch
+                PreviousHash = _tv[2].BlockHash,
+                Changes =
+                {
+                    //override key 2 at height 3
+                    {
+                        _tv[2].Key,
+                        _tv[5].Value
+                    },
+                }
+            });
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
+                .ShouldBe(_tv[2].Value);
+            
+            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[3].BlockHeight,_tv[4].BlockHash))
+                .ShouldBe(_tv[5].Value);
         }
     }
 }
