@@ -216,7 +216,7 @@ namespace AElf.Miner.Tests
         {
             return new BlockBody
             {
-                IndexedInfo = { MockSideChainBlockInfo(height, chainId)}
+                //IndexedInfo = { MockSideChainBlockInfo(height, chainId)}
             };
         }
 
@@ -281,13 +281,13 @@ namespace AElf.Miner.Tests
         {
             var mock = new Mock<ICrossChainInfoReader>();
             mock.Setup(m => m.GetParentChainCurrentHeightAsync()).Returns(() => Task.FromResult(GetTimes));
-            mock.Setup(m => m.GetMerkleTreeForSideChainTransactionRootAsync(It.IsAny<ulong>())).Returns<ulong>(u =>
+            /*mock.Setup(m => m.GetMerkleTreeForSideChainTransactionRootAsync(It.IsAny<ulong>())).Returns<ulong>(u =>
             {
                 var binaryMerkleTree = new BinaryMerkleTree();
                 binaryMerkleTree.AddNodes(_blocks[(int) u - 1].Body.IndexedInfo.Select(info => info.TransactionMKRoot));
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
                 return Task.FromResult(binaryMerkleTree);
-            });
+            });*/
             mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>())).Returns<Hash>(chainId => Task.FromResult(GetTimes));
             return mock;
         }

@@ -191,7 +191,7 @@ namespace AElf.Contracts.SideChain.Tests
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(new[] {sc1BlockInfo.TransactionMKRoot, sc2BlockInfo.TransactionMKRoot});
             block.Header.SideChainTransactionsRoot = binaryMerkleTree.ComputeRootHash();
-            block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
+            //block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
             block.Body.CalculateMerkleTreeRoots();
             
             pHeight = 2;

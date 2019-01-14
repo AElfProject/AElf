@@ -13,7 +13,7 @@ using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 
-namespace AElf.Miner.Tests.Grpc
+namespace AElf.Miner.Tests.HeaderInfo
 {
     [UseAutofacTestFramework]
     public class HeaderInfoTest

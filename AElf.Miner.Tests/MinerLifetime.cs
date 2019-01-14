@@ -398,7 +398,7 @@ namespace AElf.Kernel.Tests.Miner
             }
         }
         
-        [Fact(Skip = "TBD, side chain life time needed.")]
+        /*[Fact(Skip = "TBD, side chain life time needed.")]
         public async Task MineWithIndexingSideChain()
         {
             // create the miners keypair, this is the miners identity
@@ -489,7 +489,7 @@ namespace AElf.Kernel.Tests.Miner
                 Directory.Delete(Path.Combine(dir), true);
             }
             
-        }
+        }*/
         
 
         #endregion
