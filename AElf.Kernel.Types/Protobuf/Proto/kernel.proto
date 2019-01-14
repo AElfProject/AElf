@@ -293,3 +293,24 @@ enum BlockValidationResult {
     IncorrectPoWResult = 108;
     NotImplementConsensus = 109;
 }
+
+message VersionedState{
+    string Key = 1;
+    bytes Value = 2;
+    int64 BlockHeight = 3;
+    Hash BlockHash = 4;
+    Hash OriginBlockHash = 5;
+}
+
+message BlockStateSet{
+    Hash BlockHash = 1;
+    Hash PreviousHash = 2;
+    int64 BlockHeight = 3;
+    map<string, VersionedState> Changes = 4;
+}
+
+message TransactionExecutingStateSet{
+    int64 Version = 1;
+    map<string, VersionedState> Writes = 2;
+    map<string, bool> Reads = 3;
+}
