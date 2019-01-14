@@ -167,10 +167,7 @@ namespace AElf.Contracts.Consensus
                 {
                     if (Collection.TicketsMap.TryGet(candidate.ToStringValue(), out var tickets))
                     {
-                        var number = tickets.VotingRecords.Where(vr => vr.To == candidate && !vr.IsExpired(age))
-                            .Aggregate<VotingRecord, ulong>(0, (current, ticket) => current + ticket.Count);
-
-                        info.CurrentVotesNumber = number;
+                        info.CurrentVotesNumber = tickets.ObtainedTickets;
                     }
                     result.Maps.Add(candidate, info);
                 }
@@ -284,10 +281,17 @@ namespace AElf.Contracts.Consensus
             {
                 var count = tickets.VotingRecords.Count;
                 var take = Math.Min(length - startIndex, count - startIndex);
-                var result = tickets;
-                result.VotingRecords.Clear();
-                result.VotingRecords.AddRange(tickets.VotingRecords.Skip(startIndex).Take(take));
-                result.VotingRecordsCount = (ulong) count;
+
+                var result = new Tickets
+                {
+                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                    ObtainedTickets = tickets.ObtainedTickets,
+                    VotedTickets = tickets.VotedTickets,
+                    HistoryObtainedTickets = tickets.HistoryObtainedTickets,
+                    HistoryVotedTickets = tickets.HistoryVotedTickets,
+                    Remark = tickets.Remark,
+                    VotingRecordsCount = (ulong) count
+                };
 
                 return result;
             }
@@ -309,14 +313,19 @@ namespace AElf.Contracts.Consensus
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
-                var count = notWithdrawnVotingRecords.Count;
+                var count = tickets.VotingRecords.Count;
                 var take = Math.Min(length - startIndex, count - startIndex);
                 
-                var result = tickets;
-                result.VotingRecords.Clear();
-                result.VotingRecords.AddRange(tickets.VotingRecords.Skip(startIndex).Take(take));
-                result.VotingRecordsCount = (ulong) count;
+                var result = new Tickets
+                {
+                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                    ObtainedTickets = tickets.ObtainedTickets,
+                    VotedTickets = tickets.VotedTickets,
+                    HistoryObtainedTickets = tickets.HistoryObtainedTickets,
+                    HistoryVotedTickets = tickets.HistoryVotedTickets,
+                    Remark = tickets.Remark,
+                    VotingRecordsCount = (ulong) count
+                };
 
                 return result;
             }

@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.Tests
         }
 
         //[Fact]
-        [Fact(Skip = "Time consuming")]
+        [Fact]
         public void ReceiveDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
