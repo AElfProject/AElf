@@ -18,4 +18,13 @@ namespace AElf.Kernel.Storages
         Task<T> GetAsync(string key);
         Task RemoveAsync(string key);
     }
+
+    /// <summary>
+    /// key value will not changed. can be set and remove
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface ICachedReadOnlyKeyValueStore<T> : IKeyValueStore<T>
+    {
+        
+    }
 }

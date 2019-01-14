@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
 using CSharpx;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Managers
 {
@@ -21,7 +22,7 @@ namespace AElf.Kernel.Managers
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
     }
 
-    public class BlockchainStateManager : IBlockchainStateManager
+    public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
     {
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IStateStore<BlockStateSet> _blockStateSets;
@@ -48,48 +49,75 @@ namespace AElf.Kernel.Managers
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
 
-            if (bestChainState != null &&
-                (bestChainState.BlockHash == blockHash))
+            if (bestChainState != null)
             {
-                value = bestChainState;
-            }
-            else
-            {
-                if (bestChainState?.BlockHeight > blockHeight)
+                if (bestChainState.BlockHash == blockHash)
                 {
-                    //because we may clear history state
-                    throw new ArgumentException("cannot read history state");
+                    value = bestChainState;
                 }
                 else
                 {
-                    //find value in block state set
-                    var blockStateKey = blockHash.ToHex();
-                    var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                    while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState?.BlockHeight)
+                    if (bestChainState.BlockHeight > blockHeight)
                     {
-                        if (blockStateSet.Changes.ContainsKey(key))
+                        //because we may clear history state
+                        throw new ArgumentException("cannot read history state");
+                    }
+                    else
+                    {
+                        //find value in block state set
+                        var blockStateKey = blockHash.ToHex();
+                        var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                        while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
                         {
-                            value = blockStateSet.Changes[key];
-                            break;
+                            if (blockStateSet.Changes.ContainsKey(key))
+                            {
+                                value = blockStateSet.Changes[key];
+                                break;
+                            }
+
+                            blockStateKey = blockStateSet.PreviousHash?.ToHex();
+
+                            if (blockStateKey != null)
+                            {
+                                blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                            }
+                            else
+                            {
+                                blockStateSet = null;
+                            }
                         }
 
-                        blockStateKey = blockStateSet?.PreviousHash.ToHex();
-
-                        if (blockStateKey != null)
+                        if (value == null)
                         {
-                            blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                        }
-                        else
-                        {
-                            blockStateSet = null;
+                            //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
+                            //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
+                            value = bestChainState;
                         }
                     }
-
-                    if (value == null)
+                }
+            }
+            else
+            {
+                //best chain state is null, it will find value in block state set
+                var blockStateKey = blockHash.ToHex();
+                var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                while (blockStateSet != null)
+                {
+                    if (blockStateSet.Changes.ContainsKey(key))
                     {
-                        //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
-                        //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
-                        value = bestChainState;
+                        value = blockStateSet.Changes[key];
+                        break;
+                    }
+
+                    blockStateKey = blockStateSet.PreviousHash?.ToHex();
+
+                    if (blockStateKey != null)
+                    {
+                        blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                    }
+                    else
+                    {
+                        blockStateSet = null;
                     }
                 }
             }
