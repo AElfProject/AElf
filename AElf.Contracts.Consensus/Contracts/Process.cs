@@ -57,12 +57,6 @@ namespace AElf.Contracts.Consensus.Contracts
             
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights", CurrentTermNumber);
 
-            // Count missed time slot of current round.
-            CountMissedTimeSlots();
-            
-            // To cope with the aftermaths of last term.
-            SnapshotAndDividendsStuff();
-
             // Update current term number and current round number.
             _collection.CurrentTermNumberField.SetValue(term.TermNumber);
             _collection.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
@@ -112,14 +106,136 @@ namespace AElf.Contracts.Consensus.Contracts
                 };
             }
             
+            // Count missed time slot of current round.
+            CountMissedTimeSlots();
             
+            var currentRoundInfo = GetCurrentRoundInfo();
+            
+            var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
+                (current, minerInRound) => current + minerInRound.ProducedBlocks);
+            
+            var candidateInTerms = new List<CandidateInTerm>();
+            foreach (var minerInRound in currentRoundInfo.RealTimeMinersInfo)
+            {
+                ulong votes = 0;
+                if (_collection.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
+                {
+                    foreach (var votingRecord in candidateTickets.VotingRecords)
+                    {
+                        votes += votingRecord.Count;
+                    }
+                }
+
+                candidateInTerms.Add(new CandidateInTerm
+                {
+                    PublicKey = minerInRound.Key,
+                    Votes = votes
+                });
+            }
+
+            var currentTermNumber =
+                CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
+
+            // Set snapshot of related term.
+            var snapshot = new TermSnapshot
+            {
+                TermNumber = currentTermNumber.Value,
+                EndRoundNumber = CurrentRoundNumber,
+                TotalBlocks = minedBlocks,
+                CandidatesSnapshot = {candidateInTerms}
+            };
+            _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
             
             return new ActionResult {Success = true};
         }
 
         public ActionResult SnapshotForMiners()
         {
+            var currentRoundInfo = GetCurrentRoundInfo();
+
+            // Snapshot to history information.
+            UpdateCandidatesInfoInHistory(currentRoundInfo, GetPreviousTerm());
             
+            return new ActionResult {Success = true};
+        }
+
+        public ActionResult SendDividends()
+        {
+            var currentRoundInfo = GetCurrentRoundInfo();
+
+            // Set dividends of related term to Dividends Contract.
+            var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
+                (current, minerInRound) => current + minerInRound.ProducedBlocks);
+            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber,
+                Config.GetDividendsForVoters(minedBlocks));
+            
+            var candidateInTerms = new List<CandidateInTerm>();
+            ulong totalVotes = 0;
+            ulong totalReappointment = 0;
+            var temp = new Dictionary<string, ulong>();
+            foreach (var minerInRound in currentRoundInfo.RealTimeMinersInfo)
+            {
+                ulong votes = 0;
+                if (_collection.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
+                {
+                    foreach (var votingRecord in candidateTickets.VotingRecords)
+                    {
+                        votes += votingRecord.Count;
+                    }
+                }
+
+                totalVotes += votes;
+                candidateInTerms.Add(new CandidateInTerm
+                {
+                    PublicKey = minerInRound.Key,
+                    Votes = votes
+                });
+
+                if (_collection.HistoryMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateInHistory))
+                {
+                    totalReappointment += candidateInHistory.ContinualAppointmentCount;
+                    temp.Add(minerInRound.Key, candidateInHistory.ContinualAppointmentCount);
+                }
+            }
+
+            // Transfer dividends for actual miners. (The miners list based on last round of current term.)
+            foreach (var candidateInTerm in candidateInTerms)
+            {
+                Api.SendDividends(
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
+                    Config.GetDividendsForEveryMiner(minedBlocks) +
+                    (totalVotes == 0
+                        ? 0
+                        : Config.GetDividendsForTicketsCount(minedBlocks) * candidateInTerm.Votes / totalVotes) +
+                    (totalReappointment == 0
+                        ? 0
+                        : Config.GetDividendsForReappointment(minedBlocks) * temp[candidateInTerm.PublicKey] /
+                          totalReappointment));
+            }
+
+            var backups = _collection.CandidatesField.GetValue().PublicKeys
+                .Except(candidateInTerms.Select(cit => cit.PublicKey)).ToList();
+            foreach (var backup in backups)
+            {
+                var backupCount = (ulong) backups.Count;
+                Api.SendDividends(
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
+                    backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
+            }
+
+            var currentTermNumber =
+                CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
+
+            // Set snapshot of related term.
+            var snapshot = new TermSnapshot
+            {
+                TermNumber = currentTermNumber.Value,
+                EndRoundNumber = CurrentRoundNumber,
+                TotalBlocks = minedBlocks,
+                CandidatesSnapshot = {candidateInTerms}
+            };
+            _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
+
             return new ActionResult {Success = true};
         }
 
@@ -364,86 +480,6 @@ namespace AElf.Contracts.Consensus.Contracts
 
             return ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber).Select(tm => tm.Key)
                 .ToList();
-        }
-
-        private void SnapshotAndDividendsStuff()
-        {
-            var currentRoundInfo = GetCurrentRoundInfo();
-
-            // Snapshot to history information.
-            UpdateCandidatesInfoInHistory(currentRoundInfo, GetPreviousTerm());
-
-            // Set dividends of related term to Dividends Contract.
-            var minedBlocks = currentRoundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
-                (current, minerInRound) => current + minerInRound.ProducedBlocks);
-            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber, Config.GetDividendsForVoters(minedBlocks));
-
-            var candidateInTerms = new List<CandidateInTerm>();
-            ulong totalVotes = 0;
-            ulong totalReappointment = 0;
-            var temp = new Dictionary<string, ulong>();
-            foreach (var minerInRound in currentRoundInfo.RealTimeMinersInfo)
-            {
-                ulong votes = 0;
-                if (_collection.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
-                {
-                    foreach (var votingRecord in candidateTickets.VotingRecords)
-                    {
-                        votes += votingRecord.Count;
-                    }
-                }
-
-                totalVotes += votes;
-                candidateInTerms.Add(new CandidateInTerm
-                {
-                    PublicKey = minerInRound.Key,
-                    Votes = votes
-                });
-
-                if (_collection.HistoryMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateInHistory))
-                {
-                    totalReappointment += candidateInHistory.ContinualAppointmentCount;
-                    temp.Add(minerInRound.Key, candidateInHistory.ContinualAppointmentCount);
-                }
-            }
-
-            // Transfer dividends for actual miners. (The miners list based on last round of current term.)
-            foreach (var candidateInTerm in candidateInTerms)
-            {
-                Api.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(candidateInTerm.PublicKey)),
-                    Config.GetDividendsForEveryMiner(minedBlocks) +
-                    (totalVotes == 0
-                        ? 0
-                        : Config.GetDividendsForTicketsCount(minedBlocks) * candidateInTerm.Votes / totalVotes) +
-                    (totalReappointment == 0
-                        ? 0
-                        : Config.GetDividendsForReappointment(minedBlocks) * temp[candidateInTerm.PublicKey] /
-                          totalReappointment));
-            }
-
-            var backups = _collection.CandidatesField.GetValue().PublicKeys
-                .Except(candidateInTerms.Select(cit => cit.PublicKey)).ToList();
-            foreach (var backup in backups)
-            {
-                var backupCount = (ulong) backups.Count;
-                Api.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
-                    backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
-            }
-
-            var currentTermNumber =
-                CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
-
-            // Set snapshot of related term.
-            var snapshot = new TermSnapshot
-            {
-                TermNumber = currentTermNumber.Value,
-                EndRoundNumber = CurrentRoundNumber,
-                TotalBlocks = minedBlocks,
-                CandidatesSnapshot = {candidateInTerms}
-            };
-            _collection.SnapshotField.SetValue(currentTermNumber, snapshot);
         }
 
         private void UpdateCandidatesInfoInHistory(Round currentRoundInfo, TermSnapshot previousTerm)
