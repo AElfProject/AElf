@@ -11,5 +11,7 @@ namespace AElf.Execution.Execution
         public IChainContextService ChainContextService { get; set; }
         public IStateManager StateManager { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
+        
+        public IMinersManager MinersManager { get; set; }
     }
 }

@@ -26,7 +26,7 @@
     };
 
     request_chain_disposal = function (chain_id) {
-        var hash = chain.crossChainContract.RequestChainDposal(chain_id).hash;
+        var hash = chain.crossChainContract.RequestChainDisposal(chain_id).hash;
         console.log('tx_hash : ', hash);
         _repeatedCalls(function () {
             var res = aelf.chain.getTxResult(hash).result;

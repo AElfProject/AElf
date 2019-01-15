@@ -122,10 +122,7 @@ namespace AElf.Sdk.CSharp
 
         public static Miners GetMiners()
         {
-            var res = Call(ConsensusContractAddress, "GetCurrentMiners");
-            Assert(res, "Failed to get current miners.");
-            Miners miners = GetCallResult().DeserializeToPbMessage<Miners>();
-            return miners;
+            return _transactionContext.CurrentMiners;
         }
         
         public static ulong GetCurrentRoundNumber()
