@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
 using CSharpx;
 using Google.Protobuf;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Managers
@@ -28,11 +30,14 @@ namespace AElf.Kernel.Managers
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IStateStore<BlockStateSet> _blockStateSets;
 
+        private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
+
         public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
-            IStateStore<BlockStateSet> blockStateSets)
+            IStateStore<BlockStateSet> blockStateSets, IStateStore<ChainStateInfo> chainStateInfoCollection)
         {
             _versionedStates = versionedStates;
             _blockStateSets = blockStateSets;
+            _chainStateInfoCollection = chainStateInfoCollection;
         }
 
         /// <summary>
@@ -58,10 +63,10 @@ namespace AElf.Kernel.Managers
                 }
                 else
                 {
-                    if (bestChainState.BlockHeight > blockHeight)
+                    if (bestChainState.BlockHeight >= blockHeight)
                     {
                         //because we may clear history state
-                        throw new ArgumentException("cannot read history state");
+                        throw new InvalidOperationException("cannot read history state");
                     }
                     else
                     {
@@ -131,14 +136,73 @@ namespace AElf.Kernel.Managers
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        public async Task MergeBlockState(Hash blockStateHash)
+        public async Task MergeBlockStateAsync(long chainId, Hash blockStateHash)
         {
+            var chainStateInfo = await GetChainStateInfoAsync(chainId);
+
             var blockState = await _blockStateSets.GetAsync(blockStateHash.ToHex());
-            foreach (var change in blockState.Changes)
+            if (blockState == null)
             {
-                var origin = await _versionedStates.GetAsync(change.Key);
+                if (chainStateInfo.Status == ChainStateMergingStatus.Merged &&
+                    chainStateInfo.MergingBlockHash == blockStateHash)
+                {
+                    chainStateInfo.Status = ChainStateMergingStatus.Common;
+                    chainStateInfo.MergingBlockHash = null;
+
+                    await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                    return;
+                }
+
+                throw new InvalidOperationException($"cannot get block state of {blockStateHash.ToHex()}");
+            }
+
+            if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
+            {
+                if (chainStateInfo.Status != ChainStateMergingStatus.Common)
+                {
+                    throw new InvalidOperationException("another merging");
+                }
+
+                chainStateInfo.Status = ChainStateMergingStatus.Merging;
+                chainStateInfo.MergingBlockHash = blockStateHash;
+
+                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                var dic = blockState.Changes.Select(change => new VersionedState()
+                {
+                    Key = change.Key,
+                    Value = change.Value,
+                    BlockHash = blockState.BlockHash,
+                    BlockHeight = blockState.BlockHeight,
+                    //OriginBlockHash = origin.BlockHash
+                }).ToDictionary(p => p.Key, p => p);
+
+                await _versionedStates.PipelineSetAsync(dic);
+
+                chainStateInfo.Status = ChainStateMergingStatus.Merged;
+                chainStateInfo.BlockHash = blockState.BlockHash;
+                chainStateInfo.BlockHeight = blockState.BlockHeight;
+                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+
+                await _blockStateSets.RemoveAsync(blockStateHash.ToHex());
+
+                chainStateInfo.Status = ChainStateMergingStatus.Common;
+                chainStateInfo.MergingBlockHash = null;
+
+                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "cannot merge block not linked, check new block's previous block hash ");
             }
         }
+
+        public async Task<ChainStateInfo> GetChainStateInfoAsync(long chainId)
+        {
+            var o = await _chainStateInfoCollection.GetAsync(chainId.ToHex());
+            return o ?? new ChainStateInfo() {ChainId = chainId};
+        }
+
 
         private string GetKey(BlockStateSet blockStateSet)
         {

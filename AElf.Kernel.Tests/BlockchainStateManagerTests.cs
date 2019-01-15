@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -13,11 +14,12 @@ namespace AElf.Kernel.Tests
         private BlockchainStateManager _blockchainStateManager;
 
         private List<TestPair> _tv;
-        
+
+
         public BlockchainStateManagerTests()
         {
             _blockchainStateManager = GetRequiredService<BlockchainStateManager>();
-            _tv =new List<TestPair>();
+            _tv = new List<TestPair>();
             for (int i = 0; i < 200; i++)
             {
                 _tv.Add(new TestPair()
@@ -38,7 +40,7 @@ namespace AElf.Kernel.Tests
             public string Key;
             public ByteString Value;
         }
-        
+
         [Fact]
         public async Task TestAddBlockStateSet()
         {
@@ -60,15 +62,21 @@ namespace AElf.Kernel.Tests
                     },
                 }
             });
-            
-            (await _blockchainStateManager.GetStateAsync(_tv[1].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .ShouldBe(_tv[1].Value);
-            
-            (await _blockchainStateManager.GetStateAsync(_tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .ShouldBe(_tv[2].Value);
-            
+
+
+            var check1 = new Func<Task>(async () =>
+            {
+                (await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[1].BlockHeight, _tv[1].BlockHash))
+                    .ShouldBe(_tv[1].Value);
+
+                (await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[1].BlockHeight, _tv[1].BlockHash))
+                    .ShouldBe(_tv[2].Value);
+            });
+
+            await check1();
+
             //two level tests without best chain state
-            
+
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
                 BlockHash = _tv[2].BlockHash,
@@ -83,19 +91,21 @@ namespace AElf.Kernel.Tests
                     },
                 }
             });
+            var check2 = new Func<Task>(async () =>
+            {
+                //key 1 was changed, value was changed to value 2
+                (await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[2].BlockHeight, _tv[2].BlockHash))
+                    .ShouldBe(_tv[2].Value);
+
+                (await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[2].BlockHeight, _tv[2].BlockHash))
+                    .ShouldBe(_tv[2].Value);
+            });
+
+            await check2();
             
-            //key 1 was changed, value was changed to value 2
-            (await _blockchainStateManager.GetStateAsync( _tv[1].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
-                .ShouldBe(_tv[2].Value);
             //but when we we can get value at the height of block height 1, also block hash 1
-            (await _blockchainStateManager.GetStateAsync(_tv[1].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .ShouldBe(_tv[1].Value);
-            
-            
-            (await _blockchainStateManager.GetStateAsync(_tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
-                .ShouldBe(_tv[2].Value);
-            
-            
+            await check1();
+
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
                 BlockHash = _tv[3].BlockHash,
@@ -110,16 +120,17 @@ namespace AElf.Kernel.Tests
                     },
                 }
             });
-            
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .ShouldBe(_tv[2].Value);
-            
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
-                .ShouldBe(_tv[2].Value);
-            
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[3].BlockHeight,_tv[3].BlockHash))
-                .ShouldBe(_tv[4].Value);
-            
+            var check3_1 = new Func<Task>(async () =>
+            {
+                (await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[3].BlockHeight, _tv[3].BlockHash))
+                    .ShouldBe(_tv[4].Value);
+            });
+
+
+            await check1();
+            await check2();
+            await check3_1();
+
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
                 BlockHash = _tv[4].BlockHash,
@@ -134,15 +145,46 @@ namespace AElf.Kernel.Tests
                     },
                 }
             });
+
+            var check3_2 = new Func<Task>(async () =>
+            {
+                
+
+                (await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[3].BlockHeight, _tv[4].BlockHash))
+                    .ShouldBe(_tv[5].Value);
+            });
             
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[1].BlockHeight,_tv[1].BlockHash))
-                .ShouldBe(_tv[2].Value);
+            await check1();
+            await check2();
+            await check3_2();
+
+            long chainId = 1;
+            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[1].BlockHash);
+
+            await check1();
+            await check2();
+            await check3_1();
+            await check3_2();
             
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[2].BlockHeight,_tv[2].BlockHash))
-                .ShouldBe(_tv[2].Value);
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[3].BlockHash));
+
             
-            (await _blockchainStateManager.GetStateAsync( _tv[2].Key,_tv[3].BlockHeight,_tv[4].BlockHash))
-                .ShouldBe(_tv[5].Value);
+            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[2].BlockHash);
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await check1());
+            await check2();
+            
+            //merge best to second branch
+            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[4].BlockHash);
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await check1());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await check2());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await check3_1());
+            await check3_2();
+
         }
     }
 }
