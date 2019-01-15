@@ -64,6 +64,24 @@ namespace AElf.Contracts.Consensus
         }
 
         [Fee(0)]
+        public ActionResult SnapshotForMiners(ulong previousTermNumber, ulong lastRoundNumber)
+        {
+            return Process.SnapshotForMiners(previousTermNumber, lastRoundNumber);
+        }
+
+        [Fee(0)]
+        public ActionResult SnapshotForTerm(ulong snapshotTermNumber, ulong lastRoundNumber)
+        {
+            return Process.SnapshotForTerm(snapshotTermNumber, lastRoundNumber);
+        }
+
+        [Fee(0)]
+        public ActionResult SendDividends(ulong lastRoundNumber)
+        {
+            return Process.SendDividends(lastRoundNumber);
+        }
+
+        [Fee(0)]
         public void NextRound(Forwarding forwarding)
         {
             Process.NextRound(forwarding);

@@ -646,33 +646,39 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
+                    Term nextTerm;
                     if (_helper.TryToGetVictories(out var victories))
                     {
-                        var parameters = new List<object>
-                        {
-                            victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
-                                _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
-                        };
-
-                        var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
-
-                        await BroadcastTransaction(txForNextTerm);
-                        await Mine();
+                        nextTerm = victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
+                            _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value);
                     }
                     else
                     {
-                        var parameters = new List<object>
-                        {
-                            (await _minersManager.GetMiners()).GenerateNewTerm(
-                                ConsensusConfig.Instance.DPoSMiningInterval,
-                                _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
-                        };
-
-                        var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
-
-                        await BroadcastTransaction(txForNextTerm);
-                        await Mine();
+                        nextTerm = (await _minersManager.GetMiners()).GenerateNewTerm(
+                            ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value + 1,
+                            _helper.CurrentTermNumber.Value);
                     }
+
+                    var txs = new List<Transaction>
+                    {
+                        await GenerateDPoSTransactionAsync(behavior.ToString(), new List<object> {nextTerm}),
+                        await GenerateDPoSTransactionAsync(
+                            ConsensusBehavior.SnapshotForTerm.ToString(),
+                            new List<object> {_helper.CurrentTermNumber.Value, _helper.CurrentRoundNumber.Value}),
+                        await GenerateDPoSTransactionAsync(
+                            ConsensusBehavior.SnapshotForMiners.ToString(),
+                            new List<object> {_helper.CurrentTermNumber.Value - 1, _helper.CurrentRoundNumber.Value}),
+                        await GenerateDPoSTransactionAsync(
+                            ConsensusBehavior.SendDividends.ToString(),
+                            new List<object> {_helper.CurrentRoundNumber.Value})
+                    };
+
+                    foreach (var transaction in txs)
+                    {
+                        await BroadcastTransaction(transaction);
+                    }
+
+                    await Mine();
                 }
             }
             catch (Exception e)

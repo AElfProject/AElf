@@ -7,6 +7,9 @@ namespace AElf.Kernel.Consensus
         NoOperationPerformed = 0,
         InitialTerm,
         NextTerm,
+        SnapshotForTerm,
+        SnapshotForMiners,
+        SendDividends,
         NextRound,
         PackageOutValue,
 

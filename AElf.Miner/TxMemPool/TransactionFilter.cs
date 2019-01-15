@@ -173,13 +173,18 @@ namespace AElf.Miner.TxMemPool
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+                toRemove.RemoveAll(tx =>
+                    tx.RefBlockNumber == correctRefBlockNumber &&
+                    tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
             }
-            
+
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextTerm.ToString() &&
-                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForMiners.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForTerm.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SendDividends.ToString()));
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
