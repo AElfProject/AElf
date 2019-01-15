@@ -62,6 +62,8 @@ message Tickets {
     uint64 HistoryObtainedTickets = 5;
     uint64 HistoryVotedTickets = 6;
     string Remark = 7;
+    repeated Hash VoteToTransactions = 8;
+    repeated Hash VoteFromTransactions = 9;
 }
 
 // A voting record.

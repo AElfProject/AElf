@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -91,13 +90,17 @@ namespace AElf.Contracts.Consensus.Contracts
             //TODO: Recover after testing.
 //            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
 
-            Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
+            var candidates = _collection.CandidatesField.GetValue();
+            Api.Assert(candidates.PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
 
-            Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
+            Api.Assert(!candidates.PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
                 GlobalConfig.CandidateCannotVote);
 
             Api.LockToken(amount);
+
+            var currentTermNumber = _collection.CurrentTermNumberField.GetValue();
+            var currentRoundNumber = _collection.CurrentRoundNumberField.GetValue();
 
             var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
             var votingRecord = new VotingRecord
@@ -105,11 +108,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 Count = amount,
                 From = Api.RecoverPublicKey().ToHex(),
                 To = candidatePublicKey,
-                RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
+                RoundNumber = currentRoundNumber,
                 TransactionId = Api.GetTxnHash(),
                 VoteAge = CurrentAge,
                 UnlockAge = CurrentAge + (ulong) lockTime,
-                TermNumber = _collection.CurrentTermNumberField.GetValue(),
+                TermNumber = currentTermNumber,
                 VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp(),
                 UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime)
                     .ToTimestamp()
@@ -152,8 +155,7 @@ namespace AElf.Contracts.Consensus.Contracts
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
-            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
-                _collection.CurrentTermNumberField.GetValue());
+            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber);
 
             return new ActionResult {Success = true};
         }
