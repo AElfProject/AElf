@@ -270,6 +270,22 @@ namespace AElf.Contracts.Consensus
         {
             if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
+                foreach (var transactionId in tickets.VoteToTransactions)
+                {
+                    if (Collection.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    {
+                        tickets.VotingRecords.Add(votingRecord);
+                    }
+                }
+                
+                foreach (var transactionId in tickets.VoteFromTransactions)
+                {
+                    if (Collection.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    {
+                        tickets.VotingRecords.Add(votingRecord);
+                    }
+                }
+                
                 tickets.VotingRecordsCount = (ulong) tickets.VotingRecords.Count;
                 return tickets;
             }
@@ -312,29 +328,23 @@ namespace AElf.Contracts.Consensus
         [View]
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
-            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            var tickets = GetTicketsInfo(publicKey);
+            
+            var count = tickets.VotingRecords.Count;
+            var take = Math.Min(length - startIndex, count - startIndex);
+
+            var result = new Tickets
             {
-                var count = tickets.VotingRecords.Count;
-                var take = Math.Min(length - startIndex, count - startIndex);
-
-                var result = new Tickets
-                {
-                    VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
-                    ObtainedTickets = tickets.ObtainedTickets,
-                    VotedTickets = tickets.VotedTickets,
-                    HistoryObtainedTickets = tickets.HistoryObtainedTickets,
-                    HistoryVotedTickets = tickets.HistoryVotedTickets,
-                    Remark = tickets.Remark,
-                    VotingRecordsCount = (ulong) count
-                };
-
-                return result;
-            }
-
-            return new Tickets
-            {
-                Remark = "Tickets information not found."
+                VotingRecords = {tickets.VotingRecords.Skip(startIndex).Take(take)},
+                ObtainedTickets = tickets.ObtainedTickets,
+                VotedTickets = tickets.VotedTickets,
+                HistoryObtainedTickets = tickets.HistoryObtainedTickets,
+                HistoryVotedTickets = tickets.HistoryVotedTickets,
+                Remark = tickets.Remark,
+                VotingRecordsCount = (ulong) count
             };
+
+            return result;
         }
 
         [View]
@@ -346,30 +356,24 @@ namespace AElf.Contracts.Consensus
         [View]
         public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
         {
-            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            var tickets = GetTicketsInfo(publicKey);
+
+            var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
+            var count = notWithdrawnVotingRecords.Count;
+            var take = Math.Min(length - startIndex, count - startIndex);
+
+            var result = new Tickets
             {
-                var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
-                var count = notWithdrawnVotingRecords.Count;
-                var take = Math.Min(length - startIndex, count - startIndex);
-
-                var result = new Tickets
-                {
-                    VotingRecords = {notWithdrawnVotingRecords.Skip(startIndex).Take(take)},
-                    ObtainedTickets = tickets.ObtainedTickets,
-                    VotedTickets = tickets.VotedTickets,
-                    HistoryObtainedTickets = tickets.HistoryObtainedTickets,
-                    HistoryVotedTickets = tickets.HistoryVotedTickets,
-                    Remark = tickets.Remark,
-                    VotingRecordsCount = (ulong) count
-                };
-
-                return result;
-            }
-
-            return new Tickets
-            {
-                Remark = "Tickets information not found."
+                VotingRecords = {notWithdrawnVotingRecords.Skip(startIndex).Take(take)},
+                ObtainedTickets = tickets.ObtainedTickets,
+                VotedTickets = tickets.VotedTickets,
+                HistoryObtainedTickets = tickets.HistoryObtainedTickets,
+                HistoryVotedTickets = tickets.HistoryVotedTickets,
+                Remark = tickets.Remark,
+                VotingRecordsCount = (ulong) count
             };
+
+            return result;
         }
 
         [View]
@@ -383,40 +387,36 @@ namespace AElf.Contracts.Consensus
         {
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
-            if (Collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            
+            var tickets = GetTicketsInfo(publicKey);
+
+            foreach (var votingRecord in tickets.VotingRecords)
             {
-                foreach (var votingRecord in tickets.VotingRecords)
+                Collection.AliasesMap.TryGet(votingRecord.To.ToStringValue(), out var alias);
+                histories.Values.Add(new TicketsHistory
                 {
-                    Collection.AliasesMap.TryGet(votingRecord.To.ToStringValue(), out var alias);
+                    CandidateAlias = alias.Value,
+                    Timestamp = votingRecord.VoteTimestamp,
+                    Type = TicketsHistoryType.Vote,
+                    VotesNumber = votingRecord.Count,
+                    State = true
+                });
+                if (votingRecord.IsWithdrawn)
+                {
                     histories.Values.Add(new TicketsHistory
                     {
                         CandidateAlias = alias.Value,
                         Timestamp = votingRecord.VoteTimestamp,
-                        Type = TicketsHistoryType.Vote,
+                        Type = TicketsHistoryType.Redeem,
                         VotesNumber = votingRecord.Count,
                         State = true
                     });
-                    if (votingRecord.IsWithdrawn)
-                    {
-                        histories.Values.Add(new TicketsHistory
-                        {
-                            CandidateAlias = alias.Value,
-                            Timestamp = votingRecord.VoteTimestamp,
-                            Type = TicketsHistoryType.Redeem,
-                            VotesNumber = votingRecord.Count,
-                            State = true
-                        });
-                    }
                 }
+            }
 
-                var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
-                result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
-                result.HistoriesNumber = (ulong) histories.Values.Count;
-            }
-            else
-            {
-                result.Remark = "Not found.";
-            }
+            var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
+            result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
+            result.HistoriesNumber = (ulong) histories.Values.Count;
 
             return result;
         }
