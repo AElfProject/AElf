@@ -290,9 +290,11 @@ namespace AElf.Contracts.Authorization
             // processing approvals 
             var validApprovals = approved.Approvals.All(a =>
             {
-                var recovered = CryptoHelpers.RecoverPublicKey(a.Signature.ToByteArray(), toSig);
+                var canBeRecovered =
+                    CryptoHelpers.RecoverPublicKey(a.Signature.ToByteArray(), toSig, out var recovered);
+                if (!canBeRecovered)
+                    return false;
                 var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recovered));
-
                 if (reviewer == null)
                     return false;
                     

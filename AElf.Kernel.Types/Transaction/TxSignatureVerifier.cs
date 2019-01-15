@@ -17,8 +17,9 @@ namespace AElf.Kernel.Types.Transaction
 
             if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
             {
-                var pubKey = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(), tx.GetHash().DumpByteArray());
-                return Address.FromPublicKey(pubKey).Equals(tx.From);
+                var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
+                    tx.GetHash().DumpByteArray(), out var pubKey);
+                return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
             }
 
             foreach (var sig in tx.Sigs)

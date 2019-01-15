@@ -72,10 +72,13 @@ namespace AElf.Cryptography
             }
         }
 
-        public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        public static bool RecoverPublicKey(byte[] signature, byte[] hash, out byte[] publicKey)
         {
+            publicKey = null;
             try
             {
+                if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
+                    return false;
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
@@ -83,7 +86,8 @@ namespace AElf.Cryptography
                 Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
                 Secp256K1.Recover(recoveredPubKey, recSig, hash);
                 Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey);
-                return pubKey;
+                publicKey = pubKey;
+                return true;
             }
             catch (Exception ex)
             {
