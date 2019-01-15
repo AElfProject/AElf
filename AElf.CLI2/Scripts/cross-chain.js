@@ -25,7 +25,7 @@
         }, 3000);
     };
 
-    request_chain_dposal = function (chain_id) {
+    request_chain_disposal = function (chain_id) {
         var hash = chain.crossChainContract.RequestChainDposal(chain_id).hash;
         console.log('tx_hash : ', hash);
         _repeatedCalls(function () {
