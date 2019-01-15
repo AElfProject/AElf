@@ -20,7 +20,7 @@
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
         <PackageReference Include="NLog" Version="4.5.7" />
         <PackageReference Include="ReadLine" Version="2.0.1" />
-        <PackageReference Include="AElf.JSDK" Version="0.1.1" />
+        <PackageReference Include="AElf.JSDK" Version="0.1.2" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
