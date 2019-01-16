@@ -125,6 +125,8 @@ namespace AElf.Network.Peers
                 Logger.LogError(e, "Error while reading mining info.");
             }
 
+            _nodeKey = NodeConfig.Instance.ECKeyPair;
+
             // This nodes key
             var thisAddr = Address.FromPublicKey(_nodeKey.PublicKey).GetFormatted();
             _isBp = _bpAddresses.Any(k => k.Equals(thisAddr));
