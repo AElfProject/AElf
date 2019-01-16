@@ -123,7 +123,16 @@ namespace AElf.Sdk.CSharp
 
         public static Miners GetMiners()
         {
-            return _transactionContext.CurrentMiners;
+            if (Call(ConsensusContractAddress, "GetRoundInfo"))
+            {
+                var round = GetCallResult().DeserializeToPbMessage<Round>();
+                var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                miners.TermNumber = round.MinersTermNumber;
+
+                return miners;
+            }
+    
+            throw new InternalError("Failed to current miners.\n" + _lastCallContext.Trace.StdErr);
         }
         
         public static ulong GetCurrentRoundNumber()
