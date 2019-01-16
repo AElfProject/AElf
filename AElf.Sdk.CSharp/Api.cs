@@ -126,9 +126,11 @@ namespace AElf.Sdk.CSharp
             if (Call(ConsensusContractAddress, "GetRoundInfo"))
             {
                 var round = GetCallResult().DeserializeToPbMessage<Round>();
+                Console.WriteLine($"Round {round}");
                 var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                Console.WriteLine($"Miners {miners?.PublicKeys.Count}");
                 miners.TermNumber = round.MinersTermNumber;
-
+                
                 return miners;
             }
     
