@@ -845,6 +845,14 @@ namespace AElf.Node.Protocol
                 
                 lock (_syncLock)
                 {
+                    // Check that we're not missing any announcements
+                    if (CurrentSyncSource == null && a.Height > LocalHeight+1 && _peers.All(p => !p.AnyStashed))
+                    {
+                        _logger?.Debug($"Futur announcement {a.Height}.");
+                        CurrentSyncSource = peer;
+                        peer.SyncToHeight(LocalHeight+1, a.Height);
+                    }
+                    
                     // stash inside the lock because BlockAccepted will clear 
                     // announcements after the chain accepts
                     peer.StashAnnouncement(a);
