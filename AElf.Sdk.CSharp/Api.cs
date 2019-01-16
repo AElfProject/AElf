@@ -124,7 +124,7 @@ namespace AElf.Sdk.CSharp
         public static Miners GetMiners()
         {
             Console.WriteLine("Try to get miners");
-            if (Call(ConsensusContractAddress, "GetRoundInfo"))
+            if (Call(ConsensusContractAddress, "GetRoundInfo", GetCurrentRoundNumber()))
             {
                 Console.WriteLine("Check result..");
                 var round = GetCallResult().DeserializeToPbMessage<Round>();
