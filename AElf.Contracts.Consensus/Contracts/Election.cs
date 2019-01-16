@@ -158,6 +158,8 @@ namespace AElf.Contracts.Consensus.Contracts
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
+            _collection.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
+
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber);
 
             return new ActionResult {Success = true};

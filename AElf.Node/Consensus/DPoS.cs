@@ -667,7 +667,7 @@ namespace AElf.Node.Consensus
                             new List<object> {_helper.CurrentTermNumber.Value, _helper.CurrentRoundNumber.Value}),
                         await GenerateDPoSTransactionAsync(
                             ConsensusBehavior.SnapshotForMiners.ToString(),
-                            new List<object> {_helper.CurrentTermNumber.Value - 1, _helper.CurrentRoundNumber.Value}),
+                            new List<object> {_helper.CurrentTermNumber.Value, _helper.CurrentRoundNumber.Value}),
                         await GenerateDPoSTransactionAsync(
                             ConsensusBehavior.SendDividends.ToString(),
                             new List<object> {_helper.CurrentRoundNumber.Value})

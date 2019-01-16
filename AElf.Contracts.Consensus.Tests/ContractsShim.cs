@@ -9,6 +9,7 @@ using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
+using AElf.Kernel.Consensus;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
@@ -242,6 +243,12 @@ namespace AElf.Contracts.Consensus.Tests
         public void NextTerm(ECKeyPair minerKeyPair, Term nextTerm)
         {
             ExecuteAction(ConsensusContractAddress, nameof(NextTerm), minerKeyPair, nextTerm);
+            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForTerm), minerKeyPair,
+                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
+            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForMiners), minerKeyPair,
+                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
+            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SendDividends), minerKeyPair,
+                nextTerm.FirstRound.RoundNumber - 1);
         }
 
         public void PackageOutValue(ECKeyPair minerKeyPair, ToPackage toPackage)

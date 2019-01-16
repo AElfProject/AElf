@@ -341,7 +341,9 @@ namespace AElf.Contracts.Consensus
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
                 Remark = tickets.Remark,
-                VotingRecordsCount = (ulong) count
+                VotingRecordsCount = (ulong) count,
+                VoteToTransactions = {tickets.VoteToTransactions},
+                VoteFromTransactions = {tickets.VoteFromTransactions}
             };
 
             return result;
@@ -370,7 +372,9 @@ namespace AElf.Contracts.Consensus
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
                 Remark = tickets.Remark,
-                VotingRecordsCount = (ulong) count
+                VotingRecordsCount = (ulong) count,
+                VoteToTransactions = {tickets.VoteToTransactions},
+                VoteFromTransactions = {tickets.VoteFromTransactions}
             };
 
             return result;

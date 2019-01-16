@@ -83,9 +83,7 @@ namespace AElf.Contracts.Consensus.Tests
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
 
-            var transactionId =
-                pagedTicketsInformation.VotingRecords.FirstOrDefault(vr => vr.From == mustVotedVoter.PublicKey.ToHex())?
-                    .TransactionId.ToHex();
+            var transactionId = pagedTicketsInformation.VoteToTransactions.FirstOrDefault()?.ToHex();
             Assert.NotNull(transactionId);
 
             var history1 = _contracts.GetCandidatesHistoryInfo();
@@ -100,6 +98,7 @@ namespace AElf.Contracts.Consensus.Tests
             Debug.WriteLine("Term message:");
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
+            var dividendsOfTerm1 = _contracts.GetTermDividends(1);
 
             var secondRound = _contracts.GetRoundInfo(2);
 
@@ -211,7 +210,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             var initialTerm =
                 new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(
-                    MiningInterval);
+                    MiningInterval, 0);
             _contracts.InitialTerm(starterKeyPair, initialTerm);
         }
 

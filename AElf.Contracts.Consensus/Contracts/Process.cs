@@ -134,6 +134,15 @@ namespace AElf.Contracts.Consensus.Contracts
                         Votes = candidateTickets.ObtainedTickets
                     });
                 }
+                else
+                {
+                    _collection.TicketsMap.SetValue(minerInRound.Key.ToStringValue(), new Tickets());
+                    candidateInTerms.Add(new CandidateInTerm
+                    {
+                        PublicKey = minerInRound.Key,
+                        Votes = 0
+                    });
+                }
             }
 
             if (!candidateInTerms.Any())
@@ -153,6 +162,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 CandidatesSnapshot = {candidateInTerms}
             });
 
+            Console.WriteLine($"Snapshot of term {snapshotTermNumber} taken.");
+
             return new ActionResult {Success = true};
         }
 
@@ -160,7 +171,7 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (!_collection.SnapshotField.TryGet(previousTermNumber.ToUInt64Value(), out var previousTerm))
             {
-                return new ActionResult {Success = false, ErrorMessage = "Previous term snapshot not found."};
+                //return new ActionResult {Success = false, ErrorMessage = "Previous term snapshot not found."};
             }
 
             var roundInfo = GetRoundInfo(lastRoundNumber);
