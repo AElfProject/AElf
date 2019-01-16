@@ -2,7 +2,6 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel.SmartContract";
 
-import "common.proto";
 import "kernel.proto";
 
 message Resource {
