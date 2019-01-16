@@ -50,9 +50,6 @@
     <None Update="Config\Node\node.json" Link="config\node.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Node\transaction-pool.json" Link="config\transaction-pool.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Management\management.json" Link="config\management.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -77,6 +74,7 @@
     <None Update="Config\RPC\rpc.json" Link="config\rpc.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Remove="Config\Node\transaction-pool.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Config\Network" />

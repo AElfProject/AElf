@@ -90,20 +90,6 @@ namespace AElf.Configuration
                 ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
             }
 
-            // tx pool config
-            if (opts.MinimalFee.HasValue)
-            {
-                TransactionPoolConfig.Instance.FeeThreshold = opts.MinimalFee.Value;
-            }
-            if (opts.PoolCapacity.HasValue)
-            {
-                TransactionPoolConfig.Instance.PoolLimitSize = opts.PoolCapacity.Value;
-            }
-            if (opts.TxCountLimit.HasValue)
-            {
-                TransactionPoolConfig.Instance.Maximal = opts.TxCountLimit.Value;
-            }
-
             // chain config
             if (!string.IsNullOrWhiteSpace(opts.ChainId))
             {

@@ -57,8 +57,6 @@ namespace AElf.Node
                 }
             }
 
-            TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
-
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
@@ -82,7 +80,7 @@ namespace AElf.Node
             }
 
             NodeConfiguration confContext = new NodeConfiguration();
-            confContext.KeyPair = TransactionPoolConfig.Instance.EcKeyPair;
+            confContext.KeyPair = NodeConfig.Instance.ECKeyPair;
             confContext.WithRpc = RpcConfig.Instance.UseRpc;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
 
