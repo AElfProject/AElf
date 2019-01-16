@@ -6,11 +6,19 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Management.Services
 {
     public class TransactionService : ITransactionService
     {
+        private readonly ManagementOptions _managementOptions;
+
+        public TransactionService(IOptions<ManagementOptions> options)
+        {
+            _managementOptions = options.Value;
+        }
+
         public async Task RecordPoolSize(string chainId, DateTime time)
         {
             var poolSize = await GetPoolSize(chainId);
@@ -39,7 +47,8 @@ namespace AElf.Management.Services
         {
             var jsonRpcArg = new JsonRpcArg {Method = "get_txpool_size"};
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<TxPoolSizeResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<TxPoolSizeResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.CurrentTransactionPoolSize;
         }

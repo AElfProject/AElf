@@ -112,17 +112,6 @@ namespace AElf.Configuration
             {
                 ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
-
-            // management config
-            if (!string.IsNullOrWhiteSpace(opts.ManagementUrl))
-            {
-                ManagementConfig.Instance.Url = opts.ManagementUrl;
-            }
-
-            if (!string.IsNullOrWhiteSpace(opts.ManagementSideChainServicePath))
-            {
-                ManagementConfig.Instance.SideChainServicePath = opts.ManagementSideChainServicePath;
-            }
             
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }

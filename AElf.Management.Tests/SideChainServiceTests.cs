@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Management.Models;
 using AElf.Management.Services;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace AElf.Management.Tests
@@ -25,7 +26,8 @@ namespace AElf.Management.Tests
             arg.LauncherArg = new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = true;
 
-            var service = new SideChainService();
+            var options = Options.Create(new ManagementOptions());
+            var service = new SideChainService(options);
             await service.Deploy(arg);
         }
 
@@ -33,7 +35,8 @@ namespace AElf.Management.Tests
         //[Fact]
         public async Task RemoveTest()
         {
-            var service = new SideChainService();
+            var options = Options.Create(new ManagementOptions());
+            var service = new SideChainService(options);
             await service.Remove(_chainId);
         }
     }

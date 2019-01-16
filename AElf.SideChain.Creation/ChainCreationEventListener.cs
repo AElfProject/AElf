@@ -8,7 +8,6 @@ using AElf.ChainController;
 
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Management;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
@@ -130,14 +129,14 @@ namespace AElf.SideChain.Creation
 
         private void InitializeClient()
         {
-            _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Instance.Url)};
+            _client = new HttpClient {BaseAddress = new Uri(NodeConfig.Instance.DeployServicePath)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
         {
             var chainId = parentChainId.DumpBase58();
-            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
+            var endpoint = NodeConfig.Instance.DeployServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
             deployArg.SideChainId = sideChainId.DumpBase58();
@@ -147,10 +146,6 @@ namespace AElf.SideChain.Creation
             var content = JsonSerializer.Instance.Serialize(deployArg);
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            c.Headers.Add("auth-type", "apikey");
-            var timestamp = ApiAuthenticationHelper.GetTimestamp(DateTime.Now);
-            c.Headers.Add("sign",ApiAuthenticationHelper.GetSign(ApiKeyConfig.Instance.ChainKeys[chainId],chainId,"post",timestamp));
-            c.Headers.Add("timestamp", timestamp);
             request.Content = c;
             
             return await _client.SendAsync(request);

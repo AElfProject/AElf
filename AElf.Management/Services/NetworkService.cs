@@ -6,17 +6,26 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Management.Services
 {
     public class NetworkService : INetworkService
     {
+        private readonly ManagementOptions _managementOptions;
+
+        public NetworkService(IOptions<ManagementOptions> options)
+        {
+            _managementOptions = options.Value;
+        }
+
         public async Task<PoolStateResult> GetPoolState(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_pool_state";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<PoolStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/net", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<PoolStateResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/net", jsonRpcArg);
 
             return state.Result;
         }
@@ -26,7 +35,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_peers";
 
-            var peers = await HttpRequestHelper.Request<JsonRpcResult<PeerResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/net", jsonRpcArg);
+            var peers = await HttpRequestHelper.Request<JsonRpcResult<PeerResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/net", jsonRpcArg);
 
             return peers.Result;
         }

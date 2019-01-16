@@ -8,11 +8,19 @@ using AElf.Management.Handlers;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Common;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Management.Services
 {
     public class SideChainService : ISideChainService
     {
+        private readonly ManagementOptions _managementOptions;
+        
+        public SideChainService(IOptions<ManagementOptions> options)
+        {
+            _managementOptions = options.Value;
+        }
+
         public async Task Deploy(DeployArg arg)
         {
             if (string.IsNullOrWhiteSpace(arg.MainChainId))
@@ -57,7 +65,7 @@ namespace AElf.Management.Services
 
         private IDeployHandler GetHandler()
         {
-            return DeployHandlerFactory.GetHandler();
+            return DeployHandlerFactory.GetHandler(_managementOptions.DeployType);
         }
 
         private string GenerateChainId()

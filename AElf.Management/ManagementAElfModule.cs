@@ -11,6 +11,9 @@ namespace AElf.Management
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var configuration = context.Services.GetConfiguration();
+            Configure<ManagementOptions>(configuration);
+            
             context.Services.AddAssemblyOf<ManagementAElfModule>();
         }
 

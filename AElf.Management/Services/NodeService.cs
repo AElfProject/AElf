@@ -7,17 +7,26 @@ using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Management.Services
 {
     public class NodeService : INodeService
     {
+        private readonly ManagementOptions _managementOptions;
+
+        public NodeService(IOptions<ManagementOptions> options)
+        {
+            _managementOptions = options.Value;
+        }
+
         public async Task<bool> IsAlive(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "dpos_isalive";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<DposStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<DposStateResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.IsAlive;
         }
@@ -27,7 +36,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "node_isforked";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<NodeStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<NodeStateResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.IsForked;
         }
@@ -84,7 +94,8 @@ namespace AElf.Management.Services
             var blockInfo = await GetBlockInfo(chainId, currentHeight);
             while (blockInfo.Result != null && blockInfo.Result.Body != null && blockInfo.Result.Header != null)
             {
-                var fields = new Dictionary<string, object> {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
+                var fields = new Dictionary<string, object>
+                    {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
                 await InfluxDBHelper.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
 
                 Thread.Sleep(1000);
@@ -115,7 +126,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_invalid_block";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<InvalidBlockResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<InvalidBlockResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.InvalidBlockCount;
         }
@@ -125,7 +137,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_rollback_times";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<RollBackResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<RollBackResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.RollBackTimes;
         }
@@ -140,7 +153,9 @@ namespace AElf.Management.Services
                 IncludeTxs = false
             };
 
-            var blockInfo = await HttpRequestHelper.Request<JsonRpcResult<BlockInfoResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var blockInfo =
+                await HttpRequestHelper.Request<JsonRpcResult<BlockInfoResult>>(
+                    _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return blockInfo.Result;
         }
@@ -150,7 +165,9 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_block_height";
 
-            var height = await HttpRequestHelper.Request<JsonRpcResult<ChainHeightResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var height =
+                await HttpRequestHelper.Request<JsonRpcResult<ChainHeightResult>>(
+                    _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return Convert.ToUInt64(height.Result.Result.ChainHeight);
         }
