@@ -243,12 +243,30 @@ namespace AElf.Contracts.Consensus.Tests
         public void NextTerm(ECKeyPair minerKeyPair, Term nextTerm)
         {
             ExecuteAction(ConsensusContractAddress, nameof(NextTerm), minerKeyPair, nextTerm);
+        }
+
+        public ActionResult SnapshotForTerm(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
+        {
             ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForTerm), minerKeyPair,
-                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
+                targetTermNumber, roundNumber);
+
+            return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();
+        }
+        
+        public ActionResult SnapshotForMiners(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
+        {
             ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForMiners), minerKeyPair,
-                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
+                targetTermNumber, roundNumber);
+
+            return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();
+        }
+        
+        public ActionResult SendDividends(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
+        {
             ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SendDividends), minerKeyPair,
-                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
+                targetTermNumber, roundNumber);
+
+            return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();
         }
 
         public void PackageOutValue(ECKeyPair minerKeyPair, ToPackage toPackage)

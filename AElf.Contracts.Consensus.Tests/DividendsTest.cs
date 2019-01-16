@@ -94,7 +94,14 @@ namespace AElf.Contracts.Consensus.Tests
             // Second term.
             var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
-            _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
+            var candidateForTerm2 = _candidates.First(c => c.PublicKey.ToHex() == victories[1]);
+            _contracts.NextTerm(candidateForTerm2, secondTerm);
+            _contracts.SnapshotForTerm(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
+            _contracts.SnapshotForMiners(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
+            _contracts.SendDividends(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
             Debug.WriteLine("Term message:");
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
@@ -134,7 +141,14 @@ namespace AElf.Contracts.Consensus.Tests
             // Third item.
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
-            _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
+            var candidateForTerm3 = _candidates.First(c => c.PublicKey.ToHex() == victories[1]);
+            _contracts.NextTerm(candidateForTerm3, thirdTerm);
+            _contracts.SnapshotForTerm(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
+            _contracts.SnapshotForMiners(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
+            _contracts.SendDividends(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
             Debug.WriteLine("Term message:");
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
