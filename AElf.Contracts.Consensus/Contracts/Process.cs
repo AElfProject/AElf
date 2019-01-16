@@ -168,18 +168,40 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var roundInfo = GetRoundInfo(lastRoundNumber);
 
-            CandidateInHistory candidateInHistory;
-            if (previousTermNumber == 0)
+            foreach (var candidate in roundInfo.RealTimeMinersInfo)
             {
-                // Current term is 1. Initial history information for initial miners.
-                foreach (var candidate in roundInfo.RealTimeMinersInfo)
+                CandidateInHistory candidateInHistory;
+                if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var historyInfo))
                 {
-                    if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out _))
+                    var terms = new List<ulong>(historyInfo.Terms.ToList());
+
+                    if (terms.Contains(previousTermNumber))
                     {
                         return new ActionResult
-                            {Success = false, ErrorMessage = "Something wrong with getting previous term information."};
+                            {Success = false, ErrorMessage = "Snapshot for miners in previous term already taken."};
                     }
 
+                    terms.Add(previousTermNumber);
+
+                    Console.WriteLine(1111111111111);
+                    Console.WriteLine(candidate.Value.ProducedBlocks);
+                    candidateInHistory = new CandidateInHistory
+                    {
+                        PublicKey = candidate.Key,
+                        MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
+                        ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
+                        ContinualAppointmentCount =
+                            previousTerm.CandidatesSnapshot.Any(cit => cit.PublicKey == candidate.Key)
+                                ? historyInfo.ContinualAppointmentCount + 1
+                                : 0,
+                        ReappointmentCount = historyInfo.ReappointmentCount + 1,
+                        CurrentAlias = historyInfo.CurrentAlias,
+                        Terms = {terms}
+                    };
+                }
+                else
+                {
+                    Console.WriteLine(2222222222);
                     candidateInHistory = new CandidateInHistory
                     {
                         PublicKey = candidate.Key,
@@ -187,57 +209,12 @@ namespace AElf.Contracts.Consensus.Contracts
                         ProducedBlocks = candidate.Value.ProducedBlocks,
                         ContinualAppointmentCount = 0,
                         ReappointmentCount = 0,
-                        Terms = {1}
+                        Terms = {previousTermNumber}
                     };
-
-                    _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
                 }
-            }
-            else
-            {
-                foreach (var candidate in roundInfo.RealTimeMinersInfo)
-                {
-                    if (_collection.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var historyInfo))
-                    {
-                        var terms = new List<ulong>(historyInfo.Terms.ToList());
 
-                        if (terms.Contains(previousTermNumber))
-                        {
-                            return new ActionResult
-                                {Success = false, ErrorMessage = "Snapshot for miners in previous term already taken."};
-                        }
-                        
-                        terms.Add(previousTermNumber);
-                        
-                        candidateInHistory = new CandidateInHistory
-                        {
-                            PublicKey = candidate.Key,
-                            MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
-                            ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
-                            ContinualAppointmentCount =
-                                previousTerm.CandidatesSnapshot.Any(cit => cit.PublicKey == candidate.Key)
-                                    ? historyInfo.ContinualAppointmentCount + 1
-                                    : 0,
-                            ReappointmentCount = historyInfo.ReappointmentCount + 1,
-                            CurrentAlias = historyInfo.CurrentAlias,
-                            Terms = {terms}
-                        };
-                    }
-                    else
-                    {
-                        candidateInHistory = new CandidateInHistory
-                        {
-                            PublicKey = candidate.Key,
-                            MissedTimeSlots = candidate.Value.MissedTimeSlots,
-                            ProducedBlocks = candidate.Value.ProducedBlocks,
-                            ContinualAppointmentCount = 0,
-                            ReappointmentCount = 0,
-                            Terms = {previousTermNumber}
-                        };
-                    }
-
-                    _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
-                }
+                Console.WriteLine(3333333);
+                _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
             }
 
             return new ActionResult {Success = true};

@@ -102,6 +102,7 @@ namespace AElf.Contracts.Consensus.Tests
                 secondTerm.FirstRound.RoundNumber - 1);
             _contracts.SendDividends(candidateForTerm2, secondTerm.TermNumber - 1,
                 secondTerm.FirstRound.RoundNumber - 1);
+            var roundInfoBeforeTerm2 = _contracts.GetRoundInfo(secondTerm.FirstRound.RoundNumber - 1);
             Debug.WriteLine("Term message:");
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
@@ -136,8 +137,6 @@ namespace AElf.Contracts.Consensus.Tests
                 });
             }
 
-            var history3 = _contracts.GetCandidatesHistoryInfo();
-
             // Third item.
             var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
                 _contracts.GetCurrentTermNumber());
@@ -153,6 +152,10 @@ namespace AElf.Contracts.Consensus.Tests
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            
+            var history3 = _contracts.GetCandidatesHistoryInfo();
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            Assert.NotNull(history3);
 
             var snapshotOfSecondTerm = _contracts.GetTermSnapshot(2);
             Assert.Equal(18.ToString(), snapshotOfSecondTerm.TotalBlocks.ToString());
@@ -180,6 +183,8 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(balanceAfterWithdraw > balanceAfter);
 
             var history4 = _contracts.GetCandidatesHistoryInfo();
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            Assert.NotNull(history4);
 
             var dividendsList = _contracts.CheckDividendsOfPreviousTerm();
             Assert.True(dividendsList.Values.Any());

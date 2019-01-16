@@ -180,7 +180,6 @@ namespace AElf.Contracts.Consensus
             var candidates = Collection.CandidatesField.GetValue();
             result.CandidatesNumber = candidates.PublicKeys.Count;
 
-            var age = Collection.AgeField.GetValue();
             foreach (var candidate in candidates.PublicKeys)
             {
                 if (Collection.HistoryMap.TryGet(candidate.ToStringValue(), out var info))
