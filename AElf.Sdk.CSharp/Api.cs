@@ -123,12 +123,14 @@ namespace AElf.Sdk.CSharp
 
         public static Miners GetMiners()
         {
+            Console.WriteLine("Try to get miners");
             if (Call(ConsensusContractAddress, "GetRoundInfo"))
             {
+                Console.WriteLine("Check result..");
                 var round = GetCallResult().DeserializeToPbMessage<Round>();
-                Console.WriteLine($"Round {round}");
+                if(round != null)
+                    Console.WriteLine($"Got Round {round.RoundId}");
                 var miners = round.RealTimeMinersInfo.Keys.ToMiners();
-                Console.WriteLine($"Miners {miners?.PublicKeys.Count}");
                 miners.TermNumber = round.MinersTermNumber;
                 
                 return miners;
