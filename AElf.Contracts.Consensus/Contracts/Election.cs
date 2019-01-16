@@ -93,18 +93,22 @@ namespace AElf.Contracts.Consensus.Contracts
             //TODO: Recover after testing.
 //            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
 
+            // Cannot vote to non-candidate.
             var candidates = _collection.CandidatesField.GetValue();
             Api.Assert(candidates.PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
 
+            // A candidate cannot vote to anybody.
             Api.Assert(!candidates.PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
                 GlobalConfig.CandidateCannotVote);
 
+            // Transfer the tokens to Consensus Contract address.
             Api.LockToken(amount);
 
             var currentTermNumber = _collection.CurrentTermNumberField.GetValue();
             var currentRoundNumber = _collection.CurrentRoundNumberField.GetValue();
 
+            // To make up a VotingRecord instance.
             var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
             var votingRecord = new VotingRecord
             {
@@ -122,6 +126,7 @@ namespace AElf.Contracts.Consensus.Contracts
             };
             votingRecord.LockDaysList.Add(lockTime);
 
+            // Add the transaction id of this voting record to the tickets information of the voter.
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
@@ -131,11 +136,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 tickets = new Tickets();
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
-
             tickets.VotedTickets += votingRecord.Count;
             tickets.HistoryVotedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
 
+            // Add the transaction id of this voting record to the tickets information of the candidate.
             if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
             {
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
@@ -145,21 +150,24 @@ namespace AElf.Contracts.Consensus.Contracts
                 candidateTickets = new Tickets();
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
-
             candidateTickets.ObtainedTickets += votingRecord.Count;
             candidateTickets.HistoryObtainedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
+            // Update the amount of current voters.
             var currentCount = _collection.VotesCountField.GetValue();
             currentCount += 1;
             _collection.VotesCountField.SetValue(currentCount);
 
+            // Update the amount of current tickets.
             var ticketsCount = _collection.TicketsCountField.GetValue();
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
+            // Add this voting record to voting records map.
             _collection.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
 
+            // Tell Dividends Contract to add weights for this voting record.
             Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber);
 
             return new ActionResult {Success = true};
