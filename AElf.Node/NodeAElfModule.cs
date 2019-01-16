@@ -7,7 +7,6 @@ using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
@@ -81,7 +80,6 @@ namespace AElf.Node
 
             NodeConfiguration confContext = new NodeConfiguration();
             confContext.KeyPair = NodeConfig.Instance.ECKeyPair;
-            confContext.WithRpc = RpcConfig.Instance.UseRpc;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
 
             var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();

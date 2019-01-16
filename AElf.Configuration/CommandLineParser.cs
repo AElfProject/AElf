@@ -6,7 +6,6 @@ using AElf.Common.Application;
 using AElf.Common.Enums;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.RPC;
 using CommandLine;
 
 namespace AElf.Configuration
@@ -50,20 +49,6 @@ namespace AElf.Configuration
                 {
                     throw new ArgumentException("If you want to stored data in memory, specify it in the command line!");
                 }
-            }
-
-            // Rpc
-            if (opts.NoRpc.HasValue)
-            {
-                RpcConfig.Instance.UseRpc = !opts.NoRpc.Value;
-            }
-            if (opts.RpcPort.HasValue)
-            {
-                RpcConfig.Instance.Port = opts.RpcPort.Value;
-            }
-            if (!string.IsNullOrWhiteSpace(opts.RpcHost))
-            {
-                RpcConfig.Instance.Host = opts.RpcHost;
             }
 
             // Network
