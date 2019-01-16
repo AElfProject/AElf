@@ -293,8 +293,7 @@ namespace AElf.Sdk.CSharp
                     To = contractAddress,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-                },
-                CurrentMiners = GetMiners()
+                }
             };
 
             var svc = _smartContractContext.SmartContractService;
