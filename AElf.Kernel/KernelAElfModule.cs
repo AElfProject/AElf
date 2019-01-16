@@ -5,6 +5,7 @@ using AElf.Common.Serializers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Database;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Modularity;
@@ -33,6 +34,8 @@ namespace AElf.Kernel
 
             services.AddAssemblyOf<KernelAElfModule>();
 
+            services.AddSingleton<IAccountService, AccountService>();
+            
             services.AddTransient<IByteSerializer, AElf.Common.Serializers.ProtobufSerializer>();
             
             services.AddTransient(

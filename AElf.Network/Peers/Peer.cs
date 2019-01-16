@@ -7,6 +7,7 @@ using System.Timers;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -80,6 +81,8 @@ namespace AElf.Network.Peers
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
 
+        private readonly IAccountService _accountService;
+
         private readonly Timer _authTimer;
 
         /// <summary>
@@ -111,11 +114,6 @@ namespace AElf.Network.Peers
         /// This nodes listening port.
         /// </summary>
         private readonly int _port;
-
-        /// <summary>
-        /// This nodes public key.
-        /// </summary>
-        private readonly ECKeyPair _nodeKey;
 
         /// <summary>
         /// The underlying network client.
@@ -151,9 +149,11 @@ namespace AElf.Network.Peers
 
         public readonly int CurrentHeight;
 
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey,
-            int currentHeight)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port,
+            IAccountService accountService, int currentHeight)
         {
+            _accountService = accountService;
+
             BlockRequests = new List<TimedBlockRequest>();
             _announcements = new List<Announce>();
 
@@ -163,7 +163,6 @@ namespace AElf.Network.Peers
             SetupHeartbeat();
 
             _port = port;
-            _nodeKey = nodeKey;
             Logger = NullLogger<Peer>.Instance;
 
             _client = client;
@@ -276,20 +275,18 @@ namespace AElf.Network.Peers
             try
             {
                 var nodeInfo = new NodeData {Port = _port};
-
-                ECSigner signer = new ECSigner();
-                ECSignature sig = signer.Sign(_nodeKey, SHA256.Create().ComputeHash(nodeInfo.ToByteArray()));
-
+                var sigBytes = _accountService.Sign(SHA256.Create().ComputeHash(nodeInfo.ToByteArray())).Result;
+                var publicKey = _accountService.GetPublicKey().Result;
                 var nd = new Handshake
                 {
                     NodeInfo = nodeInfo,
-                    PublicKey = ByteString.CopyFrom(_nodeKey.PublicKey),
+                    PublicKey = ByteString.CopyFrom(publicKey),
                     Height = CurrentHeight,
-                    Sig = ByteString.CopyFrom(sig.SigBytes),
+                    Sig = ByteString.CopyFrom(sigBytes),
                     Version = GlobalConfig.ProtocolVersion,
                 };
 
-                if (_nodeKey.PublicKey == null)
+                if (publicKey == null)
                     Logger.LogWarning("Node public key is null.");
 
                 byte[] packet = nd.ToByteArray();
@@ -398,8 +395,8 @@ namespace AElf.Network.Peers
                 // verify sig
                 ECVerifier verifier = new ECVerifier();
 
-                bool sigValid = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()),
-                    SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
+                var sigValid = _accountService.VerifySignature(handshakeMsg.Sig.ToByteArray(),
+                    SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray())).Result;
 
                 if (!sigValid)
                 {
