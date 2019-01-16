@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
@@ -151,6 +150,16 @@ namespace AElf.Node.Consensus
             });
 
             MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
+
+            MessageHub.Instance.Subscribe<NewLibFound>(libState =>
+            {
+                if (_helper.TryGetRoundInfo(libState.Height, out var round))
+                {
+                    var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                    miners.TermNumber = LatestTermNumber;
+                    _minersManager.SetMiners(miners);
+                }
+            });
         }
 
         private Miners Miners
@@ -159,10 +168,20 @@ namespace AElf.Node.Consensus
             {
                 if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
                 {
-                    return _minersManager.GetMiners(_helper.CurrentTermNumber.Value).Result;
+                    if (_helper.CurrentTermNumber.Value == 0)
+                    {
+                        return _minersManager.GetMiners(0).Result;
+                    }
+                    return _helper.GetCurrentMiners();
                 }
-            
-                return _minersManager.GetMiners(_helper.GetCurrentRoundInfo().MinersTermNumber).Result;
+
+                var roundInfo = _helper.GetCurrentRoundInfo();
+                if (roundInfo != null)
+                {
+                    return _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
+                }
+
+                return _minersManager.GetMiners(1).Result;
             }
         }
 
@@ -602,7 +621,6 @@ namespace AElf.Node.Consensus
                         }
                     }
 
-
                     foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
                     {
                         if (minerInRound.MissedTimeSlots >= GlobalConfig.MaxMissedTimeSlots)
@@ -621,8 +639,6 @@ namespace AElf.Node.Consensus
                             miners.PublicKeys.Add(luckyGuyPublicKey);
                         }
                     }
-
-                    await _minersManager.SetMiners(miners);
 
                     var parameters = new List<object>
                     {
@@ -771,15 +787,15 @@ namespace AElf.Node.Consensus
             }
 
             // Update miners list in database.
-            if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
-            {
-                var currentRoundInfo = _helper.GetCurrentRoundInfo();
-                if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
-                {
-                    _logger?.Trace("Updating miners.");
-                    await _minersManager.SetMiners(_helper.GetCurrentMiners());
-                }
-            }
+//            if (_helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
+//            {
+//                var currentRoundInfo = _helper.GetCurrentRoundInfo();
+//                if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
+//                {
+//                    _logger?.Trace("Updating miners.");
+//                    await _minersManager.SetMiners(_helper.GetCurrentMiners());
+//                }
+//            }
 
             if (_executedBlockFromOtherMiners && _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())
             {

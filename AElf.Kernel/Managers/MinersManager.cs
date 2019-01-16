@@ -17,12 +17,25 @@ namespace AElf.Kernel.Managers
         {
             _minersStore = minersStore;
         }
-
+        
         public async Task<Miners> GetMiners(ulong termNumber)
         {
-            var miners = await GetMiners(CalculateKey(termNumber));
-            if (miners != null && !miners.IsEmpty())
-                return miners;
+            if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
+            {
+                var minersOfTerm1 = await GetMiners(CalculateKey(1));
+                if (minersOfTerm1.MainchainLatestTermNumber != 0)
+                {
+                    termNumber = minersOfTerm1.TermNumber;
+                }
+            }
+
+            Miners miners;
+            if (termNumber != 0)
+            {
+                miners = await GetMiners(CalculateKey(termNumber));
+                if (miners != null && !miners.IsEmpty())
+                    return miners;
+            }
 
             var dict = MinersConfig.Instance.Producers;
             miners = new Miners();
@@ -47,9 +60,17 @@ namespace AElf.Kernel.Managers
             {
                 return;
             }
+
             foreach (var publicKey in miners.PublicKeys)
             {
                 _logger?.Trace($"Set miner {publicKey} to data store.");
+            }
+
+            if (miners.TermNumber > 1)
+            {
+                var minersOfTerm1 = await GetMiners(1);
+                minersOfTerm1.MainchainLatestTermNumber = miners.TermNumber;
+                await SetMiners(CalculateKey(1), minersOfTerm1);
             }
 
             await SetMiners(CalculateKey(miners.TermNumber), miners);
