@@ -108,7 +108,8 @@ namespace AElf.Sdk.CSharp
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            return CryptoHelpers.RecoverPublicKey(signature, hash);
+            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            return !cabBeRecovered ? null : publicKey;
         }
 
         /// <summary>
@@ -421,9 +422,14 @@ namespace AElf.Sdk.CSharp
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            var publicKeys = _transactionContext.Transaction.Sigs
-                .Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray();
-
+            var publicKeys = new List<byte[]>();
+            foreach (var sig in _transactionContext.Transaction.Sigs)
+            {
+                var publicKey = RecoverPublicKey(sig.ToByteArray(), hash);
+                Assert (publicKey != null, "Invalid signature."); // this should never happen.
+                publicKeys.Add(publicKey);
+            }
+            
             //todo review correctness
             uint provided = publicKeys
                 .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
