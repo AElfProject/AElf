@@ -181,7 +181,8 @@ namespace AElf.Contracts.Dividends
 
         public ActionResult AddDividends(ulong termNumber, ulong dividendsAmount)
         {
-            if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends))
+            if (_dividendsMap.TryGet(termNumber.ToUInt64Value(), out var dividends) &&
+                Api.GetFromAddress() != Api.ConsensusContractAddress)
             {
                 var finalDividends = dividends.Value + dividendsAmount;
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), finalDividends.ToUInt64Value());
