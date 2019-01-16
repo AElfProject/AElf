@@ -106,7 +106,7 @@ namespace AElf.Miner.Miner
                     await GenerateClaimFeesTransaction(currHeight, bn, bhPref);    
                 }
                 // generate txns for cross chain indexing if possible
-                await GenerateCrossTransaction(bn, bhPref);
+                await GenerateCrossChainTransaction(bn, bhPref);
                 DateTime currentBlockTime = DateTime.UtcNow;
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
@@ -210,7 +210,7 @@ namespace AElf.Miner.Miner
         /// Generate transactions for cross chain indexing.
         /// </summary>
         /// <returns></returns>
-        private async Task GenerateCrossTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
+        private async Task GenerateCrossChainTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
         {
             // Do not index cross chain information if no LIB found.
             if (LibHeight <= GlobalConfig.GenesisBlockHeight)
@@ -221,7 +221,7 @@ namespace AElf.Miner.Miner
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
             {
-                _logger.Debug($"txnForIndexingSideChain {txnForIndexingSideChain.GetHash()}");
+                _logger.Debug($"txnForIndexingSideChain {txnForIndexingSideChain.GetHash()} with refBlockHeight {refBlockHeight}");
                 await SignAndInsertToPool(txnForIndexingSideChain);
             }
                 
@@ -255,6 +255,14 @@ namespace AElf.Miner.Miner
             var sideChainIndexingTxnTrace = sysTxnTraces.FirstOrDefault(trace =>
                 trace.TransactionId.Equals(txHash) &&
                 trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted);
+
+            // todo : for debug
+            if (sysTxnTraces.Any(trace =>
+                trace.TransactionId.Equals(txHash) && trace.ExecutionStatus != ExecutionStatus.ExecutedAndCommitted))
+            {
+                _logger.Debug($"Cross chain txn {txHash} failed.");
+            }
+            
             return  sideChainIndexingTxnTrace != null
                 ? Hash.LoadByteArray(sideChainIndexingTxnTrace.RetVal.ToFriendlyBytes())
                 : null;

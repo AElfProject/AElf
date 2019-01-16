@@ -206,6 +206,9 @@ namespace AElf.Miner.Rpc.Client
         {
             var first = First();
             
+            // todo : for debug
+            _logger.Debug($"Try to take cross chain block info ..");
+            
             // only mining process needs needToCheckCachingCount, for most nodes have this block.
             if (first != null 
                 && first.Height == height && !(needToCheckCachingCount && ToBeIndexedInfoQueue.LastOrDefault()?.Height < height + (ulong) _irreversible))
@@ -220,6 +223,8 @@ namespace AElf.Miner.Rpc.Client
                 return res;
             }
             
+            // todo : for debug
+            _logger.Debug($"Try to take cross chain block info from cache ..");
             // this is because of rollback 
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
