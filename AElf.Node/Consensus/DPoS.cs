@@ -650,12 +650,12 @@ namespace AElf.Node.Consensus
                     if (_helper.TryToGetVictories(out var victories))
                     {
                         nextTerm = victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
-                            _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value);
+                            _helper.CurrentRoundNumber.Value, _helper.CurrentTermNumber.Value);
                     }
                     else
                     {
                         nextTerm = (await _minersManager.GetMiners()).GenerateNewTerm(
-                            ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value + 1,
+                            ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value,
                             _helper.CurrentTermNumber.Value);
                     }
 
