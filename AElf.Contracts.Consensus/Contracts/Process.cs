@@ -110,15 +110,12 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (_collection.SnapshotField.TryGet(snapshotTermNumber.ToUInt64Value(), out _))
             {
-                Console.WriteLine(111111);
                 return new ActionResult
                 {
                     Success = false,
                     ErrorMessage = $"Snapshot of term {snapshotTermNumber} already taken."
                 };
             }
-
-            Console.WriteLine(222222);
 
             // The information of last round of provided term.
             var roundInfo = GetRoundInfo(lastRoundNumber);
@@ -147,8 +144,6 @@ namespace AElf.Contracts.Consensus.Contracts
                     });
                 }
             }
-
-            Console.WriteLine(333333);
 
             // Set snapshot of related term.
             _collection.SnapshotField.SetValue(snapshotTermNumber.ToUInt64Value(), new TermSnapshot
