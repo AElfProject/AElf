@@ -153,7 +153,18 @@ namespace AElf.Node.Consensus
             MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
         }
 
-        private Miners Miners => _minersManager.GetMiners().Result;
+        private Miners Miners
+        {
+            get
+            {
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                {
+                    return _minersManager.GetMiners(_helper.CurrentTermNumber.Value).Result;
+                }
+            
+                return _minersManager.GetMiners(_helper.GetCurrentRoundInfo().MinersTermNumber).Result;
+            }
+        }
 
         public void Start(bool willToMine)
         {
@@ -346,7 +357,7 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var firstTerm = _minersManager.GetMiners().Result
+                    var firstTerm = _minersManager.GetMiners(1).Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
 
@@ -570,7 +581,9 @@ namespace AElf.Node.Consensus
                         roundInfo = roundInfo.SupplementForFirstRound();
                     }
 
-                    var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
+                    var miners = Miners;
+
+                    var nextRoundInfo = miners.GenerateNextRound(roundInfo.Clone());
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     _logger?.Trace("Current blockchain age: " + calculatedAge);
@@ -589,7 +602,6 @@ namespace AElf.Node.Consensus
                         }
                     }
 
-                    var miners = Miners;
 
                     foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
                     {
@@ -794,7 +806,7 @@ namespace AElf.Node.Consensus
             }
 
             // Check whether this node is a miner.
-            var miners = await _minersManager.GetMiners();
+            var miners = Miners;
             if (miners.PublicKeys.All(m => m != _ownPubKey.ToHex()))
             {
                 _minerFlag = false;

@@ -9,8 +9,8 @@ namespace AElf.Execution.Execution
     {
         public NoFeeSimpleExecutingService(ISmartContractService smartContractService,
             ITransactionTraceManager transactionTraceManager, IStateManager stateManager,
-            IChainContextService chainContextService, IMinersManager minersManager) : base(smartContractService, transactionTraceManager,
-            stateManager, chainContextService, minersManager)
+            IChainContextService chainContextService) : base(smartContractService, transactionTraceManager,
+            stateManager, chainContextService)
         {
             TransactionFeeDisabled = true;
         }

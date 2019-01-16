@@ -13,16 +13,14 @@ namespace AElf.Kernel.Managers
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
 
-        private static Hash Key => Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash());
-
         public MinersManager(IMinersStore minersStore)
         {
             _minersStore = minersStore;
         }
 
-        public async Task<Miners> GetMiners()
+        public async Task<Miners> GetMiners(ulong termNumber)
         {
-            var miners = await GetMiners(Key.ToHex());
+            var miners = await GetMiners(CalculateKey(termNumber));
             if (miners != null && !miners.IsEmpty())
                 return miners;
 
@@ -39,7 +37,7 @@ namespace AElf.Kernel.Managers
 
         public async Task<bool> IsMinersInDatabase()
         {
-            var miners = await GetMiners(Key.ToHex());
+            var miners = await GetMiners(CalculateKey(1));
             return miners != null && !miners.IsEmpty();
         }
 
@@ -54,7 +52,7 @@ namespace AElf.Kernel.Managers
                 _logger?.Trace($"Set miner {publicKey} to data store.");
             }
 
-            await SetMiners(Key.ToHex(), miners);
+            await SetMiners(CalculateKey(miners.TermNumber), miners);
         }
 
         private async Task<Miners> GetMiners(string key)
@@ -65,6 +63,12 @@ namespace AElf.Kernel.Managers
         private async Task SetMiners(string key, Miners miners)
         {
             await _minersStore.SetAsync(key, miners);
+        }
+
+        private string CalculateKey(ulong termNumber)
+        {
+            return Hash.FromTwoHashes(Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash()),
+                Hash.FromMessage(termNumber.ToUInt64Value())).ToHex();
         }
     }
 }

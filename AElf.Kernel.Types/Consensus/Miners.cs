@@ -219,6 +219,8 @@ namespace AElf.Kernel
 
             round.MiningInterval = previousRound.MiningInterval;
 
+            round.MinersTermNumber = TermNumber;
+
             return round;
         }
 

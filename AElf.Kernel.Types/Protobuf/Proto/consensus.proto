@@ -97,7 +97,8 @@ message Round {
     map<string, MinerInRound> RealTimeMinersInfo = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
-    string Remark = 5;
+    uint64 MinersTermNumber = 5;
+    string Remark = 6;
 }
 
 // The information of a miner in a specific round.

@@ -222,7 +222,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
-                Miners miners = _minersManager.GetMiners().Result;
+                Miners miners = _minersManager.GetMiners(1).Result;
             
                 _currentMiners = new List<string>();
 

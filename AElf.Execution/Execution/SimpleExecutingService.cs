@@ -22,16 +22,14 @@ namespace AElf.Execution.Execution
         private ITransactionTraceManager _transactionTraceManager;
         private IChainContextService _chainContextService;
         private IStateManager _stateManager;
-        private IMinersManager _minersManager;
 
         public SimpleExecutingService(ISmartContractService smartContractService,
             ITransactionTraceManager transactionTraceManager, IStateManager stateManager,
-            IChainContextService chainContextService, IMinersManager minersManager)
+            IChainContextService chainContextService)
         {
             _smartContractService = smartContractService;
             _transactionTraceManager = transactionTraceManager;
             _chainContextService = chainContextService;
-            _minersManager = minersManager;
             _stateManager = stateManager;
         }
 
@@ -91,8 +89,7 @@ namespace AElf.Execution.Execution
                 TransactionId = transaction.GetHash()
             };
 
-            var miners = await _minersManager.GetMiners();
-            var txCtxt = new TransactionContext()
+            var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
@@ -100,7 +97,6 @@ namespace AElf.Execution.Execution
                 BlockHeight = chainContext.BlockHeight,
                 Trace = trace,
                 CallDepth = depth,
-                CurrentMiners = miners
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);

@@ -100,8 +100,9 @@ namespace AElf.Contracts.Consensus.Contracts
             if (IsMainchain() && forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
                 forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
-                _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(),
-                    forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners());
+                var miners = forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners();
+                miners.TermNumber = _collection.CurrentTermNumberField.GetValue();
+                _collection.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(), miners);
             }
 
             // Update the age of this blockchain

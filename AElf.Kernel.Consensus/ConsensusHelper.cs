@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
@@ -20,7 +21,18 @@ namespace AElf.Kernel.Consensus
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
 
-        public List<string> Miners => _minersManager.GetMiners().Result.PublicKeys.ToList();
+        public List<string> Miners
+        {
+            get
+            {
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                {
+                    return _minersManager.GetMiners(CurrentTermNumber.Value).Result.PublicKeys.ToList();
+                }
+            
+                return _minersManager.GetMiners(GetCurrentRoundInfo().MinersTermNumber).Result.PublicKeys.ToList();
+            }
+        }
 
         public UInt64Value CurrentRoundNumber
         {
@@ -104,7 +116,7 @@ namespace AElf.Kernel.Consensus
                 catch (Exception)
                 {
                     _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
-                    var initialMiners = _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
+                    var initialMiners = _minersManager.GetMiners(1).Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
                 }
