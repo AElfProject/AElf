@@ -208,10 +208,7 @@ namespace AElf.Kernel.Consensus
             foreach (var candidate in candidates.PublicKeys)
             {
                 var tickets = GetTickets(candidate);
-                if (tickets.VotingRecords.Count > 0)
-                {
-                    ticketsMap[candidate] = tickets.ObtainedTickets;
-                }
+                ticketsMap[candidate] = tickets.ObtainedTickets;
             }
 
             if (ticketsMap.Keys.Count < GlobalConfig.BlockProducerNumber)
