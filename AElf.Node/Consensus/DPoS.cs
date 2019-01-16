@@ -702,7 +702,7 @@ namespace AElf.Node.Consensus
                     var parameters = new List<object>
                     {
                         victories.ToMiners().GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval,
-                            _helper.CurrentRoundNumber.Value, _helper.CurrentTermNumber.Value)
+                            _helper.CurrentRoundNumber.Value + 1, _helper.CurrentTermNumber.Value)
                     };
 
                     var txForNextTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
