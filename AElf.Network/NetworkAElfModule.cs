@@ -10,7 +10,8 @@ namespace AElf.Network
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            ConfigureSelf<NetworkOptions>();
+            var configuration = context.Services.GetConfiguration();
+            Configure<NetworkOptions>(configuration.GetSection("Network"));
             
             context.Services.AddTransient<IConnectionListener, ConnectionListener>();
             context.Services.AddSingleton<IPeerManager, PeerManager>();
