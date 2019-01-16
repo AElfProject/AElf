@@ -110,12 +110,15 @@ namespace AElf.Contracts.Consensus.Contracts
         {
             if (_collection.SnapshotField.TryGet(snapshotTermNumber.ToUInt64Value(), out _))
             {
+                Console.WriteLine(111111);
                 return new ActionResult
                 {
                     Success = false,
                     ErrorMessage = $"Snapshot of term {snapshotTermNumber} already taken."
                 };
             }
+
+            Console.WriteLine(222222);
 
             // The information of last round of provided term.
             var roundInfo = GetRoundInfo(lastRoundNumber);
@@ -124,39 +127,33 @@ namespace AElf.Contracts.Consensus.Contracts
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
             var candidateInTerms = new List<CandidateInTerm>();
-            foreach (var minerInRound in roundInfo.RealTimeMinersInfo)
+            foreach (var victory in GetVictories())
             {
-                if (_collection.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
+                if (_collection.TicketsMap.TryGet(victory.ToStringValue(), out var candidateTickets))
                 {
                     candidateInTerms.Add(new CandidateInTerm
                     {
-                        PublicKey = minerInRound.Key,
+                        PublicKey = victory,
                         Votes = candidateTickets.ObtainedTickets
                     });
                 }
                 else
                 {
-                    _collection.TicketsMap.SetValue(minerInRound.Key.ToStringValue(), new Tickets());
+                    _collection.TicketsMap.SetValue(victory.ToStringValue(), new Tickets());
                     candidateInTerms.Add(new CandidateInTerm
                     {
-                        PublicKey = minerInRound.Key,
+                        PublicKey = victory,
                         Votes = 0
                     });
                 }
             }
 
-            if (!candidateInTerms.Any())
-            {
-                return new ActionResult {Success = false, ErrorMessage = "No valid candidate for now."};
-            }
-
-            var currentTermNumber =
-                CurrentTermNumber == 0 ? ((ulong) 1).ToUInt64Value() : CurrentTermNumber.ToUInt64Value();
+            Console.WriteLine(333333);
 
             // Set snapshot of related term.
-            _collection.SnapshotField.SetValue(currentTermNumber, new TermSnapshot
+            _collection.SnapshotField.SetValue(snapshotTermNumber.ToUInt64Value(), new TermSnapshot
             {
-                TermNumber = currentTermNumber.Value,
+                TermNumber = snapshotTermNumber,
                 EndRoundNumber = CurrentRoundNumber,
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
@@ -251,14 +248,14 @@ namespace AElf.Contracts.Consensus.Contracts
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SendDividends(ulong lastRoundNumber)
+        public ActionResult SendDividends(ulong dividendsTermNumber, ulong lastRoundNumber)
         {
             var roundInfo = GetRoundInfo(lastRoundNumber);
 
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-            Api.SendInline(Api.DividendsContractAddress, "AddDividends", CurrentTermNumber,
+            Api.SendInline(Api.DividendsContractAddress, "AddDividends", dividendsTermNumber,
                 Config.GetDividendsForVoters(minedBlocks));
 
             ulong totalVotes = 0;

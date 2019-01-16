@@ -99,6 +99,7 @@ namespace AElf.Contracts.Consensus.Tests
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
             var dividendsOfTerm1 = _contracts.GetTermDividends(1);
+            Assert.True(dividendsOfTerm1 > 0);
 
             var secondRound = _contracts.GetRoundInfo(2);
 

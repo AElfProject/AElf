@@ -248,7 +248,7 @@ namespace AElf.Contracts.Consensus.Tests
             ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForMiners), minerKeyPair,
                 nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
             ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SendDividends), minerKeyPair,
-                nextTerm.FirstRound.RoundNumber - 1);
+                nextTerm.TermNumber - 1, nextTerm.FirstRound.RoundNumber - 1);
         }
 
         public void PackageOutValue(ECKeyPair minerKeyPair, ToPackage toPackage)

@@ -191,6 +191,8 @@ namespace AElf.Contracts.Dividends
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
 
+            Console.WriteLine($"Added dividends for term {termNumber}: {dividendsAmount}");
+
             return new ActionResult {Success = true};
         }
 

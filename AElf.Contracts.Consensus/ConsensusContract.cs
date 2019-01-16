@@ -77,9 +77,9 @@ namespace AElf.Contracts.Consensus
         }
 
         [Fee(0)]
-        public ActionResult SendDividends(ulong lastRoundNumber)
+        public ActionResult SendDividends(ulong dividendsTermNumber, ulong lastRoundNumber)
         {
-            return Process.SendDividends(lastRoundNumber);
+            return Process.SendDividends(dividendsTermNumber, lastRoundNumber);
         }
 
         [Fee(0)]
