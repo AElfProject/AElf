@@ -1,5 +1,4 @@
-﻿using AElf.Configuration.Config.Network;
-using AElf.Modularity;
+﻿using AElf.Modularity;
 using AElf.Network.Connection;
 using AElf.Network.Peers;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,13 +10,10 @@ namespace AElf.Network
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            ConfigureSelf<NetworkOptions>();
+            
             context.Services.AddTransient<IConnectionListener, ConnectionListener>();
             context.Services.AddSingleton<IPeerManager, PeerManager>();
-
-            PeerDataStore peerDb = new PeerDataStore(NetworkConfig.Instance.PeersDbPath);
-
-            context.Services.AddSingleton<IPeerDatabase>(peerDb);
         }
-
     }
 }

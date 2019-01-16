@@ -21,9 +21,7 @@ namespace AElf.Kernel.Storages
         protected KeyValueStoreBase(IByteSerializer byteSerializer, TKeyValueDbContext keyValueDbContext,
             string dataPrefix)
         {
-            _keyValueDbContext = keyValueDbContext;
             ByteSerializer = byteSerializer;
-
             DataPrefix = dataPrefix;
             _keyValueDbContext = keyValueDbContext;
             _collection = keyValueDbContext.Collection(DataPrefix);

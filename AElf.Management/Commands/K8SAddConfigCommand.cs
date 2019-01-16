@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Common.Enums;
 using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Configuration.Config.Management;
-using AElf.Configuration.Config.Network;
 using AElf.Management.Helper;
 using AElf.Management.Models;
 using k8s;
@@ -134,17 +132,19 @@ namespace AElf.Management.Commands
 
         private string GetNetworkConfigJson(DeployArg arg)
         {
-            var config = new NetworkConfig();
-            config.Bootnodes = new List<string>();
-
-            if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
-            {
-                config.Bootnodes = arg.LauncherArg.Bootnodes;
-            }
-
-            var result = JsonSerializer.Instance.Serialize(config);
-
-            return result;
+//            var config = new NetworkConfig();
+//            config.Bootnodes = new List<string>();
+//
+//            if (arg.LauncherArg.Bootnodes != null && arg.LauncherArg.Bootnodes.Any())
+//            {
+//                config.Bootnodes = arg.LauncherArg.Bootnodes;
+//            }
+//
+//            var result = JsonSerializer.Instance.Serialize(config);
+//
+//            return result;
+            // Todo rewrite this
+            return null;
         }
 
         private string GetGrpcConfigJson(DeployArg arg)

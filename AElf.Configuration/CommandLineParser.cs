@@ -6,7 +6,6 @@ using AElf.Common.Application;
 using AElf.Common.Enums;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using CommandLine;
 
@@ -68,23 +67,23 @@ namespace AElf.Configuration
             }
 
             // Network
-            if (opts.Bootnodes != null && opts.Bootnodes.Any())
-                NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
-
-            if (opts.PeersDbPath != null)
-                NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
-
-            if (opts.Port.HasValue)
-                NetworkConfig.Instance.ListeningPort = opts.Port.Value;
-
-            if (!string.IsNullOrWhiteSpace(opts.NetAllowed))
-            {
-                NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
-            }
-            if (opts.NetWhitelist != null && opts.NetWhitelist.Any())
-            {
-                NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
-            }
+//            if (opts.Bootnodes != null && opts.Bootnodes.Any())
+//                NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
+//
+//            if (opts.PeersDbPath != null)
+//                NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
+//
+//            if (opts.Port.HasValue)
+//                NetworkConfig.Instance.ListeningPort = opts.Port.Value;
+//
+//            if (!string.IsNullOrWhiteSpace(opts.NetAllowed))
+//            {
+//                NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
+//            }
+//            if (opts.NetWhitelist != null && opts.NetWhitelist.Any())
+//            {
+//                NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
+//            }
 
             if (!string.IsNullOrWhiteSpace(opts.ConsensusType))
             {

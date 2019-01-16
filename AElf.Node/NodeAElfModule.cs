@@ -7,7 +7,6 @@ using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.Network;
 using AElf.Configuration.Config.RPC;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -59,8 +58,6 @@ namespace AElf.Node
             }
 
             TransactionPoolConfig.Instance.EcKeyPair = nodeKey;
-            NetworkConfig.Instance.EcKeyPair = nodeKey;
-
 
             switch (ConsensusConfig.Instance.ConsensusType)
             {
