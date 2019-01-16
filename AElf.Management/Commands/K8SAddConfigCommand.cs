@@ -82,18 +82,7 @@ namespace AElf.Management.Commands
 
         private string GetDatabaseConfigJson(DeployArg arg)
         {
-            var config = new DatabaseConfig
-            {
-                Type = DatabaseType.Redis,
-                Hosts = new Dictionary<string, DatabaseHost>
-                {
-                    {"Default", new DatabaseHost {Host = "set-redis-0.service-redis", Port = 7001, Number = 0}}
-                }
-            };
-
-            var result = JsonSerializer.Instance.Serialize(config);
-
-            return result;
+            return null;
         }
 
         private string GetMinersConfigJson(DeployArg arg)

@@ -31,25 +31,6 @@ namespace AElf.Configuration
             ApplicationHelpers.ConfigPath = opts.ConfigPath;
             ApplicationHelpers.LogPath = opts.LogPath;
             
-            //database
-            if (!string.IsNullOrWhiteSpace(opts.DBType))
-            {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-                if (!string.IsNullOrWhiteSpace(opts.DBHost) && opts.DBPort.HasValue)
-                {
-                    DatabaseConfig.Instance.Hosts = new Dictionary<string, DatabaseHost>
-                    {
-                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber ?? 0}}
-                    };
-                }
-            }
-            else
-            {
-                if (DatabaseConfig.Instance.Type == DatabaseType.InMemory)
-                {
-                    throw new ArgumentException("If you want to stored data in memory, specify it in the command line!");
-                }
-            }
 
             // Network
 //            if (opts.Bootnodes != null && opts.Bootnodes.Any())
