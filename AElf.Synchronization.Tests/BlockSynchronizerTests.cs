@@ -72,7 +72,7 @@ namespace AElf.Synchronization.Tests
             miners.ForEach(m => Miners.PublicKeys.Add(m.PublicKey.ToHex()));
                 
             MockMinersManager = new Mock<IMinersManager>();
-            MockMinersManager.Setup(m => m.GetMiners(1)).ReturnsAsync(Miners);
+            MockMinersManager.Setup(m => m.GetMiners(It.IsAny<ulong>())).ReturnsAsync(Miners);
         }
 
         private void SetupGenesisChain()
