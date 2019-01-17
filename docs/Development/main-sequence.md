@@ -40,7 +40,35 @@ BlockService -> BlockBodyManager : Validate && SaveBlockBody
 BlockService -> TransactionManager : Validate && SaveTransactions
 
 BlockService -> BlockManager : SaveBlock (only a mark) 
-BlockManager -> BlockService
-BlockService -> FetchBlockJob
+
+BlockManager -> EventBus: newBlockAdded
+@enduml
+```
+
+```puml
+@startuml
+
+NewBlockAddedHandler -> ChainService : AppendBlockToChain
+
+ChainService -> ChainManager : CheckWhetherOnBestChain
+
+ChainManager -> ChainService : Yes
+
+ChainService -> BlockchainStateManager : AddBlock
+
+ChainService -> SmartContractService : ExecuteSmartContract(chainId, blockHash)
+note left: need to make sure all previous blocks were executed
+
+ChainService -> BlockchainStateManager : GetStateMerkleTree(chainId,blockHash)
+BlockchainStateManager -> ChainService : return stateMerkleTree
+
+ChainService -> BlockHeaderManager : ValidateStateMerkleTree(blockHash,stateMerkleTree)
+BlockHeaderManager -> ChainService : True
+
+ChainService -> EventBus : NewBestChainFound
+
+ChainService -> NewBlockAddedHandler
+
+
 @enduml
 ```
