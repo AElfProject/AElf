@@ -192,7 +192,7 @@ namespace AElf.Contracts.Dividends
                 _dividendsMap.SetValue(termNumber.ToUInt64Value(), dividendsAmount.ToUInt64Value());
             }
 
-            Console.WriteLine($"Added dividends for term {termNumber}: {dividendsAmount}");
+            Console.WriteLine($"Dividends of term {termNumber}: {dividendsAmount}");
 
             return new ActionResult {Success = true};
         }
@@ -203,10 +203,12 @@ namespace AElf.Contracts.Dividends
             {
                 var finalWeights = totalWeights.Value + weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), finalWeights.ToUInt64Value());
+                Console.WriteLine($"Weights of term {termNumber}: {finalWeights}.");
             }
             else
             {
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
+                Console.WriteLine($"Weights of term {termNumber}: {weights}.");
             }
 
             return new ActionResult {Success = true};
