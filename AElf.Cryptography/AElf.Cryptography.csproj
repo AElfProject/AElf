@@ -9,5 +9,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
   </ItemGroup>
 </Project>

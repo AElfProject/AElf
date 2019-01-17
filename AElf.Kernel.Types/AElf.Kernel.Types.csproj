@@ -9,6 +9,7 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+    <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="IResourcePath.cs" />
