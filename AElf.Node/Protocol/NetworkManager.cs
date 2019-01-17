@@ -444,7 +444,7 @@ namespace AElf.Node.Protocol
                     LocalHeight = (int) _currentLibNum;
 
                     // todo should be from a BP that is not part of the minority
-                    IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
+                    IPeer syncPeer = _peers.Where(p => p.KnownHeight > LocalHeight).OrderByDescending(p => p.KnownHeight).FirstOrDefault();
 
                     if (syncPeer != null)
                     {

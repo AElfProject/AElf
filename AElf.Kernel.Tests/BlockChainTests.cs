@@ -13,8 +13,8 @@ namespace AElf.Kernel.Tests
 {
     public class BlockChainTests
     {
-        private BlockChainTests_MockSetup _mock;
-        private IExecutingService _executingService;
+        private readonly BlockChainTests_MockSetup _mock;
+        private readonly IExecutingService _executingService;
 
         public BlockChainTests(BlockChainTests_MockSetup mock, IExecutingService executingService)
         {

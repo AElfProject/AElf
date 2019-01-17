@@ -174,13 +174,18 @@ namespace AElf.Miner.TxMemPool
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+                toRemove.RemoveAll(tx =>
+                    tx.RefBlockNumber == correctRefBlockNumber &&
+                    tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
             }
-            
+
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextTerm.ToString() &&
-                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForMiners.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForTerm.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SendDividends.ToString()));
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
@@ -229,7 +234,7 @@ namespace AElf.Miner.TxMemPool
 
             Logger= NullLogger<TransactionFilter>.Instance;
         }
-        
+
         public void Execute(List<Transaction> txs)
         {
             var filterList = _txFilter.GetInvocationList();
@@ -250,8 +255,15 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
+            
+            Logger.LogTrace("will package following consensus txs:");
+            foreach (var tx in txs)
+            {
+                Logger.LogTrace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
+            }
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
             Logger.LogTrace("Txs list:");
