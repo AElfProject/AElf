@@ -32,13 +32,13 @@ namespace AElf.Kernel.Tests
             return (ulong) n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public Hash ChainId1 { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
         public IChainContextService ChainContextService;
 
-        public Address SampleContractAddress1 { get; } = Address.FromString("SampleContractAddress1");
+        public Address SampleContractAddress1 { get; private set; }
 
         public IExecutive Executive1 { get; private set; }
 
@@ -95,14 +95,20 @@ namespace AElf.Kernel.Tests
 
         private async Task DeploySampleContracts()
         {
+            const ulong serialNumber = 10ul;
+
             var reg = new SmartContractRegistration
             {
                 Category = 1,
                 ContractBytes = ByteString.CopyFrom(ExampleContractCode),
-                ContractHash = Hash.FromRawBytes(ExampleContractCode)
+                ContractHash = Hash.FromRawBytes(ExampleContractCode),
+                SerialNumber = serialNumber
             };
 
-            await SmartContractService.DeployContractAsync(ChainId1, SampleContractAddress1, reg, true);
+            await SmartContractService.DeploySystemContractAsync(ChainId1, reg);
+            
+            SampleContractAddress1 = Address.BuildContractAddress(ChainId1, serialNumber);
+            
             Executive1 = await SmartContractService.GetExecutiveAsync(SampleContractAddress1, ChainId1);
         }
 
