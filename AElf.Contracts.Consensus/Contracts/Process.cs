@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
@@ -53,6 +54,9 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public ActionResult NextTerm(Term term)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             // TODO: Check the miners are correct.
 
             // Count missed time slot of current round.
@@ -98,6 +102,8 @@ namespace AElf.Contracts.Consensus.Contracts
             // Update rounds information of next two rounds.
             _collection.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
             _collection.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
+            
+            Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return new ActionResult {Success = true};
         }
@@ -111,6 +117,9 @@ namespace AElf.Contracts.Consensus.Contracts
         /// <returns></returns>
         public ActionResult SnapshotForTerm(ulong snapshotTermNumber, ulong lastRoundNumber)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             if (_collection.SnapshotField.TryGet(snapshotTermNumber.ToUInt64Value(), out _))
             {
                 return new ActionResult
@@ -159,11 +168,16 @@ namespace AElf.Contracts.Consensus.Contracts
 
             Console.WriteLine($"Snapshot of term {snapshotTermNumber} taken.");
 
+            Console.WriteLine($"Term snapshot duration: {stopwatch.ElapsedMilliseconds} ms.");
+
             return new ActionResult {Success = true};
         }
 
         public ActionResult SnapshotForMiners(ulong previousTermNumber, ulong lastRoundNumber)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             var roundInfo = GetRoundInfo(lastRoundNumber);
 
             foreach (var candidate in roundInfo.RealTimeMinersInfo)
@@ -218,12 +232,17 @@ namespace AElf.Contracts.Consensus.Contracts
 
                 _collection.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
             }
+            
+            Console.WriteLine($"Miners snapshot duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return new ActionResult {Success = true};
         }
 
         public ActionResult SendDividends(ulong dividendsTermNumber, ulong lastRoundNumber)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             var roundInfo = GetRoundInfo(lastRoundNumber);
 
             // Set dividends of related term to Dividends Contract.
@@ -271,12 +290,17 @@ namespace AElf.Contracts.Consensus.Contracts
                     Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                     backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
             }
+            
+            Console.WriteLine($"Send dividends duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return new ActionResult {Success = true};
         }
 
         public void NextRound(Forwarding forwarding)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             Api.Assert(
                 forwarding.NextRoundInfo.RoundNumber == 0 || _collection.CurrentRoundNumberField.GetValue() <
                 forwarding.NextRoundInfo.RoundNumber,
@@ -375,6 +399,8 @@ namespace AElf.Contracts.Consensus.Contracts
                     forwarding.NextRoundInfo);
                 _collection.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
             }
+            
+            Console.WriteLine($"Round changing duration: {stopwatch.ElapsedMilliseconds} ms.");
         }
 
         public void PackageOutValue(ToPackage toPackage)
