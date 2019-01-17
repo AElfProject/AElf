@@ -11,6 +11,6 @@ namespace AElf.Miner.Tests
             base.SetAbpApplicationCreationOptions(options);
 
             options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            options.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());        }
+            options.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());        }
     }
 }

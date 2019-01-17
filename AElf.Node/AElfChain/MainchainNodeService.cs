@@ -263,7 +263,7 @@ namespace AElf.Node.AElfChain
             var dividendsCReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(dividendsContractCode),
+                ContractBytes = ByteString.CopyFrom(dividendsContractCode),    
                 ContractHash = Hash.FromRawBytes(dividendsContractCode),
                 SerialNumber = GlobalConfig.DividendsContract
             };

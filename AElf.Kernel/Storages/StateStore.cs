@@ -11,6 +11,16 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Storages
 {
+    public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
+    {
+        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix + typeof(T).Name)
+        {
+        }
+    }
+
+    
+    //TODO: remove
     public class StateStore : KeyValueStoreBase<StateKeyValueDbContext>, IStateStore, ISingletonDependency
     {
         public StateStore(StateKeyValueDbContext keyValueDbContext)
@@ -29,6 +39,15 @@ namespace AElf.Kernel.Storages
             {
                 return (T) Convert.ChangeType(bytes, typeof(T));
             }
+        }
+    }
+
+    public class BlockchainStore<T> : KeyValueStoreBase<BlockchainKeyValueDbContext, T>, IBlockchainStore<T>
+    {
+        public BlockchainStore(BlockchainKeyValueDbContext keyValueDbContext, IByteSerializer byteSerializer)
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix  + typeof(T).Name)
+        {
+            
         }
     }
 }

@@ -46,7 +46,7 @@ namespace AElf.Kernel
             
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             
-            services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(p => p.UseRedisDatabase());
+            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
 
