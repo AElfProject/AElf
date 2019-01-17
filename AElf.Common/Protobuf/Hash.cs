@@ -262,5 +262,16 @@ namespace AElf.Common
         }
 
         #endregion Load and dump
+        
+        //TODO: should remove, it's temp solved long to Hash
+        public static implicit operator long(Hash d)
+        {
+            return BitConverter.ToInt64(d.DumpByteArray(),0);
+        }
+        //  User-defined conversion from double to Digit
+        public static implicit operator Hash(long d)
+        {
+            return Hash.LoadByteArray(BitConverter.GetBytes(d));
+        }
     }
 }

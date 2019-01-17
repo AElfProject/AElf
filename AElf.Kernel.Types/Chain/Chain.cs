@@ -1,5 +1,6 @@
 ﻿// ReSharper disable once CheckNamespace
 
+using System;
 using Google.Protobuf;
 using AElf.Common;
 

@@ -30,6 +30,8 @@ namespace AElf.Kernel.Managers
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
             };
+
+            return chain;
         }
 
     }

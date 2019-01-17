@@ -335,7 +335,7 @@ message ChainBlockLink{
 }
 
 message Chain {
-    Hash Id = 1;
+    int64 Id = 1;
     Hash GenesisBlockHash = 2;
     map<string, int64> Branches = 3;
     Hash BestChainHash = 4;
