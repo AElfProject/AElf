@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
 
             // Tell Dividends Contract to add weights for this voting record.
-            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber);
+            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber + 1);
 
             Console.WriteLine($"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
             Console.WriteLine($"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
