@@ -23,7 +23,7 @@ namespace AElf.Kernel.Managers
             if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
             {
                 var minersOfTerm1 = await GetMiners(CalculateKey(1));
-                if (minersOfTerm1.MainchainLatestTermNumber != 0)
+                if (minersOfTerm1 != null && minersOfTerm1.MainchainLatestTermNumber != 0)
                 {
                     termNumber = minersOfTerm1.TermNumber;
                 }

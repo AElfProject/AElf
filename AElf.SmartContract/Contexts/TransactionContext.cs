@@ -24,6 +24,5 @@ namespace AElf.SmartContract
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
-        public Miners CurrentMiners { get; set; }
     }
 }

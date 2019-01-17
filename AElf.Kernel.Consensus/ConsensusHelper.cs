@@ -116,7 +116,7 @@ namespace AElf.Kernel.Consensus
                 catch (Exception)
                 {
                     _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
-                    var initialMiners = _minersManager.GetMiners(1).Result.PublicKeys.ToCandidates();
+                    var initialMiners = _minersManager.GetMiners(0).Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
                 }

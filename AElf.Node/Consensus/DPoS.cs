@@ -376,7 +376,7 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var firstTerm = _minersManager.GetMiners(1).Result
+                    var firstTerm = _minersManager.GetMiners(0).Result
                         .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
 

@@ -353,7 +353,6 @@ namespace AElf.Contracts.CrossChain
             
                 Console.WriteLine($"WriteParentChainBlockInfo success at {parentChainHeight}"); // Todo: only for debug
             }
-            
         }
 
         /// <summary>
@@ -368,7 +367,6 @@ namespace AElf.Contracts.CrossChain
             Api.IsMiner("Not authorized to do this.");
             Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
-            //Console.WriteLine("Index side chain block..");
             var currentHeight = Api.GetCurrentHeight();
             var height = currentHeight + 1;
             var wrappedHeight = new UInt64Value {Value = height};
@@ -392,7 +390,7 @@ namespace AElf.Contracts.CrossChain
                     continue;
                 
                 // indexing fee
-                var indexingPrice = _sideChainInfos[chainId].IndexingPrice;
+                var indexingPrice = info.IndexingPrice;
                 var lockedToken = _indexingBalance.GetValue(chainId);
                 // locked token not enough 
                 if (lockedToken < indexingPrice)
