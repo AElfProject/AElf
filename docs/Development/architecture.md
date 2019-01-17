@@ -212,7 +212,7 @@ class StateVersion{
 }
 note right: Key: State.Key + Block.Hash
 
-class BranchChainChangesSet{
+class BlockStateSet{
   //key: BaseBlockHash-CurrentBlockHash
   Hash PreviousHash 
   Hash BlockHeight
