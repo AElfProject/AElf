@@ -158,12 +158,12 @@ namespace AElf.Contracts.Consensus.Contracts
             candidateTickets.HistoryObtainedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
-            // Update the amount of current voters.
+            // Update the amount of votes (voting records of whole system).
             var currentCount = _collection.VotesCountField.GetValue();
             currentCount += 1;
             _collection.VotesCountField.SetValue(currentCount);
 
-            // Update the amount of current tickets.
+            // Update the amount of tickets.
             var ticketsCount = _collection.TicketsCountField.GetValue();
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);

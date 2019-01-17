@@ -53,7 +53,7 @@ namespace AElf.Contracts.Dividends
         public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
             ulong dividends = 0;
-            
+
             var start = votingRecord.TermNumber + 1;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var lastRequestTermNumber))
             {
@@ -69,7 +69,12 @@ namespace AElf.Contracts.Dividends
                 {
                     if (_dividendsMap.TryGet(i.ToUInt64Value(), out var totalDividends))
                     {
+                        Console.WriteLine($"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
+                        Console.WriteLine($"Total weights of term {i}: {totalWeights}");
+                        Console.WriteLine($"Total dividends of term {i}: {totalDividends}");
+                        Console.WriteLine($"Weights of this vote: {votingRecord.Weight}");
                         dividends += totalDividends.Value * votingRecord.Weight / totalWeights.Value;
+                        Console.WriteLine($"Result: {dividends}");
                     }
                 }
             }
@@ -80,14 +85,10 @@ namespace AElf.Contracts.Dividends
         [View]
         public ulong GetAllAvailableDividends(string publicKey)
         {
-            var votingRecords = Api.GetVotingRecords(publicKey);
-            ulong dividends = 0;
-            foreach (var votingRecord in votingRecords.Where(vr => vr.From == publicKey))
-            {
-                dividends += GetAvailableDividends(votingRecord);
-            }
-
-            return dividends;
+            return Api.GetVotingRecords(publicKey)
+                .Where(vr => vr.From == publicKey)
+                .Aggregate<VotingRecord, ulong>(0,
+                    (current, votingRecord) => current + GetAvailableDividends(votingRecord));
         }
 
         [View]
@@ -139,14 +140,15 @@ namespace AElf.Contracts.Dividends
             var owner = votingRecord.From;
             var ownerAddress =
                 Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
-            
+
             var start = votingRecord.TermNumber + 1;
             if (_lastRequestDividendsMap.TryGet(votingRecord.TransactionId, out var history))
             {
                 start = history.Value + 1;
             }
 
-            var end = Math.Min(votingRecord.GetExpireTermNumber(Api.GetBlockchainAge()), Api.GetCurrentTermNumber() - 1);
+            var end = Math.Min(votingRecord.GetExpireTermNumber(Api.GetBlockchainAge()),
+                Api.GetCurrentTermNumber() - 1);
 
             var actualTermNumber = start;
             ulong dividendsAmount = 0;
@@ -161,17 +163,17 @@ namespace AElf.Contracts.Dividends
                     }
                     else
                     {
-                        return new ActionResult{Success = false, ErrorMessage = $"Dividends of term {i} not found."};
+                        return new ActionResult {Success = false, ErrorMessage = $"Dividends of term {i} not found."};
                     }
                 }
                 else
                 {
-                    return new ActionResult{Success = false, ErrorMessage = $"Total weights of term {i} not found."};
+                    return new ActionResult {Success = false, ErrorMessage = $"Total weights of term {i} not found."};
                 }
             }
-            
+
             Api.SendInline(Api.TokenContractAddress, "Transfer", ownerAddress, dividendsAmount);
-            
+
             Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
 
             _lastRequestDividendsMap.SetValue(votingRecord.TransactionId, actualTermNumber.ToUInt64Value());
@@ -203,12 +205,12 @@ namespace AElf.Contracts.Dividends
             {
                 var finalWeights = totalWeights.Value + weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), finalWeights.ToUInt64Value());
-                Console.WriteLine($"Weights of term {termNumber}: {finalWeights}.");
+                Console.WriteLine($"Weights of term {termNumber}: {finalWeights}.[Add]");
             }
             else
             {
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), weights.ToUInt64Value());
-                Console.WriteLine($"Weights of term {termNumber}: {weights}.");
+                Console.WriteLine($"Weights of term {termNumber}: {weights}.[Add]");
             }
 
             return new ActionResult {Success = true};
@@ -219,6 +221,7 @@ namespace AElf.Contracts.Dividends
             if (_totalWeightsMap.TryGet(oldTermNumber.ToUInt64Value(), out var totalWeights))
             {
                 _totalWeightsMap.SetValue((oldTermNumber + 1).ToUInt64Value(), totalWeights);
+                Console.WriteLine($"Weights of term {oldTermNumber + 1}: {totalWeights}.[Keep]");
             }
             else
             {
@@ -234,6 +237,7 @@ namespace AElf.Contracts.Dividends
             {
                 var newWeights = totalWeights.Value - weights;
                 _totalWeightsMap.SetValue(termNumber.ToUInt64Value(), newWeights.ToUInt64Value());
+                Console.WriteLine($"Weights of term {termNumber}: {totalWeights}.[Sub]");
             }
 
             return new ActionResult {Success = true};
