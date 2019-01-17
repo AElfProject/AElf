@@ -82,7 +82,7 @@ namespace AElf.Node.Consensus
         private static bool _executedBlockFromOtherMiners;
 
         private static bool _announcedElection;
-
+        
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
@@ -153,7 +153,9 @@ namespace AElf.Node.Consensus
 
             MessageHub.Instance.Subscribe<NewLibFound>(libState =>
             {
-                if (_helper.TryGetRoundInfo(libState.Height, out var round))
+                // TODO: Should get the round number LIB height.
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId && 
+                    _helper.TryGetRoundInfo(_helper.CurrentRoundNumber.Value, out var round))
                 {
                     var miners = round.RealTimeMinersInfo.Keys.ToMiners();
                     miners.TermNumber = LatestTermNumber;
