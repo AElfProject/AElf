@@ -68,6 +68,7 @@ namespace AElf.Kernel.Managers
 
             if (miners.TermNumber > 1)
             {
+                _logger?.Trace($"BP-term for sidechain: {miners.TermNumber}");
                 var minersOfTerm1 = await GetMiners(1);
                 minersOfTerm1.MainchainLatestTermNumber = miners.TermNumber;
                 await SetMiners(CalculateKey(1), minersOfTerm1);
