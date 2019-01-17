@@ -221,7 +221,7 @@ namespace AElf.Contracts.Dividends
             if (_totalWeightsMap.TryGet(oldTermNumber.ToUInt64Value(), out var totalWeights))
             {
                 Console.WriteLine("[Forwarding weights]");
-                AddWeights(oldTermNumber + 1, totalWeights.Value);
+                AddWeights(totalWeights.Value, oldTermNumber + 1);
             }
 
             return new ActionResult {Success = true};
