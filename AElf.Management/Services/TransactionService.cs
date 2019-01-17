@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Management.Database;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -13,10 +14,12 @@ namespace AElf.Management.Services
     public class TransactionService : ITransactionService
     {
         private readonly ManagementOptions _managementOptions;
+        private readonly IInfluxDatabase _influxDatabase;
 
-        public TransactionService(IOptions<ManagementOptions> options)
+        public TransactionService(IOptions<ManagementOptions> options,IInfluxDatabase influxDatabase)
         {
             _managementOptions = options.Value;
+            _influxDatabase = influxDatabase;
         }
 
         public async Task RecordPoolSize(string chainId, DateTime time)
@@ -24,13 +27,13 @@ namespace AElf.Management.Services
             var poolSize = await GetPoolSize(chainId);
 
             var fields = new Dictionary<string, object> {{"size", poolSize}};
-            await InfluxDBHelper.Set(chainId, "transaction_pool_size", fields, null, time);
+            await _influxDatabase.Set(chainId, "transaction_pool_size", fields, null, time);
         }
 
         public async Task<List<PoolSizeHistory>> GetPoolSizeHistory(string chainId)
         {
             var result = new List<PoolSizeHistory>();
-            var record = await InfluxDBHelper.Get(chainId, "select * from transaction_pool_size");
+            var record = await _influxDatabase.Get(chainId, "select * from transaction_pool_size");
             foreach (var item in record.First().Values)
             {
                 result.Add(new PoolSizeHistory

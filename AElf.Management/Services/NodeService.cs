@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Management.Database;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -14,10 +15,12 @@ namespace AElf.Management.Services
     public class NodeService : INodeService
     {
         private readonly ManagementOptions _managementOptions;
+        private readonly IInfluxDatabase _influxDatabase;
 
-        public NodeService(IOptions<ManagementOptions> options)
+        public NodeService(IOptions<ManagementOptions> options, IInfluxDatabase influxDatabase)
         {
             _managementOptions = options.Value;
+            _influxDatabase = influxDatabase;
         }
 
         public async Task<bool> IsAlive(string chainId)
@@ -48,13 +51,13 @@ namespace AElf.Management.Services
             var isForked = await IsForked(chainId);
 
             var fields = new Dictionary<string, object> {{"alive", isAlive}, {"forked", isForked}};
-            await InfluxDBHelper.Set(chainId, "node_state", fields, null, time);
+            await _influxDatabase.Set(chainId, "node_state", fields, null, time);
         }
 
         public async Task<List<NodeStateHistory>> GetHistoryState(string chainId)
         {
             var result = new List<NodeStateHistory>();
-            var record = await InfluxDBHelper.Get(chainId, "select * from node_state");
+            var record = await _influxDatabase.Get(chainId, "select * from node_state");
             foreach (var item in record.First().Values)
             {
                 result.Add(new NodeStateHistory
@@ -71,7 +74,7 @@ namespace AElf.Management.Services
         public async Task RecordBlockInfo(string chainId)
         {
             ulong currentHeight;
-            var currentRecord = await InfluxDBHelper.Get(chainId, "select last(height) from block_info");
+            var currentRecord = await _influxDatabase.Get(chainId, "select last(height) from block_info");
             if (currentRecord.Count == 0)
             {
                 currentHeight = await GetCurrentChainHeight(chainId);
@@ -96,7 +99,7 @@ namespace AElf.Management.Services
             {
                 var fields = new Dictionary<string, object>
                     {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
-                await InfluxDBHelper.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
+                await _influxDatabase.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
 
                 Thread.Sleep(1000);
 
@@ -110,7 +113,7 @@ namespace AElf.Management.Services
             var count = await GetInvalidBlockCount(chainId);
 
             var fields = new Dictionary<string, object> {{"count", count}};
-            await InfluxDBHelper.Set(chainId, "block_invalid", fields, null, time);
+            await _influxDatabase.Set(chainId, "block_invalid", fields, null, time);
         }
 
         public async Task RecordRollBackTimes(string chainId, DateTime time)
@@ -118,7 +121,7 @@ namespace AElf.Management.Services
             var times = await GetRollBackTimes(chainId);
 
             var fields = new Dictionary<string, object> {{"times", times}};
-            await InfluxDBHelper.Set(chainId, "chain_rollback", fields, null, time);
+            await _influxDatabase.Set(chainId, "chain_rollback", fields, null, time);
         }
 
         private async Task<int> GetInvalidBlockCount(string chainId)

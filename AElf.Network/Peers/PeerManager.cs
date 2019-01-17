@@ -74,7 +74,7 @@ namespace AElf.Network.Peers
         private readonly NetworkOptions _networkOptions;
 
         public PeerManager(IConnectionListener connectionListener, IChainService chainService,
-        IOptions<NetworkOptions> networkOptions)
+            IOptionsSnapshot<NetworkOptions> options)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _bpAddresses = new List<string>();
@@ -82,7 +82,7 @@ namespace AElf.Network.Peers
 
             _connectionListener = connectionListener;
             _chainService = chainService;
-            _networkOptions = networkOptions.Value;
+            _networkOptions = options.Value;
             //_blockChain = blockChain;
             Logger = NullLogger<PeerManager>.Instance;
             // Todo 

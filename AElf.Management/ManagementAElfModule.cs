@@ -13,14 +13,9 @@ namespace AElf.Management
         {
             var configuration = context.Services.GetConfiguration();
             Configure<ManagementOptions>(configuration);
+            Configure<MonitorDbOptions>(configuration.GetSection("MonitorDb"));
             
             context.Services.AddAssemblyOf<ManagementAElfModule>();
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            context.ServiceProvider.GetRequiredService<IRecordService>()
-                .Start();
         }
     }
 }

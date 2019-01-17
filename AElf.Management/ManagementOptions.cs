@@ -5,13 +5,7 @@ namespace AElf.Management
     public class ManagementOptions
     {
         public string DeployType { get; set; }
-
-        public bool Authentication { get; set; }
-
-        public int SignTimeout { get; set; }
-
         public int MonitoringInterval { get; set; }
-        
         public Dictionary<string, ServiceUrl> ServiceUrls { get; set; }
     }
     

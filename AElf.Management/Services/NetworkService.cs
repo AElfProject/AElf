@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Management.Database;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
@@ -13,10 +14,12 @@ namespace AElf.Management.Services
     public class NetworkService : INetworkService
     {
         private readonly ManagementOptions _managementOptions;
+        private readonly IInfluxDatabase _influxDatabase;
 
-        public NetworkService(IOptions<ManagementOptions> options)
+        public NetworkService(IOptions<ManagementOptions> options, IInfluxDatabase influxDatabase)
         {
             _managementOptions = options.Value;
+            _influxDatabase = influxDatabase;
         }
 
         public async Task<PoolStateResult> GetPoolState(string chainId)
@@ -44,13 +47,13 @@ namespace AElf.Management.Services
         public async Task RecordPoolState(string chainId, DateTime time, int requestPoolSize, int receivePoolSize)
         {
             var fields = new Dictionary<string, object> {{"request", requestPoolSize}, {"receive", receivePoolSize}};
-            await InfluxDBHelper.Set(chainId, "network_pool_state", fields, null, time);
+            await _influxDatabase.Set(chainId, "network_pool_state", fields, null, time);
         }
 
         public async Task<List<PoolStateHistory>> GetPoolStateHistory(string chainId)
         {
             var result = new List<PoolStateHistory>();
-            var record = await InfluxDBHelper.Get(chainId, "select * from network_pool_state");
+            var record = await _influxDatabase.Get(chainId, "select * from network_pool_state");
             foreach (var item in record.First().Values)
             {
                 result.Add(new PoolStateHistory
