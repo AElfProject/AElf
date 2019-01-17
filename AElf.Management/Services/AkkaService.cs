@@ -22,7 +22,7 @@ namespace AElf.Management.Services
             jsonRpcArg.Method = "akkastate";
 
             var state = await HttpRequestHelper.Request<JsonRpcResult<List<ActorStateResult>>>(_managementOptions
-                .ServiceUrls[chainId].RpcAddress, jsonRpcArg);
+                .ServiceUrls[chainId].MonitorRpcAddress, jsonRpcArg);
 
             return state.Result;
         }
