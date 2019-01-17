@@ -25,7 +25,7 @@ namespace AElf.Kernel.Tests
         }
 
         //TODO: Recover.
-        [Fact(Skip = "")]
+        [Fact(Skip = "Skip for now.")]
         public void StateRollbackTest()
         {
             var key =  new KeyPairGenerator().Generate();
