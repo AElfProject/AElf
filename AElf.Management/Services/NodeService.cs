@@ -17,7 +17,7 @@ namespace AElf.Management.Services
         private readonly ManagementOptions _managementOptions;
         private readonly IInfluxDatabase _influxDatabase;
 
-        public NodeService(IOptions<ManagementOptions> options, IInfluxDatabase influxDatabase)
+        public NodeService(IOptionsSnapshot<ManagementOptions> options, IInfluxDatabase influxDatabase)
         {
             _managementOptions = options.Value;
             _influxDatabase = influxDatabase;

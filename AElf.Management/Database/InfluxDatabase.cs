@@ -14,7 +14,7 @@ namespace AElf.Management.Database
     {
         private readonly InfluxDbClient InfluxDb;
 
-        public InfluxDatabase(IOptions<MonitorDbOptions> options)
+        public InfluxDatabase(IOptionsSnapshot<MonitorDbOptions> options)
         {
             InfluxDb = new InfluxDbClient(options.Value.Url, options.Value.Username, options.Value.Password,
                 InfluxDbVersion.Latest);

@@ -11,7 +11,7 @@ namespace AElf.Management.Services
     {
         private readonly ManagementOptions _managementOptions;
 
-        public AkkaService(IOptions<ManagementOptions> options)
+        public AkkaService(IOptionsSnapshot<ManagementOptions> options)
         {
             _managementOptions = options.Value;
         }

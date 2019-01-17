@@ -23,7 +23,7 @@ namespace AElf.Management.Services
         public ILogger<RecordService> Logger {get;set;}
 
         public RecordService(IChainService chainService, ITransactionService transactionService, INodeService 
-        nodeService, INetworkService networkService,IOptions<ManagementOptions> options)
+        nodeService, INetworkService networkService,IOptionsSnapshot<ManagementOptions> options)
         {
             Logger= NullLogger<RecordService>.Instance;
 

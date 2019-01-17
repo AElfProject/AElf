@@ -16,7 +16,7 @@ namespace AElf.Management.Services
     {
         private readonly ManagementOptions _managementOptions;
         
-        public SideChainService(IOptions<ManagementOptions> options)
+        public SideChainService(IOptionsSnapshot<ManagementOptions> options)
         {
             _managementOptions = options.Value;
         }

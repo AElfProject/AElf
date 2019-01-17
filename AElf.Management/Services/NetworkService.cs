@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Management.Database;
-using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
@@ -16,7 +15,7 @@ namespace AElf.Management.Services
         private readonly ManagementOptions _managementOptions;
         private readonly IInfluxDatabase _influxDatabase;
 
-        public NetworkService(IOptions<ManagementOptions> options, IInfluxDatabase influxDatabase)
+        public NetworkService(IOptionsSnapshot<ManagementOptions> options, IInfluxDatabase influxDatabase)
         {
             _managementOptions = options.Value;
             _influxDatabase = influxDatabase;
