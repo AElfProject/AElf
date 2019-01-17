@@ -17,8 +17,8 @@ namespace AElf.Management.Tests
             _sideChainService = GetRequiredService<ISideChainService>();
         }
 
-        //[Fact(Skip = "require aws account")]
-        [Fact]
+        [Fact(Skip = "require aws account")]
+        //[Fact]
         public async Task DeployTest()
         {
             var password = "123";

@@ -107,11 +107,6 @@ namespace AElf.Configuration
             {
                 ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
             }
-
-            if (opts.IsParallelEnable.HasValue)
-            {
-                ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
-            }
             
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }

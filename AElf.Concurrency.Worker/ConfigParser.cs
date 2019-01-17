@@ -38,11 +38,6 @@ namespace AElf.Concurrency.Worker
             {
                 ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
             }
-
-            if (opts.IsParallelEnable.HasValue)
-            {
-                ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
-            }
         }
     }
 }

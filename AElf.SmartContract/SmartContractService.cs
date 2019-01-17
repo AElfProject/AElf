@@ -132,42 +132,40 @@ namespace AElf.SmartContract
             }
             return runner.GetContractType(registration);
         }
-        
+
         /// <inheritdoc/>
-        public async Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        public async Task DeployContractAsync(Hash chainId, Address contractAddress,
+            SmartContractRegistration registration, bool isPrivileged)
         {
             // get runnner
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
 
-            //Todo handle metadata
-            if (ParallelConfig.Instance.IsParallelEnable)
-            {
-                var contractType = runner.GetContractType(registration);
-                var contractTemplate = runner.ExtractMetadata(contractType);
-                await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
-            }
-            
+            //Todo New version metadata handle it
+//            var contractType = runner.GetContractType(registration);
+//            var contractTemplate = runner.ExtractMetadata(contractType);
+//            await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
+
             await _smartContractManager.InsertAsync(registration);
         }
-        
-        public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
+
+        public async Task UpdateContractAsync(Hash chainId, Address contractAddress,
+            SmartContractRegistration newRegistration, bool isPrivileged)
         {
             // get runnner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             runner.CodeCheck(newRegistration.ContractBytes.ToByteArray(), isPrivileged);
 
-            //Todo handle metadata
-            if (ParallelConfig.Instance.IsParallelEnable)
-            {
-                var oldRegistration = await GetContractByAddressAsync(chainId, contractAddress);
-                var oldContractType = runner.GetContractType(oldRegistration);
-                var oldContractTemplate = runner.ExtractMetadata(oldContractType);
-                
-                var newContractType = runner.GetContractType(newRegistration);
-                var newContractTemplate = runner.ExtractMetadata(newContractType);
-                await _functionMetadataService.UpdateContract(chainId, contractAddress, newContractTemplate, oldContractTemplate);
-            }
+            //Todo New version metadata handle it
+//            var oldRegistration = await GetContractByAddressAsync(chainId, contractAddress);
+//            var oldContractType = runner.GetContractType(oldRegistration);
+//            var oldContractTemplate = runner.ExtractMetadata(oldContractType);
+//
+//            var newContractType = runner.GetContractType(newRegistration);
+//            var newContractTemplate = runner.ExtractMetadata(newContractType);
+//            await _functionMetadataService.UpdateContract(chainId, contractAddress, newContractTemplate,
+//                oldContractTemplate);
+
             await _smartContractManager.InsertAsync(newRegistration);
         }
 
