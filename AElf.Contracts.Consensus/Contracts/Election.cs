@@ -140,6 +140,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 tickets = new Tickets();
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
+
             tickets.VotedTickets += votingRecord.Count;
             tickets.HistoryVotedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
@@ -154,6 +155,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 candidateTickets = new Tickets();
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
+
             candidateTickets.ObtainedTickets += votingRecord.Count;
             candidateTickets.HistoryObtainedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
@@ -187,7 +189,7 @@ namespace AElf.Contracts.Consensus.Contracts
                 Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
                 return new ActionResult {Success = true};
             }
-            
+
             return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
         }
 
@@ -218,9 +220,10 @@ namespace AElf.Contracts.Consensus.Contracts
             {
                 if (votingRecord.IsWithdrawn)
                 {
-                    return new ActionResult {Success = false, ErrorMessage = "This voting record has already withdrawn."};
+                    return new ActionResult
+                        {Success = false, ErrorMessage = "This voting record has already withdrawn."};
                 }
-                
+
                 if ((votingRecord.UnlockAge >= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
@@ -231,7 +234,7 @@ namespace AElf.Contracts.Consensus.Contracts
                     votingRecord.WithdrawTimestamp =
                         blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
                     votingRecord.IsWithdrawn = true;
-                    
+
                     _collection.VotingRecordsMap.SetValue(Hash.LoadHex(transactionId), votingRecord);
 
                     var ticketsCount = _collection.TicketsCountField.GetValue();
@@ -243,7 +246,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         ticketsOfVoter.VotedTickets -= votingRecord.Count;
                         _collection.TicketsMap.SetValue(votingRecord.From.ToStringValue(), ticketsOfVoter);
                     }
-                    
+
                     if (_collection.TicketsMap.TryGet(votingRecord.To.ToStringValue(), out var ticketsOfCandidate))
                     {
                         ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
@@ -275,7 +278,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                         Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                             _collection.CurrentTermNumberField.GetValue());
-                        
+
                         var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
                         votingRecord.WithdrawTimestamp =
                             blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();

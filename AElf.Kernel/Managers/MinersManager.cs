@@ -21,15 +21,6 @@ namespace AElf.Kernel.Managers
         
         public async Task<Miners> GetMiners(ulong termNumber)
         {
-            if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
-            {
-                var minersOfTerm1 = await GetMiners(CalculateKey(1));
-                if (minersOfTerm1 != null && minersOfTerm1.MainchainLatestTermNumber != 0)
-                {
-                    termNumber = minersOfTerm1.TermNumber;
-                }
-            }
-
             Miners miners;
             if (termNumber != 0)
             {
@@ -69,6 +60,7 @@ namespace AElf.Kernel.Managers
 
             if (miners.TermNumber > 1)
             {
+                // To inform sidechain latest version of miners list of mainchain.
                 _logger?.Trace($"BP-term for sidechain: {miners.TermNumber}");
                 var minersOfTerm1 = await GetMiners(1);
                 minersOfTerm1.MainchainLatestTermNumber = miners.TermNumber;
