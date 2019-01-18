@@ -687,7 +687,7 @@ namespace AElf.Node.Consensus
                     }
                     else
                     {
-                        nextTerm = (await _minersManager.GetMiners()).GenerateNewTerm(
+                        nextTerm = (await _minersManager.GetMiners(0)).GenerateNewTerm(
                             ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value,
                             _helper.CurrentTermNumber.Value);
                     }

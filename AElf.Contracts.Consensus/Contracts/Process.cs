@@ -478,12 +478,13 @@ namespace AElf.Contracts.Consensus.Contracts
                     if (index >= Config.Aliases.Count)
                         return;
 
-                var alias = Config.Aliases[index];
-                _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
-                    new StringValue {Value = alias});
-                _collection.HistoryMap.SetValue(new StringValue {Value = publicKey},
-                    new CandidateInHistory {CurrentAlias = alias});
-                index++;
+                    var alias = Config.Aliases[index];
+                    _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
+                        new StringValue {Value = alias});
+                    _collection.HistoryMap.SetValue(new StringValue {Value = publicKey},
+                        new CandidateInHistory {CurrentAlias = alias});
+                    index++;
+                }
             }
             else
             {
