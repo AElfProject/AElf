@@ -1,17 +1,23 @@
 ﻿using System.Threading.Tasks;
+using AElf.Management.Interfaces;
 using AElf.Management.Services;
 using Xunit;
 
 namespace AElf.Management.Tests
 {
-    public class WorkerServiceTest
+    public class WorkerServiceTest : ManagementTestBase
     {
+        private readonly IWorkerService _workerService;
+        public WorkerServiceTest()
+        {
+            _workerService = GetRequiredService<IWorkerService>();
+        }
+
         [Fact(Skip = "require aws account")]
         //[Fact]
         public async Task ModifyWorkerCountTest()
         {
-            var service = new WorkerService();
-            await service.ModifyWorkerCount("default", 2);
+            await _workerService.ModifyWorkerCount("default", 2);
         }
     }
 }

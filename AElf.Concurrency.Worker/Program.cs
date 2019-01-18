@@ -2,7 +2,6 @@
 using System.IO;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration.Config.Contract;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;

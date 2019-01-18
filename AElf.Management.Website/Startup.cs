@@ -20,8 +20,7 @@ namespace AElf.Management.Website
                 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options => { options.Filters.Add(new AuthenticationFilter()); }
-            ).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(options => { }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "AElf API", Version = "v1"}); });
 

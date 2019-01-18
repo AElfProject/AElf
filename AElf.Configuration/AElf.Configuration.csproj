@@ -32,12 +32,6 @@
     <None Update="Config\Executor\monitor.hocon" Link="config\monitor.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Database\database.json" Link="config\database.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Database\monitor-database.json" Link="config\monitor-database.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -48,9 +42,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Node\node.json" Link="config\node.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Node\transaction-pool.json" Link="config\transaction-pool.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\Management\management.json" Link="config\management.json">
@@ -68,14 +59,9 @@
     <None Update="Config\Consensus\consensus.json" Link="config\consensus.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Contract\runner.json" Link="config\runner.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Chain\chain.json" Link="config\chain.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\RPC\rpc.json" Link="config\rpc.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Remove="Config\Node\transaction-pool.json" />
   </ItemGroup>
 </Project>

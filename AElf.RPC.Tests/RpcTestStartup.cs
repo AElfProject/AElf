@@ -1,5 +1,4 @@
 using System;
-using AElf.Configuration.Config.Network;
 using AElf.Cryptography;
 using AElf.Database;
 using AElf.Kernel.Storages;
@@ -24,8 +23,6 @@ namespace AElf.RPC.Tests
 
         public void Configure(IApplicationBuilder app)
         {
-            NetworkConfig.Instance.EcKeyPair = CryptoHelpers.GenerateKeyPair();
-            
             app.InitializeApplication();
             
             app.Run((async context =>

@@ -1,5 +1,4 @@
-﻿using AElf.Configuration.Config.RPC;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Modularity;
 using AElf.Network;
 using AElf.RPC.Hubs.Net;

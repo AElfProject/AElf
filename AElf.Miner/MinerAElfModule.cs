@@ -42,16 +42,6 @@ namespace AElf.Miner
             services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddSingleton<ClientManager>();
             services.AddSingleton<ServerManager>();
-
-            
-
-            var txPoolConfig = TxPoolConfig.Default;
-            txPoolConfig.FeeThreshold = 0;
-            txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
-            txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
-            txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
-
-            services.AddSingleton<ITxPoolConfig>(txPoolConfig);
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
