@@ -134,7 +134,7 @@ namespace AElf.SmartContract
         /// <inheritdoc/>
         public async Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
         {
-            // get runnner
+            // get runner
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
 
@@ -151,7 +151,7 @@ namespace AElf.SmartContract
         
         public async Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration newRegistration, bool isPrivileged)
         {
-            // get runnner
+            // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             runner.CodeCheck(newRegistration.ContractBytes.ToByteArray(), isPrivileged);
 

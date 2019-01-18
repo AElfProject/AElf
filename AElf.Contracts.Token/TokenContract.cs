@@ -170,7 +170,7 @@ namespace AElf.Contracts.Token
         {
             var from = Api.GetFromAddress();
             DoTransfer(from, to, amount);
-            Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
+            //Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
         }
 
         [SmartContractFunction("${this}.TransferFrom", new[] {"${this}.DoTransfer"},

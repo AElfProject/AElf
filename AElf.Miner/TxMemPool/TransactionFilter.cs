@@ -173,13 +173,18 @@ namespace AElf.Miner.TxMemPool
             var correctRefBlockNumber = list.FirstOrDefault(tx => tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString())?.RefBlockNumber;
             if (correctRefBlockNumber.HasValue)
             {
-                toRemove.RemoveAll(tx => tx.RefBlockNumber == correctRefBlockNumber && tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
+                toRemove.RemoveAll(tx =>
+                    tx.RefBlockNumber == correctRefBlockNumber &&
+                    tx.MethodName == ConsensusBehavior.BroadcastInValue.ToString());
             }
-            
+
             toRemove.AddRange(
                 list.FindAll(tx =>
                     tx.MethodName != ConsensusBehavior.NextTerm.ToString() &&
-                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString()));
+                    tx.MethodName != ConsensusBehavior.BroadcastInValue.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForMiners.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SnapshotForTerm.ToString() &&
+                    tx.MethodName != ConsensusBehavior.SendDividends.ToString()));
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
         };
@@ -228,7 +233,7 @@ namespace AElf.Miner.TxMemPool
 
             _logger = LogManager.GetLogger(nameof(TransactionFilter));
         }
-        
+
         public void Execute(List<Transaction> txs)
         {
             var filterList = _txFilter.GetInvocationList();
@@ -249,8 +254,15 @@ namespace AElf.Miner.TxMemPool
                     throw;
                 }
             }
+            
+            _logger?.Trace("will package following consensus txs:");
+            foreach (var tx in txs)
+            {
+                _logger?.Trace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
+            }
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
             _logger?.Trace("Txs list:");

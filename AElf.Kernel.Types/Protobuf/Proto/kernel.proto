@@ -269,6 +269,12 @@ message BinaryMerkleTree{
 
 message StringList {
     repeated string Values = 1;
+    string Remark = 2;
+}
+
+message ULongList {
+    repeated uint64 Values = 1;
+    string Remark = 2;
 }
 
 message BlockAbstract {
@@ -296,4 +302,9 @@ enum BlockValidationResult {
     IncorrectSideChainInfo = 107;
     IncorrectPoWResult = 108;
     NotImplementConsensus = 109;
+}
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
 }
