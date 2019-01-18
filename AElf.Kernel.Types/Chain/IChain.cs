@@ -7,7 +7,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChain 
     {
-        long Id { get; }
+        int Id { get; }
         
         Hash GenesisBlockHash { get; }
     }

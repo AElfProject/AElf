@@ -232,7 +232,8 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadByteArray(byte[] bytes)
         {
-            if (bytes.Length != 32 && bytes.Length != GlobalConfig.ChainIdLength)
+            //TODO: remove && bytes.Length != 3 && bytes.Length!=4
+            if (bytes.Length != 32 && bytes.Length != 3 && bytes.Length!=4)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }
@@ -264,12 +265,15 @@ namespace AElf.Common
         #endregion Load and dump
         
         //TODO: should remove, it's temp solved long to Hash
-        public static implicit operator long(Hash d)
+        public static implicit operator int(Hash d)
         {
-            return BitConverter.ToInt64(d.DumpByteArray(),0);
+            var bytes = new byte[4];
+            var hashArray = d.DumpByteArray();
+            Array.Copy(hashArray,bytes,Math.Min(hashArray.Length,4));
+            return BitConverter.ToInt32(bytes,0);
         }
         //  User-defined conversion from double to Digit
-        public static implicit operator Hash(long d)
+        public static implicit operator Hash(int d)
         {
             return Hash.LoadByteArray(BitConverter.GetBytes(d));
         }
