@@ -35,15 +35,16 @@ namespace AElf.Contracts.Consensus.Tests
             builder.RegisterAssemblyTypes(assembly6).AsImplementedInterfaces();
             var assembly7 = typeof(BlockHeader).Assembly;
             builder.RegisterAssemblyTypes(assembly7).AsImplementedInterfaces();
-            
+
             builder.RegisterModule(new DatabaseAutofacModule());
             builder.RegisterModule(new LoggerAutofacModule());
             builder.RegisterModule(new ChainAutofacModule());
             builder.RegisterModule(new KernelAutofacModule());
             builder.RegisterModule(new SmartContractAutofacModule());
-            
+
             var smartContractRunnerFactory = new SmartContractRunnerContainer();
-            var runner = new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+            var runner =
+                new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
             smartContractRunnerFactory.AddRunner(0, runner);
             smartContractRunnerFactory.AddRunner(1, runner);
             builder.RegisterInstance(smartContractRunnerFactory).As<ISmartContractRunnerContainer>().SingleInstance();

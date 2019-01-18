@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Channels;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
@@ -14,11 +15,9 @@ namespace AElf.Contracts.Consensus.Tests
     public class TermTest
     {
         private const int CandidatesCount = 18;
-        private const int VotersCount = 2;
+        private const int VotersCount = 100;
         
         private readonly ContractsShim _contracts;
-
-        private readonly MockSetup _mock;
 
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
         private readonly List<ECKeyPair> _candidates = new List<ECKeyPair>();
@@ -26,10 +25,9 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
 
-        public TermTest(MockSetup mock)
+        public TermTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
-            _mock = mock;
-            _contracts = new ContractsShim(mock);
+            _contracts = new ContractsShim(mock, simpleExecutingService);
         }
         
         private void InitialMiners()
@@ -63,7 +61,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void ChangeTermTest()
         {
             // At very first, because none account of this blockchain has elf token,
@@ -79,10 +77,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 foreach (var candidate in _candidates)
                 {
-                    if (new Random().Next(0, 10) < 5)
-                    {
-                        _contracts.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
-                    }
+                    _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
                 }
             }
 

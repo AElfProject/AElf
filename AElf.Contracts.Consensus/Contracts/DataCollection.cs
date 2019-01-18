@@ -1,4 +1,5 @@
-﻿using AElf.Kernel;
+﻿using AElf.Common;
+using AElf.Kernel;
 using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -104,5 +105,10 @@ namespace AElf.Contracts.Consensus.Contracts
         /// Whether 2/3 of miners mined in current term.
         /// </summary>
         public BoolField TwoThirdsMinersMinedCurrentTermField;
+
+        /// <summary>
+        /// Transaction Id -> Voting Record.
+        /// </summary>
+        public Map<Hash, VotingRecord> VotingRecordsMap;
     }
 }

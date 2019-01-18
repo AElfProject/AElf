@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Managers
             if (termNumber != 0)
             {
                 miners = await GetMiners(CalculateKey(termNumber));
-                if (miners != null && !miners.IsEmpty())
+                if (miners != null && miners.PublicKeys.Any())
                     return miners;
             }
 
