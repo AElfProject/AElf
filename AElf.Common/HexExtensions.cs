@@ -9,6 +9,10 @@ namespace AElf.Common
         {
             return BitConverter.GetBytes(n).ToHex();
         }
+        public static string ToHex(this int n)
+        {
+            return BitConverter.GetBytes(n).ToHex();
+        }
 
         public static string DumpBase58(this int n)
         {

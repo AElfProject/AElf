@@ -269,7 +269,8 @@ namespace AElf.Common
         {
             var bytes = new byte[4];
             var hashArray = d.DumpByteArray();
-            Array.Copy(hashArray,bytes,Math.Min(hashArray.Length,4));
+            var length = Math.Min(hashArray.Length, 4);
+            Array.Copy(hashArray,0,bytes,4-length,length);
             return BitConverter.ToInt32(bytes,0);
         }
         //  User-defined conversion from double to Digit

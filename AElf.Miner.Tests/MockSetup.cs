@@ -118,7 +118,7 @@ namespace AElf.Miner.Tests
         }
         public async Task<IChain> CreateChain()
         {            
-            var chainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            var chainId = ChainHelpers.GetRandomChainId();
             
             var reg = new SmartContractRegistration
             {
@@ -209,7 +209,7 @@ namespace AElf.Miner.Tests
             {
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
+                ChainId = ChainHelpers.GetRandomChainId(),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };
@@ -228,7 +228,7 @@ namespace AElf.Miner.Tests
             return new SideChainBlockInfo
             {
                 Height = height,
-                ChainId = chainId ?? Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
+                ChainId = chainId ?? ChainHelpers.GetRandomChainId(),
                 TransactionMKRoot = Hash.Generate(),
                 BlockHeaderHash = Hash.Generate()
             };
@@ -312,7 +312,7 @@ namespace AElf.Miner.Tests
                 MockBlockHeader()
             };
             
-            var sideChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            var sideChainId = ChainHelpers.GetRandomChainId();
             ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
             
             MockKeyPair(sideChainId, dir);
@@ -327,7 +327,7 @@ namespace AElf.Miner.Tests
         public Hash MockParentChainServer(int port, string address, string dir, Hash chainId = null)
         {
             
-            chainId = chainId??Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            chainId = chainId??ChainHelpers.GetRandomChainId();
             
             _headers = new List<IBlockHeader>
             {

@@ -27,7 +27,7 @@ namespace AElf.Contracts.Authorization.Tests
             return (ulong) n;
         }
 
-        public Hash ChainId { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+        public Hash ChainId { get; } = ChainHelpers.GetRandomChainId();
 
         public IStateManager StateManager { get; private set; }
         public ISmartContractService SmartContractService;
