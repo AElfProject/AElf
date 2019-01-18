@@ -4,7 +4,6 @@ using AElf.Common.MultiIndexDictionary;
 using AElf.Common.Serializers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.Network;
 using AElf.Database;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Network;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -17,6 +16,7 @@ using AElf.Network.Eventing;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Volo.Abp.DependencyInjection;
@@ -70,9 +70,11 @@ namespace AElf.Network.Peers
         internal bool _isBp;
 
         private ECKeyPair _nodeKey;
-        private string _nodeName;
 
-        public PeerManager(IConnectionListener connectionListener, IChainService chainService)
+        private readonly NetworkOptions _networkOptions;
+
+        public PeerManager(IConnectionListener connectionListener, IChainService chainService,
+            IOptionsSnapshot<NetworkOptions> options)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _bpAddresses = new List<string>();
@@ -80,22 +82,23 @@ namespace AElf.Network.Peers
 
             _connectionListener = connectionListener;
             _chainService = chainService;
+            _networkOptions = options.Value;
             //_blockChain = blockChain;
             Logger = NullLogger<PeerManager>.Instance;
+            // Todo 
+            _nodeKey = null;
 
-            _nodeName = NodeConfig.Instance.NodeName;
-
-            if (!string.IsNullOrWhiteSpace(NetworkConfig.Instance.NetAllowed))
+            if (!string.IsNullOrWhiteSpace(_networkOptions.NetAllowed))
             {
-                if (Enum.TryParse(NetworkConfig.Instance.NetAllowed, out AllowedConnection myName))
+                if (Enum.TryParse(_networkOptions.NetAllowed, out AllowedConnection myName))
                 {
                     _allowedConnections = myName;
                 }
             }
 
-            if (NetworkConfig.Instance.NetWhitelist != null)
+            if (_networkOptions.NetWhitelist != null)
             {
-                foreach (var peer in NetworkConfig.Instance.NetWhitelist)
+                foreach (var peer in _networkOptions.NetWhitelist)
                 {
                     _whiteList.Add(ByteArrayHelpers.FromHexString(peer));
                 }
@@ -122,7 +125,7 @@ namespace AElf.Network.Peers
                 Logger.LogError(e, "Error while reading mining info.");
             }
 
-            _nodeKey = NetworkConfig.Instance.EcKeyPair;
+            _nodeKey = NodeConfig.Instance.ECKeyPair;
 
             // This nodes key
             var thisAddr = Address.FromPublicKey(_nodeKey.PublicKey).GetFormatted();
@@ -131,7 +134,7 @@ namespace AElf.Network.Peers
 
         public void Start()
         {
-            Task.Run(() => _connectionListener.StartListening(NetworkConfig.Instance.ListeningPort));
+            Task.Run(() => _connectionListener.StartListening(_networkOptions.ListeningPort));
 
             _connectionListener.IncomingConnection += OnIncomingConnection;
             _connectionListener.ListeningStopped += OnListeningStopped;
@@ -140,10 +143,10 @@ namespace AElf.Network.Peers
                 _maintenanceTimer = new Timer(e => DoPeerMaintenance(), null, _initialMaintenanceDelay, _maintenancePeriod);
 
             // Add the provided boot nodes
-            if (NetworkConfig.Instance.Bootnodes != null && NetworkConfig.Instance.Bootnodes.Any())
+            if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
                 // todo add jobs
-                foreach (var btn in NetworkConfig.Instance.Bootnodes)
+                foreach (var btn in _networkOptions.BootNodes)
                 {
                     NodeData nd = NodeData.FromString(btn);
                     var dialJob = new PeerManagerJob {Type = PeerManagerJobType.DialNode, Node = nd};
@@ -285,7 +288,7 @@ namespace AElf.Network.Peers
 
             int height = (int) _chainService.GetBlockChain(Hash.Default).GetCurrentBlockHeightAsync().Result;
 
-            IPeer peer = new Peer(client, reader, writer, NetworkConfig.Instance.ListeningPort, _nodeKey, height);
+            IPeer peer = new Peer(client, reader, writer, _networkOptions.ListeningPort, _nodeKey, height);
 
             return peer;
         }
