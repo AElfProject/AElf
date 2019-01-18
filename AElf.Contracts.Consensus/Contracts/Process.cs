@@ -307,6 +307,8 @@ namespace AElf.Contracts.Consensus.Contracts
                 forwarding.NextRoundInfo.RoundNumber,
                 "Incorrect round number of next round.");
 
+            var senderPublicKey = Api.RecoverPublicKey().ToHex();
+            
             if (IsMainchain() && forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
                 forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
@@ -340,14 +342,17 @@ namespace AElf.Contracts.Consensus.Contracts
                     }
 
                     nextRoundInfo.BlockchainAge = CurrentAge;
-                    nextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+                    if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(senderPublicKey))
+                    {
+                        nextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+                    }
                     _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
                     _collection.CurrentRoundNumberField.SetValue(nextRoundInfo.RoundNumber);
                 }
             }
             else
             {
-                // Update missed time slots and  produced blocks for each miner.
+                // Update missed time slots and produced blocks for each miner.
                 foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
                 {
                     if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
@@ -360,7 +365,10 @@ namespace AElf.Contracts.Consensus.Contracts
                 }
 
                 forwarding.NextRoundInfo.BlockchainAge = CurrentAge;
-                forwarding.NextRoundInfo.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+                if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(senderPublicKey))
+                {
+                    forwarding.NextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+                }
 
                 if (CurrentRoundNumber > GlobalConfig.ForkDetectionRoundNumber)
                 {
