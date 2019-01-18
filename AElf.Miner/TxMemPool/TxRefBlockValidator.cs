@@ -26,7 +26,7 @@ namespace AElf.Miner.TxMemPool
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 }
 
                 return _blockChain;

@@ -286,7 +286,7 @@ namespace AElf.Network.Peers
             MessageReader reader = new MessageReader(nsStream);
             MessageWriter writer = new MessageWriter(nsStream);
 
-            int height = (int) _chainService.GetBlockChain(Hash.Default).GetCurrentBlockHeightAsync().Result;
+            int height = (int) _chainService.GetBlockChain(0).GetCurrentBlockHeightAsync().Result;
 
             IPeer peer = new Peer(client, reader, writer, _networkOptions.ListeningPort, _nodeKey, height);
 

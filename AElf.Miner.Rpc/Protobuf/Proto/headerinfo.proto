@@ -5,7 +5,7 @@ import "common.proto";
 import "crosschain.proto";
 
 message RequestBlockInfo {
-    Hash ChainId = 1; // parent(own) chain id
+    int32 ChainId = 1; // parent(own) chain id
     uint64 NextHeight = 2;
 }
 
@@ -37,7 +37,7 @@ message MerkleProofMessage {
 }
 
 message VerificationNeededMessage {
-    Hash ChainId = 1;
+    int32 ChainId = 1;
     uint64 BlockHeight = 2; 
 }
 

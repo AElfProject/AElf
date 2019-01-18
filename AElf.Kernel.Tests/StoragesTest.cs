@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             

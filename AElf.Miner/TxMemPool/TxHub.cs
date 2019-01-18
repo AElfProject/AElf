@@ -34,8 +34,8 @@ namespace AElf.Miner.TxMemPool
         private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
         private readonly IAuthorizationInfoReader _authorizationInfoReader;
-        private readonly IElectionInfo _electionInfo;
         private readonly IChainService _chainService;
+        private readonly IElectionInfo _electionInfo;
         
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
@@ -44,7 +44,7 @@ namespace AElf.Miner.TxMemPool
         
         private ulong _curHeight;
 
-        private readonly Hash _chainId;
+        private readonly int _chainId;
 
         private readonly Address _dPosContractAddress;
         private readonly Address _crossChainContractAddress;
@@ -68,7 +68,7 @@ namespace AElf.Miner.TxMemPool
             _refBlockValidator = refBlockValidator;
             _authorizationInfoReader = authorizationInfoReader;
 
-            _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
 
             _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
             _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(_chainId);

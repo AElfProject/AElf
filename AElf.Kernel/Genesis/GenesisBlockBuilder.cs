@@ -9,7 +9,7 @@ namespace AElf.Kernel
     {
         public Block Block { get; set; }
 
-        public GenesisBlockBuilder Build(Hash chainId)
+        public GenesisBlockBuilder Build(int chainId)
         {
             var block = new Block(Hash.Genesis)
             {

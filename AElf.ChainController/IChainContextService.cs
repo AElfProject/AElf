@@ -7,6 +7,6 @@ namespace AElf.ChainController
 {
     public interface IChainContextService
     {
-        Task<IChainContext> GetChainContextAsync(Hash chainId);
+        Task<IChainContext> GetChainContextAsync(int chainId);
     }
 }

@@ -47,7 +47,7 @@ namespace AElf.Node.Consensus
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58())));
+                                                  ChainConfig.Instance.ChainId.ConvertBase58ToChainId()));
 
         public ILogger<DPoS> Logger {get;set;}
 
@@ -64,7 +64,7 @@ namespace AElf.Node.Consensus
         private byte[] _ownPubKey;
 
         private static Address ConsensusContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         private readonly IMinersManager _minersManager;
 

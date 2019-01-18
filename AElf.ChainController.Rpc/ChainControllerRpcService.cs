@@ -96,14 +96,14 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var basicContractZero =
-                    ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var crosschainContract =
-                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var authorizationContract =
-                    ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var consensusContract = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var dividendsContract = ContractHelpers.GetDividendsContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetAuthorizationContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var tokenContract = ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var consensusContract = ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var dividendsContract = ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject

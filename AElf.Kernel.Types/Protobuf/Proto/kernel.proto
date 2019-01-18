@@ -50,7 +50,7 @@ message TransactionReceipt {
 message StatePath {
     repeated bytes Path = 1;
 //    Address ContractAddress = 2;
-//    Hash ChainId = 3;
+//    int32 ChainId = 3;
 }
 
 message StateValue {
@@ -167,7 +167,7 @@ message BlockHeader {
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
-    Hash ChainId = 10;
+    int32 ChainId = 10;
     Hash SideChainTransactionsRoot = 11;
 }
 
@@ -244,7 +244,7 @@ message Key {
 }
 
 message DataPath {
-    Hash ChainId = 1;
+    int32 ChainId = 1;
     uint64 BlockHeight = 2;
     Address BlockProducerAddress = 3;
     Address ContractAddress = 4;

@@ -190,7 +190,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="cancellationTokenSource"></param>
         /// <param name="toDateTime"></param>
         /// <returns></returns>
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, int chainId,
             DateTime toDateTime, Hash disambiguationHash, CancellationTokenSource cancellationTokenSource)
         {
             var traces = readyTxs.Count == 0

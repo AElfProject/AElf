@@ -40,7 +40,7 @@ namespace AElf.SideChain.Creation
             _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
-                Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
@@ -139,7 +139,7 @@ namespace AElf.SideChain.Creation
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     
-        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
+        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(int sideChainId, int parentChainId)
         {
             var chainId = parentChainId.DumpBase58();
             var endpoint = NodeConfig.Instance.DeployServicePath.TrimEnd('/') + "/" + chainId;

@@ -65,7 +65,7 @@ namespace AElf.Sdk.CSharp
 
         #endregion Privileged API
 
-        public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
+        public static int ChainId => _smartContractContext.ChainId;
 
         public static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 

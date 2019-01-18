@@ -30,13 +30,8 @@ namespace AElf.Miner
                 };
             }
 
-            minerConfig.ChainId = new Hash()
-            {
-                Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
-            };
+            minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             
-            
-
             var services = context.Services;
 
             services.AddSingleton<IMinerConfig>(minerConfig);

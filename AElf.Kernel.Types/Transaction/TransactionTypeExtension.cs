@@ -5,7 +5,7 @@ namespace AElf.Kernel.Types.Transaction
 {
     public static class TransactionTypeExtension
     {
-        private static Hash ChainId { get; } = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        private static int ChainId { get; } = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
         private static Address DPosContractAddress { get; } = ContractHelpers.GetConsensusContractAddress(ChainId);
 
         private static Address CrossChainContractAddress { get; } =

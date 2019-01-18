@@ -109,7 +109,7 @@ namespace AElf.Kernel.Tests
 
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             

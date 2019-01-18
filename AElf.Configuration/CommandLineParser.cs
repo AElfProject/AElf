@@ -56,12 +56,6 @@ namespace AElf.Configuration
                 ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
             }
 
-            // chain config
-            if (!string.IsNullOrWhiteSpace(opts.ChainId))
-            {
-                ChainConfig.Instance.ChainId = opts.ChainId;
-            }
-
             // node config
             if (opts.IsMiner.HasValue)
             {

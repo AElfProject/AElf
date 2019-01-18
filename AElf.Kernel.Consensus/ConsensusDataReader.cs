@@ -13,7 +13,7 @@ namespace AElf.Kernel.Consensus
     /// </summary>
     public class ConsensusDataReader : ISingletonDependency
     {
-        private static Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        private static int ChainId => ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
         private static Address ContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
         
         private readonly IStateManager _stateManager;

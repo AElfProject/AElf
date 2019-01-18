@@ -15,8 +15,7 @@ namespace AElf.Common
 
         public static byte[] GetChainId(ulong serialNumber)
         {
-            var bytes = Encoding.UTF8.GetBytes(serialNumber + "_AElf").CalculateHash().ToArray();
-            return bytes;
+            return BitConverter.GetBytes( 198535 + (int)((uint)serialNumber.GetHashCode() % 11316496) % 11316496 );
         }
     }
 }

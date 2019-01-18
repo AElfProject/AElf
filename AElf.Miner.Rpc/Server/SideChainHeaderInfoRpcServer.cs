@@ -26,7 +26,7 @@ namespace AElf.Miner.Rpc.Server
             Logger = NullLogger<SideChainBlockInfoRpcServer>.Instance;
         }
 
-        public void Init(Hash chainId)
+        public void Init(int chainId)
         {
             LightChain = _chainService.GetLightChain(chainId);
             MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });

@@ -9,7 +9,7 @@ namespace AElf.Kernel
 {
     public partial class Chain : IChain
     {
-        public Chain(Hash chainId, Hash genesisBlockHash)
+        public Chain(int chainId, Hash genesisBlockHash)
         {
             Id = chainId;
             GenesisBlockHash = genesisBlockHash;
