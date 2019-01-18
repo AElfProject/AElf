@@ -167,7 +167,6 @@ namespace AElf.Miner.TxMemPool
             {
                 tr = new TransactionReceipt(txn);
                 _allTxns.TryAdd(tr.TransactionId, tr);
-                _logger.Trace($"Added receipt of transaction {tr.TransactionId}");
             }
             await VerifySignature(tr);
             await ValidateRefBlock(tr);
@@ -380,8 +379,6 @@ namespace AElf.Miner.TxMemPool
                 }
                 else
                 {
-                    _logger.Warn($"Receipt of transaction {txId} not found.");
-                    //TODO: Handle this, but it should never happen  
                 }
             }
 

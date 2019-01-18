@@ -118,10 +118,8 @@ namespace AElf.Miner.Rpc.Client
                 while (_channel.State != ChannelState.Ready)
                 {
                     await _channel.WaitForStateChangedAsync(_channel.State);
-                    _logger?.Warn($"Channel state targeted for {_targetChainId.DumpBase58()}: {_channel.State}");
                 }
                 
-                _logger?.Warn("Ready for cross chain.");
                 try
                 {
                     // response reader task
@@ -137,7 +135,6 @@ namespace AElf.Miner.Rpc.Client
                     if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
                     {
                         var detail = e.Status.Detail;
-                        _logger?.Warn($"{detail} exception during request to chain {_targetChainId.DumpBase58()}, with channel state {_channel.State}.");
 
                         // TODO: maybe improvement for NO wait call, or change the try solution
                         var task = StartDuplexStreamingCall(cancellationToken, _next);
@@ -205,10 +202,6 @@ namespace AElf.Miner.Rpc.Client
         public bool TryTake(int millisecondsTimeout, ulong height, out IBlockInfo blockInfo, bool needToCheckCachingCount = false)
         {
             var first = First();
-            
-            // todo : for debug
-            _logger.Debug($"Try to take cross chain block info ..");
-            
             // only mining process needs needToCheckCachingCount, for most nodes have this block.
             if (first != null 
                 && first.Height == height && !(needToCheckCachingCount && ToBeIndexedInfoQueue.LastOrDefault()?.Height < height + (ulong) _irreversible))
@@ -223,8 +216,6 @@ namespace AElf.Miner.Rpc.Client
                 return res;
             }
             
-            // todo : for debug
-            _logger.Debug($"Try to take cross chain block info from cache ..");
             // this is because of rollback 
             blockInfo = CachedInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)

@@ -103,12 +103,6 @@ namespace AElf.Miner.Rpc.Server
                                 if (!info.ChainId.Equals(sideChainId))
                                     continue;
                                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                                if (merklePath == null)
-                                {
-                                    // todo: this should not happen, only for debug
-                                    _logger?.Debug($"tree.Root == null: {binaryMerkleTree.Root == null}");
-                                    _logger?.Debug($"tree.LeafCount = {binaryMerkleTree.LeafCount}, index = {i}");
-                                }
                                 res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
                             }
                         }

@@ -774,7 +774,6 @@ namespace AElf.Node.Protocol
                 }
                 else
                 {
-                    _logger.Debug($"{args.Peer.Port} requests block at height {breq.Height}");
                     b = await _nodeService.GetBlockAtHeight(breq.Height);
                 }
 

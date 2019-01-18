@@ -220,7 +220,6 @@ namespace AElf.Miner.Miner
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
             {
-                _logger.Debug($"txnForIndexingSideChain {txnForIndexingSideChain.GetHash()} with refBlockHeight {refBlockHeight}");
                 await SignAndInsertToPool(txnForIndexingSideChain);
             }
                 
@@ -229,7 +228,6 @@ namespace AElf.Miner.Miner
                     refBlockPrefix);
             if (txnForIndexingParentChain != null)
             {
-                _logger.Debug($"txnForIndexingParentChain {txnForIndexingParentChain.GetHash()}");
                 await SignAndInsertToPool(txnForIndexingParentChain);
             }
                 
@@ -254,13 +252,6 @@ namespace AElf.Miner.Miner
             var sideChainIndexingTxnTrace = sysTxnTraces.FirstOrDefault(trace =>
                 trace.TransactionId.Equals(txHash) &&
                 trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted);
-
-            // todo : for debug
-            if (sysTxnTraces.Any(trace =>
-                trace.TransactionId.Equals(txHash) && trace.ExecutionStatus != ExecutionStatus.ExecutedAndCommitted))
-            {
-                _logger.Debug($"Cross chain txn {txHash} failed.");
-            }
             
             return  sideChainIndexingTxnTrace != null
                 ? Hash.LoadByteArray(sideChainIndexingTxnTrace.RetVal.ToFriendlyBytes())
