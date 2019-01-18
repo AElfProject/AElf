@@ -610,6 +610,8 @@ namespace AElf.Node.Consensus
                         await _minersManager.SetMiners(miners);
                     }
 
+                    nextRoundInfo.MinersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
+
                     var parameters = new List<object>
                     {
                         new Forwarding
