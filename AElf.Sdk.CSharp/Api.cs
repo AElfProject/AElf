@@ -130,7 +130,7 @@ namespace AElf.Sdk.CSharp
                 Console.WriteLine("Check result..");
                 var round = GetCallResult().DeserializeToPbMessage<Round>();
                 if(round != null)
-                    Console.WriteLine($"Got Round {round.RoundId}");
+                    Console.WriteLine($"Got Round {round.RoundNumber}");
                 var miners = round.RealTimeMinersInfo.Keys.ToMiners();
                 miners.TermNumber = round.MinersTermNumber;
                 
