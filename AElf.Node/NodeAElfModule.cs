@@ -56,6 +56,8 @@ namespace AElf.Node
                 }
             }
 
+            NodeConfig.Instance.ECKeyPair = nodeKey;
+
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:

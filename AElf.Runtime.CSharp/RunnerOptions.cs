@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 
 namespace AElf.Runtime.CSharp
 {
@@ -7,5 +8,10 @@ namespace AElf.Runtime.CSharp
         public string SdkDir { get; set; }
         public List<string> BlackList { get; set; }
         public List<string> WhiteList { get; set; }
+
+        public RunnerOptions()
+        {
+            SdkDir = Path.GetDirectoryName(typeof(CSharpRuntimeAElfModule).Assembly.Location);
+        }
     }
 }

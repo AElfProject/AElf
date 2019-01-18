@@ -129,6 +129,12 @@ namespace AElf.SideChain.Creation
 
         private void InitializeClient()
         {
+            if (string.IsNullOrWhiteSpace(NodeConfig.Instance.DeployServicePath))
+            {
+                Logger.LogError("Must set the path of deploy Service");
+                return;
+            }
+
             _client = new HttpClient {BaseAddress = new Uri(NodeConfig.Instance.DeployServicePath)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
