@@ -473,6 +473,10 @@ namespace AElf.Miner.TxMemPool
                         tr = new TransactionReceipt(t);
                     }
                     
+                    // todo: quick fix for null txn after rollback
+                    if(tr.Transaction == null)
+                        continue;
+                    
                     // cross chain transactions should not be reverted.
                     if (tr.Transaction.IsCrossChainIndexingTransaction())
                         continue;
