@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         {Success = false, ErrorMessage = "This voting record has already withdrawn."};
                 }
 
-                if ((votingRecord.UnlockAge >= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
+                if ((votingRecord.UnlockAge <= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
@@ -275,6 +275,11 @@ namespace AElf.Contracts.Consensus.Contracts
                 {
                     if (_collection.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
                     {
+                        if (votingRecord.UnlockAge > CurrentAge && !withoutLimitation)
+                        {
+                            continue;
+                        }
+                        
                         Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                         Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                             _collection.CurrentTermNumberField.GetValue());
