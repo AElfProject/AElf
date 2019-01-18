@@ -13,6 +13,7 @@ namespace AElf.Common
         
         public static int ChainIdLength = 3;
         public static int ContractAddressHashLength = 18;
+        public const ulong DaysEachTerm = 7;
         
         public static int AddressHashLength = 30; // length of sha256
         
@@ -47,12 +48,11 @@ namespace AElf.Common
         public const ulong BalanceForInitialization = 100_000_000;
         public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
-        public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
         public const int ProducerRepetitions = 8;
-        public const int AElfWaitFirstRoundTime = 8000;
+        public const int AElfWaitFirstRoundTime = 4000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSMinersString = "__AElfBlockProducer__";
         public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
@@ -70,6 +70,7 @@ namespace AElf.Common
         public const string AElfTwoThirdsMinerMinedString = "__AElfTwoThirdsMinerMinedString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
+        public const string AElfDPoSVotingRecordsMapString = "__AElfDPoSVotingRecordsMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
@@ -134,8 +135,6 @@ namespace AElf.Common
         
         public static ulong BlockCacheLimit = 2048; 
 
-        public const int RoundsPerTerm = 10;
-        
         #region Consensus Error String
         
         public const string TicketsNotFound = "Tickets not found.";

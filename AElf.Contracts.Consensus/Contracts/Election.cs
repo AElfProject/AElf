@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
@@ -18,22 +20,28 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void AnnounceElection(string alias = "")
+        public ActionResult AnnounceElection(string alias = "")
         {
             var publicKey = Api.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             if (_collection.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
             {
-                Api.Assert(!tickets.VotingRecords.Any(t => !t.IsExpired(_collection.AgeField.GetValue()) && t.From == publicKey),
-                    GlobalConfig.VoterCannotAnnounceElection);
+                foreach (var voteToTransaction in tickets.VoteToTransactions)
+                {
+                    if (_collection.VotingRecordsMap.TryGet(voteToTransaction, out var votingRecord))
+                    {
+                        Api.Assert(votingRecord.IsWithdrawn, GlobalConfig.VoterCannotAnnounceElection);
+                    }
+                }
             }
-            
+
             Api.LockToken(GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             if (!candidates.PublicKeys.Contains(publicKey))
             {
                 candidates.PublicKeys.Add(publicKey);
             }
+
             _collection.CandidatesField.SetValue(candidates);
 
             if (alias == "" || alias.Length > GlobalConfig.AliasLimit)
@@ -41,11 +49,12 @@ namespace AElf.Contracts.Consensus.Contracts
                 alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
             }
 
-            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) && publicKey == publicKeyOfThisAlias.Value)
+            if (_collection.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) &&
+                publicKey == publicKeyOfThisAlias.Value)
             {
-                return;
+                return new ActionResult {Success = true};
             }
-            
+
             _collection.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
             _collection.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
 
@@ -55,227 +64,254 @@ namespace AElf.Contracts.Consensus.Contracts
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
                     candidateHistoryInformation.Aliases.Add(alias);
+                    candidateHistoryInformation.CurrentAlias = alias;
                 }
 
                 _collection.HistoryMap.SetValue(publicKey.ToStringValue(), candidateHistoryInformation);
             }
+            else
+            {
+                _collection.HistoryMap.SetValue(publicKey.ToStringValue(), new CandidateInHistory
+                {
+                    CurrentAlias = alias
+                });
+            }
+
+            return new ActionResult {Success = true};
         }
 
-        public void QuitElection()
+        public ActionResult QuitElection()
         {
             Api.UnlockToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
             var candidates = _collection.CandidatesField.GetValue();
             candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
             _collection.CandidatesField.SetValue(candidates);
+
+            return new ActionResult {Success = true};
         }
 
-        public void Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             //TODO: Recover after testing.
-//            if (lockTime.InRange(1, 3))
-//            {
-//                lockTime *= 360;
-//            }
-//            else if (lockTime.InRange(12, 36))
-//            {
-//                lockTime *= 30;
-//            }
-//
-//            Api.Assert(lockTime.InRange(90, 1080), GlobalConfig.LockDayIllegal);
+//            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
 
-            Api.Assert(_collection.CandidatesField.GetValue().PublicKeys.Contains(candidatePublicKey),
+            // Cannot vote to non-candidate.
+            var candidates = _collection.CandidatesField.GetValue();
+            Api.Assert(candidates.PublicKeys.Contains(candidatePublicKey),
                 GlobalConfig.TargetNotAnnounceElection);
 
-            Api.Assert(!_collection.CandidatesField.GetValue().PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
+            // A candidate cannot vote to anybody.
+            Api.Assert(!candidates.PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
                 GlobalConfig.CandidateCannotVote);
 
+            // Transfer the tokens to Consensus Contract address.
             Api.LockToken(amount);
 
+            var currentTermNumber = _collection.CurrentTermNumberField.GetValue();
+            var currentRoundNumber = _collection.CurrentRoundNumberField.GetValue();
+
+            // To make up a VotingRecord instance.
             var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
             var votingRecord = new VotingRecord
             {
                 Count = amount,
                 From = Api.RecoverPublicKey().ToHex(),
                 To = candidatePublicKey,
-                RoundNumber = _collection.CurrentRoundNumberField.GetValue(),
+                RoundNumber = currentRoundNumber,
                 TransactionId = Api.GetTxnHash(),
                 VoteAge = CurrentAge,
                 UnlockAge = CurrentAge + (ulong) lockTime,
-                TermNumber = _collection.CurrentTermNumberField.GetValue(),
+                TermNumber = currentTermNumber,
                 VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp(),
-                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime).ToTimestamp()
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime)
+                    .ToTimestamp()
             };
             votingRecord.LockDaysList.Add(lockTime);
 
+            // Add the transaction id of this voting record to the tickets information of the voter.
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
-                tickets.VotingRecords.Add(votingRecord);
+                tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
             else
             {
                 tickets = new Tickets();
-                tickets.VotingRecords.Add(votingRecord);
+                tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
-
-            tickets.TotalTickets += votingRecord.Count;
+            tickets.VotedTickets += votingRecord.Count;
+            tickets.HistoryVotedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
 
+            // Add the transaction id of this voting record to the tickets information of the candidate.
             if (_collection.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
             {
-                candidateTickets.VotingRecords.Add(votingRecord);
+                candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
             else
             {
                 candidateTickets = new Tickets();
-                candidateTickets.VotingRecords.Add(votingRecord);
+                candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
-
-            candidateTickets.TotalTickets += votingRecord.Count;
+            candidateTickets.ObtainedTickets += votingRecord.Count;
+            candidateTickets.HistoryObtainedTickets += votingRecord.Count;
             _collection.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
 
+            // Update the amount of votes (voting records of whole system).
             var currentCount = _collection.VotesCountField.GetValue();
             currentCount += 1;
             _collection.VotesCountField.SetValue(currentCount);
-            
+
+            // Update the amount of tickets.
             var ticketsCount = _collection.TicketsCountField.GetValue();
             ticketsCount += votingRecord.Count;
             _collection.TicketsCountField.SetValue(ticketsCount);
 
-            Console.WriteLine("Add weights:" + votingRecord.Weight);
-            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight,
-                _collection.CurrentTermNumberField.GetValue());
+            // Add this voting record to voting records map.
+            _collection.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
 
-            Console.WriteLine($"Voted {amount} tickets to {candidatePublicKey}.");
+            // Tell Dividends Contract to add weights for this voting record.
+            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber + 1);
+
+            Console.WriteLine($"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
+            Console.WriteLine($"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
+            return new ActionResult {Success = true};
         }
 
-        public void ReceiveDividends(string candidatePublicKey, ulong amount, int lockDays)
+        public ActionResult ReceiveDividends(string transactionId)
         {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            if (_collection.VotingRecordsMap.TryGet(Hash.LoadHex(transactionId), out var votingRecord) &&
+                votingRecord.From == Api.RecoverPublicKey().ToHex())
             {
-                var votingRecord =
-                    tickets.VotingRecords.FirstOrDefault(vr =>
-                        vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
-
-                if (votingRecord != null)
-                {
-                    var maxTermNumber = votingRecord.TermNumber +
-                                        votingRecord.GetDurationDays(CurrentAge) /
-                                        GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
-                }
-            }
-        }
-
-        public void ReceiveDividends(Hash transactionId)
-        {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
-            {
-                var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
-
-                if (votingRecord != null)
-                {
-                    var maxTermNumber = votingRecord.TermNumber +
-                                        votingRecord.GetDurationDays(CurrentAge) /
-                                        GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
-                }
-            }
-        }
-
-        public void ReceiveDividends()
-        {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
-            {
-                foreach (var votingRecord in tickets.VotingRecords)
-                {
-                    var maxTermNumber = votingRecord.TermNumber +
-                                        votingRecord.GetDurationDays(CurrentAge) /
-                                        GlobalConfig.DaysEachTerm;
-                    Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord, maxTermNumber);
-                }
-            }
-        }
-
-        public void Withdraw(string candidatePublicKey, ulong amount, int lockDays)
-        {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
-            {
-                var votingRecord =
-                    tickets.VotingRecords.FirstOrDefault(vr =>
-                        vr.To == candidatePublicKey && vr.Count == amount && vr.LockDaysList.Last() == lockDays);
-
-                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
-                {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
-                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
-                        _collection.CurrentTermNumberField.GetValue());
-                    
-                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
-                    votingRecord.WithdrawTimestamp =
-                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
-                    votingRecord.IsWithdrawn = true;
-
-                    var ticketsCount = _collection.TicketsCountField.GetValue();
-                    ticketsCount -= votingRecord.Count;
-                    _collection.TicketsCountField.SetValue(ticketsCount);
-                }
+                Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
+                return new ActionResult {Success = true};
             }
             
-            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
         }
 
-        public void Withdraw(Hash transactionId)
+        public ActionResult ReceiveDividends()
         {
             if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {
-                var votingRecord = tickets.VotingRecords.FirstOrDefault(vr => vr.TransactionId == transactionId);
+                if (!tickets.VoteToTransactions.Any())
+                {
+                    return new ActionResult {Success = false, ErrorMessage = "Voting records not found."};
+                }
 
-                if (votingRecord != null && votingRecord.UnlockAge >= CurrentAge)
+                foreach (var transactionId in tickets.VoteToTransactions)
+                {
+                    if (_collection.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    {
+                        Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
+                    }
+                }
+            }
+
+            return new ActionResult {Success = true};
+        }
+
+        public ActionResult Withdraw(string transactionId, bool withoutLimitation)
+        {
+            if (_collection.VotingRecordsMap.TryGet(Hash.LoadHex(transactionId), out var votingRecord))
+            {
+                if (votingRecord.IsWithdrawn)
+                {
+                    return new ActionResult {Success = false, ErrorMessage = "This voting record has already withdrawn."};
+                }
+                
+                if ((votingRecord.UnlockAge >= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
                 {
                     Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
                     Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
                         _collection.CurrentTermNumberField.GetValue());
-                    
+
                     var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
                     votingRecord.WithdrawTimestamp =
                         blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
                     votingRecord.IsWithdrawn = true;
                     
+                    _collection.VotingRecordsMap.SetValue(Hash.LoadHex(transactionId), votingRecord);
+
                     var ticketsCount = _collection.TicketsCountField.GetValue();
                     ticketsCount -= votingRecord.Count;
                     _collection.TicketsCountField.SetValue(ticketsCount);
+
+                    if (_collection.TicketsMap.TryGet(votingRecord.From.ToStringValue(), out var ticketsOfVoter))
+                    {
+                        ticketsOfVoter.VotedTickets -= votingRecord.Count;
+                        _collection.TicketsMap.SetValue(votingRecord.From.ToStringValue(), ticketsOfVoter);
+                    }
+                    
+                    if (_collection.TicketsMap.TryGet(votingRecord.To.ToStringValue(), out var ticketsOfCandidate))
+                    {
+                        ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
+                        _collection.TicketsMap.SetValue(votingRecord.To.ToStringValue(), ticketsOfCandidate);
+                    }
                 }
             }
-            
-            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            else
+            {
+                return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
+            }
+
+            return new ActionResult {Success = true};
         }
 
-        public void Withdraw(bool withoutLimitation = false)
+        public ActionResult Withdraw(bool withoutLimitation = false)
         {
-            if (_collection.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var voterPublicKey = Api.RecoverPublicKey().ToHex();
+            var ticketsCount = _collection.TicketsCountField.GetValue();
+            var withdrawnAmount = 0UL;
+            var candidatesVotesDict = new Dictionary<string, ulong>();
+
+            if (_collection.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
             {
-                var votingRecords = withoutLimitation
-                    ? tickets.VotingRecords.ToList()
-                    : tickets.VotingRecords.Where(vr => vr.UnlockAge >= CurrentAge).ToList();
-
-                foreach (var votingRecord in votingRecords)
+                foreach (var transactionId in tickets.VoteToTransactions)
                 {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
-                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
-                        _collection.CurrentTermNumberField.GetValue());
-                    
-                    var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
-                    votingRecord.WithdrawTimestamp =
-                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
-                    votingRecord.IsWithdrawn = true;
+                    if (_collection.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    {
+                        Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
+                        Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
+                            _collection.CurrentTermNumberField.GetValue());
+                        
+                        var blockchainStartTimestamp = _collection.BlockchainStartTimestamp.GetValue();
+                        votingRecord.WithdrawTimestamp =
+                            blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
+                        votingRecord.IsWithdrawn = true;
 
-                    var ticketsCount = _collection.TicketsCountField.GetValue();
-                    ticketsCount -= votingRecord.Count;
-                    _collection.TicketsCountField.SetValue(ticketsCount);
+                        withdrawnAmount += votingRecord.Count;
+                        if (candidatesVotesDict.ContainsKey(votingRecord.To))
+                        {
+                            candidatesVotesDict[votingRecord.To] += votingRecord.Count;
+                        }
+                        else
+                        {
+                            candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
+                        }
+
+                        _collection.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
+                    }
+                }
+
+                ticketsCount -= withdrawnAmount;
+                _collection.TicketsCountField.SetValue(ticketsCount);
+
+                tickets.VotedTickets -= withdrawnAmount;
+                _collection.TicketsMap.SetValue(voterPublicKey.ToStringValue(), tickets);
+
+                foreach (var candidateVote in candidatesVotesDict)
+                {
+                    if (_collection.TicketsMap.TryGet(candidateVote.Key.ToStringValue(), out var ticketsOfCandidate))
+                    {
+                        ticketsOfCandidate.ObtainedTickets -= candidateVote.Value;
+                        _collection.TicketsMap.SetValue(candidateVote.Key.ToStringValue(), ticketsOfCandidate);
+                    }
                 }
             }
 
-            _collection.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            return new ActionResult {Success = true};
         }
     }
 }

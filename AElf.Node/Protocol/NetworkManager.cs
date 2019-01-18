@@ -444,7 +444,7 @@ namespace AElf.Node.Protocol
                     LocalHeight = (int) _currentLibNum;
 
                     // todo should be from a BP that is not part of the minority
-                    IPeer syncPeer = _peers.FirstOrDefault(p => p.KnownHeight > LocalHeight);
+                    IPeer syncPeer = _peers.Where(p => p.KnownHeight > LocalHeight).OrderByDescending(p => p.KnownHeight).FirstOrDefault();
 
                     if (syncPeer != null)
                     {
@@ -851,6 +851,14 @@ namespace AElf.Node.Protocol
 
                 lock (_syncLock)
                 {
+                    // Check that we're not missing any announcements
+                    if (CurrentSyncSource == null && a.Height > LocalHeight+1 && _peers.All(p => !p.AnyStashed))
+                    {
+                        Logger.LogDebug($"Futur announcement {a.Height}.");
+                        CurrentSyncSource = peer;
+                        peer.SyncToHeight(LocalHeight+1, a.Height);
+                    }
+                    
                     // stash inside the lock because BlockAccepted will clear 
                     // announcements after the chain accepts
                     peer.StashAnnouncement(a);

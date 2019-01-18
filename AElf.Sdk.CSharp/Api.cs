@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -108,7 +109,8 @@ namespace AElf.Sdk.CSharp
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            return CryptoHelpers.RecoverPublicKey(signature, hash);
+            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            return !cabBeRecovered ? null : publicKey;
         }
 
         /// <summary>
@@ -156,6 +158,26 @@ namespace AElf.Sdk.CSharp
             }
 
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static ulong GetBlockchainAge()
+        {
+            if (Call(ConsensusContractAddress, "GetBlockchainAge"))
+            {
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+            }
+
+            throw new InternalError("Failed to get blockchain age.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static List<VotingRecord> GetVotingRecords(string publicKey)
+        {
+            if (Call(ConsensusContractAddress, "GetTicketsInfo", publicKey))
+            {
+                return GetCallResult().DeserializeToPbMessage<Tickets>().VotingRecords.ToList();
+            }
+
+            throw new InternalError("Failed to get voting records.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
@@ -438,9 +460,14 @@ namespace AElf.Sdk.CSharp
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            var publicKeys = _transactionContext.Transaction.Sigs
-                .Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray();
-
+            var publicKeys = new List<byte[]>();
+            foreach (var sig in _transactionContext.Transaction.Sigs)
+            {
+                var publicKey = RecoverPublicKey(sig.ToByteArray(), hash);
+                Assert (publicKey != null, "Invalid signature."); // this should never happen.
+                publicKeys.Add(publicKey);
+            }
+            
             //todo review correctness
             uint provided = publicKeys
                 .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))

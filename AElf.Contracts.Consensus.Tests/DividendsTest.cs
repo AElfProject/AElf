@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Xunit;
@@ -10,11 +12,10 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    public class DividendsTest
+    public sealed class DividendsTest : ConsensusContractTestBase
     {
         private const int CandidatesCount = 18;
-        private const int VotersCount = 2;
-
+        private const int VotersCount = 10;
         private readonly ContractsShim _contracts;
 
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
@@ -23,26 +24,37 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
 
-        public DividendsTest(MockSetup mock)
+        public DividendsTest()
         {
-            _contracts = new ContractsShim(mock);
+            _contracts = GetRequiredService<ContractsShim>();
         }
-//[Fact]
-        [Fact(Skip = "Time consuming")]
-        public void GetDividendsTest()
+
+        [Fact(Skip = "Time consuming.")]
+        public void DividendsInitializationTest()
         {
-            GlobalConfig.ElfTokenPerBlock = 1000;
-            InitialMiners();
-            InitialTerm(_initialMiners[0]);
+            InitializeMiners();
+            InitializeTerm(_initialMiners[0]);
 Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
-            InitialCandidates();
-            InitialVoters();
+            }
+
+        [Fact]
+        //[Fact(Skip = "Time consuming.")]
+        public void ReceiveDividendsTest()
+        {
+            GlobalConfig.ElfTokenPerBlock = 1000;
+
+            DividendsInitializationTest();
+
+            InitializeCandidates();
+            InitializeVoters();
+
+            var history0 = _contracts.GetCandidatesHistoryInfo();
 
             var candidatesList = _contracts.GetCandidatesListToFriendlyString();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.Contains(_candidates[1].PublicKey.ToHex(), candidatesList);
-            
+
             var balanceOfConsensusContract = _contracts.BalanceOf(_contracts.ConsensusContractAddress);
             Assert.True(balanceOfConsensusContract > 0);
 
@@ -52,31 +64,50 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             {
                 foreach (var candidate in _candidates)
                 {
-                    if (new Random().Next(0, 10) < 5)
-                    {
-                        mustVotedVoter = voter;
-                        _contracts.Vote(voter, candidate, (ulong) new Random().Next(1, 100), 90);
-                    }
+                    mustVotedVoter = voter;
+                    _contracts.Vote(voter, candidate.PublicKey.ToHex(), (ulong) new Random().Next(1, 100), 90);
                 }
             }
 
             Assert.NotNull(mustVotedVoter);
 
-            var ticketsInformationInJson = _contracts.GetTicketsInfoToFriendlyString(mustVotedVoter);
+            var ticketsInformationInJson = _contracts.GetTicketsInfoToFriendlyString(mustVotedVoter.PublicKey.ToHex());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
 
-            var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter);
-            var votedTickets = ticketsInformation.TotalTickets;
+            var ticketsInformation = _contracts.GetTicketsInfo(mustVotedVoter.PublicKey.ToHex());
+            var pagedTicketsInformation = _contracts.GetPageableTicketsInfo(mustVotedVoter.PublicKey.ToHex(), 0, 100);
+            var votedTickets = ticketsInformation.VotedTickets;
             var balanceAfterVoting = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(votedTickets + balanceAfterVoting == 100_000);
 
+            var transactionId = pagedTicketsInformation.VoteToTransactions.FirstOrDefault()?.ToHex();
+            Assert.NotNull(transactionId);
+
+            var history1 = _contracts.GetCandidatesHistoryInfo();
+
             // Get victories of first term of election, they are miners then.
             var victories = _contracts.GetCurrentVictories().Values;
+
             // Second term.
-            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 1);
-            _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), secondTerm);
+            var secondTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
+                _contracts.GetCurrentTermNumber());
+            var candidateForTerm2 = _candidates.First(c => c.PublicKey.ToHex() == victories[1]);
+            _contracts.NextTerm(candidateForTerm2, secondTerm);
+            _contracts.SnapshotForTerm(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
+            _contracts.SnapshotForMiners(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
+            _contracts.SendDividends(candidateForTerm2, secondTerm.TermNumber - 1,
+                secondTerm.FirstRound.RoundNumber - 1);
+            var roundInfoBeforeTerm2 = _contracts.GetRoundInfo(secondTerm.FirstRound.RoundNumber - 1);
+            Debug.WriteLine("Term message:");
+            Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Assert.Equal(2.ToString(), _contracts.GetCurrentTermNumber().ToString());
+            var dividendsOfTerm1 = _contracts.GetTermDividends(1);
+            Assert.True(dividendsOfTerm1 > 0);
 
             var secondRound = _contracts.GetRoundInfo(2);
+
             // New miners produce some blocks.
             var inValuesList = new Stack<Hash>();
             var outValuesList = new Stack<Hash>();
@@ -104,25 +135,54 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             }
 
             // Third item.
-            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 3, 2);
-            _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), thirdTerm);
+            var thirdTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, _contracts.GetCurrentRoundNumber(),
+                _contracts.GetCurrentTermNumber());
+            var candidateForTerm3 = _candidates.First(c => c.PublicKey.ToHex() == victories[1]);
+            _contracts.NextTerm(candidateForTerm3, thirdTerm);
+            _contracts.SnapshotForTerm(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
+            _contracts.SnapshotForMiners(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
+            _contracts.SendDividends(candidateForTerm3, thirdTerm.TermNumber - 1,
+                thirdTerm.FirstRound.RoundNumber - 1);
+            Debug.WriteLine("Term message:");
+            Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
+            Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            
+            var history3 = _contracts.GetCandidatesHistoryInfo();
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            Assert.NotNull(history3);
 
             var snapshotOfSecondTerm = _contracts.GetTermSnapshot(2);
-            Assert.True(snapshotOfSecondTerm.TotalBlocks == 18);
+            Assert.Equal(18.ToString(), snapshotOfSecondTerm.TotalBlocks.ToString());
 
             var dividendsOfSecondTerm = _contracts.GetTermDividends(2);
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
-
+var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
             var balanceBefore = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(balanceAfter >= balanceBefore);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
+            var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
+            
+            _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
 
-            var standardDividendsOfPreviousTerm = _contracts.CheckStandardDividendsOfPreviousTerm();
+            _contracts.WithdrawAll(mustVotedVoter);
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            Assert.True(standardDividendsOfPreviousTerm > 0);
+            var balanceAfterWithdraw = _contracts.BalanceOf(GetAddress(mustVotedVoter));
+            Assert.True(balanceAfterWithdraw > balanceAfter);
+
+            var history4 = _contracts.GetCandidatesHistoryInfo();
+            Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
+            Assert.NotNull(history4);
+
+            var dividendsList = _contracts.CheckDividendsOfPreviousTerm();
+            Assert.True(dividendsList.Values.Any());
         }
 
         private ECKeyPair GetCandidateKeyPair(string publicKey)
@@ -130,7 +190,7 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             return _candidates.First(c => c.PublicKey.ToHex() == publicKey);
         }
 
-        private void InitialMiners()
+        private void InitializeMiners()
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
             {
@@ -138,7 +198,7 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             }
         }
 
-        private void InitialCandidates()
+        private void InitializeCandidates()
         {
             for (var i = 0; i < CandidatesCount; i++)
             {
@@ -150,7 +210,7 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             }
         }
 
-        private void InitialVoters()
+        private void InitializeVoters()
         {
             for (var i = 0; i < VotersCount; i++)
             {
@@ -161,11 +221,11 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             }
         }
 
-        private void InitialTerm(ECKeyPair starterKeyPair)
+        private void InitializeTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
                 new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(
-                    MiningInterval);
+                    MiningInterval, 0);
             _contracts.InitialTerm(starterKeyPair, initialTerm);
         }
 

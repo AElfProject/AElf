@@ -42,9 +42,12 @@ namespace AElf.Kernel
             services.AddTransient(
                 typeof(IComparisionIndex<>), 
                 typeof(ComparisionIndex<,>));
-
+            
+            services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
+            
             services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
+
 
 
         }

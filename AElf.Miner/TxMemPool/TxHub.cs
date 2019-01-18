@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -257,8 +256,15 @@ namespace AElf.Miner.TxMemPool
                 Weight = 1 // BP weight
             }));
             var hash = tr.Transaction.GetHash().DumpByteArray();
-            return _authorizationInfoReader.ValidateAuthorization(auth,
-                tr.Transaction.Sigs.Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray());
+            var publicKeys = new List<byte[]>();
+            foreach (var sig in tr.Transaction.Sigs)
+            {
+                var canBeRecovered = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash, out var publicKey);
+                if (!canBeRecovered)
+                    return false;
+                publicKeys.Add(publicKey);
+            }
+            return _authorizationInfoReader.ValidateAuthorization(auth, publicKeys);
         }
         
         
@@ -279,8 +285,14 @@ namespace AElf.Miner.TxMemPool
             if (transaction.Sigs.Count == 1)
                 return true;
             // Get pub keys
-            var publicKeys = transaction.Sigs.Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash))
-                .ToArray();
+            var publicKeys = new List<byte[]>();
+            foreach (var sig in transaction.Sigs)
+            {
+                var canBeRecovered = CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash, out var publicKey);
+                if (!canBeRecovered)
+                    return false;
+                publicKeys.Add(publicKey);
+            }
             
             return await _authorizationInfoReader.CheckAuthority(transaction.From, publicKeys);
         }
