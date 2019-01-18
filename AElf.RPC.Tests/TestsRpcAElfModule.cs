@@ -35,7 +35,7 @@ namespace AElf.RPC.Tests
         {
             //TODO: here to generate basic chain data
 
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             
             //TODO: Remove it

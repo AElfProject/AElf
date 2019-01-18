@@ -26,7 +26,7 @@ namespace AElf.Miner.Tests
             
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
             
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
 

@@ -34,7 +34,7 @@ namespace AElf.Benchmark
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Address _contractHash;
         
-        private Hash ChainId { get; }
+        private int ChainId { get; }
         private int _incrementId;
         
         public byte[] SmartContractZeroCode

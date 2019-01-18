@@ -44,7 +44,7 @@ namespace AElf.Kernel.Tests
             services.AddSingleton<IActorEnvironment, ActorEnvironment>();
             services.AddSingleton<ServicePack>();
 
-            services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
 
         }

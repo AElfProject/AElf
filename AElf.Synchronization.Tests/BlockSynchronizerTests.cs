@@ -17,6 +17,7 @@ using Xunit;
 
 namespace AElf.Synchronization.Tests
 {
+    /*
     public class BlockSyncTestBase : IDisposable
     {
         protected Miners Miners;
@@ -241,5 +242,5 @@ namespace AElf.Synchronization.Tests
             
             Assert.Empty(ExecuteBlockCalls);
         }
-    }
+    }*/
 }

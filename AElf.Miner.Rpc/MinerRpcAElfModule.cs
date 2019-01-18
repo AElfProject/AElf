@@ -24,9 +24,9 @@ namespace AElf.Miner.Rpc
          public override void OnApplicationInitialization(ApplicationInitializationContext context)
          {
              context.ServiceProvider.GetService<SideChainBlockInfoRpcServer>()
-                 .Init(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                 .Init(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
              context.ServiceProvider.GetService<ParentChainBlockInfoRpcServer>()
-                 .Init(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                 .Init(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
          }
      }

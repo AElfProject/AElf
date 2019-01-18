@@ -24,7 +24,7 @@ namespace AElf.ChainController
         public ILogger<ConsensusBlockValidationFilter> Logger {get;set;}
 
         private Address ConsensusContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
@@ -70,7 +70,7 @@ namespace AElf.ChainController
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             TransactionTrace trace;
             var executive = await _smartContractService.GetExecutiveAsync(ConsensusContractAddress,
-                Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             try
             {
                 var tx = GetTransactionToValidateBlock(block.GetAbstract());
@@ -88,7 +88,7 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                _smartContractService.PutExecutiveAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     ConsensusContractAddress, executive).Wait();
             }
             

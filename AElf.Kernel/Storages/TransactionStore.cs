@@ -4,9 +4,9 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class TransactionStore : KeyValueStoreBase<BlockChainKeyValueDbContext>, ITransactionStore
+    public class TransactionStore : KeyValueStoreBase<BlockchainKeyValueDbContext>, ITransactionStore
     {
-        public TransactionStore(IByteSerializer byteSerializer, BlockChainKeyValueDbContext keyValueDbContext) 
+        public TransactionStore(IByteSerializer byteSerializer, BlockchainKeyValueDbContext keyValueDbContext) 
             : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionPrefix)
         {
         }

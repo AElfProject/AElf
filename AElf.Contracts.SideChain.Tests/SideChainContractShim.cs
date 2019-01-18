@@ -49,7 +49,7 @@ namespace AElf.Contracts.SideChain.Tests
 
         #region View Only Methods
 
-        public async Task<int?> GetChainStatus(Hash chainId)
+        public async Task<int?> GetChainStatus(int chainId)
         {
             var tx = new Transaction
             {
@@ -68,7 +68,7 @@ namespace AElf.Contracts.SideChain.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
         }
 
-        public async Task<ulong?> GetLockedToken(Hash chainId)
+        public async Task<ulong?> GetLockedToken(int chainId)
         {
             var tx = new Transaction
             {
@@ -87,7 +87,7 @@ namespace AElf.Contracts.SideChain.Tests
             return TransactionContext.Trace.RetVal?.Data.DeserializeToUInt64();
         }
 
-        public async Task<byte[]> GetLockedAddress(Hash chainId)
+        public async Task<byte[]> GetLockedAddress(int chainId)
         {
             var tx = new Transaction
             {
@@ -134,7 +134,7 @@ namespace AElf.Contracts.SideChain.Tests
             await trace.SmartCommitChangesAsync(_mock.StateManager);
         }
         
-        public async Task<byte[]> CreateSideChain(Hash chainId, Address lockedAddress, ulong lockedToken)
+        public async Task<byte[]> CreateSideChain(int chainId, Address lockedAddress, ulong lockedToken)
         {
             var tx = new Transaction
             {
@@ -154,7 +154,7 @@ namespace AElf.Contracts.SideChain.Tests
         }
 
 
-        public async Task ApproveSideChain(Hash chainId)
+        public async Task ApproveSideChain(int chainId)
         {
             var tx = new Transaction
             {
@@ -172,7 +172,7 @@ namespace AElf.Contracts.SideChain.Tests
             await CommitChangesAsync(TransactionContext.Trace);
         }
 
-        public async Task DisposeSideChain(Hash chainId)
+        public async Task DisposeSideChain(int chainId)
         {
             var tx = new Transaction
             {

@@ -20,7 +20,7 @@ namespace AElf.Kernel
         public new ILogger<BlockChain> Logger { get; set; }
 
 
-        public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
+        public BlockChain(int chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
             IStateManager stateManager) : base(
             chainId, chainManager, blockManager)
@@ -134,6 +134,7 @@ namespace AElf.Kernel
             return txs;
         }
 
+        
         private async Task RollbackSideChainInfo(IBlock block)
         {
             foreach (var info in block.Body.IndexedInfo)

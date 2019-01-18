@@ -31,7 +31,7 @@ namespace AElf.ChainController
         /// <returns>The new chain async.</returns>
         /// <param name="chainId">The new chain id which will be derived from the creator address.</param>
         /// <param name="smartContractRegistration">The smart contract registration containing the code of the SmartContractZero.</param>
-        public async Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractRegistration)
+        public async Task<IChain> CreateNewChainAsync(int chainId, List<SmartContractRegistration> smartContractRegistration)
         {
             try
             {

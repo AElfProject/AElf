@@ -9,8 +9,8 @@ namespace AElf.SmartContract
 {
     public interface ISmartContractService
     {
-        Task<IExecutive> GetExecutiveAsync(Address contractAddress, Hash chainId);
-        Task PutExecutiveAsync(Hash chainId, Address account, IExecutive executive);
+        Task<IExecutive> GetExecutiveAsync(Address contractAddress, int chainId);
+        Task PutExecutiveAsync(int chainId, Address account, IExecutive executive);
         /// <summary>
         /// Deploys a contract to the specified chain and account.
         /// </summary>
@@ -19,23 +19,23 @@ namespace AElf.SmartContract
         /// <param name="registration">The contract registration info.</param>
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
-        Task DeployContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        Task DeployContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
 
-        Task UpdateContractAsync(Hash chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        Task UpdateContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
 
-        Task<IMessage> GetAbiAsync(Hash chainId, Address account);
+        Task<IMessage> GetAbiAsync(int chainId, Address account);
 
         /// <summary>
         /// return invoking parameters in one tx
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction);
+        Task<IEnumerable<string>> GetInvokingParams(int chainId, Transaction transaction);
 
-        Task<SmartContractRegistration> GetContractByAddressAsync(Hash chainId, Address address);
+        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
 
-        Task DeployZeroContractAsync(Hash chainId, SmartContractRegistration registration);
+        Task DeployZeroContractAsync(int chainId, SmartContractRegistration registration);
 
-        Task<Address> DeploySystemContractAsync(Hash chainId, SmartContractRegistration registration);
+        Task<Address> DeploySystemContractAsync(int chainId, SmartContractRegistration registration);
     }
 }

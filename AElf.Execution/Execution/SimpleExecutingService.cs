@@ -33,7 +33,7 @@ namespace AElf.Execution.Execution
             _stateManager = stateManager;
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, int chainId,
             DateTime currentBlockTime, CancellationToken cancellationToken, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
         {
@@ -70,7 +70,7 @@ namespace AElf.Execution.Execution
             return traces;
         }
 
-        private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, Hash chainId,
+        private async Task<TransactionTrace> ExecuteOneAsync(int depth, Transaction transaction, int chainId,
             IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache, DateTime currentBlockTime,
             CancellationToken cancellationToken, bool skipFee = false)
         {
@@ -165,7 +165,7 @@ namespace AElf.Execution.Execution
         }
 
         private async Task<TransactionTrace> ChargeTransactionFeesFor(ulong feeAmount, Transaction originalTxn,
-            Hash chainId, IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
+            int chainId, IChainContext chainContext, Dictionary<StatePath, StateCache> stateCache,
             DateTime currentBlockTime, CancellationToken cancellationToken)
         {
             var chargeFeesTxn = new Transaction()

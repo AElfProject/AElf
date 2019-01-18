@@ -11,7 +11,8 @@ namespace AElf.Common
         public static string DefaultChainId = "AELF";
         public static string AElfAddressPrefix = "ELF";
         
-        public static int ChainIdLength = 3;
+        public static int ChainIdLength = 4;
+        
         public static int ContractAddressHashLength = 18;
         public const ulong DaysEachTerm = 7;
         

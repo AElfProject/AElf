@@ -14,11 +14,11 @@ namespace AElf.ChainController.CrossChain
     {
         private readonly ContractInfoReader _contractInfoReader;
         private Address CrossChainContractAddress =>
-            ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
         
         public CrossChainInfoReader(IStateManager stateManager)
         {
-            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
 
@@ -65,9 +65,9 @@ namespace AElf.ChainController.CrossChain
         /// <param name="chainId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<ulong> GetSideChainCurrentHeightAsync(Hash chainId)
+        public async Task<ulong> GetSideChainCurrentHeightAsync(int chainId)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress, Hash.FromMessage(chainId),
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress, Hash.FromRawBytes( chainId.DumpByteArray()),
                 GlobalConfig.AElfCurrentSideChainHeight);
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }

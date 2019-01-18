@@ -7,10 +7,11 @@ namespace AElf.SmartContract
 {
     public class ContractInfoReader
     {
-        private readonly Hash _chainId;
+        private readonly int _chainId;
+        
         private readonly IStateManager _stateManager;
 
-        public ContractInfoReader(Hash chainId, IStateManager stateManager)
+        public ContractInfoReader(int chainId, IStateManager stateManager)
         {
             _chainId = chainId;
             _stateManager = stateManager; 

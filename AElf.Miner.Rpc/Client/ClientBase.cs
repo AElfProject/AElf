@@ -18,7 +18,7 @@ namespace AElf.Miner.Rpc.Client
     {
         public ILogger<ClientBase<TResponse>> Logger {get;set;}
         private ulong _next;
-        private readonly Hash _targetChainId;
+        private readonly int _targetChainId;
         private int _interval;
         private int _realInterval;
         private const int UnavailableConnectionInterval = 1_000;
@@ -28,7 +28,7 @@ namespace AElf.Miner.Rpc.Client
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
         private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
         private Channel _channel;
-        protected ClientBase(Channel channel, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
+        protected ClientBase(Channel channel, int targetChainId, int interval, int irreversible, int maximalIndexingCount)
         {
             _channel = channel;
             Logger = NullLogger<ClientBase<TResponse>>.Instance;
@@ -94,7 +94,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
@@ -165,7 +165,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 

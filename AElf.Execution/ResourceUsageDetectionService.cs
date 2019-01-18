@@ -19,7 +19,7 @@ namespace AElf.Execution
             _functionMetadataService = functionMetadataService;
         }
 
-        public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
+        public async Task<IEnumerable<string>> GetResources(int chainId, Transaction transaction)
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()

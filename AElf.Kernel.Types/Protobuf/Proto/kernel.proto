@@ -50,7 +50,7 @@ message TransactionReceipt {
 message StatePath {
     repeated bytes Path = 1;
 //    Address ContractAddress = 2;
-//    Hash ChainId = 3;
+//    int32 ChainId = 3;
 }
 
 message StateValue {
@@ -167,7 +167,7 @@ message BlockHeader {
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
-    Hash ChainId = 10;
+    int32 ChainId = 10;
     Hash SideChainTransactionsRoot = 11;
 }
 
@@ -230,10 +230,6 @@ message DataItem {
     Hash StateMerkleTreeLeaf = 3;
 }
 
-message Chain {
-    Hash Id = 1;
-    Hash GenesisBlockHash = 2;
-}
 
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
@@ -248,7 +244,7 @@ message Key {
 }
 
 message DataPath {
-    Hash ChainId = 1;
+    int32 ChainId = 1;
     uint64 BlockHeight = 2;
     Address BlockProducerAddress = 3;
     Address ContractAddress = 4;
@@ -339,3 +335,22 @@ message ActionResult {
     bool Success = 1;
     string ErrorMessage = 2;
 }
+
+
+message ChainBlockLink{
+    Hash BlockHash = 1;
+    int64 Height = 2;
+    Hash PreviousBlockHash = 3;
+    bool IsExecuted = 4;
+    bool IsNotChangedBlock = 5;
+}
+
+message Chain {
+    int32 Id = 1;
+    Hash GenesisBlockHash = 2;
+    map<string, int64> Branches = 3;
+    Hash BestChainHash = 4;
+    map<string, string> NotLinkedBlocks = 5;
+}
+
+

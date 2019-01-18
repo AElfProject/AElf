@@ -31,7 +31,7 @@ namespace AElf.Contracts.Genesis
     public class SideChainCreationRequested : Event
     {
         public Address Creator;
-        public Hash ChainId;
+        public int ChainId;
     }
 
     public class OwnerHasBeenChanged : Event
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Genesis
             Api.Assert(Api.GetCurrentHeight() < 1, "The current height should be less than 1.");
             Api.Assert(Api.GetFromAddress().Equals(Api.Genesis));
             
-            var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
+            var contractAddress = Address.BuildContractAddress(Api.ChainId, serialNumber);
             
             var contractHash = Hash.FromRawBytes(code);
 
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Genesis
         public async Task<byte[]> DeploySmartContract(int category, byte[] code)
         {
             var serialNumber = _contractSerialNumber.Increment().Value;
-            var contractAddress = Address.BuildContractAddress(Api.ChainId.DumpByteArray(), serialNumber);
+            var contractAddress = Address.BuildContractAddress(Api.ChainId, serialNumber);
             
             var creator = Api.GetFromAddress();
             var contractHash = Hash.FromRawBytes(code);

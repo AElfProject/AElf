@@ -49,7 +49,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private List<string> _currentMiners;
 
-        private Hash _chainId;
+        private int _chainId;
         
         private bool IsSwitching;
 
@@ -204,7 +204,7 @@ namespace AElf.Synchronization.BlockSynchronization
             
             try
             {
-                _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+                _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
                 Miners miners = _minersManager.GetMiners().Result;

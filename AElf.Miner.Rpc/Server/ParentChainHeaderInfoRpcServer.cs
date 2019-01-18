@@ -31,7 +31,7 @@ namespace AElf.Miner.Rpc.Server
             _crossChainInfoReader = crossChainInfoReader;
         }
 
-        public void Init(Hash chainId)
+        public void Init(int chainId)
         {
             BlockChain = _chainService.GetBlockChain(chainId);
             MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
@@ -82,7 +82,7 @@ namespace AElf.Miner.Rpc.Server
                             {
                                 Height = requestedHeight,
                                 SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
-                                ChainId = header?.ChainId
+                                ChainId = header.ChainId
                             }
                         };
                         var tree = await _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRootAsync(requestedHeight);

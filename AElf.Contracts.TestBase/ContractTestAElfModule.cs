@@ -22,7 +22,7 @@ namespace AElf.Contracts.TestBase
         {
             context.Services.AddAssemblyOf<ContractTestAElfModule>();
             
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
         }
     }

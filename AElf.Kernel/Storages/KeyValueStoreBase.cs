@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Exceptions;
@@ -94,19 +93,6 @@ namespace AElf.Kernel.Storages
         public virtual async Task RemoveAsync(string key)
         {
             await _collection.RemoveAsync(key);
-        }
-    }
-
-
-    public interface IStateStore<T> : IKeyValueStore<T>
-    {
-    }
-
-    public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
-    {
-        public StateStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.StatePrefix + typeof(T).Name)
-        {
         }
     }
 }

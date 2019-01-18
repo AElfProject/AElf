@@ -4,7 +4,7 @@ namespace AElf.Kernel
 {
     public interface IChainService
     {
-        IBlockChain GetBlockChain(Hash chainId);
-        ILightChain GetLightChain(Hash chainId);
+        IBlockChain GetBlockChain(int chainId);
+        ILightChain GetLightChain(int chainId);
     }
 }

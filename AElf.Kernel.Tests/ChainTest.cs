@@ -49,7 +49,7 @@ namespace AElf.Kernel.Tests
             return chain;
         }
 
-//        public async Task ChainStoreTest(Hash chainId)
+//        public async Task ChainStoreTest(int chainId)
 //        {
 //            await _chainManager.AddChainAsync(chainId, Hash.Generate());
 //            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(block.Header.Index, GlobalConfig.GenesisBlockHeight + 1);
         }
         
-        private static Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private static Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             

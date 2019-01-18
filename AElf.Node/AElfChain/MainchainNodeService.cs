@@ -99,7 +99,7 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            _blockChain = _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             
             NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
             _nodeKeyPair = conf.KeyPair;
@@ -183,7 +183,7 @@ namespace AElf.Node.AElfChain
 
         #region private methods
 
-        private Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        private int ChainId => ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
 
         private void LogGenesisContractInfo()
         {
@@ -263,12 +263,12 @@ namespace AElf.Node.AElfChain
             var dividendsCReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(dividendsContractCode),
+                ContractBytes = ByteString.CopyFrom(dividendsContractCode),    
                 ContractHash = Hash.FromRawBytes(dividendsContractCode),
                 SerialNumber = GlobalConfig.DividendsContract
             };
             
-            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg, dividendsCReg}).Result;
             Logger.LogDebug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");

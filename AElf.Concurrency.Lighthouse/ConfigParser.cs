@@ -11,7 +11,7 @@ namespace AElf.Concurrency.Lighthouse
         /// <summary>
         /// chainId
         /// </summary>
-        // public Hash ChainId { get; set; }
+        // public int ChainId { get; set; }
         public bool Parse(string[] args)
         {
             Parser.Default.ParseArguments<CliOptions>(args)

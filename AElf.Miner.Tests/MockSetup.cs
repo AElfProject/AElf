@@ -118,7 +118,7 @@ namespace AElf.Miner.Tests
         }
         public async Task<IChain> CreateChain()
         {            
-            var chainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            var chainId = ChainHelpers.GetRandomChainId();
             
             var reg = new SmartContractRegistration
             {
@@ -157,7 +157,7 @@ namespace AElf.Miner.Tests
             return blockExecutor;
         }
 
-        internal IBlockChain GetBlockChain(Hash chainId)
+        internal IBlockChain GetBlockChain(int chainId)
         {
             return _chainService.GetBlockChain(chainId);
         }
@@ -169,7 +169,7 @@ namespace AElf.Miner.Tests
             return hub;
         }
 
-        public IMinerConfig GetMinerConfig(Hash chainId)
+        public IMinerConfig GetMinerConfig(int chainId)
         {
             return new MinerConfig { ChainId = chainId };
         }
@@ -209,13 +209,13 @@ namespace AElf.Miner.Tests
             {
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 SideChainTransactionsRoot = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
+                ChainId = ChainHelpers.GetRandomChainId(),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()
             };
         }
 
-        private IBlockBody MockBlockBody(ulong height, Hash chainId = null)
+        private IBlockBody MockBlockBody(ulong height, int? chainId = null)
         {
             return new BlockBody
             {
@@ -223,12 +223,12 @@ namespace AElf.Miner.Tests
             };
         }
 
-        private SideChainBlockInfo MockSideChainBlockInfo(ulong height, Hash chainId = null)
+        private SideChainBlockInfo MockSideChainBlockInfo(ulong height, int? chainId = null)
         {
             return new SideChainBlockInfo
             {
                 Height = height,
-                ChainId = chainId ?? Hash.LoadByteArray(ChainHelpers.GetRandomChainId()),
+                ChainId = chainId ?? ChainHelpers.GetRandomChainId(),
                 TransactionMKRoot = Hash.Generate(),
                 BlockHeaderHash = Hash.Generate()
             };
@@ -295,7 +295,7 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
-        public void MockKeyPair(Hash chainId, string dir)
+        public void MockKeyPair(int chainId, string dir)
         {
             
             var certificateStore = new CertificateStore(dir);
@@ -312,7 +312,7 @@ namespace AElf.Miner.Tests
                 MockBlockHeader()
             };
             
-            var sideChainId = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            var sideChainId = ChainHelpers.GetRandomChainId();
             ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
             
             MockKeyPair(sideChainId, dir);
@@ -324,10 +324,10 @@ namespace AElf.Miner.Tests
             return sideChainId;
         }
 
-        public Hash MockParentChainServer(int port, string address, string dir, Hash chainId = null)
+        public Hash MockParentChainServer(int port, string address, string dir, int? chainId=0)
         {
             
-            chainId = chainId??Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+            chainId = chainId??ChainHelpers.GetRandomChainId();
             
             _headers = new List<IBlockHeader>
             {
@@ -343,11 +343,11 @@ namespace AElf.Miner.Tests
                 MockBlock(_headers[2], MockBlockBody(GlobalConfig.GenesisBlockHeight + 2, chainId)).Object
             };
 
-            MockKeyPair(chainId, dir);
+            MockKeyPair(chainId.Value, dir);
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            ChainConfig.Instance.ChainId = chainId.DumpBase58();
+            ChainConfig.Instance.ChainId = chainId.Value.DumpBase58();
             
             return chainId;
         }

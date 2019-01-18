@@ -5,6 +5,7 @@ using Google.Protobuf;
 using Xunit;
 using AElf.Common;
 using AElf.TestBase;
+using Shouldly;
 
 namespace AElf.Kernel.Tests
 {
@@ -22,6 +23,10 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task Test()
         {
+
+            var n = (int) Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+            n.ToHex().ShouldBe(new byte[] {0x00, 0x01, 0x02, 0x03 }.ToHex());
+            
             // TODO: *** Contract Issues ***
             var reg = new SmartContractRegistration
             {
@@ -30,7 +35,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.FromRawBytes(SmartContractZeroCode)
             };
             var chain = await _service.CreateNewChainAsync(Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }), new List<SmartContractRegistration>{reg});
-            Assert.Equal(Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }).DumpBase58(), chain.Id.DumpBase58());
+            Assert.Equal(Hash.LoadByteArray(new byte[] {0x00, 0x01, 0x02, 0x03 }).DumpBase58(), chain.Id.DumpBase58());
         }
     }
 }
