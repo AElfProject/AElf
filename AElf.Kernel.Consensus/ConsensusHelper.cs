@@ -356,10 +356,9 @@ namespace AElf.Kernel.Consensus
         private bool TryToGetValidCandidates(out List<string> validCandidates)
         {
             validCandidates = new List<string>();
-            var age = BlockchainAge.Value;
             foreach (var candidate in Candidates.PublicKeys)
             {
-                if (GetTickets(candidate).VotingRecords.Any(vr => vr.To == candidate && !vr.IsExpired(age)))
+                if (GetTickets(candidate).ObtainedTickets > 0)
                 {
                     validCandidates.Add(candidate);
                 }
@@ -378,10 +377,8 @@ namespace AElf.Kernel.Consensus
             foreach (var candidatePublicKey in candidates)
             {
                 var tickets = GetTickets(candidatePublicKey);
-                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == candidatePublicKey)
-                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
 
-                dictionary.Add(GetAlias(candidatePublicKey), number);
+                dictionary.Add(GetAlias(candidatePublicKey), tickets.ObtainedTickets);
             }
 
             result += "\nElection information:\n";
