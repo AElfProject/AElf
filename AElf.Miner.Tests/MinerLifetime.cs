@@ -247,7 +247,7 @@ namespace AElf.Kernel.Tests.Miner
 
         #region GRPC
 
-        [Fact]
+        [Fact(Skip = "To be refactored")]
         public async Task SideChainServerClientsTest()
         {
             string dir = @"/tmp/ServerClientsTestA";
@@ -318,7 +318,7 @@ namespace AElf.Kernel.Tests.Miner
             }
         }
 
-        [Fact]
+        [Fact(Skip = "To be refactored")]
         public async Task ParentChainServerClientTest()
         {
             string dir = @"/tmp/ServerClientsTestB";
