@@ -8,8 +8,6 @@ namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
-        private static ILogger<Program> Logger = NullLogger<Program>.Instance;
-        
         //TODO: change using aspnet core configuration
         static void Main(string[] args)
         {
@@ -19,8 +17,6 @@ namespace AElf.Concurrency.Lighthouse
             }))
             {
                 application.Initialize();
-
-                Logger = application.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 
                 var managementService = application.ServiceProvider.GetRequiredService<ManagementService>();
                 managementService.StartSeedNodes();
