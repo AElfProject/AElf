@@ -124,29 +124,29 @@ namespace AElf.Sdk.CSharp
 
         public static Miners GetMiners()
         {
-            var res = Call(ConsensusContractAddress, "GetCurrentMiners");
-            Assert(res, "Failed to get current miners.");
-            Miners miners = GetCallResult().DeserializeToPbMessage<Miners>();
-            return miners;
-        }
-
-        public static List<string> GetCurrentMiners()
-        {
-            if (Call(ConsensusContractAddress, "GetCurrentMiners"))
+            Console.WriteLine("Try to get miners");
+            if (Call(ConsensusContractAddress, "GetRoundInfo", GetCurrentRoundNumber()))
             {
-                return GetCallResult().DeserializeToPbMessage<Miners>().PublicKeys.ToList();
+                Console.WriteLine("Check result..");
+                var round = GetCallResult().DeserializeToPbMessage<Round>();
+                if(round != null)
+                    Console.WriteLine($"Got Round {round.RoundNumber}");
+                var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                miners.TermNumber = round.MinersTermNumber;
+                
+                return miners;
             }
-
-            throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
+    
+            throw new InternalError("Failed to current miners.\n" + _lastCallContext.Trace.StdErr);
         }
-
+        
         public static ulong GetCurrentRoundNumber()
         {
             if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
             {
                 return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
-
+            
             throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
         }
 
@@ -413,11 +413,6 @@ namespace AElf.Sdk.CSharp
             Assert(expected.Equals(actual), message);
         }
 
-        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
-        {
-            Assert(!expected.Equals(actual), message);
-        }
-
         internal static void FireEvent(LogEvent logEvent)
         {
             _transactionContext.Trace.Logs.Add(logEvent);
@@ -475,11 +470,11 @@ namespace AElf.Sdk.CSharp
             Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval.");
         }
 
-        /*public static void IsMiner(string err)
+        public static void IsMiner(string err)
         {
             Assert(GetMiners().PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(RecoverPublicKey())), err);
-        }*/
-
+        }
+        
         /// <summary>
         /// Create and propose a proposal. Proposer is current transaction from account.
         /// </summary>

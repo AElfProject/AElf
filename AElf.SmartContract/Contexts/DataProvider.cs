@@ -171,6 +171,7 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
+            // todo: This generics T can be restricted ? 
             return await GetAsync(keyHash.ToHex());
         }
 

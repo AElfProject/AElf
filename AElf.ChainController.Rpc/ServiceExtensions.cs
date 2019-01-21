@@ -11,6 +11,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using Svc = AElf.ChainController.Rpc.ChainControllerRpcService;
 
 namespace AElf.ChainController.Rpc
@@ -253,6 +254,24 @@ namespace AElf.ChainController.Rpc
             throw new Exception();
         }
 
+        internal static async Task<JObject> GetIndexedSideChainBlockInfo(this Svc s, ulong height)
+        {
+            var res = new JObject();
+            var indexedSideChainBlockInfoResult = await s.CrossChainInfoReader.GetIndexedSideChainBlockInfoResult(height);
+            if (indexedSideChainBlockInfoResult == null)
+                return res;
+            foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
+            {
+                res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
+                {
+                    {"Height", sideChainIndexedInfo.Height},
+                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
+                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
+                });
+            }
+
+            return res;
+        }
         internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, ulong height)
         {
             var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(height);

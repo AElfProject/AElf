@@ -32,6 +32,7 @@ enum ProposalStatus {
     ToBeDecided = 0;
     Decided = 1;
     Released = 2;
+    Expired = 3;
 }
 
 message Approved {

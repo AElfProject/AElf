@@ -12,6 +12,12 @@ message SideChainBlockInfo{
     Hash ChainId = 4;
 }
 
+message IndexedSideChainBlockInfoResult{
+    uint64 Height = 1;
+    Address Miner = 2;
+    repeated SideChainBlockInfo SideChainBlockInfos = 3;
+}
+
 message ParentChainBlockInfo{
     ParentChainBlockRootInfo Root = 1;
 
@@ -39,7 +45,8 @@ enum SideChainStatus
     Apply = 0;
     Review = 1;
     Active = 2;
-    Terminated = 3;
+    InsufficientBalance = 3;
+    Terminated = 4;
 }
 
 message SideChainInfo{
@@ -50,4 +57,5 @@ message SideChainInfo{
     Address Proposer = 5;
     SideChainStatus SideChainStatus = 6;
     Hash ChainId = 7;
+    Hash ProposalHash = 8;
 }

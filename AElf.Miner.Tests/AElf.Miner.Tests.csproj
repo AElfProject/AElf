@@ -21,4 +21,7 @@
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
     <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Grpc" />
+  </ItemGroup>
 </Project>

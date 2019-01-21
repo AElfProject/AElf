@@ -52,7 +52,9 @@ namespace AElf.Miner.Rpc.Server
                 {
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
-                    if (requestedHeight > LibHeight)
+                    
+                    // Todo: Wait until 10 rounds for most peers to be ready.
+                    if (requestedHeight > LibHeight || LibHeight < (ulong) (GlobalConfig.BlockNumberOfEachRound * 10))
                     {
                         await responseStream.WriteAsync(new ResponseSideChainBlockInfo
                         {

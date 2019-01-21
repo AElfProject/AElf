@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         public BlockValidationResult ValidateBlock(BlockAbstract blockAbstract)
         {
-            var minersList = Api.GetCurrentMiners();
+            var minersList = Api.GetMiners().PublicKeys;
             if (!minersList.Contains(blockAbstract.MinerPublicKey))
             {
                 return BlockValidationResult.NotMiner;

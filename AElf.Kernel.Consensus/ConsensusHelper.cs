@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
@@ -19,7 +20,18 @@ namespace AElf.Kernel.Consensus
 
         private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
 
-        public List<string> Miners => _minersManager.GetMiners().Result.PublicKeys.ToList();
+        public List<string> Miners
+        {
+            get
+            {
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                {
+                    return _minersManager.GetMiners(CurrentTermNumber.Value).Result.PublicKeys.ToList();
+                }
+            
+                return _minersManager.GetMiners(GetCurrentRoundInfo().MinersTermNumber).Result.PublicKeys.ToList();
+            }
+        }
 
         public UInt64Value CurrentRoundNumber
         {
@@ -103,7 +115,7 @@ namespace AElf.Kernel.Consensus
                 catch (Exception)
                 {
                     _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
-                    var initialMiners = _minersManager.GetMiners().Result.PublicKeys.ToCandidates();
+                    var initialMiners = _minersManager.GetMiners(0).Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
                 }
@@ -344,10 +356,9 @@ namespace AElf.Kernel.Consensus
         private bool TryToGetValidCandidates(out List<string> validCandidates)
         {
             validCandidates = new List<string>();
-            var age = BlockchainAge.Value;
             foreach (var candidate in Candidates.PublicKeys)
             {
-                if (GetTickets(candidate).VotingRecords.Any(vr => vr.To == candidate && !vr.IsExpired(age)))
+                if (GetTickets(candidate).ObtainedTickets > 0)
                 {
                     validCandidates.Add(candidate);
                 }
@@ -366,10 +377,8 @@ namespace AElf.Kernel.Consensus
             foreach (var candidatePublicKey in candidates)
             {
                 var tickets = GetTickets(candidatePublicKey);
-                var number = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn && vr.To == candidatePublicKey)
-                    .Aggregate<VotingRecord, ulong>(0, (current, votingRecord) => current + votingRecord.Count);
 
-                dictionary.Add(GetAlias(candidatePublicKey), number);
+                dictionary.Add(GetAlias(candidatePublicKey), tickets.ObtainedTickets);
             }
 
             result += "\nElection information:\n";
@@ -457,8 +466,11 @@ namespace AElf.Kernel.Consensus
 
         private string GetAlias(string publicKey)
         {
-            return StringValue.Parser.ParseFrom(_reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
-                GlobalConfig.AElfDPoSAliasesMapString)).Value;
+            var bytes = _reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
+                GlobalConfig.AElfDPoSAliasesMapString);
+            return bytes == null
+                ? publicKey.Substring(0, GlobalConfig.AliasLimit)
+                : StringValue.Parser.ParseFrom(bytes).Value;
         }
     }
 }

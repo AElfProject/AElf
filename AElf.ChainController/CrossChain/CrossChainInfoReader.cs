@@ -23,7 +23,7 @@ namespace AElf.ChainController.CrossChain
         }
 
         /// <summary>
-        /// Get merkle path of transaction root in parent chain.
+        /// Return merkle path of transaction root in parent chain.
         /// </summary>
         /// <param name="blockHeight">Child chain block height.</param>
         /// <returns></returns>
@@ -36,7 +36,7 @@ namespace AElf.ChainController.CrossChain
         }
 
         /// <summary>
-        /// Get height of parent chain block which indexed the local chain block at <see cref="localChainHeight"/>
+        /// Return height of parent chain block which indexed the local chain block at <see cref="localChainHeight"/>
         /// </summary>
         /// <param name="localChainHeight"></param>
         /// <returns></returns>
@@ -49,7 +49,7 @@ namespace AElf.ChainController.CrossChain
         }
 
         /// <summary>
-        /// Get current height of parent chain block stored locally
+        /// Return current height of parent chain block stored locally.
         /// </summary>
         /// <returns></returns>
         public async Task<ulong> GetParentChainCurrentHeightAsync()
@@ -60,9 +60,9 @@ namespace AElf.ChainController.CrossChain
         }
 
         /// <summary>
-        /// Get current height of side chain block stored locally
+        /// Return current height of side chain block stored locally.
         /// </summary>
-        /// <param name="chainId"></param>
+        /// <param name="chainId">Side chain id.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public async Task<ulong> GetSideChainCurrentHeightAsync(Hash chainId)
@@ -73,23 +73,22 @@ namespace AElf.ChainController.CrossChain
         }
 
         /// <summary>
-        /// Get binary merkle tree of side chain transaction root by self chain height.
+        /// Return side chain blocks indexed in given parent chain height. 
         /// </summary>
-        /// <param name="height">Self chain height.</param>
+        /// <param name="height">Self(Parent) chain height.</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public async Task<BinaryMerkleTree> GetMerkleTreeForSideChainTransactionRootAsync(ulong height)
+        public async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong height)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<MerklePath>(CrossChainContractAddress,
+            var bytes = await _contractInfoReader.GetBytesAsync<IndexedSideChainBlockInfoResult>(CrossChainContractAddress,
                 Hash.FromMessage(new UInt64Value {Value = height}),
-                GlobalConfig.AElfBinaryMerkleTreeForSideChainTxnRoot);
-            return bytes == null ? null : BinaryMerkleTree.Parser.ParseFrom(bytes);
+                GlobalConfig.IndexedSideChainBlockInfoResult);
+            return bytes == null? null : IndexedSideChainBlockInfoResult.Parser.ParseFrom(bytes);
         }
 
         /// <summary>
         /// Get info of parent chain block which indexes the local chain block at <see cref="localChainHeight"/>
         /// </summary>
-        /// <param name="localChainHeight">Local chain height</param>
+        /// <param name="localChainHeight">Self(Side) chain height</param>
         /// <returns></returns>
         public async Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(ulong localChainHeight)
         {
