@@ -1,0 +1,19 @@
+using AElf.Modularity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
+
+namespace AElf.Concurrency.Lighthouse
+{
+    public class LighthouseConcurrencyAElfModule : AElfModule
+    {
+        public static IConfigurationRoot Configuration;
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var configuration = context.Services.GetConfiguration();
+            Configure<LighthouseConcurrencyOptions>(configuration.GetSection("LighthouseConcurrency"));
+            
+            context.Services.AddSingleton<ManagementService>();
+        }
+    }
+}

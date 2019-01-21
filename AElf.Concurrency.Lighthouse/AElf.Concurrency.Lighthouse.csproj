@@ -19,11 +19,20 @@
     <PackageReference Include="Volo.Abp.Autofac" Version="0.11.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="lighthouse.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="appsettings.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="appsettings.Development.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
   </ItemGroup>
 </Project>
