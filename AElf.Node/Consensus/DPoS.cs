@@ -348,8 +348,24 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var firstTerm = _minersManager.GetMiners(0).Result
-                        .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
+
+
+                    Term firstTerm;
+                        
+                    if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
+                    {
+                        var minersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
+                        firstTerm = (await _minersManager.GetMiners(minersTermNumber)).GenerateNewTerm(ConsensusConfig.Instance
+                            .DPoSMiningInterval);
+                        firstTerm.FirstRound.MinersTermNumber = minersTermNumber;
+                        firstTerm.SecondRound.MinersTermNumber = minersTermNumber;
+                    }
+                    else
+                    {
+                        firstTerm = (await _minersManager.GetMiners(0)).GenerateNewTerm(ConsensusConfig.Instance
+                            .DPoSMiningInterval);
+                    }
+                    
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
 
                     var parameters = new List<object>
@@ -611,9 +627,12 @@ namespace AElf.Node.Consensus
                     {
                         await _minersManager.SetMiners(miners);
                     }
-
-                    nextRoundInfo.MinersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
-
+                    else
+                    {
+                        var minersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
+                        nextRoundInfo.MinersTermNumber = minersTermNumber;
+                        _logger?.Trace("Sidechain set miners term number to: " + minersTermNumber);
+                    }
                     var parameters = new List<object>
                     {
                         new Forwarding

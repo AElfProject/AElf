@@ -121,7 +121,13 @@ namespace AElf.Kernel.Consensus
 
             _logger?.Trace("Using round number: " + roundInformation.RoundNumber);
 
-            _logger?.Trace("Using miners: " + roundInformation.RealTimeMinersInfo.Keys);
+            _logger?.Trace($"Using miners term number: {roundInformation.MinersTermNumber}");
+
+            _logger?.Trace("Using miners: ");
+            foreach (var key in roundInformation.RealTimeMinersInfo.Keys)
+            {
+                _logger?.Trace(key);
+            }
 
             var publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
 
