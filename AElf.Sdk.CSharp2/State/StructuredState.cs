@@ -47,6 +47,17 @@ namespace AElf.Sdk.CSharp.State
             base.OnPathSet();
         }
 
+        internal override void OnContextSet()
+        {
+            foreach (var kv in PropertyInfos)
+            {
+                var propertyInfo = kv.Value;
+                ((StateBase) propertyInfo.GetValue(this)).Context = Context;
+            }
+
+            base.OnContextSet();
+        }
+
         internal override void OnStateManagerSet()
         {
             foreach (var kv in PropertyInfos)

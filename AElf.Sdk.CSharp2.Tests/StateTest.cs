@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
+using AElf.SmartContract;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Newtonsoft.Json;
 using Xunit;
@@ -108,7 +112,18 @@ namespace AElf.Sdk.CSharp2.Tests
             var state = new MockContractState
             {
                 Manager = stateManager,
-                Path = path
+                Path = path,
+                Context = new Context()
+                {
+                    TransactionContext = new TransactionContext()
+                    {
+                        Transaction = new Transaction()
+                        {
+                            From = Address.FromString("from"),
+                            To = Address.FromString("to")
+                        }
+                    }
+                }
             };
 
             // Initial default value
@@ -132,6 +147,36 @@ namespace AElf.Sdk.CSharp2.Tests
             // Need to clear again as AssertDefault reloaded values that have not been committed
             state.Clear();
             AssertValues(state);
+
+            state.ElfToken.Value = Address.FromString("elf");
+            state.ElfToken.Action0();
+            state.ElfToken.Action1(1);
+            state.ElfToken.Action2(1, 2);
+            var inlines = state.Context.TransactionContext.Trace.InlineTransactions;
+            Assert.Equal(inlines, new[]
+            {
+                new Transaction()
+                {
+                    From = Address.FromString("from"),
+                    To = Address.FromString("elf"),
+                    MethodName = "Action0",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
+                },
+                new Transaction()
+                {
+                    From = Address.FromString("from"),
+                    To = Address.FromString("elf"),
+                    MethodName = "Action1",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(1))
+                },
+                new Transaction()
+                {
+                    From = Address.FromString("from"),
+                    To = Address.FromString("elf"),
+                    MethodName = "Action2",
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(1, 2))
+                },
+            });
         }
     }
 }

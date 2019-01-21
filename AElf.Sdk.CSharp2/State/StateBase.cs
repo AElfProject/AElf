@@ -9,6 +9,7 @@ namespace AElf.Sdk.CSharp.State
     {
         private IStateManager _stateManager;
         private StatePath _path;
+        private IContextInternal _context;
 
         internal IStateManager Manager
         {
@@ -30,11 +31,25 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
+        internal IContextInternal Context
+        {
+            get => _context;
+            set
+            {
+                _context = value;
+                OnContextSet();
+            }
+        }
+
         internal virtual void OnStateManagerSet()
         {
         }
 
         internal virtual void OnPathSet()
+        {
+        }
+
+        internal virtual void OnContextSet()
         {
         }
 
