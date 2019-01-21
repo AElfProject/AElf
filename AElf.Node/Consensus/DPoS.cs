@@ -161,7 +161,7 @@ namespace AElf.Node.Consensus
                 {
                     var miners = round.RealTimeMinersInfo.Keys.ToMiners();
                     miners.TermNumber = LatestTermNumber;
-                    _minersManager.SetMiners(miners);
+                    _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
                 }
             });
         }
@@ -365,7 +365,7 @@ namespace AElf.Node.Consensus
                     }
                     else
                     {
-                        await _minersManager.SetMiners(initialMiners);
+                        await _minersManager.SetMiners(initialMiners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
                         firstTerm = initialMiners.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     }
 
@@ -632,7 +632,7 @@ namespace AElf.Node.Consensus
 
                     if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
                     {
-                        await _minersManager.SetMiners(miners);
+                        await _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
                     }
                     else
                     {

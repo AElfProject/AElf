@@ -48,9 +48,9 @@ namespace AElf.Kernel.Managers
             return miners != null && !miners.IsEmpty();
         }
 
-        public async Task SetMiners(Miners miners)
+        public async Task SetMiners(Miners miners, Hash chainId)
         {
-            if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
+            if (chainId.DumpBase58() != GlobalConfig.DefaultChainId)
             {
                 return;
             }
