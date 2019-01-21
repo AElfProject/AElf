@@ -176,6 +176,7 @@ namespace AElf.Node.Consensus
                     {
                         return _minersManager.GetMiners(0).Result;
                     }
+
                     return _helper.GetCurrentMiners();
                 }
 
@@ -185,6 +186,13 @@ namespace AElf.Node.Consensus
                     var miners = _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
                     _logger?.Trace($"Sidechain getting miners: {miners.PublicKeys}");
                     return miners;
+                }
+
+                var basicMiners = _minersManager.GetMiners(1).Result;
+                var mainchainLatestTermNumber = basicMiners.MainchainLatestTermNumber;
+                if (mainchainLatestTermNumber != 0)
+                {
+                    return _minersManager.GetMiners(mainchainLatestTermNumber).Result;
                 }
 
                 return _minersManager.GetMiners(1).Result;
