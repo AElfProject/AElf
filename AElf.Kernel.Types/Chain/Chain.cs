@@ -18,6 +18,5 @@ namespace AElf.Kernel
         {
             return this.ToByteArray();
         }
-        
     }
 }

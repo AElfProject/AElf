@@ -24,7 +24,6 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
-using AElf.Kernel.Types.Transaction;
 
 namespace AElf.Miner.Miner
 {

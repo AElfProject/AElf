@@ -2,13 +2,17 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Types.Transaction
+namespace AElf.Kernel
 {
-    public class TxSignatureVerifier : ITxSignatureVerifier, ITransientDependency
+    public static class TransactionExtensions
     {
-        public bool Verify(Kernel.Transaction tx)
+        public static int Size(this Transaction transaction)
+        {
+            return transaction.CalculateSize();
+        }
+        
+        public static bool VerifySignature(this Transaction tx)
         {
             if (tx.Sigs == null || tx.Sigs.Count == 0)
             {

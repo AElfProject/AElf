@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace AElf.Common
+namespace AElf.Kernel
 {
-    public static partial class AddressExtensions
+    public static class AddressExtensions
     {
         
     }

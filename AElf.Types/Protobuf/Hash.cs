@@ -11,6 +11,7 @@ namespace AElf.Common
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
         private const int ByteArrayLength = 32;
+        private const int ChainIdLength = 3;
 
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -232,7 +233,7 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadByteArray(byte[] bytes)
         {
-            if (bytes.Length != 32 && bytes.Length != GlobalConfig.ChainIdLength)
+            if (bytes.Length != 32 && bytes.Length != ChainIdLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }

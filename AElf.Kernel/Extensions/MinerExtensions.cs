@@ -4,23 +4,21 @@ using System.Linq;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    // ReSharper disable InconsistentNaming
-    public partial class Miners
+    public static class MinerExtensions
     {
-        public bool IsEmpty()
+        public static bool IsEmpty(this Miners miners)
         {
-            return !PublicKeys.Any();
+            return !miners.PublicKeys.Any();
         }
 
-        public Term GenerateNewTerm(int miningInterval, ulong roundNumber = 1, ulong termNumber = 0)
+        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong roundNumber = 1, ulong termNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
             // First round
-            foreach (var miner in PublicKeys)
+            foreach (var miner in miners.PublicKeys)
             {
                 dict.Add(miner, miner[0]);
             }
@@ -34,7 +32,7 @@ namespace AElf.Kernel
 
             var infosOfRound1 = new Round();
 
-            var selected = new Random().Next(0, PublicKeys.Count);
+            var selected = new Random().Next(0, miners.PublicKeys.Count);
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
@@ -56,7 +54,7 @@ namespace AElf.Kernel
             // Second round
             dict = new Dictionary<string, int>();
 
-            foreach (var miner in PublicKeys)
+            foreach (var miner in miners.PublicKeys)
             {
                 dict.Add(miner, miner[0]);
             }
@@ -72,7 +70,7 @@ namespace AElf.Kernel
 
             var totalSecondsOfFirstRound = (enumerable.Count + 1) * miningInterval;
 
-            selected = new Random().Next(0, PublicKeys.Count);
+            selected = new Random().Next(0, miners.PublicKeys.Count);
             for (var i = 0; i < enumerable.Count; i++)
             {
                 var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
@@ -104,7 +102,7 @@ namespace AElf.Kernel
                 Miners = new Miners
                 {
                     TermNumber = termNumber + 1,
-                    PublicKeys = {PublicKeys}
+                    PublicKeys = {miners.PublicKeys}
                 },
                 MiningInterval = miningInterval,
                 Timestamp = DateTime.UtcNow.ToTimestamp()
@@ -113,7 +111,7 @@ namespace AElf.Kernel
             return term;
         }
 
-        public Round GenerateNextRound(Round previousRound)
+        public static Round GenerateNextRound(this Miners miners, Round previousRound)
         {
             if (previousRound.RoundNumber == 1)
             {
@@ -205,7 +203,7 @@ namespace AElf.Kernel
             return round;
         }
 
-        private string CalculateNextExtraBlockProducer(Round roundInfo)
+        private static string CalculateNextExtraBlockProducer(Round roundInfo)
         {
             var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInfo();
             var sig = firstPlaceInfo.Signature;
@@ -229,13 +227,13 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="offset">minutes</param>
         /// <returns></returns>
-        private Timestamp GetTimestampOfUtcNow(int offset = 0)
+        private static Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
             var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
             return now;
         }
 
-        private Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
+        private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
@@ -248,7 +246,7 @@ namespace AElf.Kernel
         /// <param name="uLongVal"></param>
         /// <param name="intVal"></param>
         /// <returns></returns>
-        private int GetModulus(ulong uLongVal, int intVal)
+        private static int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));
         }

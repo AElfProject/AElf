@@ -1,5 +1,4 @@
-﻿using AElf.Cryptography.ECDSA;
-using AElf.Common;
+﻿using AElf.Common;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -31,11 +30,6 @@ namespace AElf.Kernel
 
             return _blockHash.DumpByteArray();
         }
-        
-        public ECSignature GetSignature()
-        {
-            return new ECSignature(Sig.ToByteArray());
-        }
 
         private byte[] GetSignatureData()
         {
@@ -53,11 +47,6 @@ namespace AElf.Kernel
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();
-        }
-
-        public Hash GetDisambiguationHash()
-        {
-            return HashHelpers.GetDisambiguationHash(Index, Hash.FromRawBytes(P.ToByteArray()));
         }
     }
 }

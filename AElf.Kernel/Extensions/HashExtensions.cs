@@ -1,6 +1,8 @@
-namespace AElf.Common
+using AElf.Common;
+
+namespace AElf.Kernel
 {
-    public static partial class Extensions
+    public static class HashExtensions
     {
         /// <summary>
         /// Checks if a <see cref="Hash"/> instance is null.

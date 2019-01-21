@@ -1,4 +1,3 @@
-using System;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -10,29 +9,6 @@ namespace AElf.Kernel
         public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
         {
             return (ulong) (((double) lockTime / 270 + 2.0 / 3.0) * ticketsAmount);
-        }
-
-        public ulong GetDurationDays(ulong currentAge)
-        {
-            var days = currentAge - VoteAge + 1;
-            ulong totalLockDays = 0;
-            foreach (var d in LockDaysList)
-            {
-                totalLockDays += (ulong) d;
-            }
-
-            return Math.Min(days, totalLockDays);
-        }
-        
-        public bool IsExpired(ulong currentAge)
-        {
-            var lockExpiredAge = VoteAge;
-            foreach (var day in LockDaysList)
-            {
-                lockExpiredAge += (ulong) day;
-            }
-
-            return lockExpiredAge <= currentAge;
         }
     }
 }

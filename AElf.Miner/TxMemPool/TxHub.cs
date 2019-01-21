@@ -12,7 +12,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using AElf.SmartContract.Consensus;
@@ -31,7 +30,6 @@ namespace AElf.Miner.TxMemPool
         
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
-        private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
         private readonly IAuthorizationInfoReader _authorizationInfoReader;
         private readonly IElectionInfo _electionInfo;
@@ -56,7 +54,7 @@ namespace AElf.Miner.TxMemPool
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
-            IChainService chainService, IAuthorizationInfoReader authorizationInfoReader, ITxSignatureVerifier signatureVerifier,
+            IChainService chainService, IAuthorizationInfoReader authorizationInfoReader,
             ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo)
         {
             Logger = NullLogger<TxHub>.Instance;
@@ -64,7 +62,6 @@ namespace AElf.Miner.TxMemPool
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
-            _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
             _authorizationInfoReader = authorizationInfoReader;
 
@@ -229,8 +226,8 @@ namespace AElf.Miner.TxMemPool
                 tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                 return;
             }
-            
-            var validSig = _signatureVerifier.Verify(tr.Transaction);
+
+            var validSig = tr.Transaction.VerifySignature();
             tr.SignatureSt = validSig
                 ? TransactionReceipt.Types.SignatureStatus.SignatureValid
                 : TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
