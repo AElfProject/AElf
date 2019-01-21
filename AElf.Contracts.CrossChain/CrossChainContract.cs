@@ -311,7 +311,8 @@ namespace AElf.Contracts.CrossChain
         public ulong LockedBalance(string chainId)
         {
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out _), "Not existed side chain.");
+            Api.Assert(_sideChainInfos.TryGet(chainIdHash, out var sideChainInfo), "Not existed side chain.");
+            Api.Equal(Api.GetFromAddress(), sideChainInfo.Proposer, "Unable to check balance.");
             return _indexingBalance[chainIdHash];
         }
         

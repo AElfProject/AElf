@@ -66,23 +66,22 @@ namespace AElf.Miner.Rpc.Server
                         continue;
                     }
                     IBlock block = await BlockChain.GetBlockByHeightAsync(requestedHeight);
-                    BlockHeader header = block?.Header;
-                    BlockBody body = block?.Body;
                     
                     var res = new ResponseParentChainBlockInfo
                     {
                         Success = block != null
                     };
 
-                    if (res.Success)
+                    if (block != null)
                     {
+                        BlockHeader header = block.Header;
                         res.BlockInfo = new ParentChainBlockInfo
                         {
                             Root = new ParentChainBlockRootInfo
                             {
                                 Height = requestedHeight,
-                                SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
-                                ChainId = header?.ChainId
+                                SideChainTransactionsRoot = header.SideChainTransactionsRoot,
+                                ChainId = header.ChainId
                             }
                         };
                         var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
