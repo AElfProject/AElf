@@ -37,6 +37,8 @@ namespace AElf.Kernel.Managers
                 miners.PublicKeys.Add(bp["public_key"]);
             }
 
+            miners.MainchainLatestTermNumber = 0;
+
             return miners;
         }
 

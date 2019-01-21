@@ -348,8 +348,29 @@ namespace AElf.Node.Consensus
 
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var firstTerm = _minersManager.GetMiners(0).Result
-                        .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
+                    Term firstTerm;
+
+                    var initialMiners = await _minersManager.GetMiners(0);
+                    var basicMiners = await _minersManager.GetMiners(1);
+
+                    if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId && basicMiners != null &&
+                        basicMiners.MainchainLatestTermNumber != 0)
+                    {
+                        var minersTermNumber = basicMiners.MainchainLatestTermNumber;
+                        firstTerm = (await _minersManager.GetMiners(minersTermNumber)).GenerateNewTerm(ConsensusConfig
+                            .Instance
+                            .DPoSMiningInterval);
+                        firstTerm.FirstRound.MinersTermNumber = minersTermNumber;
+                        firstTerm.SecondRound.MinersTermNumber = minersTermNumber;
+                    }
+                    else
+                    {
+                        await _minersManager.SetMiners(initialMiners);
+                        firstTerm = initialMiners.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
+                    }
+
+                    _logger?.Trace($"Initial consensus information: {firstTerm}");
+                    
                     var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
 
                     var parameters = new List<object>
@@ -561,6 +582,8 @@ namespace AElf.Node.Consensus
                     _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
+                    _logger?.Trace("Round number: " + currentRoundNumber);
+                    
                     var roundInfo = _helper.GetCurrentRoundInfo();
                     roundInfo = _helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo)
                         ? roundInfo.Supplement(previousRoundInfo)
@@ -611,9 +634,13 @@ namespace AElf.Node.Consensus
                     {
                         await _minersManager.SetMiners(miners);
                     }
-
-                    nextRoundInfo.MinersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
-
+                    else
+                    {
+                        var minersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
+                        nextRoundInfo.MinersTermNumber = minersTermNumber;
+                        _logger?.Trace("Sidechain set miners term number to: " + minersTermNumber);
+                    }
+                    
                     var parameters = new List<object>
                     {
                         new Forwarding
