@@ -7,6 +7,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Attributes;
 using AElf.Common.Collections;
+using AElf.Configuration.Config.Network;
 using AElf.Kernel;
 using AElf.Miner.EventMessages;
 using AElf.Network;
@@ -620,18 +621,32 @@ namespace AElf.Node.Protocol
             {
                 lock (_syncLock)
                 {
+                    if (CurrentSyncSource == null || CurrentSyncSource != p)
+                        return;
+                        
                     if (!CurrentSyncSource.IsSyncingHistory)
                     {
-                        
                         _logger?.Debug($"About to reset {p} and sync to another.");
-                        if (CurrentSyncSource != null && CurrentSyncSource == p)
+                        p.ResetSync();
+                        SyncNext();
+                    }
+                    else
+                    {
+                        _logger?.Debug($"Hist sync failed from {p} and sync history to another.");
+
+                        IPeer next = _peers
+                            .Where(peer => !peer.IsDisposed && peer != p && peer.KnownHeight > LocalHeight)
+                            .OrderBy(peer => peer.KnownHeight)
+                            .FirstOrDefault();
+
+                        if (next != null)
                         {
-                            p.ResetSync();
-                            SyncNext();
+                            next.SyncToHeight(LocalHeight+1, next.KnownHeight);
+                            CurrentSyncSource = next;
                         }
                         else
                         {
-                            p.ResetSync();
+                            _logger?.Warn("Found no other to finish initial sync.");
                         }
                     }
                 }
@@ -789,7 +804,7 @@ namespace AElf.Node.Protocol
                 _logger?.Error(e, "Error while during HandleBlockRequest.");
             }
         }
-        
+
         private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
         { 
             try
