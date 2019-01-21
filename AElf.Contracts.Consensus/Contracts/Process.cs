@@ -43,7 +43,29 @@ namespace AElf.Contracts.Consensus.Contracts
 
             SetAliases(firstTerm);
 
-            firstTerm.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+            var senderPublicKey = Api.RecoverPublicKey().ToHex();
+            if (firstTerm.FirstRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
+            {
+                firstTerm.FirstRound.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+            }
+            else
+            {
+                if (_collection.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                {
+                    history.ProducedBlocks += 1;
+                }
+                else
+                {
+                    history = new CandidateInHistory
+                    {
+                        PublicKey = senderPublicKey,
+                        ProducedBlocks = 1,
+                        CurrentAlias = senderPublicKey.Substring(0, GlobalConfig.AliasLimit)
+                    };
+                }
+
+                _collection.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
+            }
 
             firstTerm.FirstRound.BlockchainAge = 1;
             firstTerm.SecondRound.BlockchainAge = 1;
@@ -83,9 +105,28 @@ namespace AElf.Contracts.Consensus.Contracts
             }
 
             // Update produced block number of this node.
-            if (term.FirstRound.RealTimeMinersInfo.ContainsKey(Api.RecoverPublicKey().ToHex()))
+            var senderPublicKey = Api.RecoverPublicKey().ToHex();
+            if (term.FirstRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
             {
-                term.FirstRound.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+                term.FirstRound.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+            }
+            else
+            {
+                if (_collection.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                {
+                    history.ProducedBlocks += 1;
+                }
+                else
+                {
+                    history = new CandidateInHistory
+                    {
+                        PublicKey = senderPublicKey,
+                        ProducedBlocks = 1,
+                        CurrentAlias = senderPublicKey.Substring(0, GlobalConfig.AliasLimit)
+                    };
+                }
+
+                _collection.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
             }
 
             // Update miners list.
@@ -346,6 +387,25 @@ namespace AElf.Contracts.Consensus.Contracts
                     {
                         nextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
                     }
+                    else
+                    {
+                        if (_collection.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                        {
+                            history.ProducedBlocks += 1;
+                        }
+                        else
+                        {
+                            history = new CandidateInHistory
+                            {
+                                PublicKey = senderPublicKey,
+                                ProducedBlocks = 1,
+                                CurrentAlias = senderPublicKey.Substring(0, GlobalConfig.AliasLimit)
+                            };
+                        }
+
+                        _collection.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
+                    }
+                    
                     _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
                     _collection.CurrentRoundNumberField.SetValue(2);
                 }
@@ -362,12 +422,50 @@ namespace AElf.Contracts.Consensus.Contracts
                         forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
                             minerInRound.Value.ProducedBlocks;
                     }
+                    else
+                    {
+                        if (_collection.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                        {
+                            history.ProducedBlocks += minerInRound.Value.ProducedBlocks;
+                            history.MissedTimeSlots += minerInRound.Value.MissedTimeSlots;
+                        }
+                        else
+                        {
+                            history = new CandidateInHistory
+                            {
+                                PublicKey = senderPublicKey,
+                                ProducedBlocks = minerInRound.Value.ProducedBlocks,
+                                MissedTimeSlots = minerInRound.Value.MissedTimeSlots,
+                                CurrentAlias = senderPublicKey.Substring(0, GlobalConfig.AliasLimit)
+                            };
+                        }
+
+                        _collection.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
+                    }
                 }
 
                 forwarding.NextRoundInfo.BlockchainAge = CurrentAge;
                 if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(senderPublicKey))
                 {
                     forwarding.NextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+                }
+                else
+                {
+                    if (_collection.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                    {
+                        history.ProducedBlocks += 1;
+                    }
+                    else
+                    {
+                        history = new CandidateInHistory
+                        {
+                            PublicKey = senderPublicKey,
+                            ProducedBlocks = 1,
+                            CurrentAlias = senderPublicKey.Substring(0, GlobalConfig.AliasLimit)
+                        };
+                    }
+
+                    _collection.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
                 }
 
                 if (CurrentRoundNumber > GlobalConfig.ForkDetectionRoundNumber)
@@ -502,7 +600,6 @@ namespace AElf.Contracts.Consensus.Contracts
                     _collection.AliasesMap.SetValue(new StringValue {Value = publicKey},
                         new StringValue {Value = alias});
                     ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
-
                 }
             }
         }
