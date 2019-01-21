@@ -100,7 +100,7 @@ namespace AElf.Contracts.Authorization
             else
             {
                 var msigAccount = proposal.MultiSigAccount;
-                var auth = GetAuth(msigAccount);
+                var auth = GetAuthorization(msigAccount);
                 Api.Assert(!auth.Equals(new Kernel.Authorization()), "Not found authorization."); // this should not happen.
 
                 // check approvals
@@ -110,7 +110,6 @@ namespace AElf.Contracts.Authorization
                     ? ProposalStatus.Decided
                     : ProposalStatus.ToBeDecided;
             }
-
             return proposal;
         }
         #endregion view
@@ -121,14 +120,21 @@ namespace AElf.Contracts.Authorization
         {
             Api.Assert(authorization.Reviewers.Count > 0 && authorization.Reviewers.All(r => r.PubKey.Length > 0),
                 "Invalid authorization for multi signature.");
-            // TODO: check public key -- if no Multisig account then ELF_chainID_SHA^2(authorization)
             Address multiSigAccount = authorization.MultiSigAccount ??
                                       Address.FromPublicKey(authorization.ToByteArray().ToArray());
-            Api.Assert(_multiSig.GetValue(multiSigAccount).Equals(new Kernel.Authorization()),
-                "MultiSigAccount already existed.");
+            Api.Assert(!_multiSig.TryGet(multiSigAccount, out _),"MultiSigAccount already existed.");
+            uint accumulatedWeights =
+                authorization.Reviewers.Aggregate<Reviewer, uint>(0, (weights, r) => weights + r.Weight);
+            
+            // Weight accumulation should be more than authorization execution threshold.
+            Api.Assert(accumulatedWeights >= authorization.ExecutionThreshold, "Invalid authorization.");
+            
+            // At least one reviewer can propose.
+            bool canBeProposed = authorization.Reviewers.Any(r => r.Weight >= authorization.ProposerThreshold);
+            Api.Assert(canBeProposed, "Invalid authorization.");
+            
             authorization.MultiSigAccount = multiSigAccount;
             _multiSig.SetValue(multiSigAccount, authorization);
-
             return multiSigAccount.DumpByteArray();
         }
 
@@ -146,13 +152,11 @@ namespace AElf.Contracts.Authorization
             Api.Assert(Api.CurrentBlockTime < timestamp, "Expired proposal.");
 
             Hash hash = proposal.GetHash();
-            Api.Assert(_proposals.GetValue(hash).Equals(new Proposal()), "Proposal already created.");
+            Api.Assert(!_proposals.TryGet(hash, out _), "Proposal already created.");
 
             // check authorization of proposer public key
-            var auth = GetAuth(proposal.MultiSigAccount);
-            Api.Assert(!auth.Equals(new Kernel.Authorization()), "MultiSigAccount not found.");
+            var auth = GetAuthorization(proposal.MultiSigAccount);
             CheckAuthority(proposal, auth);
-
             _proposals.SetValue(hash, proposal);
             return hash.DumpByteArray();
         }
@@ -163,26 +167,22 @@ namespace AElf.Contracts.Authorization
             Hash hash = approval.ProposalHash;
 
             // check approval not existed
-            var approved = _approved.GetValue(hash);
-            Api.Assert(approved.Equals(new Approved()) || !approved.Approvals.Contains(approval),
+            Api.Assert(!_approved.TryGet(hash, out var approved) || !approved.Approvals.Contains(approval),
                 "Approval already existed.");
 
             // check authorization and permission 
-            var proposal = _proposals.GetValue(hash);
-            Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found.");
+            Api.Assert(_proposals.TryGet(hash, out var proposal), "Proposal not found.");
             Api.Assert(Api.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
             
             var msig = proposal.MultiSigAccount;
-            var authorization = GetAuth(msig);
-            
-            Api.Assert(!authorization.Equals(new Kernel.Authorization()), "Authorization not found."); // should never happen
-            
+            var authorization = GetAuthorization(msig);
             byte[] toSig = proposal.TxnData.ToByteArray().CalculateHash();
             byte[] pubKey = Api.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
             Api.Assert(Api.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
             Api.Assert(authorization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)), "Not authorized approval.");
             
             CheckSignature(proposal.TxnData.ToByteArray(), approval.Signature.ToByteArray());
+            approved = approved ?? new Approved(); 
             approved.Approvals.Add(approval);
             _approved.SetValue(hash, approved);
 
@@ -197,19 +197,17 @@ namespace AElf.Contracts.Authorization
 
         public byte[] Release(Hash proposalHash)
         {
-            var proposal = _proposals.GetValue(proposalHash);
-            Api.Assert(!proposal.Equals(new Proposal()), "Proposal not found");
+            Api.Assert(_proposals.TryGet(proposalHash, out var proposal), "Proposal not found.");
             // check expired time of proposal
-            Api.Assert(Api.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime), "Expired proposal.");
+            Api.Assert(Api.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime),
+                "Expired proposal.");
             Api.Assert(proposal.Status != ProposalStatus.Released, "Proposal already released");
             
             var msigAccount = proposal.MultiSigAccount;
-            var auth = GetAuth(msigAccount);
-            Api.Assert(!auth.Equals(new Kernel.Authorization())); // this should not happen.
+            var auth = GetAuthorization(msigAccount);
 
             // check approvals
             var approved = _approved.GetValue(proposalHash);
-
             Api.Assert(CheckApproval(approved, auth, proposal), "Not authorized to release.");
 
             // check and append signatures to packed txn
@@ -223,12 +221,17 @@ namespace AElf.Contracts.Authorization
         }
 
         #endregion
+        
 
-        public Kernel.Authorization GetAuth(Address address)
+        private Kernel.Authorization GetAuthorization(Address address)
         {
             // case 1: get authorization of normal multi sig account
             if (!address.Equals(Genesis))
-                return _multiSig.GetValue(address);
+            {
+                Api.Assert(_multiSig.TryGet(address, out var authorization), "MultiSigAccount not found.");
+                return authorization;
+            }
+             
             // case 2: get authorization of system account  
             var reviewers = Api.GetMiners().PublicKeys;
             var auth = new Kernel.Authorization
@@ -245,26 +248,6 @@ namespace AElf.Contracts.Authorization
             
             return auth;
         }
-
-        public bool IsMultiSigAccount(Address address)
-        {
-            if (address.Equals(Genesis) || _multiSig.GetValue(address) != null)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /*private bool GetAuth(Address address, out Authorization authorization)
-        {
-            // case 1
-            // get authorization of system account
-            
-            // case 2 
-            // get authorization of normal multi sig account
-            return false;
-        }*/
 
         private Transaction CheckAndFillTxnData(Proposal proposal, Approved approved)
         {
