@@ -12,19 +12,19 @@ namespace AElf.Concurrency.Lighthouse
         private ActorSystem _actorSystem;
         public Task TerminationHandle => _actorSystem.WhenTerminated;
 
-        private readonly LighthouseConcurrencyOptions _lighthouseConcurrencyOptions;
+        private readonly ExecutionOptions _executionOptions;
 
-        public ManagementService(IOptionsSnapshot<LighthouseConcurrencyOptions> options)
+        public ManagementService(IOptionsSnapshot<ExecutionOptions> options)
         {
-            _lighthouseConcurrencyOptions = options.Value;
+            _executionOptions = options.Value;
         }
 
         private ActorSystem CreateActorSystem()
         {
             var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("lighthouse.hocon"));
             var systemName = clusterConfig.GetConfig("manager").GetString("system-name");
-            var hostName = _lighthouseConcurrencyOptions.HostName;
-            var port = _lighthouseConcurrencyOptions.Port;
+            var hostName = _executionOptions.HostName;
+            var port = _executionOptions.Port;
             var selfAddress = $"akka.tcp://{systemName}@{hostName}:{port}";
 
             var seeds = clusterConfig.GetStringList("akka.cluster.seed-nodes");

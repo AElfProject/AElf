@@ -10,7 +10,7 @@ namespace AElf.Concurrency.Lighthouse
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            Configure<LighthouseConcurrencyOptions>(configuration.GetSection("LighthouseConcurrency"));
+            Configure<ExecutionOptions>(configuration.GetSection("Execution"));
             
             context.Services.AddSingleton<ManagementService>();
         }
