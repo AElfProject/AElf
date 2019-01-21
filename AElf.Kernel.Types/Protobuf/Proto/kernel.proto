@@ -348,9 +348,11 @@ message ChainBlockLink{
 message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
-    map<string, int64> Branches = 3;
-    Hash BestChainHash = 4;
-    map<string, string> NotLinkedBlocks = 5;
+    Hash BestChainHash = 3;
+    int64 BestChainHeight = 4;
+    
+    map<string, int64> Branches = 5;
+    map<string, string> NotLinkedBlocks = 6;
 }
 
 
