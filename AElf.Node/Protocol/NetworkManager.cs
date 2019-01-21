@@ -648,6 +648,8 @@ namespace AElf.Node.Protocol
                         {
                             _logger?.Warn("Found no other to finish initial sync.");
                         }
+                        
+                        p.ResetSync();
                     }
                 }
             }
