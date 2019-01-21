@@ -789,8 +789,7 @@ namespace AElf.Node.Protocol
                 _logger?.Error(e, "Error while during HandleBlockRequest.");
             }
         }
-
-        private int already = 0;
+        
         private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
         { 
             try
@@ -818,12 +817,6 @@ namespace AElf.Node.Protocol
                 
                 if (args.Message.HasId)
                     req.Id = args.Message.Id;
-
-                if (args.Peer.Port == 6801 && already != 2 && (b.Header.Index == 5 || b.Header.Index == 7))
-                {
-                    already++;
-                    return;
-                }
 
                 // Send response
                 args.Peer.EnqueueOutgoing(req, _ =>
