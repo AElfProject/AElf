@@ -71,7 +71,7 @@ namespace AElf.Runtime.CSharp.Metadata
             StateBase = Sdk.GetType("AElf.Sdk.CSharp.State.StateBase");
             ContractStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.ContractState");
             ContractBase = Sdk.GetType("AElf.Sdk.CSharp.CSharpSmartContract");
-            SingletonStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.SingletonState`1");
+            SingletonStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.SingletonState");
             StructuredStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.StructuredState");
             MappedStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.MappedStateBase");
             PropertyMethodIndex = new PropertyMethodIndex(Module.Types.Where(x => x.IsSubclassOf(StateBase))

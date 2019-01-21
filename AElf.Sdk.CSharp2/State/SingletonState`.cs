@@ -5,7 +5,11 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public class SingletonState<TEntity> : StateBase
+    public class SingletonState : StateBase
+    {
+    }
+
+    public class SingletonState<TEntity> : SingletonState
     {
         internal bool Loaded = false;
         internal bool Modified => Equals(_originalValue, _value);
