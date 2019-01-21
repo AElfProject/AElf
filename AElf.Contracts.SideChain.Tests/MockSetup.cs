@@ -26,7 +26,7 @@ namespace AElf.Contracts.SideChain.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+        public int ChainId1 { get; } = ChainHelpers.GetRandomChainId();
         public IStateManager StateManager { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;

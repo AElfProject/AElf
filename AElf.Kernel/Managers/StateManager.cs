@@ -5,6 +5,7 @@ using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
+    //TODO: remove
     public class StateManager : IStateManager
     {
         private readonly IStateStore _stateStore;

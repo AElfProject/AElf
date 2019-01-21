@@ -25,8 +25,8 @@ namespace AElf.Miner.Rpc.Client
     
     public class ClientManager
     {
-        private readonly Dictionary<Hash, ClientToSideChain> _clientsToSideChains =
-            new Dictionary<Hash, ClientToSideChain>();
+        private readonly Dictionary<int, ClientToSideChain> _clientsToSideChains =
+            new Dictionary<int, ClientToSideChain>();
 
         private ClientToParentChain _clientToParentChain;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
@@ -94,7 +94,7 @@ namespace AElf.Miner.Rpc.Client
             });
         }
 
-        private async Task<ulong> GetSideChainTargetHeight(Hash chainId)
+        private async Task<ulong> GetSideChainTargetHeight(int chainId)
         {
             var height = await _crossChainInfoReader.GetSideChainCurrentHeightAsync(chainId);
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
@@ -122,7 +122,7 @@ namespace AElf.Miner.Rpc.Client
             foreach (var sideChainId in ChildChains.Keys)
             {
                 var client = CreateClientToSideChain(sideChainId);
-                var height = await GetSideChainTargetHeight(Hash.LoadBase58(sideChainId));
+                var height = await GetSideChainTargetHeight(sideChainId.ConvertBase58ToChainId());
 
                 // keep-alive
                 // TODO: maybe improvement for NO wait call 
@@ -147,7 +147,7 @@ namespace AElf.Miner.Rpc.Client
                 if (!ChildChains.TryGetValue(targetChainId, out var chainUri))
                     throw new ChainInfoNotFoundException($"Unable to get chain Info of {targetChainId}.");
                 ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(chainUri, targetChainId, true);
-                _clientsToSideChains.Add(Hash.LoadBase58(targetChainId), clientToSideChain);
+                _clientsToSideChains.Add(targetChainId.ConvertBase58ToChainId(), clientToSideChain);
                 return clientToSideChain;
             }
             catch (Exception e)
@@ -201,7 +201,7 @@ namespace AElf.Miner.Rpc.Client
         {
             var uriStr = uri.ToString();
             var channel = CreateChannel(uriStr, targetChainId);
-            var chainId = Hash.LoadBase58(targetChainId);
+            var chainId = targetChainId.ConvertBase58ToChainId();
             if (isClientToSideChain)
                 return new ClientToSideChain(channel, chainId, _interval,  GlobalConfig.InvertibleChainHeight, GlobalConfig.MaximalCountForIndexingSideChainBlock);
             return new ClientToParentChain(channel, chainId, _interval, 
@@ -283,7 +283,7 @@ namespace AElf.Miner.Rpc.Client
             var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
             if (chainId == null)
                 return null;
-            Hash parentChainId = Hash.LoadBase58(chainId);
+            var parentChainId = chainId.ConvertBase58ToChainId();
             ulong targetHeight = await GetParentChainTargetHeight();
 
             List<ParentChainBlockInfo> parentChainBlockInfos = new List<ParentChainBlockInfo>();

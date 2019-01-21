@@ -25,7 +25,7 @@ namespace AElf.Runtime.CSharp.Tests
         {
             context.Services.AddAssemblyOf<TestCSharpRuntimeAElfModule>();
 
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
 

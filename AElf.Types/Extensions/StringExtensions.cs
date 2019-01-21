@@ -1,9 +1,10 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
-    public static partial class Extensions
+    public static class StringExtensions
     {
         public static string RemoveHexPrefix(this string hexStr)
         {
@@ -22,7 +23,12 @@ namespace AElf.Common
         /// <returns></returns>
         public static byte[] CalculateHash(this string obj)
         {
-            return CalculateHash(Encoding.UTF8.GetBytes(obj));
+            return Encoding.UTF8.GetBytes(obj).CalculateHash();
+        }
+        
+        public static Hash ComputeHash(this int obj)
+        {
+            return Hash.FromRawBytes(BitConverter.GetBytes(obj));
         }
         
         public static byte[] DecodeBase58(this string value)

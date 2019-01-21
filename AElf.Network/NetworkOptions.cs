@@ -1,22 +1,16 @@
-﻿using System.Collections.Generic;
-using AElf.Cryptography.ECDSA;
+using System.Collections.Generic;
 
-namespace AElf.Configuration.Config.Network
+namespace AElf.Network
 {
-    [ConfigFile(FileName = "network.json")]
-    public class NetworkConfig : ConfigBase<NetworkConfig>
+    public class NetworkOptions
     {
         /// <summary>
-        /// This nodes key pair.
+        /// Initial set of nodes.
         /// </summary>
-        public ECKeyPair EcKeyPair { get; set; }
-            
-        public List<string> Bootnodes { get; set; }
-        
-        public string PeersDbPath { get; set; }
+        public List<string> BootNodes { get; set; }
         
         /// <summary>
-        /// SideChainServer listening Port
+        /// Node Server listening Port.
         /// </summary>
         public int ListeningPort { get; set; }
         

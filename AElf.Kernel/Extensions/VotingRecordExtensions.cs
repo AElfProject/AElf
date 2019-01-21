@@ -1,4 +1,5 @@
 using System;
+using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -25,6 +26,10 @@ namespace AElf.Kernel
             }
 
             return lockExpiredAge <= currentAge;
+        }
+        public static ulong GetExpireTermNumber(this VotingRecord votingRecord, ulong currentAge)
+        {
+            return votingRecord.TermNumber + votingRecord.GetDurationDays(currentAge) / GlobalConfig.DaysEachTerm;
         }
     }
 }

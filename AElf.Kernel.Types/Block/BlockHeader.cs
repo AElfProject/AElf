@@ -35,7 +35,7 @@ namespace AElf.Kernel
         {
             var rawBlock = new BlockHeader
             {
-                ChainId = ChainId?.Clone(),
+                ChainId = ChainId,
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash?.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),

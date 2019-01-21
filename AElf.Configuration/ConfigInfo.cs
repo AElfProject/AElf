@@ -23,7 +23,7 @@ namespace AElf.Configuration
                 {
                     Value = JsonSerializer.Instance.Deserialize(content, type);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //Logger.LogError($"create {name} config instance error:{e.Message}");
                     Value = CreateDefaultInstance(type);

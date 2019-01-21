@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace AElf.Common
 {
-    public static partial class Extensions
+    public static class NumbericExtensions
     {
         public static byte[] ToBytes(this ulong number)
         {

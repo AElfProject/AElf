@@ -1,4 +1,5 @@
 using AElf.Database;
+using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
@@ -11,6 +12,7 @@ namespace AElf.Contracts.TestBase
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(ExecutionAElfModule),
         typeof(KernelAElfModule),
         typeof(DatabaseAElfModule)
     )]
@@ -20,7 +22,7 @@ namespace AElf.Contracts.TestBase
         {
             context.Services.AddAssemblyOf<ContractTestAElfModule>();
             
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
         }
     }

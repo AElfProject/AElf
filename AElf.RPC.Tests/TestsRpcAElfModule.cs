@@ -1,4 +1,6 @@
 using AElf.ChainController.Rpc;
+using AElf.Configuration;
+using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Kernel.Storages;
 using AElf.Miner.Rpc;
@@ -33,8 +35,11 @@ namespace AElf.RPC.Tests
         {
             //TODO: here to generate basic chain data
 
-            context.Services.AddKeyValueDbContext<BlockChainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            
+            //TODO: Remove it
+            NodeConfig.Instance.ECKeyPair = new KeyPairGenerator().Generate();
         }
     }
 }

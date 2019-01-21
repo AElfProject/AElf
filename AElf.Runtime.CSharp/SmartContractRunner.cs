@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.ABI.CSharp;
 using AElf.Common;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
@@ -26,10 +25,6 @@ namespace AElf.Runtime.CSharp
         private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash = new ConcurrentDictionary<Hash, Type>();
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
-
-        public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList, RunnerConfig.Instance.WhiteList)
-        {
-        }
 
         public SmartContractRunner(string sdkDir, IEnumerable<string> blackList = null, IEnumerable<string> whiteList = null)
         {

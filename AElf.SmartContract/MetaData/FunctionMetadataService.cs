@@ -14,18 +14,18 @@ namespace AElf.SmartContract.Metadata
     
     public class FunctionMetadataService : IFunctionMetadataService
     {
-        private readonly ConcurrentDictionary<Hash, ChainFunctionMetadata> _metadatas;
+        private readonly ConcurrentDictionary<int, ChainFunctionMetadata> _metadatas;
         public ILogger<FunctionMetadataService> Logger { get; set; }
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
         public FunctionMetadataService(IFunctionMetadataManager functionMetadataManager)
         {
             Logger = NullLogger<FunctionMetadataService>.Instance;
-            _metadatas = new ConcurrentDictionary<Hash, ChainFunctionMetadata>();
+            _metadatas = new ConcurrentDictionary<int, ChainFunctionMetadata>();
             _functionMetadataManager = functionMetadataManager;
         }
 
-        public async Task DeployContract(Hash chainId, Address address, ContractMetadataTemplate contractMetadataTemplate)
+        public async Task DeployContract(int chainId, Address address, ContractMetadataTemplate contractMetadataTemplate)
         {
             //For each chain, ChainFunctionMetadata should be used singlethreaded
             //which means transactions that deploy contracts need to execute serially
@@ -44,7 +44,7 @@ namespace AElf.SmartContract.Metadata
             Logger.LogInformation($"Metadata of contract {contractMetadataTemplate.FullName} are extracted successfully.");
         }
 
-        public async Task UpdateContract(Hash chainId, Address address, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
+        public async Task UpdateContract(int chainId, Address address, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {
@@ -54,7 +54,7 @@ namespace AElf.SmartContract.Metadata
             await chainFuncMetadata.UpdateContract(chainId, address, oldContractMetadataTemplate, newContractMetadataTemplate);
         }
 
-        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string addrFunctionName)
+        public async Task<FunctionMetadata> GetFunctionMetadata(int chainId, string addrFunctionName)
         {
             if (!_metadatas.TryGetValue(chainId, out var chainFuncMetadata))
             {

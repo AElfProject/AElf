@@ -26,7 +26,7 @@ namespace AElf.Execution.Scheduling
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(Hash chainId, List<Transaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(int chainId, List<Transaction> transactions)
         {
             var txResourceHandle = new Dictionary<Transaction, string>();
             var failedTxs = new Dictionary<Transaction, Exception>();
@@ -105,7 +105,7 @@ namespace AElf.Execution.Scheduling
             return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);
         }
 
-        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<Transaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, int chainId, List<Transaction> transactions)
         {
             if (strategy == GroupStrategy.NaiveGroup)
             {

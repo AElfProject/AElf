@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Timers;
-using AElf.Configuration;
-using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Management.Services
@@ -18,11 +17,13 @@ namespace AElf.Management.Services
         private readonly ITransactionService _transactionService;
         private readonly INodeService _nodeService;
         private readonly INetworkService _networkService;
+        private readonly ManagementOptions _managementOptions;
         private readonly Timer _timer;
 
         public ILogger<RecordService> Logger {get;set;}
 
-        public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
+        public RecordService(IChainService chainService, ITransactionService transactionService, INodeService 
+        nodeService, INetworkService networkService,IOptionsSnapshot<ManagementOptions> options)
         {
             Logger= NullLogger<RecordService>.Instance;
 
@@ -30,7 +31,8 @@ namespace AElf.Management.Services
             _transactionService = transactionService;
             _nodeService = nodeService;
             _networkService = networkService;
-            _timer = new Timer(ManagementConfig.Instance.MonitoringInterval * 1000);
+            _managementOptions = options.Value;
+            _timer = new Timer(_managementOptions.MonitoringInterval * 1000);
             _timer.Elapsed += TimerOnElapsed;
         }
 
@@ -43,7 +45,7 @@ namespace AElf.Management.Services
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             var time = DateTime.Now;
-            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
+            Parallel.ForEach(_managementOptions.ServiceUrls.Keys, chainId =>
                 {
                     try
                     {

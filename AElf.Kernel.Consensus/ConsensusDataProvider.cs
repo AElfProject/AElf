@@ -26,10 +26,10 @@ namespace AElf.Kernel.Consensus
 
         
         //TODO: configuration need be changed.
-        public Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        public int ChainId => ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
 
         public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
-            Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         private DataProvider DataProvider
         {

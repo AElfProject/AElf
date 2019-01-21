@@ -14,7 +14,7 @@ namespace AElf.Concurrency.Lighthouse
             {
                 parsed = confParser.Parse(args);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //Logger.LogError(e);
                 throw;

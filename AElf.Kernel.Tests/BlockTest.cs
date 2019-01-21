@@ -9,6 +9,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
+using Shouldly;
 
 namespace AElf.Kernel.Tests
 {
@@ -108,7 +109,7 @@ namespace AElf.Kernel.Tests
 
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             

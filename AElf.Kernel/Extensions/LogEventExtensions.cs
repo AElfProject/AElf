@@ -1,6 +1,6 @@
 namespace AElf.Kernel
 {
-    public static class LogEventExtension
+    public static class LogEventExtensions
     {
         public static Bloom GetBloom(this LogEvent logEvent)
         {

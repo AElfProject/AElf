@@ -2,7 +2,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public static class TransactionResultExtension
+    public static class TransactionResultExtensions
     {
         public static void UpdateBloom(this TransactionResult transactionResult)
         {

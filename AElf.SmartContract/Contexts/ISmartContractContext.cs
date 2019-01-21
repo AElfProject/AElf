@@ -6,7 +6,7 @@ namespace AElf.SmartContract
 {
     public interface ISmartContractContext
     {
-        Hash ChainId { get; }
+        int ChainId { get; }
         Address ContractAddress { get; }
         IDataProvider DataProvider { get; }
         ISmartContractService SmartContractService { get; }

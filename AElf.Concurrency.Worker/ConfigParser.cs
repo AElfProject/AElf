@@ -38,23 +38,6 @@ namespace AElf.Concurrency.Worker
             {
                 ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
             }
-
-            if (opts.IsParallelEnable.HasValue)
-            {
-                ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
-            }
-            
-            if (!string.IsNullOrWhiteSpace(opts.DBType))
-            {
-                DatabaseConfig.Instance.Type = DatabaseTypeHelper.GetType(opts.DBType);
-                if (!string.IsNullOrWhiteSpace(opts.DBHost) && opts.DBPort.HasValue)
-                {
-                    DatabaseConfig.Instance.Hosts = new Dictionary<string, DatabaseHost>
-                    {
-                        {"Default", new DatabaseHost {Host = opts.DBHost, Port = opts.DBPort.Value, Number = opts.DBNumber ?? 0}}
-                    };
-                }
-            }
         }
     }
 }

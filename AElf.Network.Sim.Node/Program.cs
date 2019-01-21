@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Network;
 using AElf.Net.Rpc;
 using AElf.Node;
 using AElf.Node.AElfChain;

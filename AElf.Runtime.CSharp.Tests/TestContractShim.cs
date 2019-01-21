@@ -23,7 +23,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
         private IExecutive Executive { get; set; }
 
-        private Hash ChainId
+        private int ChainId
         {
             get
             {

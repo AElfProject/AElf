@@ -30,28 +30,13 @@ namespace AElf.Miner
                 };
             }
 
-            minerConfig.ChainId = new Hash()
-            {
-                Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
-            };
+            minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             
-            
-
             var services = context.Services;
 
             services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddSingleton<ClientManager>();
             services.AddSingleton<ServerManager>();
-
-            
-
-            var txPoolConfig = TxPoolConfig.Default;
-            txPoolConfig.FeeThreshold = 0;
-            txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
-            txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
-            txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
-
-            services.AddSingleton<ITxPoolConfig>(txPoolConfig);
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

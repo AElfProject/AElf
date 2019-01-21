@@ -6,7 +6,7 @@ namespace AElf.SmartContract
     {
         public ulong IncrementId { get; set; }
         public Address Address { get; set; }
-        public Hash ChainId { get; set; }
+        public int ChainId { get; set; }
 
 //        public Hash GetHash()
 //        {

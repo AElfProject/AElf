@@ -14,7 +14,7 @@ namespace AElf.Synchronization
         private IBlockChain _blockChain;
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadBase58(ChainConfig.Instance.ChainId)));
+                                                  ChainConfig.Instance.ChainId.ConvertBase58ToChainId()));
 
         public BlockHeaderValidator(IChainService chainService)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -63,7 +64,7 @@ namespace AElf.Sdk.CSharp
 
         #endregion Privileged API
 
-        public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
+        public static int ChainId => _smartContractContext.ChainId;
 
         public static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 
@@ -156,6 +157,26 @@ namespace AElf.Sdk.CSharp
             }
 
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static ulong GetBlockchainAge()
+        {
+            if (Call(ConsensusContractAddress, "GetBlockchainAge"))
+            {
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+            }
+
+            throw new InternalError("Failed to get blockchain age.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static List<VotingRecord> GetVotingRecords(string publicKey)
+        {
+            if (Call(ConsensusContractAddress, "GetTicketsInfo", publicKey))
+            {
+                return GetCallResult().DeserializeToPbMessage<Tickets>().VotingRecords.ToList();
+            }
+
+            throw new InternalError("Failed to get voting records.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)

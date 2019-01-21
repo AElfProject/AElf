@@ -7,7 +7,7 @@ using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public static class RetValExtension
+    public static class RetValExtensions
     {
         /// <summary>
         /// Converts the serialized protobuf data to human friendly representation. 

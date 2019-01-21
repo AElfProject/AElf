@@ -4,7 +4,7 @@ using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public static class TransactionTraceExtension
+    public static class TransactionTraceExtensions
     {
         public static bool IsSuccessful(this TransactionTrace txTrace)
         {

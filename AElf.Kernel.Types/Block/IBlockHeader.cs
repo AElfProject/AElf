@@ -10,7 +10,7 @@ namespace AElf.Kernel
     {
         int Version { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
-        Hash ChainId { get; set; }
+        int ChainId { get; set; }
         Hash SideChainTransactionsRoot { get; set; }
         ulong Index { get; set; }
     }

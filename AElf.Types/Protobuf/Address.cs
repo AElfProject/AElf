@@ -48,15 +48,15 @@ namespace AElf.Common
         /// <param name="contractName"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address BuildContractAddress(byte[] chainId, ulong serialNumber)
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
-            var hash = Hash.FromTwoHashes(Hash.LoadByteArray(chainId), Hash.FromRawBytes(serialNumber.ToBytes()));
+            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
             return new Address(TakeByAddressLength(hash.DumpByteArray()));
         }
 
-        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        public static Address BuildContractAddress(int chainId, ulong serialNumber)
         {
-            return BuildContractAddress(chainId.DumpByteArray(), serialNumber);
+            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
         }
 
         /// <summary>

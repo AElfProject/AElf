@@ -122,7 +122,7 @@ namespace AElf.Configuration
                     var newConfig = JsonSerializer.Instance.Deserialize(configContent, configInfo.Type);
                     SetConfigInstance(newConfig, configInfo.Value);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Logger.LogError(ex, "Exception while handle config changed.");
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
 
@@ -20,9 +21,9 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
 
-        public ConsensusProcessTest(MockSetup mock)
+        public ConsensusProcessTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
-            _contracts = new ContractsShim(mock);
+            _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
         private void InitialMiners()
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void InitialTermTest()
         {
             InitialMiners();
@@ -81,7 +82,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void PackageOutValueTest()
         {
             InitialMiners();
@@ -113,7 +114,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal((ulong) 2, firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].ProducedBlocks);
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void PackageOutValueTest_RoundIdNotMatched()
         {
             InitialMiners();
@@ -138,7 +139,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void BroadcastInValueTest()
         {
             InitialMiners();
@@ -164,7 +165,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(firstRound.RealTimeMinersInfo[_miners[0].PublicKey.ToHex()].InValue == inValue);
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void BroadcastInValueTest_OutValueIsNull()
         {
             InitialMiners();
@@ -189,7 +190,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void BroadcastInValueTest_InValueNotMatchToOutValue()
         {
             InitialMiners();
@@ -215,7 +216,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
         }
 
-        [Fact(Skip = "Time consuming")]
+        [Fact(Skip = "Skip for now.")]
         public void NextRoundTest()
         {
             InitialMiners();

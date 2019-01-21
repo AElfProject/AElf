@@ -96,6 +96,11 @@ namespace AElf.Kernel
 
         public static bool CheckWhetherMostMinersMissedTimeSlots(this Round round)
         {
+            if (GlobalConfig.BlockProducerNumber == 1)
+            {
+                return false;
+            }
+
             var missedMinersCount = 0;
             foreach (var minerInRound in round.RealTimeMinersInfo)
             {
