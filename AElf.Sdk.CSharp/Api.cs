@@ -448,7 +448,8 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return;
-            Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
+            Assert(Call(AuthorizationContractAddress, "GetAuthorization", _transactionContext.Transaction.From),
+                "Unable to get authorization.");
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
 
             // Get tx hash

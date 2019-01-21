@@ -112,6 +112,34 @@ namespace AElf.Contracts.Authorization
             }
             return proposal;
         }
+        
+        [View]
+        public Kernel.Authorization GetAuthorization(Address address)
+        {
+            // case 1: get authorization of normal multi sig account
+            if (!address.Equals(Genesis))
+            {
+                Api.Assert(_multiSig.TryGet(address, out var authorization), "MultiSigAccount not found.");
+                return authorization;
+            }
+             
+            // case 2: get authorization of system account  
+            var reviewers = Api.GetMiners().PublicKeys;
+            var auth = new Kernel.Authorization
+            {
+                MultiSigAccount = Genesis,
+                ExecutionThreshold = SystemThreshold((uint) reviewers.Count),
+                ProposerThreshold = 0
+            };
+            auth.Reviewers.AddRange(reviewers.Select(r => new Reviewer
+            {
+                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(r)),
+                Weight = 1 // BP weight
+            }));
+            
+            return auth;
+        }
+        
         #endregion view
         
         #region Actions
@@ -223,31 +251,25 @@ namespace AElf.Contracts.Authorization
         #endregion
         
 
-        private Kernel.Authorization GetAuthorization(Address address)
+        public bool IsMultiSigAccount(Address address)
         {
-            // case 1: get authorization of normal multi sig account
-            if (!address.Equals(Genesis))
+            if (address.Equals(Genesis) || _multiSig.TryGet(address, out _))
             {
-                Api.Assert(_multiSig.TryGet(address, out var authorization), "MultiSigAccount not found.");
-                return authorization;
+                return true;
             }
-             
-            // case 2: get authorization of system account  
-            var reviewers = Api.GetMiners().PublicKeys;
-            var auth = new Kernel.Authorization
-            {
-                MultiSigAccount = Genesis,
-                ExecutionThreshold = SystemThreshold((uint) reviewers.Count),
-                ProposerThreshold = 0
-            };
-            auth.Reviewers.AddRange(reviewers.Select(r => new Reviewer
-            {
-                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(r)),
-                Weight = 1 // BP weight
-            }));
-            
-            return auth;
+
+            return false;
         }
+
+        /*private bool GetAuth(Address address, out Authorization authorization)
+        {
+            // case 1
+            // get authorization of system account
+            
+            // case 2 
+            // get authorization of normal multi sig account
+            return false;
+        }*/
 
         private Transaction CheckAndFillTxnData(Proposal proposal, Approved approved)
         {
@@ -273,7 +295,7 @@ namespace AElf.Contracts.Authorization
                 var proposerPerm = reviewer?.Weight ?? 0;
                 Api.Assert(
                     Api.GetFromAddress().Equals(proposal.Proposer) &&
-                    proposerPerm >= authorization.ProposerThreshold, "Not authorized to propose.");
+                    proposerPerm >= authorization.ProposerThreshold, "Unable to propose.");
             }
             // No need to check authority if threshold is 0.
             // check packed transaction 
