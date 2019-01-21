@@ -327,7 +327,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
-            // When the node is in Round 1, gonna just update the data of Round 2 instead of re-generate the orders stuff.
+            // When the node is in Round 1, gonna just update the data of Round 2 instead of re-generate orders.
             if (forwarding.NextRoundInfo.RoundNumber == 0)
             {
                 if (_collection.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(),
@@ -347,7 +347,7 @@ namespace AElf.Contracts.Consensus.Contracts
                         nextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
                     }
                     _collection.RoundsMap.SetValue(nextRoundInfo.RoundNumber.ToUInt64Value(), nextRoundInfo);
-                    _collection.CurrentRoundNumberField.SetValue(nextRoundInfo.RoundNumber);
+                    _collection.CurrentRoundNumberField.SetValue(2);
                 }
             }
             else
