@@ -182,7 +182,10 @@ namespace AElf.Node.Consensus
                 var roundInfo = _helper.GetCurrentRoundInfo();
                 if (roundInfo != null)
                 {
-                    return _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
+                    _logger?.Trace("Sidechain getting miners:");
+                    var miners = _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
+                    _logger?.Trace(miners.PublicKeys);
+                    return miners;
                 }
 
                 return _minersManager.GetMiners(1).Result;
@@ -736,22 +739,25 @@ namespace AElf.Node.Consensus
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            if (AmIContainedInCandidatesList())
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
             {
-                // Not record as announced before.
-                if (!_announcedElection)
+                if (AmIContainedInCandidatesList())
                 {
-                    _logger?.Trace("This node announced election.");
-                    _announcedElection = true;
+                    // Not record as announced before.
+                    if (!_announcedElection)
+                    {
+                        _logger?.Trace("This node announced election.");
+                        _announcedElection = true;
+                    }
                 }
-            }
-            else
-            {
-                // Record as announced before.
-                if (_announcedElection)
+                else
                 {
-                    _logger?.Trace("This node quit election.");
-                    _announcedElection = false;
+                    // Record as announced before.
+                    if (_announcedElection)
+                    {
+                        _logger?.Trace("This node quit election.");
+                        _announcedElection = false;
+                    }
                 }
             }
 
@@ -762,18 +768,6 @@ namespace AElf.Node.Consensus
             {
                 return;
             }
-
-            // Update miners list in database.
-//            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
-//                _helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
-//            {
-//                var currentRoundInfo = _helper.GetCurrentRoundInfo();
-//                if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
-//                {
-//                    _logger?.Trace("Updating miners.");
-//                    await _minersManager.SetMiners(_helper.GetCurrentMiners());
-//                }
-//            }
 
             if (_executedBlockFromOtherMiners && _amIMined &&
                 _helper.GetCurrentRoundInfo().CheckWhetherMostMinersMissedTimeSlots())

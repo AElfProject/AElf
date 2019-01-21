@@ -115,6 +115,7 @@ namespace AElf.Kernel.Consensus
         {
             if (roundInformation?.RealTimeMinersInfo == null)
             {
+                _logger?.Trace("Round information is null.");
                 return null;
             }
             
@@ -122,9 +123,15 @@ namespace AElf.Kernel.Consensus
             
             if (!roundInformation.RealTimeMinersInfo.ContainsKey(publicKey))
             {
+                _logger?.Trace("This node isn't current miner.");
                 // This node isn't current miner.
                 return null;
             }
+            
+            _logger?.Trace("Using round number: " + roundInformation.RoundNumber);
+            
+            _logger?.Trace("Start - Subscribe consensus events.");
+            
             var profile = roundInformation.RealTimeMinersInfo[publicKey];
             var extraBlockTimeSlot = roundInformation.GetEBPMiningTime(Interval).ToTimestamp();
             var myMiningTime = profile.ExpectedMiningTime;
@@ -194,6 +201,8 @@ namespace AElf.Kernel.Consensus
                         $"Will produce another extra block after {distanceToHelpProducingExtraBlock + GlobalConfig.BlockProducerNumber * Interval / 1000} seconds.");
                 }
             }
+            
+            _logger?.Trace("End - Subscribe consensus events.");
 
             return Observable.Return(ConsensusBehavior.NoOperationPerformed)
                 .Concat(produceNormalBlock)
