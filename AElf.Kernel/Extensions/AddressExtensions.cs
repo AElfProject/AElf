@@ -5,6 +5,5 @@ namespace AElf.Kernel
 {
     public static class AddressExtensions
     {
-        
     }
 }

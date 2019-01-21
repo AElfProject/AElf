@@ -25,12 +25,7 @@ namespace AElf.Common
         {
             return Encoding.UTF8.GetBytes(obj).CalculateHash();
         }
-        
-        public static Hash ComputeHash(this int obj)
-        {
-            return Hash.FromRawBytes(BitConverter.GetBytes(obj));
-        }
-        
+
         public static byte[] DecodeBase58(this string value)
         {
             return Base58CheckEncoding.DecodePlain(value);

@@ -11,7 +11,6 @@ namespace AElf.Common
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
         private const int ByteArrayLength = 32;
-        private const int ChainIdLength = 3;
 
         /// <summary>
         /// Used to override IMessage's default string representation.
