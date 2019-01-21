@@ -182,9 +182,8 @@ namespace AElf.Node.Consensus
                 var roundInfo = _helper.GetCurrentRoundInfo();
                 if (roundInfo != null)
                 {
-                    _logger?.Trace("Sidechain getting miners:");
                     var miners = _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
-                    _logger?.Trace(miners.PublicKeys);
+                    _logger?.Trace($"Sidechain getting miners: {miners.PublicKeys}");
                     return miners;
                 }
 
@@ -799,14 +798,6 @@ namespace AElf.Node.Consensus
                 ConsensusDisposable.Dispose();
                 ConsensusDisposable = null;
                 _logger?.Trace("Disposed previous consensus observables list. Will reload new consnesus events.");
-            }
-
-            // Check whether this node is a miner.
-            var miners = Miners;
-            if (miners.PublicKeys.All(m => m != _ownPubKey.ToHex()))
-            {
-                _minerFlag = false;
-                return;
             }
 
             if (!_minerFlag)

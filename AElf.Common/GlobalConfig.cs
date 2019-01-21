@@ -13,7 +13,7 @@ namespace AElf.Common
         
         public static int ChainIdLength = 3;
         public static int ContractAddressHashLength = 18;
-        public const ulong DaysEachTerm = 7;
+        public const ulong DaysEachTerm = 3;
         
         public static int AddressHashLength = 30; // length of sha256
         
