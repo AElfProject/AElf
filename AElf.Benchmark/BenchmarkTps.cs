@@ -28,6 +28,7 @@ namespace AElf.Benchmark
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
         private readonly IStateManager _stateManager;
+        private readonly IMinersManager _minersManager;
 
         private readonly ServicePack _servicePack;
 
@@ -49,7 +50,7 @@ namespace AElf.Benchmark
 
         public Benchmarks(IStateManager stateManager, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
-             IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
+             IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService, IMinersManager minersManager)
         {
             ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             _stateManager = stateManager;
@@ -58,6 +59,7 @@ namespace AElf.Benchmark
             Logger = NullLogger<Benchmarks>.Instance;
             _options = options;
             _executingService = executingService;
+            _minersManager = minersManager;
 
 
             _servicePack = new ServicePack
@@ -65,7 +67,8 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateManager = _stateManager
+                StateManager = _stateManager,
+                MinersManager = _minersManager
             };
 
             _dataGenerater = new TransactionDataGenerator(options);

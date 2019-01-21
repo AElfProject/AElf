@@ -12,8 +12,7 @@ namespace AElf.Kernel
 
         bool AddTransactions(IEnumerable<Hash> txs);
         
-        void Complete(Hash blockHeaderHash, SideChainBlockInfo[] indexedSideChainBlockInfo = null);
+        void Complete(Hash blockHeaderHash);
         
-        RepeatedField<SideChainBlockInfo> IndexedInfo { get; }
     }
 }

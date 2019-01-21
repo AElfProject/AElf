@@ -11,6 +11,6 @@ namespace AElf.ChainController.CrossChain
         Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight);
         Task<ulong> GetParentChainCurrentHeightAsync();
         Task<ulong> GetSideChainCurrentHeightAsync(int chainId);
-        Task<BinaryMerkleTree> GetMerkleTreeForSideChainTransactionRootAsync(ulong height);
+        Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong height);
     }
 }
