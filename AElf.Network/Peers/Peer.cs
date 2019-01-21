@@ -95,6 +95,11 @@ namespace AElf.Network.Peers
         /// The event that's raised when the authentification phase has finished.
         /// </summary>
         public event EventHandler AuthFinished;
+        
+        /// <summary>
+        /// the event that's raised when a request fails.
+        /// </summary>
+        public event EventHandler RequestFailed;
 
         /// <summary>
         /// Indicates if Dispose has been called (once false, never changes back to true).

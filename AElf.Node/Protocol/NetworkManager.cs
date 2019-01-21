@@ -566,6 +566,7 @@ namespace AElf.Node.Protocol
 
                         peer.Peer.MessageReceived += HandleNewMessage;
                         peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+                        peer.Peer.RequestFailed += PeerOnRequestFailed;
 
                         // Sync if needed
                         lock (_syncLock)
@@ -613,6 +614,34 @@ namespace AElf.Node.Protocol
             }
         }
 
+        private void PeerOnRequestFailed(object sender, EventArgs e)
+        {
+            if (sender is Peer p)
+            {
+                lock (_syncLock)
+                {
+                    if (!CurrentSyncSource.IsSyncingHistory)
+                    {
+                        
+                        _logger?.Debug($"About to reset {p} and sync to another.");
+                        if (CurrentSyncSource != null && CurrentSyncSource == p)
+                        {
+                            p.ResetSync();
+                            SyncNext();
+                        }
+                        else
+                        {
+                            p.ResetSync();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _logger?.Warn("Peer was null.");
+            }
+        }
+
         /// <summary>
         /// Callback for when a Peer fires a <see cref="IPeer.PeerDisconnected"/> event. It unsubscribes
         /// the manager from the events and removes it from the list.
@@ -627,6 +656,7 @@ namespace AElf.Node.Protocol
 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.RequestFailed -= PeerOnRequestFailed;
 
                 _peers.Remove(args.Peer);
 
@@ -760,6 +790,7 @@ namespace AElf.Node.Protocol
             }
         }
 
+        private int already = 0;
         private async Task HandleBlockRequestJob(PeerMessageReceivedArgs args)
         { 
             try
@@ -787,6 +818,12 @@ namespace AElf.Node.Protocol
                 
                 if (args.Message.HasId)
                     req.Id = args.Message.Id;
+
+                if (args.Peer.Port == 6801 && already != 2 && (b.Header.Index == 5 || b.Header.Index == 7))
+                {
+                    already++;
+                    return;
+                }
 
                 // Send response
                 args.Peer.EnqueueOutgoing(req, _ =>
