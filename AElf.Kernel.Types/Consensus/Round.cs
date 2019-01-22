@@ -116,7 +116,7 @@ namespace AElf.Kernel
                 }
             }
 
-            return missedMinersCount >= GlobalConfig.BlockProducerNumber - 1;
+            return missedMinersCount >= (GlobalConfig.BlockProducerNumber - 1) * GlobalConfig.ForkDetectionRoundNumber;
         }
     }
 }

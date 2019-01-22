@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.Common;
-
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
@@ -194,18 +193,23 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="targetChainId"></param>
         /// <param name="isClientToSideChain"> the client is connected to side chain or parent chain </param>
         /// <returns>
-        /// return <see cref="ClientToParentChain"/>> if the client is to parent chain
-        /// return <see cref="ClientToSideChain"/>> if the client is to side chain 
+        /// return <see cref="ClientToParentChain"/>> Client is to parent chain if <param name="isClientToSideChain"/> is false.
+        /// return <see cref="ClientToSideChain"/>> Client is to side chain if <param name="isClientToSideChain"/> is true. 
         /// </returns>    
         private ClientBase CreateClient(Uri uri, string targetChainId, bool isClientToSideChain)
         {
             var uriStr = uri.ToString();
             var channel = CreateChannel(uriStr, targetChainId);
             var chainId = targetChainId.ConvertBase58ToChainId();
+            
             if (isClientToSideChain)
-                return new ClientToSideChain(channel, chainId, _interval,  GlobalConfig.InvertibleChainHeight, GlobalConfig.MaximalCountForIndexingSideChainBlock);
-            return new ClientToParentChain(channel, chainId, _interval, 
-                GlobalConfig.InvertibleChainHeight,  GlobalConfig.MaximalCountForIndexingParentChainBlock);
+                return new ClientToSideChain(channel, chainId, _interval,
+                    GlobalConfig.MinimalBlockInfoCacheThreshold,
+                    GlobalConfig.MaximalCountForIndexingSideChainBlock);
+            
+            return new ClientToParentChain(channel, chainId, _interval,
+                GlobalConfig.MinimalBlockInfoCacheThreshold,
+                GlobalConfig.MaximalCountForIndexingParentChainBlock);
         }
 
         /// <summary>
@@ -245,7 +249,7 @@ namespace AElf.Miner.Rpc.Client
                 // index only one block from one side chain.
                 // this could be changed later.
                 var targetHeight = await GetSideChainTargetHeight(_.Key);
-                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, cachingThreshold: true))
+                if (!_.Value.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, needToCheckCachingCount: true))
                     continue;
                 
                 res.Add((SideChainBlockInfo) blockInfo);
@@ -287,14 +291,17 @@ namespace AElf.Miner.Rpc.Client
             ulong targetHeight = await GetParentChainTargetHeight();
 
             List<ParentChainBlockInfo> parentChainBlockInfos = new List<ParentChainBlockInfo>();
+            var isMining = parentChainBlocks == null;
             // Size of result is GlobalConfig.MaximalCountForIndexingParentChainBlock if it is mining process.
+            if (!isMining && parentChainBlocks.Length > GlobalConfig.MaximalCountForIndexingParentChainBlock)
+                return null;
             int length = parentChainBlocks?.Length ?? GlobalConfig.MaximalCountForIndexingParentChainBlock;
+            
             int i = 0;
-            while (i++ < length)
+            while (i < length)
             {
                 var pcb = parentChainBlocks?[i];
-                var isMining = pcb == null;
-                if (!isMining && (!pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
+                if (!isMining && (pcb == null || !pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
                     return null;
 
                 if (!_clientToParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, isMining))
@@ -309,6 +316,7 @@ namespace AElf.Miner.Rpc.Client
                     return null;
                 parentChainBlockInfos.Add((ParentChainBlockInfo) blockInfo);
                 targetHeight++;
+                i++;
             }
             
             return parentChainBlockInfos;

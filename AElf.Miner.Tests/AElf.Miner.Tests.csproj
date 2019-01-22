@@ -19,4 +19,7 @@
     <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
     <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Grpc" />
+  </ItemGroup>
 </Project>
