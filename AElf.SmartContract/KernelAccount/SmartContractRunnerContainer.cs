@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 using Org.BouncyCastle.Security;
 
 namespace AElf.SmartContract
@@ -10,38 +9,11 @@ namespace AElf.SmartContract
         private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners =
             new ConcurrentDictionary<int, ISmartContractRunner>();
 
-        private readonly IServiceProvider _serviceProvider;
-        private bool _registered;
-
-        public SmartContractRunnerContainer(IServiceProvider serviceProvider)
+        public SmartContractRunnerContainer(IEnumerable<ISmartContractRunner> runners)
         {
-            _serviceProvider = serviceProvider;
-            _registered = false;
-            MaybeRegisterRunners();
-        }
-
-        private void MaybeRegisterRunners()
-        {
-            lock (this)
+            foreach (var r in runners)
             {
-                if (_registered)
-                {
-                    return;
-                }
-
-                foreach (var runner in _serviceProvider.GetServices<ISmartContractRunner>())
-                {
-                    try
-                    {
-                        AddRunner(runner.Category, runner);
-                    }
-                    catch (InvalidParameterException)
-                    {
-                        // Already added externally
-                    }
-                }
-
-                _registered = true;
+                _runners[r.Category] = r;
             }
         }
 
