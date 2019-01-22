@@ -6,10 +6,53 @@ package AElf.Kernel.SmartContracts.Consensus{
 }
 
 package AElf.Kernel.SmartContracts.Consensus.Abstractions{
-    interface IConsensusSmartContract
+    interface IConsensusSmartContract{
+        byte[] GetBlockHeaderConsensusData()
+    }
     IConsensusSmartContract <|-- ConsensusSmartContract
 }
 note top of AElf.Kernel.SmartContracts.Consensus.Abstractions: infrastructure layer
+
+
+package AElf.Kernel.SmartContracts.Genesis{
+    class GenesisSmartContract
+
+    interface IBlockHeaderDataProvider
+    IBlockHeaderDataProvider <|-- ConsensusBlockHeaderDataProvider
+    
+    class BlockHeaderExtraDataProviderContainer{
+        List<IBlockHeaderDataProvider> ExtraBlockHeaderDataProviders
+
+        AddDataProvider<T>(int Order)
+
+        void Fill(BlockHeader blockHeader)
+        bool Validate(BlockHeader blockHeader)
+    }
+
+    note top of BlockHeaderExtraDataProviderContainer: singleton, and AddDataProvider in the module to build a blockchain
+
+    ConsensusBlockHeaderDataProvider --> IConsensusSmartContract : GetBlockHeaderConsensusData
+
+}
+
+package AElf.Kernel.SmartContracts.Genesis.Abstractions{
+    interface IGenesisSmartContract{
+    }
+    IGenesisSmartContract <|-- GenesisSmartContract
+}
+
+package AElf.Kernel.SmartContracts.Genesis.MainChain{
+    class MainChainGenesisSmartContract
+    GenesisSmartContract <|-- MainChainGenesisSmartContract
+
+}
+
+package AElf.Kernel.SmartContracts.Genesis.SideChain{
+    class SideChainGenesisSmartContract
+    GenesisSmartContract <|-- SideChainGenesisSmartContract
+    IBlockHeaderDataProvider <|-- SideChainBlockHeaderDataProvider
+
+}
 
 package AElf.Kernel{
     interface IBlockchainService{
@@ -46,6 +89,21 @@ package AElf.Kernel{
 
     BlockManager --> IConsensusSmartContract : use IConsensusSmartContract to validate BlockHeader, maybe in BlockHeaderManager
 
+    interface IBlockHeaderManager
+    class BlockHeaderManager
+    IBlockHeaderManager <|-- BlockHeaderManager
+
+    BlockService --> IBlockHeaderManager
+
+
+    
+}
+
+
+package AElf.Kernel.Types{
+    class BlockHeader{
+        byte[] ExtraBlockHeaderData
+    }
 }
 
 package AElf.Kernel.Runtimes.CSharp{
@@ -65,8 +123,6 @@ package AElf.Kernel.Akka{
     AkkaSmartContractExecutingService <|-- ISmartContractExecutingService
 
 }
-
-
 
 package AElf.OS{
     interface INetworkService{
@@ -115,3 +171,9 @@ package AElf.OS.Networks.Grpc{
 
 AElf.Kernel and AElf.OS are two DDD module.
 AElf.OS references AElf.Kernel
+
+When a component in lower layer, such as infrastructure need to work with manager to get some data, we need to implement a service.
+
+for example, maybe IConsensusSmartContract need to work with state manager or smart contract execution manager. so we may have to make a service and make them work together.
+
+and also, we cannot call a service in manager, we need to call it in another service. service can have dependencies of other services.
