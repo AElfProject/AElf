@@ -169,3 +169,11 @@ enum TicketsHistoryType {
     Redeem = 1;
     Vote = 2;
 }
+
+message ConsensusInformation {
+    Hash PreviousBlockHash = 1;
+    Address Sender = 2;
+    repeated Address MinersList = 3;
+    Round NewRound = 4;
+    Term NewTerm = 5;
+}
