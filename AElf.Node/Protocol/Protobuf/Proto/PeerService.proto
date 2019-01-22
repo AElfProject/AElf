@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Node.Protocol.Protobuf.Generated";
+
+service PeerService {
+    rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+    rpc Authentify (Handshake) returns (Handshake) {}
+}
+
+message Handshake {
+    HandshakeData hskData = 1;
+    bytes Sig = 2;
+    bool Success = 3;
+}
+
+message HandshakeData {
+    int64 ListeningPort = 1;
+    bytes PublicKey = 2;
+    int32 Height = 3;
+    int32 Version = 4;
+}
+
+message BlockRequest {
+    int64 BlockNumber = 1;
+}
+
+message BlockReply {
+    string message = 1;
+}

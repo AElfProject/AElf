@@ -16,13 +16,13 @@ namespace AElf.Node
     public class Node : INode, ITransientDependency
     {
         public ILogger<Node> Logger {get;set;}
-        private readonly INetworkManager _netManager;
+        private readonly INetworkService _netManager;
 
         private readonly List<INodeService> _services = new List<INodeService>();
 
         private bool _startRpc;
 
-        public Node( INetworkManager netManager)
+        public Node( INetworkService netManager)
         {
             Logger = NullLogger<Node>.Instance;
             _netManager = netManager;
