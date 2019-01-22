@@ -4,12 +4,25 @@ option csharp_namespace = "AElf.Node.Protocol.Protobuf.Generated";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
-    rpc Authentify (Handshake) returns (Handshake) {}
+    
+    rpc Announce (Announcement) returns (Announcement) {}
+
+    rpc Connect (Handshake) returns (AuthResponse) {}
+    rpc Authentify (Handshake) returns (AuthResponse) {}
+}
+
+message Announcement {
+    int32 Height = 1;
+    bytes Id = 2;
 }
 
 message Handshake {
     HandshakeData hskData = 1;
     bytes Sig = 2;
+    bool Success = 3;
+}
+
+message AuthResponse{
     bool Success = 3;
 }
 
