@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 
 namespace AElf.Common
 {
-    public static partial class Extensions
+    public static class ByteExtensions
     {
         public static string ToPlainBase58(this byte[] value)
         {

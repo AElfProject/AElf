@@ -10,8 +10,6 @@ namespace AElf.Common
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>
     {
-        private const int ByteArrayLength = 32;
-
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
@@ -24,10 +22,10 @@ namespace AElf.Common
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            if (bytes.Length != ByteArrayLength)
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
             {
                 throw new ArgumentOutOfRangeException(
-                    $"Hash bytes has to be {ByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+                    $"Hash bytes has to be {TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
             }
 
             Value = ByteString.CopyFrom(bytes.ToArray());
@@ -233,7 +231,7 @@ namespace AElf.Common
         public static Hash LoadByteArray(byte[] bytes)
         {
             //TODO: remove && bytes.Length != 3 && bytes.Length!=4
-            if (bytes.Length != 32 && bytes.Length != 3 && bytes.Length!=4)
+            if (bytes.Length != TypeConsts.HashByteArrayLength && bytes.Length != 3 && bytes.Length!=4)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }

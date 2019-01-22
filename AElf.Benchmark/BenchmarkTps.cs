@@ -16,6 +16,7 @@ using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 namespace AElf.Benchmark

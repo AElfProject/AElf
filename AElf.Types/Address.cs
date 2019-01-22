@@ -12,9 +12,6 @@ namespace AElf.Common
 {
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
-        private const int AddressHashLength = 30;
-        private const string AElfAddressPrefix = "ELF";
-
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
@@ -27,10 +24,10 @@ namespace AElf.Common
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes.Length != AddressHashLength)
+            if (bytes.Length != TypeConsts.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
-                    $"Address (sha256 of pubkey) bytes has to be {AddressHashLength}. The input is {bytes.Length} bytes long.");
+                    $"Address (sha256 of pubkey) bytes has to be {TypeConsts.AddressHashLength}. The input is {bytes.Length} bytes long.");
             }
 
             Value = ByteString.CopyFrom(bytes);
@@ -81,7 +78,7 @@ namespace AElf.Common
 
         public static byte[] TakeByAddressLength(byte[] raw)
         {
-            return raw.Take(AddressHashLength).ToArray();
+            return raw.Take(TypeConsts.AddressHashLength).ToArray();
         }
 
         #region Predefined
@@ -162,7 +159,7 @@ namespace AElf.Common
         private string _formattedAddress;
         public string GetFormatted()
         {
-            if (Value.Length != AddressHashLength)
+            if (Value.Length != TypeConsts.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
@@ -171,7 +168,7 @@ namespace AElf.Common
             string pubKeyHash = GetPublicKeyHash();
             
             return string.IsNullOrEmpty(_formattedAddress) 
-                ? (_formattedAddress = AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
+                ? (_formattedAddress = TypeConsts.AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
         }
         
         public string GetPublicKeyHash()
@@ -187,7 +184,7 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != AddressHashLength)
+            if (bytes.Length != TypeConsts.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");

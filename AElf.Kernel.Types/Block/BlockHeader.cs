@@ -1,4 +1,5 @@
 ﻿using AElf.Common;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -43,7 +44,7 @@ namespace AElf.Kernel
                 Bloom = Bloom,
                 SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
-            if (Index > GlobalConfig.GenesisBlockHeight)
+            if (Index > ChainConsts.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();

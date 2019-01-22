@@ -15,6 +15,7 @@ using Address = AElf.Common.Address;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 using Easy.MessageHub;

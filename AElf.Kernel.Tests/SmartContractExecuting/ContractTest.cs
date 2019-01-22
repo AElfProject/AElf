@@ -10,6 +10,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting

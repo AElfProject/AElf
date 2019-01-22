@@ -1,5 +1,6 @@
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {

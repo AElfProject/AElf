@@ -14,6 +14,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
