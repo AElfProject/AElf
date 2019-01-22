@@ -448,7 +448,8 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return;
-            Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
+            Assert(Call(AuthorizationContractAddress, "GetAuthorization", _transactionContext.Transaction.From),
+                "Unable to get authorization.");
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
 
             // Get tx hash
@@ -493,7 +494,8 @@ namespace AElf.Sdk.CSharp
                 To = targetAddress,
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
-                Type = TransactionType.MsigTransaction
+                Type = TransactionType.MsigTransaction,
+                Time = Timestamp.FromDateTime(CurrentBlockTime)
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             TimeSpan diff = CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
