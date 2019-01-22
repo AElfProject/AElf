@@ -34,7 +34,7 @@ namespace AElf.Monitor
 
             var executionOptions = context.ServiceProvider.GetService<IOptions<ExecutionOptions>>().Value;
 
-            var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("monitor.hocon"));
+            var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("akka-monitor.hocon"));
             var systemName = clusterConfig.GetConfig("manager").GetString("system-name");
             var ipAddress = executionOptions.HostName;
             var port = executionOptions.Port;

@@ -19,7 +19,7 @@
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="monitor.hocon">
+    <None Update="akka-monitor.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="appsettings.json">

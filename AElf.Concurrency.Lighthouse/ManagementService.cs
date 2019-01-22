@@ -21,7 +21,7 @@ namespace AElf.Concurrency.Lighthouse
 
         private ActorSystem CreateActorSystem()
         {
-            var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("lighthouse.hocon"));
+            var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("akka-lighthouse.hocon"));
             var systemName = clusterConfig.GetConfig("manager").GetString("system-name");
             var hostName = _executionOptions.HostName;
             var port = _executionOptions.Port;

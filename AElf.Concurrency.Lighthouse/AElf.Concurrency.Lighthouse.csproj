@@ -22,7 +22,7 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="lighthouse.hocon">
+    <None Include="akka-lighthouse.hocon">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="appsettings.json">
