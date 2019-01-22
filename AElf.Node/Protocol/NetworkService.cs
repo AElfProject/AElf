@@ -62,17 +62,21 @@ namespace AElf.Node.Protocol
             {
                 foreach (var btn in _networkOptions.BootNodes)
                 {
-                    NodeData nd = NodeData.FromString(btn); // todo replace
-                    Channel channel = new Channel(nd.IpAddress, nd.Port, ChannelCredentials.Insecure);
-
                     try
                     {
+                        Logger.LogTrace($"Attempting to reach {btn}.");
+                        
+                        NodeData nd = NodeData.FromString(btn); // todo replace
+                        Channel channel = new Channel(nd.IpAddress, nd.Port, ChannelCredentials.Insecure);
+                        
                         var client = new Protobuf.Generated.PeerService.PeerServiceClient(channel);
                         var hsk = BuildHandshake();
                         
                         var resp = await client.ConnectAsync(hsk);
 
                         _channels.Add(client);
+                        
+                        Logger.LogTrace($"Connected to {btn}.");
                     }
                     catch (Exception e)
                     {
@@ -168,8 +172,8 @@ namespace AElf.Node.Protocol
         }
 
         /// <summary>
-        /// Used to initiate a connection. The provided payload should be the clients authentication
-        /// information. When receiving this call, protocol dictates you send the client your auth
+        /// First step of the connect/auth process.Used to initiate a connection. The provided payload should be the
+        /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
         /// <param name="request"></param>
@@ -177,54 +181,79 @@ namespace AElf.Node.Protocol
         /// <returns></returns>
         public override Task<AuthResponse> Connect(Handshake request, ServerCallContext context)
         {
-            Logger?.LogTrace($"[{context.Peer}] has initiated a request");
+            Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
             
             try
             {
-                Channel channel = new Channel(context.Peer.Split(":")[1] + ":" + request.HskData.ListeningPort, ChannelCredentials.Insecure);
+                var peerServer = context.Peer.Split(":")[1] + ":" + request.HskData.ListeningPort;
+                Logger?.LogDebug($"Attempting connect to {peerServer}");
+                
+                Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 client = new Protobuf.Generated.PeerService.PeerServiceClient(channel);
             
-                // todo verify auth
+                // todo verify 
+                
+                // send our credentials
                 var hsk = _handshakeProvider();
                 var resp = client.Authentify(hsk);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Logger.LogError(e, "Error during connect.");
+                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
             }
             
             // todo if resp ok
             PeerAdded?.Invoke(this, new PeerAddedEventArgs { Client = client });
             
-            return Task.FromResult(new AuthResponse());
+            return Task.FromResult(new AuthResponse { Success = true});
         }
 
         /// <summary>
-        /// Second step of the connect/auth process.
+        /// Second step of the connect/auth process. This takes place after the connect to receive the peers
+        /// information and on return let him know that we've validated.
         /// </summary>
         /// <param name="request"></param>
         /// <param name="context"></param>
         /// <returns></returns>
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
-        {   
-            // todo verify auth
-            Logger.LogTrace("Send connecting guy our auth...");
-            return Task.FromResult(new AuthResponse());
-        }
-
-        public override Task<Announcement> Announce(Announcement an, ServerCallContext context)
         {
+            Logger.LogTrace($"[{context.Peer}] Is calling back with his auth.");
+            
             try
             {
-                Logger.LogTrace($"Received announce {an.Id.ToByteArray().ToHex()} from {context.Peer}.");
+                // todo verify auth
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during connect.");
+                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
+            }
+            
+            return Task.FromResult(new AuthResponse { Success = true});
+        }
+
+        /// <summary>
+        /// Call back for when a Peer has broadcast an announcement.
+        /// </summary>
+        /// <param name="an"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override Task<VoidReply> Announce(Announcement an, ServerCallContext context)
+        {
+            Logger.LogTrace($"Received announce {an.Id.ToByteArray().ToHex()} from {context.Peer}.");
+            
+            try
+            {
+                // todo handle
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
                 throw;
             }
-            return Task.FromResult(an);
+            
+            return Task.FromResult(new VoidReply());
         }
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
