@@ -495,7 +495,7 @@ namespace AElf.Sdk.CSharp
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
                 Type = TransactionType.MsigTransaction,
-                Time = CurrentBlockTime.ToTimestamp()
+                Time = Timestamp.FromDateTime(CurrentBlockTime)
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             TimeSpan diff = CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
