@@ -7,10 +7,11 @@ using Google.Protobuf;
 using AElf.Types.CSharp;
 using AElf.Common;
 using Newtonsoft.Json;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
-    public class TestContractShim
+    public class TestContractShim : ITransientDependency
     {
         private readonly MockSetup _mock;
 

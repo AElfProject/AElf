@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AElf.Modularity;
 using AElf.SmartContract;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,11 @@ namespace AElf.Runtime.CSharp
                 return new SmartContractRunnerForCategoryTwo(option.Value.SdkDir, option.Value.BlackList,
                     option.Value.WhiteList);
             });
+        }
+
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.RemoveAll(sd => sd.ImplementationType == typeof(CachedStateManager));
         }
     }
 }

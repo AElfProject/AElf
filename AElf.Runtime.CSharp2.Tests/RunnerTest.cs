@@ -3,18 +3,18 @@ using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
-using Google.Protobuf;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
-    [UseAutofacTestFramework]
-    public class RunnerTest
+    public class RunnerTest : CSharpRuntimeTestBase
     {
+        private MockSetup _mock;
         private readonly TestContractShim _contract1;
 
-        public RunnerTest(MockSetup mock)
+        public RunnerTest()
         {
-            _contract1 = new TestContractShim(mock);
+            _mock = GetRequiredService<MockSetup>();
+            _contract1 = new TestContractShim(_mock);
         }
 
         [Fact]

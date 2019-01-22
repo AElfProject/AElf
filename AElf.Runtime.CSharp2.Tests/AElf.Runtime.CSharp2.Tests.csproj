@@ -18,6 +18,7 @@
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
+      <ProjectReference Include="..\AElf.Sdk.CSharp2\AElf.Sdk.CSharp2.csproj" />
     </ItemGroup>
 
 </Project>
