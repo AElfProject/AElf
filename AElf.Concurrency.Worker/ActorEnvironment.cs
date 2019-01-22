@@ -79,9 +79,9 @@ namespace AElf.Concurrency.Worker
         {
             if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
             {
-                ActorConfig.Instance.Seeds = new List<SeedNode>
+                ActorConfig.Instance.Seeds = new List<Configuration.SeedNode>
                 {
-                    new SeedNode {HostName = ActorConfig.Instance.HostName, Port = ActorConfig.Instance.Port}
+                    new Configuration.SeedNode {HostName = ActorConfig.Instance.HostName, Port = ActorConfig.Instance.Port}
                 };
             }
 
