@@ -1,17 +1,22 @@
-using AElf.Common.Module;
-using Autofac;
+using AElf.Modularity;
+using AElf.Synchronization.BlockExecution;
+using AElf.Synchronization.BlockSynchronization;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.Synchronization
 {
-    public class SyncAElfModule : IAElfModule
+    public class SyncAElfModule : AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new SyncAutofacModule());
+
+            var services = context.Services;
+            services.AddSingleton<IBlockSynchronizer,BlockSynchronizer>();
+            services.AddSingleton<IBlockExecutor,BlockExecutor>();
+            services.AddSingleton<IBlockHeaderValidator,BlockHeaderValidator>();
+
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }

@@ -50,7 +50,7 @@ message TransactionReceipt {
 message StatePath {
     repeated bytes Path = 1;
 //    Address ContractAddress = 2;
-//    Hash ChainId = 3;
+//    int32 ChainId = 3;
 }
 
 message StateValue {
@@ -167,7 +167,7 @@ message BlockHeader {
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
-    Hash ChainId = 10;
+    int32 ChainId = 10;
     Hash SideChainTransactionsRoot = 11;
 }
 
@@ -175,7 +175,7 @@ message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
     repeated Transaction TransactionList = 3;
-    repeated SideChainBlockInfo IndexedInfo = 4;
+    //repeated SideChainBlockInfo IndexedInfo = 4;
 }
 
 message Block {
@@ -230,14 +230,6 @@ message DataItem {
     Hash StateMerkleTreeLeaf = 3;
 }
 
-message WorldState {
-    repeated DataItem Data = 1;
-}
-
-message Chain {
-    Hash Id = 1;
-    Hash GenesisBlockHash = 2;
-}
 
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
@@ -252,7 +244,7 @@ message Key {
 }
 
 message DataPath {
-    Hash ChainId = 1;
+    int32 ChainId = 1;
     uint64 BlockHeight = 2;
     Address BlockProducerAddress = 3;
     Address ContractAddress = 4;
@@ -269,6 +261,12 @@ message BinaryMerkleTree{
 
 message StringList {
     repeated string Values = 1;
+    string Remark = 2;
+}
+
+message ULongList {
+    repeated uint64 Values = 1;
+    string Remark = 2;
 }
 
 message BlockAbstract {
@@ -297,3 +295,62 @@ enum BlockValidationResult {
     IncorrectPoWResult = 108;
     NotImplementConsensus = 109;
 }
+
+message VersionedState{
+    string Key = 1;
+    bytes Value = 2;
+    int64 BlockHeight = 3;
+    Hash BlockHash = 4;
+    Hash OriginBlockHash = 5;
+}
+
+message BlockStateSet{
+    Hash BlockHash = 1;
+    Hash PreviousHash = 2;
+    int64 BlockHeight = 3;
+    map<string, bytes> Changes = 4;
+}
+
+message TransactionExecutingStateSet{
+    int64 Version = 1;
+    map<string, bytes> Writes = 2;
+    map<string, bool> Reads = 3;
+}
+
+enum ChainStateMergingStatus {
+    Common = 0;
+    Merging = 1;
+    Merged = 2;
+}
+
+message ChainStateInfo{
+    int64 ChainId = 1;
+    Hash BlockHash = 2;
+    int64 BlockHeight = 3;
+    Hash MergingBlockHash = 4;
+    ChainStateMergingStatus Status = 5;
+}
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
+
+
+message ChainBlockLink{
+    Hash BlockHash = 1;
+    int64 Height = 2;
+    Hash PreviousBlockHash = 3;
+    bool IsExecuted = 4;
+    bool IsNotChangedBlock = 5;
+}
+
+message Chain {
+    int32 Id = 1;
+    Hash GenesisBlockHash = 2;
+    map<string, int64> Branches = 3;
+    Hash BestChainHash = 4;
+    map<string, string> NotLinkedBlocks = 5;
+}
+
+

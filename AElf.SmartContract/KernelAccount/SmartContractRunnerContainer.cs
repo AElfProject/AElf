@@ -1,12 +1,50 @@
+using System;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 using Org.BouncyCastle.Security;
 
 namespace AElf.SmartContract
 {
     public class SmartContractRunnerContainer : ISmartContractRunnerContainer
     {
-        private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners = new ConcurrentDictionary<int, ISmartContractRunner>();
-        
+        private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners =
+            new ConcurrentDictionary<int, ISmartContractRunner>();
+
+        private readonly IServiceProvider _serviceProvider;
+        private bool _registered;
+
+        public SmartContractRunnerContainer(IServiceProvider serviceProvider)
+        {
+            _serviceProvider = serviceProvider;
+            _registered = false;
+            MaybeRegisterRunners();
+        }
+
+        private void MaybeRegisterRunners()
+        {
+            lock (this)
+            {
+                if (_registered)
+                {
+                    return;
+                }
+
+                foreach (var runner in _serviceProvider.GetServices<ISmartContractRunner>())
+                {
+                    try
+                    {
+                        AddRunner(runner.Category, runner);
+                    }
+                    catch (InvalidParameterException)
+                    {
+                        // Already added externally
+                    }
+                }
+
+                _registered = true;
+            }
+        }
+
         public ISmartContractRunner GetRunner(int category)
         {
             if (_runners.TryGetValue(category, out var runner))

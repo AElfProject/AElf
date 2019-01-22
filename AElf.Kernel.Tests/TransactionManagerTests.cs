@@ -3,26 +3,24 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using AElf.Miner.TxMemPool;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class TransactionManagerTests
+    public sealed class TransactionManagerTests:AElfKernelTestBase
     {
-        private ITransactionManager _manager;
+        private ITransactionManager _transactionManager;
 
-        public TransactionManagerTests(ITransactionManager manager)
+        public TransactionManagerTests()
         {
-            _manager = manager;
+            _transactionManager = GetRequiredService<ITransactionManager>();
         }
 
         [Fact]
         public async Task TestInsert()
         {
-            await _manager.AddTransactionAsync(new Transaction
+            await _transactionManager.AddTransactionAsync(new Transaction
             {
                 From = Address.Generate(),
                 To = Address.Generate()
@@ -33,8 +31,8 @@ namespace AElf.Kernel.Tests
         public async Task GetTest()
         {
             var t = BuildTransaction();
-            var key = await _manager.AddTransactionAsync(t);
-            var td = await _manager.GetTransaction(key);
+            var key = await _transactionManager.AddTransactionAsync(t);
+            var td = await _transactionManager.GetTransaction(key);
             Assert.Equal(t, td);
         }
         

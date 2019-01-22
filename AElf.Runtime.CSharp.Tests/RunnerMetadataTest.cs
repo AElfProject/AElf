@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Storages;
@@ -17,21 +16,19 @@ using Xunit.Frameworks.Autofac;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    [UseAutofacTestFramework]
-    public class RunnerMetadataTest
+    public sealed class RunnerMetadataTest : CSharpRuntimeTestBase
     {
         private MockSetup _mock;
 
-        public RunnerMetadataTest(MockSetup mock)
+        public RunnerMetadataTest()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
         }
 
         [Fact]
         public async Task TestTryAddNewContract()
         {
-            RunnerConfig.Instance.SdkDir = _mock.SdkDir;
-            var runner = new SmartContractRunner();
+            var runner = new SmartContractRunner(_mock.SdkDir);
 
             var reg = new SmartContractRegistration
             {

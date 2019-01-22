@@ -11,7 +11,7 @@ namespace AElf.Miner.Tests
 {
     public class NewMockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public async Task<IEnumerable<string>> GetResources(Hash chainId, Transaction transaction)
+        public async Task<IEnumerable<string>> GetResources(int chainId, Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Address> hashes = new List<Address>();

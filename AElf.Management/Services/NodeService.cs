@@ -3,21 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Management.Database;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Request;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Management.Services
 {
     public class NodeService : INodeService
     {
+        private readonly ManagementOptions _managementOptions;
+        private readonly IInfluxDatabase _influxDatabase;
+
+        public NodeService(IOptionsSnapshot<ManagementOptions> options, IInfluxDatabase influxDatabase)
+        {
+            _managementOptions = options.Value;
+            _influxDatabase = influxDatabase;
+        }
+
         public async Task<bool> IsAlive(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "dpos_isalive";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<DposStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<DposStateResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.IsAlive;
         }
@@ -27,7 +39,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "node_isforked";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<NodeStateResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<NodeStateResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.IsForked;
         }
@@ -38,13 +51,13 @@ namespace AElf.Management.Services
             var isForked = await IsForked(chainId);
 
             var fields = new Dictionary<string, object> {{"alive", isAlive}, {"forked", isForked}};
-            await InfluxDBHelper.Set(chainId, "node_state", fields, null, time);
+            await _influxDatabase.Set(chainId, "node_state", fields, null, time);
         }
 
         public async Task<List<NodeStateHistory>> GetHistoryState(string chainId)
         {
             var result = new List<NodeStateHistory>();
-            var record = await InfluxDBHelper.Get(chainId, "select * from node_state");
+            var record = await _influxDatabase.Get(chainId, "select * from node_state");
             foreach (var item in record.First().Values)
             {
                 result.Add(new NodeStateHistory
@@ -61,7 +74,7 @@ namespace AElf.Management.Services
         public async Task RecordBlockInfo(string chainId)
         {
             ulong currentHeight;
-            var currentRecord = await InfluxDBHelper.Get(chainId, "select last(height) from block_info");
+            var currentRecord = await _influxDatabase.Get(chainId, "select last(height) from block_info");
             if (currentRecord.Count == 0)
             {
                 currentHeight = await GetCurrentChainHeight(chainId);
@@ -84,8 +97,9 @@ namespace AElf.Management.Services
             var blockInfo = await GetBlockInfo(chainId, currentHeight);
             while (blockInfo.Result != null && blockInfo.Result.Body != null && blockInfo.Result.Header != null)
             {
-                var fields = new Dictionary<string, object> {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
-                await InfluxDBHelper.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
+                var fields = new Dictionary<string, object>
+                    {{"height", currentHeight}, {"tx_count", blockInfo.Result.Body.TransactionsCount}};
+                await _influxDatabase.Set(chainId, "block_info", fields, null, blockInfo.Result.Header.Time);
 
                 Thread.Sleep(1000);
 
@@ -99,7 +113,7 @@ namespace AElf.Management.Services
             var count = await GetInvalidBlockCount(chainId);
 
             var fields = new Dictionary<string, object> {{"count", count}};
-            await InfluxDBHelper.Set(chainId, "block_invalid", fields, null, time);
+            await _influxDatabase.Set(chainId, "block_invalid", fields, null, time);
         }
 
         public async Task RecordRollBackTimes(string chainId, DateTime time)
@@ -107,7 +121,7 @@ namespace AElf.Management.Services
             var times = await GetRollBackTimes(chainId);
 
             var fields = new Dictionary<string, object> {{"times", times}};
-            await InfluxDBHelper.Set(chainId, "chain_rollback", fields, null, time);
+            await _influxDatabase.Set(chainId, "chain_rollback", fields, null, time);
         }
 
         private async Task<int> GetInvalidBlockCount(string chainId)
@@ -115,7 +129,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_invalid_block";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<InvalidBlockResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<InvalidBlockResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.InvalidBlockCount;
         }
@@ -125,7 +140,8 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_rollback_times";
 
-            var state = await HttpRequestHelper.Request<JsonRpcResult<RollBackResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var state = await HttpRequestHelper.Request<JsonRpcResult<RollBackResult>>(
+                _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return state.Result.RollBackTimes;
         }
@@ -140,7 +156,9 @@ namespace AElf.Management.Services
                 IncludeTxs = false
             };
 
-            var blockInfo = await HttpRequestHelper.Request<JsonRpcResult<BlockInfoResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var blockInfo =
+                await HttpRequestHelper.Request<JsonRpcResult<BlockInfoResult>>(
+                    _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return blockInfo.Result;
         }
@@ -150,7 +168,9 @@ namespace AElf.Management.Services
             var jsonRpcArg = new JsonRpcArg();
             jsonRpcArg.Method = "get_block_height";
 
-            var height = await HttpRequestHelper.Request<JsonRpcResult<ChainHeightResult>>(ServiceUrlHelper.GetRpcAddress(chainId) + "/chain", jsonRpcArg);
+            var height =
+                await HttpRequestHelper.Request<JsonRpcResult<ChainHeightResult>>(
+                    _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return Convert.ToUInt64(height.Result.Result.ChainHeight);
         }

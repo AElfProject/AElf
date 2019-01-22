@@ -87,13 +87,33 @@ namespace AElf.Contracts.Authorization
         [View]
         public Proposal GetProposal(Hash proposalHash)
         {
-            var proposal = _proposals[proposalHash];
-            Api.NotEqual(proposal, new Proposal(), "Not found proposal.");
+            Api.Assert(_proposals.TryGet(proposalHash, out var proposal), "Not found proposal.");
+
+            if (proposal.Status == ProposalStatus.Released)
+            {
+                return proposal;
+            }
+            if (Api.CurrentBlockTime > TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime))
+            {
+                proposal.Status = ProposalStatus.Expired;
+            }
+            else
+            {
+                var msigAccount = proposal.MultiSigAccount;
+                var auth = GetAuth(msigAccount);
+                Api.Assert(!auth.Equals(new Kernel.Authorization()), "Not found authorization."); // this should not happen.
+
+                // check approvals
+                var approved = _approved.GetValue(proposalHash);
+
+                proposal.Status = CheckApproval(approved, auth, proposal)
+                    ? ProposalStatus.Decided
+                    : ProposalStatus.ToBeDecided;
+            }
+
             return proposal;
         }
-
         #endregion view
-        
         
         #region Actions
 
@@ -166,10 +186,9 @@ namespace AElf.Contracts.Authorization
             approved.Approvals.Add(approval);
             _approved.SetValue(hash, approved);
 
-            if (CheckPermission(approved, authorization, proposal))
+            if (CheckApproval(approved, authorization, proposal))
             {
                 // Executing threshold already reached.
-                proposal.Status = ProposalStatus.Decided;
                 _proposals.SetValue(hash, proposal);
             }
             
@@ -191,8 +210,7 @@ namespace AElf.Contracts.Authorization
             // check approvals
             var approved = _approved.GetValue(proposalHash);
 
-            Api.Assert(proposal.Status == ProposalStatus.Decided && CheckPermission(approved, auth, proposal),
-                "Not authorized to release.");
+            Api.Assert(CheckApproval(approved, auth, proposal), "Not authorized to release.");
 
             // check and append signatures to packed txn
             // check authorization of proposal
@@ -205,8 +223,6 @@ namespace AElf.Contracts.Authorization
         }
 
         #endregion
-
-        
 
         public Kernel.Authorization GetAuth(Address address)
         {
@@ -228,6 +244,16 @@ namespace AElf.Contracts.Authorization
             }));
             
             return auth;
+        }
+
+        public bool IsMultiSigAccount(Address address)
+        {
+            if (address.Equals(Genesis) || _multiSig.GetValue(address) != null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /*private bool GetAuth(Address address, out Authorization authorization)
@@ -271,29 +297,26 @@ namespace AElf.Contracts.Authorization
             CheckTxnData(authorization.MultiSigAccount, proposal.TxnData.ToByteArray());
         }
 
-        private bool CheckPermission(Approved approved, Kernel.Authorization authorization,
-            Proposal proposal)
+        private bool CheckApproval(Approved approved, Kernel.Authorization authorization, Proposal proposal)
         {
-            uint weight = 0;
             byte[] toSig = proposal.TxnData.ToByteArray().CalculateHash();
             
             // processing approvals 
-            var validApprovals = approved.Approvals.All(a =>
+            var validApprovalCount = approved.Approvals.Aggregate((ulong)0, (weights, approval) =>
             {
-                var recovered = CryptoHelpers.RecoverPublicKey(a.Signature.ToByteArray(), toSig);
+                var canBeRecovered =
+                    CryptoHelpers.RecoverPublicKey(approval.Signature.ToByteArray(), toSig, out var recovered);
+                if (!canBeRecovered)
+                    return weights;
                 var reviewer = authorization.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recovered));
-
                 if (reviewer == null)
-                    return false;
-                    
-                weight += reviewer.Weight;
-                    
-                return true;
+                    return weights ;
+                return weights + reviewer.Weight;
             });
 
             //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
             //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
-            return validApprovals && weight >= authorization.ExecutionThreshold;
+            return validApprovalCount >= authorization.ExecutionThreshold;
         }
 
         private void CheckSignature(byte[] txnData, byte[] approvalSignature)

@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
-using NLog;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
@@ -13,7 +14,7 @@ namespace AElf.Kernel.Managers
     {
         private readonly ILightChain _lightChain;
         private int _filling;
-        private readonly ILogger _logger;
+        public ILogger<CanonicalBlockHashCache> Logger {get;set;}
         private ulong _currentHeight;
 
         public ulong CurrentHeight
@@ -31,10 +32,10 @@ namespace AElf.Kernel.Managers
         
         private readonly ConcurrentDictionary<ulong, Hash> _blocks = new ConcurrentDictionary<ulong, Hash>();
 
-        public CanonicalBlockHashCache(ILightChain lightChain, ILogger logger = null)
+        public CanonicalBlockHashCache(ILightChain lightChain)
         {
             _lightChain = lightChain;
-            _logger = logger;
+            Logger = NullLogger<CanonicalBlockHashCache>.Instance;
             MessageHub.Instance.Subscribe<BlockHeader>(
                 async h => await OnNewBlockHeader(h));
 
@@ -72,7 +73,7 @@ namespace AElf.Kernel.Managers
                     var toRemove = height - GlobalConfig.ReferenceBlockValidPeriod - 1;
                     if (_blocks.TryRemove(toRemove, out _))
                     {
-                        _logger?.Trace($"Removing Canonical Hash of height {toRemove}.");
+                        Logger.LogTrace($"Removing Canonical Hash of height {toRemove}.");
                     }
                 }
             }
@@ -89,7 +90,7 @@ namespace AElf.Kernel.Managers
 
         private void AddToBlocks(ulong height, Hash blockHash)
         {
-            _logger?.Trace($"Adding Canonical Hash {blockHash.ToHex()} of height {height}");
+            Logger.LogTrace($"Adding Canonical Hash {blockHash.ToHex()} of height {height}");
             if (!_blocks.ContainsKey(height))
             {
                 _blocks.TryAdd(height, blockHash);

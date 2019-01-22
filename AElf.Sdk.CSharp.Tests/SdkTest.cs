@@ -2,19 +2,17 @@
 using System.IO;
 using System.Linq;
 using AElf.Kernel;
-using Xunit.Frameworks.Autofac;
 using Xunit;
 using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    [UseAutofacTestFramework]
-    public class SdkTest
+    public sealed class SdkTest : CSharpSdkTestBase
     {
         private TestContractShim _contractShim;
-        public SdkTest(TestContractShim contractShim)
+        public SdkTest()
         {
-            _contractShim = contractShim;
+            _contractShim = GetRequiredService<TestContractShim>();
         }
 
         [Fact]

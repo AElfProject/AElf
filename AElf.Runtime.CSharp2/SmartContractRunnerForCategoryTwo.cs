@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Kernel.SmartContract;
@@ -32,11 +31,6 @@ namespace AElf.Runtime.CSharp
 
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
-
-        public SmartContractRunnerForCategoryTwo() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList,
-            RunnerConfig.Instance.WhiteList)
-        {
-        }
 
         public SmartContractRunnerForCategoryTwo(string sdkDir, IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)

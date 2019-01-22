@@ -114,18 +114,15 @@ namespace AElf.Synchronization.Tests
 
             IBlock block1 = SyncTestHelpers.BuildNext(genesis, minerPubKeys[0]); // miner 01 
             IBlock block2 = SyncTestHelpers.BuildNext(block1, minerPubKeys[1]);  // miner 02
-            IBlock block3 = SyncTestHelpers.BuildNext(block2, minerPubKeys[2]);  // miner 03 (self - doesn't add a conf)
+            IBlock block3 = SyncTestHelpers.BuildNext(block2, minerPubKeys[2]);  // miner 03 
             
             IBlock block4 = SyncTestHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
             
-
-            
             blockSet.PushBlock(block1);
             blockSet.PushBlock(block2);
-            blockSet.PushBlock(block3, true);
+            blockSet.PushBlock(block3);
             
-            // at this point no block should be confirmed
-            Assert.Empty(eventList);
+            Assert.True(eventList.Count == 1);
             
             blockSet.PushBlock(block4);
             

@@ -1,53 +1,45 @@
 ﻿using System;
-using System.Threading.Channels;
-using AElf.ChainController;
-using AElf.ChainController.Rpc;
-using AElf.Common;
-using AElf.Common.Module;
-using AElf.Database;
-using AElf.Execution;
-using AElf.Kernel;
+using AElf.Common.Enums;
 using AElf.Configuration;
-using AElf.Miner;
-using AElf.Net.Rpc;
-using AElf.Network;
-using AElf.Node;
-using AElf.RPC;
-using AElf.Runtime.CSharp;
-using AElf.SideChain.Creation;
-using AElf.SmartContract;
-using AElf.Synchronization;
-using AElf.Wallet.Rpc;
+using AElf.Database;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
+
 
 namespace AElf.Launcher
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            Console.WriteLine(string.Join(" ", args));
+            ILogger<Program> logger = NullLogger<Program>.Instance;
+            try
+            {
+                Console.WriteLine(string.Join(" ", args));
 
-            var parsed = new CommandLineParser();
-            parsed.Parse(args);
+                var parsed = new CommandLineParser();
+                parsed.Parse(args);
 
-            var handler = new AElfModuleHandler();
-            handler.Register(new DatabaseAElfModule());
-            handler.Register(new KernelAElfModule());
-            handler.Register(new SmartContractAElfModule());
-            handler.Register(new ChainAElfModule());
-            handler.Register(new MinerAElfModule());
-            handler.Register(new ChainControllerRpcAElfModule());
-            handler.Register(new NetRpcAElfModule());
-            handler.Register(new WalletRpcAElfModule());
-            handler.Register(new RunnerAElfModule());
-            handler.Register(new ExecutionAElfModule());
-            handler.Register(new NetworkAElfModule());
-            handler.Register(new RpcAElfModule());
-            handler.Register(new NodeAElfModule());
-            handler.Register(new SideChainAElfModule());
-            handler.Register(new LauncherAElfModule());
-            handler.Register(new SyncAElfModule());
-            handler.Build();
+                CreateWebHostBuilder(args).Build().Run();
+            }
+            catch (Exception e)
+            {
+                if (logger == NullLogger<Program>.Instance)
+                    Console.WriteLine(e);
+                logger.LogCritical(e, "program crashed");
+            }
         }
+
+
+        //create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging(builder => { builder.ClearProviders(); })
+                .ConfigureAppConfiguration(builder => { LauncherAElfModule.Configuration = builder.Build(); })
+                .UseStartup<Startup>();
     }
 }

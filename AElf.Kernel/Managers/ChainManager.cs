@@ -1,11 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Managers
 {
-    public class ChainManager : IChainManager
+    public class ChainManager : IChainManager, ISingletonDependency
     {
         private readonly IChainHeightStore _chainHeightStore;
         private readonly IGenesisBlockHashStore _genesisBlockHashStore;
@@ -21,18 +23,18 @@ namespace AElf.Kernel.Managers
             _canonicalStore = canonicalStore;
         }
 
-        public async Task AddChainAsync(Hash chainId, Hash genesisBlockHash)
+        public async Task AddChainAsync(int chainId, Hash genesisBlockHash)
         {
             await _genesisBlockHashStore.SetAsync(chainId.ToHex(), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
-        public async Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash)
+        public async Task UpdateCurrentBlockHashAsync(int chainId, Hash blockHash)
         {
             await _currentBlockHashStore.SetAsync(chainId.ToHex(), blockHash);
         }
 
-        public async Task<Hash> GetCurrentBlockHashAsync(Hash chainId)
+        public async Task<Hash> GetCurrentBlockHashAsync(int chainId)
         {
             var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.ToHex());
             return hash;
@@ -44,7 +46,7 @@ namespace AElf.Kernel.Managers
         /// <param name="chainId"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public async Task UpdateCurrentBlockHeightAsync(Hash chainId, ulong height)
+        public async Task UpdateCurrentBlockHeightAsync(int chainId, ulong height)
         {
             await _chainHeightStore.SetAsync(chainId.ToHex(), new UInt64Value
             {
@@ -58,31 +60,31 @@ namespace AElf.Kernel.Managers
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        public async Task<ulong> GetCurrentBlockHeightAsync(Hash chainId)
+        public async Task<ulong> GetCurrentBlockHeightAsync(int chainId)
         {
             var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToHex());
             return height?.Value ?? 0;
         }
 
-        public async Task SetCanonical(Hash chainId, ulong height, Hash canonical)
+        public async Task SetCanonical(int chainId, ulong height, Hash canonical)
         {
             var key = GetCanonicalKey(chainId, height);
             await _canonicalStore.SetAsync(key, canonical);
         }
 
-        public async Task<Hash> GetCanonical(Hash chainId, ulong height)
+        public async Task<Hash> GetCanonical(int chainId, ulong height)
         {
             var key = GetCanonicalKey(chainId, height);
             return await _canonicalStore.GetAsync<Hash>(key);
         }
 
-        public async Task RemoveCanonical(Hash chainId, ulong height)
+        public async Task RemoveCanonical(int chainId, ulong height)
         {
             var key = GetCanonicalKey(chainId, height);
             await _canonicalStore.RemoveAsync(key);
         }
 
-        private string GetCanonicalKey(Hash chainId, ulong height)
+        private string GetCanonicalKey(int chainId, ulong height)
         {
             return chainId.ToHex() + height;
         }

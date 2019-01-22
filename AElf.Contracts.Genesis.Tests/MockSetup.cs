@@ -9,10 +9,11 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -24,7 +25,7 @@ namespace AElf.Contracts.Genesis.Tests
         }
 
         public IStateManager StateManager { get; }
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;
@@ -72,15 +73,35 @@ namespace AElf.Contracts.Genesis.Tests
             }
         }
         
+        public byte[] AuthorizationCode
+        {
+            get
+            {
+                var filePath = Path.GetFullPath("../../../../AElf.Contracts.Authorization/bin/Debug/netstandard2.0/AElf.Contracts.Authorization.dll");
+                return File.ReadAllBytes(filePath);
+            }
+        }
+        
         private async Task Init()
         {
-            var reg = new SmartContractRegistration
+            var reg0 = new SmartContractRegistration
             {
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
-                ContractHash = Hash.Zero
+                ContractHash = Hash.FromRawBytes(SmartContractZeroCode),
+                SerialNumber = GlobalConfig.GenesisBasicContract
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration>{reg});
+            
+            var reg1 = new SmartContractRegistration
+            {
+                Category = 0,
+                ContractBytes = ByteString.CopyFrom(AuthorizationCode),
+                ContractHash = Hash.FromRawBytes(AuthorizationCode),
+                SerialNumber = GlobalConfig.AuthorizationContract
+            };
+
+            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1, new
+                List<SmartContractRegistration> {reg0, reg1});
         }
         
         public async Task<IExecutive> GetExecutiveAsync(Address address)

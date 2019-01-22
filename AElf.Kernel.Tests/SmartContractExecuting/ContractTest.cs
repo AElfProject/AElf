@@ -6,15 +6,15 @@ using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Storages;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
-    [UseAutofacTestFramework]
-    public class ContractTest
+    public sealed class ContractTest : AElfKernelTestBase
     {
         // todo warning this test obviously uses bad  
         
@@ -29,30 +29,16 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         }
 
         private IChainCreationService _chainCreationService;
-        private IChainContextService _chainContextService;
-        private IChainService _chainService;
-        private ITransactionManager _transactionManager;
         private IStateManager _stateManager;
         private ISmartContractManager _smartContractManager;
         private ISmartContractService _smartContractService;
-        private IFunctionMetadataService _functionMetadataService;
 
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-
-        public ContractTest(IStateManager stateManager,
-            IChainCreationService chainCreationService, IChainService chainService,
-            ITransactionManager transactionManager, ISmartContractManager smartContractManager,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer)
+        public ContractTest()
         {
-            _stateManager = stateManager;
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
-            _transactionManager = transactionManager;
-            _smartContractManager = smartContractManager;
-            _chainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager, _functionMetadataService, _chainService);
+            _stateManager = GetRequiredService<IStateManager>();
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _smartContractManager = GetRequiredService<ISmartContractManager>();
+            _smartContractService = GetRequiredService<ISmartContractService>();
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -62,7 +48,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task SmartContractZeroByCreation()
         {
-            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         
             var reg = new SmartContractRegistration
             {
@@ -83,7 +69,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task DeployUserContract()
         {
-            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
             
             var reg = new SmartContractRegistration
             {
@@ -134,7 +120,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task Invoke()
         {
-            Hash ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x05 });
+            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x05 });
             
             var reg = new SmartContractRegistration
             {

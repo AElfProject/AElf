@@ -6,22 +6,28 @@ using AElf.Kernel;
 using AElf.Kernel.Types.Transaction;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Authorization.Tests
 {
-    [UseAutofacTestFramework]
-    public class AuthorizationTest
+public class AuthorizationTest : AuthroizationContractTestBase
     {
         private AuthorizationContractShim _contract;
+        public ILogger<AuthorizationTest> Logger {get;set;}
         private MockSetup Mock;
 
         //private static byte[] ChainId = ChainHelpers.GetRandomChainId();
         
-        public AuthorizationTest(MockSetup mock)
+        public AuthorizationTest()
         {
-            Mock = mock;
+            
+            Logger = NullLogger<AuthorizationTest>.Instance;
+            Mock = GetRequiredService<MockSetup>();
+
         }
 
         [Fact]
@@ -62,7 +68,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void ProposeInvalidProposal()
-        {            
+        {
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -154,7 +160,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void ProposeValidProposal()
-        {            
+        {
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -210,7 +216,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         [Fact]
         public void SayYes()
-        {            
+        {
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -299,7 +305,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         [Fact]
         public void Release()
-        {            
+        {
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
@@ -401,7 +407,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         private Transaction CreateDemoTxn(Address msig)
         {
-            var code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll"));
+            byte[] code = File.ReadAllBytes(Path.GetFullPath("../../../../AElf.Contracts.Token/bin/Debug/netstandard2.0/AElf.Contracts.Token.dll"));
             var tx = new Transaction
             {
                 From = msig,

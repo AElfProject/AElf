@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;

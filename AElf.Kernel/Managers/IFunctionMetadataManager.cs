@@ -6,10 +6,10 @@ namespace AElf.Kernel.Managers
 {
     public interface IFunctionMetadataManager
     {
-        Task AddMetadataAsync(Hash chainId, string name, FunctionMetadata metadata);
-        Task<FunctionMetadata> GetMetadataAsync(Hash chainId, string name);
-        Task RemoveMetadataAsync(Hash chainId, string name);
-        Task AddCallGraphAsync(Hash chainId, SerializedCallGraph callGraph);
-        Task<SerializedCallGraph> GetCallGraphAsync(Hash chainId);
+        Task AddMetadataAsync(int chainId, string name, FunctionMetadata metadata);
+        Task<FunctionMetadata> GetMetadataAsync(int chainId, string name);
+        Task RemoveMetadataAsync(int chainId, string name);
+        Task AddCallGraphAsync(int chainId, SerializedCallGraph callGraph);
+        Task<SerializedCallGraph> GetCallGraphAsync(int chainId);
     }
 }

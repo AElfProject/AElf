@@ -49,17 +49,11 @@ Params:
 
 To withdraw all the locked tokens of the caller.
 
-### `WithdrawByDetail`
-
-Params:
-- `string` publicKeyHexString
-- `ulong` ticketsAmount
-- `int` lockTime
-
 ### `WithdrawByTransactionId`
 
 Params:
-- `Hash` transactionId
+- `string` transactionId
+- `bool` withoutLimitation
 
 ### `IsCandidate`
 
@@ -113,6 +107,42 @@ To get the tickets information of provided public key.
 
 If this public key ever joined election, the voting records will also contain his supportters'.
 
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `Tickets` / `string`
+
+To get the tickets information of provided public key with specific amount of voting records.
+
+### `GetPageableNotWithdrawnTicketsInfo` / `GetPageableNotWithdrawnTicketsInfoToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `Tickets` / `string`
+
+To get the not withdrawn tickets information of provided public key with specific amount of voting records.
+
+### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result type:
+- `TicketsHistories` / `string`
+
+To get the tickets information of provided public key with specific amount of voting records.
+
 ### `GetBlockchainAge`
 
 *No params*
@@ -151,7 +181,7 @@ Result Type:
 
 To get the term number of provided round number.
 
-### `GetCurrentElectionInfo` / `GetCurrentElectionInfoToFriendlyString`
+### `GetPageableElectionInfo` / `GetPageableElectionInfoToFriendlyString`
 
 Params:
 - `int` startIndex
@@ -165,8 +195,8 @@ To get the election information during the election.
 
 orderBy:
 0 - Announcement order. (Default)
-1 - Tickets count ascending.
-2 - Tickets count descending.
+1 - Obtained votes ascending.
+2 - Obtained votes descending.
 
 ### `GetVotesCount`
 
@@ -242,6 +272,35 @@ Result Type:
 
 To query current round number.
 
+### `GetPageableCandidatesHistoryInfo` / `GetPageableCandidatesHistoryInfoToFriendlyString`
+
+Params:
+- `int` startIndex
+- `int` length
+
+Result Type:
+`CandidateInHistoryDictionary` / `string`
+
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+Params:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+Result Type:
+`Tickets` / `string`
+
+### `QueryObtainedNotExpiredVotes`
+
+Params:
+- `string` publicKeyHexString
+
+Result Type:
+`ulong`
+
+To query obtained and not expired votes number of a candidate.
+
 # 投票/选举系统
 
 ## 可用方法
@@ -293,17 +352,11 @@ To query current round number.
 
 投票者赎回自己的选票。
 
-### `WithdrawByDetail`
-
-参数:
-- string publicKeyHexString
-- ulong ticketsAmount
-- int lockTime
-
 ### `WithdrawByTransactionId`
 
 参数:
-- Hash transactionId
+- `string` transactionId
+- `bool` withoutLimitation
 
 ### `IsCandidate`
 
@@ -357,6 +410,42 @@ To query current round number.
 
 如果该公钥曾经参与过竞选，其投票详情中会包括其支持者对他的投票。
 
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `Tickets` / `string`
+
+获取所提供公钥的投票详情，可定制返回的投票记录数量。
+
+### `GetPageableNotWithdrawnTicketsInfo` / `GetPageableNotWithdrawnTicketsInfoToFriendlyString`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `Tickets` / `string`
+
+获取所提供公钥的未赎回的投票详情，可定制返回的投票记录数量。
+
+### `GetPageableTicketsHistories` / `GetPageableTicketsHistoriesToFriendlyString`
+
+参数:
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+- `TicketsHistories` / `string`
+
+获取所提供公钥的投票记录，可定制返回的投票记录数量。
+
 ### `GetBlockchainAge`
 
 *无参数*
@@ -395,7 +484,7 @@ To query current round number.
 
 获取所提供轮数所在的届数。
 
-### `GetCurrentElectionInfo` / `GetCurrentElectionInfoToFriendlyString`
+### `GetPageableElectionInfo` / `GetPageableElectionInfoToFriendlyString`
 
 参数:
 - `int` startIndex
@@ -488,6 +577,49 @@ orderBy:
 
 获取当前轮数。
 
+### `QueryAlias`
+
+参数:
+- `string` publicKeyHexString
+
+返回类型:
+`string`
+
+根据公钥查询候选人别名。（不存在则返回公钥前20位）
+
+### `GetPageableCandidatesHistoryInfo` / `GetPageableCandidatesHistoryInfoToFriendlyString`
+
+参数：
+- `int` startIndex
+- `int` length
+
+返回类型：
+`CandidateInHistoryDictionary` / `string`
+
+分页获取当前候选人的历史信息。
+
+### `GetPageableTicketsInfo` / `GetPageableTicketsInfoToFriendlyString`
+
+参数：
+- `string` publicKeyHexString
+- `int` startIndex
+- `int` length
+
+返回类型：
+`Tickets` / `string`
+
+分页获取所提供公钥的投票信息。
+
+### `QueryObtainedNotExpiredVotes`
+
+参数：
+- `string` publicKeyHexString
+
+返回类型：
+`ulong`
+
+查询某候选人所获得没有过期的选票数。
+
 ## Data Structure
 
 ```Protobuf
@@ -496,6 +628,7 @@ orderBy:
 message Miners {
     uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
+    string Remark = 3;
 }
 
 // To query to first round number of each term.
@@ -512,7 +645,12 @@ message Candidates {
 // The ticket / voting information for one user.
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
-    uint64 TotalTickets = 2;
+    uint64 VotingRecordsCount = 2;
+    uint64 ObtainedTickets = 3;
+    uint64 VotedTickets = 4;
+    uint64 HistoryObtainedTickets = 5;
+    uint64 HistoryVotedTickets = 6;
+    string Remark = 7;
 }
 
 // A voting record.
@@ -538,6 +676,7 @@ message TermSnapshot {
     uint64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
     uint64 TermNumber = 4;
+    string Remark = 5;
 }
 
 // The information of a candidate of a specific term.
@@ -552,6 +691,7 @@ message Round {
     map<string, MinerInRound> RealTimeMinersInfo = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
+    string Remark = 5;
 }
 
 // The information of a miner in a specific round.
@@ -568,6 +708,8 @@ message MinerInRound {
     uint64 RoundNumber = 10;
     string PublicKey = 11;
     uint64 PackagedTxsCount = 12;
+    uint64 LatestMissedTimeSlots = 13;
+    bool IsMissed = 14;
 }
 
 // The information of a candidate.
@@ -579,5 +721,40 @@ message CandidateInHistory {
     uint64 ContinualAppointmentCount = 5;
     uint64 ReappointmentCount = 6;
     repeated string Aliases = 7;
+    string CurrentAlias = 8;
+    uint64 CurrentVotesNumber = 9;
+    string Remark = 10;
 }
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
+    string Remark = 2;
+}
+
+message CandidateInHistoryDictionary {
+    map<string, CandidateInHistory> Maps = 1;
+    string Remark = 2;
+    int32 CandidatesNumber = 3;
+}
+
+message TicketsHistories {
+    repeated TicketsHistory Values = 1;
+    uint64 HistoriesNumber = 2;
+    string Remark = 3;
+}
+
+message TicketsHistory {
+    string CandidateAlias = 1;
+    uint64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    TicketsHistoryType Type = 5;
+}
+
+enum TicketsHistoryType {
+    None = 0;
+    Redeem = 1;
+    Vote = 2;
+}
+
 ```

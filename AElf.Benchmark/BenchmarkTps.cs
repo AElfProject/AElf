@@ -10,44 +10,56 @@ using AElf.Kernel.Managers;
 using AElf.ChainController;
 using AElf.SmartContract;
 using AElf.Execution;
+using AElf.Execution.Scheduling;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using NLog;
 using AElf.Common;
 using AElf.Execution.Execution;
-
+using AElf.Kernel.Storages;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 namespace AElf.Benchmark
 {
     public class Benchmarks
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<Benchmarks> Logger {get;set;}
         private readonly BenchmarkOptions _options;
         private readonly IExecutingService _executingService;
         private readonly IStateManager _stateManager;
+        private readonly IMinersManager _minersManager;
 
         private readonly ServicePack _servicePack;
 
         private readonly TransactionDataGenerator _dataGenerater;
         private readonly Address _contractHash;
         
-        private Hash ChainId { get; }
+        private int ChainId { get; }
         private int _incrementId;
         
-        public byte[] SmartContractZeroCode => File.ReadAllBytes(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll)));
+        public byte[] SmartContractZeroCode
+        {
+            get
+            {
+                byte[] code = File.ReadAllBytes(Path.GetFullPath(Path.GetFullPath(Path.Combine(_options.DllDir, _options.ZeroContractDll))));
+
+                return code;
+            }
+        }
 
         public Benchmarks(IStateManager stateManager, IChainCreationService chainCreationService,
             IChainContextService chainContextService, ISmartContractService smartContractService,
-            ILogger logger, IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService)
+             IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService, IMinersManager minersManager)
         {
             ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
             _stateManager = stateManager;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;
-            _logger = logger;
+            Logger = NullLogger<Benchmarks>.Instance;
             _options = options;
             _executingService = executingService;
+            _minersManager = minersManager;
 
 
             _servicePack = new ServicePack
@@ -55,7 +67,8 @@ namespace AElf.Benchmark
                 ChainContextService = chainContextService,
                 SmartContractService = _smartContractService,
                 ResourceDetectionService = new ResourceUsageDetectionService(functionMetadataService),
-                StateManager = _stateManager
+                StateManager = _stateManager,
+                MinersManager = _minersManager
             };
 
             _dataGenerater = new TransactionDataGenerator(options);
@@ -70,17 +83,17 @@ namespace AElf.Benchmark
             {
                 for (int currentGroupCount = _options.GroupRange.ElementAt(0); currentGroupCount <= _options.GroupRange.ElementAt(1); currentGroupCount++)
                 {
-                    _logger.Info($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total.");
+                    Logger.LogInformation($"Start executing {currentGroupCount} groups where have {_options.TxNumber} transactions in total.");
                     var res = await MultipleGroupBenchmark(_options.TxNumber, currentGroupCount);
                     resDict.Add(res.Key, res.Value);
                 }
 
-                _logger.Info("Benchmark report \n \t Configuration: \n" + _options +
+                Logger.LogInformation("Benchmark report \n \t Configuration: \n" + _options +
                              "\n\n\n\t Benchmark result:\n" + string.Join("\n", resDict.Select(kv=> "\t" + kv.Key + ": " + kv.Value)));
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while benchmark event group.");
+                Logger.LogError(e, "Exception while benchmark event group.");
             }
         }
 
@@ -99,7 +112,7 @@ namespace AElf.Benchmark
             
             for (int i = 0; i < repeatTime; i++)
             {
-                _logger.Info($"round {i+1} / {repeatTime} start");
+                Logger.LogInformation($"round {i+1} / {repeatTime} start");
                 foreach (var tx in txList)
                 {
                     tx.IncrementId += 1;
@@ -108,7 +121,7 @@ namespace AElf.Benchmark
                 swExec.Start();
 
                 var cts = new CancellationTokenSource();
-                var txResult = await _executingService.ExecuteAsync(txList, ChainId, DateTime.Now, cts.Token);
+                var txResult = await _executingService.ExecuteAsync(txList, ChainId,DateTime.Now, cts.Token);
         
                 swExec.Stop();
                 timeused += swExec.ElapsedMilliseconds;
@@ -116,18 +129,18 @@ namespace AElf.Benchmark
                 {
                     if (!trace.StdErr.IsNullOrEmpty())
                     {
-                        _logger.Error("Execution error: " + trace.StdErr);
+                        Logger.LogError("Execution error: " + trace.StdErr);
                     }
                 });
                 Thread.Sleep(50); //sleep 50 ms to let async logger finish printing contents of previous round
-                _logger.Info($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
+                Logger.LogInformation($"round {i+1} / {repeatTime} ended, used time {swExec.ElapsedMilliseconds} ms");
             }
             
             var acturalBalance = await ReadBalancesForAddrs(GetTargetHashesForTransfer(txList), _contractHash);
             
             //A double zip, first combine expectedTransferBalance with acturalBalance to get the compare string " {tx count per group} * transferBal * repeatTime = {expected} || {actural}"
             //              then combine originBalance with the compare string above.
-            _logger.Info(
+            Logger.LogInformation(
                 $"Validation for balance transfer for {groupCount} group with {txNumber / groupCount} transactions: \n\t" +
                 string.Join("\n\t",
                     originBalance.Zip(
@@ -304,12 +317,12 @@ namespace AElf.Benchmark
                 initTxList.Add(txnBalInit);
             }
             var cts = new CancellationTokenSource();
-            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId, DateTime.UtcNow, cts.Token);
+            var txTrace = await _executingService.ExecuteAsync(initTxList, ChainId,DateTime.Now, cts.Token);
             foreach (var trace in txTrace)
             {
                 if (!trace.StdErr.IsNullOrEmpty())
                 {
-                    _logger.Error("Execution Error: " + trace.StdErr);
+                    Logger.LogError("Execution Error: " + trace.StdErr);
                 }
             }
         }

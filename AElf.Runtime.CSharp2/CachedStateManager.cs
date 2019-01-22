@@ -34,15 +34,13 @@ namespace AElf.Runtime.CSharp
             return value.CurrentValue;
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
+        public async Task PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
         {
-            var res = await _plainStateManager.PipelineSetAsync(pipelineSet);
+            await _plainStateManager.PipelineSetAsync(pipelineSet);
             foreach (var kv in pipelineSet)
             {
                 Cache[kv.Key] = new StateCache(kv.Value);
             }
-
-            return res;
         }
     }
 }

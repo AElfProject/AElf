@@ -30,7 +30,7 @@ namespace AElf.Execution
                 servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
         }
 
-        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, Hash chainId,
+        public async Task<List<TransactionTrace>> ExecuteAsync(List<Transaction> transactions, int chainId,
             DateTime currentBlockTime, CancellationToken token, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction,
             bool skipFee = false)
@@ -51,7 +51,7 @@ namespace AElf.Execution
             else
             {
                 //disable parallel module by default because it doesn't finish yet (don't support contract call)
-                if (ParallelConfig.Instance.IsParallelEnable)
+                if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
                         ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
@@ -86,7 +86,7 @@ namespace AElf.Execution
             return results;
         }
 
-        private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(Hash chainId,
+        private async Task<List<TransactionTrace>> AttemptToSendExecutionRequest(int chainId,
             List<Transaction> transactions, CancellationToken token, DateTime currentBlockTime, Hash disambiguationHash,
             TransactionType transactionType, bool skipFee)
         {

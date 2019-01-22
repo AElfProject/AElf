@@ -1,12 +1,11 @@
 ﻿using System;
-using NLog;
-
 namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
-        private static ILogger _logger = LogManager.GetCurrentClassLogger();
+        //private static ILogger Logger= LogManager.GetCurrentClassLogger();
         
+        //TODO: change using aspnet core configuration
         static void Main(string[] args)
         {
             var confParser = new ConfigParser();
@@ -17,7 +16,7 @@ namespace AElf.Concurrency.Lighthouse
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                //Logger.LogError(e);
                 throw;
             }
 

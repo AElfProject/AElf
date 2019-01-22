@@ -4,14 +4,22 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
-using AElf.Common.Attributes;
-using NLog;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.CLI2.JS.IO
 {
     public class RequestExecutor : IRequestExecutor
     {
-        private readonly ILogger _logger = LogManager.GetLogger("cli2.request_executor");
+        
+        public ILogger<Console> Logger { get; set; }
+
+        public RequestExecutor()
+        {
+            Logger = NullLogger<Console>.Instance;
+        }
+
 
         private async Task<IResponse> Execute(HttpMethod method, Uri url, IDictionary<string, string> headers, string body)
         {
@@ -53,7 +61,7 @@ namespace AElf.CLI2.JS.IO
                     }
 
                     uriBuilder.Query = query1.ToString();
-                    _logger.Debug(uriBuilder.Uri.ToString());
+                    Logger.LogDebug(uriBuilder.Uri.ToString());
                     return new HttpResponse
                     {
                         Content = await client.GetAsync(uriBuilder.Uri)

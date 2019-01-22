@@ -1,23 +1,22 @@
 ﻿using System.Collections.Generic;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using Xunit;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    [UseAutofacTestFramework]
-    public class RunnerTest
+    public sealed class RunnerTest : CSharpRuntimeTestBase
     {
         private MockSetup _mock;
         private TestContractShim _contract1;
         private TestContractShim _contract2;
 
-        public RunnerTest(MockSetup mock)
+        public RunnerTest()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
             _contract1 = new TestContractShim(_mock);
             _contract2 = new TestContractShim(_mock, true);
         }
@@ -61,22 +60,16 @@ namespace AElf.Runtime.CSharp.Tests
                 @"System\.Net\..*",
                 @"System\.Threading\..*",
             };
-
-            RunnerConfig.Instance.SdkDir = _mock.SdkDir;
-            RunnerConfig.Instance.BlackList = bl1;
-            RunnerConfig.Instance.WhiteList = new List<string>();
             
-            var runner1 = new SmartContractRunner();
+            var runner1 = new SmartContractRunner(_mock.SdkDir,bl1,new List<string>());
             runner1.CodeCheck(_mock.ContractCode, true);
 
             var bl2 = new List<string>
             {
                 @".*"
             };
-            
-            RunnerConfig.Instance.BlackList = bl2;
-            
-            var runner2 = new SmartContractRunner();
+                        
+            var runner2 = new SmartContractRunner(_mock.SdkDir,bl2,new List<string>());
             Assert.Throws<InvalidCodeException>(()=>runner2.CodeCheck(_mock.ContractCode, true));
         }
     }

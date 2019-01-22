@@ -1,17 +1,24 @@
-﻿using AElf.Common.Module;
-using Autofac;
+﻿using AElf.Kernel;
+using AElf.Modularity;
+using AElf.SmartContract.Proposal;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.SmartContract
 {
-    public class SmartContractAElfModule:IAElfModule
+    [DependsOn(typeof(KernelAElfModule))]
+    public class SmartContractAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new SmartContractAutofacModule());
+            
+
+            context.Services.AddAssemblyOf<SmartContractAElfModule>();
+
+            context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
+
+            context.Services.AddSingleton<IAuthorizationInfoReader,AuthorizationInfoReader>();
         }
 
-        public void Run(ILifetimeScope scope)
-        {
-        }
     }
 }

@@ -11,7 +11,7 @@ namespace AElf.Concurrency.Lighthouse
         /// <summary>
         /// chainId
         /// </summary>
-        // public Hash ChainId { get; set; }
+        // public int ChainId { get; set; }
         public bool Parse(string[] args)
         {
             Parser.Default.ParseArguments<CliOptions>(args)
@@ -38,11 +38,6 @@ namespace AElf.Concurrency.Lighthouse
             if (opts.ActorConcurrencyLevel.HasValue)
             {
                 ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
-            }
-
-            if (opts.IsParallelEnable.HasValue)
-            {
-                ParallelConfig.Instance.IsParallelEnable = opts.IsParallelEnable.Value;
             }
         }
     }

@@ -3,10 +3,11 @@ using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using AElf.Common;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Token.Tests
 {
-    public class ContractZeroShim
+    public class ContractZeroShim : ITransientDependency
     {
         private MockSetup _mock;
         public Address ContractAddress = Address.Generate();

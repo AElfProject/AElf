@@ -18,5 +18,6 @@ namespace AElf.Configuration
         public ConsensusKind ConsensusKind { get; set; }
         public float RatioMine { get; set; }
         public float RatioSynchronize { get; set; }
+        public string DeployServicePath { get; set; }
     }
 }

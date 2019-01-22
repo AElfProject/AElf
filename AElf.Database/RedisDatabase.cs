@@ -2,94 +2,65 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Database.RedisProtocol;
+using Microsoft.Extensions.Options;
+using Volo.Abp;
+using Volo.Abp.Threading;
 
 namespace AElf.Database
 {
-    public class RedisDatabase : IKeyValueDatabase
+    public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
+        where TKeyValueDbContext:KeyValueDbContext<TKeyValueDbContext>
     {
-        private readonly ConcurrentDictionary<string, PooledRedisLite> _clientManagers = new ConcurrentDictionary<string, PooledRedisLite>();
+        private readonly PooledRedisLite _pooledRedisLite;
 
-        public async Task<byte[]> GetAsync(string database, string key)
+        public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException("key is empty");
-            }
-
-            return await Task.FromResult(GetClient(database).Get(key));
+            Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
+            
+            var endpoint = options.ConnectionString.ToRedisEndpoint();
+            
+            _pooledRedisLite = new PooledRedisLite(endpoint.Host,endpoint.Port,(int)endpoint.Db);
         }
 
-        public async Task SetAsync(string database, string key, byte[] bytes)
+        public bool IsConnected()
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException("key is empty");
-            }
-
-            await Task.FromResult(GetClient(database).Set(key, bytes));
+            return _pooledRedisLite.Ping();
         }
 
-        public async Task RemoveAsync(string database, string key)
+
+        public async Task<byte[]> GetAsync(string key)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException("key is empty");
-            }
-            await Task.FromResult(GetClient(database).Remove(key));
+            Check.NotNullOrWhiteSpace(key,nameof(key));
+            return await Task.Run(() => _pooledRedisLite.Get(key));
         }
 
-        public async Task<bool> PipelineSetAsync(string database, Dictionary<string, byte[]> cache)
+        public async Task SetAsync(string key, byte[] bytes)
+        {
+            Check.NotNullOrWhiteSpace(key,nameof(key));
+            
+            await Task.Run(() => _pooledRedisLite.Set(key,bytes));
+        }
+
+        public async Task RemoveAsync(string key)
+        {
+            Check.NotNullOrWhiteSpace(key,nameof(key));
+
+            await Task.Run(() => _pooledRedisLite.Remove(key));
+        }
+
+        public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
             {
-                return true;
+                return ;
             }
-            return await Task.Factory.StartNew(() =>
+            await Task.Run(() =>
             {
-                GetClient(database).SetAll(cache);
+                _pooledRedisLite.SetAll(cache);
                 return true;
             });
         }
 
-        public bool IsConnected(string database = "")
-        {
-            if (string.IsNullOrWhiteSpace(database))
-            {
-                foreach (var db in DatabaseConfig.Instance.Hosts)
-                {
-                    if (!GetClient(db.Key).Ping())
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                if (!GetClient(database).Ping())
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private PooledRedisLite GetClient(string database)
-        {
-            if (string.IsNullOrWhiteSpace(database))
-            {
-                throw new ArgumentException("database is empty");
-            }
-            if (!_clientManagers.TryGetValue(database, out var client))
-            {
-                var databaseHost = DatabaseConfig.Instance.GetHost(database);
-                client = new PooledRedisLite(databaseHost.Host, databaseHost.Port, databaseHost.Number);
-                _clientManagers.TryAdd(database, client);
-            }
-
-            return client;
-        }
     }
 }

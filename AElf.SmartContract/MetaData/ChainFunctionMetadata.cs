@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Storages;
 using Google.Protobuf;
-using NLog;
 using Org.BouncyCastle.Security;
 using AElf.Kernel;
 using AElf.SmartContract.MetaData;
@@ -11,21 +11,23 @@ using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using AElf.Kernel.SmartContract;
 
 namespace AElf.SmartContract
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {
-        private readonly ILogger _logger;
+        public ILogger<ChainFunctionMetadata> Logger {get;set;}
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
         public Dictionary<string, FunctionMetadata> FunctionMetadataMap = new Dictionary<string, FunctionMetadata>();
         
         
-        public ChainFunctionMetadata(ILogger logger , IFunctionMetadataManager functionMetadataManager)
+        public ChainFunctionMetadata(IFunctionMetadataManager functionMetadataManager)
         {
-            _logger = logger;
+            Logger = NullLogger<ChainFunctionMetadata>.Instance;
             _functionMetadataManager = functionMetadataManager;
         }
 
@@ -36,7 +38,7 @@ namespace AElf.SmartContract
         /// <param name="contractAddr"></param>
         /// <param name="contractMetadataTemplate"></param>
         /// <exception cref="FunctionMetadataException"></exception>
-        public async Task DeployNewContract(Hash chainId, Address contractAddr, ContractMetadataTemplate contractMetadataTemplate)
+        public async Task DeployNewContract(int chainId, Address contractAddr, ContractMetadataTemplate contractMetadataTemplate)
         {
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
             try
@@ -67,12 +69,12 @@ namespace AElf.SmartContract
             }
             catch (FunctionMetadataException e)
             {
-                _logger?.Error(e, "Exception while deploy new contract.");
+                Logger.LogError(e, "Exception while deploy new contract.");
                 throw;
             }
         }
         
-        public async Task UpdateContract(Hash chainId, Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
+        public async Task UpdateContract(int chainId, Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate)
         {
             // remove old metadata
             Dictionary<string, FunctionMetadata> tempMap = new Dictionary<string, FunctionMetadata>();
@@ -100,7 +102,7 @@ namespace AElf.SmartContract
             }
             catch (FunctionMetadataException e)
             {
-                _logger?.Error(e, "Exception while deploy new contract.");
+                Logger.LogError(e, "Exception while deploy new contract.");
                 throw;
             }
         }
@@ -115,7 +117,7 @@ namespace AElf.SmartContract
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="FunctionMetadataException"></exception>
-        private async Task<FunctionMetadata> GetMetadataForNewFunction(Hash chainId, string functionFullName, FunctionMetadataTemplate functionTemplate, Address contractAddr, Dictionary<string, Address> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
+        private async Task<FunctionMetadata> GetMetadataForNewFunction(int chainId, string functionFullName, FunctionMetadataTemplate functionTemplate, Address contractAddr, Dictionary<string, Address> contractReferences, Dictionary<string, FunctionMetadata> localMetadataMap)
         {
             var resourceSet = new HashSet<Resource>(functionTemplate.LocalResourceSet.Select(resource =>
                 {
@@ -177,7 +179,7 @@ namespace AElf.SmartContract
         /// <param name="functionFullName"></param>
         /// <returns></returns>
         /// <exception cref="InvalidParameterException"></exception>
-        public async Task<FunctionMetadata> GetFunctionMetadata(Hash chainId, string functionFullName)
+        public async Task<FunctionMetadata> GetFunctionMetadata(int chainId, string functionFullName)
         {
             //BUG: if the smart contract can be updated, then somehow this in-memory cache FunctionMetadataMap need to be updated too. Currently the ChainFunctionMetadata has no way to know some metadata is updated; current thought is to request current "previous block hash" every time the ChainFunctionMetadata public interface got executed, that is "only use cache when in the same block, can clear the cache per block"
             if (!FunctionMetadataMap.TryGetValue(functionFullName, out var txMetadata))
@@ -272,7 +274,7 @@ namespace AElf.SmartContract
         /// <param name="contractMetadataTemplate"></param>
         /// <returns>The new calling graph</returns>
         /// <exception cref="FunctionMetadataException"></exception>
-        public CallGraph TryUpdateAndGetCallingGraph(Hash chainId, Address contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
+        public CallGraph TryUpdateAndGetCallingGraph(int chainId, Address contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
         {
             List<Edge<string>> outEdgesToAdd = new List<Edge<string>>();
             //check for unknown reference
@@ -313,7 +315,7 @@ namespace AElf.SmartContract
             return callingGraph;
         }
         
-        public CallGraph TryRemoveAndGetCallingGraph(Hash chainId, Address contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
+        public CallGraph TryRemoveAndGetCallingGraph(int chainId, Address contractAddress, CallGraph callingGraph, ContractMetadataTemplate contractMetadataTemplate)
         {
             foreach (var kvPair in contractMetadataTemplate.MethodMetadataTemplates)
             {
@@ -358,7 +360,7 @@ namespace AElf.SmartContract
         
         
         #region Serialize
-        private async Task<CallGraph> GetCallingGraphForChain(Hash chainId)
+        private async Task<CallGraph> GetCallingGraphForChain(int chainId)
         {
             var graphCache =await _functionMetadataManager.GetCallGraphAsync(chainId);
             if (graphCache == null)

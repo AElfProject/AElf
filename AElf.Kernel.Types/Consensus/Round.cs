@@ -18,7 +18,8 @@ namespace AElf.Kernel
 
         public DateTime GetEBPMiningTime(int miningInterval)
         {
-            return RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value.ExpectedMiningTime.ToDateTime()
+            return RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
+                .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(miningInterval);
         }
 
@@ -37,7 +38,7 @@ namespace AElf.Kernel
                 }
 
                 minerInRound.MissedTimeSlots += 1;
-                
+
                 var inValue = Hash.Generate();
                 var outValue = Hash.FromMessage(inValue);
 
@@ -59,9 +60,9 @@ namespace AElf.Kernel
                 {
                     continue;
                 }
-                
+
                 minerInRound.MissedTimeSlots += 1;
-                
+
                 var inValue = Hash.Generate();
                 var outValue = Hash.FromMessage(inValue);
 
@@ -82,7 +83,7 @@ namespace AElf.Kernel
                     minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
                 }
             }
-            
+
             return Hash.FromTwoHashes(inValue,
                 RealTimeMinersInfo.Values.Aggregate(Hash.Default,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
@@ -101,6 +102,11 @@ namespace AElf.Kernel
 
         public bool CheckWhetherMostMinersMissedTimeSlots()
         {
+            if (GlobalConfig.BlockProducerNumber == 1)
+            {
+                return false;
+            }
+
             var missedMinersCount = 0;
             foreach (var minerInRound in RealTimeMinersInfo)
             {
@@ -110,7 +116,7 @@ namespace AElf.Kernel
                 }
             }
 
-            return missedMinersCount >= GlobalConfig.BlockProducerNumber - 1;
+            return missedMinersCount >= (GlobalConfig.BlockProducerNumber - 1) * GlobalConfig.ForkDetectionRoundNumber;
         }
     }
 }

@@ -1,44 +1,62 @@
 ﻿using AElf.ChainController;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
-using Autofac;
+using AElf.Kernel;
+using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.Execution
 {
-    public class ExecutionAElfModule : IAElfModule
+    [DependsOn(typeof(KernelAElfModule))]
+    public class ExecutionAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var assembly = typeof(ParallelTransactionExecutingService).Assembly;
-            builder.RegisterAssemblyTypes(assembly).AsImplementedInterfaces();
 
+            var services = context.Services;
+
+            services.AddAssemblyOf<ExecutionAElfModule>();
+            
+            
+            //TODO! move into a new project, remove if statement
             if (NodeConfig.Instance.ExecutorType == "akka")
             {
-                builder.RegisterType<ResourceUsageDetectionService>().As<IResourceUsageDetectionService>();
-                builder.RegisterType<Grouper>().As<IGrouper>();
-                builder.RegisterType<ServicePack>().PropertiesAutowired();
-                builder.RegisterType<ActorEnvironment>().As<IActorEnvironment>().SingleInstance();
-                builder.RegisterType<ParallelTransactionExecutingService>().As<IExecutingService>();
+                
+                
+                services.AddTransient<IExecutingService,ParallelTransactionExecutingService>();
+                services.AddTransient<ServicePack>();
+                services.AddTransient<IActorEnvironment,ActorEnvironment>();
+                services.AddTransient<IGrouper,Grouper>();
+                services.AddTransient<IResourceUsageDetectionService,ResourceUsageDetectionService>();
+
             }
             else if (NodeConfig.Instance.ExecutorType == "nofee")
             {
-                builder.RegisterType<NoFeeSimpleExecutingService>().As<IExecutingService>();
+                services.AddTransient<IExecutingService, NoFeeSimpleExecutingService>();
             }
             else
             {
-                builder.RegisterType<SimpleExecutingService>().As<IExecutingService>();
+                // services were auto registered.
+                services.AddTransient<IExecutingService,SimpleExecutingService>();
             }
+            
         }
 
-        public void Run(ILifetimeScope scope)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            //TODO! remove if statement from config
             if (NodeConfig.Instance.ExecutorType == "akka")
             {
-                var actorEnv = scope.Resolve<IActorEnvironment>();
+                //TODO! change to userAkka():
+
+                var actorEnv = context.ServiceProvider.GetService<IActorEnvironment>();
                 actorEnv.InitActorSystem();
             }
         }
+
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -21,14 +20,13 @@ using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
-    [UseAutofacTestFramework]
-    public class ParallelTransactionExecutingServiceTest : TestKitBase
+    public class ParallelTransactionExecutingServiceTest : AElfAkkaTestKitBase
     {
         private MockSetup _mock;
 
-        public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
+        public ParallelTransactionExecutingServiceTest() : base(new XunitAssertions())
         {
-            _mock = mock;
+            _mock = this._aelfKernelIntegratedTest.GetRequiredService<MockSetup>();
         }
 
         [Fact]

@@ -18,7 +18,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public Hash BlockHash => _block.GetHash();
         public ulong Index => _block.Header.Index;
 
-        public BlockState PreviousState { get; private set; }
+        public BlockState PreviousState { get; set; }
 
         public string Producer => _block?.Header?.P.ToByteArray().ToHex();
 
@@ -63,14 +63,11 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public bool AddConfirmation(string pubKey)
         {
-            if (!_confirmations.Any(c => c.Equals(pubKey)))
-            {
-                _confirmations.Add(pubKey);
-                if (_confirmations.Count >= Math.Ceiling(2d / 3d * _miners.Count))
-                    return true;
-            }
-
-            return false;
+            if (pubKey.Equals(Producer) || _confirmations.Any(c => c.Equals(pubKey))) 
+                return false;
+            
+            _confirmations.Add(pubKey);
+            return _confirmations.Count >= Math.Ceiling(2d / 3d * _miners.Count);
         }
 
         public IBlock GetClonedBlock()

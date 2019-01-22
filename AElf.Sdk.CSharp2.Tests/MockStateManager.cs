@@ -27,14 +27,12 @@ namespace AElf.Sdk.CSharp2.Tests
             return await Task.FromResult(value);
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
+        public async Task PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
         {
             foreach (var kv in pipelineSet)
             {
                 await SetAsync(kv.Key, kv.Value);
             }
-
-            return true;
         }
     }
 }

@@ -1,8 +1,8 @@
 language: csharp
 sudo: required
 mono: none
-dotnet: 2.1.400
-dist: trusty
+dotnet: 2.2
+dist: xenial
 before_install:
   - chmod a+x ./install_protobuf.sh
   - ./install_protobuf.sh

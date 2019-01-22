@@ -16,7 +16,7 @@ message SideChainInfo
 {
     Hash Owner = 1;
     uint64 SerialNumer = 2;
-    Hash ChainId = 3;
+    int32 ChainId = 3;
     SideChainStatus Status = 4;
     Hash LockedAddress = 5;
     uint64 LockedToken = 6;

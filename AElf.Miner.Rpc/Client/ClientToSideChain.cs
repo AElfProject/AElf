@@ -1,18 +1,16 @@
 using System;
-using AElf.Common.Attributes;
+
 using AElf.Common;
 using Grpc.Core;
-using NLog;
-
 namespace AElf.Miner.Rpc.Client
 {
-    [LoggerName("ClientToSideChain")]
+    
     public class ClientToSideChain : ClientBase<ResponseSideChainBlockInfo>
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public ClientToSideChain(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount) 
-            : base(channel, logger, targetChainId, interval, irreversible, maximalIndexingCount)
+        public ClientToSideChain(Channel channel, int targetChainId, int interval, int irreversible, int maximalIndexingCount) 
+            : base(channel, targetChainId, interval, irreversible, maximalIndexingCount)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }

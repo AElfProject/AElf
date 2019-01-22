@@ -3,11 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    [UseAutofacTestFramework]
     public class ContractCodeLoadContextTest
     {
         private string _apiDllDirectory =

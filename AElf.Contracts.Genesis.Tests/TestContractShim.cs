@@ -3,10 +3,11 @@ using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using AElf.Common;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    public class TestContractShim
+    public class TestContractShim : ITransientDependency
     {
         private MockSetup _mock;
         public Hash ContractAddres = Hash.Generate();

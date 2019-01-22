@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using AElf.Common;
 using AElf.Sdk.CSharp2.State;
-using Autofac.Core.Activators.Delegate;
 
 namespace AElf.Sdk.CSharp.State
 {

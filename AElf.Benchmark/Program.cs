@@ -15,7 +15,6 @@ using AElf.Kernel;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Akka.Actor;
-using Autofac;
 using CommandLine;
 
 namespace AElf.Benchmark
@@ -24,6 +23,9 @@ namespace AElf.Benchmark
     {
         public static async Task Main(string[] args)
         {
+            //TODO!
+            
+            /*
             BenchmarkOptions opts = null;
             Parser.Default.ParseArguments<BenchmarkOptions>(args)
                 .WithParsed(o => { opts = o; })
@@ -155,8 +157,10 @@ namespace AElf.Benchmark
 
             Console.WriteLine("\n\nPress any key to continue ");
             Console.ReadKey();
+            */
         }
 
+        /*
         private static bool CheckDbConnect(IComponentContext container)
         {
             var db = container.Resolve<IKeyValueDatabase>();
@@ -169,6 +173,6 @@ namespace AElf.Benchmark
                 Console.WriteLine(e);
                 return false;
             }
-        }
+        }*/
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Autofac;
-using Autofac.Core;
 using Community.AspNetCore;
 using Community.AspNetCore.JsonRpc;
 using Microsoft.AspNetCore;
@@ -14,28 +12,18 @@ namespace AElf.RPC
 {
     internal static class RpcServerHelpers
     {
-        private static List<Type> GetServiceTypes(ILifetimeScope scope)
+        private static List<Type> GetServiceTypes(IServiceCollection scope)
         {
-            var types = scope.ComponentRegistry.Registrations
-                .SelectMany(r => r.Services.OfType<IServiceWithType>(), (r, s) => new {r, s})
-                .Where(rs => typeof(IJsonRpcService).IsAssignableFrom(rs.s.ServiceType))
-                .Select(rs => rs.r.Activator.LimitType).ToList();
-            return types;
+            return scope.Where(p => p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
+                .Select(p => p.ImplementationType).Distinct().ToList();
+            
+            //TODO! rewrite this project by aspnet core webapi
+
         }
 
-        private static object Resolve(ILifetimeScope scope, Type type)
+        private static object Resolve(IServiceProvider scope, Type type)
         {
-            var methodInfo = typeof(ResolutionExtensions).GetMethod("Resolve", new []
-            {
-                typeof(IComponentContext)
-            });
-            if (methodInfo == null)
-            {
-                throw new InvalidOperationException(
-                    "Cannot find extension method Resolve(IComponentContext) for ResolutionExtensions.");
-            }
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
-            return methodInfoGeneric.Invoke(scope, new object[] { scope });
+            return scope.GetService(type);
         }
         
         private static void AddJsonRpcService(IServiceCollection services, Type type)
@@ -60,19 +48,21 @@ namespace AElf.RPC
             }
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
             methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
+            
         }
         
-        internal static void ConfigureServices(IServiceCollection services, ILifetimeScope scope)
+        
+        internal static void ConfigureServices(IServiceCollection services)
         {
-            var types = GetServiceTypes(scope);
+            var types = GetServiceTypes(services);
+
             foreach (var serviceType in types)
             {
-                services.AddSingleton(serviceType, Resolve(scope, serviceType));
                 AddJsonRpcService(services, serviceType);
             }
         }
 
-        internal static void Configure(IApplicationBuilder appBuilder, ILifetimeScope scope)
+        internal static void Configure(IApplicationBuilder appBuilder, IServiceCollection scope)
         {
             var types = GetServiceTypes(scope);
             foreach (var serviceType in types)
