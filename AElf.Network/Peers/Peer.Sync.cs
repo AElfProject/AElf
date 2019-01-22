@@ -337,7 +337,7 @@ namespace AElf.Network.Peers
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     
-                    //Dispose();
+                    RequestFailed?.Invoke(this, null);
                 }
             }
         }

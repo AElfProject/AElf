@@ -9,14 +9,9 @@ namespace AElf.Kernel
         /// Set block header hash
         /// </summary>
         /// <param name="blockHeaderHash"></param>
-        /// <param name="indexedSideChainBlockInfo"></param>
-        public static void Complete(this BlockBody blockBody, Hash blockHeaderHash,
-            SideChainBlockInfo[] indexedSideChainBlockInfo = null)
+        public static void Complete(this BlockBody blockBody, Hash blockHeaderHash)
         {
             blockBody.BlockHeader = blockHeaderHash;
-            if (indexedSideChainBlockInfo == null)
-                return;
-            blockBody.IndexedInfo.AddRange(indexedSideChainBlockInfo);
         }
 
         /// <summary>

@@ -54,7 +54,7 @@ namespace AElf.Contracts.Genesis.Tests
             Assert.Equal(address, _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>());
             
             // chang owner and query again, owner will be new owner
-            var newOwner = Address.Generate();
+            var newOwner = Address.Genesis;
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();

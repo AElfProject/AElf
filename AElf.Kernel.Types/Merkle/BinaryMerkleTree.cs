@@ -60,7 +60,10 @@ namespace AElf.Kernel
             if (Root != null)
                 return Root;
             if (Nodes.Count == 0)
-                return Hash.Zero;
+            {
+                Root = Hash.Zero;
+                return Root;
+            }
             LeafCount = Nodes.Count;
             if(Nodes.Count % 2 == 1)
                 Nodes.Add(Nodes.Last());

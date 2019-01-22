@@ -6,11 +6,6 @@ namespace AElf.Kernel
 {
     public static class RoundExtensions
     {
-        public static Hash MinersHash(this Round round)
-        {
-            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
-        }
-
         public static MinerInRound GetEBPInfo(this Round round)
         {
             return round.RealTimeMinersInfo.First(bp => bp.Value.IsExtraBlockProducer).Value;
@@ -18,7 +13,8 @@ namespace AElf.Kernel
 
         public static DateTime GetEBPMiningTime(this Round round, int miningInterval)
         {
-            return round.RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value.ExpectedMiningTime.ToDateTime()
+            return round.RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
+                .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(miningInterval);
         }
 
@@ -37,7 +33,7 @@ namespace AElf.Kernel
                 }
 
                 minerInRound.MissedTimeSlots += 1;
-                
+
                 var inValue = Hash.Generate();
                 var outValue = Hash.FromMessage(inValue);
 
@@ -59,9 +55,9 @@ namespace AElf.Kernel
                 {
                     continue;
                 }
-                
+
                 minerInRound.MissedTimeSlots += 1;
-                
+
                 var inValue = Hash.Generate();
                 var outValue = Hash.FromMessage(inValue);
 
@@ -82,10 +78,15 @@ namespace AElf.Kernel
                     minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
                 }
             }
-            
+
             return Hash.FromTwoHashes(inValue,
                 round.RealTimeMinersInfo.Values.Aggregate(Hash.Default,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+        }
+
+        public static Hash MinersHash(this Round round)
+        {
+            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
         }
 
         public static ulong GetMinedBlocks(this Round round)
@@ -110,7 +111,7 @@ namespace AElf.Kernel
                 }
             }
 
-            return missedMinersCount >= GlobalConfig.BlockProducerNumber - 1;
+            return missedMinersCount >= (GlobalConfig.BlockProducerNumber - 1) * GlobalConfig.ForkDetectionRoundNumber;
         }
     }
 }

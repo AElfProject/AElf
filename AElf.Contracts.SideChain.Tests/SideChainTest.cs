@@ -27,7 +27,7 @@ public class SideChainTest : SideChainContractTestBase
             Mock = this.GetRequiredService<MockSetup>();
         }
 
-        [Fact(Skip = "TBD, side chain lifetime")]
+        [Fact(Skip = "TBD, side chain lifetime needed.")]
         public async Task SideChainLifetime()
         {
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(Mock.ChainId1));
@@ -67,7 +67,7 @@ public class SideChainTest : SideChainContractTestBase
             Assert.Equal(3, status);
         }
 
-        [Fact]
+        [Fact(Skip = "TBD, side chain lifetime needed.")]
         public async Task MerklePathTest()
         {
             var chainId = Mock.ChainId1;
@@ -105,11 +105,12 @@ public class SideChainTest : SideChainContractTestBase
             Assert.Equal(parentChainBlockInfo, boundBlockInfo);
         }
 
-        [Fact]
+        [Fact(Skip = "TBD, side chain lifetime needed.")]
         public async Task VerifyTransactionTest()
         {
             var chainId = Mock.ChainId1;
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
+            //Mock.StateManager.SetAsync()
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
             ulong pHeight = 1;
             ParentChainBlockRootInfo pcbr1 = new ParentChainBlockRootInfo
@@ -191,7 +192,7 @@ public class SideChainTest : SideChainContractTestBase
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(new[] {sc1BlockInfo.TransactionMKRoot, sc2BlockInfo.TransactionMKRoot});
             block.Header.SideChainTransactionsRoot = binaryMerkleTree.ComputeRootHash();
-            block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
+            //block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
             block.Body.CalculateMerkleTreeRoots();
             
             pHeight = 2;

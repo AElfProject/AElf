@@ -10,6 +10,7 @@ namespace AElf.Network.Peers
         event EventHandler MessageReceived;
         event EventHandler PeerDisconnected;
         event EventHandler AuthFinished;
+        event EventHandler RequestFailed;
 
         bool IsDisposed { get; }
         

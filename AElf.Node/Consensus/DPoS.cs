@@ -139,9 +139,52 @@ namespace AElf.Node.Consensus
             });
 
             MessageHub.Instance.Subscribe<FSMStateChanged>(inState => { CurrentState = inState.CurrentState; });
+
+            MessageHub.Instance.Subscribe<NewLibFound>(libState =>
+            {
+                // TODO: Should get the round number LIB height.
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId && 
+                    _helper.TryGetRoundInfo(_helper.CurrentRoundNumber.Value, out var round))
+                {
+                    var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                    miners.TermNumber = LatestTermNumber;
+                    _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                }
+            });
         }
 
-        private Miners Miners => _minersManager.GetMiners().Result;
+        private Miners Miners
+        {
+            get
+            {
+                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
+                {
+                    if (_helper.CurrentTermNumber.Value == 0)
+                    {
+                        return _minersManager.GetMiners(0).Result;
+                    }
+
+                    return _helper.GetCurrentMiners();
+                }
+
+                var roundInfo = _helper.GetCurrentRoundInfo();
+                if (roundInfo != null)
+                {
+                    var miners = _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
+                    Logger.LogTrace($"Sidechain getting miners: {miners.PublicKeys}");
+                    return miners;
+                }
+
+                var basicMiners = _minersManager.GetMiners(1).Result;
+                var mainchainLatestTermNumber = basicMiners.MainchainLatestTermNumber;
+                if (mainchainLatestTermNumber != 0)
+                {
+                    return _minersManager.GetMiners(mainchainLatestTermNumber).Result;
+                }
+
+                return _minersManager.GetMiners(1).Result;
+            }
+        }
 
         public void Start(bool willingToMine)
         {
@@ -289,8 +332,29 @@ namespace AElf.Node.Consensus
 
                     Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
-                    var firstTerm = _minersManager.GetMiners().Result
-                        .GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
+                    Term firstTerm;
+
+                    var initialMiners = await _minersManager.GetMiners(0);
+                    var basicMiners = await _minersManager.GetMiners(1);
+
+                    if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId && basicMiners != null &&
+                        basicMiners.MainchainLatestTermNumber != 0)
+                    {
+                        var minersTermNumber = basicMiners.MainchainLatestTermNumber;
+                        firstTerm = (await _minersManager.GetMiners(minersTermNumber)).GenerateNewTerm(ConsensusConfig
+                            .Instance
+                            .DPoSMiningInterval);
+                        firstTerm.FirstRound.MinersTermNumber = minersTermNumber;
+                        firstTerm.SecondRound.MinersTermNumber = minersTermNumber;
+                    }
+                    else
+                    {
+                        await _minersManager.SetMiners(initialMiners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                        firstTerm = initialMiners.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
+                    }
+
+                    Logger.LogTrace($"Initial consensus information: {firstTerm}");
+                    
                     
                     //TODO! should not pass any parameters about logging system
                     //var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
@@ -490,12 +554,16 @@ var logLevel = new Int32Value {Value = 0};
                     Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
+                    Logger.LogTrace("Round number: " + currentRoundNumber);
+                    
                     var roundInfo = _helper.GetCurrentRoundInfo();
                     roundInfo = _helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo)
                         ? roundInfo.Supplement(previousRoundInfo)
                         : roundInfo.SupplementForFirstRound();
 
-                    var nextRoundInfo = _minersManager.GetMiners().Result.GenerateNextRound(roundInfo.Clone());
+                    var miners = Miners;
+
+                    var nextRoundInfo = miners.GenerateNextRound(roundInfo.Clone());
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     Logger.LogTrace("Current blockchain age: " + calculatedAge);
@@ -514,8 +582,6 @@ var logLevel = new Int32Value {Value = 0};
 
                         return;
                     }
-
-                    var miners = Miners;
 
                     foreach (var minerInRound in nextRoundInfo.RealTimeMinersInfo.Values)
                     {
@@ -538,9 +604,15 @@ var logLevel = new Int32Value {Value = 0};
 
                     if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
                     {
-                        await _minersManager.SetMiners(miners);
+                        await _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
                     }
-
+                    else
+                    {
+                        var minersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
+                        nextRoundInfo.MinersTermNumber = minersTermNumber;
+                        Logger.LogTrace("Sidechain set miners term number to: " + minersTermNumber);
+                    }
+                    
                     var parameters = new List<object>
                     {
                         new Forwarding
@@ -613,7 +685,7 @@ var logLevel = new Int32Value {Value = 0};
                     }
                     else
                     {
-                        nextTerm = (await _minersManager.GetMiners()).GenerateNewTerm(
+                        nextTerm = (await _minersManager.GetMiners(0)).GenerateNewTerm(
                             ConsensusConfig.Instance.DPoSMiningInterval, _helper.CurrentRoundNumber.Value,
                             _helper.CurrentTermNumber.Value);
                     }
@@ -660,22 +732,25 @@ var logLevel = new Int32Value {Value = 0};
         {
             _helper.LogDPoSInformation(await BlockChain.GetCurrentBlockHeightAsync());
 
-            if (AmIContainedInCandidatesList())
+            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
             {
-                // Not record as announced before.
-                if (!_announcedElection)
+                if (AmIContainedInCandidatesList())
                 {
-                    Logger.LogTrace("This node announced election.");
-                    _announcedElection = true;
+                    // Not record as announced before.
+                    if (!_announcedElection)
+                    {
+                        Logger.LogTrace("This node announced election.");
+                        _announcedElection = true;
+                    }
                 }
-            }
-            else
-            {
-                // Record as announced before.
-                if (_announcedElection)
+                else
                 {
-                    Logger.LogTrace("This node quit election.");
-                    _announcedElection = false;
+                    // Record as announced before.
+                    if (_announcedElection)
+                    {
+                        Logger.LogTrace("This node quit election.");
+                        _announcedElection = false;
+                    }
                 }
             }
 
@@ -685,18 +760,6 @@ var logLevel = new Int32Value {Value = 0};
             if (LatestRoundNumber == _helper.CurrentRoundNumber.Value)
             {
                 return;
-            }
-
-            // Update miners list in database.
-            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId &&
-                _helper.TryGetRoundInfo(LatestRoundNumber, out var previousRoundInfo))
-            {
-                var currentRoundInfo = _helper.GetCurrentRoundInfo();
-                if (currentRoundInfo.MinersHash() != previousRoundInfo.MinersHash())
-                {
-                    Logger.LogTrace("Updating miners.");
-                    await _minersManager.SetMiners(_helper.GetCurrentMiners());
-                }
             }
 
             if (_executedBlockFromOtherMiners && _amIMined &&
@@ -729,14 +792,6 @@ var logLevel = new Int32Value {Value = 0};
                 ConsensusDisposable.Dispose();
                 ConsensusDisposable = null;
                 Logger.LogTrace("Disposed previous consensus observables list. Will reload new consnesus events.");
-            }
-
-            // Check whether this node is a miner.
-            var miners = await _minersManager.GetMiners();
-            if (miners.PublicKeys.All(m => m != _ownPubKey.ToHex()))
-            {
-                _minerFlag = false;
-                return;
             }
 
             if (!_minerFlag)

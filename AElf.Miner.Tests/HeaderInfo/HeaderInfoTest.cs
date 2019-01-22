@@ -14,7 +14,7 @@ using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Miner.Tests.Grpc
+namespace AElf.Miner.Tests.HeaderInfo
 {
 public class HeaderInfoTest
     {

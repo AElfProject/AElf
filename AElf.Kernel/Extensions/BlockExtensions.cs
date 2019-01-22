@@ -52,8 +52,7 @@ namespace AElf.Kernel
             return block.Body.AddTransaction(tx);
         }
 
-        public static void Complete(this IBlock block, DateTime currentBlockTime, SideChainBlockInfo[]
-            indexedSideChainBlockInfo = null, HashSet<TransactionResult> results = null)
+        public static void Complete(this IBlock block, DateTime currentBlockTime, HashSet<TransactionResult> results = null)
         {
             if (results != null)
             {
@@ -67,7 +66,7 @@ namespace AElf.Kernel
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
             // Todo: improvement needed?
             block.Header.Time = Timestamp.FromDateTime(currentBlockTime);
-            block.Body.Complete(block.Header.GetHash(), indexedSideChainBlockInfo);
+            block.Body.Complete(block.Header.GetHash());
         }
 
         public static void FillTxsMerkleTreeRootInHeader(this IBlock block)

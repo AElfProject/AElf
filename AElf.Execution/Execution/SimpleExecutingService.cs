@@ -88,14 +88,14 @@ namespace AElf.Execution.Execution
                 TransactionId = transaction.GetHash()
             };
 
-            var txCtxt = new TransactionContext()
+            var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight,
                 Trace = trace,
-                CallDepth = depth
+                CallDepth = depth,
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
