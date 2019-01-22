@@ -14,3 +14,8 @@ message DataAccessPath {
     repeated string Path = 1;
     AccessMode Mode = 2;
 }
+
+message InlineCall {
+    repeated string AddressPath = 1;
+    string MethodName = 2;
+}

@@ -36,6 +36,7 @@ namespace AElf.Runtime.CSharp.Metadata
         public TypeDefinition SingletonStateBase { get; private set; }
         public TypeDefinition StructuredStateBase { get; private set; }
         public TypeDefinition MappedStateBase { get; private set; }
+        public TypeDefinition ContractReferenceStateBase { get; private set; }
 
         #endregion
 
@@ -74,6 +75,7 @@ namespace AElf.Runtime.CSharp.Metadata
             SingletonStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.SingletonState");
             StructuredStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.StructuredState");
             MappedStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.MappedStateBase");
+            ContractReferenceStateBase = Sdk.GetType("AElf.Sdk.CSharp.State.ContractReferenceState");
             PropertyMethodIndex = new PropertyMethodIndex(Module.Types.Where(x => x.IsSubclassOf(StateBase))
                 .SelectMany(s => s.Properties));
         }
@@ -85,8 +87,35 @@ namespace AElf.Runtime.CSharp.Metadata
             return ContractType.Methods.ToDictionary(m => m, m => GetPaths(m));
         }
 
+        public Dictionary<MethodDefinition, RepeatedField<InlineCall>> GetInlineCalls()
+        {
+            return ContractType.Methods.ToDictionary(m => m, m => GetInlineCalls(m));
+        }
+
         #endregion
 
+        public RepeatedField<InlineCall> GetInlineCalls(TypeReference stateType,
+            ICollection<MethodReference> referencedMethods)
+        {
+            if (stateType.IsSubclassOf(SingletonStateBase))
+            {
+                return new SingletonStatePathRetriever(stateType, referencedMethods, this)
+                    .GetInlineCalls();
+            }
+
+            if (stateType.IsSubclassOf(StructuredStateBase))
+            {
+                return new StructuredStatePathRetriever(stateType, referencedMethods, this)
+                    .GetInlineCalls();
+            }
+
+            if (stateType.IsSubclassOf(MappedStateBase))
+            {
+                return new RepeatedField<InlineCall>();
+            }
+
+            throw new Exception("Unable to identify state type.");
+        }
 
         public RepeatedField<DataAccessPath> GetPaths(TypeReference stateType,
             ICollection<MethodReference> referencedMethods)
@@ -110,6 +139,25 @@ namespace AElf.Runtime.CSharp.Metadata
             }
 
             throw new Exception("Unable to identify state type.");
+        }
+
+        private RepeatedField<InlineCall> GetInlineCalls(MethodDefinition method, HashSet<MethodDefinition> seen = null)
+        {
+            AssertDetectable(method);
+            seen = seen ?? new HashSet<MethodDefinition>();
+            seen.Add(method);
+
+            var references = new HashSet<MethodReference>(GetReferencedMethods(method));
+            var calls = GetInlineCalls(ContractState, references);
+
+            var referencedOtherMethodsInContractType = references.Where(DeclaredByContractType)
+                .Select(x => x.Resolve()).Where(definition => !seen.Contains(definition));
+            foreach (var definition in referencedOtherMethodsInContractType)
+            {
+                calls.AddRange(GetInlineCalls(definition, seen));
+            }
+
+            return new RepeatedField<InlineCall>() {calls.Distinct()};
         }
 
         private RepeatedField<DataAccessPath> GetPaths(MethodDefinition method, HashSet<MethodDefinition> seen = null)

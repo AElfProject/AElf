@@ -38,9 +38,30 @@ namespace AElf.Runtime.CSharp.Metadata
 
     public class SingletonStatePathRetriever : StatePathRetrieverBase
     {
+        private PropertyMethodIndex PropertyMethodIndex => _retriever.PropertyMethodIndex;
+
         public SingletonStatePathRetriever(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever) : base(stateType, referencedMethods, retriever)
         {
+        }
+
+        public RepeatedField<InlineCall> GetInlineCalls()
+        {
+            if (!IsContractReferenceState())
+            {
+                return new RepeatedField<InlineCall>();
+            }
+
+            var calls = new RepeatedField<InlineCall>();
+            var toBeAdded = AccessedMethods.Select(x => PropertyMethodIndex[x.Resolve()])
+                .Where(x => x != null)
+                .Where(PropertyTypeIsActionType)
+                .Select(x => new InlineCall()
+                {
+                    MethodName = x.Name
+                });
+            calls.AddRange(toBeAdded);
+            return calls;
         }
 
         public override RepeatedField<DataAccessPath> GetPaths()
@@ -55,6 +76,20 @@ namespace AElf.Runtime.CSharp.Metadata
                 }
             };
         }
+
+        #region private methods
+
+        private bool IsContractReferenceState()
+        {
+            return _retriever.ContractReferenceStateBase.IsAssignableFrom(_stateType);
+        }
+
+        private bool PropertyTypeIsActionType(PropertyDefinition property)
+        {
+            return property.PropertyType.FullName.StartsWith("System.Action");
+        }
+
+        #endregion
     }
 
     public class StructuredStatePathRetriever : StatePathRetrieverBase
@@ -64,6 +99,17 @@ namespace AElf.Runtime.CSharp.Metadata
         public StructuredStatePathRetriever(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever) : base(stateType, referencedMethods, retriever)
         {
+        }
+
+        public RepeatedField<InlineCall> GetInlineCalls()
+        {
+            var calls = new RepeatedField<InlineCall>();
+            var toBeAdded = AccessedMethods.Select(x => PropertyMethodIndex[x.Resolve()])
+                .Where(x => x != null)
+                .Where(PropertyTypeIsNotThisStateType)
+                .SelectMany(x => GetInlineCallsForOwnedProperty(x).Select(y => y.WithPrefix(x.Name)));
+            calls.AddRange(toBeAdded);
+            return calls;
         }
 
         public override RepeatedField<DataAccessPath> GetPaths()
@@ -83,6 +129,11 @@ namespace AElf.Runtime.CSharp.Metadata
         {
             // TODO: Compare TypeReference instead
             return property.PropertyType != _stateType.Resolve();
+        }
+
+        private RepeatedField<InlineCall> GetInlineCallsForOwnedProperty(PropertyDefinition propertyDefinition)
+        {
+            return _retriever.GetInlineCalls(propertyDefinition.PropertyType, _methodReferencesInTheSameBody);
         }
 
         private RepeatedField<DataAccessPath> GetPathsForOwnedProperty(PropertyDefinition propertyDefinition)
