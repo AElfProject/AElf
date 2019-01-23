@@ -126,6 +126,11 @@ namespace AElf.Network.Peers
             }
 
             _nodeKey = NodeConfig.Instance.ECKeyPair;
+            if (_nodeKey == null)
+            {
+                Logger.LogError("NodeKey is null");
+                return;
+            }
 
             // This nodes key
             var thisAddr = Address.FromPublicKey(_nodeKey.PublicKey).GetFormatted();

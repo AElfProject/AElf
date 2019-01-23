@@ -1,6 +1,6 @@
-﻿using System;
-using AElf.Configuration;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Monitor
 {
@@ -8,19 +8,13 @@ namespace AElf.Monitor
     {
         static void Main(string[] args)
         {
-            var parsed = new CommandLineParser();
-            parsed.Parse(args);
-
-            /*var handler = new AElfModuleHandler();
-            handler.Register(new AkkaModule());
-            handler.Build();*/
-
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseStartup<Startup>()
-                .Build();
-
-            host.Run();
+            CreateWebHostBuilder(args).Build().Run();
         }
+        
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging(builder => { builder.ClearProviders(); })
+                .ConfigureAppConfiguration(builder => { AkkaModule.Configuration = builder.Build(); })
+                .UseStartup<Startup>();
     }
 }

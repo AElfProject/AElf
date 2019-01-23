@@ -10,6 +10,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.Consensus;

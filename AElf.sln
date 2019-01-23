@@ -177,6 +177,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus", "AElf.Cons
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS", "AElf.Consensus.DPoS\AElf.Consensus.DPoS.csproj", "{46E39C1C-8A47-4AB8-BE6A-B7E79FA48137}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -491,6 +493,10 @@ Global
 		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F98F0BE-9C2B-4012-AA11-768303C50E46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F98F0BE-9C2B-4012-AA11-768303C50E46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F98F0BE-9C2B-4012-AA11-768303C50E46}.Release|Any CPU.ActiveCfg = Release|Any CPU

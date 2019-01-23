@@ -4,7 +4,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
 using AElf.Common;
-using AElf.Kernel.Types.Transaction;
 using Google.Protobuf;
 
 namespace AElf.Cryptography.Tests.ECDSA
@@ -33,8 +32,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECSigner signer = new ECSigner();
             ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
             tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
-            TxSignatureVerifier txSignatureVerifier = new TxSignatureVerifier();
-            Assert.True(txSignatureVerifier.Verify(tx));
+            Assert.True(tx.VerifySignature());
         }
     }
 }

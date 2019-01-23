@@ -10,6 +10,7 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
 
 // ReSharper disable once CheckNamespace

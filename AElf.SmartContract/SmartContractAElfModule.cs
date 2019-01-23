@@ -11,14 +11,8 @@ namespace AElf.SmartContract
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
-
             context.Services.AddAssemblyOf<SmartContractAElfModule>();
-
-
-
             context.Services.AddSingleton<IAuthorizationInfoReader,AuthorizationInfoReader>();
         }
-
     }
 }
