@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Types.Transaction;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -356,7 +355,7 @@ namespace AElf.Sdk.CSharp
 
         public static bool VerifySignature(Transaction proposedTxn)
         {
-            return new TxSignatureVerifier().Verify(proposedTxn);
+            return proposedTxn.VerifySignature();
         }
 
         public static bool VerifyTransaction(Hash txId, MerklePath merklePath, ulong parentChainHeight)

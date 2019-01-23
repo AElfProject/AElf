@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

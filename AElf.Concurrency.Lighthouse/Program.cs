@@ -8,7 +8,6 @@ namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
-        //TODO: change using aspnet core configuration
         static void Main(string[] args)
         {
             using (var application = AbpApplicationFactory.Create<LighthouseConcurrencyAElfModule>(options =>
@@ -17,7 +16,7 @@ namespace AElf.Concurrency.Lighthouse
             }))
             {
                 application.Initialize();
-                
+
                 var managementService = application.ServiceProvider.GetRequiredService<ManagementService>();
                 managementService.StartSeedNodes();
                 Console.WriteLine("Press Control + C to terminate.");
