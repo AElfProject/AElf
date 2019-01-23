@@ -67,11 +67,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             }
 
-            if (opts.NewChain.HasValue)
-            {
-                NodeConfig.Instance.IsChainCreator = opts.NewChain.Value;
-            }
-
             if (!string.IsNullOrWhiteSpace(opts.NodeName))
             {
                 NodeConfig.Instance.NodeName = opts.NodeName;
