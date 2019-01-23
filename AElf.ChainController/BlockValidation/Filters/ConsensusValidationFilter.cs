@@ -33,21 +33,6 @@ namespace AElf.ChainController
             Logger= NullLogger<ConsensusBlockValidationFilter>.Instance;
         }
 
-        public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
-        {
-            if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfDPoS)
-            {
-                return await DPoSValidation(block);
-            }
-
-            if (NodeConfig.Instance.ConsensusKind == ConsensusKind.AElfPoW)
-            {
-                return await PoWValidation(block);
-            }
-
-            return BlockValidationResult.NotImplementConsensus;
-        }
-
         private async Task<BlockValidationResult> DPoSValidation(IBlock block)
         {
             // If the height of chain is 1, no need to check consensus validation

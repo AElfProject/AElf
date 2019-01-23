@@ -67,11 +67,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             }
 
-            if (!string.IsNullOrWhiteSpace(opts.NodeName))
-            {
-                NodeConfig.Instance.NodeName = opts.NodeName;
-            }
-
             if (!string.IsNullOrWhiteSpace(opts.NodeAccount))
             {
                 NodeConfig.Instance.NodeAccount = opts.NodeAccount;
@@ -82,9 +77,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
             }
 
-            // TODO: 
-            NodeConfig.Instance.ConsensusKind = ConsensusKind.AElfDPoS;
-            
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
