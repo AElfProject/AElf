@@ -10,6 +10,7 @@ using AElf.Configuration;
 using AElf.Execution.Scheduling;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Microsoft.Extensions.Options;
 using Address = AElf.Common.Address;
 
 namespace AElf.Execution
@@ -20,12 +21,14 @@ namespace AElf.Execution
         private readonly IGrouper _grouper;
         private readonly IActorEnvironment _actorEnvironment;
         private readonly IExecutingService _simpleExecutingService;
+        private readonly ExecutionOptions _executionOptions;
 
         public ParallelTransactionExecutingService(IActorEnvironment actorEnvironment, IGrouper grouper,
-            ServicePack servicePack)
+            ServicePack servicePack, IOptionsSnapshot<ExecutionOptions> options)
         {
             _actorEnvironment = actorEnvironment;
             _grouper = grouper;
+            _executionOptions = options.Value;
             _simpleExecutingService = new SimpleExecutingService(servicePack.SmartContractService,
                 servicePack.TransactionTraceManager, servicePack.StateManager, servicePack.ChainContextService);
         }
@@ -54,7 +57,7 @@ namespace AElf.Execution
                 if (NodeConfig.Instance.ExecutorType == "akka")
                 {
                     var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
-                        ActorConfig.Instance.ConcurrencyLevel, chainId, transactions);
+                        _executionOptions.ConcurrencyLevel, chainId, transactions);
                     groups = groupRes.Item1;
                     failedTxs = groupRes.Item2;
                 }
