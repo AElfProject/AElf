@@ -94,9 +94,17 @@ package AElf.Kernel{
     IBlockHeaderManager <|-- BlockHeaderManager
 
     BlockService --> IBlockHeaderManager
+    interface IContractReader
 
-
+    interface IMinerService{
+        Block Mine()
+    }
     
+    interface ICrossChainTransactionGenerator
+    interface ICrossChainTransactionValidator
+
+    IMinerService --> IBlockchainService
+    IMinerService --> ICrossChainTransactionGenerator
 }
 
 
@@ -108,6 +116,8 @@ package AElf.Kernel.Types{
 
 package AElf.Kernel.Runtimes.CSharp{
     ISmartContractRuntime <|-- CSharpSmartContractRuntime
+    class ContractReader
+    IContractReader <|-- ContractReader
 }
 
 package AElf.Kernel.Runtimes.NodeJS{
@@ -163,6 +173,48 @@ package AElf.OS.Networks.Grpc{
     }
 
     GrpcNetworkManager --> GrpcServer
+}
+
+package AElf.CrossChain.Grpc{
+
+    interface ICrossChainService{
+        ParentChainBlockInfo[] TryGetParentChainBlockInfo(ParentChainBlockInfo[])
+        bool TryGetSideChainBlockInfo(SIdeChainBlockInfo[])
+        SideChainBlockInfo[] CollectSideChainBlockInfo()
+    }
+
+    class CrossChainService 
+    ICrossChainService <|-- CrossChainService
+    class ClientBase<T> {
+      T[] ToBeIndexedInfoQueue
+      T TryTake()
+      void StartServerStreamingCall()
+    }
+    class ClientToParentChain{
+      void Call()
+    }
+
+    class ClientToSideChain{
+      void Call()
+    }
+    ClientBase <|-- ClientToParentChain
+    ClientBase <|-- ClientToSideChain
+
+    CrossChainService --> ClientToSideChain
+    CrossChainService --> ClientToParentChain
+
+    class ParentChainBlockInfoServer
+    class SideChainBlockInfoServer
+    class CrossChainTransactionGenerator
+    ICrossChainTransactionGenerator <|-- CrossChainTransactionGenerator
+    CrossChainTransactionGenerator --> ICrossChainService
+    CrossChainTransactionValidator --> ICrossChainService
+
+    class CrossChainTransactionValidator 
+    ICrossChainTransactionValidator <|-- CrossChainTransactionValidator
+    
+    ParentChainBlockInfoServer --> IContractReader
+
 }
 
 
