@@ -11,43 +11,10 @@
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Config\Executor\actor.json" Link="config\actor.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\master.hocon" Link="config\master.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\parallel.json" Link="config\parallel.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\single.hocon" Link="config\single.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\worker.hocon" Link="config\worker.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\lighthouse.hocon" Link="config\lighthouse.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Executor\monitor.hocon" Link="config\monitor.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Management\api-key.json" Link="config\api-key.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Network\network.json" Link="config\network.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\Node\node.json" Link="config\node.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Management\management.json" Link="config\management.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Config\Management\service-url.json" Link="config\service-url.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Config\GRPC\grpc-local.json" Link="config\grpc-local.json">
@@ -62,6 +29,5 @@
     <None Update="Config\Chain\chain.json" Link="config\chain.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Remove="Config\Node\transaction-pool.json" />
   </ItemGroup>
 </Project>

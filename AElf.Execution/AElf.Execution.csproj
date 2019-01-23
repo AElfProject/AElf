@@ -26,4 +26,12 @@
       <Compile Include="./Protobuf/Generated/*.g.cs" />
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <None Include="akka-single.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="akka-master.hocon">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

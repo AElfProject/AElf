@@ -1,33 +1,28 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
+
 namespace AElf.Concurrency.Lighthouse
 {
     class Program
     {
-        //private static ILogger Logger= LogManager.GetCurrentClassLogger();
-        
-        //TODO: change using aspnet core configuration
         static void Main(string[] args)
         {
-            var confParser = new ConfigParser();
-            bool parsed;
-            try
+            using (var application = AbpApplicationFactory.Create<LighthouseConcurrencyAElfModule>(options =>
             {
-                parsed = confParser.Parse(args);
-            }
-            catch (Exception)
+                options.UseAutofac();
+            }))
             {
-                //Logger.LogError(e);
-                throw;
-            }
+                application.Initialize();
 
-            if (!parsed)
-                return;
-            var managementService = new ManagementService();
-            managementService.StartSeedNodes();
-           
-            Console.WriteLine("Press Control + C to terminate.");
-            Console.CancelKeyPress += async (sender, eventArgs) => { await managementService.StopAsync(); };
-            managementService.TerminationHandle.Wait();
+                var managementService = application.ServiceProvider.GetRequiredService<ManagementService>();
+                managementService.StartSeedNodes();
+                Console.WriteLine("Press Control + C to terminate.");
+                Console.CancelKeyPress += async (sender, eventArgs) => { await managementService.StopAsync(); };
+                managementService.TerminationHandle.Wait();
+            }
         }
     }
 }
