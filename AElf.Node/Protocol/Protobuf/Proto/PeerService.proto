@@ -2,10 +2,13 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Node.Protocol.Protobuf.Generated";
 
+import "Kernel.proto";
+
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     
     rpc Announce (Announcement) returns (VoidReply) {}
+    rpc SendTransaction (Transaction) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (AuthResponse) {}
     rpc Authentify (Handshake) returns (AuthResponse) {}
@@ -17,7 +20,7 @@ message Announcement {
 }
 
 message Handshake {
-    HandshakeData hskData = 1;
+    HandshakeData HskData = 1;
     bytes Sig = 2;
     bool Success = 3;
 }
@@ -50,3 +53,4 @@ message BlockReply {
 
 message VoidReply {
 }
+
