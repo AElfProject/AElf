@@ -27,7 +27,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node.Protocol
 {
-    public class NetworkManager //: INetworkManager, ISingletonDependency
+    public class NetworkManager : INetworkManager, ISingletonDependency
     {
         #region Settings
 
