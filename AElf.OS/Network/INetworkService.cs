@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AElf.Node
+namespace AElf.OS.Network
 {
     public interface INetworkService
     {

@@ -1,12 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Node.Protocol;
-using AElf.Node.Protocol.Protobuf.Generated;
+using AElf.OS.Network.Grpc.Generated;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Node
+namespace AElf.OS.Network.Grpc
 {
     public class GrpcServerService : PeerService.PeerServiceBase
     {

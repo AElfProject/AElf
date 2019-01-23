@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Network;
-using AElf.Network.Peers;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Node.Protocol
+namespace AElf.OS.Network
 {
     public class NetworkService : INetworkService, ISingletonDependency
     {
@@ -28,9 +26,9 @@ namespace AElf.Node.Protocol
             return Task.FromResult<IBlock>(new Block());
         }
         
-        public Task<List<IPeer>> GetPeers()
-        {
-            return Task.FromResult<List<IPeer>>(new List<IPeer>());
-        }
+//        public Task<List<IPeer>> GetPeers() //todo
+//        {
+//            return Task.FromResult<List<IPeer>>(new List<IPeer>());
+//        }
     }
 }

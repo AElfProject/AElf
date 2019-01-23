@@ -7,20 +7,16 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
-using AElf.Miner.EventMessages;
-using AElf.Network;
-using AElf.Network.Data;
-using AElf.Node.Protocol.Protobuf.Generated;
-using Easy.MessageHub;
+using AElf.OS.Network.Grpc.Generated;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
-using Handshake = AElf.Node.Protocol.Protobuf.Generated.Handshake;
+using Handshake = AElf.OS.Network.Grpc.Generated.Handshake;
 
-namespace AElf.Node.Protocol
+namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkManager : INetworkManager, ISingletonDependency
     {
@@ -68,18 +64,18 @@ namespace AElf.Node.Protocol
                 Logger.LogWarning("Boot nodes list is empty.");
             }
             
-            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
-            {
-                if (inBlock?.Block == null)
-                {
-                    Logger.LogWarning("[event] Block null.");
-                    return;
-                }
-
-                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
-
-                await BroadcastAnnounce(new Announcement {Id = ByteString.CopyFrom(blockHash)});
-            });
+//            MessageHub.Instance.Subscribe<BlockMined>(async inBlock =>
+//            {
+//                if (inBlock?.Block == null)
+//                {
+//                    Logger.LogWarning("[event] Block null.");
+//                    return;
+//                }
+//
+//                byte[] blockHash = inBlock.Block.GetHash().DumpByteArray();
+//
+//                await BroadcastAnnounce(new Announcement {Id = ByteString.CopyFrom(blockHash)});
+//            });
         }
 
         private async Task Dial(string address)
@@ -87,9 +83,9 @@ namespace AElf.Node.Protocol
             try
             {
                 Logger.LogTrace($"Attempting to reach {address}.");
-                        
-                NodeData nd = NodeData.FromString(address); // todo replace
-                Channel channel = new Channel(nd.IpAddress, nd.Port, ChannelCredentials.Insecure);
+                
+                var splitted = address.Split(":");
+                Channel channel = new Channel(splitted[0], int.Parse(splitted[1]), ChannelCredentials.Insecure);
                         
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = BuildHandshake();
@@ -143,13 +139,14 @@ namespace AElf.Node.Protocol
             }
         }
 
-        public async Task BroadcastTx(AElf.Kernel.Transaction tx)
-        {
-            foreach (var client in _channels)
-            {
-                await client.SendTransactionAsync(tx);
-            }
-        }
+// todo with types project 
+//        public async Task BroadcastTx(AElf.Kernel.Transaction tx) 
+//        {
+//            foreach (var client in _channels)
+//            {
+//                await client.SendTransactionAsync(tx);
+//            }
+//        }
 
         public Task Stop()
         {
