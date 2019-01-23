@@ -3,6 +3,8 @@
 
 package AElf.Kernel.SmartContracts.Consensus{
     class ConsensusSmartContract
+
+    ConsensusBlockHeaderDataProvider --> IConsensusSmartContract : GetBlockHeaderConsensusData
 }
 
 package AElf.Kernel.SmartContracts.Consensus.Abstractions{
@@ -11,8 +13,8 @@ package AElf.Kernel.SmartContracts.Consensus.Abstractions{
     }
     IConsensusSmartContract <|-- ConsensusSmartContract
 }
-note top of AElf.Kernel.SmartContracts.Consensus.Abstractions: infrastructure layer
 
+note top of AElf.Kernel.SmartContracts.Consensus.Abstractions: infrastructure layer
 
 package AElf.Kernel.SmartContracts.Genesis{
     class GenesisSmartContract
@@ -21,17 +23,15 @@ package AElf.Kernel.SmartContracts.Genesis{
     IBlockHeaderDataProvider <|-- ConsensusBlockHeaderDataProvider
     
     class BlockHeaderExtraDataProviderContainer{
-        List<IBlockHeaderDataProvider> ExtraBlockHeaderDataProviders
+        List<IBlockHeaderDataProvider> ExtraBlockHeaderDataProviders
 
-        AddDataProvider<T>(int Order)
+        AddDataProvider<T>(int Order)
 
         void Fill(BlockHeader blockHeader)
         bool Validate(BlockHeader blockHeader)
     }
 
-    note top of BlockHeaderExtraDataProviderContainer: singleton, and AddDataProvider in the module to build a blockchain
-
-    ConsensusBlockHeaderDataProvider --> IConsensusSmartContract : GetBlockHeaderConsensusData
+    note top of BlockHeaderExtraDataProviderContainer: singleton, and AddDataProvider in the module to build a blockchain
 
 }
 
@@ -87,7 +87,7 @@ package AElf.Kernel{
 
     BlockService -> IBlockManager
 
-    BlockManager --> IConsensusSmartContract : use IConsensusSmartContract to validate BlockHeader, maybe in BlockHeaderManager
+    ConsensusService --> IConsensusSmartContract
 
     interface IBlockHeaderManager
     class BlockHeaderManager
@@ -105,6 +105,25 @@ package AElf.Kernel{
 
     IMinerService --> IBlockchainService
     IMinerService --> ICrossChainTransactionGenerator
+    
+    interface IConsensusService {
+        IDisposable ConsensusObservables
+        IBlockHeaderDataProvider GenerateConsensusBlockHeaderDataProvider()
+    }
+
+    class ConsensusService
+
+    ConsensusService <|-- IConsensusService
+    
+    interface IConsensusManager {
+        bool ValidateConsensus(byte[] consensusInformation)
+        bool GetNextMiningTime(out ulong distance)
+        byte[] GenerateNewConsensus()
+    }
+
+    ConsensusService --> IConsensusManager : Use GetNextMiningTime() to update ConsensusObservables\nUse GenerateNewConsensus() to get new consensus information
+
+    ConsensusService --> IMinerService
 }
 
 
@@ -215,6 +234,20 @@ package AElf.CrossChain.Grpc{
     
     ParentChainBlockInfoServer --> IContractReader
 
+}
+
+package AElf.Consensus.DPoS {
+    class DPoSManager
+    class DPoSInfoServer
+    DPoSInfoServer --> IContractReader
+    IConsensusManager <|--  DPoSManager
+}
+
+package AElf.Consensus.PoW {
+    class PoWManager
+    class PoWInfoServer
+    PoWManager --> IContractReader
+    IConsensusManager <|-- PoWManager
 }
 
 
