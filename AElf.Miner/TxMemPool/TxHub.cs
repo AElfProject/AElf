@@ -361,7 +361,6 @@ namespace AElf.Miner.TxMemPool
                 }
                 else
                 {
-                    //TODO: Handle this, but it should never happen  
                 }
             }
 
@@ -453,11 +452,12 @@ namespace AElf.Miner.TxMemPool
                         tr = new TransactionReceipt(t);
                     }
                     
-                    // cross chain type and dpos type transaction should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction()
-                        && tr.Transaction.To.Equals(_crossChainContractAddress))
-//                        || tr.Transaction.Type == TransactionType.DposTransaction
-//                        && tr.Transaction.To.Equals(_dPosContractAddress) && tr.Transaction.ShouldNotBroadcast())
+                    // todo: quick fix for null txn after rollback
+                    if(tr.Transaction == null)
+                        continue;
+                    
+                    // cross chain transactions should not be reverted.
+                    if (tr.Transaction.IsCrossChainIndexingTransaction())
                         continue;
 
                     if (tr.Transaction.IsClaimFeesTransaction())

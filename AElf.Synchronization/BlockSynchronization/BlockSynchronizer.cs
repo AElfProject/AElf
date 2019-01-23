@@ -207,7 +207,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
-                Miners miners = _minersManager.GetMiners().Result;
+                Miners miners = _minersManager.GetMiners(0).Result;
             
                 _currentMiners = new List<string>();
 

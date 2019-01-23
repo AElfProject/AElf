@@ -38,6 +38,13 @@ namespace AElf.Kernel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            //TODO: should not be here.because execution tests in this test project.
+            Configure<ExecutionOptions>(o =>
+            {
+                o.ActorCount = 8;
+                o.ConcurrencyLevel = 8;
+            });
+            
             var services = context.Services;
             
             //should move out of this project

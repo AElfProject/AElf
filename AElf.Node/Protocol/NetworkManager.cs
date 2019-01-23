@@ -567,6 +567,7 @@ namespace AElf.Node.Protocol
 
                         peer.Peer.MessageReceived += HandleNewMessage;
                         peer.Peer.PeerDisconnected += ProcessClientDisconnection;
+                        peer.Peer.RequestFailed += PeerOnRequestFailed;
 
                         // Sync if needed
                         lock (_syncLock)
@@ -614,6 +615,50 @@ namespace AElf.Node.Protocol
             }
         }
 
+        private void PeerOnRequestFailed(object sender, EventArgs e)
+        {
+            if (sender is Peer p)
+            {
+                lock (_syncLock)
+                {
+                    if (CurrentSyncSource == null || CurrentSyncSource != p)
+                        return;
+                        
+                    if (!CurrentSyncSource.IsSyncingHistory)
+                    {
+                        Logger.LogDebug($"About to reset {p} and sync to another.");
+                        p.ResetSync();
+                        SyncNext();
+                    }
+                    else
+                    {
+                        Logger.LogDebug($"Hist sync failed from {p} and sync history to another.");
+
+                        IPeer next = _peers
+                            .Where(peer => !peer.IsDisposed && peer != p && peer.KnownHeight > LocalHeight)
+                            .OrderBy(peer => peer.KnownHeight)
+                            .FirstOrDefault();
+
+                        if (next != null)
+                        {
+                            next.SyncToHeight(LocalHeight+1, next.KnownHeight);
+                            CurrentSyncSource = next;
+                        }
+                        else
+                        {
+                            Logger.LogWarning("Found no other to finish initial sync.");
+                        }
+                        
+                        p.ResetSync();
+                    }
+                }
+            }
+            else
+            {
+                Logger.LogWarning("Peer was null.");
+            }
+        }
+
         /// <summary>
         /// Callback for when a Peer fires a <see cref="IPeer.PeerDisconnected"/> event. It unsubscribes
         /// the manager from the events and removes it from the list.
@@ -628,6 +673,7 @@ namespace AElf.Node.Protocol
 
                 peer.MessageReceived -= HandleNewMessage;
                 peer.PeerDisconnected -= ProcessClientDisconnection;
+                peer.RequestFailed -= PeerOnRequestFailed;
 
                 _peers.Remove(args.Peer);
 

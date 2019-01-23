@@ -244,14 +244,14 @@ public sealed class MinerLifetimeTests : MinerTestBase
 
         #region GRPC
 
-        [Fact(Skip = "ChainId changed")]
+        [Fact(Skip = "To be refactored")]
         public async Task SideChainServerClientsTest()
         {
             string dir = @"/tmp/ServerClientsTestA";
             _mock.ClearDirectory(dir);
             try
             {
-                GlobalConfig.InvertibleChainHeight = 0;
+                GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
@@ -320,14 +320,14 @@ public sealed class MinerLifetimeTests : MinerTestBase
             }
         }
 
-        [Fact(Skip = "ChainId changed")]
+        [Fact(Skip = "To be refactored")]
         public async Task ParentChainServerClientTest()
         {
             string dir = @"/tmp/ServerClientsTestB";
             _mock.ClearDirectory(dir);
             try
             {
-                GlobalConfig.InvertibleChainHeight = 0;
+                GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50053;
                 var address = "127.0.0.1";
                 
@@ -404,13 +404,12 @@ public sealed class MinerLifetimeTests : MinerTestBase
             }
         }
         
-        [Fact(Skip = "TBD, side chain life time needed.")]
+        /*[Fact(Skip = "TBD, side chain life time needed.")]
         public async Task MineWithIndexingSideChain()
         {
             // create the miners keypair, this is the miners identity
             var minerKeypair = new KeyPairGenerator().Generate();
             
-            GlobalConfig.InvertibleChainHeight = 0;
             string dir = @"/tmp/minerpems";
             
             var chain = await _mock.CreateChain();
@@ -496,7 +495,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Directory.Delete(Path.Combine(dir), true);
             }
             
-        }
+        }*/
         
 
         #endregion

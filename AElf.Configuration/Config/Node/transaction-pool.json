@@ -1,7 +1,0 @@
-﻿{
-  "PoolLimitSize" : 4096,
-  "TxLimitSize" : 20480,
-  "Minimal" : 1,
-  "Maximal" : 1024,
-  "FeeThreshold" : 0
-}
