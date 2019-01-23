@@ -5,6 +5,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 

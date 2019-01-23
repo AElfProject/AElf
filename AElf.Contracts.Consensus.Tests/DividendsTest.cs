@@ -34,9 +34,9 @@ namespace AElf.Contracts.Consensus.Tests
         {
             InitializeMiners();
             InitializeTerm(_initialMiners[0]);
-Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
+            Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
-            }
+        }
 
         [Fact]
         //[Fact(Skip = "Time consuming.")]
@@ -149,7 +149,7 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            
+
             var history3 = _contracts.GetCandidatesHistoryInfo();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.NotNull(history3);
@@ -160,16 +160,16 @@ Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             var dividendsOfSecondTerm = _contracts.GetTermDividends(2);
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
-var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
+            var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
             var balanceBefore = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            
+
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
             var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
-            
+
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
 
             _contracts.WithdrawAll(mustVotedVoter);

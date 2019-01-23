@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;

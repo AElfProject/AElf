@@ -12,7 +12,6 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.TxMemPool;

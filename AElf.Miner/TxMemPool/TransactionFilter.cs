@@ -7,7 +7,6 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Types.Transaction;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

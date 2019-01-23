@@ -1,4 +1,3 @@
-using System.IO;
 using AElf.Common;
 using Google.Protobuf;
 

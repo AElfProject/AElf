@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.SmartContract;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using Org.BouncyCastle.Asn1.Mozilla;
