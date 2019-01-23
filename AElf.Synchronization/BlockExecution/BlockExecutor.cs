@@ -4,17 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.TxMemPool;
@@ -35,15 +32,13 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
-        private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private static bool _isLimitExecutionTime;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager,
-            IStateManager stateManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -51,7 +46,6 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _chainManager = chainManager;
             _stateManager = stateManager;
             _consensusDataProvider = new ConsensusDataProvider(_stateManager);
 
@@ -256,7 +250,7 @@ namespace AElf.Synchronization.BlockExecution
                         results.Add(txResF);
                         break;
                     case ExecutionStatus.InsufficientTransactionFees:
-                        var txResITF = new TransactionResult()
+                        var txResITF = new TransactionResult
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
@@ -334,7 +328,6 @@ namespace AElf.Synchronization.BlockExecution
                 if (!await _clientManager.TryGetSideChainBlockInfo(sideChainBlockInfo))
                     return false;
             }
-
             return true;
         }
 
@@ -388,8 +381,7 @@ namespace AElf.Synchronization.BlockExecution
                     var sideChainBlockInfos = (SideChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(SideChainBlockInfo[])})[0];
 
-                    if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray())
-                        || !await ValidateSideChainBlockInfo(sideChainBlockInfos))
+                    if (!await ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidSideChainBlockInfo;
@@ -433,9 +425,7 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 var cached = await _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
-                if (cached != null)
-                    return cached.ToArray().Equals(parentBlockInfos);
-                return false;
+                return cached != null;
             }
             catch (Exception e)
             {

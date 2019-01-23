@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -8,7 +7,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
@@ -89,14 +88,14 @@ namespace AElf.Execution.Execution
                 TransactionId = transaction.GetHash()
             };
 
-            var txCtxt = new TransactionContext()
+            var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight,
                 Trace = trace,
-                CallDepth = depth
+                CallDepth = depth,
             };
 
             var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);

@@ -15,6 +15,7 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

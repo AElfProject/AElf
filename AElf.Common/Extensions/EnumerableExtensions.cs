@@ -8,7 +8,7 @@ namespace AElf.Common
 /// <summary>
     /// Extension methods for <see cref="IEnumerable{T}"/>.
     /// </summary>
-    public static partial class Extensions
+    public static class EnumerableExtensions
     {
         /// <summary>
         /// Make <see cref="IndexedDictionary{T}"/> from <paramref name="enumerable"/>. It provides

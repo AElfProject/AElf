@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.SmartContract.Consensus

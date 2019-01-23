@@ -21,8 +21,8 @@ namespace AElf.Miner.Miner
             ChainId = chainId;
         }
 
-        public async Task<IBlock> GenerateBlockAsync(HashSet<TransactionResult> results,
-            Hash sideChainTransactionsRoot, byte[] indexedSideChainBlockInfo, DateTime currentBlockTime)
+        public async Task<IBlock> GenerateBlockAsync(HashSet<TransactionResult> results, Hash sideChainTransactionsRoot,
+            DateTime currentBlockTime)
         {
             var blockChain = _chainService.GetBlockChain(ChainId);
 
@@ -43,12 +43,8 @@ namespace AElf.Miner.Miner
                 }
             };
 
-            var sideChainBlockInfo = indexedSideChainBlockInfo != null
-                ? (SideChainBlockInfo[]) ParamsPacker.Unpack(indexedSideChainBlockInfo,
-                    new[] {typeof(SideChainBlockInfo[])})[0]
-                : null;
             // calculate and set tx merkle tree root 
-            block.Complete(currentBlockTime, sideChainBlockInfo, results);
+            block.Complete(currentBlockTime, results);
             return block;
         }
     }

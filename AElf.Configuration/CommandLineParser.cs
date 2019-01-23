@@ -89,18 +89,6 @@ namespace AElf.Configuration
 
             // TODO: 
             NodeConfig.Instance.ConsensusKind = ConsensusKind.AElfDPoS;
-
-            // Actor
-            if (opts.ActorIsCluster.HasValue)
-                ActorConfig.Instance.IsCluster = opts.ActorIsCluster.Value;
-            if (!string.IsNullOrWhiteSpace(opts.ActorHostName))
-                ActorConfig.Instance.HostName = opts.ActorHostName;
-            if (opts.ActorPort.HasValue)
-                ActorConfig.Instance.Port = opts.ActorPort.Value;
-            if (opts.ActorConcurrencyLevel.HasValue)
-            {
-                ActorConfig.Instance.ConcurrencyLevel = opts.ActorConcurrencyLevel.Value;
-            }
             
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }

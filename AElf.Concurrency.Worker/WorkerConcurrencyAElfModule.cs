@@ -19,13 +19,15 @@ namespace AElf.Concurrency.Worker
         
         typeof(CSharpRuntimeAElfModule),
         typeof(SmartContractAElfModule),
-        typeof(ChainControllerAElfModule),
-        typeof(MinerAElfModule)
-    )]
+        typeof(ChainControllerAElfModule)
+        )]
     public class WorkerConcurrencyAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var configuration = context.Services.GetConfiguration();
+            Configure<ExecutionOptions>(configuration.GetSection("Execution"));
+            
             context.Services.AddTransient<ServicePack>();
             context.Services.AddSingleton<ActorEnvironment>();
         }
