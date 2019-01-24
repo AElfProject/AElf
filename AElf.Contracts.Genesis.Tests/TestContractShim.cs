@@ -4,6 +4,7 @@ using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using AElf.Common;
+using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests

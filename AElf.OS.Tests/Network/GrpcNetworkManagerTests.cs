@@ -35,7 +35,7 @@ namespace AElf.OS.Tests.Network
                 .Setup(m => m.VerifySignature(It.IsAny<byte[]>(), It.IsAny<byte[]>()))
                 .Returns<byte[], byte[]>( (sig, data) => Task.FromResult(CryptoHelpers.Verify(sig, data, kp1.PublicKey)));
             
-            GrpcNetworkManager manager1 = new GrpcNetworkManager(mock.Object, accountService.Object);
+            GrpcNetworkManager manager1 = new GrpcNetworkManager(mock.Object, accountService.Object, null);
 
             return manager1;
         }
