@@ -9,7 +9,12 @@ namespace AElf.OS.Network
 {
     public class NetworkService : INetworkService, ISingletonDependency
     {
-        private INetworkManager NetworkManager;
+        private INetworkManager _networkManager;
+
+        public NetworkService(INetworkManager networkManager)
+        {
+            _networkManager = networkManager;
+        }
         
         public Task Start()
         {
@@ -21,9 +26,24 @@ namespace AElf.OS.Network
             throw new NotImplementedException();
         }
 
-        public Task<IBlock> GetBlockByHash(Hash hash)
+        public void AddPeer(string address)
         {
-            return Task.FromResult<IBlock>(new Block());
+            _networkManager.AddPeer(address);
+        }
+
+        public Task RemovePeer(string address)
+        {
+            return Task.FromResult(_networkManager.RemovePeer(address));
+        }
+
+        public List<string> GetPeers()
+        {
+            return _networkManager.GetPeers();
+        }
+
+        public async Task<IBlock> GetBlockByHash(Hash hash)
+        {
+            return await Task.FromResult<IBlock>(new Block());
         }
         
 //        public Task<List<IPeer>> GetPeers() //todo
