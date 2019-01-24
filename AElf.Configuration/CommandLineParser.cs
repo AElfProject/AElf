@@ -72,11 +72,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.NodeAccount = opts.NodeAccount;
             }
 
-            if (!string.IsNullOrWhiteSpace(opts.NodeAccountPassword))
-            {
-                NodeConfig.Instance.NodeAccountPassword = opts.NodeAccountPassword;
-            }
-
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }

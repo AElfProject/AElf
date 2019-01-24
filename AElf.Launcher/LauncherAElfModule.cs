@@ -7,6 +7,7 @@ using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
+using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
@@ -33,6 +34,7 @@ namespace AElf.Launcher
         typeof(MinerAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
+        typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
