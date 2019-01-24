@@ -124,6 +124,12 @@ package AElf.Kernel{
     ConsensusService --> IConsensusManager : Use GetNextMiningTime() to update ConsensusObservables\nUse GenerateNewConsensus() to get new consensus information
 
     ConsensusService --> IMinerService
+
+    interface IAccountService{
+        Task<byte[]> Sign(byte[] data)
+        Task<bool> VerifySignature(byte[] signatureBytes, byte[] data)
+        Task<byte[]> GetPublicKey()
+    }
 }
 
 
@@ -177,6 +183,11 @@ package AElf.OS{
     class NewBlockAnnouncementEventHandler
     NewBlockAnnouncementEventHandler -> INetworkService
     NewBlockAnnouncementEventHandler -> IBlockchainService
+
+    class AccountService{
+        
+    }
+    IAccountService <|-- AccountService
 
 }
 
