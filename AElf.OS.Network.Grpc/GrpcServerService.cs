@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel;
+using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -10,13 +12,16 @@ namespace AElf.OS.Network.Grpc
     public class GrpcServerService : PeerService.PeerServiceBase
     {
         private readonly IPeerAuthentificator _peerAuthenticator;
-        
+        private readonly IBlockService _blockService;
+
         public ILogger<GrpcNetworkManager> Logger { get; set; }
         private PeerService.PeerServiceClient client;
         
-        public GrpcServerService(ILogger<GrpcNetworkManager> logger, IPeerAuthentificator peerAuthenticator)
+        public GrpcServerService(ILogger<GrpcNetworkManager> logger, IPeerAuthentificator peerAuthenticator,
+            IBlockService blockService)
         {
             _peerAuthenticator = peerAuthenticator;
+            _blockService = blockService;
             Logger = logger;
         }
 
@@ -108,7 +113,10 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new BlockReply { Block = ByteString.CopyFromUtf8("fake")});
+            Block block = _blockService.BlockGetBlockAsync(Hash.LoadByteArray(request.ToByteArray())).Result;
+            byte[] s = block.ToByteArray();
+            
+            return Task.FromResult(new BlockReply { Block = ByteString.CopyFrom(s)});
         }
     }
 }

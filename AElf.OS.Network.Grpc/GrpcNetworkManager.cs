@@ -21,6 +21,7 @@ namespace AElf.OS.Network.Grpc
     public class GrpcNetworkManager : INetworkManager, IPeerAuthentificator, ISingletonDependency
     {
         private readonly IAccountService _accountService;
+        private readonly IBlockService _blockService;
         public ILogger<GrpcNetworkManager> Logger { get; set; }
                 
         private readonly NetworkOptions _networkOptions;
@@ -29,9 +30,11 @@ namespace AElf.OS.Network.Grpc
 
         private List<GrpcPeer> _authenticatedPeers;
         
-        public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options, IAccountService accountService)
+        public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options, 
+            IAccountService accountService, IBlockService blockService)
         {
             _accountService = accountService;
+            _blockService = blockService;
             Logger = NullLogger<GrpcNetworkManager>.Instance;
             
             _authenticatedPeers = new List<GrpcPeer>();
@@ -42,7 +45,7 @@ namespace AElf.OS.Network.Grpc
         public async Task Start()
         {
             // todo inject block service
-            var p = new GrpcServerService(Logger, this);
+            var p = new GrpcServerService(Logger, this, _blockService);
             
             _server = new Server {
                 Services = { PeerService.BindService(p) },
