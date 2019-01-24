@@ -11,18 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
-    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
-  <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Command="pwd" />
-    <Exec WorkingDirectory="./Network/Grpc/" Command="sh grpc.sh" Condition=" '$(OS)' != 'Windows_NT' " />
-    <Exec Command="protoc --proto_path=./Network/Grpc/Proto --csharp_out=./Network/Grpc/Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Network/Grpc/Generated ./Network/Grpc/Proto/PeerService.proto --plugin=protoc-gen-grpc=%userprofile%/.nuget/packages/grpc.tools/1.18.0/tools/windows_x86/grpc_csharp_plugin.exe" Condition=" '$(OS)' == 'Windows_NT' " />
-  </Target>
-  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-    <ItemGroup>
-      <Compile Include="./Network/Grpc/Generated/*.g.cs" />
-      <Compile Include="./Network/Grpc/Generated/*Grpc.cs" />
-    </ItemGroup>
-  </Target>
 </Project>
