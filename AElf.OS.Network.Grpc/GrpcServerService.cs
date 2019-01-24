@@ -47,7 +47,7 @@ namespace AElf.OS.Network.Grpc
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
-                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client));
+                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer));
             }
             catch (Exception e)
             {

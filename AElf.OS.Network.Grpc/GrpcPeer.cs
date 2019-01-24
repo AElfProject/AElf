@@ -10,11 +10,15 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
+        
+        public string PeerAddress { get; private set; }
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string peerAddress)
         {
             _channel = channel;
             _client = client;
+
+            PeerAddress = peerAddress;
         }
 
         public async Task<BlockReply> RequestBlockAsync(BlockRequest blockHash)

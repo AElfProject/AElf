@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -19,23 +20,23 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkManager : INetworkManager, IPeerAuthentificator, ISingletonDependency
     {
+        private readonly IAccountService _accountService;
         public ILogger<GrpcNetworkManager> Logger { get; set; }
                 
         private readonly NetworkOptions _networkOptions;
-        private ECKeyPair _nodeKey;
 
         private Server _server;
 
         private List<GrpcPeer> _authenticatedPeers;
         
-        public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options)
+        public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options, IAccountService accountService)
         {
+            _accountService = accountService;
             Logger = NullLogger<GrpcNetworkManager>.Instance;
             
             _authenticatedPeers = new List<GrpcPeer>();
             
             _networkOptions = options.Value;
-            _nodeKey = NodeConfig.Instance.ECKeyPair;
         }
         
         public async Task Start()
@@ -78,7 +79,7 @@ namespace AElf.OS.Network.Grpc
                         
                 var resp = await client.ConnectAsync(hsk);
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client));
+                _authenticatedPeers.Add(new GrpcPeer(channel, client, address));
                         
                 Logger.LogTrace($"Connected to {address}.");
             }
@@ -93,17 +94,16 @@ namespace AElf.OS.Network.Grpc
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(_nodeKey.PublicKey),
+                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKey().Result),
                 Version = GlobalConfig.ProtocolVersion,
             };
             
-            ECSigner signer = new ECSigner();
-            ECSignature sig = signer.Sign(_nodeKey, SHA256.Create().ComputeHash(nd.ToByteArray()));
+            byte[] sig = _accountService.Sign(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
 
             var hsk = new Handshake
             {
                 HskData = nd,
-                Sig = ByteString.CopyFrom(sig.SigBytes)
+                Sig = ByteString.CopyFrom(sig)
             };
 
             return hsk;
@@ -155,14 +155,14 @@ namespace AElf.OS.Network.Grpc
             throw new NotImplementedException();
         }
 
-        public void GetPeer(string address)
+        public string GetPeer(string address)
         {
-            throw new NotImplementedException();
+            return _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address)?.PeerAddress;
         }
 
         public bool AuthenticatePeer(string peer, Handshake handshake)
         {
-            // todo verify
+            // todo verify use _accountService
             return true;
         }
 

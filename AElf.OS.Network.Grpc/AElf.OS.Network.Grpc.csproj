@@ -24,7 +24,7 @@
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Command="pwd" />
-        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="sh grpc.sh" />
+        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="sh grpc.sh" LogStandardErrorAsError="true" />
         <Exec Condition=" '$(OS)' == 'Windows_NT' " Command="protoc --proto_path=./Proto --csharp_out=./Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Generated ./Proto/PeerService.proto --plugin=protoc-gen-grpc=%userprofile%/.nuget/packages/grpc.tools/1.18.0/tools/windows_x86/grpc_csharp_plugin.exe" />
     </Target>
     
