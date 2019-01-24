@@ -63,6 +63,11 @@ package AElf.Kernel{
 
     }
 
+    class SimpleSmartContractExecutingService
+    ISmartContractExecutingService <|-- SimpleSmartContractExecutingService
+
+    interface IExecutionGroupingService
+
     IBlockchainService --> ISmartContractExecutingService
     IBlockchainService --> ISmartContractRuntimeFactory
     IBlockchainService --> ISmartContractRuntime
@@ -126,9 +131,9 @@ package AElf.Kernel{
     ConsensusService --> IMinerService
 
     interface IAccountService{
-        Task<byte[]> Sign(byte[] data)
-        Task<bool> VerifySignature(byte[] signatureBytes, byte[] data)
-        Task<byte[]> GetPublicKey()
+        byte[] Sign(byte[] data)
+        bool VerifySignature(byte[] signature, byte[] data)
+        byte[] GetPublicKey()
     }
 }
 
@@ -155,7 +160,18 @@ package AElf.Kernel.Akka{
 
     }
 
-    AkkaSmartContractExecutingService <|-- ISmartContractExecutingService
+    ISmartContractExecutingService <|-- AkkaSmartContractExecutingService
+
+    AkkaSmartContractExecutingService --> IExecutionGroupingService
+
+}
+
+package AElf.Kernel.Grouping{
+    class ExecutionGroupingService{
+
+    }
+
+    IExecutionGroupingService <|-- ExecutionGroupingService
 
 }
 
