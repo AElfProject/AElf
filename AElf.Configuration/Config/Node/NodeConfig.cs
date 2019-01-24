@@ -15,6 +15,5 @@ namespace AElf.Configuration
         public ECKeyPair ECKeyPair { get; set; }
         public float RatioMine { get; set; }
         public float RatioSynchronize { get; set; }
-        public string DeployServicePath { get; set; }
     }
 }

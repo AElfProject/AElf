@@ -13,6 +13,8 @@ namespace AElf.SideChain.Creation
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
+            var configuration = context.Services.GetConfiguration();
+            Configure<DeployOptions>(configuration);
             context.Services.AddTransient<ChainCreationEventListener>();
         }
 
