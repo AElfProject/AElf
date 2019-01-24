@@ -1,6 +1,6 @@
 ```puml
 
-
+@startuml
 package AElf.Kernel.SmartContracts.Consensus{
     class ConsensusSmartContract
 
@@ -65,8 +65,6 @@ package AElf.Kernel{
 
     class SimpleSmartContractExecutingService
     ISmartContractExecutingService <|-- SimpleSmartContractExecutingService
-
-    interface IExecutionGroupingService
 
     IBlockchainService --> ISmartContractExecutingService
     IBlockchainService --> ISmartContractRuntimeFactory
@@ -164,15 +162,10 @@ package AElf.Kernel.Akka{
 
     AkkaSmartContractExecutingService --> IExecutionGroupingService
 
-}
-
-package AElf.Kernel.Grouping{
+    interface IExecutionGroupingService
     class ExecutionGroupingService{
-
     }
-
     IExecutionGroupingService <|-- ExecutionGroupingService
-
 }
 
 package AElf.OS{
@@ -276,7 +269,7 @@ package AElf.Consensus.PoW {
     PoWManager --> IContractReader
     IConsensusManager <|-- PoWManager
 }
-
+@enduml
 
 
 ```
