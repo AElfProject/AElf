@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 // ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
-    public static partial class Extensions
+    public static class ExpressionExtensions
     {
         /// <summary>
         /// Get computed value of Expression.
@@ -147,7 +147,7 @@ namespace AElf.Common
         {
             var getterMethod = new DynamicMethod(
                 string.Empty, typeof(TField), new[] { typeof(T) },
-                typeof(Extensions), true);
+                typeof(ExpressionExtensions), true);
 
             var il = getterMethod.GetILGenerator();
 

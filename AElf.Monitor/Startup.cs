@@ -1,20 +1,25 @@
-﻿using Community.AspNetCore;
-using Microsoft.AspNetCore;
+﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 
 namespace AElf.Monitor
 {
     public class Startup
     {
-        public void ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddJsonRpcService<AkkaService>();
+            services.AddApplication<AkkaModule>(options =>
+            {
+                options.UseAutofac();
+            });
+
+            return services.BuildAutofacServiceProvider();
         }
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseJsonRpcService<AkkaService>();
+            app.InitializeApplication();
         }
     }
 }

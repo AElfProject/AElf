@@ -15,6 +15,9 @@ namespace AElf.Execution
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var configuration = context.Services.GetConfiguration();
+            Configure<ExecutionOptions>(configuration.GetSection("Execution"));
+            
             var assembly = typeof(ParallelTransactionExecutingService).Assembly;
 
             var services = context.Services;

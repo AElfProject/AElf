@@ -11,6 +11,7 @@ using AElf.Configuration;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.ABI;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Akka.Util.Internal;
 using Volo.Abp.DependencyInjection;
