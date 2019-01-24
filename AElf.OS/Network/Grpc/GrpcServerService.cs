@@ -10,8 +10,6 @@ namespace AElf.OS.Network.Grpc
     public class GrpcServerService : PeerService.PeerServiceBase
     {
         public event EventHandler PeerAdded;
-        
-        private readonly int _localPort;
         public ILogger<GrpcNetworkManager> Logger { get; set; }
         private PeerService.PeerServiceClient client;
 
@@ -113,7 +111,7 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            return Task.Run(async () =>  {
+            return Task.Run(() =>  {
                 // await Task.Delay(TimeSpan.FromSeconds(3)); // execute logic
                 // Console.WriteLine($"{DateTime.Now} Request from {context.Peer}");
                 return new BlockReply {Message = "{ number: " + request.BlockNumber + " }"};

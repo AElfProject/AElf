@@ -14,9 +14,6 @@
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Network\Grpc\Generated" />
-  </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
     <Exec Command="pwd" />
     <Exec WorkingDirectory="./Network/Grpc/" Command="sh grpc.sh" Condition=" '$(OS)' != 'Windows_NT' " />
