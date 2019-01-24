@@ -174,7 +174,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<string> GetTransactionParameters(this Svc s, Transaction tx)
         {
-            Hash chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            int chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             Address address = tx.To;
             IExecutive executive = null;
             string output = String.Empty;
