@@ -8,16 +8,14 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    [UseAutofacTestFramework]
-    public class DividendsTest
+    public sealed class DividendsTest : ConsensusContractTestBase
     {
         private const int CandidatesCount = 18;
         private const int VotersCount = 10;
-
         private readonly ContractsShim _contracts;
 
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
@@ -26,9 +24,9 @@ namespace AElf.Contracts.Consensus.Tests
 
         private int MiningInterval => 1;
 
-        public DividendsTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
+        public DividendsTest()
         {
-            _contracts = new ContractsShim(mock, simpleExecutingService);
+            _contracts = GetRequiredService<ContractsShim>();
         }
 
         [Fact(Skip = "Time consuming.")]
@@ -36,7 +34,6 @@ namespace AElf.Contracts.Consensus.Tests
         {
             InitializeMiners();
             InitializeTerm(_initialMiners[0]);
-
             Assert.True(_contracts.BalanceOf(_contracts.ConsensusContractAddress) > 0);
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
         }
@@ -152,7 +149,7 @@ namespace AElf.Contracts.Consensus.Tests
             Debug.WriteLine(_contracts.TransactionContext.Trace.StdErr);
             Assert.Equal(3.ToString(), _contracts.GetCurrentTermNumber().ToString());
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            
+
             var history3 = _contracts.GetCandidatesHistoryInfo();
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
             Assert.NotNull(history3);
@@ -163,18 +160,16 @@ namespace AElf.Contracts.Consensus.Tests
             var dividendsOfSecondTerm = _contracts.GetTermDividends(2);
             var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
-
             var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
-
             var balanceBefore = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             _contracts.ReceiveAllDividends(mustVotedVoter);
             var balanceAfter = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            
+
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
             var balanceAfterWithdrawByTxId = _contracts.BalanceOf(GetAddress(mustVotedVoter));
             Assert.True(balanceAfterWithdrawByTxId > balanceAfter);
-            
+
             _contracts.WithdrawByTransactionId(mustVotedVoter, transactionId);
 
             _contracts.WithdrawAll(mustVotedVoter);

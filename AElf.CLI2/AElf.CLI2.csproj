@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
@@ -18,7 +18,6 @@
         <PackageReference Include="ChakraCore.NET.Hosting" Version="1.0.2" />
         <PackageReference Include="CommandLineParser" Version="2.2.1" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-        <PackageReference Include="NLog" Version="4.5.7" />
         <PackageReference Include="ReadLine" Version="2.0.1" />
         <PackageReference Include="AElf.JSDK" Version="0.1.2" />
     </ItemGroup>

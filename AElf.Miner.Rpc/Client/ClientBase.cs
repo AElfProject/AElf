@@ -9,15 +9,16 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Rpc.Client
 {
     public abstract class ClientBase<TResponse> : ClientBase where TResponse : IResponseIndexingMessage
     {
-        private readonly ILogger _logger;
+        public ILogger<ClientBase<TResponse>> Logger {get;set;}
         private ulong _next;
-        private readonly Hash _targetChainId;
+        private readonly int _targetChainId;
         private int _interval;
         private int _realInterval;
         private const int UnavailableConnectionInterval = 1_000;
@@ -27,10 +28,10 @@ namespace AElf.Miner.Rpc.Client
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
         private Queue<IBlockInfo> CachedInfoQueue { get; } = new Queue<IBlockInfo>();
         private Channel _channel;
-        protected ClientBase(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount)
+        protected ClientBase(Channel channel, int targetChainId, int interval, int irreversible, int maximalIndexingCount)
         {
             _channel = channel;
-            _logger = logger;
+            Logger = NullLogger<ClientBase<TResponse>>.Instance;
             _targetChainId = targetChainId;
             _interval = interval;
             _realInterval = _interval;
@@ -68,7 +69,7 @@ namespace AElf.Miner.Rpc.Client
                     
                     _next++;
                     _realInterval = _interval;
-                    _logger?.Trace(
+                    Logger.LogTrace(
                         $"Received response from chain {response.BlockInfoResult.ChainId.DumpBase58()} at height {response.Height}");
                 }
             });
@@ -94,10 +95,10 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
-                //_logger.Trace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_realInterval);
             }
@@ -141,7 +142,7 @@ namespace AElf.Miner.Rpc.Client
                         return;
                     }
 
-                    _logger?.Error(e, "Miner client stooped with exception.");
+                    Logger.LogError(e, "Miner client stooped with exception.");
                     throw;
                 }
                 finally
@@ -164,7 +165,7 @@ namespace AElf.Miner.Rpc.Client
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 
@@ -186,7 +187,7 @@ namespace AElf.Miner.Rpc.Client
             }
             catch (RpcException e)
             {
-                _logger.Error(e);
+                Logger.LogError(e.ToString());
                 throw;
             }
         }
@@ -211,7 +212,7 @@ namespace AElf.Miner.Rpc.Client
                     CacheBlockInfo(blockInfo);
                 else
                 {
-                    _logger?.Trace($"Timeout to get cached data from chain {_targetChainId.DumpBase58()}");
+                    Logger.LogTrace($"Timeout to get cached data from chain {_targetChainId.DumpBase58()}");
                 }
                 return res;
             }
@@ -223,7 +224,7 @@ namespace AElf.Miner.Rpc.Client
                        ToBeIndexedInfoQueue.Count + CachedInfoQueue.Count(ci => ci.Height >= height) >=
                        _cachedBoundedCapacity;
             
-            //_logger?.Trace($"Not found cached data from chain {_targetChainId} at height {height}");
+            //Logger.LogTrace($"Not found cached data from chain {_targetChainId} at height {height}");
             return false;
         }
 

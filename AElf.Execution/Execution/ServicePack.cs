@@ -4,6 +4,7 @@ using AElf.SmartContract;
 
 namespace AElf.Execution.Execution
 {
+    //TODO: maybe should change this class
     public class ServicePack
     {
         public IResourceUsageDetectionService ResourceDetectionService { get; set; }

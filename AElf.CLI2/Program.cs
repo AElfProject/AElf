@@ -7,7 +7,6 @@ using AElf.CLI2.Commands.CrossChain;
 using AElf.CLI2.Commands.Proposal;
 using AElf.CLI2.JS;
 using AElf.CLI2.JS.IO;
-using Autofac;
 using CommandLine;
 using Console = System.Console;
 

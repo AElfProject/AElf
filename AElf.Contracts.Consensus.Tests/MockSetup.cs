@@ -8,11 +8,12 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.Managers;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.Tests
 {
     // ReSharper disable ClassNeverInstantiated.Global
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // To differentiate txn identified by From/To/IncrementId
         private static int _incrementId;
@@ -28,7 +29,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public IStateManager StateManager { get; }
         
-        public Hash ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
+        public int ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
         
         private ISmartContractService SmartContractService { get; }
 

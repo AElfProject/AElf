@@ -6,11 +6,14 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
@@ -19,16 +22,16 @@ namespace AElf.ChainController
     public class ConsensusBlockValidationFilter
     {
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<ConsensusBlockValidationFilter> Logger {get;set;}
 
         private Address ConsensusContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         public ConsensusBlockValidationFilter(ISmartContractService smartContractService)
         {
             _smartContractService = smartContractService;
             
-            _logger = LogManager.GetLogger(nameof(ConsensusBlockValidationFilter));
+            Logger= NullLogger<ConsensusBlockValidationFilter>.Instance;
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
@@ -68,7 +71,7 @@ namespace AElf.ChainController
             //Formulate an Executive and execute a transaction of checking time slot of this block producer
             TransactionTrace trace;
             var executive = await _smartContractService.GetExecutiveAsync(ConsensusContractAddress,
-                Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             try
             {
                 var tx = GetTransactionToValidateBlock(block.GetAbstract());
@@ -86,14 +89,14 @@ namespace AElf.ChainController
             }
             finally
             {
-                _smartContractService.PutExecutiveAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+                _smartContractService.PutExecutiveAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     ConsensusContractAddress, executive).Wait();
             }
             
             //If failed to execute the transaction of checking time slot
             if (!trace.StdErr.IsNullOrEmpty())
             {
-                _logger.Trace("Failed to execute tx Validation: " + trace.StdErr);
+                Logger.LogTrace("Failed to execute tx Validation: " + trace.StdErr);
                 return BlockValidationResult.FailedToCheckConsensusInvalidation;
             }
 

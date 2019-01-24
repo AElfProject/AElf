@@ -7,6 +7,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 
 namespace AElf.SmartContract.Proposal
 {
@@ -16,11 +17,11 @@ namespace AElf.SmartContract.Proposal
         private readonly ContractInfoReader _contractInfoReader;
 
         private Address AuthorizationContractAddress =>
-            ContractHelpers.GetAuthorizationContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
+            ContractHelpers.GetAuthorizationContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
         
         public AuthorizationInfoReader(IStateManager stateManager)
         {
-            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
         

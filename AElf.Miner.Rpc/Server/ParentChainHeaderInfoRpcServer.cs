@@ -5,33 +5,33 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
-using AElf.Common.Attributes;
 using AElf.Kernel;
 using Grpc.Core;
-using NLog;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using Easy.MessageHub;
-using NLog.Fluent;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Rpc.Server
 {
-    [LoggerName("ParentChainRpcServer")]
-    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
+    
+    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase, ITransientDependency
     {
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private ulong LibHeight { get; set; }
-        public ParentChainBlockInfoRpcServer(IChainService chainService, ILogger logger, ICrossChainInfoReader crossChainInfoReader)
+        public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
         {
             _chainService = chainService;
-            _logger = logger;
+            Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
         }
 
-        public void Init(Hash chainId)
+        public void Init(int chainId)
         {
             BlockChain = _chainService.GetBlockChain(chainId);
             MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
@@ -48,7 +48,7 @@ namespace AElf.Miner.Rpc.Server
         public override async Task RecordDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
             IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Debug("Parent Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
 
             try
             {
@@ -112,7 +112,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
+                Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
         }
 
@@ -126,7 +126,7 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         /*public override async Task RecordServerStreaming(RequestBlockInfo request, IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
         {
-            _logger?.Trace("Parent Chain Server received IndexedInfo message.");
+            Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
 
             try
             {
@@ -163,7 +163,7 @@ namespace AElf.Miner.Rpc.Server
                             .ToList().ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
                     }
                 
-                    //_logger?.Log(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
+                    //Logger.LogLog(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
 
                     height++;
@@ -171,7 +171,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch(Exception e)
             {
-                _logger?.Error(e, "Miner server RecordDuplexStreaming failed.");
+                Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
         }*/
     }

@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
@@ -17,24 +15,24 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Exceptions;
 using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using NLog;
-using AElf.Kernel.Types.Transaction;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Miner
 {
-    [LoggerName(nameof(Miner))]
-    public class Miner : IMiner
+    
+    public class Miner : IMiner, ISingletonDependency
     {
-        private readonly ILogger _logger;
+        public ILogger<Miner> Logger {get;set;}
         private readonly ITxHub _txHub;
         private readonly IChainService _chainService;
         private readonly IExecutingService _executingService;
@@ -52,7 +50,7 @@ namespace AElf.Miner.Miner
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
-            ILogger logger, ClientManager clientManager,
+             ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IStateManager stateManager)
         {
@@ -60,7 +58,7 @@ namespace AElf.Miner.Miner
             _chainService = chainService;
             _executingService = executingService;
             _transactionResultManager = transactionResultManager;
-            _logger = logger;
+            Logger = NullLogger<Miner>.Instance;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             Config = config;
@@ -116,9 +114,9 @@ namespace AElf.Miner.Miner
                 {
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
                     _txFilter.Execute(sysTxs);
-                    _logger?.Trace($"Start executing {sysTxs.Count} system transactions.");
+                    Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
                     traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
-                    _logger?.Trace($"Finish executing {sysTxs.Count} system transactions.");
+                    Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
                     
                     // need check result of cross chain transaction 
                     sideChainTransactionsRoot = ExtractSideChainTransactionRoot(sysTxs, traces);
@@ -141,27 +139,27 @@ namespace AElf.Miner.Miner
                         }
                     }
                     
-                    _logger?.Trace($"Start executing {regTxs.Count} regular transactions.");
+                    Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
                     traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
-                    _logger?.Trace($"Finish executing {regTxs.Count} regular transactions.");
+                    Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
                     
-                    _logger?.Trace($"Start executing {contractTxs.Count} contract transactions.");
+                    Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
                     traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
                         transactionType: TransactionType.ContractDeployTransaction));
-                    _logger?.Trace($"Finish executing {contractTxs.Count} contract transactions.");
+                    Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
                 ExtractTransactionResults(traces, out var results);
 
                 // generate block
                 var block = await GenerateBlock(results, sideChainTransactionsRoot, currentBlockTime);
-                _logger?.Info($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+                Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
                 var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
                 if (blockValidationResult != BlockValidationResult.Success)
                 {
-                    _logger?.Warn($"Found the block generated before invalid: {blockValidationResult}.");
+                    Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
                 // append block
@@ -178,14 +176,14 @@ namespace AElf.Miner.Miner
                 
                 stopwatch.Stop();
                 
-                _logger?.Info($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 return block;
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Mining failed with exception.");
+                Logger.LogError(e, "Mining failed with exception.");
                 return null;
             }
         }
@@ -280,7 +278,7 @@ namespace AElf.Miner.Miner
                     var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
                     var timeout = Math.Min(distanceRation, _maxMineTime);
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
-                    _logger?.Trace($"Execution limit time: {timeout}ms");
+                    Logger.LogTrace($"Execution limit time: {timeout}ms");
                 }
 
                 if (cts.IsCancellationRequested)
@@ -375,21 +373,21 @@ namespace AElf.Miner.Miner
                             results.Add(txResITF);
                             break;
                         case ExecutionStatus.Undefined:
-                            _logger?.Fatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status Undefined. Transaction trace: {trace}""");
                             break;
                         case ExecutionStatus.SystemError:
                             // SystemError shouldn't happen, and need to fix
-                            _logger?.Fatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status SystemError. Transaction trace: {trace}""");
                             break;
                         case ExecutionStatus.ExecutedButNotCommitted:
                             // If this happens, there's problem with the code
-                            _logger?.Fatal(
+                            Logger.LogCritical(
                                 $@"Transaction Id ""{
                                         trace.TransactionId
                                     } is executed with status ExecutedButNotCommitted. Transaction trace: {
@@ -401,7 +399,7 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error in ExtractTransactionResults");
+                Logger.LogTrace(e, "Error in ExtractTransactionResults");
             }
         }
 

@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
-using Xunit.Frameworks.Autofac;
+
 using Xunit;
 using AElf.Common;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    [UseAutofacTestFramework]
-    public class ContractZeroTest
+    public sealed class ContractZeroTest : GenesisContractTestBase
     {
         private TestContractShim _contractShim;
 
@@ -31,9 +30,9 @@ namespace AElf.Contracts.Genesis.Tests
             }
         }
         
-        public ContractZeroTest(TestContractShim contractShim)
+        public ContractZeroTest()
         {
-            _contractShim = contractShim;
+            _contractShim = GetRequiredService<TestContractShim>();
         }
 
         [Fact]

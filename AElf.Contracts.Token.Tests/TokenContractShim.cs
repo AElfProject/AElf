@@ -8,11 +8,13 @@ using Akka.IO;
 using Xunit;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
+using AElf.Kernel.Types;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Token.Tests
 {
-    public class TokenContractShim
+    public class TokenContractShim : ITransientDependency
     {
         private MockSetup _mock;
         public IExecutive Executive { get; set; }

@@ -1,5 +1,5 @@
-﻿using AElf.Cryptography.ECDSA;
-using AElf.Common;
+﻿using AElf.Common;
+using AElf.Kernel.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
@@ -31,17 +31,12 @@ namespace AElf.Kernel
 
             return _blockHash.DumpByteArray();
         }
-        
-        public ECSignature GetSignature()
-        {
-            return new ECSignature(Sig.ToByteArray());
-        }
 
         private byte[] GetSignatureData()
         {
             var rawBlock = new BlockHeader
             {
-                ChainId = ChainId?.Clone(),
+                ChainId = ChainId,
                 Index = Index,
                 PreviousBlockHash = PreviousBlockHash?.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
@@ -49,15 +44,10 @@ namespace AElf.Kernel
                 Bloom = Bloom,
                 SideChainTransactionsRoot = MerkleTreeRootOfTransactions?.Clone()
             };
-            if (Index > GlobalConfig.GenesisBlockHeight)
+            if (Index > ChainConsts.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();
-        }
-
-        public Hash GetDisambiguationHash()
-        {
-            return HashHelpers.GetDisambiguationHash(Index, Hash.FromRawBytes(P.ToByteArray()));
         }
     }
 }

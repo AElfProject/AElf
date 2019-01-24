@@ -6,13 +6,13 @@ namespace AElf.Kernel.Managers
 {
     public interface IChainManager
     {
-        Task AddChainAsync(Hash chainId, Hash genesisBlockHash);
-        Task UpdateCurrentBlockHashAsync(Hash chainId, Hash blockHash);
-        Task<Hash> GetCurrentBlockHashAsync(Hash chainId);
-        Task UpdateCurrentBlockHeightAsync(Hash chainId, ulong height);
-        Task<ulong> GetCurrentBlockHeightAsync(Hash chainId);
-        Task SetCanonical(Hash chainId, ulong height, Hash canonical);
-        Task<Hash> GetCanonical(Hash chainId, ulong height);
-        Task RemoveCanonical(Hash chainId, ulong height);
+        Task AddChainAsync(int chainId, Hash genesisBlockHash);
+        Task UpdateCurrentBlockHashAsync(int chainId, Hash blockHash);
+        Task<Hash> GetCurrentBlockHashAsync(int chainId);
+        Task UpdateCurrentBlockHeightAsync(int chainId, ulong height);
+        Task<ulong> GetCurrentBlockHeightAsync(int chainId);
+        Task SetCanonical(int chainId, ulong height, Hash canonical);
+        Task<Hash> GetCanonical(int chainId, ulong height);
+        Task RemoveCanonical(int chainId, ulong height);
     }
 }

@@ -13,9 +13,9 @@ namespace AElf.Miner.Miner
     public class BlockGenerator
     {
         private readonly IChainService _chainService;
-        private Hash ChainId { get; }
+        private int ChainId { get; }
 
-        public BlockGenerator(IChainService chainService, Hash chainId)
+        public BlockGenerator(IChainService chainService, int chainId)
         {
             _chainService = chainService;
             ChainId = chainId;

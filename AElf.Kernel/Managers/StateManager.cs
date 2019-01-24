@@ -5,6 +5,7 @@ using AElf.Kernel.Storages;
 
 namespace AElf.Kernel.Managers
 {
+    //TODO: remove
     public class StateManager : IStateManager
     {
         private readonly IStateStore _stateStore;
@@ -25,10 +26,10 @@ namespace AElf.Kernel.Managers
             return result;
         }
 
-        public async Task<bool> PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
+        public async Task PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet)
         {
             var dict = pipelineSet.ToDictionary(kv => GetStringKey(kv.Key), kv => (object) kv.Value);
-            return await _stateStore.PipelineSetAsync(dict);
+            await _stateStore.PipelineSetAsync(dict);
         }
 
         private string GetStringKey(StatePath path)

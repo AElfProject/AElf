@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
+using AElf.Contracts.TestBase;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    [UseAutofacTestFramework]
-    public class ConsensusElectionTest
+    public sealed class ConsensusElectionTest : ConsensusContractTestBase
     {
         private readonly MockSetup _mock;
         private readonly SimpleExecutingService _simpleExecutingService;
 
         private const ulong PinMoney = 100;
 
-        public ConsensusElectionTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
+        public ConsensusElectionTest()
         {
-            _mock = mock;
-            _simpleExecutingService = simpleExecutingService;
+            _simpleExecutingService = GetRequiredService<SimpleExecutingService>() ;
+            _mock = GetRequiredService<MockSetup>();
         }
 
         [Fact(Skip = "Skip for now.")]
@@ -94,7 +94,6 @@ namespace AElf.Contracts.Consensus.Tests
 
             // Candidate announce election.
             contracts.AnnounceElection(candidates[4]);
-
             const ulong amount = 10_000;
 
             // Voter vote to aforementioned candidate.
@@ -127,7 +126,6 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(votingRecordOfCandidate.Count == amount);
             Assert.True(votingRecordOfCandidate.From == voters[1].PublicKey.ToHex());
             Assert.True(votingRecordOfCandidate.To == candidates[4].PublicKey.ToHex());
-
             // Check tickets of a passerby.
             try
             {
@@ -156,7 +154,8 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.TargetNotAnnounceElection, contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(GlobalConfig.TargetNotAnnounceElection,
+                    contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -168,7 +167,6 @@ namespace AElf.Contracts.Consensus.Tests
             // Candidates announce election.
             contracts.AnnounceElection(candidates[6]);
             contracts.AnnounceElection(candidates[7]);
-
             const ulong amount = PinMoney / 2;
 
             // Voter vote to another candidate.
@@ -201,7 +199,6 @@ namespace AElf.Contracts.Consensus.Tests
 
             // Candidate announce election.
             contracts.AnnounceElection(candidates[8]);
-
             const ulong amount = 10_000;
 
             // Voter vote to aforementioned candidate.

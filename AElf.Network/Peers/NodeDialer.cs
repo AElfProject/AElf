@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using AElf.Common.Attributes;
-using NLog;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Network.Peers
 {
     public class NodeDialer : INodeDialer
     {
-        private ILogger _logger;
+        public ILogger<NodeDialer> Logger {get;set;}
         
         public const int DefaultConnectionTimeout = 3000;
         
@@ -22,8 +23,8 @@ namespace AElf.Network.Peers
         {
             _ipAddress = ipAddress;
             _port = port;
-            
-            _logger = LogManager.GetLogger(nameof(NodeDialer));
+
+            Logger = NullLogger<NodeDialer>.Instance;
         }
 
         public async Task<TcpClient> DialAsync(int timeout = DefaultConnectionTimeout)
@@ -34,14 +35,14 @@ namespace AElf.Network.Peers
                 Task timeoutTask = Task.Delay(timeout);
                 Task connectTask = Task.Run(() => tcpClient.Connect(_ipAddress, _port));
                 
-                _logger?.Trace($"Dialing {_ipAddress}:{_port}.");
+                Logger.LogTrace($"Dialing {_ipAddress}:{_port}.");
 
                 if (await Task.WhenAny(timeoutTask, connectTask) != timeoutTask && tcpClient.Connected)
                     return tcpClient;
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception during connection.");
+                Logger.LogError(e, "Exception during connection.");
             }
             
             return null;
@@ -51,7 +52,7 @@ namespace AElf.Network.Peers
         {
             for (int i = 0; i < ReconnectTryCount; i++)
             {
-                _logger.Trace($"Reconnect attempt number {i+1}.");
+                Logger.LogTrace($"Reconnect attempt number {i+1}.");
                 
                 TcpClient client;
                 
@@ -65,7 +66,7 @@ namespace AElf.Network.Peers
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e, "Error dialing the peer.");
+                    Logger.LogError(e, "Error dialing the peer.");
                 }
                 
                 await Task.Delay(TimeSpan.FromMilliseconds(ReconnectInterval)); // retry wait

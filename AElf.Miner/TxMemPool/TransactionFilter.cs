@@ -7,22 +7,22 @@ using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Types.Transaction;
 using Easy.MessageHub;
-using NLog;
-using NLog.Fluent;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.TxMemPool
 {
     // ReSharper disable InconsistentNaming
     public class TransactionFilter
     {
+        //TODO: should change to an interface like ITransactionFilter
         private Func<List<Transaction>, ILogger, List<Transaction>> _txFilter;
 
         private delegate int WhoIsFirst(Transaction t1, Transaction t2);
 
         private static readonly WhoIsFirst IsFirst = (t1, t2) => t1.Time.Nanos > t2.Time.Nanos ? -1 : 1;
-        private readonly ILogger _logger;
+        public ILogger<TransactionFilter> Logger {get;set;}
 
         private static readonly List<string> _latestTxs = new List<string>();
 
@@ -90,7 +90,7 @@ namespace AElf.Miner.TxMemPool
 
             if (count == 0)
             {
-                logger?.Warn("No InitializeAElfDPoS tx in pool.");
+                logger.LogWarning("No InitializeAElfDPoS tx in pool.");
             }
 
             return toRemove;
@@ -112,7 +112,7 @@ namespace AElf.Miner.TxMemPool
 
             if (count == 0)
             {
-                logger?.Warn("No PublishOutValueAndSignature tx in pool.");
+                logger.LogWarning("No PublishOutValueAndSignature tx in pool.");
             }
 
             return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
@@ -128,7 +128,7 @@ namespace AElf.Miner.TxMemPool
             
             if (count == 0)
             {
-                logger?.Warn("No NextRound tx or BroadcastInValue tx in pool.");
+                logger.LogWarning("No NextRound tx or BroadcastInValue tx in pool.");
                 return toRemove;
             }
             
@@ -161,7 +161,7 @@ namespace AElf.Miner.TxMemPool
             
             if (count == 0)
             {
-                logger?.Warn("No NextTerm tx or BroadcastInValue tx in pool.");
+                logger.LogWarning("No NextTerm tx or BroadcastInValue tx in pool.");
                 return toRemove;
             }
             
@@ -194,14 +194,14 @@ namespace AElf.Miner.TxMemPool
             MessageHub.Instance.Subscribe<DPoSTransactionGenerated>(inTxId =>
             {
                 _latestTxs.Add(inTxId.TransactionId);
-                _logger?.Trace($"Added tx: {inTxId.TransactionId}");
+                Logger.LogTrace($"Added tx: {inTxId.TransactionId}");
             });
             
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
             {
                 if (inState.IsMining)
                 {
-                    _logger?.Trace(
+                    Logger.LogTrace(
                         $"Consensus state changed to {inState.ConsensusBehavior.ToString()}, " +
                         "will reset dpos tx filter.");
                     switch (inState.ConsensusBehavior)
@@ -231,7 +231,7 @@ namespace AElf.Miner.TxMemPool
             });
             _txFilter += _firstCrossChainTxnGeneratedByMe;
 
-            _logger = LogManager.GetLogger(nameof(TransactionFilter));
+            Logger= NullLogger<TransactionFilter>.Instance;
         }
 
         public void Execute(List<Transaction> txs)
@@ -242,7 +242,7 @@ namespace AElf.Miner.TxMemPool
                 var filter = (Func<List<Transaction>, ILogger, List<Transaction>>) @delegate;
                 try
                 {
-                    var toRemove = filter(txs, _logger);
+                    var toRemove = filter(txs,Logger);
                     foreach (var transaction in toRemove)
                     {
                         txs.Remove(transaction);
@@ -250,25 +250,25 @@ namespace AElf.Miner.TxMemPool
                 }
                 catch (Exception e)
                 {
-                    _logger?.Trace(e, "Failed to execute dpos txs filter.");
+                    Logger.LogTrace(e, "Failed to execute dpos txs filter.");
                     throw;
                 }
             }
             
-            _logger?.Trace("will package following consensus txs:");
+            Logger.LogTrace("will package following consensus txs:");
             foreach (var tx in txs)
             {
-                _logger?.Trace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
+                Logger.LogTrace($"{tx.MethodName} - {tx.GetHash().ToHex()}");
             }
         }
 
         // ReSharper disable once UnusedMember.Local
         private void PrintTxList(IEnumerable<Transaction> txs)
         {
-            _logger?.Trace("Txs list:");
+            Logger.LogTrace("Txs list:");
             foreach (var transaction in txs)
             {
-                _logger?.Trace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
+                Logger.LogTrace($"{transaction.GetHash().ToHex()} - {transaction.MethodName}");
             }
         }
     }

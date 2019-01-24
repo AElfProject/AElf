@@ -12,18 +12,16 @@ using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class DataProviderTest
+    public class DataProviderTest : AElfKernelTestBase
     {
         private readonly IStateManager _stateManager;
         
-        public DataProviderTest(IStateManager stateManager)
+        public DataProviderTest()
         {
-            _stateManager = stateManager;
+            _stateManager = GetRequiredService<IStateManager>();
         }
 
         [Fact]

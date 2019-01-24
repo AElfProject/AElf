@@ -4,7 +4,8 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Storages;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
@@ -12,13 +13,14 @@ namespace AElf.Kernel.Managers
     {
         private readonly IMinersStore _minersStore;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(MinersManager));
+        public ILogger<MinersManager> Logger { get; set; }
 
         public MinersManager(IMinersStore minersStore)
         {
             _minersStore = minersStore;
+            Logger = NullLogger<MinersManager>.Instance;
         }
-        
+
         public async Task<Miners> GetMiners(ulong termNumber)
         {
             Miners miners;
@@ -57,13 +59,13 @@ namespace AElf.Kernel.Managers
 
             foreach (var publicKey in miners.PublicKeys)
             {
-                _logger?.Trace($"Set miner {publicKey} to data store.");
+                Logger.LogTrace($"Set miner {publicKey} to data store.");
             }
 
             if (miners.TermNumber > 1)
             {
                 // To inform sidechain latest version of miners list of mainchain.
-                _logger?.Trace($"BP-term for sidechain: {miners.TermNumber}");
+                Logger.LogTrace($"BP-term for sidechain: {miners.TermNumber}");
                 var minersOfTerm1 = await GetMiners(1);
                 minersOfTerm1.MainchainLatestTermNumber = miners.TermNumber;
                 await SetMiners(CalculateKey(1), minersOfTerm1);

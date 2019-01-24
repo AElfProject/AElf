@@ -2,7 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Network.Connection
 {
@@ -13,15 +14,15 @@ namespace AElf.Network.Connection
     
     public class ConnectionListener : IConnectionListener
     {
-        private readonly ILogger _logger;
+        public ILogger<ConnectionListener> Logger {get;set;}
         public event EventHandler IncomingConnection;
         public event EventHandler ListeningStopped;
 
         private TcpListener _tcpListener;
 
-        public ConnectionListener(ILogger logger)
+        public ConnectionListener()
         {
-            _logger = logger;
+            Logger = NullLogger<ConnectionListener>.Instance;
         }
 
         public async Task StartListening(int port)
@@ -38,7 +39,7 @@ namespace AElf.Network.Connection
             }
             catch (Exception ex)
             {
-                _logger.Trace(ex, "Connection listening stopped, no new connections can be made.");
+                Logger.LogTrace(ex, "Connection listening stopped, no new connections can be made.");
                 ListeningStopped?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -55,7 +56,7 @@ namespace AElf.Network.Connection
             IPEndPoint remoteIpEndPoint = client?.Client?.RemoteEndPoint as IPEndPoint;
             IPEndPoint localIpEndPoint = client?.Client?.LocalEndPoint as IPEndPoint;
             
-            _logger?.Trace($"[{localIpEndPoint?.Address}:{localIpEndPoint?.Port}] Accepted a connection from {remoteIpEndPoint?.Address}:{remoteIpEndPoint?.Port}.");
+            Logger.LogTrace($"[{localIpEndPoint?.Address}:{localIpEndPoint?.Port}] Accepted a connection from {remoteIpEndPoint?.Address}:{remoteIpEndPoint?.Port}.");
         }
 
         #region Closing and disposing

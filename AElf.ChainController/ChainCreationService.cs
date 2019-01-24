@@ -7,7 +7,8 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.ChainController
 {
@@ -15,13 +16,13 @@ namespace AElf.ChainController
     {
         private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
-        private readonly ILogger _logger;
+        public ILogger<ChainCreationService> Logger {get;set;}
 
-        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService, ILogger logger)
+        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
         {
             _chainService = chainService;
             _smartContractService = smartContractService;
-            _logger = logger;
+            Logger = NullLogger<ChainCreationService>.Instance;
         }
 
         /// <summary>
@@ -30,7 +31,7 @@ namespace AElf.ChainController
         /// <returns>The new chain async.</returns>
         /// <param name="chainId">The new chain id which will be derived from the creator address.</param>
         /// <param name="smartContractRegistration">The smart contract registration containing the code of the SmartContractZero.</param>
-        public async Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractRegistration)
+        public async Task<IChain> CreateNewChainAsync(int chainId, List<SmartContractRegistration> smartContractRegistration)
         {
             try
             {
@@ -63,8 +64,8 @@ namespace AElf.ChainController
             }
             catch (Exception e)
             {
-                _logger.Error("CreateNewChainAsync Error: " + e);
-                return null;
+                Logger.LogError("CreateNewChainAsync Error: " + e);
+                throw;
             }
         }
     }

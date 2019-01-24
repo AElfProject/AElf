@@ -9,10 +9,11 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -24,7 +25,7 @@ namespace AElf.Contracts.Genesis.Tests
         }
 
         public IStateManager StateManager { get; }
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+        public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
         private IFunctionMetadataService _functionMetadataService;

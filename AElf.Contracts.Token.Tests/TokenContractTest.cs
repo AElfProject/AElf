@@ -1,25 +1,25 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using AElf.SmartContract;
-using Xunit.Frameworks.Autofac;
+
 using Xunit;
 using Xunit.Abstractions;
 
 namespace AElf.Contracts.Token.Tests
 {
-    [UseAutofacTestFramework]
-    public class TokenContractTest
+public sealed class TokenContractTest : TokenContractTestBase
     {
         private TokenContractShim _contract;
         private MockSetup _mock;
 
         private IExecutive Executive { get; set; }
 
-        public TokenContractTest(MockSetup mock)
+        public TokenContractTest()
         {
-            _mock = mock;
+            _mock = GetRequiredService<MockSetup>();
             Init();
         }
 

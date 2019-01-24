@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Serializers;
 using AElf.Database;
@@ -7,86 +8,91 @@ using AElf.Kernel.Exceptions;
 
 namespace AElf.Kernel.Storages
 {
-    public abstract class KeyValueStoreBase : IKeyValueStore
+    public abstract class KeyValueStoreBase<TKeyValueDbContext> : IKeyValueStore
+        where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        protected readonly IKeyValueDatabase KeyValueDatabase;
+        protected readonly TKeyValueDbContext _keyValueDbContext;
         protected readonly IByteSerializer ByteSerializer;
-        
+
+        protected readonly IKeyValueCollection _collection;
+
         protected string DataPrefix { get; set; }
 
-        protected KeyValueStoreBase(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer, string dataPrefix)
+        protected KeyValueStoreBase(IByteSerializer byteSerializer, TKeyValueDbContext keyValueDbContext,
+            string dataPrefix)
         {
-            KeyValueDatabase = keyValueDatabase;
             ByteSerializer = byteSerializer;
-
             DataPrefix = dataPrefix;
+            _keyValueDbContext = keyValueDbContext;
+            _collection = keyValueDbContext.Collection(DataPrefix);
         }
 
         public virtual async Task SetAsync(string key, object value)
         {
-            CheckKey(key);
-            CheckValue(value);
-
-            var databaseKey = GetDatabaseKey(key);
-            await KeyValueDatabase.SetAsync(DataPrefix, databaseKey, ByteSerializer.Serialize(value));
+            await _collection.SetAsync(key, ByteSerializer.Serialize(value));
         }
 
-        public virtual async Task<bool> PipelineSetAsync(Dictionary<string, object> pipelineSet)
+        public virtual async Task PipelineSetAsync(Dictionary<string, object> pipelineSet)
         {
-            var value = new Dictionary<string, byte[]>();
-            foreach (var set in pipelineSet)
-            {
-                value.Add(GetDatabaseKey(set.Key), ByteSerializer.Serialize(set.Value));
-            }
-
-            return await KeyValueDatabase.PipelineSetAsync(DataPrefix, value);
+            await _collection.PipelineSetAsync(
+                pipelineSet.ToDictionary(k => k.Key, v => ByteSerializer.Serialize(v.Value)));
         }
 
         public virtual async Task<T> GetAsync<T>(string key)
         {
-            CheckKey(key);
-
-            var databaseKey = GetDatabaseKey(key);
-            var result = await KeyValueDatabase.GetAsync(DataPrefix, databaseKey);
+            var result = await _collection.GetAsync(key);
 
             return result == null ? default(T) : ByteSerializer.Deserialize<T>(result);
         }
 
         public virtual async Task RemoveAsync(string key)
         {
-            CheckKey(key);
+            await _collection.RemoveAsync(key);
+        }
+    }
 
-            var databaseKey = GetDatabaseKey(key);
-            await KeyValueDatabase.RemoveAsync(DataPrefix, databaseKey);
+    public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
+        where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
+    {
+        protected readonly TKeyValueDbContext _keyValueDbContext;
+        protected readonly IByteSerializer ByteSerializer;
+
+        protected readonly IKeyValueCollection _collection;
+
+        protected string DataPrefix { get; set; }
+
+        protected KeyValueStoreBase(IByteSerializer byteSerializer, TKeyValueDbContext keyValueDbContext,
+            string dataPrefix)
+        {
+            _keyValueDbContext = keyValueDbContext;
+            ByteSerializer = byteSerializer;
+
+            DataPrefix = dataPrefix;
+            _keyValueDbContext = keyValueDbContext;
+            _collection = keyValueDbContext.Collection(DataPrefix);
         }
 
-        public string GetDatabaseKey(string key)
+        public async Task SetAsync(string key, T value)
         {
-            return $"{DataPrefix}{key}";
+            await _collection.SetAsync(key, ByteSerializer.Serialize(value));
         }
 
-        protected virtual void CheckKey(string key)
+        public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                throw new ArgumentException("Key cannot be null.");
-            }
+            await _collection.PipelineSetAsync(
+                pipelineSet.ToDictionary(k => k.Key, v => ByteSerializer.Serialize(v.Value)));
         }
 
-        protected virtual void CheckValue(object value)
+        public virtual async Task<T> GetAsync(string key)
         {
-            if (value == null)
-            {
-                throw new ArgumentException("Cannot insert null value.");
-            }
+            var result = await _collection.GetAsync(key);
+
+            return result == null ? default(T) : ByteSerializer.Deserialize<T>(result);
         }
 
-        protected virtual void CheckReturnValue(object result)
+        public virtual async Task RemoveAsync(string key)
         {
-            if (result == null)
-            {
-                throw new DataNotFoundException("Value not exist.");
-            }
+            await _collection.RemoveAsync(key);
         }
     }
 }

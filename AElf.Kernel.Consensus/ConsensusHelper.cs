@@ -6,7 +6,8 @@ using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus
 {
@@ -15,10 +16,14 @@ namespace AElf.Kernel.Consensus
     // ReSharper disable UnusedMember.Global
     public class ConsensusHelper
     {
-        private readonly IMinersManager _minersManager;
-        private readonly ConsensusDataReader _reader;
 
-        private readonly ILogger _logger = LogManager.GetLogger(nameof(ConsensusHelper));
+        public ConsensusHelper()
+        {
+            Logger=NullLogger<ConsensusHelper>.Instance;
+        }
+        private readonly IMinersManager _minersManager;
+        private readonly ConsensusDataReader _reader;        
+        public ILogger<ConsensusHelper> Logger { get; set; }
 
         public List<string> Miners
         {
@@ -114,7 +119,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception)
                 {
-                    _logger?.Trace("No candidate, so the miners of next term will still be the initial miners.");
+                    Logger.LogTrace("No candidate, so the miners of next term will still be the initial miners.");
                     var initialMiners = _minersManager.GetMiners(0).Result.PublicKeys.ToCandidates();
                     initialMiners.IsInitialMiners = true;
                     return initialMiners;
@@ -133,7 +138,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, "Failed to get DPoS information of current round.\n");
+                    Logger.LogError(e, "Failed to get DPoS information of current round.\n");
                     return new Round();
                 }
             }
@@ -155,7 +160,7 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader)
+        public ConsensusHelper(IMinersManager minersManager, ConsensusDataReader reader):this()
         {
             _minersManager = minersManager;
             _reader = reader;
@@ -176,12 +181,12 @@ namespace AElf.Kernel.Consensus
                     if (round.RealTimeMinersInfo.ContainsKey(accountAddressHex))
                         return round.RealTimeMinersInfo[accountAddressHex];
 
-                    _logger.Error("No such Block Producer in current round.");
+                    Logger.LogError("No such Block Producer in current round.");
                     return default(MinerInRound);
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex, "Failed to get Block Producer information of current round.");
+                    Logger.LogError(ex, "Failed to get Block Producer information of current round.");
                     return default(MinerInRound);
                 }
             }
@@ -201,7 +206,7 @@ namespace AElf.Kernel.Consensus
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Trace(ex, $"Error while getting Round information of round {roundNumber.Value}.");
+                    Logger.LogTrace(ex, $"Error while getting Round information of round {roundNumber.Value}.");
                     return default(Round);
                 }
             }
@@ -314,7 +319,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Failed to get dpos info");
+                Logger.LogError(e, "Failed to get dpos info");
                 return "";
             }
         }
@@ -336,16 +341,16 @@ namespace AElf.Kernel.Consensus
         public void SyncMiningInterval()
         {
             ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
-            _logger?.Info($"Set AElf DPoS mining interval to: {ConsensusConfig.Instance.DPoSMiningInterval} ms.");
+            Logger.LogInformation($"Set AElf DPoS mining interval to: {ConsensusConfig.Instance.DPoSMiningInterval} ms.");
         }
 
         public void LogDPoSInformation(ulong height)
         {
-            _logger?.Trace("Log dpos information - Start");
-            _logger?.Trace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
+            Logger.LogTrace("Log dpos information - Start");
+            Logger.LogTrace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
                            $". Current height: {height}. Current term: {CurrentTermNumber.Value}. Current age: {BlockchainAge.Value}");
-            _logger?.Trace(GetCurrentElectionInformation());
-            _logger?.Trace("Log dpos information - End");
+            Logger.LogTrace(GetCurrentElectionInformation());
+            Logger.LogTrace("Log dpos information - End");
         }
 
         /// <summary>
@@ -394,7 +399,7 @@ namespace AElf.Kernel.Consensus
 
         public Miners GetCurrentMiners()
         {
-            _logger?.Trace($"Current term number: {CurrentTermNumber.Value}");
+            Logger.LogTrace($"Current term number: {CurrentTermNumber.Value}");
             var bytes = _reader.ReadMap<Miners>(CurrentTermNumber, GlobalConfig.AElfDPoSMinersMapString);
             var miners = AElf.Kernel.Miners.Parser.ParseFrom(bytes);
             return miners;
@@ -459,7 +464,7 @@ namespace AElf.Kernel.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Failed to get dpos info of round {roundNumber.Value}");
+                Logger.LogError(e, $"Failed to get dpos info of round {roundNumber.Value}");
                 return "";
             }
         }

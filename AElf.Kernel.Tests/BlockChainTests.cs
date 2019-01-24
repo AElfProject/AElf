@@ -8,11 +8,9 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
     public class BlockChainTests
     {
         private readonly BlockChainTests_MockSetup _mock;

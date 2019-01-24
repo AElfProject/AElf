@@ -6,24 +6,25 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 using AElf.Common;
 using AElf.Configuration;
-using NLog;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Contracts.SideChain.Tests
 {
-    [UseAutofacTestFramework]
-    public class SideChainTest
+public class SideChainTest : SideChainContractTestBase
     {
         private SideChainContractShim _contract;
         private MockSetup Mock;
 
-        public SideChainTest(MockSetup mock)
+        public SideChainTest()
         {
-            Mock = mock;
+            Mock = this.GetRequiredService<MockSetup>();
         }
 
         [Fact(Skip = "TBD, side chain lifetime needed.")]

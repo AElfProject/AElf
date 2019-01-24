@@ -2,30 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-using AElf.Common.Attributes;
+
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
 using Easy.MessageHub;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node
 {
-    [LoggerName(nameof(Node))]
-    public class Node : INode
+    public class Node : INode, ITransientDependency
     {
-        private readonly ILogger _logger;
-        private readonly IRpcServer _rpcServer;
+        public ILogger<Node> Logger {get;set;}
         private readonly INetworkManager _netManager;
 
         private readonly List<INodeService> _services = new List<INodeService>();
 
         private bool _startRpc;
 
-        public Node(ILogger logger, IRpcServer rpcServer, INetworkManager netManager)
+        public Node( INetworkManager netManager)
         {
-            _logger = logger;
-            _rpcServer = rpcServer;
+            Logger = NullLogger<Node>.Instance;
             _netManager = netManager;
         }
 
@@ -61,7 +60,6 @@ namespace AElf.Node
 
         public bool StartRpc()
         {
-            _rpcServer.Start();
             return true;
         }
     }

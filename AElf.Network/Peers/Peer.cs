@@ -10,8 +10,9 @@ using AElf.Kernel;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
-using NLog;
 
 namespace AElf.Network.Peers
 {
@@ -58,7 +59,7 @@ namespace AElf.Network.Peers
     {
         public Peer Peer { get; set; }
         public Message Message { get; set; }
-        
+
         public Block Block { get; set; }
     }
 
@@ -75,7 +76,7 @@ namespace AElf.Network.Peers
         private const double DefaultPingInterval = 1000;
         private const double DefaultAuthTimeout = 2000;
 
-        private readonly ILogger _logger;
+        public ILogger<Peer> Logger { get; set; }
         private readonly IMessageReader _messageReader;
         private readonly IMessageWriter _messageWriter;
 
@@ -147,8 +148,7 @@ namespace AElf.Network.Peers
         public string DistantNodeAddress { get; private set; }
         public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
-        [JsonProperty(PropertyName = "isBp")] 
-        public bool IsBp { get; internal set; }
+        [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
 
         public string IpAddress => DistantNodeData?.IpAddress;
 
@@ -156,7 +156,8 @@ namespace AElf.Network.Peers
 
         public readonly int CurrentHeight;
 
-        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey, int currentHeight)
+        public Peer(TcpClient client, IMessageReader reader, IMessageWriter writer, int port, ECKeyPair nodeKey,
+            int currentHeight)
         {
             BlockRequests = new List<TimedBlockRequest>();
             _announcements = new List<Announce>();
@@ -168,7 +169,7 @@ namespace AElf.Network.Peers
 
             _port = port;
             _nodeKey = nodeKey;
-            _logger = LogManager.GetLogger(LoggerName);
+            Logger = NullLogger<Peer>.Instance;
 
             _client = client;
 
@@ -208,7 +209,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while initializing the connection.");
+                Logger.LogError(e, "Error while initializing the connection.");
                 Dispose();
                 return false;
             }
@@ -220,9 +221,10 @@ namespace AElf.Network.Peers
         {
             Dispose();
 
-            _logger?.Warn($"Peer connection has been terminated : {DistantNodeData}.");
+            Logger.LogWarning($"Peer connection has been terminated : {DistantNodeData}.");
 
-            PeerDisconnected?.Invoke(this, new PeerDisconnectedArgs {Peer = this, Reason = DisconnectReason.StreamClosed});
+            PeerDisconnected?.Invoke(this,
+                new PeerDisconnectedArgs {Peer = this, Reason = DisconnectReason.StreamClosed});
         }
 
         private void ClientOnPacketReceived(object sender, EventArgs eventArgs)
@@ -243,7 +245,7 @@ namespace AElf.Network.Peers
 
                 if (!IsAuthentified)
                 {
-                    _logger?.Warn($"Received message while not authentified: {a.Message}.");
+                    Logger.LogWarning($"Received message while not authentified: {a.Message}.");
                     return;
                 }
 
@@ -263,7 +265,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while handle received packet.");
+                Logger.LogError(e, "Exception while handle received packet.");
             }
         }
 
@@ -293,13 +295,15 @@ namespace AElf.Network.Peers
                 };
 
                 if (_nodeKey.PublicKey == null)
-                    _logger.Warn("Node public key is null.");
+                    Logger.LogWarning("Node public key is null.");
 
                 byte[] packet = nd.ToByteArray();
 
-                _logger?.Trace($"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()}, height: {nd.Height}, version {nd.Version} }}");
+                Logger.LogTrace(
+                    $"Sending authentification : {{ port: {nd.NodeInfo.Port}, addr: {nd.PublicKey.ToByteArray().ToHex()}, height: {nd.Height}, version {nd.Version} }}");
 
-                _messageWriter.EnqueueMessage(new Message {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
+                _messageWriter.EnqueueMessage(new Message
+                    {Type = (int) MessageType.Auth, HasId = false, Length = packet.Length, Payload = packet});
 
                 StartAuthTimer();
             }
@@ -325,7 +329,7 @@ namespace AElf.Network.Peers
             if (IsAuthentified)
                 return;
 
-            _logger?.Warn("Authentification timed out.");
+            Logger.LogWarning("Authentification timed out.");
 
             Dispose();
 
@@ -356,7 +360,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error processing authentification information.");
+                Logger.LogError(e, "Error processing authentification information.");
                 Dispose();
             }
 
@@ -379,27 +383,28 @@ namespace AElf.Network.Peers
             _lastReceivedHandshake = handshakeMsg;
 
             try
-            {                
+            {
                 if (handshakeMsg.Version != GlobalConfig.ProtocolVersion)
                 {
                     FireInvalidAuth(RejectReason.AuthWrongVersion);
                     return RejectReason.AuthWrongVersion;
                 }
-                                    
+
                 DistantPubKey = handshakeMsg.PublicKey.ToByteArray();
                 if (DistantPubKey == null)
                 {
                     FireInvalidAuth(RejectReason.AuthInvalidKey);
                     return RejectReason.AuthInvalidKey;
                 }
-                
-                DistantNodeAddress 
-                    = Address.FromPublicKey(DistantPublicKey).GetFormatted(); 
+
+                DistantNodeAddress
+                    = Address.FromPublicKey(DistantPublicKey).GetFormatted();
 
                 // verify sig
                 ECVerifier verifier = new ECVerifier();
-                
-                bool sigValid = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()), SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
+
+                bool sigValid = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()),
+                    SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
 
                 if (!sigValid)
                 {
@@ -441,20 +446,21 @@ namespace AElf.Network.Peers
             {
                 if (!IsAuthentified)
                 {
-                    _logger?.Warn($"Can't write : not identified {DistantNodeData}.");
+                    Logger.LogWarning($"Can't write : not identified {DistantNodeData}.");
                 }
 
                 if (_messageWriter == null)
                 {
-                    _logger?.Warn($"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
+                    Logger.LogWarning(
+                        $"Peer {DistantNodeData?.IpAddress} : {DistantNodeData?.Port} - Null stream while sending");
                     return;
                 }
-                
+
                 _messageWriter.EnqueueMessage(msg, successCallback);
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while sending data.");
+                Logger.LogError(e, "Exception while sending data.");
             }
         }
 

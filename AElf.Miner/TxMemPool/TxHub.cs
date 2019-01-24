@@ -6,48 +6,44 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.Attributes;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
-using AElf.Kernel.Types.Transaction;
+using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using Easy.MessageHub;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.TxMemPool
 {
-    [LoggerName(nameof(TxHub))]
-    public class TxHub : ITxHub
+    public class TxHub : ITxHub, ISingletonDependency 
     {
-        private readonly ILogger _logger;
+        public ILogger<TxHub> Logger {get;set;}
         
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
-        private readonly ITxSignatureVerifier _signatureVerifier;
         private readonly ITxRefBlockValidator _refBlockValidator;
         private readonly IAuthorizationInfoReader _authorizationInfoReader;
-        private readonly IElectionInfo _electionInfo;
         private readonly IChainService _chainService;
+        private readonly IElectionInfo _electionInfo;
         
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
         
         private IBlockChain _blockChain;
         
-        private static bool _terminated;
-
         private ulong _curHeight;
 
-        private readonly Hash _chainId;
+        private readonly int _chainId;
 
         private readonly Address _dPosContractAddress;
         private readonly Address _crossChainContractAddress;
@@ -59,21 +55,18 @@ namespace AElf.Miner.TxMemPool
         };
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
-            IChainService chainService, IAuthorizationInfoReader authorizationInfoReader, ITxSignatureVerifier signatureVerifier,
-            ITxRefBlockValidator refBlockValidator, ILogger logger, IElectionInfo electionInfo)
+            IChainService chainService, IAuthorizationInfoReader authorizationInfoReader,
+            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo)
         {
-            _logger = logger;
+            Logger = NullLogger<TxHub>.Instance;
             _electionInfo = electionInfo;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
-            _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
             _authorizationInfoReader = authorizationInfoReader;
 
-            _terminated = false;
-
-            _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
 
             _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
             _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(_chainId);
@@ -85,7 +78,7 @@ namespace AElf.Miner.TxMemPool
 
             if (_blockChain == null)
             {
-                _logger?.Warn($"Could not find the blockchain for {_chainId}.");
+                Logger.LogWarning($"Could not find the blockchain for {_chainId}.");
                 return;
             }
 
@@ -94,14 +87,6 @@ namespace AElf.Miner.TxMemPool
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
                 await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
             
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.TxPool)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.TxPool));
-                }
-            });
         }
 
         public void Start()
@@ -115,11 +100,6 @@ namespace AElf.Miner.TxMemPool
 
         public async Task AddTransactionAsync(Transaction transaction, bool skipValidation = false)
         {
-            if (_terminated)
-            {
-                return;
-            }
-
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
             {
@@ -132,13 +112,13 @@ namespace AElf.Miner.TxMemPool
             // if the transaction is in TransactionManager, it is either executed or added into _allTxns
             if (txn != null && !txn.Equals(new Transaction()))
             {
-                // _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
-                // _logger?.Warn($"Transaction {transaction.GetHash()} already exists.");
+                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
                 return;
             }
 
@@ -247,8 +227,8 @@ namespace AElf.Miner.TxMemPool
                 tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
                 return;
             }
-            
-            var validSig = _signatureVerifier.Verify(tr.Transaction);
+
+            var validSig = tr.Transaction.VerifySignature();
             tr.SignatureSt = validSig
                 ? TransactionReceipt.Types.SignatureStatus.SignatureValid
                 : TransactionReceipt.Types.SignatureStatus.SignatureInvalid;

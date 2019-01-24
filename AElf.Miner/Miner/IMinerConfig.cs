@@ -15,7 +15,7 @@ namespace AElf.Miner.Miner
         bool IsParallel { get; }
         
         
-        Hash ChainId { get; set; }
+        int ChainId { get; set; }
         
         /// <summary>
         /// merge mining flag

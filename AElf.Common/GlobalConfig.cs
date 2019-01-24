@@ -11,7 +11,8 @@ namespace AElf.Common
         public static string DefaultChainId = "AELF";
         public static string AElfAddressPrefix = "ELF";
         
-        public static int ChainIdLength = 3;
+        public static int ChainIdLength = 4;
+        
         public static int ContractAddressHashLength = 18;
         public const ulong DaysEachTerm = 3;
         
@@ -120,7 +121,7 @@ namespace AElf.Common
         public const string BlockHeaderPrefix = "h";
         public const string MerkleTreePrefix = "k";
         public const string TransactionResultPrefix = "l";
-        public const string MetadataPrefix = "m";
+        public const string FunctionMetadataPrefix = "m";
         public const string ChianHeightPrefix = "n";
         public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";

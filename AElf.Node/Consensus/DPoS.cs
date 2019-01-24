@@ -14,14 +14,15 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using AElf.Miner.TxMemPool;
-using AElf.Kernel.Types.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Node.Consensus
@@ -47,9 +48,9 @@ namespace AElf.Node.Consensus
 
         private IBlockChain BlockChain => _blockChain ?? (_blockChain =
                                               _chainService.GetBlockChain(
-                                                  Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58())));
+                                                  ChainConfig.Instance.ChainId.ConvertBase58ToChainId()));
 
-        private readonly ILogger _logger;
+        public ILogger<DPoS> Logger {get;set;}
 
         private readonly ConsensusHelper _helper;
 
@@ -64,7 +65,7 @@ namespace AElf.Node.Consensus
         private byte[] _ownPubKey;
 
         private static Address ConsensusContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         private readonly IMinersManager _minersManager;
 
@@ -72,9 +73,6 @@ namespace AElf.Node.Consensus
 
         private static int _lockFlag;
 
-        private static bool _prepareTerminated;
-
-        private static bool _terminated;
 
         private static bool _executedBlockFromOtherMiners;
 
@@ -95,38 +93,35 @@ namespace AElf.Node.Consensus
             _chainService = chainService;
             _minersManager = minersManager;
             _helper = helper;
-            _prepareTerminated = false;
-            _terminated = false;
 
-            _logger = LogManager.GetLogger(nameof(DPoS));
+            Logger = NullLogger<DPoS>.Instance;
 
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;
             GlobalConfig.BlockNumberOfEachRound = count + 1;
 
-            _logger?.Info("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
-            _logger?.Info("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
-
+            Logger.LogInformation("Block Producer nodes count:" + GlobalConfig.BlockProducerNumber);
+            Logger.LogInformation("Blocks of one round:" + GlobalConfig.BlockNumberOfEachRound);
             MessageHub.Instance.Subscribe<UpdateConsensus>(async option =>
             {
                 if (option == UpdateConsensus.UpdateAfterExecution)
                 {
                     _executedBlockFromOtherMiners = true;
-                    _logger?.Trace("UpdateConsensus - Update");
+                    Logger.LogTrace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
                 }
 
                 if (option == UpdateConsensus.UpdateAfterMining)
                 {
+                    Logger.LogTrace("UpdateConsensus - Update");
                     _amIMined = true;
-                    _logger?.Trace("UpdateConsensus - Update");
                     await UpdateConsensusInformation();
                 }
 
                 if (option == UpdateConsensus.Dispose)
                 {
-                    _logger?.Trace("UpdateConsensus - Dispose");
+                    Logger.LogTrace("UpdateConsensus - Dispose");
                     DisposeConsensusEventList();
                 }
             });
@@ -140,14 +135,6 @@ namespace AElf.Node.Consensus
                 else
                 {
                     DecrementLockNumber();
-                }
-            });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.Mining)
-                {
-                    _prepareTerminated = true;
                 }
             });
 
@@ -184,7 +171,7 @@ namespace AElf.Node.Consensus
                 if (roundInfo != null)
                 {
                     var miners = _minersManager.GetMiners(roundInfo.MinersTermNumber).Result;
-                    _logger?.Trace($"Sidechain getting miners: {miners.PublicKeys}");
+                    Logger.LogTrace($"Sidechain getting miners: {miners.PublicKeys}");
                     return miners;
                 }
 
@@ -245,13 +232,13 @@ namespace AElf.Node.Consensus
         {
             ConsensusDisposable?.Dispose();
             ConsensusDisposable = null;
-            _logger?.Trace("Mining stopped. Disposed previous consensus observables list.");
+            Logger.LogTrace("Mining stopped. Disposed previous consensus observables list.");
         }
 
         private void IncrementLockNumber()
         {
             Interlocked.Add(ref _lockNumber, 1);
-            _logger?.Trace($"Lock number increment: {_lockNumber}");
+            Logger.LogTrace($"Lock number increment: {_lockNumber}");
         }
 
         private void DecrementLockNumber()
@@ -262,7 +249,7 @@ namespace AElf.Node.Consensus
             }
 
             Interlocked.Add(ref _lockNumber, -1);
-            _logger?.Trace($"Lock number decrement: {_lockNumber}");
+            Logger.LogTrace($"Lock number decrement: {_lockNumber}");
         }
 
         private async Task<IBlock> Mine()
@@ -271,17 +258,11 @@ namespace AElf.Node.Consensus
             {
                 var block = await _miner.Mine();
 
-                if (_prepareTerminated)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.Mining));
-                }
-
                 return block;
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while mining.");
+                Logger.LogError(e, "Exception while mining.");
                 return null;
             }
         }
@@ -290,7 +271,7 @@ namespace AElf.Node.Consensus
         {
             try
             {
-                _logger?.Trace("Entered generating tx.");
+                Logger.LogTrace("Entered generating tx.");
                 var bn = await BlockChain.GetCurrentBlockHeightAsync();
                 bn = bn > 4 ? bn - 4 : 0;
                 var bh = bn == 0 ? Hash.Genesis : (await BlockChain.GetHeaderByHeightAsync(bn)).GetHash();
@@ -311,7 +292,7 @@ namespace AElf.Node.Consensus
                 var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
                 tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
 
-                _logger?.Trace("Leaving generating tx.");
+                Logger.LogTrace("Leaving generating tx.");
 
                 MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
@@ -319,7 +300,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, "Error while during generating DPoS tx.");
+                Logger.LogTrace(e, "Error while during generating DPoS tx.");
             }
 
             return null;
@@ -329,12 +310,7 @@ namespace AElf.Node.Consensus
         {
             const ConsensusBehavior behavior = ConsensusBehavior.InitialTerm;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (!CurrentState.AbleToMine())
             {
@@ -354,7 +330,7 @@ namespace AElf.Node.Consensus
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     Term firstTerm;
 
@@ -377,10 +353,13 @@ namespace AElf.Node.Consensus
                         firstTerm = initialMiners.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     }
 
-                    _logger?.Trace($"Initial consensus information: {firstTerm}");
+                    Logger.LogTrace($"Initial consensus information: {firstTerm}");
                     
-                    var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
-
+                    
+                    //TODO! should not pass any parameters about logging system
+                    //var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
+var logLevel = new Int32Value {Value = 0};
+                    
                     var parameters = new List<object>
                     {
                         firstTerm,
@@ -394,7 +373,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(InitialTerm)}");
+                Logger.LogTrace(e, $"Error in {nameof(InitialTerm)}");
             }
             finally
             {
@@ -404,7 +383,7 @@ namespace AElf.Node.Consensus
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -412,12 +391,7 @@ namespace AElf.Node.Consensus
         {
             const ConsensusBehavior behavior = ConsensusBehavior.PackageOutValue;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (!CurrentState.AbleToMine())
             {
@@ -437,7 +411,7 @@ namespace AElf.Node.Consensus
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var inValue = Hash.Generate();
                     if (_consensusData.Count <= 0)
@@ -475,7 +449,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(PackageOutValue)}");
+                Logger.LogTrace(e, $"Error in {nameof(PackageOutValue)}");
             }
             finally
             {
@@ -485,7 +459,7 @@ namespace AElf.Node.Consensus
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
 
                 await BroadcastInValue();
             }
@@ -495,12 +469,7 @@ namespace AElf.Node.Consensus
         {
             const ConsensusBehavior behavior = ConsensusBehavior.BroadcastInValue;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (!CurrentState.AbleToMine())
             {
@@ -520,7 +489,7 @@ namespace AElf.Node.Consensus
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var roundInfo = _helper.GetCurrentRoundInfo();
 
@@ -544,7 +513,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(BroadcastInValue)}");
+                Logger.LogTrace(e, $"Error in {nameof(BroadcastInValue)}");
             }
             finally
             {
@@ -554,7 +523,7 @@ namespace AElf.Node.Consensus
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -562,12 +531,7 @@ namespace AElf.Node.Consensus
         {
             const ConsensusBehavior behavior = ConsensusBehavior.NextRound;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (!CurrentState.AbleToMine())
             {
@@ -587,10 +551,10 @@ namespace AElf.Node.Consensus
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     var currentRoundNumber = _helper.CurrentRoundNumber;
-                    _logger?.Trace("Round number: " + currentRoundNumber);
+                    Logger.LogTrace("Round number: " + currentRoundNumber);
                     
                     var roundInfo = _helper.GetCurrentRoundInfo();
                     roundInfo = _helper.TryGetRoundInfo(currentRoundNumber.Value - 1, out var previousRoundInfo)
@@ -602,7 +566,7 @@ namespace AElf.Node.Consensus
                     var nextRoundInfo = miners.GenerateNextRound(roundInfo.Clone());
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
-                    _logger?.Trace("Current blockchain age: " + calculatedAge);
+                    Logger.LogTrace("Current blockchain age: " + calculatedAge);
 
                     if (CanStartNextTerm())
                     {
@@ -610,8 +574,8 @@ namespace AElf.Node.Consensus
 
                         MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
 
-                        _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
-                        _logger?.Trace("Will change term.");
+                        Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                        Logger.LogTrace("Will change term.");
 
                         ConsensusDisposable?.Dispose();
                         ConsensusDisposable = ConsensusObserver.NextTerm();
@@ -646,7 +610,7 @@ namespace AElf.Node.Consensus
                     {
                         var minersTermNumber = (await _minersManager.GetMiners(1)).MainchainLatestTermNumber;
                         nextRoundInfo.MinersTermNumber = minersTermNumber;
-                        _logger?.Trace("Sidechain set miners term number to: " + minersTermNumber);
+                        Logger.LogTrace("Sidechain set miners term number to: " + minersTermNumber);
                     }
                     
                     var parameters = new List<object>
@@ -667,7 +631,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
+                Logger.LogTrace(e, $"Error in {nameof(NextRound)}");
             }
             finally
             {
@@ -677,7 +641,7 @@ namespace AElf.Node.Consensus
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -685,18 +649,13 @@ namespace AElf.Node.Consensus
         {
             if (ChainConfig.Instance.ChainId != GlobalConfig.DefaultChainId)
             {
-                _logger.Warn("Unexpected entering of next term becuase current chian is side chain.");
+                Logger.LogWarning("Unexpected entering of next term becuase current chian is side chain.");
                 return;
             }
 
             const ConsensusBehavior behavior = ConsensusBehavior.NextTerm;
 
-            _logger?.Trace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
-
-            if (_terminated)
-            {
-                return;
-            }
+            Logger.LogTrace($"Trying to enter DPoS Mining Process - {behavior.ToString()}.");
 
             if (!CurrentState.AbleToMine())
             {
@@ -716,7 +675,7 @@ namespace AElf.Node.Consensus
                         return;
                     }
 
-                    _logger?.Trace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
+                    Logger.LogTrace($"Mine - Entered DPoS Mining Process - {behavior.ToString()}.");
 
                     Term nextTerm;
                     if (_helper.TryToGetVictories(out var victories))
@@ -755,7 +714,7 @@ namespace AElf.Node.Consensus
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Error in {nameof(NextRound)}");
+                Logger.LogTrace(e, $"Error in {nameof(NextRound)}");
             }
             finally
             {
@@ -765,7 +724,7 @@ namespace AElf.Node.Consensus
                 }
 
                 MessageHub.Instance.Publish(new DPoSStateChanged(behavior, false));
-                _logger?.Trace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
+                Logger.LogTrace($"Mine - Leaving DPoS Mining Process - {behavior.ToString()}.");
             }
         }
 
@@ -780,7 +739,7 @@ namespace AElf.Node.Consensus
                     // Not record as announced before.
                     if (!_announcedElection)
                     {
-                        _logger?.Trace("This node announced election.");
+                        Logger.LogTrace("This node announced election.");
                         _announcedElection = true;
                     }
                 }
@@ -789,7 +748,7 @@ namespace AElf.Node.Consensus
                     // Record as announced before.
                     if (_announcedElection)
                     {
-                        _logger?.Trace("This node quit election.");
+                        Logger.LogTrace("This node quit election.");
                         _announcedElection = false;
                     }
                 }
@@ -832,12 +791,12 @@ namespace AElf.Node.Consensus
             {
                 ConsensusDisposable.Dispose();
                 ConsensusDisposable = null;
-                _logger?.Trace("Disposed previous consensus observables list. Will reload new consnesus events.");
+                Logger.LogTrace("Disposed previous consensus observables list. Will reload new consnesus events.");
             }
 
             if (!_minerFlag)
             {
-                _logger?.Trace("This node became a miner.");
+                Logger.LogTrace("This node became a miner.");
             }
 
             _minerFlag = true;
@@ -879,12 +838,12 @@ namespace AElf.Node.Consensus
             if (tx.Type == TransactionType.DposTransaction)
             {
                 MessageHub.Instance.Publish(new DPoSTransactionGenerated(tx.GetHash().ToHex()));
-                _logger?.Trace(
+                Logger.LogTrace(
                     $"A DPoS tx has been generated: {tx.GetHash().ToHex()} - {tx.MethodName} from {tx.From.GetFormatted()}.");
             }
 
             if (tx.From.Equals(_ownPubKey))
-                _logger?.Trace(
+                Logger.LogTrace(
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
 
@@ -893,8 +852,7 @@ namespace AElf.Node.Consensus
 
         public bool Shutdown()
         {
-            _terminated = true;
-            return _terminated;
+            return true;
         }
 
         private static bool MiningLocked()

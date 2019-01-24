@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -17,18 +16,20 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Type = System.Type;
 using AElf.Common;
+using Microsoft.Extensions.Options;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
-    [UseAutofacTestFramework]
-    public class ParallelTransactionExecutingServiceTest : TestKitBase
+    public class ParallelTransactionExecutingServiceTest : AElfAkkaTestKitBase
     {
         private MockSetup _mock;
+        private readonly IOptionsSnapshot<ExecutionOptions> _executionOptions;
 
-        public ParallelTransactionExecutingServiceTest(MockSetup mock) : base(new XunitAssertions())
+        public ParallelTransactionExecutingServiceTest() : base(new XunitAssertions())
         {
-            _mock = mock;
+            _mock = this._aelfKernelIntegratedTest.GetRequiredService<MockSetup>();
+            _executionOptions = _aelfKernelIntegratedTest.GetRequiredService<IOptionsSnapshot<ExecutionOptions>>();
         }
 
         [Fact]
@@ -59,7 +60,7 @@ namespace AElf.Kernel.Tests.Concurrency
             };
 
             var service = new NoFeeParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack, _executionOptions);
 
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, DateTime.UtcNow, CancellationToken.None);
 
@@ -124,7 +125,7 @@ namespace AElf.Kernel.Tests.Concurrency
             };
 
             var service = new NoFeeParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack, _executionOptions);
 
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, DateTime.UtcNow, CancellationToken.None);
 
@@ -175,7 +176,7 @@ namespace AElf.Kernel.Tests.Concurrency
                 return getInnerMostTrace(tr.InlineTraces.First());
             };
             var service = new NoFeeParallelTransactionExecutingService(_mock.ActorEnvironment,
-                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack);
+                new Grouper(_mock.ServicePack.ResourceDetectionService),_mock.ServicePack, _executionOptions);
             var traces = await service.ExecuteAsync(txs, _mock.ChainId1, DateTime.UtcNow, CancellationToken.None);
             Assert.NotEqual(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[0]).ExecutionStatus);
             Assert.Equal(ExecutionStatus.ExceededMaxCallDepth, getInnerMostTrace(traces[1]).ExecutionStatus);

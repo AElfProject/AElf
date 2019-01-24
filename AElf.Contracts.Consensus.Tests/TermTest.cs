@@ -7,16 +7,14 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
-using Xunit.Frameworks.Autofac;
+
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    [UseAutofacTestFramework]
     public class TermTest
     {
         private const int CandidatesCount = 18;
         private const int VotersCount = 100;
-        
         private readonly ContractsShim _contracts;
 
         private readonly List<ECKeyPair> _initialMiners = new List<ECKeyPair>();
@@ -29,7 +27,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             _contracts = new ContractsShim(mock, simpleExecutingService);
         }
-        
+
         private void InitialMiners()
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
@@ -68,10 +66,10 @@ namespace AElf.Contracts.Consensus.Tests
             // we have no choice but appoint some miners to do the initialization.
             InitialMiners();
             InitialTerm(_initialMiners[0]);
-            
+
             InitialCandidates();
             InitialVoters();
-            
+
             // Vote to candidates randomized
             foreach (var voter in _voters)
             {
@@ -83,12 +81,10 @@ namespace AElf.Contracts.Consensus.Tests
 
             // Get victories of first term of election, they are miners then.
             var victories = _contracts.GetCurrentVictories().Values;
-            
             // Next term.
             var nextTerm = victories.ToMiners().GenerateNewTerm(MiningInterval, 2, 2);
             _contracts.NextTerm(_candidates.First(c => c.PublicKey.ToHex() == victories[1]), nextTerm);
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
-            
             // Check the information of the last round of previous term.
             // All the initial miners have missed 1 time slot.
             var firstRound = _contracts.GetRoundInfo(1);
@@ -96,6 +92,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[initialMiner.PublicKey.ToHex()].MissedTimeSlots);
             }
+
             // And the one started the blockchain has produced one block.
             Assert.Equal((ulong) 1, firstRound.RealTimeMinersInfo[_initialMiners[0].PublicKey.ToHex()].MissedTimeSlots);
 
@@ -105,11 +102,12 @@ namespace AElf.Contracts.Consensus.Tests
             var secondRoundOfNewTerm = _contracts.GetRoundInfo(3);
             Assert.True(!secondRoundOfNewTerm.RealTimeMinersInfo.Keys.Except(victories).Any());
         }
-        
+
         private void InitialTerm(ECKeyPair starterKeyPair)
         {
             var initialTerm =
-                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(MiningInterval);
+                new Miners {PublicKeys = {_initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(
+                    MiningInterval);
             _contracts.InitialTerm(starterKeyPair, initialTerm);
         }
 

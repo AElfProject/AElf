@@ -6,7 +6,6 @@
     <PackageReference Include="Community.AspNetCore.JsonRpc" Version="1.11.4" />
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="NLog" Version="4.5.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
@@ -19,7 +18,7 @@
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <Target BeforeTargets="BeforeBuild" Name="Gen_proto">
-    <Exec Command="protoc --proto_path=./Data/Protobuf/Definitions --csharp_out=./Data/Protobuf --csharp_opt=file_extension=.g.cs ./Data/Protobuf/Definitions/messages.proto" />
+    <Exec Command="protoc --proto_path=../AElf.Types/Protobuf/Proto --csharp_out=./Data/Protobuf --csharp_opt=file_extension=.g.cs messages.proto" />
   </Target>
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>

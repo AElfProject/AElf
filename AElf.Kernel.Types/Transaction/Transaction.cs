@@ -1,32 +1,13 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
-using System.Threading;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Types;
 using Google.Protobuf;
-using Org.BouncyCastle.Math;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class Transaction
     {
-        private int _claimed;
-
-        public bool Claim()
-        {
-            var res = Interlocked.CompareExchange(ref _claimed, 1, 0);
-            return res == 0;
-        }
-
-        public bool Unclaim()
-        {
-            var res = Interlocked.CompareExchange(ref _claimed, 0, 1);
-            return res == 1;
-        }
-
         public Hash GetHash()
         {
             return Hash.FromRawBytes(GetSignatureData());
@@ -37,19 +18,9 @@ namespace AElf.Kernel
             return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
-        }
-
-        public int Size()
-        {
-            return CalculateSize();
-        }
-
         private byte[] GetSignatureData()
         {
-            Transaction txData = new Transaction
+            var txData = new Transaction
             {
                 From = From.Clone(),
                 To = To.Clone(),
@@ -58,13 +29,19 @@ namespace AElf.Kernel
             };
             if (Params.Length != 0)
                 txData.Params = Params;
-            if (Time != null && !Time.Equals(Timestamp.FromDateTime(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))))
+            if (Time != null &&
+                !Time.Equals(Timestamp.FromDateTime(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))))
                 txData.Time = Time;
-            if (Type == TransactionType.MsigTransaction) 
+            if (Type == TransactionType.MsigTransaction)
                 return txData.ToByteArray();
             txData.RefBlockNumber = RefBlockNumber;
             txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
+        }
+
+        public byte[] Serialize()
+        {
+            return this.ToByteArray();
         }
     }
 }

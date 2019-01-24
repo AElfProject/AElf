@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class MinersStore : KeyValueStoreBase, IMinersStore
+    public class MinersStore : KeyValueStoreBase<StateKeyValueDbContext>, IMinersStore
     {
-        public MinersStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.MinersPrefix)
+        public MinersStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.MinersPrefix)
         {
         }
     }

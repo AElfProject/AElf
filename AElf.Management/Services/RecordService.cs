@@ -1,32 +1,38 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Timers;
-using AElf.Configuration;
-using AElf.Configuration.Config.Management;
 using AElf.Management.Interfaces;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Management.Services
 {
-    public class RecordService : IRecordService
+    
+    //TODO: timer is not stable, we should use something like hangfire
+    public class RecordService : IRecordService, ISingletonDependency
     {
         private readonly IChainService _chainService;
         private readonly ITransactionService _transactionService;
         private readonly INodeService _nodeService;
         private readonly INetworkService _networkService;
+        private readonly ManagementOptions _managementOptions;
         private readonly Timer _timer;
 
-        private readonly ILogger _logger;
+        public ILogger<RecordService> Logger {get;set;}
 
-        public RecordService(IChainService chainService, ITransactionService transactionService, INodeService nodeService, INetworkService networkService)
+        public RecordService(IChainService chainService, ITransactionService transactionService, INodeService 
+        nodeService, INetworkService networkService,IOptionsSnapshot<ManagementOptions> options)
         {
-            _logger = LogManager.GetLogger("RecordService");
+            Logger= NullLogger<RecordService>.Instance;
 
             _chainService = chainService;
             _transactionService = transactionService;
             _nodeService = nodeService;
             _networkService = networkService;
-            _timer = new Timer(ManagementConfig.Instance.MonitoringInterval * 1000);
+            _managementOptions = options.Value;
+            _timer = new Timer(_managementOptions.MonitoringInterval * 1000);
             _timer.Elapsed += TimerOnElapsed;
         }
 
@@ -39,7 +45,7 @@ namespace AElf.Management.Services
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
             var time = DateTime.Now;
-            Parallel.ForEach(ServiceUrlConfig.Instance.ServiceUrls.Keys, chainId =>
+            Parallel.ForEach(_managementOptions.ServiceUrls.Keys, chainId =>
                 {
                     try
                     {
@@ -51,7 +57,7 @@ namespace AElf.Management.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(ex, "record data error.");
+                        Logger.LogError(ex, "record data error.");
                     }
                 }
             );

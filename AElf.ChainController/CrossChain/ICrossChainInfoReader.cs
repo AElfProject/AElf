@@ -10,7 +10,7 @@ namespace AElf.ChainController.CrossChain
         Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(ulong height);
         Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight);
         Task<ulong> GetParentChainCurrentHeightAsync();
-        Task<ulong> GetSideChainCurrentHeightAsync(Hash chainId);
+        Task<ulong> GetSideChainCurrentHeightAsync(int chainId);
         Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong height);
     }
 }

@@ -14,12 +14,9 @@ namespace AElf.ChainController
             _chainService = chainService;
         }
 
-        public async Task<IChainContext> GetChainContextAsync(Hash chainId = null)
+        public async Task<IChainContext> GetChainContextAsync(int chainId)
         {
-            if (chainId == null)
-            {
-                chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
-            }
+
             
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext

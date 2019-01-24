@@ -1,119 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Loader;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
-using AElf.Common.Module;
-using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Types.Common;
-using Autofac;
-using Easy.MessageHub;
-using NLog;
+﻿using AElf.ChainController.Rpc;
+using AElf.Execution;
+using AElf.Kernel.Consensus;
+using AElf.Miner;
+using AElf.Miner.Rpc;
+using AElf.Modularity;
+using AElf.Net.Rpc;
+using AElf.Network;
+using AElf.Node;
+using AElf.Runtime.CSharp;
+using AElf.RuntimeSetup;
+using AElf.SideChain.Creation;
+using AElf.Wallet.Rpc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Autofac;
+using Volo.Abp.Data;
+using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
 {
-    public class LauncherAElfModule:IAElfModule
+    [DependsOn(
+        typeof(RuntimeSetupAElfModule),
+        typeof(AbpAutofacModule),
+        typeof(AbpAspNetCoreMvcModule),
+        typeof(RpcChainControllerAElfModule),
+        typeof(ExecutionAElfModule),
+        typeof(MinerAElfModule),
+        typeof(NetRpcAElfModule),
+        typeof(NodeAElfModule),
+        typeof(CSharpRuntimeAElfModule),
+        typeof(SideChainAElfModule),
+        typeof(RpcWalletAElfModule),
+        typeof(MinerRpcAElfModule),
+        typeof(NetworkAElfModule),
+        typeof(ConsensusKernelAElfModule))]
+    public class LauncherAElfModule : AElfModule
     {
-        private static readonly ILogger Logger = LogManager.GetLogger("Launcher");
-        private readonly AutoResetEvent _closing = new AutoResetEvent(false);
-        private readonly Queue<TerminatedModuleEnum> _modules = new Queue<TerminatedModuleEnum>();
-        private TerminatedModuleEnum _prepareTerminatedModule;
-        private static System.Timers.Timer _timer;
+        public static IConfigurationRoot Configuration;
         
-        public void Init(ContainerBuilder builder)
+        public ILogger<LauncherAElfModule> Logger { get; set; }
+
+        public LauncherAElfModule()
         {
-            MessageHub.Instance.Subscribe<TerminatedModule>(OnModuleTerminated);
+            Logger = NullLogger<LauncherAElfModule>.Instance;
+        }
+
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.SetConfiguration(Configuration);
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var connectionStrings = context.ServiceProvider.GetService<IOptions<DbConnectionOptions>>();
             
-            _modules.Enqueue(TerminatedModuleEnum.Rpc);
-            _modules.Enqueue(TerminatedModuleEnum.TxPool);
-            _modules.Enqueue(TerminatedModuleEnum.Mining);
-            _modules.Enqueue(TerminatedModuleEnum.BlockSynchronizer);
-            _modules.Enqueue(TerminatedModuleEnum.BlockExecutor);
-            _modules.Enqueue(TerminatedModuleEnum.BlockRollback);
-
-            _timer = new System.Timers.Timer(ConsensusConfig.Instance.DPoSMiningInterval * 2);
-            _timer.AutoReset = false;
-            _timer.Elapsed += TimerOnElapsed;
-            
-            AssemblyLoadContext.Default.Unloading += DefaultOnUnloading;           
-            Console.CancelKeyPress += OnCancelKeyPress;
-
         }
 
-        private void DefaultOnUnloading(AssemblyLoadContext obj)
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
-            _closing.Set();
-            if (_modules.Count != 0)
-            {
-                PublishMessage();
-                _closing.WaitOne();
-            }
         }
 
-        private void TimerOnElapsed(object sender, ElapsedEventArgs e)
-        {
-            OnModuleTerminated(new TerminatedModule(_prepareTerminatedModule));
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
-            _closing.WaitOne();
-        }
-
-        private void OnCancelKeyPress(object sender, EventArgs args)
-        {
-            if (_modules.Count != 0)
-            {
-                PublishMessage();
-            }
-            else
-            {
-                _closing.Set();
-            }
-        }
-
-        private void OnModuleTerminated(TerminatedModule moduleTerminated)
-        {
-            Task.Run(() =>
-            {
-                _timer.Stop();
-                if (_prepareTerminatedModule == moduleTerminated.Module)
-                {
-                    _modules.Dequeue();
-                    Logger.Trace($"{_prepareTerminatedModule.ToString()} stopped.");
-                }
-                else
-                {
-                    throw new Exception("Termination error");
-                }
-
-                if (_modules.Count == 0)
-                {
-                    Logger.Trace("node will be closed after 5s...");
-                    for (var i = 0; i < 5; i++)
-                    {
-                        Logger.Trace($"{5 - i}");
-                        Thread.Sleep(1000);
-                    }
-
-                    Logger.Trace("node is closed.");
-                    _closing.Set();
-                }
-                else
-                {
-                    PublishMessage();
-                }
-            });
-        }
-
-        private void PublishMessage()
-        {
-            _prepareTerminatedModule = _modules.Peek();
-            Logger.Trace($"begin stop {_prepareTerminatedModule.ToString()}...");
-            MessageHub.Instance.Publish(new TerminationSignal(_prepareTerminatedModule));
-            
-            _timer.Start();
-        }
     }
 }

@@ -1,29 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.SmartContract;
+using AElf.Kernel.Tests.Concurrency.Scheduling;
+using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.TestBase;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
 using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
-    [UseAutofacTestFramework]
-    public class ChainFunctionMetadataTest
+    public sealed class ChainFunctionMetadataTest : AElfKernelTestBase
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        public ChainFunctionMetadataTest(ISmartContractRunnerContainer smartContractRunnerContainer,
-            IFunctionMetadataService functionMetadataService,
-            IFunctionMetadataManager functionMetadataManager)
+        public ChainFunctionMetadataTest()
         {
-            _smartContractRunnerContainer = smartContractRunnerContainer;
-            _functionMetadataService = functionMetadataService;
-            _functionMetadataManager = functionMetadataManager;
+            _smartContractRunnerContainer = GetRequiredService<ISmartContractRunnerContainer>();
+            _functionMetadataService = GetRequiredService<IFunctionMetadataService>();
+            _functionMetadataManager = GetRequiredService<IFunctionMetadataManager>();
         }
 
         [Fact]

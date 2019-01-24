@@ -11,6 +11,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Org.BouncyCastle.Bcpg;
 using Newtonsoft.Json.Linq;
 using Svc = AElf.ChainController.Rpc.ChainControllerRpcService;
 
@@ -137,7 +138,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<IMessage> GetContractAbi(this Svc s, Address address)
         {
-            return await s.SmartContractService.GetAbiAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), address);
+            return await s.SmartContractService.GetAbiAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(), address);
         }
 
         internal static async Task<Transaction> GetTransaction(this Svc s, Hash txId)
@@ -171,27 +172,37 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
+        internal static async Task<string> GetTransactionParameters(this Svc s, Transaction tx)
         {
+            int chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
+            Address address = tx.To;
+            IExecutive executive = null;
+            string output = String.Empty;
             try
             {
-                return await s.SmartContractService.GetInvokingParams(Hash.LoadBase58(ChainConfig.Instance.ChainId),tx);
+                executive = await s.SmartContractService.GetExecutiveAsync(address, chainId);
+                output =  executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
-            catch (Exception)
+            finally
             {
-                return new List<string>();
+                if (executive != null)
+                {
+                    await s.SmartContractService.PutExecutiveAsync(chainId, address, executive);    
+                }
             }
+
+            return output;
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)
         {
-            var chainContext = await s.ChainContextService.GetChainContextAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            var chainContext = await s.ChainContextService.GetChainContextAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             return chainContext.BlockHeight;
         }
 
         internal static async Task<Block> GetBlockAtHeight(this Svc s, ulong height)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             return (Block) await blockchain.GetBlockByHeightAsync(height);
         }
 
@@ -202,7 +213,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this Svc s, ulong height)
         {
-            return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId), height);
+            return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(), height);
         }
 
 //        internal static void SetBlockVolume(this Svc s, int minimal, int maximal)
@@ -218,7 +229,7 @@ namespace AElf.ChainController.Rpc
                 TransactionId = tx.GetHash()
             };
 
-            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             var chainContext = await s.ChainContextService.GetChainContextAsync(chainId);
             var txCtxt = new TransactionContext
             {
@@ -306,7 +317,7 @@ namespace AElf.ChainController.Rpc
         
         internal static async Task<Block> GetBlock(this Svc s, Hash blockHash)
         {
-            var blockchain = s.ChainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            var blockchain = s.ChainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             return (Block) await blockchain.GetBlockByHashAsync(blockHash);
         }
 

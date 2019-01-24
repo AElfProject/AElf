@@ -4,10 +4,11 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class GenesisBlockHashStore : KeyValueStoreBase, IGenesisBlockHashStore
+    //TODO: should store in the state of chain
+    public class GenesisBlockHashStore : KeyValueStoreBase<StateKeyValueDbContext>, IGenesisBlockHashStore
     {
-        public GenesisBlockHashStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.GenesisBlockHashPrefix)
+        public GenesisBlockHashStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.GenesisBlockHashPrefix)
         {
         }
     }

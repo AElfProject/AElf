@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Network;
 using AElf.Net.Rpc;
 using AElf.Node;
 using AElf.Node.AElfChain;
 using AElf.RPC;
-using Autofac;
-using IContainer = Autofac.IContainer;
 
 namespace AElf.Network.Sim.Node
 {
@@ -16,6 +13,7 @@ namespace AElf.Network.Sim.Node
     {
         static void Main(string[] args)
         {
+            /*
             NodeConfiguration confContext = new NodeConfiguration();
             confContext.WithRpc = true;
     
@@ -25,7 +23,6 @@ namespace AElf.Network.Sim.Node
             builder.RegisterModule(new NetRpcAutofacModule());
             builder.RegisterModule(new NodeAutofacModule());
             builder.RegisterModule(new NetworkAutofacModule());
-            builder.RegisterModule(new LoggerAutofacModule());
                 
             IContainer container = null;
             
@@ -70,7 +67,7 @@ namespace AElf.Network.Sim.Node
                 }
             }
 
-            Console.ReadKey();
+            Console.ReadKey();*/
         }
     }
 }

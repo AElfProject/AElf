@@ -6,6 +6,10 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
+using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 
 #pragma warning disable CS0169,CS0649
 

@@ -9,11 +9,11 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
 using Google.Protobuf;
-using NLog;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.TxMemPool
 {
-    public class TxRefBlockValidator : ITxRefBlockValidator
+    public class TxRefBlockValidator : ITxRefBlockValidator, ISingletonDependency
     {
         private IChainService _chainService;
         private IBlockChain _blockChain;
@@ -26,7 +26,7 @@ namespace AElf.Miner.TxMemPool
                 if (_blockChain == null)
                 {
                     _blockChain =
-                        _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                        _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 }
 
                 return _blockChain;
@@ -38,7 +38,7 @@ namespace AElf.Miner.TxMemPool
             try
             {
                 _chainService = chainService;
-                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain, LogManager.GetLogger(nameof(TxRefBlockValidator)));
+                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain);
             }
             catch (Exception e)
             {

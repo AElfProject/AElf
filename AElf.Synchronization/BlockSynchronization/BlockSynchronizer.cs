@@ -5,29 +5,26 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
 using AElf.Common.FSM;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
 using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
-    [LoggerName(nameof(BlockSynchronizer))]
+    // ReSharper disable InconsistentNaming
     public class BlockSynchronizer : IBlockSynchronizer
-    {
-        private bool _terminated;
-        
-        private readonly ILogger _logger;
+    {        
+        public ILogger<BlockSynchronizer> Logger {get;set;}
         
         private readonly IChainService _chainService;
         private readonly IBlockValidationService _blockValidationService;
@@ -52,25 +49,22 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private List<string> _currentMiners;
 
-        private Hash _chainId;
+        private int _chainId;
         
         private bool IsSwitching;
 
         public BlockSynchronizer(IChainService chainService, IBlockValidationService blockValidationService,
-            IBlockExecutor blockExecutor, IMinersManager minersManager, ILogger logger)
+            IBlockExecutor blockExecutor, IMinersManager minersManager)
         {
             _chainService = chainService;
             _blockValidationService = blockValidationService;
             _blockExecutor = blockExecutor;
             _minersManager = minersManager;
-            _logger = logger;
 
             _blockSet = new BlockSet();
             _stateFsm = new NodeStateFSM().Create();
 
-            _logger = LogManager.GetLogger(nameof(BlockSynchronizer));
-
-            _terminated = false;
+            Logger= NullLogger<BlockSynchronizer>.Instance;
 
             MessageHub.Instance.Subscribe<StateEvent>(e =>
             {
@@ -110,7 +104,7 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 if (inHeaders?.Headers == null || !inHeaders.Headers.Any())
                 {
-                    _logger?.Warn("Null headers or header list is empty.");
+                    Logger.LogWarning("Null headers or header list is empty.");
                     return;
                 }
 
@@ -144,22 +138,13 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 AddMinedBlock(inBlock.Block);
             });
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockSynchronizer)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockSynchronizer));
-                }
-            });
             
             MessageHub.Instance.Subscribe<BlockReceived>(async inBlock =>
             {
                 if (inBlock.Block == null)
                     return;
                     
-                _logger?.Debug($"Handling {inBlock.Block} - state {CurrentState}");
+                Logger.LogDebug($"Handling {inBlock.Block} - state {CurrentState}");
             
                 CacheBlock(inBlock.Block);
             
@@ -175,7 +160,7 @@ namespace AElf.Synchronization.BlockSynchronization
             // Get ourselves into the Reverting state 
             MessageHub.Instance.Publish(StateEvent.LongerChainDetected);
             
-            _logger?.Warn("The chain is about to be re-synced from the lib.");
+            Logger.LogWarning("The chain is about to be re-synced from the lib.");
 
             try
             {
@@ -195,12 +180,12 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
                 else
                 {
-                    _logger?.Warn("No LIB found...");
+                    Logger.LogWarning("No LIB found...");
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while handling minority fork situation.");
+                Logger.LogError(e, "Error while handling minority fork situation.");
             }
             
             MessageHub.Instance.Publish(StateEvent.RollbackFinished);
@@ -219,7 +204,7 @@ namespace AElf.Synchronization.BlockSynchronization
             
             try
             {
-                _chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+                _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
                 Miners miners = _minersManager.GetMiners(0).Result;
@@ -229,7 +214,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var miner in miners.PublicKeys)
                 {
                     _currentMiners.Add(miner);
-                    _logger?.Debug($"Added a miner {miner}");
+                    Logger.LogDebug($"Added a miner {miner}");
                 }
             
                 var height = _blockChain.GetCurrentBlockHeightAsync().Result;
@@ -243,7 +228,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while initializing block sync.");
+                Logger.LogError(e, "Error while initializing block sync.");
             }
         }
 
@@ -252,7 +237,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (e is LibChangedArgs libChangedArgs)
             {
                 CurrentLib = libChangedArgs.NewLib;
-                _logger?.Debug($"New lib found: {{ id: {CurrentLib.BlockHash}, height: {CurrentLib.Index} }}");
+                Logger.LogDebug($"New lib found: {{ id: {CurrentLib.BlockHash}, height: {CurrentLib.Index} }}");
                 
                 MessageHub.Instance.Publish(new NewLibFound
                 {
@@ -276,13 +261,13 @@ namespace AElf.Synchronization.BlockSynchronization
 
             if (_currentBlock != null)
             {
-                _logger?.Debug("Current not null, returning");
+                Logger.LogDebug("Current not null, returning");
                 return;
             }
 
             if (IsSwitching)
             {
-                _logger?.Debug("Switching...");
+                Logger.LogDebug("Switching...");
                 return;
             }
 
@@ -293,7 +278,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
                 
                 if (_blockCache.Count > 1)
-                    _logger?.Debug($"Info log cache count is high {_blockCache.Count}.");
+                    Logger.LogDebug($"Info log cache count is high {_blockCache.Count}.");
 
                 // execute the block with the lowest index
                 next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
@@ -303,7 +288,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (next.Index > HeadBlock.Index + 1)
                 {
-                    _logger.Warn($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
+                    Logger.LogWarning($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
                     return;
                 }
 
@@ -311,7 +296,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 _currentBlock = next;
                 
-                _logger?.Debug($"Removed from cache : {next}");
+                Logger.LogDebug($"Removed from cache : {next}");
             }
             
             await TryPushBlock(next);
@@ -338,8 +323,6 @@ namespace AElf.Synchronization.BlockSynchronization
         /// </summary>
         public async Task TryPushBlock(IBlock block)
         {
-            if (_terminated)
-                return;
             
             if (block == null)
                 throw new ArgumentNullException(nameof(block), "The block cannot be null");
@@ -353,14 +336,14 @@ namespace AElf.Synchronization.BlockSynchronization
             
                 if (block.Index > HeadBlock.Index + 1)
                 {
-                    _logger?.Warn($"Future block {block}, current height {HeadBlock.Index} ");
+                    Logger.LogWarning($"Future block {block}, current height {HeadBlock.Index} ");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
                 
                 if (_blockSet.IsBlockReceived(block))
                 {
-                    _logger?.Warn($"Block already known {block}, current height {HeadBlock.Index} ");
+                    Logger.LogWarning($"Block already known {block}, current height {HeadBlock.Index} ");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
@@ -371,7 +354,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 }
                 catch (UnlinkableBlockException)
                 {
-                    _logger?.Warn($"Block unlinkable {block}");
+                    Logger.LogWarning($"Block unlinkable {block}");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     // todo event on unlinkable
                     MessageHub.Instance.Publish(new BlockRejected(block));
@@ -380,7 +363,7 @@ namespace AElf.Synchronization.BlockSynchronization
             
                 MessageHub.Instance.Publish(new BlockAccepted(block));
 
-                _logger?.Trace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}, blockset head {_blockSet.CurrentHead.BlockHash}");
+                Logger.LogTrace($"Pushed {block}, current state {CurrentState}, current head {HeadBlock}, blockset head {_blockSet.CurrentHead.BlockHash}");
 
                 if (HeadBlock.BlockHash != _blockSet.CurrentHead.BlockHash)
                 {
@@ -399,13 +382,13 @@ namespace AElf.Synchronization.BlockSynchronization
                     // not really invalid, just to go back to catching
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                     
-                    _logger?.Debug($"Block {block} has been linked.");
+                    Logger.LogDebug($"Block {block} has been linked.");
                     MessageHub.Instance.Publish(new BlockLinked(block));
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while handling a block.");
+                Logger.LogError(e, "Error while handling a block.");
             }
         }
 
@@ -418,7 +401,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
 
             var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
-            _logger?.Info($"Block validation result {block} - {blockValidationResult}");
+            Logger.LogInformation($"Block validation result {block} - {blockValidationResult}");
 
             if (blockValidationResult.IsSuccess())
             {
@@ -428,7 +411,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             else
             {
-                _logger?.Warn( $"Invalid block ({blockValidationResult}) {block}");
+                Logger.LogWarning( $"Invalid block ({blockValidationResult}) {block}");
                 MessageHub.Instance.Publish(StateEvent.InvalidBlock);
                 MessageHub.Instance.Publish(new BlockRejected(block));
                 MessageHub.Instance.Publish(new LockMining(false));
@@ -446,7 +429,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
             var executionResult = await _blockExecutor.ExecuteBlock(block);
 
-            _logger?.Trace($"Execution result of block {block} - {executionResult}");
+            Logger.LogTrace($"Execution result of block {block} - {executionResult}");
             
             if (executionResult == BlockExecutionResult.AlreadyAppended)
             {
@@ -506,11 +489,11 @@ namespace AElf.Synchronization.BlockSynchronization
             {
                 // We should come from either Catching or Caught
                 if (CurrentState != NodeState.BlockValidating)
-                    _logger?.Warn("Unexpected state...");
+                    Logger.LogWarning("Unexpected state...");
 
                 if (HeadBlock == _blockSet.CurrentHead)
                 {
-                    _logger?.Warn($"Current head already the same as block set: {HeadBlock}.");
+                    Logger.LogWarning($"Current head already the same as block set: {HeadBlock}.");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
                     return;
                 }
@@ -525,7 +508,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 List<BlockState> toexec = _blockSet.GetBranch(_blockSet.CurrentHead, HeadBlock);
                 toexec = toexec.OrderBy(b => b.Index).ToList();
                 
-                _logger?.Debug($"Attempting to switch fork: {HeadBlock} to {_blockSet.CurrentHead}.");
+                Logger.LogDebug($"Attempting to switch fork: {HeadBlock} to {_blockSet.CurrentHead}.");
             
                 await _blockChain.RollbackToHeight(toexec.First().Index);
 
@@ -533,7 +516,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 foreach (var block in toexec.Skip(1))
                 {
                     var executionResult = await _blockExecutor.ExecuteBlock(block.GetClonedBlock());
-                    _logger?.Trace($"Execution of {block} : {executionResult}");
+                    Logger.LogTrace($"Execution of {block} : {executionResult}");
                 }
 
                 HeadBlock = _blockSet.CurrentHead;
@@ -547,7 +530,7 @@ namespace AElf.Synchronization.BlockSynchronization
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Error while trying to switch chain.");
+                Logger.LogError(e, "Error while trying to switch chain.");
             }
         }
 
@@ -566,16 +549,16 @@ namespace AElf.Synchronization.BlockSynchronization
                 if (HeadBlock == _blockSet.CurrentHead.PreviousState)
                 {
                     HeadBlock = _blockSet.CurrentHead;
-                    _logger?.Trace($"Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
+                    Logger.LogTrace($"Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
                 }
                 else
                 {
-                    _logger?.Warn($"Mined block did not extend current chain ! Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
+                    Logger.LogWarning($"Mined block did not extend current chain ! Pushed {block}, current head {HeadBlock}, current state {CurrentState}");
                 }
             }
             catch (UnlinkableBlockException)
             {
-                _logger?.Warn($"Block unlinkable {block}");
+                Logger.LogWarning($"Block unlinkable {block}");
             }
         }
 
@@ -615,7 +598,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         private void IncorrectStateLog(string methodName)
         {
-            _logger?.Trace($"Incorrect fsm state: {_stateFsm.CurrentState.ToString()} in method {methodName}");
+            Logger.LogTrace($"Incorrect fsm state: {_stateFsm.CurrentState.ToString()} in method {methodName}");
         }
     }
 }

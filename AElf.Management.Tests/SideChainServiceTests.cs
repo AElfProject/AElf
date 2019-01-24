@@ -1,13 +1,21 @@
 ﻿using System.Threading.Tasks;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Services;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace AElf.Management.Tests
 {
-    public class SideChainServiceTests
+    public class SideChainServiceTests : ManagementTestBase
     {
         private string _chainId = "kPBx"; //Guid.NewGuid().ToString("N");
+        private readonly ISideChainService _sideChainService;
+
+        public SideChainServiceTests()
+        {
+            _sideChainService = GetRequiredService<ISideChainService>();
+        }
 
         [Fact(Skip = "require aws account")]
         //[Fact]
@@ -25,16 +33,14 @@ namespace AElf.Management.Tests
             arg.LauncherArg = new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = true;
 
-            var service = new SideChainService();
-            await service.Deploy(arg);
+            await _sideChainService.Deploy(arg);
         }
 
         [Fact(Skip = "require aws account")]
         //[Fact]
         public async Task RemoveTest()
         {
-            var service = new SideChainService();
-            await service.Remove(_chainId);
+            await _sideChainService.Remove(_chainId);
         }
     }
 }

@@ -10,16 +10,18 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Types;
+using Volo.Abp.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.Tests
 {
     // ReSharper disable UnusedMember.Global
-    public class ContractsShim
+    public class ContractsShim : ITransientDependency
     {
         private readonly MockSetup _mock;
 
-        private readonly SimpleExecutingService _executingService;
+        private readonly IExecutingService _executingService;
 
         public TransactionContext TransactionContext { get; private set; }
 
@@ -31,7 +33,7 @@ namespace AElf.Contracts.Consensus.Tests
         private Address TokenContractAddress { get; }
         public Address DividendsContractAddress { get; }
 
-        public ContractsShim(MockSetup mock, SimpleExecutingService executingService)
+        public ContractsShim(MockSetup mock, IExecutingService executingService)
         {
             _mock = mock;
             _executingService = executingService;

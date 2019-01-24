@@ -8,7 +8,8 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
 using Grpc.Core;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Miner.Rpc.Server
 {
@@ -20,14 +21,14 @@ namespace AElf.Miner.Rpc.Server
         private SslServerCredentials _sslServerCredentials;
         private readonly ParentChainBlockInfoRpcServer _parentChainBlockInfoRpcServer;
         private readonly SideChainBlockInfoRpcServer _sideChainBlockInfoRpcServer;
-        private readonly ILogger _logger;
+        public ILogger<ServerManager> Logger {get;set;}
 
         public ServerManager(ParentChainBlockInfoRpcServer parentChainBlockInfoRpcServer, 
-            SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer, ILogger logger)
+            SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer)
         {
             _parentChainBlockInfoRpcServer = parentChainBlockInfoRpcServer;
             _sideChainBlockInfoRpcServer = sideChainBlockInfoRpcServer;
-            _logger = logger;
+            Logger = NullLogger<ServerManager>.Instance;
             GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 
@@ -107,11 +108,11 @@ namespace AElf.Miner.Rpc.Server
                 await StopSideChainServer();
                 _sideChainServer = CreateNewSideChainServer();
                 _sideChainServer.Start();
-                _logger.Debug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+                Logger.LogDebug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while start sidechain server.");
+                Logger.LogError(e, "Exception while start sidechain server.");
                 throw;
             }
             
@@ -145,11 +146,11 @@ namespace AElf.Miner.Rpc.Server
                 await StopParentChainServer();
                 _parentChainServer = CreateNewParentChainServer();
                 _parentChainServer.Start();
-                _logger.Debug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
+                Logger.LogDebug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while start parent chain server.");
+                Logger.LogError(e, "Exception while start parent chain server.");
                 throw;
             }
             
@@ -185,7 +186,7 @@ namespace AElf.Miner.Rpc.Server
             }
             catch (Exception e)
             {
-                _logger.Error(e, "Exception while init ServerManager.");
+                Logger.LogError(e, "Exception while init ServerManager.");
                 throw;
             }
             

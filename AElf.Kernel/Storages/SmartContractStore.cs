@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class SmartContractStore : KeyValueStoreBase, ISmartContractStore
+    public class SmartContractStore : KeyValueStoreBase<StateKeyValueDbContext>, ISmartContractStore
     {
-        public SmartContractStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.SmartContractPrefix)
+        public SmartContractStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
+            : base(byteSerializer, keyValueDbContext, GlobalConfig.SmartContractPrefix)
         {
         }
     }
