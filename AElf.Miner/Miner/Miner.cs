@@ -52,7 +52,7 @@ namespace AElf.Miner.Miner
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
              ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IStateManager stateManager)
+            IBlockValidationService blockValidationService, IStateManager stateManager, TransactionFilter transactionFilter)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -66,6 +66,7 @@ namespace AElf.Miner.Miner
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
+            _txFilter = transactionFilter;
         }
         
         /// <summary>
@@ -73,7 +74,6 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _txFilter = new TransactionFilter();
             _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             _blockGenerator = new BlockGenerator(_chainService, Config.ChainId);

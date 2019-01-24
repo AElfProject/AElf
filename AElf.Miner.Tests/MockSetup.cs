@@ -56,12 +56,14 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
+        private readonly TransactionFilter _transactionFilter;
 
         public MockSetup(IStateManager stateManager, ITxRefBlockValidator refBlockValidator,
             IBlockManager blockManager, ISmartContractManager smartContractManager,
             ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
             ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
-            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
+            TransactionFilter transactionFilter)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -76,6 +78,7 @@ namespace AElf.Miner.Tests
             _transactionManager = transactionManager;
             _stateManager = stateManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _transactionFilter = transactionFilter;
             Initialize();
         }
 
@@ -139,7 +142,7 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager);
+                MockBlockValidationService().Object, _stateManager,_transactionFilter);
 
             return miner;
         }

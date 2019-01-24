@@ -178,7 +178,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var chain = await _mock.CreateChain();
             var minerconfig = _mock.GetMinerConfig(chain.Id);
 
-            NodeConfig.Instance.NodeAccount = minerAddress.GetFormatted();
             NodeConfig.Instance.ECKeyPair = minerKeypair;
             
             var txHub = _mock.CreateAndInitTxHub();
@@ -212,7 +211,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
         {
             var chain = await _mock.CreateChain();
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
-            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             

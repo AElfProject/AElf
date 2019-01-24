@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account;
@@ -34,6 +36,12 @@ namespace AElf.OS.Account
         public async Task<byte[]> GetPublicKey()
         {
             return (await GetAccountKeyPair()).PublicKey;
+        }
+
+        public async Task<Address> GetAccount()
+        {
+            var publicKey = (await GetAccountKeyPair()).PublicKey;
+            return Address.FromPublicKey(publicKey);
         }
 
         private async Task<ECKeyPair> GetAccountKeyPair()

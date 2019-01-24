@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using AElf.Common.Application;
+using AElf.Configuration;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;
@@ -46,6 +47,8 @@ namespace AElf.OS
                     Console.WriteLine("Load keystore failed.");
                     Environment.Exit(-1);
                 }
+
+                NodeConfig.Instance.ECKeyPair = nodeKey;
             }
             catch (Exception e)
             {

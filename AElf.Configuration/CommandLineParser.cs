@@ -67,11 +67,6 @@ namespace AElf.Configuration
                 NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             }
 
-            if (!string.IsNullOrWhiteSpace(opts.NodeAccount))
-            {
-                NodeConfig.Instance.NodeAccount = opts.NodeAccount;
-            }
-
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);
         }
     }
