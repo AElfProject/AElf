@@ -147,6 +147,12 @@ namespace AElf.Types.CSharp
             {
                 if (ObjectHandlers.TryGetValue(type, out var parser))
                 {
+                    if (type != typeof(bool))
+                    {
+                        // Put all into double quote except boolean type
+                        return o => $@"""{parser(o)}""";
+                    }
+
                     return parser;
                 }
             }
