@@ -19,32 +19,32 @@ namespace AElf.OS.Account
             _accountOptions = options.Value;
         }
 
-        public async Task<byte[]> Sign(byte[] data)
+        public async Task<byte[]> SignAsync(byte[] data)
         {
             var signer = new ECSigner();
-            var signature = signer.Sign(await GetAccountKeyPair(), data);
+            var signature = signer.Sign(await GetAccountKeyPairAsync(), data);
 
             return signature.SigBytes;
         }
 
-        public async Task<bool> VerifySignature(byte[] signature, byte[] data)
+        public async Task<bool> VerifySignatureAsync(byte[] signature, byte[] data)
         {
-            var publicKey = (await GetAccountKeyPair()).PublicKey;
+            var publicKey = (await GetAccountKeyPairAsync()).PublicKey;
             return CryptoHelpers.Verify(signature, data, publicKey);
         }
 
-        public async Task<byte[]> GetPublicKey()
+        public async Task<byte[]> GetPublicKeyAsync()
         {
-            return (await GetAccountKeyPair()).PublicKey;
+            return (await GetAccountKeyPairAsync()).PublicKey;
         }
 
-        public async Task<Address> GetAccount()
+        public async Task<Address> GetAccountAsync()
         {
-            var publicKey = (await GetAccountKeyPair()).PublicKey;
+            var publicKey = (await GetAccountKeyPairAsync()).PublicKey;
             return Address.FromPublicKey(publicKey);
         }
 
-        private async Task<ECKeyPair> GetAccountKeyPair()
+        private async Task<ECKeyPair> GetAccountKeyPairAsync()
         {
             var accountKeyPair = _keyStore.GetAccountKeyPair(_accountOptions.NodeAccount);
             if (accountKeyPair == null)

@@ -5,9 +5,9 @@ namespace AElf.Kernel.Account
 {
     public interface IAccountService
     {
-        Task<byte[]> Sign(byte[] data);
-        Task<bool> VerifySignature(byte[] signature, byte[] data);
-        Task<byte[]> GetPublicKey();
-        Task<Address> GetAccount();
+        Task<byte[]> SignAsync(byte[] data);
+        Task<bool> VerifySignatureAsync(byte[] signature, byte[] data);
+        Task<byte[]> GetPublicKeyAsync();
+        Task<Address> GetAccountAsync();
     }
 }

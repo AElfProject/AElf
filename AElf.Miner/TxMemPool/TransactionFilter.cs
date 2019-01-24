@@ -253,7 +253,7 @@ namespace AElf.Miner.TxMemPool
 
         public void Execute(List<Transaction> txs)
         {
-            var account = _accountService.GetAccount().Result;
+            var account = _accountService.GetAccountAsync().Result;
             var filterList = _txFilter.GetInvocationList();
             foreach (var @delegate in filterList)
             {

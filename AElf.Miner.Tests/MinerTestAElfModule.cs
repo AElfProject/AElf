@@ -33,7 +33,7 @@ namespace AElf.Miner.Tests
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddTransient<IAccountService>(o => Mock.Of<IAccountService>(
-                c => c.GetAccount()== Task.FromResult(Address.FromString("AELF_Test"))
+                c => c.GetAccountAsync()== Task.FromResult(Address.FromString("AELF_Test"))
                      ));
         }
 
