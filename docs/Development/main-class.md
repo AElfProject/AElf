@@ -46,8 +46,13 @@ package AElf.Kernel{
     package AElf.Kernel.SmartContracts.Abstractions{
         interface IConsensusSmartContract{
             byte[] GetBlockHeaderConsensusData()
+            byte[] GetNextMiningTime()
+            byte[] ValidateBlockHeader(byte[] blockHeader)
+            byte[] GetGeneratedTransactions()
         }
-        interface IAccountSmartContract
+        interface IAccountSmartContract{
+            bool CheckTransactionAuthorized(byte[] transaction)
+        }
         interface IGenesisSmartContract
     }
     interface IBlockchainService{
