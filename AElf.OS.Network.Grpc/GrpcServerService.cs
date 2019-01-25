@@ -119,7 +119,7 @@ namespace AElf.OS.Network.Grpc
             Block block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
             byte[] s = block.ToByteArray();
             
-            return Task.FromResult(new BlockReply { Block = ByteString.CopyFrom(s)});
+            return Task.FromResult(new BlockReply { Block = block });
         }
     }
 }

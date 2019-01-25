@@ -3,32 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Temp;
-using AElf.Synchronization.Tests;
 using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp.EventBus.Local;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AElf.OS.Tests.Network
 {
-    public class GrpcNetworkManagerTests
+    public class GrpcNetworkConnectionTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
-
-        private GrpcNetworkManager BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
+        private GrpcNetworkManager BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null)
         {
             var kp1 = new KeyPairGenerator().Generate();
             
@@ -59,30 +49,20 @@ namespace AElf.OS.Tests.Network
                     .Returns<object>(t => Task.CompletedTask)
                     .Callback<object>(m => eventCallBack(m));
             }
-
-            var mockBlockService = new Mock<IBlockService>();
-            if (blockList != null)
-            {
-                mockBlockService.Setup(bs => bs.GetBlockAsync(It.IsAny<Hash>()))
-                    .Returns<Hash>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
-            }
             
-            GrpcNetworkManager manager1 = new GrpcNetworkManager(mock.Object, accountService.Object, mockBlockService.Object, mockLocalEventBus.Object);
+            GrpcNetworkManager manager1 = new GrpcNetworkManager(mock.Object, accountService.Object, null, mockLocalEventBus.Object);
 
             return manager1;
         }
-
+                
         [Fact]
-        private async Task RequestBlockTest()
+        public async Task Basic_Connection_Test()
         {
-            var genesis = ChainGenerationHelpers.GetGenesisBlock();
-
-            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 },
-            (object o) =>
-            {
-                _testOutputHelper.WriteLine("Announced");
-            }, 
-            new List<Block> { (Block) genesis });
+            // setup 2 peers
+            
+            var m1 = BuildNetManager(new NetworkOptions {
+                ListeningPort = 6800 
+            });
             
             var m2 = BuildNetManager(new NetworkOptions
             {
@@ -92,33 +72,60 @@ namespace AElf.OS.Tests.Network
             
             await m1.Start();
             await m2.Start();
+            
+            var p = m2.GetPeer("127.0.0.1:6800");
 
-            IBlock b = await m2.GetBlockByHash(genesis.GetHash());
+            Assert.True(!string.IsNullOrWhiteSpace(p));
 
-            Assert.NotNull(b);
+            await m1.Stop();
+            await m2.Stop();
         }
         
         [Fact]
-        private async Task EventTest()
+        public async Task GetPeers_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
-                
-            Action<object> eventCallbackAction = (object eventData) =>
+            var m1 = BuildNetManager(new NetworkOptions
             {
-                try
-                {
-                    if (eventData is AnnoucementReceivedEventData data)
-                    {
-                        receivedEventDatas.Add(data);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _testOutputHelper.WriteLine(e.ToString());
-                }
-            };
-                
-            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, eventCallbackAction);
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+
+            var m3 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800", "127.0.0.1:6801"},
+                ListeningPort = 6802
+            });
+            
+            await m1.Start();
+            await m2.Start();
+            await m3.Start();
+
+            var peers = m3.GetPeers();
+
+            Assert.True(peers.Count == 2);
+            
+            Assert.True(peers.Contains("127.0.0.1:6800"));
+            Assert.True(peers.Contains("127.0.0.1:6801"));
+            
+            await m1.Stop();
+            await m2.Stop();
+            await m3.Stop();
+        }
+        
+        [Fact]
+        public async Task RemovePeer_Test()
+        {
+            // setup 2 peers
+            
+            var m1 = BuildNetManager(new NetworkOptions
+            {
+                ListeningPort = 6800 
+            });
             
             var m2 = BuildNetManager(new NetworkOptions
             {
@@ -129,15 +136,17 @@ namespace AElf.OS.Tests.Network
             await m1.Start();
             await m2.Start();
             
-            var genesis = ChainGenerationHelpers.GetGenesisBlock();
+            var p = m2.GetPeer("127.0.0.1:6800");
 
-            await m2.BroadcastAnnounce(genesis);
+            Assert.True(!string.IsNullOrWhiteSpace(p));
+
+            await m2.RemovePeer("127.0.0.1:6800");
+            var p2 = m2.GetPeer("127.0.0.1:6800");
             
+            Assert.True(string.IsNullOrWhiteSpace(p2));
+
             await m1.Stop();
             await m2.Stop();
-            
-            Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().);
         }
     }
 }

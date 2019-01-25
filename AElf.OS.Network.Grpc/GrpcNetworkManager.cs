@@ -5,8 +5,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
@@ -16,7 +14,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
-
 
 namespace AElf.OS.Network.Grpc
 {
@@ -55,8 +52,6 @@ namespace AElf.OS.Network.Grpc
         
         public async Task Start()
         {
-            await _localEventBus.PublishAsync(new AnnouncementEventData());
-                
             // todo inject block service
             var p = new GrpcServerService(Logger, this, _blockService, _localEventBus);
             
@@ -159,10 +154,8 @@ namespace AElf.OS.Network.Grpc
 
                     BlockReply block = await p.RequestBlockAsync(new BlockRequest { Id = hash.Value });
 
-                    var b = Block.Parser.ParseFrom(block.Block);
-
-                    if (b != null)
-                        return b;
+                    if (block.Block != null)
+                        return block.Block;
                 }
                 catch (Exception e)
                 {

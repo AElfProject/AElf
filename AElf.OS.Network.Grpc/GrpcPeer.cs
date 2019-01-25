@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task AnnounceAsync(Announcement an)
         {
-            throw new NotImplementedException();
+            await _client.AnnounceAsync(an);
         }
     }
 }
