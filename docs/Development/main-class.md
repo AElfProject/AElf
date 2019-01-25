@@ -94,7 +94,6 @@ package AElf.Kernel{
     IBlockHeaderManager <|-- BlockHeaderManager
 
     BlockService --> IBlockHeaderManager
-    interface IContractReader
 
     interface IMinerService{
         Block Mine()
@@ -143,8 +142,6 @@ package AElf.Kernel.Types{
 
 package AElf.Kernel.Runtimes.CSharp{
     ISmartContractRuntime <|-- CSharpSmartContractRuntime
-    class ContractReader
-    IContractReader <|-- ContractReader
 }
 
 package AElf.Kernel.Runtimes.NodeJS{
@@ -213,6 +210,10 @@ package AElf.OS.Networks.Grpc{
     GrpcNetworkManager --> GrpcServer
 }
 
+package AElf.CrossChain {
+    interface ISideChainSmartContract
+}
+
 package AElf.CrossChain.Grpc{
 
     interface ICrossChainService{
@@ -251,22 +252,28 @@ package AElf.CrossChain.Grpc{
     class CrossChainTransactionValidator 
     ICrossChainTransactionValidator <|-- CrossChainTransactionValidator
     
-    ParentChainBlockInfoServer --> IContractReader
+    ParentChainBlockInfoServer --> SideChainSmartContractProxy
+    SideChainSmartContractProxy --|> ISideChainSmartContract
+    SideChainSmartContractProxy --> ISmartContractRuntime
 
 }
 
 package AElf.Consensus.DPoS {
     class DPoSManager
     class DPoSInfoServer
-    DPoSInfoServer --> IContractReader
+    DPoSInfoServer --> DPoSConsensusSmartContractProxy
     IConsensusManager <|--  DPoSManager
+    DPoSConsensusSmartContractProxy --|> IConsensusSmartContract
+    DPoSConsensusSmartContractProxy ---> ISmartContractRuntime
 }
 
 package AElf.Consensus.PoW {
     class PoWManager
     class PoWInfoServer
-    PoWManager --> IContractReader
+    PoWManager --> PoWConsensusSmartContractProxy
     IConsensusManager <|-- PoWManager
+    PoWConsensusSmartContractProxy --|> IConsensusSmartContract
+    PoWConsensusSmartContractProxy ---> ISmartContractRuntime
 }
 @enduml
 
