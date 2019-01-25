@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Abp.Events.Bus;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -16,12 +17,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
+
 namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkManager : INetworkManager, IPeerAuthentificator, ISingletonDependency
     {
         private readonly IAccountService _accountService;
         private readonly IBlockService _blockService;
+        
+        private readonly IEventBus _eventBus;
+        
         public ILogger<GrpcNetworkManager> Logger { get; set; }
                 
         private readonly NetworkOptions _networkOptions;
@@ -36,6 +41,8 @@ namespace AElf.OS.Network.Grpc
             _accountService = accountService;
             _blockService = blockService;
             Logger = NullLogger<GrpcNetworkManager>.Instance;
+            
+            _eventBus = NullEventBus.Instance;
             
             _authenticatedPeers = new List<GrpcPeer>();
             
@@ -68,7 +75,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        private async Task Dial(string address)
+        private async Task<bool> Dial(string address)
         {
             try
             {
@@ -85,10 +92,13 @@ namespace AElf.OS.Network.Grpc
                 _authenticatedPeers.Add(new GrpcPeer(channel, client, address));
                         
                 Logger.LogTrace($"Connected to {address}.");
+
+                return true;
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error while connection to {address}.");
+                return false;
             }
         }
 
@@ -143,9 +153,9 @@ namespace AElf.OS.Network.Grpc
             return Block.Parser.ParseFrom(block.Block);
         }
 
-        public void AddPeer(string address)
+        public async Task<bool> AddPeer(string address)
         {
-            // todo dial
+            return await Dial(address);
         }
 
         public Task RemovePeer(string address)

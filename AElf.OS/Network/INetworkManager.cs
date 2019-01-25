@@ -7,10 +7,13 @@ namespace AElf.OS.Network
 {
     public interface INetworkManager
     {
-        void AddPeer(string address);
+        Task<bool> AddPeer(string address);
         Task RemovePeer(string address);
         List<string> GetPeers();
         
         Task<IBlock> GetBlockByHash(Hash hash);
+        
+        Task Start();
+        Task Stop();
     }
 }

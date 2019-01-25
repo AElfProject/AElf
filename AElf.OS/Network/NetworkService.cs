@@ -16,14 +16,14 @@ namespace AElf.OS.Network
             _networkManager = networkManager;
         }
         
-        public Task Start()
+        public async Task Start()
         {
-            throw new NotImplementedException();
+            await _networkManager.Start();
         }
 
-        public Task Stop()
+        public async Task Stop()
         {
-            throw new NotImplementedException();
+            await _networkManager.Stop();
         }
 
         public void AddPeer(string address)

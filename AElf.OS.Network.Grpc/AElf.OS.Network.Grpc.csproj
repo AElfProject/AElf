@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Abp" Version="4.1.0" />
       <PackageReference Include="Google.Protobuf" Version="3.6.1" />
       <PackageReference Include="Grpc" Version="1.18.0" />
       <PackageReference Include="Grpc.Tools" Version="1.18.0" />
@@ -20,6 +21,12 @@
 
     <ItemGroup>
       <Folder Include="Generated" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Volo.Abp.EventBus, Version=0.11.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\..\..\.nuget\packages\volo.abp.eventbus\0.11.0\lib\netstandard2.0\Volo.Abp.EventBus.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
