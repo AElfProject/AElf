@@ -49,7 +49,6 @@ namespace AElf.Runtime.CSharp
 
         public void SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
-            Console.WriteLine("setting StateProviderFactory");
             _methodInfos[nameof(SetStateProviderFactory)].Invoke(_instance, new object[] {stateProviderFactory});
         }
 
