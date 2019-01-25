@@ -108,8 +108,10 @@ package AElf.Kernel{
     interface ICrossChainTransactionGenerator
     interface ICrossChainTransactionValidator
 
-    IMinerService --> IBlockchainService
-    IMinerService --> ICrossChainTransactionGenerator
+    MinerService --|> IMinerService
+
+    MinerService --> IBlockchainService
+    MinerService --> ICrossChainTransactionGenerator
     
     interface IConsensusService {
         IDisposable ConsensusObservables
