@@ -1,4 +1,3 @@
-
 using AElf.Kernel;
 
 namespace AElf.OS.Network.Events

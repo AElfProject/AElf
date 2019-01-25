@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.OS.Network;
+using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Temp;
 using AElf.Synchronization.Tests;
@@ -78,10 +79,7 @@ namespace AElf.OS.Tests.Network
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 },
-            (object o) =>
-            {
-                _testOutputHelper.WriteLine("Announced");
-            }, 
+            null, 
             new List<Block> { (Block) genesis });
             
             var m2 = BuildNetManager(new NetworkOptions
@@ -95,15 +93,18 @@ namespace AElf.OS.Tests.Network
 
             IBlock b = await m2.GetBlockByHash(genesis.GetHash());
 
+            await m1.Stop();
+            await m2.Stop();
+            
             Assert.NotNull(b);
         }
         
         [Fact]
-        private async Task EventTest()
+        private async Task Announcement_EventTest()
         {
             List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
-                
-            Action<object> eventCallbackAction = (object eventData) =>
+
+            void TransferEventCallbackAction(object eventData)
             {
                 try
                 {
@@ -114,11 +115,53 @@ namespace AElf.OS.Tests.Network
                 }
                 catch (Exception e)
                 {
-                    _testOutputHelper.WriteLine(e.ToString());
+                    //_testOutputHelper.WriteLine(e.ToString());
                 }
-            };
-                
-            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, eventCallbackAction);
+            }
+
+            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, TransferEventCallbackAction);
+            
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.Start();
+            await m2.Start();
+            
+            var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
+
+            await m2.BroadcastAnnounce(genesis);
+            
+            await m1.Stop();
+            await m2.Stop();
+            
+            Assert.True(receivedEventDatas.Count == 1);
+            Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
+        }
+        
+        [Fact]
+        private async Task Transaction_EventTest()
+        {
+            List<TxReceivedEventData> receivedEventDatas = new List<TxReceivedEventData>();
+
+            void TransferEventCallbackAction(object eventData)
+            {
+                try
+                {
+                    if (eventData is TxReceivedEventData data)
+                    {
+                        receivedEventDatas.Add(data);
+                    }
+                }
+                catch (Exception e)
+                {
+                    //_testOutputHelper.WriteLine(e.ToString());
+                }
+            }
+
+            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, TransferEventCallbackAction);
             
             var m2 = BuildNetManager(new NetworkOptions
             {
@@ -131,13 +174,13 @@ namespace AElf.OS.Tests.Network
             
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            await m2.BroadcastAnnounce(genesis);
+            await m2.BroadcastTransaction(new Transaction());
             
             await m1.Stop();
             await m2.Stop();
             
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().);
+            //Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
         }
     }
 }

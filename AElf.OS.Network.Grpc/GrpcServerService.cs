@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.OS.Network.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
@@ -48,6 +49,11 @@ namespace AElf.OS.Network.Grpc
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 client = new PeerService.PeerServiceClient(channel);
 
+                if (channel.State != ChannelState.Ready)
+                {
+                    var c = channel.WaitForStateChangedAsync(channel.State);
+                }
+
                 bool isAuth = _peerAuthenticator.AuthenticatePeer(peerServer, request);
                 
                 // send our credentials
@@ -92,6 +98,20 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new AuthResponse { Success = true});
         }
 
+        public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        {
+            try
+            {
+                _localEventBus.PublishAsync(new TxReceivedEventData(tx));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during connect.");
+            }
+            
+            return Task.FromResult(new VoidReply());
+        }
+
         /// <summary>
         /// Call back for when a Peer has broadcast an announcement.
         /// </summary>
@@ -104,7 +124,7 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
-                _localEventBus.PublishAsync(an);
+                _localEventBus.PublishAsync(new AnnoucementReceivedEventData(Hash.LoadByteArray(an.Id.ToByteArray())));
             }
             catch (Exception e)
             {
@@ -116,10 +136,19 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            Block block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
-            byte[] s = block.ToByteArray();
+            try
+            {
+                Block block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
+                byte[] s = block.ToByteArray();
+                
+                return Task.FromResult(new BlockReply { Block = block });
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during RequestBlock handle.");
+            }
             
-            return Task.FromResult(new BlockReply { Block = block });
+            return Task.FromResult(new BlockReply());
         }
     }
 }

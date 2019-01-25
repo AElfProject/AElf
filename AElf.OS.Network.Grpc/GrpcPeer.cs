@@ -1,6 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using Grpc.Core;
 
@@ -29,6 +27,11 @@ namespace AElf.OS.Network.Grpc
         public async Task AnnounceAsync(Announcement an)
         {
             await _client.AnnounceAsync(an);
+        }
+
+        public async Task SendTransactionAsync(Transaction tx)
+        {
+            await _client.SendTransactionAsync(tx);
         }
     }
 }

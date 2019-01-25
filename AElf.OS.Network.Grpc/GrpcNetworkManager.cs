@@ -44,11 +44,6 @@ namespace AElf.OS.Network.Grpc
             
             _networkOptions = options.Value;
         }
-
-        public class AnnouncementEventData
-        {
-            
-        }
         
         public async Task Start()
         {
@@ -90,6 +85,9 @@ namespace AElf.OS.Network.Grpc
                         
                 var resp = await client.ConnectAsync(hsk);
 
+                if (resp.Success != true)
+                    return false;
+
                 _authenticatedPeers.Add(new GrpcPeer(channel, client, address));
                         
                 Logger.LogTrace($"Connected to {address}.");
@@ -123,11 +121,33 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public async Task BroadcastAnnounce(IBlock b)
+        public async Task BroadcastAnnounce(Block b)
         {
-            foreach (var client in _authenticatedPeers)
+            foreach (var peer in _authenticatedPeers)
             {
-                await client.AnnounceAsync(new Announcement { Id = ByteString.CopyFrom(b.GetHashBytes()) });
+                try
+                {
+                    await peer.AnnounceAsync(new Announcement { Id = ByteString.CopyFrom(b.GetHashBytes()) });
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, "Error while sending block."); // todo improve
+                }
+            }
+        }
+
+        public async Task BroadcastTransaction(Transaction tx)
+        {
+            foreach (var peer in _authenticatedPeers)
+            {
+                try
+                {
+                    await peer.SendTransactionAsync(tx);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, "Error while sending transaction."); // todo improve
+                }
             }
         }
 

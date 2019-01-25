@@ -75,10 +75,10 @@ namespace AElf.OS.Tests.Network
             
             var p = m2.GetPeer("127.0.0.1:6800");
 
-            Assert.True(!string.IsNullOrWhiteSpace(p));
-
             await m1.Stop();
             await m2.Stop();
+            
+            Assert.True(!string.IsNullOrWhiteSpace(p));
         }
         
         [Fact]
