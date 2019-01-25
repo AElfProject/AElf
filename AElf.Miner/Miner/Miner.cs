@@ -49,6 +49,8 @@ namespace AElf.Miner.Miner
         private readonly double _maxMineTime;
         private readonly IAccountService _accountService;
 
+        private const float RatioMine = 0.3f;
+
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
              ClientManager clientManager,
@@ -65,7 +67,7 @@ namespace AElf.Miner.Miner
             _blockValidationService = blockValidationService;
             Config = config;
             _consensusDataProvider = consensusDataProvider;
-            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
+            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
             _txFilter = transactionFilter;
@@ -277,8 +279,7 @@ namespace AElf.Miner.Miner
                 if (!noTimeout)
                 {
                     var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
-                    var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
-                    var timeout = Math.Min(distanceRation, _maxMineTime);
+                    var timeout = distance *  RatioMine;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                     Logger.LogTrace($"Execution limit time: {timeout}ms");
                 }

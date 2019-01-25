@@ -30,41 +30,10 @@ namespace AElf.Configuration
         {
             ApplicationHelpers.ConfigPath = opts.ConfigPath;
             ApplicationHelpers.LogPath = opts.LogPath;
-            
-
-            // Network
-//            if (opts.Bootnodes != null && opts.Bootnodes.Any())
-//                NetworkConfig.Instance.Bootnodes = opts.Bootnodes.ToList();
-//
-//            if (opts.PeersDbPath != null)
-//                NetworkConfig.Instance.PeersDbPath = opts.PeersDbPath;
-//
-//            if (opts.Port.HasValue)
-//                NetworkConfig.Instance.ListeningPort = opts.Port.Value;
-//
-//            if (!string.IsNullOrWhiteSpace(opts.NetAllowed))
-//            {
-//                NetworkConfig.Instance.NetAllowed = opts.NetAllowed;
-//            }
-//            if (opts.NetWhitelist != null && opts.NetWhitelist.Any())
-//            {
-//                NetworkConfig.Instance.NetWhitelist = opts.NetWhitelist.ToList();
-//            }
 
             if (!string.IsNullOrWhiteSpace(opts.ConsensusType))
             {
                 ConsensusConfig.Instance.ConsensusType = ConsensusTypeHelper.GetType(opts.ConsensusType);
-            }
-
-            // node config
-            if (opts.IsMiner.HasValue)
-            {
-                NodeConfig.Instance.IsMiner = opts.IsMiner.Value;
-            }
-
-            if (!string.IsNullOrWhiteSpace(opts.ExecutorType))
-            {
-                NodeConfig.Instance.ExecutorType = opts.ExecutorType;
             }
 
             //LogManager.GlobalThreshold = LogLevel.FromOrdinal(opts.LogLevel);

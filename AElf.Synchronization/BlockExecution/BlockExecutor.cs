@@ -36,6 +36,8 @@ namespace AElf.Synchronization.BlockExecution
         private readonly ConsensusDataProvider _consensusDataProvider;
         private static bool _isLimitExecutionTime;
 
+        private const float RatioSynchronize = 0.5f;
+
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateManager stateManager,
@@ -97,12 +99,12 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.Fatal;
             try
             {
-                double distanceToTimeSlot = 0;
+                double timeout = 0;
                 if (_isLimitExecutionTime)
                 {
-                    distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
-                    cts.CancelAfter(
-                        TimeSpan.FromMilliseconds(distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize));
+                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    timeout = distanceToTimeSlot * RatioSynchronize;
+                    cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                 }
 
                 // 1. Collection result.
@@ -134,7 +136,7 @@ namespace AElf.Synchronization.BlockExecution
                 {
                     Logger.LogTrace(
                         $"Execution cancelled and rollback: block hash: {block.BlockHashToHex}, " +
-                        $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
+                        $"execution time: {timeout} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
                     throw new InvalidBlockException("Block execution timeout");
                 }

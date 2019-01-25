@@ -1,8 +1,0 @@
-﻿{
-  "IsMiner": false,
-  "NodeAccount": "",
-  "NodeAccountPassword": "",
-  "ExecutorType": "simple",
-  "RatioMine": 0.3,
-  "RatioSynchronize": 0.5
-}

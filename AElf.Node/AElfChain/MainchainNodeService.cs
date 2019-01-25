@@ -9,6 +9,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
@@ -34,6 +35,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
+        private readonly IAccountService _accountService;
 
         private IBlockChain _blockChain;
         
@@ -50,8 +52,8 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IConsensus consensus
-            
+            IConsensus consensus,
+            IAccountService accountService
             )
         {
             _chainCreationService = chainCreationService;
@@ -61,6 +63,7 @@ namespace AElf.Node.AElfChain
             _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
+            _accountService = accountService;
         }
 
         #region Genesis Contracts
@@ -149,7 +152,18 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
 
-            _consensus?.Start(NodeConfig.Instance.IsMiner);
+            //TODO: It should be checked by a service. and miners should be the latest, not from the configuration.
+            var account = _accountService.GetAccountAsync().Result.GetFormatted();
+            var isMiner = false;
+            foreach (var producer in MinersConfig.Instance.Producers.Values)
+            {
+                if (producer["address"] == account)
+                {
+                    isMiner = true;
+                    break;
+                }
+            }
+            _consensus?.Start(isMiner);
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
