@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
@@ -40,7 +41,9 @@ namespace AElf.Contracts.Genesis.Tests
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+        public MockSetup(IStateManager stateManager,
+            IStateProviderFactory stateProviderFactory,
+            IChainCreationService chainCreationService,
             IChainContextService chainContextService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
             ISmartContractManager smartContractManager, IChainService chainService)
@@ -53,7 +56,7 @@ namespace AElf.Contracts.Genesis.Tests
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService, chainService);
+                stateProviderFactory, _functionMetadataService, chainService);
 
             ServicePack = new ServicePack()
             {

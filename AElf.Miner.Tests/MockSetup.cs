@@ -22,6 +22,7 @@ using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
+using AElf.SmartContract.Contexts;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
@@ -56,8 +57,11 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
+        private IStateProviderFactory _stateProviderFactory;
 
-        public MockSetup(IStateManager stateManager, ITxRefBlockValidator refBlockValidator,
+        public MockSetup(IStateManager stateManager,
+            IStateProviderFactory stateProviderFactory,
+            ITxRefBlockValidator refBlockValidator,
             IBlockManager blockManager, ISmartContractManager smartContractManager,
             ITransactionReceiptManager transactionReceiptManager, ITransactionResultManager transactionResultManager,
             ITransactionTraceManager transactionTraceManager, IChainManager chainManager,
@@ -66,6 +70,7 @@ namespace AElf.Miner.Tests
             ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             Logger = NullLogger<MockSetup>.Instance;
+            _stateProviderFactory = stateProviderFactory;
             _stateManager = stateManager;
             _refBlockValidator = refBlockValidator;
             _blockManager = blockManager;
@@ -92,13 +97,13 @@ namespace AElf.Miner.Tests
 //            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
 //            _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new NoFeeSimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
+                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateProviderFactory,
                     _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
                 new ChainContextService(_chainService));
 
             _chainCreationService = new ChainCreationService(_chainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    _stateManager, _functionMetadataService, _chainService));
+                    _stateProviderFactory, _functionMetadataService, _chainService));
 
             _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);

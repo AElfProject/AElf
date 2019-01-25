@@ -7,6 +7,8 @@ using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
+using AElf.Sdk.CSharp2.Tests;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;

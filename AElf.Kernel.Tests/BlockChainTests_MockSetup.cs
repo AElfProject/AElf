@@ -15,6 +15,7 @@ using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Address = AElf.Common.Address;
@@ -62,10 +63,10 @@ namespace AElf.Kernel.Tests
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IStateManager stateManager, TransactionManager transactionManager, ISmartContractManager smartContractManager)
+            IStateProviderFactory stateProviderFactory, TransactionManager transactionManager, ISmartContractManager smartContractManager)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
-            _stateManager = stateManager;
+            _stateManager = stateProviderFactory.CreateStateManager();
             _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
             ChainService = chainService;
@@ -75,7 +76,7 @@ namespace AElf.Kernel.Tests
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
+                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
                     functionMetadataService, ChainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }

@@ -13,6 +13,7 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -30,6 +31,7 @@ namespace AElf.Runtime.CSharp.Tests
         public int ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
         public ISmartContractService SmartContractService;
 
+        public IStateProviderFactory StateProviderFactory;
         public IStateManager StateManager;
         public DataProvider DataProvider1;
         public DataProvider DataProvider2;
@@ -44,10 +46,13 @@ namespace AElf.Runtime.CSharp.Tests
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+        public MockSetup(IStateManager stateManager,
+            IStateProviderFactory stateProviderFactory,
+            IChainCreationService chainCreationService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
             ISmartContractManager smartContractManager, IChainService chainService)
         {
+            StateProviderFactory = stateProviderFactory;
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             _functionMetadataService = functionMetadataService;
@@ -58,7 +63,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();

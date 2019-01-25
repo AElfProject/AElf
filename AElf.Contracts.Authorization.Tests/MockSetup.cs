@@ -9,6 +9,7 @@ using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Runtime.CSharp;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.Authorization.Tests
 
         public int ChainId { get; } = ChainHelpers.GetRandomChainId();
 
-        public IStateManager StateManager { get; private set; }
+        public IStateProviderFactory StateProviderFactory { get; private set; }
         public ISmartContractService SmartContractService;
         public IChainService ChainService;
 
@@ -46,7 +47,7 @@ namespace AElf.Contracts.Authorization.Tests
         public MockSetup(IBlockManager blockManager, ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
             ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService,
-            IStateManager stateManager, ISmartContractRunnerContainer smartContractRunnerContainer)
+            IStateProviderFactory stateProviderFactory, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _blockManager = blockManager;
@@ -56,24 +57,24 @@ namespace AElf.Contracts.Authorization.Tests
             _transactionTraceManager = transactionTraceManager;
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            StateManager = stateManager;
+            StateProviderFactory = stateProviderFactory;
             Initialize();
         }
 
         private void Initialize()
         {
             ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, StateManager);
+                _transactionManager, _transactionTraceManager, StateProviderFactory.CreateStateManager());
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService, ChainService));
+                    StateProviderFactory, _functionMetadataService, ChainService));
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
+            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
             ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
-                _transactionTraceManager, StateManager);
+                _transactionTraceManager, StateProviderFactory.CreateStateManager());
         }
 
         public byte[] AuthorizationCode

@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -73,11 +74,11 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            IStateManager stateManager, TransactionManager transactionManager,
+            IStateProviderFactory stateProviderFactory, TransactionManager transactionManager,
             ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             Logger = NullLogger<MockSetup>.Instance;
-            _stateManager = stateManager;
+            _stateManager = stateProviderFactory.CreateStateManager();
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
@@ -93,7 +94,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
+                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
                     functionMetadataService, _chainService);
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
