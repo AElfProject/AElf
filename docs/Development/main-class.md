@@ -74,7 +74,7 @@ package AElf.Kernel{
     IBlockchainService --> IBlockService
 
     interface ISmartContractRuntimeFactory{
-        ISmartContract CreateRuntime(int category)
+        ISmartContractRuntime CreateRuntime(int category)
     }
 
     interface ISmartContractRuntime
