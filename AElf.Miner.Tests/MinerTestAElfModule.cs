@@ -5,6 +5,7 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
+using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
@@ -14,7 +15,7 @@ namespace AElf.Miner.Tests
     [DependsOn(
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
-        typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule),
         typeof(AElf.Miner.MinerAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)
