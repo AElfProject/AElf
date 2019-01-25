@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Abp.Events.Bus;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
@@ -16,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Local;
 
 
 namespace AElf.OS.Network.Grpc
@@ -24,8 +24,7 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly IAccountService _accountService;
         private readonly IBlockService _blockService;
-        
-        private readonly IEventBus _eventBus;
+        private readonly ILocalEventBus _localEventBus;
         
         public ILogger<GrpcNetworkManager> Logger { get; set; }
                 
@@ -36,23 +35,30 @@ namespace AElf.OS.Network.Grpc
         private List<GrpcPeer> _authenticatedPeers;
         
         public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options, 
-            IAccountService accountService, IBlockService blockService)
+            IAccountService accountService, IBlockService blockService, ILocalEventBus localEventBus)
         {
             _accountService = accountService;
             _blockService = blockService;
             Logger = NullLogger<GrpcNetworkManager>.Instance;
             
-            _eventBus = NullEventBus.Instance;
+             _localEventBus = localEventBus;
             
             _authenticatedPeers = new List<GrpcPeer>();
             
             _networkOptions = options.Value;
         }
+
+        public class AnnouncementEventData
+        {
+            
+        }
         
         public async Task Start()
         {
+            await _localEventBus.PublishAsync(new AnnouncementEventData());
+                
             // todo inject block service
-            var p = new GrpcServerService(Logger, this, _blockService);
+            var p = new GrpcServerService(Logger, this, _blockService, _localEventBus);
             
             _server = new Server {
                 Services = { PeerService.BindService(p) },
@@ -122,11 +128,11 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public async Task BroadcastAnnounce(Announcement an)
+        public async Task BroadcastAnnounce(IBlock b)
         {
             foreach (var client in _authenticatedPeers)
             {
-                await client.AnnounceAsync(an);
+                await client.AnnounceAsync(new Announcement { Id = ByteString.CopyFrom(b.GetHashBytes()) });
             }
         }
 

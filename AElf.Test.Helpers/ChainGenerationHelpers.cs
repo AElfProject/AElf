@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Synchronization.Tests
 {
-    public static class SyncTestHelpers
+    public static class ChainGenerationHelpers
     {
         /// <summary>
         /// Generates <see cref="count"/> random miners.

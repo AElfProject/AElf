@@ -6,6 +6,7 @@ using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -13,15 +14,17 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly IPeerAuthentificator _peerAuthenticator;
         private readonly IBlockService _blockService;
+        private readonly ILocalEventBus _localEventBus;
 
         public ILogger<GrpcNetworkManager> Logger { get; set; }
         private PeerService.PeerServiceClient client;
         
         public GrpcServerService(ILogger<GrpcNetworkManager> logger, IPeerAuthentificator peerAuthenticator,
-            IBlockService blockService)
+            IBlockService blockService, ILocalEventBus localEventBus)
         {
             _peerAuthenticator = peerAuthenticator;
             _blockService = blockService;
+            _localEventBus = localEventBus;
             Logger = logger;
         }
 
@@ -101,7 +104,7 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
-                // todo handle
+                _localEventBus.PublishAsync(an);
             }
             catch (Exception e)
             {
@@ -113,7 +116,7 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            Block block = _blockService.BlockGetBlockAsync(Hash.LoadByteArray(request.ToByteArray())).Result;
+            Block block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
             byte[] s = block.ToByteArray();
             
             return Task.FromResult(new BlockReply { Block = ByteString.CopyFrom(s)});

@@ -6,6 +6,6 @@ namespace AElf.OS.Network.Temp
 {
     public interface IBlockService
     {
-        Task<Block> BlockGetBlockAsync(Hash block);
+        Task<Block> GetBlockAsync(Hash block);
     }
 }
