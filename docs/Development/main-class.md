@@ -3,15 +3,8 @@
 @startuml
 package AElf.Kernel.SmartContracts.Consensus{
     class ConsensusSmartContract
-
-    ConsensusBlockHeaderDataProvider --> IConsensusSmartContract : GetBlockHeaderConsensusData
-}
-
-package AElf.Kernel.SmartContracts.Consensus.Abstractions{
-    interface IConsensusSmartContract{
-        byte[] GetBlockHeaderConsensusData()
-    }
     IConsensusSmartContract <|-- ConsensusSmartContract
+    ConsensusBlockHeaderDataProvider --> IConsensusSmartContract : GetBlockHeaderConsensusData
 }
 
 note top of AElf.Kernel.SmartContracts.Consensus.Abstractions: infrastructure layer
@@ -19,6 +12,7 @@ note top of AElf.Kernel.SmartContracts.Consensus.Abstractions: infrastructure la
 package AElf.Kernel.SmartContracts.Genesis{
     class GenesisSmartContract
 
+    IGenesisSmartContract <|-- GenesisSmartContract
     interface IBlockHeaderDataProvider
     IBlockHeaderDataProvider <|-- ConsensusBlockHeaderDataProvider
     
@@ -35,12 +29,6 @@ package AElf.Kernel.SmartContracts.Genesis{
 
 }
 
-package AElf.Kernel.SmartContracts.Genesis.Abstractions{
-    interface IGenesisSmartContract{
-    }
-    IGenesisSmartContract <|-- GenesisSmartContract
-}
-
 package AElf.Kernel.SmartContracts.Genesis.MainChain{
     class MainChainGenesisSmartContract
     GenesisSmartContract <|-- MainChainGenesisSmartContract
@@ -55,6 +43,13 @@ package AElf.Kernel.SmartContracts.Genesis.SideChain{
 }
 
 package AElf.Kernel{
+    package AElf.Kernel.SmartContracts.Abstractions{
+        interface IConsensusSmartContract{
+            byte[] GetBlockHeaderConsensusData()
+        }
+        interface IAccountSmartContract
+        interface IGenesisSmartContract
+    }
     interface IBlockchainService{
 
     }
