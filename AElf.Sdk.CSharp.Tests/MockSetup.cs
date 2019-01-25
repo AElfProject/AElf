@@ -30,7 +30,6 @@ namespace AElf.Sdk.CSharp.Tests
         public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
-        private IFunctionMetadataService _functionMetadataService;
 
         public IChainContextService ChainContextService;
 
@@ -40,29 +39,21 @@ namespace AElf.Sdk.CSharp.Tests
         public ServicePack ServicePack;
 
         private IChainCreationService _chainCreationService;
-        private IChainService _chainService;
-
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateManager stateManager,
-            IStateProviderFactory stateProviderFactory,
             IChainCreationService chainCreationService,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerContainer smartContractRunnerContainer, ISmartContractManager smartContractManager,
-            IChainService chainService, ISmartContractService smartContractService)
+            IChainContextService chainContextService,
+            ISmartContractManager smartContractManager,
+            ISmartContractService smartContractService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
-            _chainService = chainService;
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-//            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory, _functionMetadataService, chainService);
             SmartContractService = smartContractService;
             ServicePack = new ServicePack()
             {

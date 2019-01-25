@@ -39,33 +39,24 @@ namespace AElf.Runtime.CSharp.Tests
         public Address ContractAddress1;
         public Address ContractAddress2;
 
-        private ISmartContractManager _smartContractManager;
         private IChainCreationService _chainCreationService;
-        private IFunctionMetadataService _functionMetadataService;
         public IChainService ChainService;
-
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateManager stateManager,
             IStateProviderFactory stateProviderFactory,
             IChainCreationService chainCreationService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager, IChainService chainService,
+            IChainService chainService,
             ISmartContractService smartContractService)
         {
             StateProviderFactory = stateProviderFactory;
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractManager = smartContractManager;
             ChainService = chainService;
             SmartContractService = smartContractService;
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-//            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();

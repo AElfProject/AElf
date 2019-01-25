@@ -34,33 +34,15 @@ namespace AElf.Contracts.Authorization.Tests
         public ISmartContractService SmartContractService;
         public IChainService ChainService;
 
-        private IFunctionMetadataService _functionMetadataService;
         private IChainCreationService _chainCreationService;
         public ILogger<MockSetup> Logger {get;set;}
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-        private IChainManager _chainManager;
-        private ITransactionManager _transactionManager;
-        private IBlockManager _blockManager;
-        private ISmartContractManager _smartContractManager;
-        private ITransactionTraceManager _transactionTraceManager;
 
-        public MockSetup(IBlockManager blockManager, ITransactionManager transactionManager
-            , IChainManager chainManager, ISmartContractManager smartContractManager,
-            ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService,
-            IStateProviderFactory stateProviderFactory,
-            ISmartContractRunnerContainer smartContractRunnerContainer,
+        public MockSetup(IStateProviderFactory stateProviderFactory,
             IChainService chainService,
             IChainCreationService chainCreationService,
             ISmartContractService smartContractService)
         {
             Logger = NullLogger<MockSetup>.Instance;
-            _blockManager = blockManager;
-            _chainManager = chainManager;
-            _transactionManager = transactionManager;
-            _smartContractManager = smartContractManager;
-            _transactionTraceManager = transactionTraceManager;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             StateProviderFactory = stateProviderFactory;
             ChainService = chainService;
             _chainCreationService = chainCreationService;
@@ -70,18 +52,10 @@ namespace AElf.Contracts.Authorization.Tests
 
         private void Initialize()
         {
-//            ChainService = new ChainService(_chainManager, _blockManager,
-//                _transactionManager, _transactionTraceManager, StateProviderFactory.CreateStateManager());
-//            _chainCreationService = new ChainCreationService(ChainService,
-//                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-//                    StateProviderFactory, _functionMetadataService, ChainService));
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-//            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
-//            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
-//                _transactionTraceManager, StateProviderFactory.CreateStateManager());
         }
 
         public byte[] AuthorizationCode

@@ -29,7 +29,6 @@ namespace AElf.Contracts.Genesis.Tests
         public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
-        private IFunctionMetadataService _functionMetadataService;
 
         public IChainContextService ChainContextService;
 
@@ -42,25 +41,19 @@ namespace AElf.Contracts.Genesis.Tests
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public MockSetup(IStateManager stateManager,
-            IStateProviderFactory stateProviderFactory,
             IChainCreationService chainCreationService,
             IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerContainer smartContractRunnerContainer,
             ISmartContractManager smartContractManager,
-            IChainService chainService,
             ISmartContractService smartContractService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = smartContractService;
-//            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-//                stateProviderFactory, _functionMetadataService, chainService);
 
             ServicePack = new ServicePack()
             {

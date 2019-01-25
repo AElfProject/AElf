@@ -49,37 +49,25 @@ namespace AElf.Kernel.Tests
 
         public IBlockChain BlockChain => ChainService.GetBlockChain(ChainId1);
 
-        private IFunctionMetadataService _functionMetadataService;
         public ILogger<BlockChainTests_MockSetup> Logger {get;set;}
 
         private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
-        private readonly TransactionManager _transactionManager;
-
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-
         public BlockChainTests_MockSetup(IChainCreationService chainCreationService,
             IChainService chainService,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerContainer smartContractRunnerContainer,
+            IChainContextService chainContextService,
             IStateProviderFactory stateProviderFactory,
-            TransactionManager transactionManager, ISmartContractManager smartContractManager,
+            ISmartContractManager smartContractManager,
             ISmartContractService smartContractService)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
             _stateManager = stateProviderFactory.CreateStateManager();
-            _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
             ChainService = chainService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-//            SmartContractService =
-//                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
-//                    functionMetadataService, ChainService);
             SmartContractService = smartContractService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
