@@ -104,13 +104,9 @@ package AElf.Kernel{
         Block Mine()
     }
     
-    interface ICrossChainTransactionGenerator
-    interface ICrossChainTransactionValidator
-
     MinerService --|> IMinerService
 
     MinerService --> IBlockchainService
-    MinerService --> ICrossChainTransactionGenerator
     
     interface IConsensusService {
         IDisposable ConsensusObservables
@@ -217,6 +213,10 @@ package AElf.OS.Networks.Grpc{
 
 package AElf.CrossChain {
     interface ISideChainSmartContract
+    interface ICrossChainTransactionGenerator
+    interface ICrossChainTransactionValidator
+    MinerWithCrossChain --|> MinerService
+    MinerWithCrossChain --> ICrossChainTransactionGenerator
 }
 
 package AElf.CrossChain.Grpc{
