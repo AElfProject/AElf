@@ -47,7 +47,11 @@ namespace AElf.Contracts.Authorization.Tests
         public MockSetup(IBlockManager blockManager, ITransactionManager transactionManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
             ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService,
-            IStateProviderFactory stateProviderFactory, ISmartContractRunnerContainer smartContractRunnerContainer)
+            IStateProviderFactory stateProviderFactory,
+            ISmartContractRunnerContainer smartContractRunnerContainer,
+            IChainService chainService,
+            IChainCreationService chainCreationService,
+            ISmartContractService smartContractService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _blockManager = blockManager;
@@ -58,23 +62,26 @@ namespace AElf.Contracts.Authorization.Tests
             _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             StateProviderFactory = stateProviderFactory;
+            ChainService = chainService;
+            _chainCreationService = chainCreationService;
+            SmartContractService = smartContractService;
             Initialize();
         }
 
         private void Initialize()
         {
-            ChainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, StateProviderFactory.CreateStateManager());
-            _chainCreationService = new ChainCreationService(ChainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    StateProviderFactory, _functionMetadataService, ChainService));
+//            ChainService = new ChainService(_chainManager, _blockManager,
+//                _transactionManager, _transactionTraceManager, StateProviderFactory.CreateStateManager());
+//            _chainCreationService = new ChainCreationService(ChainService,
+//                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
+//                    StateProviderFactory, _functionMetadataService, ChainService));
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
-            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
-                _transactionTraceManager, StateProviderFactory.CreateStateManager());
+//            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
+//            ChainService = new ChainService(_chainManager, _blockManager, _transactionManager,
+//                _transactionTraceManager, StateProviderFactory.CreateStateManager());
         }
 
         public byte[] AuthorizationCode

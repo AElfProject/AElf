@@ -75,7 +75,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             IStateProviderFactory stateProviderFactory, TransactionManager transactionManager,
-            ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer)
+            ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer,
+            ISmartContractService smartContractService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateProviderFactory.CreateStateManager();
@@ -93,9 +94,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
-                    functionMetadataService, _chainService);
+//            SmartContractService =
+//                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
+//                    functionMetadataService, _chainService);
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {

@@ -63,7 +63,9 @@ namespace AElf.Kernel.Tests
             IChainService chainService,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IStateProviderFactory stateProviderFactory, TransactionManager transactionManager, ISmartContractManager smartContractManager)
+            IStateProviderFactory stateProviderFactory,
+            TransactionManager transactionManager, ISmartContractManager smartContractManager,
+            ISmartContractService smartContractService)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
             _stateManager = stateProviderFactory.CreateStateManager();
@@ -75,9 +77,10 @@ namespace AElf.Kernel.Tests
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
-                    functionMetadataService, ChainService);
+//            SmartContractService =
+//                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, stateProviderFactory,
+//                    functionMetadataService, ChainService);
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
 

@@ -50,7 +50,8 @@ namespace AElf.Runtime.CSharp.Tests
             IStateProviderFactory stateProviderFactory,
             IChainCreationService chainCreationService,
             IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager, IChainService chainService)
+            ISmartContractManager smartContractManager, IChainService chainService,
+            ISmartContractService smartContractService)
         {
             StateProviderFactory = stateProviderFactory;
             StateManager = stateManager;
@@ -59,11 +60,12 @@ namespace AElf.Runtime.CSharp.Tests
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _smartContractManager = smartContractManager;
             ChainService = chainService;
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
+//            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateProviderFactory, _functionMetadataService, ChainService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();

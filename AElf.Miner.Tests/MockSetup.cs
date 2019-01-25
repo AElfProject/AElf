@@ -67,7 +67,9 @@ namespace AElf.Miner.Tests
             ITransactionTraceManager transactionTraceManager, IChainManager chainManager,
             IFunctionMetadataService functionMetadataService,
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
-            ISmartContractRunnerContainer smartContractRunnerContainer)
+            ISmartContractRunnerContainer smartContractRunnerContainer,
+            IChainService chainService, IExecutingService executingService,
+            IChainCreationService chainCreationService, IChainContextService chainContextService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateProviderFactory = stateProviderFactory;
@@ -84,28 +86,32 @@ namespace AElf.Miner.Tests
             _stateManager = stateManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
+            _chainService = chainService;
+            _concurrencyExecutingService = executingService;
+            _chainCreationService = chainCreationService;
+            _chainContextService = chainContextService;
             Initialize();
         }
 
         private void Initialize()
         {
-            _chainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _stateManager);
+//            _chainService = new ChainService(_chainManager, _blockManager,
+//                _transactionManager, _transactionTraceManager, _stateManager);
 //            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerContainer.AddRunner(0, runner);*/
 //            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
 //            _smartContractRunnerContainer.AddRunner(0, runner);
-            _concurrencyExecutingService = new NoFeeSimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateProviderFactory,
-                    _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
-                new ChainContextService(_chainService));
+//            _concurrencyExecutingService = new NoFeeSimpleExecutingService(
+//                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateProviderFactory,
+//                    _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
+//                new ChainContextService(_chainService));
+//
+//            _chainCreationService = new ChainCreationService(_chainService,
+//                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
+//                    _stateProviderFactory, _functionMetadataService, _chainService));
 
-            _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    _stateProviderFactory, _functionMetadataService, _chainService));
-
-            _chainContextService = new ChainContextService(_chainService);
+//            _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
             _electionInfo = new ElectionInfo(_stateManager);
         }

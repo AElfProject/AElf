@@ -45,8 +45,11 @@ namespace AElf.Contracts.Genesis.Tests
             IStateProviderFactory stateProviderFactory,
             IChainCreationService chainCreationService,
             IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager, IChainService chainService)
+            IFunctionMetadataService functionMetadataService,
+            ISmartContractRunnerContainer smartContractRunnerContainer,
+            ISmartContractManager smartContractManager,
+            IChainService chainService,
+            ISmartContractService smartContractService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
@@ -55,8 +58,9 @@ namespace AElf.Contracts.Genesis.Tests
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                stateProviderFactory, _functionMetadataService, chainService);
+            SmartContractService = smartContractService;
+//            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
+//                stateProviderFactory, _functionMetadataService, chainService);
 
             ServicePack = new ServicePack()
             {
