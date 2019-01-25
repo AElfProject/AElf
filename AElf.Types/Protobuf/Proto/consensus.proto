@@ -41,6 +41,7 @@ message Miners {
     repeated string PublicKeys = 2;
     uint64 MainchainLatestTermNumber = 3;// Shouldn't be updated if TermNumber > 1
     string Remark = 4;
+    repeated Address Addresses = 5;
 }
 
 // To query to first round number of each term.
@@ -172,10 +173,10 @@ enum TicketsHistoryType {
     Vote = 2;
 }
 
-message ConsensusInformation {
-    Hash PreviousBlockHash = 1;
-    Address Sender = 2;
-    repeated Address MinersList = 3;
-    Round NewRound = 4;
-    Term NewTerm = 5;
+message DPoSInformation {
+    Address Sender = 1;
+    repeated Address MinersList = 2;
+    Round NewRound = 3;
+    Term NewTerm = 4;
+    bool WillUpdateConsensus = 5;
 }
