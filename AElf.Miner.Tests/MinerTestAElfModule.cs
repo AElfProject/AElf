@@ -9,6 +9,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.Modularity;
+using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -19,7 +20,7 @@ namespace AElf.Miner.Tests
     [DependsOn(
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
-        typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule),
         typeof(AElf.Miner.MinerAElfModule),
         typeof(ConsensusKernelAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),

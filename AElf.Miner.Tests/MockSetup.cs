@@ -38,7 +38,7 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
-        public ILogger<MockSetup> Logger {get;set;}
+        public ILogger<MockSetup> Logger { get; set; }
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
         private ISmartContractManager _smartContractManager;
@@ -67,7 +67,8 @@ namespace AElf.Miner.Tests
             ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
             ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
-            TransactionFilter transactionFilter, ConsensusDataProvider consensusDataProvider, IAccountService accountService)
+            TransactionFilter transactionFilter, ConsensusDataProvider consensusDataProvider, IAccountService accountService,
+            ISmartContractRunnerContainer smartContractRunnerContainer)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -85,6 +86,7 @@ namespace AElf.Miner.Tests
             _transactionFilter = transactionFilter;
             _consensusDataProvider = consensusDataProvider;
             _accountService = accountService;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             Initialize();
         }
 
@@ -92,11 +94,11 @@ namespace AElf.Miner.Tests
         {
             _chainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, _stateManager);
-            _smartContractRunnerContainer = new SmartContractRunnerContainer();
+//            _smartContractRunnerContainer = new SmartContractRunnerContainer();
             /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
             _smartContractRunnerContainer.AddRunner(0, runner);*/
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerContainer.AddRunner(0, runner);
+//            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
+//            _smartContractRunnerContainer.AddRunner(0, runner);
             _concurrencyExecutingService = new NoFeeSimpleExecutingService(
                 new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
                     _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
@@ -117,14 +119,17 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                var filePath = Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
+                var filePath =
+                    Path.GetFullPath(
+                        "../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
                 return File.ReadAllBytes(filePath);
             }
         }
+
         public async Task<IChain> CreateChain()
-        {            
+        {
             var chainId = ChainHelpers.GetRandomChainId();
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -168,7 +173,7 @@ namespace AElf.Miner.Tests
         {
             return _chainService.GetBlockChain(chainId);
         }
-        
+
         internal ITxHub CreateAndInitTxHub()
         {
             var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo);
@@ -178,17 +183,20 @@ namespace AElf.Miner.Tests
 
         public IMinerConfig GetMinerConfig(int chainId)
         {
-            return new MinerConfig { ChainId = chainId };
+            return new MinerConfig {ChainId = chainId};
         }
 
         private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
+            mock.Setup(lc => lc.GetCurrentBlockHeightAsync())
+                .Returns(Task.FromResult((ulong) _headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
             mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
                 .Returns<ulong>(p =>
                 {
-                    return (int)p > _sideChainHeaders.Count ? null :Task.FromResult(_sideChainHeaders[(int) p - 1]);
+                    return (int) p > _sideChainHeaders.Count
+                        ? null
+                        : Task.FromResult(_sideChainHeaders[(int) p - 1]);
                 });
 
             return mock;
@@ -240,15 +248,15 @@ namespace AElf.Miner.Tests
                 BlockHeaderHash = Hash.Generate()
             };
         }
-        
+
         public Mock<IBlock> MockBlock(IBlockHeader header, IBlockBody body)
         {
             Mock<IBlock> mock = new Mock<IBlock>();
-            mock.Setup(b => b.Header).Returns((BlockHeader)header);
-            mock.Setup(b => b.Body).Returns((BlockBody)body);
+            mock.Setup(b => b.Header).Returns((BlockHeader) header);
+            mock.Setup(b => b.Body).Returns((BlockBody) body);
             return mock;
         }
-        
+
         public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServer()
         {
             return new ParentChainBlockInfoRpcServer(MockChainService().Object, MockCrossChainInfoReader().Object);
@@ -258,12 +266,12 @@ namespace AElf.Miner.Tests
         {
             return new SideChainBlockInfoRpcServer(MockChainService().Object);
         }
-        
+
         public ServerManager ServerManager(ParentChainBlockInfoRpcServer impl1, SideChainBlockInfoRpcServer impl2)
         {
             return new ServerManager(impl1, impl2);
         }
-        
+
         public Mock<IChainManager> MockChainManager()
         {
             var mock = new Mock<IChainManager>();
@@ -287,6 +295,7 @@ namespace AElf.Miner.Tests
         }
 
         public ulong GetTimes = 0;
+
         private Mock<ICrossChainInfoReader> MockCrossChainInfoReader()
         {
             var mock = new Mock<ICrossChainInfoReader>();
@@ -298,18 +307,18 @@ namespace AElf.Miner.Tests
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
                 return Task.FromResult(binaryMerkleTree);
             });*/
-            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>())).Returns<Hash>(chainId => Task.FromResult(GetTimes));
+            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>()))
+                .Returns<Hash>(chainId => Task.FromResult(GetTimes));
             return mock;
         }
 
         public void MockKeyPair(int chainId, string dir)
         {
-            
             var certificateStore = new CertificateStore(dir);
             var name = chainId.DumpBase58();
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
-        
+
         public Hash MockSideChainServer(int port, string address, string dir)
         {
             _sideChainHeaders = new List<IBlockHeader>
@@ -318,24 +327,23 @@ namespace AElf.Miner.Tests
                 MockBlockHeader(),
                 MockBlockHeader()
             };
-            
+
             var sideChainId = ChainHelpers.GetRandomChainId();
             ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
-            
+
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.SideChainServer = true;
             //start server, sidechain is server-side
-            
+
             return sideChainId;
         }
 
-        public Hash MockParentChainServer(int port, string address, string dir, int? chainId=0)
+        public Hash MockParentChainServer(int port, string address, string dir, int? chainId = 0)
         {
-            
-            chainId = chainId??ChainHelpers.GetRandomChainId();
-            
+            chainId = chainId ?? ChainHelpers.GetRandomChainId();
+
             _headers = new List<IBlockHeader>
             {
                 MockBlockHeader(),
@@ -355,7 +363,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
             ChainConfig.Instance.ChainId = chainId.Value.DumpBase58();
-            
+
             return chainId;
         }
 
@@ -366,10 +374,10 @@ namespace AElf.Miner.Tests
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock;
         }
-        
+
         public void ClearDirectory(string dir)
         {
-            if(Directory.Exists(Path.Combine(dir, "certs")))
+            if (Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
         }
     }
