@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Account;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;
@@ -69,12 +70,11 @@ namespace AElf.Network.Peers
         internal readonly List<string> _bpAddresses;
         internal bool _isBp;
 
-        private ECKeyPair _nodeKey;
-
         private readonly NetworkOptions _networkOptions;
+        private readonly IAccountService _accountService;
 
         public PeerManager(IConnectionListener connectionListener, IChainService chainService,
-            IOptionsSnapshot<NetworkOptions> options)
+            IOptionsSnapshot<NetworkOptions> options, IAccountService accountService)
         {
             _jobQueue = new BlockingCollection<PeerManagerJob>();
             _bpAddresses = new List<string>();
@@ -83,10 +83,9 @@ namespace AElf.Network.Peers
             _connectionListener = connectionListener;
             _chainService = chainService;
             _networkOptions = options.Value;
+            _accountService = accountService;
             //_blockChain = blockChain;
             Logger = NullLogger<PeerManager>.Instance;
-            // Todo 
-            _nodeKey = null;
 
             if (!string.IsNullOrWhiteSpace(_networkOptions.NetAllowed))
             {
@@ -125,15 +124,10 @@ namespace AElf.Network.Peers
                 Logger.LogError(e, "Error while reading mining info.");
             }
 
-            _nodeKey = NodeConfig.Instance.ECKeyPair;
-            if (_nodeKey == null)
-            {
-                Logger.LogError("NodeKey is null");
-                return;
-            }
+            var account = _accountService.GetAccountAsync().Result;
 
             // This nodes key
-            var thisAddr = Address.FromPublicKey(_nodeKey.PublicKey).GetFormatted();
+            var thisAddr = account.GetFormatted();
             _isBp = _bpAddresses.Any(k => k.Equals(thisAddr));
         }
 
@@ -293,7 +287,7 @@ namespace AElf.Network.Peers
 
             int height = (int) _chainService.GetBlockChain(0).GetCurrentBlockHeightAsync().Result;
 
-            IPeer peer = new Peer(client, reader, writer, _networkOptions.ListeningPort, _nodeKey, height);
+            IPeer peer = new Peer(client, reader, writer, _networkOptions.ListeningPort, height,_accountService);
 
             return peer;
         }

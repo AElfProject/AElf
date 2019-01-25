@@ -38,7 +38,8 @@ namespace AElf.Synchronization.BlockExecution
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateManager stateManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateManager stateManager,
+            ConsensusDataProvider consensusDataProvider)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -47,7 +48,7 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _stateManager = stateManager;
-            _consensusDataProvider = new ConsensusDataProvider(_stateManager);
+            _consensusDataProvider = consensusDataProvider;
 
             Logger= NullLogger<BlockExecutor>.Instance;
 

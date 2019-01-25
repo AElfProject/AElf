@@ -5,6 +5,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Storages;
 using AElf.Miner.TxMemPool;
 using AElf.Modularity;
@@ -20,6 +21,7 @@ namespace AElf.Miner.Tests
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(AElf.Miner.MinerAElfModule),
+        typeof(ConsensusKernelAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)
     )]
@@ -27,14 +29,14 @@ namespace AElf.Miner.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
-            
+
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddTransient<IAccountService>(o => Mock.Of<IAccountService>(
-                c => c.GetAccountAsync()== Task.FromResult(Address.FromString("AELF_Test"))
-                     ));
+                c => c.GetAccountAsync() == Task.FromResult(Address.FromString("AELF_Test")) && c
+                         .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>()) == Task.FromResult(true)));
         }
 
 

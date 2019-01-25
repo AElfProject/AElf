@@ -10,7 +10,6 @@ namespace AElf.Configuration
     {
         public bool IsMiner { get; set; }
         public string ExecutorType { get; set; }
-        public ECKeyPair ECKeyPair { get; set; }
         public float RatioMine { get; set; }
         public float RatioSynchronize { get; set; }
     }

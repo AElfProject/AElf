@@ -51,7 +51,6 @@ namespace AElf.Node
             Console.WriteLine($"Using consensus: {ConsensusConfig.Instance.ConsensusType}");
 
             NodeConfiguration confContext = new NodeConfiguration();
-            confContext.KeyPair = NodeConfig.Instance.ECKeyPair;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
 
             var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();

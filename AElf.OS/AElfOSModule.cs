@@ -47,8 +47,6 @@ namespace AElf.OS
                     Console.WriteLine("Load keystore failed.");
                     Environment.Exit(-1);
                 }
-
-                NodeConfig.Instance.ECKeyPair = nodeKey;
             }
             catch (Exception e)
             {

@@ -39,8 +39,6 @@ namespace AElf.Node.AElfChain
         
         private IConsensus _consensus;
 
-        private ECKeyPair _nodeKeyPair;
-
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
@@ -101,10 +99,7 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-            
-            NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
-            _nodeKeyPair = conf.KeyPair;
-            
+                        
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txHub.AddTransactionAsync(inTx.Transaction);
