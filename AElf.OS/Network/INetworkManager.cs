@@ -11,7 +11,7 @@ namespace AElf.OS.Network
         Task RemovePeer(string address);
         List<string> GetPeers();
         
-        Task<IBlock> GetBlockByHash(Hash hash);
+        Task<IBlock> GetBlockByHash(Hash hash, string peer = null);
         
         Task Start();
         Task Stop();

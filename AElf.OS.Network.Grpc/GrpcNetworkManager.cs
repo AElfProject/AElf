@@ -136,21 +136,35 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(true);
         }
 
-        public async Task<IBlock> GetBlockByHash(Hash hash)
+        public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null)
         {
-            var firstPeer = _authenticatedPeers.FirstOrDefault();
-
-            if (firstPeer == null)
+            // todo use peer if specified
+            foreach (var p in _authenticatedPeers)
             {
-                Logger.LogWarning("No peers left.");
-                return null;
-            }
+                try
+                {
+                    if (p == null)
+                    {
+                        Logger.LogWarning("No peers left.");
+                        return null;
+                    }
             
-            Logger.LogDebug($"Attempting get with {firstPeer}");
+                    Logger.LogDebug($"Attempting get with {p}");
 
-            BlockReply block = await firstPeer.RequestBlockAsync(new BlockRequest { Id = hash.Value });
+                    BlockReply block = await p.RequestBlockAsync(new BlockRequest { Id = hash.Value });
 
-            return Block.Parser.ParseFrom(block.Block);
+                    var b = Block.Parser.ParseFrom(block.Block);
+
+                    if (b != null)
+                        return b;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, "Error while requesting block.");
+                }
+            }
+
+            return null;
         }
 
         public async Task<bool> AddPeer(string address)
@@ -160,12 +174,12 @@ namespace AElf.OS.Network.Grpc
 
         public Task RemovePeer(string address)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_authenticatedPeers.RemoveAll(p => p.PeerAddress == address));
         }
 
         public List<string> GetPeers()
         {
-            throw new NotImplementedException();
+            return _authenticatedPeers.Select(p => p.PeerAddress).ToList();
         }
 
         public string GetPeer(string address)
