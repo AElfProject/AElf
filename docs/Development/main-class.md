@@ -63,12 +63,14 @@ package AElf.Kernel{
 
     }
 
+    interface IBlockchainStateManager
     class SimpleSmartContractExecutingService
     ISmartContractExecutingService <|-- SimpleSmartContractExecutingService
+    SimpleSmartContractExecutingService --> IBlockchainStateManager
+    SimpleSmartContractExecutingService --> ISmartContractRuntimeFactory
+    SimpleSmartContractExecutingService --> ISmartContractRuntime
 
     IBlockchainService --> ISmartContractExecutingService
-    IBlockchainService --> ISmartContractRuntimeFactory
-    IBlockchainService --> ISmartContractRuntime
     IBlockchainService --> IBlockService
 
     interface ISmartContractRuntimeFactory{
