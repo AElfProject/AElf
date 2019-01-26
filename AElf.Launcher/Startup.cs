@@ -12,7 +12,10 @@ namespace AElf.Launcher
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddApplication<LauncherAElfModule>(options => { options.UseAutofac(); });
+            services.AddApplication<LauncherAElfModule>(options =>
+            {
+                options.UseAutofac();
+            });
 
             return services.BuildAutofacServiceProvider();
         }
@@ -20,12 +23,16 @@ namespace AElf.Launcher
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseCors(builder => builder
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-            );
+            
+            /*
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }*/
+            
+            
+
+            //app.Run(async (context) => { await context.Response.WriteAsync("Hello World!"); });
 
             app.InitializeApplication();
         }
