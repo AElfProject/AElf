@@ -16,7 +16,7 @@ namespace AElf.Sdk.CSharp
         internal abstract Dictionary<StatePath, StateValue> GetChanges();
         internal abstract void Cleanup();
 
-        public void Assert(bool asserted, string message = "Assertion failed!")
+        protected void Assert(bool asserted, string message = "Assertion failed!")
         {
             if (!asserted)
             {
