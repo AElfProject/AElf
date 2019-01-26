@@ -6,6 +6,7 @@ using AElf.Crosschain.Client;
 using AElf.Crosschain.Exceptions;
 using AElf.Crosschain.Server;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

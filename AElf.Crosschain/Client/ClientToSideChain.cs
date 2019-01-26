@@ -1,18 +1,14 @@
 using System;
-using AElf.Common;
-using AElf.Common.Attributes;
 using Grpc.Core;
-using NLog;
 
 namespace AElf.Crosschain.Client
 {
-    [LoggerName("ClientToSideChain")]
     public class ClientToSideChain : ClientBase<ResponseSideChainBlockInfo>
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public ClientToSideChain(Channel channel, ILogger logger, Hash targetChainId, int interval, int irreversible, int maximalIndexingCount) 
-            : base(channel, logger, targetChainId, interval, irreversible, maximalIndexingCount)
+        public ClientToSideChain(Channel channel, int targetChainId, int interval, int irreversible, int maximalIndexingCount) 
+            : base(channel, targetChainId, interval, irreversible, maximalIndexingCount)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }

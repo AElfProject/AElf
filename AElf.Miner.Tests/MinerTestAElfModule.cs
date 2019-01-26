@@ -1,6 +1,7 @@
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Crosschain;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -16,8 +17,8 @@ namespace AElf.Miner.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(AElf.Miner.MinerAElfModule),
-        typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
+        typeof(MinerAElfModule),
+        typeof(CrosschainAElfModule),
         typeof(KernelAElfModule)
     )]
     public class MinerTestAElfModule : AElfModule

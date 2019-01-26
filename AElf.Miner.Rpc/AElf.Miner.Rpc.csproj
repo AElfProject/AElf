@@ -11,6 +11,7 @@
     <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+    <ProjectReference Include="..\AElf.Crosschain\AElf.Crosschain.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

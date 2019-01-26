@@ -2,30 +2,33 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController;
+using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
 using AElf.Kernel;
+using Easy.MessageHub;
 using Grpc.Core;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Crosschain.Server
 {
-    [LoggerName("SideChainRpcServer")]
     public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
     {
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<SideChainBlockInfoRpcServer> Logger {get;set;}
         private ILightChain LightChain { get; set; }
+        private ulong LibHeight { get; set; }
 
-        public SideChainBlockInfoRpcServer(IChainService chainService, ILogger logger)
+        public SideChainBlockInfoRpcServer(IChainService chainService)
         {
             _chainService = chainService;
-            _logger = logger;
+            Logger = NullLogger<SideChainBlockInfoRpcServer>.Instance;
         }
 
-        public void Init(Hash chainId)
+        public void Init(int chainId)
         {
             LightChain = _chainService.GetLightChain(chainId);
+            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
 
         /// <summary>
@@ -40,7 +43,7 @@ namespace AElf.Crosschain.Server
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Debug("Side Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
             try
             {
@@ -48,8 +51,9 @@ namespace AElf.Crosschain.Server
                 {
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
-                    var currentHeight = await LightChain.GetCurrentBlockHeightAsync();
-                    if (currentHeight - requestedHeight < (ulong)GlobalConfig.InvertibleChainHeight)
+                    
+                    // Todo: Wait until 10 rounds for most peers to be ready.
+                    if (requestedHeight > LibHeight || LibHeight < (ulong) (GlobalConfig.BlockNumberOfEachRound * 10))
                     {
                         await responseStream.WriteAsync(new ResponseSideChainBlockInfo
                         {
@@ -75,7 +79,7 @@ namespace AElf.Crosschain.Server
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Side chain server out of service with exception.");
+                Logger.LogError(e, "Side chain server out of service with exception.");
             }
         }
 
@@ -87,11 +91,11 @@ namespace AElf.Crosschain.Server
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task IndexServerStreaming(RequestBlockInfo request, 
+        /*public override async Task IndexServerStreaming(RequestBlockInfo request, 
             IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
-            _logger?.Debug("Side Chain Server received IndexedInfo message.");
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
             try
             {
@@ -110,15 +114,15 @@ namespace AElf.Crosschain.Server
                             ChainId = blockHeader.ChainId
                         }
                     };
-                    //_logger?.Log(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
+                    //Logger.LogLog(LogLevel.Debug, $"Side Chain Server responsed IndexedInfo message of height {height}");
                     await responseStream.WriteAsync(res);
                     height++;
                 }
             }
             catch (Exception e)
             {
-                _logger?.Error(e, "Exception while index server streaming.");
+                Logger.LogError(e, "Exception while index server streaming.");
             }
-        }
+        }*/
     }
 }

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Miner.Rpc";
+option csharp_namespace = "AElf.Crosschain";
 import "common.proto";
 import "crosschain.proto";
 

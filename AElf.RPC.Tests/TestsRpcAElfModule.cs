@@ -1,9 +1,9 @@
 using AElf.ChainController.Rpc;
 using AElf.Configuration;
+using AElf.Crosschain;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
 using AElf.Kernel.Storages;
-using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Runtime.CSharp;
@@ -20,7 +20,7 @@ namespace AElf.RPC.Tests
 {
     [DependsOn(
         typeof(RpcChainControllerAElfModule),
-        typeof(MinerRpcAElfModule),
+        typeof(CrosschainAElfModule),
         typeof(NetRpcAElfModule),
         typeof(RpcWalletAElfModule),
         

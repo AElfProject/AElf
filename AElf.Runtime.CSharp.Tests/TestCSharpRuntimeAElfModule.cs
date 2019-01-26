@@ -16,7 +16,7 @@ namespace AElf.Runtime.CSharp.Tests
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(AElf.Miner.MinerAElfModule),
-        typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
+        typeof(AElf.Crosschain.CrosschainAElfModule),
         typeof(KernelAElfModule)
     )]
     public class TestCSharpRuntimeAElfModule : AElfModule

@@ -7,7 +7,6 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
       <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />

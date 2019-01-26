@@ -1,8 +1,8 @@
 ﻿using AElf.ChainController.Rpc;
+using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel.Consensus;
 using AElf.Miner;
-using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
@@ -36,7 +36,7 @@ namespace AElf.Launcher
         typeof(CSharpRuntimeAElfModule),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
-        typeof(MinerRpcAElfModule),
+        typeof(CrosschainAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule))]
     public class LauncherAElfModule : AElfModule

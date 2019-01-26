@@ -2,16 +2,12 @@ using System.Runtime.CompilerServices;
 using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
+using AElf.Crosschain;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Miner;
-using AElf.Miner.Rpc;
-using AElf.Miner.TxMemPool;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -29,7 +25,7 @@ namespace AElf.Kernel.Tests
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
         typeof(SmartContractAElfModule),
         typeof(MinerAElfModule),
-        typeof(MinerRpcAElfModule),
+        typeof(CrosschainAElfModule),
         typeof(CSharpRuntimeAElfModule),
         
         typeof(TestBaseAElfModule))]
