@@ -77,9 +77,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management", "AElf.Man
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Tests", "AElf.Management.Tests\AElf.Management.Tests.csproj", "{71DFC40C-FD36-4F6A-891E-23A24A143ECC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI2", "AElf.CLI2\AElf.CLI2.csproj", "{2B0FCBF9-D72C-4328-874F-29B4466B000D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI", "AElf.CLI\AElf.CLI.csproj", "{2B0FCBF9-D72C-4328-874F-29B4466B000D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI2.Tests", "AElf.CLI2.Tests\AElf.CLI2.Tests.csproj", "{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI.Tests", "AElf.CLI.Tests\AElf.CLI.Tests.csproj", "{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Website", "AElf.Management.Website\AElf.Management.Website.csproj", "{C6F923F1-5C7D-4750-A9EA-E684F265F644}"
 EndProject
