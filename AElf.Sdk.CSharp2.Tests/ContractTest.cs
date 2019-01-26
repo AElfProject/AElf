@@ -30,7 +30,7 @@ namespace AElf.Sdk.CSharp2.Tests
                 }
             });
 
-            contract.SetStateManager(stateManager);
+            contract.SetStateProviderFactory(new MockStateProviderFactory(stateManager));
             contract.SetContractAddress(addresses[0]);
             contract.Initialize("ELF", "ELF Token", 1000000000, 0);
             Assert.Equal("ELF", contract.Symbol());

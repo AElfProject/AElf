@@ -76,7 +76,7 @@ namespace AElf.Sdk.CSharp.State
         private ValuePair LoadKey(TKey key)
         {
             var path = GetSubStatePath(key.ToString());
-            var bytes = Manager.GetAsync(path).Result;
+            var bytes = Provider.GetAsync(path).Result;
             var value = SerializationHelpers.Deserialize<TEntity>(bytes);
 
             return new ValuePair()
@@ -100,7 +100,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     child = new MappedState<TKey2, TEntity>()
                     {
-                        Manager = this.Manager,
+                        Provider = this.Provider,
                         Path = GetSubStatePath(key1.ToString())
                     };
                     Cache[key1] = child;
@@ -143,7 +143,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     child = new MappedState<TKey2, TKey3, TEntity>()
                     {
-                        Manager = this.Manager,
+                        Provider = this.Provider,
                         Path = GetSubStatePath(key1.ToString())
                     };
                     Cache[key1] = child;
@@ -186,7 +186,7 @@ namespace AElf.Sdk.CSharp.State
                 {
                     child = new MappedState<TKey2, TKey3, TKey4, TEntity>()
                     {
-                        Manager = this.Manager,
+                        Provider = this.Provider,
                         Path = GetSubStatePath(key1.ToString())
                     };
                     Cache[key1] = child;
