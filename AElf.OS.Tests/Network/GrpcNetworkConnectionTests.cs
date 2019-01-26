@@ -70,13 +70,13 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Start();
-            await m2.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
             
             var p = m2.GetPeer("127.0.0.1:6800");
 
-            await m1.Stop();
-            await m2.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
             
             Assert.True(!string.IsNullOrWhiteSpace(p));
         }
@@ -101,9 +101,9 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6802
             });
             
-            await m1.Start();
-            await m2.Start();
-            await m3.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
+            await m3.StartAsync();
 
             var peers = m3.GetPeers();
 
@@ -112,9 +112,9 @@ namespace AElf.OS.Tests.Network
             Assert.True(peers.Contains("127.0.0.1:6800"));
             Assert.True(peers.Contains("127.0.0.1:6801"));
             
-            await m1.Stop();
-            await m2.Stop();
-            await m3.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
+            await m3.StopAsync();
         }
         
         [Fact]
@@ -133,8 +133,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Start();
-            await m2.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
             
             var p = m2.GetPeer("127.0.0.1:6800");
 
@@ -145,8 +145,72 @@ namespace AElf.OS.Tests.Network
             
             Assert.True(string.IsNullOrWhiteSpace(p2));
 
-            await m1.Stop();
-            await m2.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
+        }
+        
+        [Fact]
+        public async Task GetPeers_DisconnectionOfDialer_Test()
+        {
+            // setup 2 peers
+            
+            var m1 = BuildNetManager(new NetworkOptions
+            {
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.StartAsync();
+            await m2.StartAsync();
+            
+            var p = m2.GetPeer("127.0.0.1:6800");
+
+            Assert.True(!string.IsNullOrWhiteSpace(p));
+
+            await m1.StopAsync();
+           
+            var p2 = m2.GetPeer("127.0.0.1:6800");
+            
+            Assert.True(string.IsNullOrWhiteSpace(p2));
+
+            await m2.StopAsync();
+        }
+        
+        [Fact]
+        public async Task GetPeers_DisconnectionOfDialee_Test()
+        {
+            // setup 2 peers
+            
+            var m1 = BuildNetManager(new NetworkOptions
+            {
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.StartAsync();
+            await m2.StartAsync();
+            
+            var p = m1.GetPeer("127.0.0.1:6801");
+
+            Assert.True(!string.IsNullOrWhiteSpace(p));
+
+            await m2.StopAsync();
+           
+            var p2 = m1.GetPeer("127.0.0.1:6801");
+            
+            Assert.True(string.IsNullOrWhiteSpace(p2));
+
+            await m1.StopAsync();
         }
     }
 }

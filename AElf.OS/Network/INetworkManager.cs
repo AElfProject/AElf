@@ -14,7 +14,7 @@ namespace AElf.OS.Network
         Task<IBlock> GetBlockByHash(Hash hash, string peer = null);
         Task BroadcastAnnounce(Block b);
         
-        Task Start();
-        Task Stop();
+        Task StartAsync();
+        Task StopAsync();
     }
 }

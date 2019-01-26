@@ -18,12 +18,12 @@ namespace AElf.OS.Network
         
         public async Task Start()
         {
-            await _networkManager.Start();
+            await _networkManager.StartAsync();
         }
 
         public async Task Stop()
         {
-            await _networkManager.Stop();
+            await _networkManager.StopAsync();
         }
 
         public void AddPeer(string address)

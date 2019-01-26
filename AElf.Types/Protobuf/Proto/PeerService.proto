@@ -12,6 +12,15 @@ service PeerService {
 
     rpc Connect (Handshake) returns (AuthResponse) {}
     rpc Authentify (Handshake) returns (AuthResponse) {}
+    
+    rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+}
+
+message DisconnectReason {
+    Reason Why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
 }
 
 message Announcement {
@@ -28,6 +37,7 @@ message Handshake {
 message AuthResponse{
     bool Success = 1;
     AuthError Err = 2;
+    string Port = 3;
 }
 
 enum AuthError {

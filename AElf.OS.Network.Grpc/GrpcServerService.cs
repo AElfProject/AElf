@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
@@ -13,6 +14,8 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcServerService : PeerService.PeerServiceBase
     {
+        public event EventHandler PeerSentDisconnection;
+        
         private readonly IPeerAuthentificator _peerAuthenticator;
         private readonly IBlockService _blockService;
         private readonly ILocalEventBus _localEventBus;
@@ -61,15 +64,15 @@ namespace AElf.OS.Network.Grpc
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
-                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer));
+                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer, context.Peer.Split(":")[2]));
+                
+                return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during connect.");
                 return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
             }
-            
-            return Task.FromResult(new AuthResponse { Success = true});
         }
 
         /// <summary>
@@ -95,7 +98,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
             }
             
-            return Task.FromResult(new AuthResponse { Success = true});
+            return Task.FromResult(new AuthResponse { Success = true, Port = context.Peer.Split(":")[2] });
         }
 
         public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
@@ -149,6 +152,20 @@ namespace AElf.OS.Network.Grpc
             }
             
             return Task.FromResult(new BlockReply());
+        }
+
+        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        {
+            try
+            {
+                PeerSentDisconnection?.Invoke(this, new PeerDcEventArgs { Peer = context.Peer.Split(":")[2] });
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during Disconnect handle.");
+            }
+            
+            return Task.FromResult(new VoidReply());
         }
     }
 }

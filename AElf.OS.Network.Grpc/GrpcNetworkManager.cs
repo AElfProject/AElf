@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
@@ -45,10 +46,12 @@ namespace AElf.OS.Network.Grpc
             _networkOptions = options.Value;
         }
         
-        public async Task Start()
+        public async Task StartAsync()
         {
             // todo inject block service
             var p = new GrpcServerService(Logger, this, _blockService, _localEventBus);
+            
+            p.PeerSentDisconnection += POnPeerSentDisconnection;
             
             _server = new Server {
                 Services = { PeerService.BindService(p) },
@@ -71,6 +74,14 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        private void POnPeerSentDisconnection(object sender, EventArgs e)
+        {
+            if (e is PeerDcEventArgs ea)
+            {
+                _authenticatedPeers.RemoveAll(p => p.RemoteEndpoint == ea.Peer);
+            }
+        }
+
         private async Task<bool> Dial(string address)
         {
             try
@@ -88,7 +99,7 @@ namespace AElf.OS.Network.Grpc
                 if (resp.Success != true)
                     return false;
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client, address));
+                _authenticatedPeers.Add(new GrpcPeer(channel, client, address, resp.Port));
                         
                 Logger.LogTrace($"Connected to {address}.");
 
@@ -151,10 +162,20 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public Task Stop()
+        public async Task StopAsync()
         {
-            _server.KillAsync();
-            return Task.FromResult(true);
+            await _server.KillAsync();
+            foreach (var peer in _authenticatedPeers)
+            {
+                try
+                {
+                    await peer.DisconnectAsync();
+                    await peer.StopAsync();
+                }
+                catch (Exception e)
+                {
+                }
+            }
         }
 
         public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null)

@@ -88,13 +88,13 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Start();
-            await m2.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
 
             IBlock b = await m2.GetBlockByHash(genesis.GetHash());
 
-            await m1.Stop();
-            await m2.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
             
             Assert.NotNull(b);
         }
@@ -115,7 +115,7 @@ namespace AElf.OS.Tests.Network
                 }
                 catch (Exception e)
                 {
-                    //_testOutputHelper.WriteLine(e.ToString());
+                    _testOutputHelper.WriteLine(e.ToString());
                 }
             }
 
@@ -127,15 +127,15 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Start();
-            await m2.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
             
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             await m2.BroadcastAnnounce(genesis);
             
-            await m1.Stop();
-            await m2.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
             Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
@@ -157,7 +157,7 @@ namespace AElf.OS.Tests.Network
                 }
                 catch (Exception e)
                 {
-                    //_testOutputHelper.WriteLine(e.ToString());
+                    _testOutputHelper.WriteLine(e.ToString());
                 }
             }
 
@@ -169,15 +169,15 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Start();
-            await m2.Start();
+            await m1.StartAsync();
+            await m2.StartAsync();
             
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             await m2.BroadcastTransaction(new Transaction());
             
-            await m1.Stop();
-            await m2.Stop();
+            await m1.StopAsync();
+            await m2.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
             //Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
