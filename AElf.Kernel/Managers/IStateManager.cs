@@ -23,6 +23,11 @@ namespace AElf.Kernel.Managers
     public interface IBlockchainStateManager
     {
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
+        Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash);
+        Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
+        // TODO: Standardize chainid to int
+        Task MergeBlockStateAsync(long chainId, Hash blockStateHash);
+        Task<ChainStateInfo> GetChainStateInfoAsync(long chainId);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency

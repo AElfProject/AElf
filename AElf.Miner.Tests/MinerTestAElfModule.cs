@@ -2,6 +2,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
+using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
@@ -26,6 +27,7 @@ namespace AElf.Miner.Tests
         {
             
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
+            context.Services.AddScoped<IExecutingService, NoFeeSimpleExecutingService>();
             
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());

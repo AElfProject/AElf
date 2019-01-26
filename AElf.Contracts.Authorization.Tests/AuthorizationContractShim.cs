@@ -49,7 +49,7 @@ namespace AElf.Contracts.Authorization.Tests
         
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
-            await trace.SmartCommitChangesAsync(_mock.StateManager);
+            await trace.SmartCommitChangesAsync(_mock.StateProviderFactory.CreateStateManager());
         }
 
         public async Task<byte[]> CreateMSigAccount(Kernel.Authorization authorization)

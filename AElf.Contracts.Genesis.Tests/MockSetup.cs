@@ -9,6 +9,7 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
@@ -28,7 +29,6 @@ namespace AElf.Contracts.Genesis.Tests
         public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
-        private IFunctionMetadataService _functionMetadataService;
 
         public IChainContextService ChainContextService;
 
@@ -40,20 +40,20 @@ namespace AElf.Contracts.Genesis.Tests
 
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
+        public MockSetup(IStateManager stateManager,
+            IChainCreationService chainCreationService,
             IChainContextService chainContextService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager, IChainService chainService)
+            ISmartContractRunnerContainer smartContractRunnerContainer,
+            ISmartContractManager smartContractManager,
+            ISmartContractService smartContractService)
         {
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                StateManager, _functionMetadataService, chainService);
+            SmartContractService = smartContractService;
 
             ServicePack = new ServicePack()
             {

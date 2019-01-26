@@ -3,6 +3,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
+using AElf.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp
 {
@@ -10,7 +11,7 @@ namespace AElf.Sdk.CSharp
     {
         internal abstract void SetSmartContractContext(ISmartContractContext smartContractContext);
         internal abstract void SetTransactionContext(ITransactionContext transactionContext);
-        internal abstract void SetStateManager(IStateManager stateManager);
+        internal abstract void SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
         internal abstract void SetContractAddress(Address address);
         internal abstract Dictionary<StatePath, StateValue> GetChanges();
         internal abstract void Cleanup();
