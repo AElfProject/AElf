@@ -14,8 +14,8 @@ namespace AElf.Contracts.Resource
             checked
             {
                 ResourceContract.AssertCorrectResourceType(resourceType);
-                var rt = new StringValue() {Value = resourceType};
-                var cvt = c.Converters[rt];
+                var rt = ResourceContract.GetConverterKey(resourceType);
+                var cvt = c.Converters[ResourceContract.GetConverterKey(resourceType)];
                 var resourcePayout = CalculateCrossConnectorReturn(
                     cvt.ElfBalance, cvt.ElfWeight,
                     cvt.ResBalance, cvt.ResWeight,
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Resource
             checked
             {
                 ResourceContract.AssertCorrectResourceType(resourceType);
-                var rt = new StringValue() {Value = resourceType};
+                var rt = ResourceContract.GetConverterKey(resourceType);
                 var cvt = c.Converters[rt];
                 var elfPayout = CalculateCrossConnectorReturn(
                     cvt.ResBalance, cvt.ResWeight,
