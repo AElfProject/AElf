@@ -617,8 +617,8 @@ var logLevel = new Int32Value {Value = 0};
                     {
                         new Forwarding
                         {
-                            CurrentRoundInfo = roundInfo,
-                            NextRoundInfo = nextRoundInfo,
+                            CurrentRound = roundInfo,
+                            NextRound = nextRoundInfo,
                             CurrentAge = calculatedAge
                         }
                     };

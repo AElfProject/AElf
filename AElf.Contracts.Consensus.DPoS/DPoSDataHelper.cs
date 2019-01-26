@@ -48,6 +48,11 @@ namespace AElf.Contracts.Consensus.DPoS
             throw new System.NotImplementedException();
         }
 
+        public Miners TryToGetVictories()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public bool IsMiner(Address address)
         {
             if (TryToGetTermNumber(out var termNumber))

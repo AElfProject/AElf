@@ -17,8 +17,8 @@ message Term {
 
 // Just used as parameter of consensus contract method.
 message Forwarding {
-    Round CurrentRoundInfo = 1;
-    Round NextRoundInfo = 2;
+    Round CurrentRound = 1;
+    Round NextRound = 2;
     uint64 CurrentAge = 3;
 }
 
@@ -176,7 +176,12 @@ enum TicketsHistoryType {
 message DPoSInformation {
     Address Sender = 1;
     repeated Address MinersList = 2;
-    Round NewRound = 3;
+    Forwarding Forwarding = 3;
     Term NewTerm = 4;
     bool WillUpdateConsensus = 5;
+}
+
+message ValidationResult {
+    bool Success = 1;
+    string Message = 2;
 }

@@ -86,7 +86,8 @@ namespace AElf.Kernel
 
         public static Hash MinersHash(this Round round)
         {
-            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
+            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).OrderBy(p => p)
+                .ToMiners());
         }
 
         public static ulong GetMinedBlocks(this Round round)

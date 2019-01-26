@@ -14,6 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
         bool TryToGetCurrentRoundInformation(out Round roundInformation);
         bool TryToGetPreviousRoundInformation(out Round roundInformation);
         bool TryToGetMiners(ulong termNumber, out Miners miners);
+        Miners TryToGetVictories();
         
         bool IsMiner(Address address);
     }

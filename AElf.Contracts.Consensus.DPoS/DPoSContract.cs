@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -42,25 +43,53 @@ namespace AElf.Contracts.Consensus.DPoS
         }
         
         [View]
-        public bool ValidateConsensus(byte[] consensusInformation)
+        public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
-            var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
+            var dpoSInformation = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
-            Api.Assert(_dataHelper.IsMiner(information.Sender), "Sender isn't a miner.");
-
-            if (_dataHelper.TryToGetCurrentRoundInformation(out var roundInformation))
+            if (_dataHelper.IsMiner(dpoSInformation.Sender))
             {
-                if (information.WillUpdateConsensus)
+                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+            }
+
+            if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                if (dpoSInformation.WillUpdateConsensus)
                 {
+                    if (dpoSInformation.Forwarding != null)
+                    {
+                        // Next Round
+                        if (!MinersAreSame(currentRound, dpoSInformation.Forwarding.NextRound))
+                        {
+                            return new ValidationResult {Success = false, Message = "Incorrect miners list."};
+                        }
+
+                        if (!OutInValueAreNull(dpoSInformation.Forwarding.NextRound))
+                        {
+                            return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
+                        }
+
+                        // TODO: Validate time slots (distance == 4000 ms)
+                    }
+
+                    if (dpoSInformation.NewTerm != null)
+                    {
+                        // Next Term
+                        
+                    }
+                }
+                else
+                {
+                    // Same Round
                     
                 }
             }
-            
-            
-            return false;
+
+
+            return new ValidationResult {Success = true};
         }
 
-        public ulong GetCountingMilliseconds()
+        public ulong GetCountingMilliseconds(Timestamp timestamp)
         {
             throw new NotImplementedException();
         }
@@ -70,9 +99,30 @@ namespace AElf.Contracts.Consensus.DPoS
             throw new NotImplementedException();
         }
 
+        public TransactionList GenerateConsensusTransactions()
+        {
+            throw new NotImplementedException();
+        }
+
         private Address GetAddress(string publicKeyToHex)
         {
             return Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKeyToHex));
+        }
+
+        private bool MinersAreSame(Round round1, Round round2)
+        {
+            return round1.MinersHash() == round2.MinersHash();
+        }
+
+        private bool OutInValueAreNull(Round round)
+        {
+            return round.RealTimeMinersInfo.Values.Any(minerInRound =>
+                minerInRound.OutValue != null || minerInRound.InValue != null);
+        }
+
+        private bool ValidateVictories()
+        {
+            throw new NotImplementedException();
         }
     }
 }

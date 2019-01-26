@@ -11,7 +11,9 @@ using Api = AElf.Sdk.CSharp.Api;
 // ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class Information
+    // ReSharper disable UnusedMember.Global
+    // ReSharper disable InconsistentNaming
+    public class Process
     {
         private ulong CurrentRoundNumber => _dataStructures.CurrentRoundNumberField.GetValue();
 
@@ -25,7 +27,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private readonly DataStructures _dataStructures;
 
-        public Information(DataStructures dataStructures)
+        public Process(DataStructures dataStructures)
         {
             _dataStructures = dataStructures;
         }
@@ -343,16 +345,16 @@ namespace AElf.Contracts.Consensus.DPoS
             stopwatch.Start();
             
             Api.Assert(
-                forwarding.NextRoundInfo.RoundNumber == 0 || _dataStructures.CurrentRoundNumberField.GetValue() <
-                forwarding.NextRoundInfo.RoundNumber,
+                forwarding.NextRound.RoundNumber == 0 || _dataStructures.CurrentRoundNumberField.GetValue() <
+                forwarding.NextRound.RoundNumber,
                 "Incorrect round number of next round.");
 
             var senderPublicKey = Api.RecoverPublicKey().ToHex();
             
-            if (IsMainchain() && forwarding.NextRoundInfo.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
-                forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
+            if (IsMainchain() && forwarding.NextRound.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
+                forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
-                var miners = forwarding.NextRoundInfo.RealTimeMinersInfo.Keys.ToMiners();
+                var miners = forwarding.NextRound.RealTimeMinersInfo.Keys.ToMiners();
                 miners.TermNumber = _dataStructures.CurrentTermNumberField.GetValue();
                 _dataStructures.MinersMap.SetValue(CurrentTermNumber.ToUInt64Value(), miners);
             }
@@ -361,14 +363,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // TODO: Need to be checked somehow
             _dataStructures.AgeField.SetValue(forwarding.CurrentAge);
 
-            var forwardingCurrentRoundInfo = forwarding.CurrentRoundInfo;
+            var forwardingCurrentRoundInfo = forwarding.CurrentRound;
             var currentRoundInfo = GetRoundInfo(forwardingCurrentRoundInfo.RoundNumber);
             Api.Assert(forwardingCurrentRoundInfo.RoundId == currentRoundInfo.RoundId, GlobalConfig.RoundIdNotMatched);
 
             var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRoundInfo, forwardingCurrentRoundInfo);
 
             // When the node is in Round 1, gonna just update the data of Round 2 instead of re-generate orders.
-            if (forwarding.NextRoundInfo.RoundNumber == 0)
+            if (forwarding.NextRound.RoundNumber == 0)
             {
                 if (_dataStructures.RoundsMap.TryGet((currentRoundInfo.RoundNumber + 1).ToUInt64Value(),
                     out var nextRoundInfo))
@@ -382,7 +384,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
 
                     nextRoundInfo.BlockchainAge = CurrentAge;
-                    if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(senderPublicKey))
+                    if (forwarding.NextRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
                     {
                         nextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
                     }
@@ -414,11 +416,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 // Update missed time slots and produced blocks for each miner.
                 foreach (var minerInRound in completeCurrentRoundInfo.RealTimeMinersInfo)
                 {
-                    if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                    if (forwarding.NextRound.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
                     {
-                        forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
+                        forwarding.NextRound.RealTimeMinersInfo[minerInRound.Key].MissedTimeSlots =
                             minerInRound.Value.MissedTimeSlots;
-                        forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
+                        forwarding.NextRound.RealTimeMinersInfo[minerInRound.Key].ProducedBlocks =
                             minerInRound.Value.ProducedBlocks;
                     }
                     else
@@ -443,10 +445,10 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 }
 
-                forwarding.NextRoundInfo.BlockchainAge = CurrentAge;
-                if (forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(senderPublicKey))
+                forwarding.NextRound.BlockchainAge = CurrentAge;
+                if (forwarding.NextRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
                 {
-                    forwarding.NextRoundInfo.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
+                    forwarding.NextRound.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
                 }
                 else
                 {
@@ -469,7 +471,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if (CurrentRoundNumber > GlobalConfig.ForkDetectionRoundNumber)
                 {
-                    foreach (var minerInRound in forwarding.NextRoundInfo.RealTimeMinersInfo)
+                    foreach (var minerInRound in forwarding.NextRound.RealTimeMinersInfo)
                     {
                         minerInRound.Value.LatestMissedTimeSlots = 0;
                     }
@@ -490,24 +492,24 @@ namespace AElf.Contracts.Consensus.DPoS
                         foreach (var minerInRound in round.RealTimeMinersInfo)
                         {
                             if (minerInRound.Value.IsMissed &&
-                                forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                                forwarding.NextRound.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
                             {
-                                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots +=
+                                forwarding.NextRound.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots +=
                                     1;
                             }
 
                             if (!minerInRound.Value.IsMissed &&
-                                forwarding.NextRoundInfo.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
+                                forwarding.NextRound.RealTimeMinersInfo.ContainsKey(minerInRound.Key))
                             {
-                                forwarding.NextRoundInfo.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots = 0;
+                                forwarding.NextRound.RealTimeMinersInfo[minerInRound.Key].LatestMissedTimeSlots = 0;
                             }
                         }
                     }
                 }
 
-                _dataStructures.RoundsMap.SetValue(forwarding.NextRoundInfo.RoundNumber.ToUInt64Value(),
-                    forwarding.NextRoundInfo);
-                _dataStructures.CurrentRoundNumberField.SetValue(forwarding.NextRoundInfo.RoundNumber);
+                _dataStructures.RoundsMap.SetValue(forwarding.NextRound.RoundNumber.ToUInt64Value(),
+                    forwarding.NextRound);
+                _dataStructures.CurrentRoundNumberField.SetValue(forwarding.NextRound.RoundNumber);
             }
             
             Console.WriteLine($"Round changing duration: {stopwatch.ElapsedMilliseconds} ms.");

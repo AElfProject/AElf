@@ -263,8 +263,8 @@ namespace AElf.Contracts.Consensus.Tests
             _contracts.NextRound(_miners[0], new Forwarding
             {
                 CurrentAge = 1,
-                CurrentRoundInfo = suppliedFirstRound,
-                NextRoundInfo = secondRound
+                CurrentRound = suppliedFirstRound,
+                NextRound = secondRound
             });
 
             Assert.Equal(string.Empty, _contracts.TransactionContext.Trace.StdErr);
