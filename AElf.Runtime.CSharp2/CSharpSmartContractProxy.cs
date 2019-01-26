@@ -6,6 +6,7 @@ using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
+using AElf.SmartContract.Contexts;
 
 namespace AElf.Runtime.CSharp
 {
@@ -31,7 +32,7 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(SetSmartContractContext), nameof(SetTransactionContext), nameof(SetStateManager),
+                nameof(SetSmartContractContext), nameof(SetTransactionContext), nameof(SetStateProviderFactory),
                 nameof(GetChanges), nameof(Cleanup)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
@@ -46,10 +47,10 @@ namespace AElf.Runtime.CSharp
             _methodInfos[nameof(SetTransactionContext)].Invoke(_instance, new object[] {transactionContext});
         }
 
-        public void SetStateManager(IStateManager stateManager)
+        public void SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
-            Console.WriteLine($"stateManager {stateManager==null} _instance {_instance==null} _methodInfos[nameof(SetStateManager)] {_methodInfos[nameof(SetStateManager)]==null}");
-            _methodInfos[nameof(SetStateManager)].Invoke(_instance, new object[] {stateManager});
+            Console.WriteLine("setting StateProviderFactory");
+            _methodInfos[nameof(SetStateProviderFactory)].Invoke(_instance, new object[] {stateProviderFactory});
         }
 
         public Dictionary<StatePath, StateValue> GetChanges()

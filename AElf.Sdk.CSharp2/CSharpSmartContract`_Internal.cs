@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;
+using AElf.SmartContract.Contexts;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
@@ -23,9 +24,9 @@ namespace AElf.Sdk.CSharp
             SetContractAddress(transactionContext.Transaction.To);
         }
 
-        internal override void SetStateManager(IStateManager stateManager)
+        internal override void SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
-            State.Manager = stateManager;
+            State.Provider = stateProviderFactory.CreateStateProvider();
         }
 
         internal override void SetContractAddress(Address address)
@@ -34,6 +35,7 @@ namespace AElf.Sdk.CSharp
             {
                 throw new Exception($"Input {nameof(address)} is null.");
             }
+
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8(address.GetFormatted()));
             State.Path = path;
@@ -43,6 +45,7 @@ namespace AElf.Sdk.CSharp
         {
             return State.GetChanges();
         }
+
         internal override void Cleanup()
         {
             State.Clear();
