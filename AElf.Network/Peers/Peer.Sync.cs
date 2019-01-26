@@ -8,6 +8,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Easy.MessageHub;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Network.Peers
 {
@@ -37,12 +38,12 @@ namespace AElf.Network.Peers
         public bool IsSyncingHistory => SyncTarget != 0;
 
         /// <summary>
-        /// When syncing an annoucements, this is the current one.
+        /// When syncing an announcements, this is the current one.
         /// </summary>
         public Announce SyncedAnnouncement { get; private set; }
 
         /// <summary>
-        /// True if syncing an annoucement.
+        /// True if syncing an announcement.
         /// </summary>
         public bool IsSyncingAnnounced => SyncedAnnouncement != null;
 
@@ -107,9 +108,9 @@ namespace AElf.Network.Peers
             SyncTarget = target;
             CurrentlyRequestedHeight = start;
             
-            _logger?.Debug($"[{this}] Syncing to height {SyncTarget}.");
+            Logger.LogDebug($"[{this}] Syncing to height {SyncTarget}.");
 
-            // request 
+            // request first
             RequestBlockByIndex(CurrentlyRequestedHeight);
 
             MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(true));
@@ -119,20 +120,12 @@ namespace AElf.Network.Peers
         /// This method will request the next block based on the current value of <see cref="CurrentlyRequestedHeight"/>.
         /// If target was reached, the state is reset and the method returns false.
         /// </summary>
-        /// <returns>Returns weither or no this call has completed the sync.</returns>
+        /// <returns>Returns whether or no this call has completed the sync.</returns>
         public bool SyncNextHistory()
         {
             if (CurrentlyRequestedHeight == SyncTarget)
             {
-                if (_announcements.Any())
-                {
-                    var aa = _announcements.OrderBy(a => a.Height).FirstOrDefault();
-                    if (aa != null && aa.Height != SyncTarget+1)
-                        _logger?.Warn($"[{this}] We're missing a block, first announce {aa.Height} sync target {SyncTarget}");
-                    else
-                        _logger?.Debug($"[{this}] All synced : next {aa?.Height} sync target {SyncTarget}");
-                }
-                
+                // Clean any announcements that are lower than current height
                 SyncTarget = 0;
                 CurrentlyRequestedHeight = 0;
                 MessageHub.Instance.Publish(new ReceivingHistoryBlocksChanged(false));
@@ -172,7 +165,7 @@ namespace AElf.Network.Peers
         public bool SyncNextAnnouncement()
         {
             if (!IsSyncingAnnounced && !_announcements.Any())
-                throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed annoucements.");
+                throw new InvalidOperationException($"Call to {nameof(SyncNextAnnouncement)} with no stashed announcements.");
 
             if (!_announcements.Any())
             {
@@ -180,9 +173,9 @@ namespace AElf.Network.Peers
                 return false;
             }
 
-            var nextAnouncement = _announcements.OrderBy(a => a.Height).First();
+            var nextAnnouncement = _announcements.OrderBy(a => a.Height).First();
 
-            SyncedAnnouncement = nextAnouncement;
+            SyncedAnnouncement = nextAnnouncement;
             _announcements.Remove(SyncedAnnouncement);
 
             RequestBlockById(SyncedAnnouncement.Id.ToByteArray(), SyncedAnnouncement.Height);
@@ -198,7 +191,7 @@ namespace AElf.Network.Peers
         {
             if (a?.Id == null)
             {
-                _logger?.Error($"[{this}] announcement or its id is null.");
+                Logger.LogError($"[{this}] announcement or its id is null.");
                 return;
             }
 
@@ -207,16 +200,16 @@ namespace AElf.Network.Peers
                 if (a.Height <= KnownHeight)
                 {
                     // todo just log for now, but this is probably a protocol error.
-                    _logger?.Warn($"[{this}] current know height: {KnownHeight} announcement height {a.Height}.");
+                    Logger.LogWarning($"[{this}] current know height: {KnownHeight} announcement height {a.Height}.");
                 }
 
                 KnownHeight = a.Height;
             
-                _logger?.Trace($"[{this}] received announcement, height increased: {KnownHeight}.");
+                Logger.LogTrace($"[{this}] received announcement, height increased: {KnownHeight}.");
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"[{this}] error processing announcement.");
+                Logger.LogError(e, $"[{this}] error processing announcement.");
             }
         }
 
@@ -229,7 +222,7 @@ namespace AElf.Network.Peers
             byte[] blockHash = block.GetHashBytes();
             int blockHeight = (int) block.Header.Index;
 
-            _logger.Info($"Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
+            Logger.LogInformation($"[{this}] Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
                          $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");
 
             lock (_blockReqLock)
@@ -260,7 +253,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"[{this}] request for block at height {index} failed because payload is null.");
+                Logger.LogWarning($"[{this}] request for block at height {index} failed because payload is null.");
                 return;
             }
 
@@ -275,7 +268,7 @@ namespace AElf.Network.Peers
 
             if (message.Payload == null)
             {
-                _logger?.Warn($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
+                Logger.LogWarning($"[{this}] request for block with id {id.ToHex()} failed because payload is null.");
                 return;
             }
 
@@ -298,9 +291,9 @@ namespace AElf.Network.Peers
                 blockRequest.Start();
 
                 if (blockRequest.IsById)
-                    _logger?.Trace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
+                    Logger.LogTrace($"[{this}] Block request sent {{ hash: {blockRequest.Id.ToHex()} }}");
                 else
-                    _logger?.Trace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
+                    Logger.LogTrace($"[{this}] Block request sent {{ height: {blockRequest.Height} }}");
             });
         }
 
@@ -308,7 +301,7 @@ namespace AElf.Network.Peers
         {
             if (sender is TimedBlockRequest req)
             {
-                _logger?.Warn($"[{this}] failed timed request {req}");
+                Logger.LogWarning($"[{this}] failed timed request {req}");
 
                 if (req.CurrentPeerRetries < MaxRequestRetries)
                 {
@@ -317,20 +310,20 @@ namespace AElf.Network.Peers
                         return;
                     }
 
-                    _logger?.Debug($"[{this}] try again {req}.");
+                    Logger.LogDebug($"[{this}] try again {req}.");
 
                     EnqueueOutgoing(req.Message, (_) =>
                     {
-                        // last check for cancelation
+                        // last check for cancellation
                         if (req.IsCanceled)
                             return;
 
                         req.Start();
 
                         if (req.IsById)
-                            _logger?.Trace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
+                            Logger.LogTrace($"[{this}] Block request sent {{ hash: {req.Id.ToHex()} }}");
                         else
-                            _logger?.Trace($"[{this}] Block request sent {{ height: {req.Height} }}");
+                            Logger.LogTrace($"[{this}] Block request sent {{ height: {req.Height} }}");
                     });
                 }
                 else
@@ -340,11 +333,11 @@ namespace AElf.Network.Peers
                         BlockRequests.RemoveAll(b => (b.IsById && b.Id.BytesEqual(req.Id)) || (!b.IsById && b.Height == req.Height));
                     }
 
-                    _logger?.Warn($"[{this}] request failed {req}.");
+                    Logger.LogWarning($"[{this}] request failed {req}.");
 
                     req.RequestTimedOut -= TimedRequestOnRequestTimedOut;
                     
-                    //Dispose();
+                    RequestFailed?.Invoke(this, null);
                 }
             }
         }

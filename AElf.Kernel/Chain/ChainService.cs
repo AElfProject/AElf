@@ -4,10 +4,11 @@ using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using Akka.Dispatch;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel
 {
-    public class ChainService : IChainService
+    public class ChainService : IChainService, ISingletonDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
@@ -15,7 +16,7 @@ namespace AElf.Kernel
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateManager _stateManager;
 
-        private readonly ConcurrentDictionary<Hash, BlockChain> _blockchains = new ConcurrentDictionary<Hash, BlockChain>();
+        private readonly ConcurrentDictionary<int, BlockChain> _blockchains = new ConcurrentDictionary<int, BlockChain>();
 
         public ChainService(IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager, 
@@ -28,13 +29,8 @@ namespace AElf.Kernel
             _stateManager = stateManager;
         }
 
-        public IBlockChain GetBlockChain(Hash chainId)
+        public IBlockChain GetBlockChain(int chainId)
         {
-            // To prevent some weird situations.
-            if (chainId == Hash.Default && _blockchains.Any())
-            {
-                return _blockchains.First().Value;
-            }
             
             if (_blockchains.TryGetValue(chainId, out var blockChain))
             {
@@ -47,7 +43,7 @@ namespace AElf.Kernel
             return blockChain;
         }
 
-        public ILightChain GetLightChain(Hash chainId)
+        public ILightChain GetLightChain(int chainId)
         {
             return new LightChain(chainId, _chainManager, _blockManager);
         }

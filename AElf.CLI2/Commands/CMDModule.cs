@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CLI2.Commands.Contract;
 using AElf.CLI2.Commands.CrossChain;
 using AElf.CLI2.Commands.Proposal;
 using Autofac;
@@ -25,6 +26,7 @@ namespace AElf.CLI2.Commands
                 [typeof(InteractiveConsoleOption)] = typeof(InteractiveConsoleCommand),
                 [typeof(DeployContractOption)] = typeof(DeployContractCommand),
                 [typeof(UpdateContractOption)] = typeof(UpdateContractCommand),
+                [typeof(ChangeContractOwnerOption)] = typeof(ChangeContractOwnerCommand),
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
@@ -40,7 +42,9 @@ namespace AElf.CLI2.Commands
                 [typeof(ChainDisposalRequestOption)] = typeof(ChainDisposalRequestCommand),
                 [typeof(CheckChainStatusOption)] = typeof(CheckChainStatusCommand),
                 [typeof(VerifyCrossChainTransactionOption)] = typeof(VerifyCrossChainTransactionCommand),
-                [typeof(CertificateGenerationOption)] =typeof(CertificateGenerationCommand)
+                [typeof(CertificateGenerationOption)] = typeof(CertificateGenerationCommand),
+                [typeof(WithdrawChainCreationRequestOption)] = typeof(WithdrawChainCreationRequestCommand),
+                [typeof(RechargeForSideChainOption)] =typeof(RechargeForSideChainCommand)
             };
         }
 

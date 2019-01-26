@@ -1,21 +1,26 @@
 ﻿using System;
-using AElf.Common.Attributes;
+
 using ChakraCore.NET;
 using ChakraCore.NET.Debug;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
-using NLog;
-
 namespace AElf.CLI2.JS
 {
     public class JSDebugAdapter : IDebugAdapter
     {
-        private ILogger _logger = LogManager.GetLogger("js-debug");
+        public ILogger<JSDebugAdapter> Logger { get; set; }
 
+        public JSDebugAdapter()
+        {
+            Logger = NullLogger<JSDebugAdapter>.Instance;
+        }
+        
         public void Init(IRuntimeDebuggingService debuggingService)
         {
             debuggingService.OnException += (sender, exception) =>
             {
-                _logger.Fatal(
+                Logger.LogCritical(
                     $"Javascript side raise an uncaught exception.\n${JsonConvert.SerializeObject(exception)}\n");
             };
             debuggingService.OnAsyncBreak += (sender, point) => { };

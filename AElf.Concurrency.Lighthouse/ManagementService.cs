@@ -1,25 +1,31 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using Akka.Actor;
 using Akka.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Concurrency.Lighthouse
 {
     public class ManagementService
     {
-        public static ActorSystem _actorSystem;
+        private ActorSystem _actorSystem;
         public Task TerminationHandle => _actorSystem.WhenTerminated;
 
-        private static ActorSystem CreateActorSystem()
+        private readonly ExecutionOptions _executionOptions;
+
+        public ManagementService(IOptionsSnapshot<ExecutionOptions> options)
         {
-            var clusterConfig = ConfigurationFactory.ParseString(ActorConfig.Instance.LighthouseHoconConfig);
+            _executionOptions = options.Value;
+        }
+
+        private ActorSystem CreateActorSystem()
+        {
+            var clusterConfig = ConfigurationFactory.ParseString(File.ReadAllText("akka-lighthouse.hocon"));
             var systemName = clusterConfig.GetConfig("manager").GetString("system-name");
-//            var ipAddress = clusterConfig.GetConfig("akka.remote").GetString("dot-netty.tcp.hostname");
-//            var port = clusterConfig.GetConfig("akka.remote").GetString("dot-netty.tcp.port");
-            var ipAddress = ActorConfig.Instance.HostName;
-            var port = ActorConfig.Instance.Port;
-            var selfAddress = $"akka.tcp://{systemName}@{ipAddress}:{port}";
+            var hostName = _executionOptions.HostName;
+            var port = _executionOptions.Port;
+            var selfAddress = $"akka.tcp://{systemName}@{hostName}:{port}";
 
             var seeds = clusterConfig.GetStringList("akka.cluster.seed-nodes");
             if (!seeds.Contains(selfAddress))
@@ -30,8 +36,8 @@ namespace AElf.Concurrency.Lighthouse
             seedConfigString += "]";
             
             var finalConfig = ConfigurationFactory.ParseString(seedConfigString)
-                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + ActorConfig.Instance.HostName))
-                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + ActorConfig.Instance.Port))
+                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + hostName))
+                .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + port))
                 .WithFallback(clusterConfig);
             return ActorSystem.Create(systemName, finalConfig);
         }

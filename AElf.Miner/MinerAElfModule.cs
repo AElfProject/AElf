@@ -1,6 +1,6 @@
-﻿using AElf.Common;
+﻿using AElf.ChainController;
+using AElf.Common;
 using AElf.Common.Application;
-using AElf.Common.Module;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Crosschain;
@@ -8,14 +8,18 @@ using AElf.Crosschain.Client;
 using AElf.Crosschain.Server;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
-using Autofac;
+using AElf.Modularity;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 
 namespace AElf.Miner
 {
-    public class MinerAElfModule : IAElfModule
+    [DependsOn(typeof(ChainControllerAElfModule))]
+    public class MinerAElfModule : AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var minerConfig = MinerConfig.Default;
             if (NodeConfig.Instance.IsMiner)
@@ -26,34 +30,25 @@ namespace AElf.Miner
                 };
             }
 
-            minerConfig.ChainId = new Hash()
-            {
-                Value = ByteString.CopyFrom(ChainConfig.Instance.ChainId.DecodeBase58())
-            };
-            builder.RegisterModule(new CrosschainAutofacModule());
+            minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
+            
+            var services = context.Services;
 
-            builder.RegisterType<ClientManager>().SingleInstance().OnActivated(mc =>
-                {
-                    mc.Instance.Init(dir: ApplicationHelpers.ConfigPath);
-                }
-            );
-            builder.RegisterType<ServerManager>().SingleInstance().OnActivated(mc =>
-                {
-                    mc.Instance.Init(ApplicationHelpers.ConfigPath);
-                }
-            );
-            builder.RegisterModule(new MinerAutofacModule(minerConfig));
-
-            var txPoolConfig = TxPoolConfig.Default;
-            txPoolConfig.FeeThreshold = 0;
-            txPoolConfig.PoolLimitSize = TransactionPoolConfig.Instance.PoolLimitSize;
-            txPoolConfig.Maximal = TransactionPoolConfig.Instance.Maximal;
-            txPoolConfig.EcKeyPair = TransactionPoolConfig.Instance.EcKeyPair;
-            builder.RegisterInstance(txPoolConfig).As<ITxPoolConfig>();
+            services.AddSingleton<IMinerConfig>(minerConfig);
+            services.AddSingleton<ClientManager>();
+            services.AddSingleton<ServerManager>();
         }
 
-        public void Run(ILifetimeScope scope)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            
+            //TODO! should define a interface like RuntimeEnvironment and inject it in ClientManager.
+            context.ServiceProvider.GetService<ClientManager>()
+                .Init(ApplicationHelpers.ConfigPath);
+            context.ServiceProvider.GetService<ServerManager>()
+                .Init(ApplicationHelpers.ConfigPath);
         }
+
+
     }
 }

@@ -1,12 +1,22 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Org.BouncyCastle.Security;
 
 namespace AElf.SmartContract
 {
     public class SmartContractRunnerContainer : ISmartContractRunnerContainer
     {
-        private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners = new ConcurrentDictionary<int, ISmartContractRunner>();
-        
+        private readonly ConcurrentDictionary<int, ISmartContractRunner> _runners =
+            new ConcurrentDictionary<int, ISmartContractRunner>();
+
+        public SmartContractRunnerContainer(IEnumerable<ISmartContractRunner> runners)
+        {
+            foreach (var r in runners)
+            {
+                _runners[r.Category] = r;
+            }
+        }
+
         public ISmartContractRunner GetRunner(int category)
         {
             if (_runners.TryGetValue(category, out var runner))

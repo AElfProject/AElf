@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore;
+﻿using System.Timers;
+using AElf.Management.Interfaces;
+using Autofac;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace AElf.Management.Website

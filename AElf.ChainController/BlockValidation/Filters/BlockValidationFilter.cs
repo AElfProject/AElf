@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
+using Volo.Abp.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.ChainController
@@ -8,7 +9,7 @@ namespace AElf.ChainController
     /// Some basic validations:
     /// Validate the tx merkle tree root.
     /// </summary>
-    public class BlockValidationFilter : IBlockValidationFilter
+    public class BlockValidationFilter : IBlockValidationFilter , ITransientDependency
     {
         public Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
         {

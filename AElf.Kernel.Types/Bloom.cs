@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Google.Protobuf;
 using System.Security.Cryptography;
 
@@ -71,12 +70,6 @@ namespace AElf.Kernel
         public void AddValue(IMessage message)
         {
             var bytes = message.ToByteArray();
-            AddValue(bytes);
-        }
-
-        public void AddValue(ISerializable serializable)
-        {
-            var bytes = serializable.Serialize();
             AddValue(bytes);
         }
 

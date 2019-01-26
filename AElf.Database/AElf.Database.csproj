@@ -3,6 +3,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.Data" Version="0.11.0" />
   </ItemGroup>
 </Project>

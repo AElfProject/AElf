@@ -5,9 +5,9 @@ namespace AElf.Kernel
     /// <summary>
     /// A chain only provides the ability to add and load block, but not keep them in memory
     /// </summary>
-    public interface IChain : ISerializable
+    public interface IChain 
     {
-        Hash Id { get; }
+        int Id { get; }
         
         Hash GenesisBlockHash { get; }
     }

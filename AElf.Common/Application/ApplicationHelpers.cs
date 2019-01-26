@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using NLog.Targets.Wrappers;
 
 namespace AElf.Common.Application
 {

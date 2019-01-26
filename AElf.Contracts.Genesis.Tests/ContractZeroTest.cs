@@ -1,14 +1,13 @@
 ﻿using System.IO;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
-using Xunit.Frameworks.Autofac;
+
 using Xunit;
 using AElf.Common;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    [UseAutofacTestFramework]
-    public class ContractZeroTest
+    public sealed class ContractZeroTest : GenesisContractTestBase
     {
         private TestContractShim _contractShim;
 
@@ -31,9 +30,9 @@ namespace AElf.Contracts.Genesis.Tests
             }
         }
         
-        public ContractZeroTest(TestContractShim contractShim)
+        public ContractZeroTest()
         {
-            _contractShim = contractShim;
+            _contractShim = GetRequiredService<TestContractShim>();
         }
 
         [Fact]
@@ -50,17 +49,19 @@ namespace AElf.Contracts.Genesis.Tests
             _contractShim.GetContractOwner(address);
             var owner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(_contractShim.Sender, owner);
-
+            
+            _contractShim.UpdateSmartContract(address, CodeNew);
+            Assert.Equal(address, _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>());
+            
             // chang owner and query again, owner will be new owner
-            var newOwner = Address.Generate();
+            var newOwner = Address.Genesis;
             _contractShim.ChangeContractOwner(address, newOwner);
             _contractShim.GetContractOwner(address);
             var queryNewOwner = _contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Address>();
             Assert.Equal(newOwner, queryNewOwner);
-
+            
             _contractShim.UpdateSmartContract(address, CodeNew);
-            Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal);
-            Assert.True(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToBool());
+            Assert.NotNull(_contractShim.TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<Hash>());
         }
     }
 }

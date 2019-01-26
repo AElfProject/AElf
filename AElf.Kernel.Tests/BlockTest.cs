@@ -8,22 +8,20 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using Shouldly;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class BlockTest
+    public class BlockTest: AElfKernelTestBase
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;
 
-        public BlockTest(IChainService chainService, IChainCreationService chainCreationService)
+        public BlockTest()
         {
-            //_smartContractZero = smartContractZero;
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _chainService = GetRequiredService<IChainService>();
         }
 
         private byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -111,7 +109,7 @@ namespace AElf.Kernel.Tests
 
         }
         
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             

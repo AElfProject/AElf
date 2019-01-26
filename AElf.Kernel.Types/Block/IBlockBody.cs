@@ -6,14 +6,6 @@ namespace AElf.Kernel
 {
     public interface IBlockBody: IHashProvider
     {
-        RepeatedField<Hash> Transactions { get; }
-
-        bool AddTransaction(Transaction tx);
-
-        bool AddTransactions(IEnumerable<Hash> txs);
-        
-        void Complete(Hash blockHeaderHash, SideChainBlockInfo[] indexedSideChainBlockInfo = null);
-        
-        RepeatedField<SideChainBlockInfo> IndexedInfo { get; }
+        RepeatedField<Hash> Transactions { get; }        
     }
 }

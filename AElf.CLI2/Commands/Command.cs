@@ -1,11 +1,11 @@
 using System;
 using AElf.CLI2.JS;
-using Autofac;
 using System.IO;
 using Alba.CsConsoleFormat.Fluent;
 using System.Reflection;
 using AElf.CLI2.Utils;
 using AElf.Common;
+using Autofac;
 
 namespace AElf.CLI2.Commands
 {

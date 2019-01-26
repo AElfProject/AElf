@@ -5,16 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.ABI.CSharp;
 using AElf.Common;
-using AElf.Configuration.Config.Contract;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
-using Mono.Cecil;
-using Module = AElf.ABI.CSharp.Module;
+using Generator = AElf.Runtime.CSharp.Core.ABI.Generator;
+using Module = AElf.Kernel.ABI.Module;
 using Resource = AElf.Kernel.SmartContract.Resource;
 using Type = System.Type;
 
@@ -22,18 +20,22 @@ namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunner : ISmartContractRunner
     {
-        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<string, MemoryStream>();
-        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash = new ConcurrentDictionary<Hash, Type>();
+        public int Category { get; protected set; } = 0;
+
+//        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams = new ConcurrentDictionary<string, MemoryStream>();
+        private readonly ISdkStreamManager _sdkStreamManager;
+
+        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
+            new ConcurrentDictionary<Hash, Type>();
+
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunner() : this(RunnerConfig.Instance.SdkDir, RunnerConfig.Instance.BlackList, RunnerConfig.Instance.WhiteList)
-        {
-        }
-
-        public SmartContractRunner(string sdkDir, IEnumerable<string> blackList = null, IEnumerable<string> whiteList = null)
+        public SmartContractRunner(string sdkDir, IEnumerable<string> blackList = null,
+            IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
+            _sdkStreamManager = new SdkStreamManager(_sdkDir);
             _assemblyChecker = new AssemblyChecker(blackList, whiteList);
         }
 
@@ -44,7 +46,7 @@ namespace AElf.Runtime.CSharp
         private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
-            return new ContractCodeLoadContext(_sdkDir, _cachedSdkStreams);
+            return new ContractCodeLoadContext(_sdkStreamManager);
         }
 
         public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
@@ -116,7 +118,7 @@ namespace AElf.Runtime.CSharp
             {
                 return t;
             }
-            
+
             var loadContext = GetLoadContext();
 
             Assembly assembly = null;
@@ -150,18 +152,7 @@ namespace AElf.Runtime.CSharp
         /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
-            var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
-            var forbiddenTypeRefs = _assemblyChecker.GetBlackListedTypeReferences(modDef);
-            if (isPrivileged)
-            {
-                // Allow system user to use multi-thread
-                forbiddenTypeRefs = forbiddenTypeRefs.Where(x => !x.FullName.StartsWith("System.Threading")).ToList();
-            }
-
-            if (forbiddenTypeRefs.Count > 0)
-            {
-                throw new InvalidCodeException($"\nForbidden type references detected:\n{string.Join("\n  ", forbiddenTypeRefs.Select(x => x.FullName))}");
-            }
+            _assemblyChecker.CodeCheck(code, isPrivileged);
         }
 
         #region metadata extraction from contract code
@@ -194,33 +185,40 @@ namespace AElf.Runtime.CSharp
         /// <param name="contractType"></param>
         /// <param name="contractReferences"></param>
         /// <exception cref="FunctionMetadataException"></exception>
-        private Dictionary<string, FunctionMetadataTemplate> ExtractRawMetadataFromType(Type contractType, out Dictionary<string, Address> contractReferences)
+        private Dictionary<string, FunctionMetadataTemplate> ExtractRawMetadataFromType(Type contractType,
+            out Dictionary<string, Address> contractReferences)
         {
             var localFunctionMetadataTemplateMap = new Dictionary<string, FunctionMetadataTemplate>();
             var templocalFieldMap = new Dictionary<string, DataAccessMode>();
             contractReferences = new Dictionary<string, Address>();
 
             //load localFieldMap: <"${this}.[ResourceName]", DataAccessMode>
-            foreach (var fieldInfo in contractType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var fieldInfo in contractType.GetFields(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var fieldAttr = fieldInfo.GetCustomAttribute<SmartContractFieldDataAttribute>();
                 if (fieldAttr == null) continue;
                 if (!templocalFieldMap.TryAdd(fieldAttr.FieldName, fieldAttr.DataAccessMode))
                 {
-                    throw new FunctionMetadataException("Duplicate name of field attributes in contract " + contractType.FullName);
+                    throw new FunctionMetadataException("Duplicate name of field attributes in contract " +
+                                                        contractType.FullName);
                 }
             }
 
             //load smartContractReferenceMap: <"[contract_member_name]", Address of the referenced contract>
-            foreach (var fieldInfo in contractType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            foreach (var fieldInfo in contractType.GetFields(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 var smartContractRefAttr = fieldInfo.GetCustomAttribute<SmartContractReferenceAttribute>();
                 if (smartContractRefAttr == null) continue;
                 try
                 {
-                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName, Address.FromString(smartContractRefAttr.ContractAddress)))
+                    if (!contractReferences.TryAdd(smartContractRefAttr.FieldName,
+                        Address.FromString(smartContractRefAttr.ContractAddress)))
                     {
-                        throw new FunctionMetadataException("Duplicate name of smart contract reference attributes in contract " + contractType.FullName);
+                        throw new FunctionMetadataException(
+                            "Duplicate name of smart contract reference attributes in contract " +
+                            contractType.FullName);
                     }
                 }
                 catch (Exception e) when (!(e is FunctionMetadataException))
@@ -252,9 +250,12 @@ namespace AElf.Runtime.CSharp
                 });
 
                 if (!localFunctionMetadataTemplateMap.TryAdd(functionAttribute.FunctionSignature,
-                    new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet), new HashSet<Resource>(resourceSet))))
+                    new FunctionMetadataTemplate(new HashSet<string>(functionAttribute.CallingSet),
+                        new HashSet<Resource>(resourceSet))))
                 {
-                    throw new FunctionMetadataException("Duplicate name of function attribute" + functionAttribute.FunctionSignature + " in contract" + contractType.FullName);
+                    throw new FunctionMetadataException("Duplicate name of function attribute" +
+                                                        functionAttribute.FunctionSignature + " in contract" +
+                                                        contractType.FullName);
                 }
             }
 
@@ -265,12 +266,14 @@ namespace AElf.Runtime.CSharp
                 {
                     if (!blackLists.Contains(methodInfo.Name))
                     {
-                        localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name, new FunctionMetadataTemplate(false));
+                        localFunctionMetadataTemplateMap.Add("${this}." + methodInfo.Name,
+                            new FunctionMetadataTemplate(false));
                     }
                 }
 
                 return localFunctionMetadataTemplateMap;
-                throw new FunctionMetadataException("no function marked in the target contract " + contractType.FullName);
+                throw new FunctionMetadataException(
+                    "no function marked in the target contract " + contractType.FullName);
             }
 
             //check for validaty of the calling set (whether have unknow reference)

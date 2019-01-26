@@ -4,27 +4,27 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using Easy.MessageHub;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public class LightChain : ILightChain
     {
-        protected readonly Hash _chainId;
+        protected readonly int _chainId;
         protected readonly IChainManager _chainManager;
         protected readonly IBlockManager _blockManager;
 
-        private readonly ILogger _logger;
-
-        public LightChain(Hash chainId,
+        public ILogger<LightChain> Logger {get;set;}
+        public LightChain(int chainId,
             IChainManager chainManager,
-            IBlockManager blockManager, ILogger logger = null)
+            IBlockManager blockManager)
         {
-            _chainId = chainId.Clone();
+            _chainId = chainId;
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _logger = logger;
+            Logger = NullLogger<LightChain>.Instance;
         }
 
         public async Task<ulong> GetCurrentBlockHeightAsync()

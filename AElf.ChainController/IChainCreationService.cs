@@ -11,6 +11,6 @@ namespace AElf.ChainController
     /// </summary>
     public interface IChainCreationService
     {
-        Task<IChain> CreateNewChainAsync(Hash chainId, List<SmartContractRegistration> smartContractZeros);
+        Task<IChain> CreateNewChainAsync(int chainId, List<SmartContractRegistration> smartContractZeros);
     }
 }

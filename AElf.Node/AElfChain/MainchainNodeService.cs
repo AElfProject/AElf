@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Common.Attributes;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.Consensus;
@@ -19,15 +19,16 @@ using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node.AElfChain
 {
     // ReSharper disable InconsistentNaming
-    [LoggerName("Node")]
-    public class MainchainNodeService : INodeService
+    public class MainchainNodeService : INodeService, ISingletonDependency
     {
-        private readonly ILogger _logger;
+        public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
@@ -51,14 +52,14 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IConsensus consensus,
-            ILogger logger
+            IConsensus consensus
+            
             )
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
-            _logger = logger;
+            Logger = NullLogger<MainchainNodeService>.Instance;
             _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
@@ -99,7 +100,7 @@ namespace AElf.Node.AElfChain
         public void Initialize(NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+            _blockChain = _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
             
             NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
             _nodeKeyPair = conf.KeyPair;
@@ -117,11 +118,11 @@ namespace AElf.Node.AElfChain
         {
             if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
             {
-                _logger?.Error("No chain id.");
+                Logger.LogError("No chain id.");
                 return false;
             }
 
-            _logger?.Info($"Chain Id = {ChainConfig.Instance.ChainId}");
+            Logger.LogInformation($"Chain Id = {ChainConfig.Instance.ChainId}");
 
             #region setup
 
@@ -142,7 +143,7 @@ namespace AElf.Node.AElfChain
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Could not create the chain : {ChainConfig.Instance.ChainId}.");
+                Logger.LogError(e, $"Could not create the chain : {ChainConfig.Instance.ChainId}.");
             }
 
             #endregion setup
@@ -183,30 +184,30 @@ namespace AElf.Node.AElfChain
 
         #region private methods
 
-        private Hash ChainId => Hash.LoadBase58(ChainConfig.Instance.ChainId);
+        private int ChainId => ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
 
         private void LogGenesisContractInfo()
         {
             var genesis = ContractHelpers.GetGenesisBasicContractAddress(ChainId);
-            _logger?.Debug($"Genesis contract address = {genesis.GetFormatted()}");
+            Logger.LogDebug($"Genesis contract address = {genesis.GetFormatted()}");
 
             var tokenContractAddress = ContractHelpers.GetTokenContractAddress(ChainId);
-            _logger?.Debug($"Token contract address = {tokenContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Token contract address = {tokenContractAddress.GetFormatted()}");
 
             var consensusContractAddress = ContractHelpers.GetConsensusContractAddress(ChainId);
-            _logger?.Debug($"Consensus contract address = {consensusContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Consensus contract address = {consensusContractAddress.GetFormatted()}");
 
             var crosschainContractAddress = ContractHelpers.GetCrossChainContractAddress(ChainId);
-            _logger?.Debug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
+            Logger.LogDebug($"CrossChain contract address = {crosschainContractAddress.GetFormatted()}");
 
             var authorizationContractAddress = ContractHelpers.GetAuthorizationContractAddress(ChainId);
-            _logger?.Debug($"Authorization contract address = {authorizationContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Authorization contract address = {authorizationContractAddress.GetFormatted()}");
 
             var resourceContractAddress = ContractHelpers.GetResourceContractAddress(ChainId);
-            _logger?.Debug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Resource contract address = {resourceContractAddress.GetFormatted()}");
             
             var dividendsContractAddress = ContractHelpers.GetDividendsContractAddress(ChainId);
-            _logger?.Debug($"Dividends contract address = {dividendsContractAddress.GetFormatted()}");
+            Logger.LogDebug($"Dividends contract address = {dividendsContractAddress.GetFormatted()}");
         }
 
         private void CreateNewChain(byte[] tokenContractCode, byte[] consensusContractCode, byte[] basicContractZero,
@@ -263,15 +264,15 @@ namespace AElf.Node.AElfChain
             var dividendsCReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(dividendsContractCode),
+                ContractBytes = ByteString.CopyFrom(dividendsContractCode),    
                 ContractHash = Hash.FromRawBytes(dividendsContractCode),
                 SerialNumber = GlobalConfig.DividendsContract
             };
             
-            var res = _chainCreationService.CreateNewChainAsync(Hash.LoadBase58(ChainConfig.Instance.ChainId),
+            var res = _chainCreationService.CreateNewChainAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                 new List<SmartContractRegistration>
                     {basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg, dividendsCReg}).Result;
-            _logger?.Debug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
+            Logger.LogDebug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
         #endregion private methods
@@ -285,7 +286,7 @@ namespace AElf.Node.AElfChain
         {
             if (height <= 0)
             {
-                _logger?.Warn($"Cannot get block - height {height} is not valid.");
+                Logger.LogWarning($"Cannot get block - height {height} is not valid.");
                 return null;
             }
             
@@ -297,7 +298,7 @@ namespace AElf.Node.AElfChain
         {
             if (hash == null || hash.Length <= 0)
             {
-                _logger?.Warn("Cannot get block - invalid hash.");
+                Logger.LogWarning("Cannot get block - invalid hash.");
                 return null;
             }
 

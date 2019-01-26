@@ -1,19 +1,20 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
     public class TransactionManager: ITransactionManager
     {
         private readonly ITransactionStore _transactionStore;
-        private readonly ILogger _logger;
+        public ILogger<TransactionManager> Logger {get;set;}
 
         public TransactionManager(ITransactionStore transactionStore)
         {
             _transactionStore = transactionStore;
-            _logger = LogManager.GetLogger(nameof(TransactionManager));
+            Logger = NullLogger<TransactionManager>.Instance;
         }
 
         public async Task<Hash> AddTransactionAsync(Transaction tx)

@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.SmartContract.Consensus
@@ -15,17 +16,17 @@ namespace AElf.SmartContract.Consensus
         private readonly ContractInfoReader _contractInfoReader;
 
         private static Address ConsensusContractAddress =>
-            ContractHelpers.GetConsensusContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
+            ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
         private static Address DividendsContractAddress =>
-            ContractHelpers.GetDividendsContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
+            ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
         
         private static Address TokenContractAddress =>
-            ContractHelpers.GetTokenContractAddress(Hash.LoadByteArray(ChainConfig.Instance.ChainId.DecodeBase58()));
+            ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
         
         public ElectionInfo(IStateManager stateManager)
         {
-            var chainId = Hash.LoadBase58(ChainConfig.Instance.ChainId);
+            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             _contractInfoReader = new ContractInfoReader(chainId, stateManager);
         }
         

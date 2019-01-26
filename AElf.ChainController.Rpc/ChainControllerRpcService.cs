@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using System.Transactions;
 using AElf.ChainController.CrossChain;
@@ -23,7 +24,8 @@ using Easy.MessageHub;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
@@ -43,20 +45,19 @@ namespace AElf.ChainController.Rpc
         public INodeService MainchainNodeService { get; set; }
         public ICrossChainInfoReader CrossChainInfoReader { get; set; }
         public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
-        public IKeyValueDatabase KeyValueDatabase { get; set; }
         public IBlockSynchronizer BlockSynchronizer { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
 
         #endregion Properties
 
-        private readonly ILogger _logger;
+        public ILogger<ChainControllerRpcService> Logger {get;set;}
 
         private bool _canBroadcastTxs = true;
 
-        public ChainControllerRpcService(ILogger logger)
+        public ChainControllerRpcService()
         {
-            _logger = logger;
+            Logger = NullLogger<ChainControllerRpcService>.Instance;
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
@@ -96,14 +97,14 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var basicContractZero =
-                    ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var crosschainContract =
-                    ContractHelpers.GetCrossChainContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var authorizationContract =
-                    ContractHelpers.GetAuthorizationContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var tokenContract = ContractHelpers.GetTokenContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var consensusContract = ContractHelpers.GetConsensusContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-                var dividendsContract = ContractHelpers.GetDividendsContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    ContractHelpers.GetAuthorizationContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var tokenContract = ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var consensusContract = ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var dividendsContract = ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject
@@ -258,8 +259,8 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Invalid Address Format");
                 }
                 var txResult = await this.GetTransactionResult(txHash);
-                if(txResult.Status != Status.Mined)
-                   throw new Exception("Transaction is not mined.");
+                /*if(txResult.Status != Status.Mined)
+                   throw new Exception("Transaction is not mined.");*/
                 var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
                 var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if(merklePath == null)
@@ -434,8 +435,17 @@ namespace AElf.ChainController.Rpc
             {
                 var transaction = receipt.Transaction;
                 txInfo = transaction.GetTransactionInfo();
-                ((JObject) txInfo["tx"]).Add("params",
-                    string.Join(", ", await this.GetTransactionParameters(transaction)));
+                try
+                {
+                    ((JObject) txInfo["tx"]).Add("params",
+                        (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction))
+                    );
+                }
+                catch (Exception)
+                {
+                    // Ignore for now
+                }
+
                 ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
                 ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
                 ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
@@ -452,8 +462,9 @@ namespace AElf.ChainController.Rpc
                 ["tx_status"] = txResult.Status.ToString(),
                 ["tx_info"] = txInfo["tx"]
             };
-#if DEBUG
             var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+
+#if DEBUG
             response["tx_trc"] = txtrc?.ToString();
 #endif
             
@@ -466,12 +477,15 @@ namespace AElf.ChainController.Rpc
             {
                 response["block_number"] = txResult.BlockNumber;
                 response["block_hash"] = txResult.BlockHash.ToHex();
-#if DEBUG
-                response["return_type"] = txtrc.RetVal.Type.ToString();
-#endif
+                response["return_type"] = txtrc?.RetVal.Type.ToString();
                 try
                 {
-                    response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+                    if (txtrc?.RetVal.Type == RetVal.Types.RetType.String)
+                    {
+                        response["return"] = txResult.RetVal.ToStringUtf8();
+                    }
+                    else
+                        response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
 
                 }
                 catch (Exception)
@@ -536,7 +550,7 @@ namespace AElf.ChainController.Rpc
                     ["Body"] = new JObject
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["IndexedSideChainBlcokInfo"] = blockinfo.GetIndexedSideChainBlockInfo()
+                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(blockinfo.Header.Index)
                     }
                 }
             };
@@ -687,60 +701,6 @@ namespace AElf.ChainController.Rpc
             };
 
             return JObject.FromObject(response);
-        }
-
-        [JsonRpcMethod("get_db_value","key")]
-        public async Task<JObject> GetDbValue(string key)
-        {
-            string type = string.Empty;
-            JToken id;
-            try
-            {
-                object value;
-
-                if (key.StartsWith(GlobalConfig.StatePrefix))
-                {
-                    type = "State";
-                    id = key.Substring(GlobalConfig.StatePrefix.Length, key.Length - GlobalConfig.StatePrefix.Length);
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    value = StateValue.Create(valueBytes);
-                }
-                else if(key.StartsWith(GlobalConfig.TransactionReceiptPrefix))
-                {
-                    type = "TransactionReceipt";
-                    id = key.Substring(GlobalConfig.TransactionReceiptPrefix.Length, key.Length - GlobalConfig.TransactionReceiptPrefix.Length);
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    value = valueBytes?.Deserialize<TransactionReceipt>();
-                }
-                else
-                {
-                    var keyObj = Key.Parser.ParseFrom(ByteArrayHelpers.FromHexString(key));
-                    type = keyObj.Type;
-                    id = JObject.Parse(keyObj.ToString());
-                    var valueBytes = await KeyValueDatabase.GetAsync(type,key);
-                    var obj = this.GetInstance(type);
-                    obj.MergeFrom(valueBytes);
-                    value = obj;
-                }
-
-                var response = new JObject
-                {
-                    ["Type"] = type,
-                    ["Id"] = id,
-                    ["Value"] = JObject.Parse(value?.ToString())
-                };
-
-                return JObject.FromObject(response);
-            }
-            catch (Exception e)
-            {
-                var response = new JObject
-                {
-                    ["Type"]=type,
-                    ["Value"] = e.Message
-                };
-                return JObject.FromObject(response);
-            }
         }
 
         #endregion Methods

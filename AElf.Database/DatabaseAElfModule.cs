@@ -1,26 +1,15 @@
-﻿using System;
-using AElf.Common.Enums;
-using AElf.Common.Module;
-using AElf.Configuration;
-using Autofac;
+﻿using System.Dynamic;
+using AElf.Modularity;
+using Volo.Abp.Modularity;
 
 namespace AElf.Database
 {
-    public class DatabaseAElfModule : IAElfModule
+    [DependsOn(typeof(CoreAElfModule),typeof(Volo.Abp.Data.AbpDataModule))]
+    public class DatabaseAElfModule : AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new DatabaseAutofacModule());
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
-            var db = scope.Resolve<IKeyValueDatabase>();
-            var result = db.IsConnected();
-            if (!result)
-            {
-                throw new Exception("failed to connect database");
-            }
+            var services = context.Services;
         }
     }
 }

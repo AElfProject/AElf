@@ -8,14 +8,14 @@
         };
         var txHash = chain.authorizationContract.CreateMultiSigAccount(auth).hash;
         
-        console.log('tx_hash is: ' + txHash);
+        console.log('tx_hash : ' + txHash);
         _repeatedCalls(function () {
             var res = aelf.chain.getTxResult(txHash).result;
             if (res.tx_status !== 'Pending') {
-                console.log('TxStatus is: ', res.tx_status);
+                console.log('tx_status : ', res.tx_status);
             }
             if (res.tx_status === 'Mined') {
-                console.log('Multi sig address is: ', res.return);
+                console.log('Multi sig address : ', res.return);
             }
             return res.tx_status !== 'Pending';
         }, 3000);
@@ -24,7 +24,6 @@
     propose = function (proposalName, multiSigAccount, expiredTime, to, methodName, params, proposer) {
         var abi = aelf.chain.getContractAbi(to);
         var methodAbi = abi.Methods.find(x => x.Name === methodName);
-        var abiStr = JSON.stringify(methodAbi, null, 2);
         var packedTxn = {
             'From': multiSigAccount,
             'To': to,
@@ -44,14 +43,15 @@
         };
         
         var txHash = chain.authorizationContract.Propose(proposal).hash;
-        console.log('tx_hash is: ' + txHash);
+        console.log('tx_hash : ' + txHash);
         _repeatedCalls(function () {
             var res = aelf.chain.getTxResult(txHash).result;
             if (res.tx_status !== 'Pending') {
-                console.log('TxStatus is: ', res.tx_status);
+                console.log('tx_status : ', res.tx_status);
             }
             if (res.tx_status === 'Mined') {
-                console.log('Proposal hash is ', res.return);
+                console.log('Proposal is created.');
+                console.log('proposal_hash : ', res.return);
             }
             return res.tx_status !== 'Pending';
         }, 3000);
@@ -72,11 +72,11 @@
             'Signature' : sig
         };
         var txHash = chain.authorizationContract.SayYes(approval).hash;
-        console.log('tx_hash is: ' + txHash);
+        console.log('tx_hash : ' + txHash);
         _repeatedCalls(function () {
             var res = aelf.chain.getTxResult(txHash).result;
             if (res.tx_status !== 'Pending') {
-                console.log('TxStatus is: ', res.tx_status);
+                console.log('tx_status : ', res.tx_status);
             }
             if (res.tx_status === 'Mined') {
                 console.log('Success.');
@@ -87,14 +87,14 @@
     
     release = function (proposalHash) {
         var txHash = chain.authorizationContract.Release(proposalHash).hash;
-        console.log('tx_hash is: ' + txHash);
+        console.log('tx_hash : ' + txHash);
         _repeatedCalls(function () {
             var res = aelf.chain.getTxResult(txHash).result;
             if (res.tx_status !== 'Pending') {
-                console.log('TxStatus is: ', res.tx_status);
+                console.log('tx_status : ', res.tx_status);
             }
             if (res.tx_status === 'Mined') {
-                console.log('Released tx hash is ', res.return);
+                console.log('Released tx hash : ', res.return);
             }
             return res.tx_status !== 'Pending';
         }, 3000);

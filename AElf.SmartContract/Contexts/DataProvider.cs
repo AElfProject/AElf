@@ -30,7 +30,7 @@ namespace AElf.SmartContract
             }
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
         public Address ContractAddress { get; }
         public IReadOnlyList<ByteString> Path { get; }
 
@@ -41,14 +41,14 @@ namespace AElf.SmartContract
 
         private readonly List<DataProvider> _children = new List<DataProvider>();
 
-        private DataProvider(Hash chainId, Address contractAddress, IReadOnlyList<ByteString> path)
+        private DataProvider(int chainId, Address contractAddress, IReadOnlyList<ByteString> path)
         {
             ChainId = chainId;
             ContractAddress = contractAddress;
             Path = path;
         }
 
-        public static DataProvider GetRootDataProvider(Hash chainId, Address contractAddress)
+        public static DataProvider GetRootDataProvider(int chainId, Address contractAddress)
         {
             return new DataProvider(chainId, contractAddress, new ByteString[]
             {
@@ -171,6 +171,7 @@ namespace AElf.SmartContract
 
         public async Task<byte[]> GetAsync<T>(Hash keyHash) where T : IMessage, new()
         {
+            // todo: This generics T can be restricted ? 
             return await GetAsync(keyHash.ToHex());
         }
 

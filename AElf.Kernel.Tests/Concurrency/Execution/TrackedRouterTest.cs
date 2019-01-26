@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit;
@@ -14,7 +13,6 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
 {
  /*Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338 */
-    [UseAutofacTestFramework]
     public class TrackedRouterTest : TestKitBase
     {
         private MockSetup _mock;

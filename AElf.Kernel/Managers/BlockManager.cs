@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Common;
+
 using AElf.Kernel.Storages;
-using NLog;
+using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Managers
 {
@@ -10,19 +13,13 @@ namespace AElf.Kernel.Managers
     {
         private readonly IBlockHeaderStore _blockHeaderStore;
         private readonly IBlockBodyStore _blockBodyStore;
-        private readonly ILogger _logger;
+        public ILogger<BlockManager> Logger {get;set;}
 
         public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
         {
+            Logger = NullLogger<BlockManager>.Instance;
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
-            _logger = LogManager.GetLogger(nameof(BlockManager));
-        }
-
-        public async Task AddBlockAsync(IBlock block)
-        {
-            await AddBlockHeaderAsync(block.Header);
-            await AddBlockBodyAsync(block.GetHash(), block.Body);
         }
         
         public async Task AddBlockHeaderAsync(BlockHeader header)
@@ -50,7 +47,7 @@ namespace AElf.Kernel.Managers
             }
             catch (Exception e)
             {
-                _logger.Error(e, $"Error while getting block {blockHash.ToHex()}.");
+                Logger.LogError(e, $"Error while getting block {blockHash.ToHex()}.");
                 return null;
             }
         }

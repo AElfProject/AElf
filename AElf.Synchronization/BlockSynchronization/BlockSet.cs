@@ -4,22 +4,25 @@ using System.Linq;
 using System.Threading;
 using AElf.Common;
 using AElf.Kernel;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Synchronization.BlockSynchronization
 {
+    
     public class LibChangedArgs : EventArgs
     {
         public BlockState NewLib { get; set; }
     }
     
-    public class BlockSet
+    public class BlockSet: ISingletonDependency
     {
         public event EventHandler LibChanged;
             
         private const int Timeout = int.MaxValue;
 
-        private readonly ILogger _logger;
+        public ILogger<BlockSet> Logger {get;set;}
 
         public BlockState CurrentHead { get; private set; }
         public BlockState CurrentLib { get; private set; }
@@ -32,7 +35,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
         public BlockSet()
         {
-            _logger = LogManager.GetLogger(nameof(BlockSet));
+            Logger= NullLogger<BlockSet>.Instance;
         }
         
         public BlockState Init(List<string> miners, IBlock currentDbBlock)
@@ -52,7 +55,7 @@ namespace AElf.Synchronization.BlockSynchronization
             return CurrentHead;
         }
 
-        public void PushBlock(IBlock block, bool isMined = false)
+        public void PushBlock(IBlock block)
         {
             _rwLock.AcquireReaderLock(Timeout);
             
@@ -83,7 +86,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     // if this other chain becomes higher than the head -> switch
                     if (newState.Index > CurrentHead.Index)
                     {
-                        _logger?.Debug($"Switching chain ({CurrentHead.BlockHash} -> {newState.BlockHash})");
+                        Logger.LogDebug($"Switching chain ({CurrentHead.BlockHash} -> {newState.BlockHash})");
                         CurrentHead = newState;
                     }
                 }
@@ -94,8 +97,8 @@ namespace AElf.Synchronization.BlockSynchronization
                 {
                     _blocks.Add(newState);
 
-                    if (isMined)
-                        return;
+/*                    if (isMined)
+                        return;*/
                     
                     // update LIB
                     ulong libIndex = CurrentLib == null ? 0UL : CurrentLib.Index;
@@ -118,7 +121,15 @@ namespace AElf.Synchronization.BlockSynchronization
                     if (newLib != null)
                     {
                         CurrentLib = newLib;
-                        _blocks.RemoveAll(b => b.Index < newLib.Index);
+                        List<BlockState> blocksToRemove = _blocks.Where(b => b.Index < newLib.Index).ToList();
+
+                        foreach (var blockState in blocksToRemove)
+                        {
+                            blockState.PreviousState = null;
+                            _blocks.Remove(blockState);
+                        }
+
+                        CurrentLib.PreviousState = null;
                         
                         // todo clear branches
                         
@@ -260,7 +271,7 @@ namespace AElf.Synchronization.BlockSynchronization
 
                 if (toRemove == null)
                 {
-                    _logger?.Warn($"Cannot remove block {blockHash}, not found.");
+                    Logger.LogWarning($"Cannot remove block {blockHash}, not found.");
                     return;
                 }
 
@@ -272,7 +283,7 @@ namespace AElf.Synchronization.BlockSynchronization
                     CurrentHead = prev;
                 } 
                 
-                _logger?.Debug($"Removed {blockHash} from blockset. Head {CurrentHead.BlockHash}");
+                Logger.LogDebug($"Removed {blockHash} from blockset. Head {CurrentHead.BlockHash}");
             }
             finally
             {

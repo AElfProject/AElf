@@ -5,42 +5,43 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AElf.ChainController;
-using AElf.Common.Attributes;
+
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Management;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Kernel.Managers;
-using NLog;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.SideChain.Creation
 {
-    [LoggerName(nameof(ChainCreationEventListener))]
+    
     public class ChainCreationEventListener
     {
         private HttpClient _client;
-        private ILogger _logger;
+        public ILogger<ChainCreationEventListener> Logger {get;set;}
         private ITransactionResultManager TransactionResultManager { get; set; }
         private IChainCreationService ChainCreationService { get; set; }
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
         private IChainManager _chainManager;
 
-        public ChainCreationEventListener(ILogger logger, ITransactionResultManager transactionResultManager, 
+        public ChainCreationEventListener( ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IChainManager chainManager)
         {
-            _logger = logger;
+            Logger = NullLogger<ChainCreationEventListener>.Instance;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
-                Address = ContractHelpers.GetGenesisBasicContractAddress(Hash.LoadBase58(ChainConfig.Instance.ChainId)),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
@@ -95,21 +96,21 @@ namespace AElf.SideChain.Creation
 
             foreach (var info in infos)
             {
-                _logger?.Info($"Chain creation event: {info}");
+                Logger.LogInformation($"Chain creation event: {info}");
                 try
                 {
                     var response = await SendChainDeploymentRequestFor(info.ChainId, chainId);
                     
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        _logger?.Error(
+                        Logger.LogError(
                             $"Sending sidechain deployment request for {info.ChainId} failed. " +
                             $"StatusCode: {response.StatusCode}."
                         );
                     }
                     else
                     {
-                        _logger?.Info(
+                        Logger.LogInformation(
                             $"Successfully sent sidechain deployment request for {info.ChainId}. " +
                             $"Management API return message: {await response.Content.ReadAsStringAsync()}."
                         );
@@ -120,7 +121,7 @@ namespace AElf.SideChain.Creation
                 }
                 catch (Exception e)
                 {
-                    _logger?.Error(e, $"Sending sidechain deployment request for {info.ChainId} failed due to exception.");
+                    Logger.LogError(e, $"Sending sidechain deployment request for {info.ChainId} failed due to exception.");
                 }
             }
         }
@@ -129,14 +130,20 @@ namespace AElf.SideChain.Creation
 
         private void InitializeClient()
         {
-            _client = new HttpClient {BaseAddress = new Uri(ManagementConfig.Instance.Url)};
+            if (string.IsNullOrWhiteSpace(NodeConfig.Instance.DeployServicePath))
+            {
+                Logger.LogError("Must set the path of deploy Service");
+                return;
+            }
+
+            _client = new HttpClient {BaseAddress = new Uri(NodeConfig.Instance.DeployServicePath)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     
-        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(Hash sideChainId, Hash parentChainId)
+        private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(int sideChainId, int parentChainId)
         {
             var chainId = parentChainId.DumpBase58();
-            var endpoint = ManagementConfig.Instance.SideChainServicePath.TrimEnd('/') + "/" + chainId;
+            var endpoint = NodeConfig.Instance.DeployServicePath.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
             deployArg.SideChainId = sideChainId.DumpBase58();
@@ -146,10 +153,6 @@ namespace AElf.SideChain.Creation
             var content = JsonSerializer.Instance.Serialize(deployArg);
             var c = new StringContent(content);
             c.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            c.Headers.Add("auth-type", "apikey");
-            var timestamp = ApiAuthenticationHelper.GetTimestamp(DateTime.Now);
-            c.Headers.Add("sign",ApiAuthenticationHelper.GetSign(ApiKeyConfig.Instance.ChainKeys[chainId],chainId,"post",timestamp));
-            c.Headers.Add("timestamp", timestamp);
             request.Content = c;
             
             return await _client.SendAsync(request);

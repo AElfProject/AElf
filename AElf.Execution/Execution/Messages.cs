@@ -74,57 +74,57 @@ namespace AElf.Execution.Execution
 
     public sealed class RequestAddChainExecutor
     {
-        public RequestAddChainExecutor(Hash chainId)
+        public RequestAddChainExecutor(int chainId)
         {
             ChainId = chainId;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
     }
 
     public sealed class RespondAddChainExecutor
     {
-        public RespondAddChainExecutor(Hash chainId, IActorRef actorRef)
+        public RespondAddChainExecutor(int chainId, IActorRef actorRef)
         {
             ChainId = chainId;
             ActorRef = actorRef;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
         public IActorRef ActorRef { get; }
     }
 
 
     public sealed class RequestGetChainExecutor
     {
-        public RequestGetChainExecutor(Hash chainId)
+        public RequestGetChainExecutor(int chainId)
         {
             ChainId = chainId;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
     }
 
     public sealed class RespondGetChainExecutor
     {
-        public RespondGetChainExecutor(Hash chainId, IActorRef actorRef)
+        public RespondGetChainExecutor(int chainId, IActorRef actorRef)
         {
             ChainId = chainId;
             ActorRef = actorRef;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
         public IActorRef ActorRef { get; }
     }
 
     public sealed class RequestRemoveChainExecutor
     {
-        public RequestRemoveChainExecutor(Hash chainId)
+        public RequestRemoveChainExecutor(int chainId)
         {
             ChainId = chainId;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
     }
 
     public sealed class RespondRemoveChainExecutor
@@ -135,13 +135,13 @@ namespace AElf.Execution.Execution
             Removed
         }
 
-        public RespondRemoveChainExecutor(Hash chainId, RemoveStatus status)
+        public RespondRemoveChainExecutor(int chainId, RemoveStatus status)
         {
             ChainId = chainId;
             Status = status;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
         public RemoveStatus Status { get; }
     }
 
@@ -152,7 +152,7 @@ namespace AElf.Execution.Execution
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
-        public LocalExecuteTransactionsMessage(Hash chainId, List<Transaction> transactions,
+        public LocalExecuteTransactionsMessage(int chainId, List<Transaction> transactions,
             TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, DateTime currentBlockTime,
             Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
@@ -166,7 +166,7 @@ namespace AElf.Execution.Execution
             SkipFee = skipFee;
         }
 
-        public Hash ChainId { get; }
+        public int ChainId { get; }
         public List<Transaction> Transactions { get; }
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
         public DateTime CurrentBlockTime { get; set; }
@@ -269,7 +269,7 @@ namespace AElf.Execution.Execution
 
     public class JobExecutionRequest
     {
-        public JobExecutionRequest(long requestId, Hash chainId, List<Transaction> transactions,
+        public JobExecutionRequest(long requestId, int chainId, List<Transaction> transactions,
             IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null,
             TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee=false)
         {
@@ -285,7 +285,7 @@ namespace AElf.Execution.Execution
         }
 
         public long RequestId { get; set; }
-        public Hash ChainId { get; set; }
+        public int ChainId { get; set; }
         public Hash DisambiguationHash { get; set; }
         public List<Transaction> Transactions { get; set; }
         public IActorRef ResultCollector { get; set; }

@@ -6,6 +6,10 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
+using AElf.Configuration;
+using AElf.Configuration.Config.Chain;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 
 #pragma warning disable CS0169,CS0649
 
@@ -170,7 +174,7 @@ namespace AElf.Contracts.Token
         {
             var from = Api.GetFromAddress();
             DoTransfer(from, to, amount);
-            Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
+            //Console.WriteLine($"Transferred {amount} tokens to - {to.GetFormatted()}");
         }
 
         [SmartContractFunction("${this}.TransferFrom", new[] {"${this}.DoTransfer"},

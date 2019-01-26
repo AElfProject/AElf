@@ -4,10 +4,10 @@ using AElf.Database;
 
 namespace AElf.Kernel.Storages
 {
-    public class BinaryMerkleTreeStore : KeyValueStoreBase, IBinaryMerkleTreeStore
+    public class BinaryMerkleTreeStore : KeyValueStoreBase<StateKeyValueDbContext>, IBinaryMerkleTreeStore
     {
-        public BinaryMerkleTreeStore(IKeyValueDatabase keyValueDatabase, IByteSerializer byteSerializer)
-            : base(keyValueDatabase, byteSerializer, GlobalConfig.MerkleTreePrefix)
+        public BinaryMerkleTreeStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) :
+            base(byteSerializer, keyValueDbContext, GlobalConfig.MerkleTreePrefix)
         {
         }
     }

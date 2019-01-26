@@ -7,6 +7,7 @@ using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Network.Peers
 {
@@ -38,11 +39,11 @@ namespace AElf.Network.Peers
                 if (pings.Count > 0)
                 {
                     _droppedPings += pings.Count;
-                    _logger?.Trace($"{DistantNodeData} - Current failed count {_droppedPings}.");
+                    Logger.LogTrace($"{DistantNodeData} - Current failed count {_droppedPings}.");
 
                     var peerStr = _pings.Select(c => c.Id).Aggregate((a, b) => a.ToString() + ", " + b);
 
-                    _logger?.Trace($"{DistantNodeData} - {pings.Count} pings where dropped [ {peerStr} ].");
+                    Logger.LogTrace($"{DistantNodeData} - {pings.Count} pings where dropped [ {peerStr} ].");
 
                     foreach (var p in pings)
                         _pings.Remove(p);
@@ -68,7 +69,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception exception)
             {
-                _logger?.Trace(exception, "Error while sending ping message.");
+                Logger.LogTrace(exception, "Error while sending ping message.");
             }
         }
 
@@ -92,7 +93,7 @@ namespace AElf.Network.Peers
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Failed to process ping message from {DistantNodeData}.");
+                Logger.LogTrace(e, $"Failed to process ping message from {DistantNodeData}.");
             }
         }
 
@@ -109,12 +110,12 @@ namespace AElf.Network.Peers
                     if (ping != null)
                         _pings.Remove(ping);
                     else
-                        _logger?.Trace($"Could not match pong reply {pong.Id}.");
+                        Logger.LogTrace($"Could not match pong reply {pong.Id}.");
                 }
             }
             catch (Exception e)
             {
-                _logger?.Trace(e, $"Failed to handle pong message from {DistantNodeData}.");
+                Logger.LogTrace(e, $"Failed to handle pong message from {DistantNodeData}.");
             }
         }
     }

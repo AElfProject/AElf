@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+      <PackageReference Include="Mono.Cecil" Version="0.10.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+    </ItemGroup>
+
+</Project>

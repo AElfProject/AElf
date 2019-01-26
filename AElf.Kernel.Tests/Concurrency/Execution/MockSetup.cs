@@ -13,14 +13,16 @@ using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
-using NLog;
 using AElf.Common;
 using AElf.Execution.Execution;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
-    public class MockSetup
+    public class MockSetup : ISingletonDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -33,13 +35,13 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         }
 
         public ActorSystem Sys { get; } = ActorSystem.Create("test");
-        public IActorRef Router { get;  }
+        public IActorRef Router { get; }
         public IActorRef Worker1 { get; }
         public IActorRef Worker2 { get; }
         public IActorRef Requestor { get; }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
-        public Hash ChainId2 { get; } = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+        public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
+        public int ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 
@@ -59,7 +61,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         private IChainCreationService _chainCreationService;
         private IChainService _chainService;
         private IFunctionMetadataService _functionMetadataService;
-        private ILogger _logger;
+        public ILogger<MockSetup> Logger { get; set; }
 
         private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
@@ -71,16 +73,17 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public MockSetup(IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerContainer smartContractRunnerContainer, ILogger logger,
-            IStateManager stateManager, TransactionManager transactionManager, ISmartContractManager smartContractManager)
+            IStateManager stateManager, TransactionManager transactionManager,
+            ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
-            _logger = logger;
+            Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
                 ActorEnvironment.InitActorSystem();
             }
+
             _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
             _chainService = chainService;
@@ -115,7 +118,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
 
         private async Task Init()
-        {            
+        {
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -123,8 +126,10 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
                 ContractHash = Hash.FromRawBytes(SmartContractZeroCode),
                 SerialNumber = GlobalConfig.GenesisBasicContract
             };
-            var chain1 = await _chainCreationService.CreateNewChainAsync(ChainId1,  new List<SmartContractRegistration>{reg});
-            var chain2 = await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration>{reg});
+            var chain1 =
+                await _chainCreationService.CreateNewChainAsync(ChainId1, new List<SmartContractRegistration> {reg});
+            var chain2 =
+                await _chainCreationService.CreateNewChainAsync(ChainId2, new List<SmartContractRegistration> {reg});
         }
 
         private async Task DeploySampleContracts()
@@ -132,7 +137,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             const ulong serialNumber = 10ul;
             SampleContractAddress1 = Address.BuildContractAddress(ChainId1, serialNumber);
             SampleContractAddress2 = Address.BuildContractAddress(ChainId2, serialNumber);
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = 1,

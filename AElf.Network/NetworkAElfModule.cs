@@ -1,17 +1,20 @@
-﻿using AElf.Common.Module;
-using Autofac;
+﻿using AElf.Modularity;
+using AElf.Network.Connection;
+using AElf.Network.Peers;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
 
 namespace AElf.Network
 {
-    public class NetworkAElfModule:IAElfModule
+    public class NetworkAElfModule: AElfModule
     {
-        public void Init(ContainerBuilder builder)
+        public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            builder.RegisterModule(new NetworkAutofacModule());
-        }
-
-        public void Run(ILifetimeScope scope)
-        {
+            var configuration = context.Services.GetConfiguration();
+            Configure<NetworkOptions>(configuration.GetSection("Network"));
+            
+            context.Services.AddTransient<IConnectionListener, ConnectionListener>();
+            context.Services.AddSingleton<IPeerManager, PeerManager>();
         }
     }
 }

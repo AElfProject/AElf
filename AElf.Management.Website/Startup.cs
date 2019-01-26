@@ -1,15 +1,11 @@
 ﻿using System;
-using AElf.Common;
-using AElf.Management.Interfaces;
-using AElf.Management.Services;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using Volo.Abp;
 
 namespace AElf.Management.Website
 {
@@ -21,36 +17,19 @@ namespace AElf.Management.Website
         }
 
         public IConfiguration Configuration { get; }
-
-        public IContainer ApplicationContainer { get; private set; }
-
+                
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options => { options.Filters.Add(new AuthenticationFilter()); }
-            ).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(options => { }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new Info {Title = "AElf API", Version = "v1"}); });
 
-            var builder = new ContainerBuilder();
+            services.AddApplication<ManagementWebsiteAElfModule>(options =>
+            {
+                options.UseAutofac();
+            });
 
-            builder.RegisterModule(new LoggerAutofacModule());
-            builder.RegisterType<SideChainService>().As<ISideChainService>().SingleInstance();
-            builder.RegisterType<ChainService>().As<IChainService>().SingleInstance();
-            builder.RegisterType<WorkerService>().As<IWorkerService>().SingleInstance();
-            builder.RegisterType<LighthouseService>().As<ILighthouseService>().SingleInstance();
-            builder.RegisterType<LauncherService>().As<ILauncherService>().SingleInstance();
-            builder.RegisterType<AkkaService>().As<IAkkaService>().SingleInstance();
-            builder.RegisterType<TransactionService>().As<ITransactionService>().SingleInstance();
-            builder.RegisterType<NodeService>().As<INodeService>().SingleInstance();
-            builder.RegisterType<NetworkService>().As<INetworkService>().SingleInstance();
-            builder.RegisterType<RecordService>().As<IRecordService>().SingleInstance();
-
-            builder.Populate(services);
-            var ApplicationContainer = builder.Build();
-
-            ApplicationContainer.Resolve<IRecordService>().Start();
-
-            return new AutofacServiceProvider(ApplicationContainer);
+            return services.BuildAutofacServiceProvider();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

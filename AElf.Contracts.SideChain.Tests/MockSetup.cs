@@ -9,11 +9,13 @@ using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Runtime.CSharp;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.SideChain.Tests
 {
-    public class MockSetup
+    public class MockSetup : ITransientDependency
     {
         // IncrementId is used to differentiate txn
         // which is identified by From/To/IncrementId
@@ -24,7 +26,7 @@ namespace AElf.Contracts.SideChain.Tests
             return (ulong)n;
         }
 
-        public Hash ChainId1 { get; } = Hash.LoadByteArray(ChainHelpers.GetRandomChainId());
+        public int ChainId1 { get; } = ChainHelpers.GetRandomChainId();
         public IStateManager StateManager { get; private set; }
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
@@ -33,8 +35,9 @@ namespace AElf.Contracts.SideChain.Tests
 
         private IChainCreationService _chainCreationService;
 
+        public ILogger<MockSetup> Logger {get;set;}
         private ISmartContractRunnerContainer _smartContractRunnerContainer;
-        private ILogger _logger;
+
 
         private IBlockManager _blockManager;
         private IChainManager _chainManager;
@@ -42,12 +45,12 @@ namespace AElf.Contracts.SideChain.Tests
         private ITransactionTraceManager _transactionTraceManager;
 
 
-        public MockSetup(ILogger logger, ITransactionManager transactionManager, IBlockManager blockManager
+        public MockSetup(ITransactionManager transactionManager, IBlockManager blockManager
             , IChainManager chainManager, ISmartContractManager smartContractManager,
             ITransactionTraceManager transactionTraceManager,IFunctionMetadataService functionMetadataService,
-            IStateManager stateManager)
+            IStateManager stateManager, ISmartContractRunnerContainer smartContractRunnerContainer)
         {
-            _logger = logger;
+            Logger = NullLogger<MockSetup>.Instance;
             _transactionManager = transactionManager;
             _chainManager = chainManager;
             _blockManager = blockManager;
@@ -55,6 +58,7 @@ namespace AElf.Contracts.SideChain.Tests
             _transactionTraceManager = transactionTraceManager;
             _functionMetadataService = functionMetadataService;
             StateManager = stateManager;
+            _smartContractRunnerContainer = smartContractRunnerContainer;
             Initialize();
         }
 
@@ -62,13 +66,13 @@ namespace AElf.Contracts.SideChain.Tests
         {
             ChainService = new ChainService(_chainManager, _blockManager,
                 _transactionManager, _transactionTraceManager, StateManager);
-            _smartContractRunnerContainer = new SmartContractRunnerContainer();
-            var runner =
-                new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
-            _smartContractRunnerContainer.AddRunner(0, runner);
+//            _smartContractRunnerContainer = new SmartContractRunnerContainer();
+//            var runner =
+//                new SmartContractRunner("../../../../AElf.Runtime.CSharp.Tests.TestContract/bin/Debug/netstandard2.0/");
+//            _smartContractRunnerContainer.AddRunner(0, runner);
             _chainCreationService = new ChainCreationService(ChainService,
                 new SmartContractService(SmartContractManager, _smartContractRunnerContainer,
-                    StateManager, _functionMetadataService, ChainService), _logger);
+                    StateManager, _functionMetadataService, ChainService));
             Task.Factory.StartNew(async () =>
             {
                 await Init();

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;
-using NLog;
 using AElf.Common;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -17,13 +17,10 @@ namespace AElf.Kernel
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionTraceManager _transactionTraceManager;
         private readonly IStateManager _stateManager;
+        public new ILogger<BlockChain> Logger { get; set; }
 
-        private readonly ILogger _logger;
-        private static bool _doingRollback;
-        private static bool _prepareTerminated;
-        private static bool _terminated;
 
-        public BlockChain(Hash chainId, IChainManager chainManager, IBlockManager blockManager,
+        public BlockChain(int chainId, IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager, ITransactionTraceManager transactionTraceManager,
             IStateManager stateManager) : base(
             chainId, chainManager, blockManager)
@@ -32,27 +29,7 @@ namespace AElf.Kernel
             _transactionTraceManager = transactionTraceManager;
             _stateManager = stateManager;
 
-            _doingRollback = false;
-            _prepareTerminated = false;
-            _terminated = false;
-
-            _logger = LogManager.GetLogger(nameof(BlockChain));
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockRollback)
-                {
-                    if (!_doingRollback)
-                    {
-                        _terminated = true;
-                        MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockRollback));
-                    }
-                    else
-                    {
-                        _prepareTerminated = true;
-                    }
-                }
-            });
+            Logger = NullLogger<BlockChain>.Instance;
         }
 
         public async Task<bool> HasBlock(Hash blockId)
@@ -113,76 +90,59 @@ namespace AElf.Kernel
 
         public async Task<List<Transaction>> RollbackToHeight(ulong height)
         {
-            try
+            var txs = new List<Transaction>();
+
+            MessageHub.Instance.Publish(new RollBackStateChanged(true));
+
+            Logger.LogTrace("Will rollback to " + height);
+
+            var currentHash = await GetCurrentBlockHashAsync();
+            var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
+
+            if (currentHeight <= height)
             {
-                _doingRollback = true;
-                var txs = new List<Transaction>();
-
-                if (_terminated)
-                {
-                    return txs;
-                }
-
-                MessageHub.Instance.Publish(new RollBackStateChanged(true));
-
-                _logger?.Trace("Will rollback to " + height);
-
-                var currentHash = await GetCurrentBlockHashAsync();
-                var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
-
-                if (currentHeight <= height)
-                {
-                    return txs;
-                }
-
-                var blocks = new List<Block>();
-                for (var i = currentHeight; i > height; i--)
-                {
-                    var block = await GetBlockByHeightAsync(i);
-                    var body = block.Body;
-                    foreach (var txId in body.Transactions)
-                    {
-                        var tx = await _transactionManager.GetTransaction(txId);
-                        txs.Add(tx);
-                    }
-
-                    await _chainManager.RemoveCanonical(_chainId, i);
-                    await RollbackSideChainInfo(block);
-                    await RollbackStateForBlock(block);
-                    blocks.Add((Block) block);
-                }
-
-                blocks.Reverse();
-
-                var hash = await GetCanonicalHashAsync(height);
-
-                await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
-
-                MessageHub.Instance.Publish(new BranchRolledBack(blocks));
-                _logger?.Trace("Finished rollback to " + height);
-                MessageHub.Instance.Publish(new RollBackStateChanged(false));
-
                 return txs;
             }
-            finally
+
+            var blocks = new List<Block>();
+            for (var i = currentHeight; i > height; i--)
             {
-                _doingRollback = false;
-                if (_prepareTerminated)
+                var block = await GetBlockByHeightAsync(i);
+                var body = block.Body;
+                foreach (var txId in body.Transactions)
                 {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockRollback));
+                    var tx = await _transactionManager.GetTransaction(txId);
+                    txs.Add(tx);
                 }
+
+                await _chainManager.RemoveCanonical(_chainId, i);
+                //await RollbackSideChainInfo(block);
+                await RollbackStateForBlock(block);
+                blocks.Add((Block) block);
             }
+
+            blocks.Reverse();
+
+            var hash = await GetCanonicalHashAsync(height);
+
+            await _chainManager.UpdateCurrentBlockHashAsync(_chainId, hash);
+
+            MessageHub.Instance.Publish(new BranchRolledBack(blocks));
+            Logger.LogTrace("Finished rollback to " + height);
+            MessageHub.Instance.Publish(new RollBackStateChanged(false));
+
+            return txs;
         }
 
-        private async Task RollbackSideChainInfo(IBlock block)
-        {
-            foreach (var info in block.Body.IndexedInfo)
-            {
-                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
-                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
-            }
-        }
+        
+//        private async Task RollbackSideChainInfo(IBlock block)
+//        {
+//            foreach (var info in block.Body.IndexedInfo)
+//            {
+//                await _chainManager.UpdateCurrentBlockHeightAsync(info.ChainId,
+//                    info.Height > GlobalConfig.GenesisBlockHeight ? info.Height - 1 : 0);
+//            }
+//        }
 
         private async Task RollbackStateForBlock(IBlock block)
         {

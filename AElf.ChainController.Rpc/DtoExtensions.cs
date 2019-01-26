@@ -21,21 +21,5 @@ namespace AElf.ChainController.Rpc
                 }
             };
         }
-        
-        internal static JObject GetIndexedSideChainBlockInfo(this IBlock block)
-        {
-            var res = new JObject();
-            foreach (var sideChainIndexedInfo in block.Body.IndexedInfo)
-            {
-                res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
-                {
-                    {"Height", sideChainIndexedInfo.Height},
-                    {"BlockHash", sideChainIndexedInfo.BlockHeaderHash.ToHex()},
-                    {"TransactionMerkleTreeRoot", sideChainIndexedInfo.TransactionMKRoot.ToHex()}
-                });
-            }
-
-            return res;
-        }
     }
 }

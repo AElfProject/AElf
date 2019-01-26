@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
@@ -16,13 +15,16 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
+using AElf.Miner.Rpc.Client;
+using AElf.Miner.Rpc.Exceptions;
 using AElf.Kernel.Types.Common;
 using AElf.Kernel.Types.Transaction;
 using AElf.Miner.TxMemPool;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
-using NLog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Synchronization.BlockExecution
 {
@@ -31,22 +33,17 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IChainService _chainService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IExecutingService _executingService;
-        private readonly ILogger _logger;
+        public ILogger<BlockExecutor> Logger {get;set;}
         private readonly ClientManager _clientManager;
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
-        private readonly IChainManager _chainManager;
         private readonly IStateManager _stateManager;
         private readonly ConsensusDataProvider _consensusDataProvider;
-        private static bool _executing;
-        private static bool _prepareTerminated;
-        private static bool _terminated;
         private static bool _isLimitExecutionTime;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, ClientManager clientManager,
-            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IChainManager chainManager,
-            IStateManager stateManager)
+            IBinaryMerkleTreeManager binaryMerkleTreeManager, ITxHub txHub, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -54,33 +51,12 @@ namespace AElf.Synchronization.BlockExecution
             _clientManager = clientManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
-            _chainManager = chainManager;
             _stateManager = stateManager;
             _consensusDataProvider = new ConsensusDataProvider(_stateManager);
 
-            _logger = LogManager.GetLogger(nameof(BlockExecutor));
+            Logger= NullLogger<BlockExecutor>.Instance;
 
             MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
-
-            _executing = false;
-            _prepareTerminated = false;
-            _terminated = false;
-
-            MessageHub.Instance.Subscribe<TerminationSignal>(signal =>
-            {
-                if (signal.Module == TerminatedModuleEnum.BlockExecutor)
-                {
-                    if (!_executing)
-                    {
-                        _terminated = true;
-                        MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
-                    }
-                    else
-                    {
-                        _prepareTerminated = true;
-                    }
-                }
-            });
 
             MessageHub.Instance.Subscribe<StateEvent>(inState =>
             {
@@ -94,7 +70,7 @@ namespace AElf.Synchronization.BlockExecution
                     _isLimitExecutionTime = true;
                 }
 
-                _logger?.Trace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
+                Logger.LogTrace($"Current Event: {inState.ToString()}, IsLimitExecutionTime: {_isLimitExecutionTime}.");
             });
         }
 
@@ -105,7 +81,7 @@ namespace AElf.Synchronization.BlockExecution
         {
             if (_isMining)
             {
-                _logger?.Trace($"Prevent block {block.BlockHashToHex} from entering block execution," +
+                Logger.LogTrace($"Prevent block {block.BlockHashToHex} from entering block execution," +
                                "for this node is doing mining.");
                 return BlockExecutionResult.Mining;
             }
@@ -118,12 +94,6 @@ namespace AElf.Synchronization.BlockExecution
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
-            _executing = true;
-            if (_terminated)
-            {
-                return BlockExecutionResult.Terminated;
-            }
 
             var txnRes = new List<TransactionResult>();
             var cts = new CancellationTokenSource();
@@ -145,7 +115,7 @@ namespace AElf.Synchronization.BlockExecution
                 (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
                 if (result.IsFailed())
                 {
-                    _logger?.Warn(
+                    Logger.LogWarning(
                         $"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
                         $"block hash: {block.BlockHashToHex}.");
                     res = result;
@@ -166,7 +136,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 if (cts.IsCancellationRequested)
                 {
-                    _logger?.Trace(
+                    Logger.LogTrace(
                         $"Execution cancelled and rollback: block hash: {block.BlockHashToHex}, " +
                         $"execution time: {distanceToTimeSlot * NodeConfig.Instance.RatioSynchronize} ms.");
                     res = BlockExecutionResult.ExecutionCancelled;
@@ -174,14 +144,6 @@ namespace AElf.Synchronization.BlockExecution
                 }
 
                 txnRes = SortToOriginalOrder(txnRes, readyTxs);
-
-//                var blockChain = _chainService.GetBlockChain(Hash.LoadBase58(ChainConfig.Instance.ChainId));
-//                if (await blockChain.GetBlockByHashAsync(block.GetHash()) != null)
-//                {
-//                    // Todo: this can happen? Why not rollback?
-//                    res = BlockExecutionResult.AlreadyAppended;
-//                    return res;
-//                }
 
                 if ((result = UpdateWorldState(block, txnRes)).IsFailed())
                 {
@@ -202,7 +164,7 @@ namespace AElf.Synchronization.BlockExecution
             }
             catch (Exception e)
             {
-                _logger?.Error(e, $"Exception while execute block {block.BlockHashToHex}.");
+                Logger.LogError(e, $"Exception while execute block {block.BlockHashToHex}.");
                 // TODO, no wait may need improve
                 var task = Rollback(block, txnRes);
 
@@ -210,21 +172,10 @@ namespace AElf.Synchronization.BlockExecution
             }
             finally
             {
-                _executing = false;
                 cts.Dispose();
-                if (_prepareTerminated)
-                {
-                    _terminated = true;
-                    MessageHub.Instance.Publish(new TerminatedModule(TerminatedModuleEnum.BlockExecutor));
-                }
-
                 stopwatch.Stop();
-                if (res.CanExecuteAgain())
-                {
-                    _logger?.Warn($"Block {block.BlockHashToHex} can execute again.");
-                }
 
-                _logger?.Info($"Executed block {block.BlockHashToHex} with result {res}, " +
+                Logger.LogInformation($"Executed block {block.BlockHashToHex} with result {res}, " +
                               $"{block.Body.Transactions.Count} txns, duration {stopwatch.ElapsedMilliseconds} ms.");
             }
         }
@@ -238,7 +189,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="cancellationTokenSource"></param>
         /// <param name="toDateTime"></param>
         /// <returns></returns>
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, Hash chainId,
+        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, int chainId,
             DateTime toDateTime, Hash disambiguationHash, CancellationTokenSource cancellationTokenSource)
         {
             var traces = readyTxs.Count == 0
@@ -304,7 +255,7 @@ namespace AElf.Synchronization.BlockExecution
                         results.Add(txResF);
                         break;
                     case ExecutionStatus.InsufficientTransactionFees:
-                        var txResITF = new TransactionResult()
+                        var txResITF = new TransactionResult
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
@@ -325,7 +276,7 @@ namespace AElf.Synchronization.BlockExecution
                     case ExecutionStatus.ExceededMaxCallDepth:
                         break;*/
                     default:
-                        _logger.Trace(
+                        Logger.LogTrace(
                             $"Transaction {trace.TransactionId} execution failed with status {trace.ExecutionStatus}");
                         break;
                 }
@@ -363,7 +314,7 @@ namespace AElf.Synchronization.BlockExecution
             }
 
             if (res.IsFailed())
-                _logger?.Warn(errorLog);
+                Logger.LogWarning(errorLog);
 
             return res;
         }
@@ -382,7 +333,6 @@ namespace AElf.Synchronization.BlockExecution
                 if (!await _clientManager.TryGetSideChainBlockInfo(sideChainBlockInfo))
                     return false;
             }
-
             return true;
         }
 
@@ -436,8 +386,7 @@ namespace AElf.Synchronization.BlockExecution
                     var sideChainBlockInfos = (SideChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(SideChainBlockInfo[])})[0];
 
-                    if (sideChainBlockInfos.Equals(block.Body.IndexedInfo.ToArray())
-                        || !await ValidateSideChainBlockInfo(sideChainBlockInfos))
+                    if (!await ValidateSideChainBlockInfo(sideChainBlockInfos))
                     {
                         //errorLog = "Invalid parent chain block info.";
                         res = BlockExecutionResult.InvalidSideChainBlockInfo;
@@ -481,15 +430,13 @@ namespace AElf.Synchronization.BlockExecution
             try
             {
                 var cached = await _clientManager.TryGetParentChainBlockInfo(parentBlockInfos);
-                if (cached != null)
-                    return cached.ToArray().Equals(parentBlockInfos);
-                return false;
+                return cached != null;
             }
             catch (Exception e)
             {
                 if (e is ClientShutDownException)
                     return true;
-                _logger.Warn("Parent chain block info validation failed.");
+                Logger.LogWarning("Parent chain block info validation failed.");
                 return false;
             }
         }
@@ -511,12 +458,12 @@ namespace AElf.Synchronization.BlockExecution
             var res = BlockExecutionResult.UpdateWorldStateSuccess;
             if (root != block.Header.MerkleTreeRootOfWorldState)
             {
-                _logger?.Trace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
-                _logger?.Warn("ExecuteBlock - Incorrect merkle trees.");
-                _logger?.Trace("Transaction Results:");
+                Logger.LogTrace($"{root.ToHex()} != {block.Header.MerkleTreeRootOfWorldState.ToHex()}");
+                Logger.LogWarning("ExecuteBlock - Incorrect merkle trees.");
+                Logger.LogTrace("Transaction Results:");
                 foreach (var r in transactionResults)
                 {
-                    _logger?.Trace($"TransactionId: {r.TransactionId.ToHex()}, " +
+                    Logger.LogTrace($"TransactionId: {r.TransactionId.ToHex()}, " +
                                    $"StateHash: {r.StateHash.ToHex()}，" +
                                    $"Status: {r.Status}, " +
                                    $"{r.RetVal}");

@@ -1,13 +1,20 @@
 ﻿using System.Threading.Tasks;
+using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Services;
 using Xunit;
 
 namespace AElf.Management.Tests
 {
-    public class ChainServiceTest
+    public class ChainServiceTest : ManagementTestBase
     {
-        private string chainId = "0xcce1f3b8d6df42ba73050ba12244fa7fe415";
+        private string chainId = "AElf";
+        private readonly IChainService _chainService;
+
+        public ChainServiceTest()
+        {
+            _chainService = GetRequiredService<IChainService>();
+        }
 
         [Fact(Skip = "require aws account")]
         //[Fact]
@@ -22,16 +29,14 @@ namespace AElf.Management.Tests
             arg.LauncherArg = new DeployLauncherArg();
             arg.LauncherArg.IsConsensusInfoGenerator = true;
 
-            var service = new ChainService();
-            await service.DeployMainChain(arg);
+            await _chainService.DeployMainChain(arg);
         }
 
         [Fact(Skip = "require aws account")]
         //[Fact]
         public async Task RemoveTestChainTest()
         {
-            var service = new ChainService();
-            await service.RemoveMainChain(chainId);
+            await _chainService.RemoveMainChain(chainId);
         }
     }
 }

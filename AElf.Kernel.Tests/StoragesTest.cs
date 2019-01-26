@@ -7,29 +7,28 @@ using AElf.SmartContract;
 using AElf.ChainController;
 using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
-using NLog;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.TestBase;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class StoragesTest
+    public sealed class StoragesTest : AElfKernelTestBase
     {
         private readonly BlockTest _blockTest;
         private readonly IChainService _chainService;
-        private readonly ILogger _logger;
+        public ILogger<StoragesTest> Logger {get;set;}
 
-        public StoragesTest(BlockTest blockTest, IChainService chainService, ILogger logger)
+        public StoragesTest()
         {
-            _blockTest = blockTest;
-            _chainService = chainService;
-            _logger = logger;
+            _blockTest = GetRequiredService<BlockTest>();
+            _chainService = GetRequiredService<IChainService>();
+            Logger= GetRequiredService<ILogger<StoragesTest>>();
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             

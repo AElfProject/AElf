@@ -5,23 +5,22 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Kernel.Managers;
 using Xunit;
-using Xunit.Frameworks.Autofac;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.TestBase;
 
 namespace AElf.Kernel.Tests
 {
-    [UseAutofacTestFramework]
-    public class ChainTest
+    public sealed class ChainTest : AElfKernelTestBase
     {
         private readonly IChainCreationService _chainCreationService;
         private readonly IChainService _chainService;
 
-        public ChainTest(IChainCreationService chainCreationService, IChainService chainService)
+        public ChainTest()
         {
-            _chainCreationService = chainCreationService;
-            _chainService = chainService;
+            _chainCreationService = GetRequiredService<IChainCreationService>();
+            _chainService = GetRequiredService<IChainService>();
         }
 
         private static byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;
@@ -50,7 +49,7 @@ namespace AElf.Kernel.Tests
             return chain;
         }
 
-//        public async Task ChainStoreTest(Hash chainId)
+//        public async Task ChainStoreTest(int chainId)
 //        {
 //            await _chainManager.AddChainAsync(chainId, Hash.Generate());
 //            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
@@ -87,7 +86,7 @@ namespace AElf.Kernel.Tests
             Assert.Equal(block.Header.Index, GlobalConfig.GenesisBlockHeight + 1);
         }
         
-        private static Block CreateBlock(Hash preBlockHash, Hash chainId, ulong index)
+        private static Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             

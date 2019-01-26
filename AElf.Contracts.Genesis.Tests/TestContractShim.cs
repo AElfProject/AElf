@@ -1,12 +1,15 @@
+using System;
 using AElf.Kernel;
 using Google.Protobuf;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using AElf.Common;
+using AElf.Kernel.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Genesis.Tests
 {
-    public class TestContractShim
+    public class TestContractShim : ITransientDependency
     {
         private MockSetup _mock;
         public Hash ContractAddres = Hash.Generate();
@@ -67,7 +70,8 @@ namespace AElf.Contracts.Genesis.Tests
 
             TransactionContext = new TransactionContext
             {
-                Transaction = tx
+                Transaction = tx,
+                CurrentBlockTime = DateTime.UtcNow
             };
             Executive.SetTransactionContext(TransactionContext).Apply().Wait();
             TransactionContext.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();

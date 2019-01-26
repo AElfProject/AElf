@@ -3,11 +3,11 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Types;
-using NLog;
 using Org.BouncyCastle.Security;
-using SharpRepository.Repository.Caching.Hash;
 using AElf.Kernel;
 using AElf.Common;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Execution.Scheduling
 {
@@ -17,16 +17,16 @@ namespace AElf.Execution.Scheduling
     public class Grouper : IGrouper
     {
         private IResourceUsageDetectionService _resourceUsageDetectionService;
-        private ILogger _logger;
+        public ILogger<Grouper> Logger {get;set;}
 
-        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService, ILogger logger = null)
+        public Grouper(IResourceUsageDetectionService resourceUsageDetectionService)
         {
             _resourceUsageDetectionService = resourceUsageDetectionService;
-            _logger = logger;
+            Logger = NullLogger<Grouper>.Instance;
         }
 
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
-        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(Hash chainId, List<Transaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(int chainId, List<Transaction> transactions)
         {
             var txResourceHandle = new Dictionary<Transaction, string>();
             var failedTxs = new Dictionary<Transaction, Exception>();
@@ -52,7 +52,7 @@ namespace AElf.Execution.Scheduling
                     continue;
                 }
                 
-                //_logger.Debug(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
+                //Logger.LogDebug(string.Format("tx {0} have resource [{1}]", tx.From, string.Join(" ||| ", resources)));
                 foreach (var resource in resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
@@ -98,14 +98,14 @@ namespace AElf.Execution.Scheduling
             }
             result.AddRange(grouped.Values);
 
-            _logger?.Info(string.Format(
+            Logger.LogInformation(string.Format(
                 "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.DumpBase58(),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
             
             return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);
         }
 
-        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, Hash chainId, List<Transaction> transactions)
+        public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessWithCoreCount(GroupStrategy strategy, int totalCores, int chainId, List<Transaction> transactions)
         {
             if (strategy == GroupStrategy.NaiveGroup)
             {
@@ -138,10 +138,10 @@ namespace AElf.Execution.Scheduling
                 else
                 {
                     mergedGroups = groupResults.Item1;
-                    _logger?.Error("Grouper: unsupported strategy: " + strategy);
+                    Logger.LogError("Grouper: unsupported strategy: " + strategy);
                 }
                 
-                _logger?.Info(string.Format(
+                Logger.LogInformation(string.Format(
                     "Grouper on chainId [{0}] merge {1} groups into {2} groups with sizes [{3}]", chainId,
                     groupResults.Item1.Count, mergedGroups.Count, string.Join(", ", mergedGroups.Select(a=>a.Count))));
 
@@ -243,7 +243,7 @@ namespace AElf.Execution.Scheduling
             //in case there is a bug 
             if (totalCount != transactionCount)
             {
-                _logger.Fatal("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
+                Logger.LogCritical("There is a bug in the Grouper, get inconsist transaction count, some tx lost");
             }
 
             if (res.Count > resGroupCount)

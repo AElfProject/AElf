@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Types.Transaction;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -48,28 +48,13 @@ namespace AElf.Sdk.CSharp
 
         #region Privileged API
 
-        public static void DeployContract(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            var task = _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address,
-                registration, false);
-            task.Wait();
-        }
-        
-        public static async Task InitContractAsync(Address address, SmartContractRegistration registration)
-        {
-            Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
-            await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
-                true);
-        }
-
         public static async Task DeployContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
             await _smartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
                 false);
         }
-        
+
         public static async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
         {
             Assert(_smartContractContext.ContractAddress.Equals(ContractZeroAddress));
@@ -79,14 +64,14 @@ namespace AElf.Sdk.CSharp
 
         #endregion Privileged API
 
-        public static Hash ChainId => _smartContractContext.ChainId.ToReadOnly();
+        public static int ChainId => _smartContractContext.ChainId;
 
         public static Address ContractZeroAddress => ContractHelpers.GetGenesisBasicContractAddress(ChainId);
 
         public static Address CrossChainContractAddress => ContractHelpers.GetCrossChainContractAddress(ChainId);
 
         public static Address AuthorizationContractAddress => ContractHelpers.GetAuthorizationContractAddress(ChainId);
-        
+
         public static Address ResourceContractAddress => ContractHelpers.GetResourceContractAddress(ChainId);
 
         public static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
@@ -96,7 +81,7 @@ namespace AElf.Sdk.CSharp
         public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
         public static DateTime CurrentBlockTime => _transactionContext.CurrentBlockTime;
-        
+
         public static Address Genesis => Address.Genesis;
 
         public static Block GetBlockByHeight(ulong height)
@@ -123,7 +108,8 @@ namespace AElf.Sdk.CSharp
 
         public static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            return CryptoHelpers.RecoverPublicKey(signature, hash);
+            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            return !cabBeRecovered ? null : publicKey;
         }
 
         /// <summary>
@@ -134,41 +120,63 @@ namespace AElf.Sdk.CSharp
         {
             return RecoverPublicKey(GetTransaction().Sigs.First().ToByteArray(), GetTxnHash().DumpByteArray());
         }
-        
+
         public static Miners GetMiners()
         {
-            Call(ConsensusContractAddress, "GetCurrentMiners");
-            return GetCallResult().DeserializeToPbMessage<Miners>();
+            Console.WriteLine("Try to get miners");
+            if (Call(ConsensusContractAddress, "GetRoundInfo", GetCurrentRoundNumber()))
+            {
+                Console.WriteLine("Check result..");
+                var round = GetCallResult().DeserializeToPbMessage<Round>();
+                if(round != null)
+                    Console.WriteLine($"Got Round {round.RoundNumber}");
+                var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+                miners.TermNumber = round.MinersTermNumber;
+                
+                return miners;
+            }
+    
+            throw new InternalError("Failed to current miners.\n" + _lastCallContext.Trace.StdErr);
         }
         
-        public static List<string> GetCurrentMiners()
-        {
-            if (Call(ConsensusContractAddress, "GetCurrentMiners"))
-            {
-                return GetCallResult().DeserializeToPbMessage<StringList>().Values.ToList();
-            }
-            
-            throw new InternalError("Failed to get current miners.\n" + _lastCallContext.Trace.StdErr);
-        }
-
         public static ulong GetCurrentRoundNumber()
         {
             if (Call(ConsensusContractAddress, "GetCurrentRoundNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
             
             throw new InternalError("Failed to get current round number.\n" + _lastCallContext.Trace.StdErr);
         }
-        
+
         public static ulong GetCurrentTermNumber()
         {
             if (Call(ConsensusContractAddress, "GetCurrentTermNumber"))
             {
-                return GetCallResult().ToUInt64();
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
             }
-            
+
             throw new InternalError("Failed to get current term number.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static ulong GetBlockchainAge()
+        {
+            if (Call(ConsensusContractAddress, "GetBlockchainAge"))
+            {
+                return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
+            }
+
+            throw new InternalError("Failed to get blockchain age.\n" + _lastCallContext.Trace.StdErr);
+        }
+
+        public static List<VotingRecord> GetVotingRecords(string publicKey)
+        {
+            if (Call(ConsensusContractAddress, "GetTicketsInfo", publicKey))
+            {
+                return GetCallResult().DeserializeToPbMessage<Tickets>().VotingRecords.ToList();
+            }
+
+            throw new InternalError("Failed to get voting records.\n" + _lastCallContext.Trace.StdErr);
         }
 
         public static TermSnapshot GetTermSnapshot(ulong termNumber)
@@ -177,10 +185,11 @@ namespace AElf.Sdk.CSharp
             {
                 return GetCallResult().DeserializeToPbMessage<TermSnapshot>();
             }
-            
-            throw new InternalError($"Failed to get term snapshot of term {termNumber}.\n" + _lastCallContext.Trace.StdErr);
+
+            throw new InternalError($"Failed to get term snapshot of term {termNumber}.\n" +
+                                    _lastCallContext.Trace.StdErr);
         }
-        
+
         public static Address GetContractOwner()
         {
             if (Call(ContractZeroAddress, "GetContractOwner", _smartContractContext.ContractAddress))
@@ -215,7 +224,7 @@ namespace AElf.Sdk.CSharp
         {
             return GetTransaction().From.Clone();
         }
-        
+
         public static Address GetToAddress()
         {
             return GetTransaction().To.Clone();
@@ -233,7 +242,7 @@ namespace AElf.Sdk.CSharp
             Call(ResourceContractAddress, "GetResourceBalance", address, resourceType.ToString());
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
-        
+
         /// <summary>
         /// Return token balance of from account.
         /// </summary>
@@ -251,7 +260,7 @@ namespace AElf.Sdk.CSharp
             Call(TokenContractAddress, "BalanceOf", DividendsContractAddress);
             return GetCallResult().DeserializeToPbMessage<UInt64Value>().Value;
         }
-        
+
         #endregion Getters used by contract
 
         #region Transaction API
@@ -346,9 +355,9 @@ namespace AElf.Sdk.CSharp
 
         public static bool VerifySignature(Transaction proposedTxn)
         {
-            return new TxSignatureVerifier().Verify(proposedTxn);
+            return proposedTxn.VerifySignature();
         }
-        
+
         public static bool VerifyTransaction(Hash txId, MerklePath merklePath, ulong parentChainHeight)
         {
             var scAddress = CrossChainContractAddress;
@@ -365,27 +374,27 @@ namespace AElf.Sdk.CSharp
 
             return false;
         }
-        
+
         public static void LockToken(ulong amount)
         {
             SendInline(TokenContractAddress, "Transfer", GetContractAddress(), amount);
         }
-        
+
         public static void UnlockToken(Address address, ulong amount)
         {
             SendInlineByContract(TokenContractAddress, "Transfer", address, amount);
         }
-        
+
         public static void LockResource(ulong amount, ResourceType resourceType)
         {
             SendInline(ResourceContractAddress, "LockResource", GetContractAddress(), amount, resourceType);
         }
-        
+
         public static void UnlockResource(ulong amount, ResourceType resourceType)
         {
             SendInlineByContract(ResourceContractAddress, "UnlockResource", GetFromAddress(), amount, resourceType);
         }
-        
+
         #endregion Transaction API
 
         #region Utility API
@@ -401,11 +410,6 @@ namespace AElf.Sdk.CSharp
         public static void Equal<T>(T expected, T actual, string message = "Assertion failed!")
         {
             Assert(expected.Equals(actual), message);
-        }
-        
-        public static void NotEqual<T>(T expected, T actual, string message = "Assertion failed!")
-        {
-            Assert(!expected.Equals(actual), message);
         }
 
         internal static void FireEvent(LogEvent logEvent)
@@ -443,21 +447,27 @@ namespace AElf.Sdk.CSharp
             if (_transactionContext.Transaction.Sigs.Count == 1)
                 // No need to verify signature again if it is not multi sig account.
                 return;
-            Call(AuthorizationContractAddress, "GetAuth", _transactionContext.Transaction.From);
+            Assert(Call(AuthorizationContractAddress, "GetAuthorization", _transactionContext.Transaction.From),
+                "Unable to get authorization.");
             var auth = GetCallResult().DeserializeToPbMessage<Authorization>();
-            
+
             // Get tx hash
             var hash = _transactionContext.Transaction.GetHash().DumpByteArray();
 
             // Get pub keys
-            var publicKeys = _transactionContext.Transaction.Sigs
-                .Select(sig => CryptoHelpers.RecoverPublicKey(sig.ToByteArray(), hash)).ToArray();
-
+            var publicKeys = new List<byte[]>();
+            foreach (var sig in _transactionContext.Transaction.Sigs)
+            {
+                var publicKey = RecoverPublicKey(sig.ToByteArray(), hash);
+                Assert (publicKey != null, "Invalid signature."); // this should never happen.
+                publicKeys.Add(publicKey);
+            }
+            
             //todo review correctness
             uint provided = publicKeys
                 .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
                 .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval." );
+            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval.");
         }
 
         public static void IsMiner(string err)
@@ -473,23 +483,25 @@ namespace AElf.Sdk.CSharp
         /// <param name="invokingMethod">The method to be invoked in packed transaction.</param>
         /// <param name="waitingPeriod">Expired time in second for proposal.</param>
         /// <param name="args">The arguments for packed transaction.</param>
-        public static Hash Propose(string proposalName, double waitingPeriod, Address targetAddress, string invokingMethod, params object []args)
+        public static Hash Propose(string proposalName, double waitingPeriod, Address fromAddress,
+            Address targetAddress, string invokingMethod, params object[] args)
         {
             // packed txn
             byte[] txnData = new Transaction
             {
-                From = Genesis,
+                From = fromAddress,
                 To = targetAddress,
                 MethodName = invokingMethod,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
-                Type = TransactionType.MsigTransaction
+                Type = TransactionType.MsigTransaction,
+                Time = Timestamp.FromDateTime(CurrentBlockTime)
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             TimeSpan diff = CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
-            
+
             Proposal proposal = new Proposal
             {
-                MultiSigAccount = Genesis,
+                MultiSigAccount = fromAddress,
                 Name = proposalName,
                 TxnData = ByteString.CopyFrom(txnData),
                 ExpiredTime = diff.TotalSeconds,
@@ -498,6 +510,12 @@ namespace AElf.Sdk.CSharp
             };
             SendInline(AuthorizationContractAddress, "Propose", proposal);
             return proposal.GetHash();
+        }
+
+        public static bool IsMultiSigAccount(Address address)
+        {
+            Call(AuthorizationContractAddress, "IsMultiSigAccount", address);
+            return GetCallResult().DeserializeToPbMessage<BoolValue>().Value;
         }
     }
 }

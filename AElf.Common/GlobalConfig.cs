@@ -11,8 +11,10 @@ namespace AElf.Common
         public static string DefaultChainId = "AELF";
         public static string AElfAddressPrefix = "ELF";
         
-        public static int ChainIdLength = 3;
+        public static int ChainIdLength = 4;
+        
         public static int ContractAddressHashLength = 18;
+        public const ulong DaysEachTerm = 3;
         
         public static int AddressHashLength = 30; // length of sha256
         
@@ -35,9 +37,6 @@ namespace AElf.Common
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
         public static readonly ulong DividendsContract = 6;
-
-        public static int InvertibleChainHeight = 4;
-
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 
@@ -47,12 +46,11 @@ namespace AElf.Common
         public const ulong BalanceForInitialization = 100_000_000;
         public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
-        public const ulong DaysEachTerm = 7;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
         public const int ProducerRepetitions = 8;
-        public const int AElfWaitFirstRoundTime = 8000;
+        public const int AElfWaitFirstRoundTime = 4000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSMinersString = "__AElfBlockProducer__";
         public const string AElfDPoSRoundsMapString = "__AElfDPoSRoundsMapString__";
@@ -70,6 +68,7 @@ namespace AElf.Common
         public const string AElfTwoThirdsMinerMinedString = "__AElfTwoThirdsMinerMinedString__";
         public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
         public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
+        public const string AElfDPoSVotingRecordsMapString = "__AElfDPoSVotingRecordsMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
@@ -83,9 +82,10 @@ namespace AElf.Common
         public const int AElfInitCrossChainRequestInterval = 4;
         public const string AElfCurrentParentChainHeight = "__CurrentParentChainHeight__";
         public const string AElfCurrentSideChainHeight = "__SideChainHeight__";
-        public const string AElfBinaryMerkleTreeForSideChainTxnRoot = "__BinaryMerkleTreeForSideChainTxnRoot__";
-        public const int MaximalCountForIndexingParentChainBlock = 256;
-        public const int MaximalCountForIndexingSideChainBlock = 1;
+        public const string IndexedSideChainBlockInfoResult = "__IndexedSideChainBlockInfoResult__";
+        public const int MaximalCountForIndexingParentChainBlock = 256; // Index maximal 256 blocks from parent chain.
+        public const int MaximalCountForIndexingSideChainBlock = 1; // Index maximal one block from one side chain.
+        public static int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
         #endregion
 
         #region Authorization
@@ -121,7 +121,7 @@ namespace AElf.Common
         public const string BlockHeaderPrefix = "h";
         public const string MerkleTreePrefix = "k";
         public const string TransactionResultPrefix = "l";
-        public const string MetadataPrefix = "m";
+        public const string FunctionMetadataPrefix = "m";
         public const string ChianHeightPrefix = "n";
         public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";
@@ -134,8 +134,6 @@ namespace AElf.Common
         
         public static ulong BlockCacheLimit = 2048; 
 
-        public const int RoundsPerTerm = 10;
-        
         #region Consensus Error String
         
         public const string TicketsNotFound = "Tickets not found.";
