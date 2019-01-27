@@ -156,6 +156,26 @@ namespace AElf.Kernel.Managers.Another.Tests
                 chain.BestChainHeight.ShouldBe(5);
                 chain.BestChainHash.ShouldBe(_blocks[5]);
             }
+            
+            
+            //0 -> 1 -> 2 -> 3 -> 4 -> 5         , 2 branches
+            //                    4 -> 6 -> 7
+            {
+                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                {
+                    Height = 6,
+                    BlockHash = _blocks[7],
+                    PreviousBlockHash = _blocks[6]
+                });
+
+                status.ShouldHaveFlag(BlockAttchOperationStatus.NewBlockLinked);
+                status.ShouldHaveFlag(BlockAttchOperationStatus.BestChainFound);
+                status.ShouldNotHaveFlag(BlockAttchOperationStatus.NewBlocksLinked);
+                status.ShouldNotHaveFlag(BlockAttchOperationStatus.NewBlockNotLinked);
+                
+                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHash.ShouldBe(_blocks[7]);
+            }
 
         }
     }

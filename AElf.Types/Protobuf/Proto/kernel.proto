@@ -343,6 +343,7 @@ message ChainBlockLink{
     Hash PreviousBlockHash = 3;
     bool IsExecuted = 4;
     bool IsNotChangedBlock = 5;
+    bool IsLinked = 6;
 }
 
 message Chain {
@@ -353,6 +354,9 @@ message Chain {
     
     map<string, int64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
+    map<string, int64> NotConfirmedBlocks = 7;
+    Hash NotChangedBlockHash = 8;
+    int64 NotChangedBlockHeight = 9;
 }
 
 

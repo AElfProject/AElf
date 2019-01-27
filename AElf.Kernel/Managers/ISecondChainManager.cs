@@ -65,7 +65,7 @@ namespace AElf.Kernel.Managers.Another
         {
             return await GetChainBlockLinkAsync(chainId, blockHash.ToHex());
         }
-        
+
         public async Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, string blockHash)
         {
             return await _chainBlockLinks.GetAsync(chainId.ToHex() + blockHash);
@@ -75,13 +75,10 @@ namespace AElf.Kernel.Managers.Another
         {
             await _chainBlockLinks.SetAsync(chainId.ToHex() + chainBlockLink.BlockHash.ToHex(), chainBlockLink);
         }
-        
+
         public async Task<BlockAttchOperationStatus> AttachBlockToChain(Chain chain, ChainBlockLink chainBlockLink)
         {
             BlockAttchOperationStatus status = BlockAttchOperationStatus.None;
-
-            //await _chainBlockLinks.SetAsync(
-            //    chain.Id.ToHex() + chainBlockLink.BlockHash.ToHex(), chainBlockLink);
 
             while (true)
             {
@@ -91,7 +88,7 @@ namespace AElf.Kernel.Managers.Another
                 if (chain.Branches.ContainsKey(previousHash))
                 {
                     chain.Branches[blockHash] = chainBlockLink.Height;
-                    //chain.Branches.Remove(previousHash);
+                    chain.Branches.Remove(previousHash);
 
                     if (chainBlockLink.Height > chain.BestChainHeight)
                     {
@@ -100,26 +97,40 @@ namespace AElf.Kernel.Managers.Another
                         status |= BlockAttchOperationStatus.BestChainFound;
                     }
 
+
+                    if (chainBlockLink.IsLinked)
+                        throw new Exception("chain block link should not be linked");
+
+                    chainBlockLink.IsLinked = true;
+                    
+                    await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
+                    
                     if (!chain.NotLinkedBlocks.ContainsKey(blockHash))
                     {
                         status |= BlockAttchOperationStatus.NewBlockLinked;
                         break;
                     }
 
-                    await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
-
                     chainBlockLink = await GetChainBlockLinkAsync(
                         chain.Id, chain.NotLinkedBlocks[blockHash]);
-                        
+
                     chain.NotLinkedBlocks.Remove(blockHash);
 
                     status |= BlockAttchOperationStatus.NewBlocksLinked;
                 }
                 else
                 {
-                    if (chain.BestChainHeight > chainBlockLink.Height)
-                        throw new InvalidOperationException(
-                            "Found a block is lower than the best block but no link");
+                    if (chainBlockLink.Height <= chain.BestChainHeight)
+                    {
+                        //check database to ensure whether it can be a branch
+                        var previousChainBlockLink =
+                            await this.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
+                        if (previousChainBlockLink.IsLinked)
+                        {
+                            chain.Branches[previousChainBlockLink.BlockHash.ToHex()] = previousChainBlockLink.Height;
+                            continue;
+                        }
+                    }
 
                     chain.NotLinkedBlocks[previousHash] = blockHash;
 
