@@ -5,8 +5,8 @@ namespace AElf.Kernel.Types.SmartContract
     public interface IConsensusSmartContract : ISmartContract
     {
         ValidationResult ValidateConsensus(byte[] consensusInformation);
-        ulong GetCountingMilliseconds(Timestamp timestamp);
-        byte[] GetNewConsensusInformation();
-        TransactionList GenerateConsensusTransactions();
+        int GetCountingMilliseconds(Timestamp timestamp);
+        byte[] GetNewConsensusInformation(byte[] extraInformation);
+        TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation);
     }
 }

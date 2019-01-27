@@ -16,6 +16,11 @@ namespace AElf.Kernel
             return !miners.PublicKeys.Any();
         }
 
+        public static Hash GetMinersHash(this Miners miners)
+        {
+            return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
+        }
+
         public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong roundNumber = 0, ulong termNumber = 0)
         {
             var dict = new Dictionary<string, int>();
@@ -238,7 +243,7 @@ namespace AElf.Kernel
 
             return order;
         }
-
+        
         /// <summary>
         /// Get local time
         /// </summary>

@@ -176,9 +176,17 @@ enum TicketsHistoryType {
 message DPoSInformation {
     Address Sender = 1;
     repeated Address MinersList = 2;
-    Forwarding Forwarding = 3;
-    Term NewTerm = 4;
-    bool WillUpdateConsensus = 5;
+    Round CurrentRound = 3;
+    Forwarding Forwarding = 4;
+    Term NewTerm = 5;
+    bool WillUpdateConsensus = 6;
+}
+
+message DPoSExtraInformation {
+    bool changeTerm = 1;
+    Hash hashValue = 2;
+    repeated string InitialMiners = 3;
+    int32 MiningInterval = 4;
 }
 
 message ValidationResult {

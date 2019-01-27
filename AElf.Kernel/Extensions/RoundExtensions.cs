@@ -84,7 +84,7 @@ namespace AElf.Kernel
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
-        public static Hash MinersHash(this Round round)
+        public static Hash GetMinersHash(this Round round)
         {
             return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).OrderBy(p => p)
                 .ToMiners());

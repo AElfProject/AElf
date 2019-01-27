@@ -48,7 +48,17 @@ namespace AElf.Contracts.Consensus.DPoS
             throw new System.NotImplementedException();
         }
 
-        public Miners TryToGetVictories()
+        public bool TryToGetVictories(out Miners victories)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetMiningInterval(out int miningInterval)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetCurrentAge(out ulong blockAge)
         {
             throw new System.NotImplementedException();
         }

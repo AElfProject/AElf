@@ -350,7 +350,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
             var senderPublicKey = Api.RecoverPublicKey().ToHex();
             
-            if (IsMainchain() && forwarding.NextRound.MinersHash() != GetCurrentRoundInfo().MinersHash() &&
+            if (IsMainchain() && forwarding.NextRound.GetMinersHash() != GetCurrentRoundInfo().GetMinersHash() &&
                 forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber)
             {
                 var miners = forwarding.NextRound.RealTimeMinersInfo.Keys.ToMiners();

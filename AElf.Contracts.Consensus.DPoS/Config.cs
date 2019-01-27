@@ -13,6 +13,8 @@ namespace AElf.Contracts.Consensus.DPoS
             "BB", "MM", "DZ", "JJ", "DD"
         };
 
+        public static int InitialWaitingMilliseconds = 10_000;
+
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForEveryMinerRatio /
