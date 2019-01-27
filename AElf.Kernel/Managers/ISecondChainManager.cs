@@ -125,7 +125,7 @@ namespace AElf.Kernel.Managers.Another
                         //check database to ensure whether it can be a branch
                         var previousChainBlockLink =
                             await this.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
-                        if (previousChainBlockLink.IsLinked)
+                        if (previousChainBlockLink!=null && previousChainBlockLink.IsLinked)
                         {
                             chain.Branches[previousChainBlockLink.BlockHash.ToHex()] = previousChainBlockLink.Height;
                             continue;
