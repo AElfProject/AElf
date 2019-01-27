@@ -187,6 +187,11 @@ message DPoSExtraInformation {
     Hash hashValue = 2;
     repeated string InitialMiners = 3;
     int32 MiningInterval = 4;
+    Term NewTerm = 5;
+    Forwarding Forwarding = 6;
+    ToPackage ToPackage = 7;
+    ToBroadcast ToBroadcast = 8;
+    google.protobuf.Timestamp Timestamp = 9;
 }
 
 message ValidationResult {

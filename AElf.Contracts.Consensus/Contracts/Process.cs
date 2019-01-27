@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private Timestamp StartTimestamp => _collection.BlockchainStartTimestamp.GetValue();
 
-        private int LogLevel { get; set; }
+        private int LogLevel { get; set; } = 0;
 
         private readonly DataCollection _collection;
 
@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.Contracts
             _collection = collection;
         }
 
-        public void InitialTerm(Term firstTerm, int logLevel)
+        public void InitialTerm(Term firstTerm)
         {
             InitialBlockchain();
 
@@ -71,8 +71,6 @@ namespace AElf.Contracts.Consensus.Contracts
             firstTerm.SecondRound.BlockchainAge = 1;
             _collection.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
             _collection.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
-
-            LogLevel = logLevel;
         }
 
         public ActionResult NextTerm(Term term)

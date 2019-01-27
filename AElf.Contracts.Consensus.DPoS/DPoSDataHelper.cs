@@ -75,9 +75,5 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return false;
         }
-        
-        
-        
-        
     }
 }

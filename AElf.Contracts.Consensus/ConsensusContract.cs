@@ -50,12 +50,12 @@ namespace AElf.Contracts.Consensus
         #region Process
 
         [Fee(0)]
-        public void InitialTerm(Term term, int logLevel)
+        public void InitialTerm(Term term)
         {
             Api.Assert(term.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
             Api.Assert(term.SecondRound.RoundNumber == 2,
                 "It seems that the term number of initial term is incorrect.");
-            Process.InitialTerm(term, logLevel);
+            Process.InitialTerm(term);
         }
 
         [Fee(0)]

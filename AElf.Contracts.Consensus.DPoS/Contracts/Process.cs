@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private Timestamp StartTimestamp => _dataStructures.BlockchainStartTimestamp.GetValue();
 
-        private int LogLevel { get; set; }
+        private int LogLevel { get; set; } = 0;
 
         private readonly DataStructures _dataStructures;
 
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.DPoS
             _dataStructures = dataStructures;
         }
 
-        public void InitialTerm(Term firstTerm, int logLevel)
+        public void InitialTerm(Term firstTerm)
         {
             InitialBlockchain();
 
@@ -72,8 +72,6 @@ namespace AElf.Contracts.Consensus.DPoS
             firstTerm.SecondRound.BlockchainAge = 1;
             _dataStructures.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
             _dataStructures.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
-
-            LogLevel = logLevel;
         }
 
         public ActionResult NextTerm(Term term)
