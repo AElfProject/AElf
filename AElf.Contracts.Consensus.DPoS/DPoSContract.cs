@@ -41,7 +41,8 @@ namespace AElf.Contracts.Consensus.DPoS
             AliasesLookupMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesLookupMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
             AgeToRoundNumberMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSAgeToRoundNumberMapString),
-            VotingRecordsMap = new Map<Hash, VotingRecord>(GlobalConfig.AElfDPoSVotingRecordsMapString)
+            VotingRecordsMap = new Map<Hash, VotingRecord>("__VotingRecordsMap__"),
+            TermToFirstRoundMap = new MapToUInt64<UInt64Value>("__TermToFirstRoundMap__")
         };
 
         private readonly Process Process;

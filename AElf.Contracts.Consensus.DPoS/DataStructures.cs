@@ -109,5 +109,10 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Transaction Id -> Voting Record.
         /// </summary>
         public Map<Hash, VotingRecord> VotingRecordsMap;
+
+        /// <summary>
+        /// Term Number -> First Round Number of this term.
+        /// </summary>
+        public Map<UInt64Value, UInt64Value> TermToFirstRoundMap;
     }
 }

@@ -219,8 +219,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
         {
-            // Need a new Map.
-            throw new System.NotImplementedException();
+            if (_dataStructures.TermToFirstRoundMap.TryGet(termNumber.ToUInt64Value(), out _))
+            {
+                return false;
+            }
+            
+            _dataStructures.TermToFirstRoundMap.SetValue(termNumber.ToUInt64Value(), firstRoundNumber.ToUInt64Value());
+            return true;
         }
 
         public bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)

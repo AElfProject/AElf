@@ -183,6 +183,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "AElf.Types\AE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS", "AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj", "{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests", "AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj", "{621FA51E-593C-4E2E-86A4-CF173F108839}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -517,6 +519,10 @@ Global
 		{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{621FA51E-593C-4E2E-86A4-CF173F108839}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{621FA51E-593C-4E2E-86A4-CF173F108839}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{621FA51E-593C-4E2E-86A4-CF173F108839}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{621FA51E-593C-4E2E-86A4-CF173F108839}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -571,5 +577,6 @@ Global
 		{FA7C293F-038D-4717-830C-FD0F99351EBC} = {FD93DE86-68EC-49B8-B732-DC3AFC9ADCC1}
 		{48D25035-5446-47BD-8006-3D3590094310} = {FD93DE86-68EC-49B8-B732-DC3AFC9ADCC1}
 		{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{621FA51E-593C-4E2E-86A4-CF173F108839} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
