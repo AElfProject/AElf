@@ -151,19 +151,8 @@ namespace AElf.Node.AElfChain
             _blockSynchronizer.Init();
 
             _txHub.Start();
-
-            //TODO: It should be checked by a service. and miners should be the latest, not from the configuration.
-            var account = _accountService.GetAccountAsync().Result.GetFormatted();
-            var isMiner = false;
-            foreach (var producer in MinersConfig.Instance.Producers.Values)
-            {
-                if (producer["address"] == account)
-                {
-                    isMiner = true;
-                    break;
-                }
-            }
-            _consensus?.Start(isMiner);
+            
+            _consensus?.Start(true);
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });

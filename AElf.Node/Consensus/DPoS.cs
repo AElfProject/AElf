@@ -783,23 +783,6 @@ var logLevel = new Int32Value {Value = 0};
             // Update current term number.
             LatestTermNumber = _helper.CurrentTermNumber.Value;
 
-            // Whether this node willing to mine.
-            //TODO: It should be checked by a service. and miners should be the latest, not from the configuration.
-            var account = _accountService.GetAccountAsync().Result.GetFormatted();
-            var isMiner = false;
-            foreach (var producer in MinersConfig.Instance.Producers.Values)
-            {
-                if (producer["address"] == account)
-                {
-                    isMiner = true;
-                    break;
-                }
-            }
-            if (!isMiner)
-            {
-                return;
-            }
-
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
