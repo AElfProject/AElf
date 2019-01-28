@@ -44,14 +44,17 @@ namespace AElf.Contracts.Consensus.DPoS
             AgeToRoundNumberMap = new Map<UInt64Value, UInt64Value>(GlobalConfig.AElfDPoSAgeToRoundNumberMapString),
             VotingRecordsMap = new Map<Hash, VotingRecord>(GlobalConfig.AElfDPoSVotingRecordsMapString)
         };
-        
-        private Process Process => new Process(DataStructures);
 
-        private Election Election => new Election(DataStructures);
+        private readonly Process Process;
+
+        private readonly Election Election;
 
         public DPoSContract()
         {
             _dataHelper = new DPoSDataHelper(DataStructures);
+
+            Election = new Election(DataStructures, _dataHelper);
+            Process = new Process(DataStructures, _dataHelper);
         }
         
         [View]

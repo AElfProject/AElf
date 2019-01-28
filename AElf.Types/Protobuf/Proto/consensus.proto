@@ -52,7 +52,8 @@ message TermNumberLookUp {
 // All the candidates.
 message Candidates {
     repeated string PublicKeys = 1;
-    bool IsInitialMiners = 2;
+    repeated Address Addresses = 2;
+    bool IsInitialMiners = 3;
 }
 
 // The ticket / voting information for one user.
@@ -97,7 +98,8 @@ message TermSnapshot {
 // The information of a candidate of a specific term.
 message CandidateInTerm {
     string PublicKey = 1;
-    uint64 Votes = 2;
+    Address Address = 2;
+    uint64 Votes = 3;
 }
 
 // The information of a round.
@@ -126,6 +128,7 @@ message MinerInRound {
     uint64 PackagedTxsCount = 12;
     uint64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
+    Address Address = 15;
 }
 
 // The information of a candidate.
@@ -140,6 +143,7 @@ message CandidateInHistory {
     string CurrentAlias = 8;
     uint64 CurrentVotesNumber = 9;
     string Remark = 10;
+    Address Address = 11;
 }
 
 message TicketsDictionary {

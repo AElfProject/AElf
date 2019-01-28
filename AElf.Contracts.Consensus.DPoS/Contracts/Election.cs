@@ -16,9 +16,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private readonly DataStructures _dataStructures;
 
-        public Election(DataStructures dataStructures)
+        private readonly IDPoSDataHelper _dataHelper;
+
+        public Election(DataStructures dataStructures, IDPoSDataHelper dataHelper)
         {
             _dataStructures = dataStructures;
+            _dataHelper = dataHelper;
         }
 
         public ActionResult AnnounceElection(string alias = "")

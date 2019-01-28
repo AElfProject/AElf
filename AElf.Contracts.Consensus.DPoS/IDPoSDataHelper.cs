@@ -1,5 +1,6 @@
 using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -17,7 +18,19 @@ namespace AElf.Contracts.Consensus.DPoS
         bool TryToGetVictories(out Miners victories);
         bool TryToGetMiningInterval(out int miningInterval);
         bool TryToGetCurrentAge(out ulong blockAge);
+        bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp);
+        bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation);
+
+        void SetTermNumber(ulong termNumber);
+        void SetRoundNumber(ulong roundNumber);
+        void SetBlockAge(ulong blockAge);
+        void SetBlockchainStartTimestamp(Timestamp timestamp);
+        void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation);
+        void AddRoundInformation(Round roundInformation);
         
+        bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber);
+        bool SetMiners(ulong termNumber, Miners miners);
+
         bool IsMiner(Address address);
     }
 }

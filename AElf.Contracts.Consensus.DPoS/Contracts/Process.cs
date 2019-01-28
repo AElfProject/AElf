@@ -21,43 +21,44 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private ulong CurrentAge => _dataStructures.AgeField.GetValue();
 
-        private Timestamp StartTimestamp => _dataStructures.BlockchainStartTimestamp.GetValue();
-
         private int LogLevel { get; set; } = 0;
 
         private readonly DataStructures _dataStructures;
 
-        public Process(DataStructures dataStructures)
+        private readonly IDPoSDataHelper _dataHelper;
+
+        public Process(DataStructures dataStructures, IDPoSDataHelper dataHelper)
         {
             _dataStructures = dataStructures;
+            _dataHelper = dataHelper;
         }
 
         public void InitialTerm(Term firstTerm)
         {
-            InitialBlockchain();
+            InitialBlockchain(firstTerm);
 
             InitialMainchainToken();
-
-            _dataStructures.BlockchainStartTimestamp.SetValue(firstTerm.Timestamp);
-
-            _dataStructures.MinersMap.SetValue(firstTerm.TermNumber.ToUInt64Value(), firstTerm.Miners);
 
             SetAliases(firstTerm);
 
             var senderPublicKey = Api.RecoverPublicKey().ToHex();
+            
+            // Update ProducedBlocks for sender.
             if (firstTerm.FirstRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
             {
                 firstTerm.FirstRound.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
             }
             else
             {
-                if (_dataStructures.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                // The sender isn't a initial miner, need to update its history information.
+                if (_dataHelper.TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation))
                 {
-                    history.ProducedBlocks += 1;
+                    historyInformation.ProducedBlocks += 1;
                 }
                 else
                 {
-                    history = new CandidateInHistory
+                    // Create a new history information.
+                    historyInformation = new CandidateInHistory
                     {
                         PublicKey = senderPublicKey,
                         ProducedBlocks = 1,
@@ -65,13 +66,13 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 }
 
-                _dataStructures.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
+                _dataHelper.AddOrUpdateMinerHistoryInformation(historyInformation);
             }
 
             firstTerm.FirstRound.BlockchainAge = 1;
             firstTerm.SecondRound.BlockchainAge = 1;
-            _dataStructures.RoundsMap.SetValue(((ulong) 1).ToUInt64Value(), firstTerm.FirstRound);
-            _dataStructures.RoundsMap.SetValue(((ulong) 2).ToUInt64Value(), firstTerm.SecondRound);
+            _dataHelper.AddRoundInformation(firstTerm.FirstRound);
+            _dataHelper.AddRoundInformation(firstTerm.SecondRound);
         }
 
         public ActionResult NextTerm(Term term)
@@ -555,17 +556,21 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #region Vital Steps
 
-        private void InitialBlockchain()
+        private void InitialBlockchain(Term firstTerm)
         {
-            _dataStructures.CurrentTermNumberField.SetValue(1);
+            //_dataStructures.CurrentTermNumberField.SetValue(1);
+            //_dataStructures.CurrentRoundNumberField.SetValue(1);
+            //_dataStructures.AgeField.SetValue(1);
+            //var lookUp = new TermNumberLookUp();
+            //lookUp.Map.Add(1, 1);
+            //_dataStructures.TermNumberLookupField.SetValue(lookUp);
 
-            _dataStructures.CurrentRoundNumberField.SetValue(1);
-
-            _dataStructures.AgeField.SetValue(1);
-
-            var lookUp = new TermNumberLookUp();
-            lookUp.Map.Add(1, 1);
-            _dataStructures.TermNumberLookupField.SetValue(lookUp);
+            _dataHelper.SetTermNumber(1);
+            _dataHelper.SetRoundNumber(1);
+            _dataHelper.SetBlockAge(1);
+            _dataHelper.AddTermNumberToFirstRoundNumber(1, 1);
+            _dataHelper.SetBlockchainStartTimestamp(firstTerm.Timestamp);
+            _dataHelper.SetMiners(firstTerm.TermNumber, firstTerm.Miners);
         }
 
         private void InitialMainchainToken()

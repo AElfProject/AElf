@@ -1,5 +1,6 @@
 using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -59,6 +60,57 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         public bool TryToGetCurrentAge(out ulong blockAge)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
+        {
+            timestamp = _dataStructures.BlockchainStartTimestamp.GetValue();
+            return timestamp != null;
+        }
+
+        public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetTermNumber(ulong termNumber)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetRoundNumber(ulong roundNumber)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetBlockAge(ulong blockAge)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetBlockchainStartTimestamp(Timestamp timestamp)
+        {
+            _dataStructures.BlockchainStartTimestamp.SetValue(timestamp);
+        }
+
+        public void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void AddRoundInformation(Round roundInformation)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool SetMiners(ulong termNumber, Miners miners)
         {
             throw new System.NotImplementedException();
         }
