@@ -14,6 +14,7 @@ using Moq;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace AElf.OS.Tests.Network
 {
     public class GrpcNetworkConnectionTests
