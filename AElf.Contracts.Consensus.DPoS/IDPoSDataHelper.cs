@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS
         void AddRoundInformation(Round roundInformation);
         
         bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber);
-        bool SetMiners(ulong termNumber, Miners miners);
+        bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false);
 
         bool IsMiner(Address address);
     }

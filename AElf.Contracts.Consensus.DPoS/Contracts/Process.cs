@@ -80,45 +80,43 @@ namespace AElf.Contracts.Consensus.DPoS
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             
-            // TODO: Check the miners are correct.
-
             // Count missed time slot of current round.
             CountMissedTimeSlots();
 
             Api.SendInline(Api.DividendsContractAddress, "KeepWeights", CurrentTermNumber);
 
             // Update current term number and current round number.
-            _dataStructures.CurrentTermNumberField.SetValue(term.TermNumber);
-            _dataStructures.CurrentRoundNumberField.SetValue(term.FirstRound.RoundNumber);
+            Api.Assert(_dataHelper.TryToUpdateTermNumber(term.TermNumber), "Failed to update term number.");
+            Api.Assert(_dataHelper.TryToUpdateRoundNumber(term.FirstRound.RoundNumber), "Failed to update round number.");
 
-            // Reset some fields of next two rounds.
+            // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in term.FirstRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
-
             foreach (var minerInRound in term.SecondRound.RealTimeMinersInfo.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
             }
 
-            // Update produced block number of this node.
             var senderPublicKey = Api.RecoverPublicKey().ToHex();
+
+            // Update produced block number of this node.
             if (term.FirstRound.RealTimeMinersInfo.ContainsKey(senderPublicKey))
             {
                 term.FirstRound.RealTimeMinersInfo[senderPublicKey].ProducedBlocks += 1;
             }
             else
             {
-                if (_dataStructures.HistoryMap.TryGet(senderPublicKey.ToStringValue(), out var history))
+                if (_dataHelper.TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation))
                 {
-                    history.ProducedBlocks += 1;
+                    historyInformation.ProducedBlocks += 1;
                 }
                 else
                 {
-                    history = new CandidateInHistory
+                    historyInformation = new CandidateInHistory
                     {
                         PublicKey = senderPublicKey,
                         ProducedBlocks = 1,
@@ -126,24 +124,22 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 }
 
-                _dataStructures.HistoryMap.SetValue(senderPublicKey.ToStringValue(), history);
+                _dataHelper.AddOrUpdateMinerHistoryInformation(historyInformation);
             }
 
             // Update miners list.
-            _dataStructures.MinersMap.SetValue(term.TermNumber.ToUInt64Value(), term.Miners);
+            _dataHelper.SetMiners(term.Miners);
 
             // Update term number lookup. (Using term number to get first round number of related term.)
-            var lookUp = _dataStructures.TermNumberLookupField.GetValue();
-            lookUp.Map[term.TermNumber] = term.FirstRound.RoundNumber;
-            _dataStructures.TermNumberLookupField.SetValue(lookUp);
+            _dataHelper.AddTermNumberToFirstRoundNumber(term.TermNumber, term.FirstRound.RoundNumber);
 
             // Update blockchain age of next two rounds.
             term.FirstRound.BlockchainAge = CurrentAge;
             term.SecondRound.BlockchainAge = CurrentAge;
 
             // Update rounds information of next two rounds.
-            _dataStructures.RoundsMap.SetValue(CurrentRoundNumber.ToUInt64Value(), term.FirstRound);
-            _dataStructures.RoundsMap.SetValue((CurrentRoundNumber + 1).ToUInt64Value(), term.SecondRound);
+            _dataHelper.AddRoundInformation(term.FirstRound);
+            _dataHelper.AddRoundInformation(term.SecondRound);
             
             Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -695,16 +691,18 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         private void CountMissedTimeSlots()
         {
-            var currentRoundInfo = GetCurrentRoundInfo();
-            foreach (var minerInRound in currentRoundInfo.RealTimeMinersInfo)
+            if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRound))
             {
-                if (minerInRound.Value.OutValue == null)
+                foreach (var minerInRound in currentRound.RealTimeMinersInfo)
                 {
-                    minerInRound.Value.MissedTimeSlots += 1;
+                    if (minerInRound.Value.OutValue == null)
+                    {
+                        minerInRound.Value.MissedTimeSlots += 1;
+                    }
                 }
-            }
 
-            _dataStructures.RoundsMap.SetValue(currentRoundInfo.RoundNumber.ToUInt64Value(), currentRoundInfo);
+                _dataStructures.RoundsMap.SetValue(currentRound.RoundNumber.ToUInt64Value(), currentRound);
+            }
         }
 
         /// <summary>

@@ -107,12 +107,20 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
         {
+            // Need a new Map.
             throw new System.NotImplementedException();
         }
 
-        public bool SetMiners(ulong termNumber, Miners miners)
+        public bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)
         {
-            throw new System.NotImplementedException();
+            // Miners for one specific term should only update once.
+            if (gonnaReplaceSomeone || !_dataStructures.MinersMap.TryGet(miners.TermNumber.ToUInt64Value(), out _))
+            {
+                _dataStructures.MinersMap.SetValue(miners.TermNumber.ToUInt64Value(), miners);
+                return true;
+            }
+
+            return false;
         }
 
         public bool IsMiner(Address address)
