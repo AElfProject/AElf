@@ -9,6 +9,7 @@ namespace AElf
         public const ulong AuthorizationContract = 4;
         public const ulong ResourceContract = 5;
         public const ulong DividendsContract = 6;
+        public const ulong DPoSContract = 7;
     }
 
     public static class ChainConsts

@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DeployTokenContractAsync();
             DeployDividendsContractAsync();
 
-            ConsensusContractAddress = ContractHelpers.GetConsensusContractAddress(_mock.ChainId);
+            ConsensusContractAddress = ContractHelpers.GetDPoSContractAddress(_mock.ChainId);
             TokenContractAddress = ContractHelpers.GetTokenContractAddress(_mock.ChainId);
             DividendsContractAddress = ContractHelpers.GetDividendsContractAddress(_mock.ChainId);
         }
@@ -97,7 +97,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return Address.FromPublicKey(keyPair.PublicKey);
         }
 
-        private void ExecuteTransaction(Transaction tx)
+        public void ExecuteTransaction(Transaction tx)
         {
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
                 Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             }
         }
 
-        private void ExecuteAction(Address contractAddress, string methodName, ECKeyPair callerKeyPair,
+        public void ExecuteAction(Address contractAddress, string methodName, ECKeyPair callerKeyPair,
             params object[] objects)
         {
             var tx = new Transaction

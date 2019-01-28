@@ -37,6 +37,7 @@ namespace AElf.Common
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
         public static readonly ulong DividendsContract = 6;
+        public static readonly ulong DPoSContract = 7;
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 

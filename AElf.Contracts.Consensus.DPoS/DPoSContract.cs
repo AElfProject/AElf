@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable InconsistentNaming
     // ReSharper disable UnusedMember.Global
     // ReSharper disable MemberCanBePrivate.Global
-    public class DPoSContract : IConsensusSmartContract
+    public class DPoSContract : CSharpSmartContract, IConsensusSmartContract
     {
         private readonly IDPoSDataHelper _dataHelper;
 
@@ -153,35 +153,49 @@ namespace AElf.Contracts.Consensus.DPoS
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
             // To initial consensus information.
-            if (!_dataHelper.TryToGetCurrentRoundInformation(out _))
+            if (!_dataHelper.TryToGetRoundNumber(out _))
             {
                 return new DPoSInformation
-                    {NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval)}.ToByteArray();
+                {
+                    WillUpdateConsensus = true,
+                    Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
+                    NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval)
+                }.ToByteArray();
             }
 
             // To terminate current round.
             if (AllOutValueFilled(out _) || TimeOverflow(extra.Timestamp))
             {
                 return extra.ChangeTerm
-                    ? new DPoSInformation {NewTerm = GenerateNextTerm()}.ToByteArray()
-                    : new DPoSInformation {Forwarding = GenerateNewForwarding()}.ToByteArray();
+                    ? new DPoSInformation
+                    {
+                        WillUpdateConsensus = true,
+                        Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
+                        NewTerm = GenerateNextTerm(),
+                    }.ToByteArray()
+                    : new DPoSInformation
+                    {
+                        WillUpdateConsensus = true,
+                        Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
+                        Forwarding = GenerateNewForwarding()
+                    }.ToByteArray();
             }
 
             // To publish Out Value.
             return new DPoSInformation {CurrentRound = FillOutValue(extra.HashValue)}.ToByteArray();
         }
-
+        
         public TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
             // To initial consensus information.
-            if (!_dataHelper.TryToGetCurrentRoundInformation(out _))
+            if (!_dataHelper.TryToGetRoundNumber(out _))
             {
                 return new TransactionList
                 {
                     Transactions =
-                        {GenerateTransaction(blockHeader, "InitialTerm", new List<object> {extra.NewTerm, 0})}
+                        {GenerateTransaction(blockHeader, "InitialTerm", new List<object> {extra.NewTerm})}
                 };
             }
 
@@ -195,7 +209,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(blockHeader, "NextTerm", new List<object> {extra.NewTerm, 0}),
+                            GenerateTransaction(blockHeader, "NextTerm", new List<object> {extra.NewTerm}),
                             GenerateTransaction(blockHeader, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
                             GenerateTransaction(blockHeader, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
                             GenerateTransaction(blockHeader, "SendDividends", new List<object>{roundNumber, termNumber})

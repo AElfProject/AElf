@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 Category = 0,
                 ContractBytes = ByteString.CopyFrom(GetContractCode(ConsensusContractName)),
                 ContractHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
-                SerialNumber = GlobalConfig.ConsensusContract
+                SerialNumber = GlobalConfig.DPoSContract
             };
             var dividendsReg = new SmartContractRegistration
             {
