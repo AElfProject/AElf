@@ -24,14 +24,14 @@ namespace AElf.OS
             Configure<AccountOptions>(configuration.GetSection("Account"));
 
             var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
-            context.Services.AddSingleton<AElfKeyStore>(keyStore);
+            context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var accountOptions = context.ServiceProvider.GetService<IOptions<AccountOptions>>().Value;
-            var keyStore = context.ServiceProvider.GetService<AElfKeyStore>();
+            var keyStore = context.ServiceProvider.GetService<IKeyStore>();
             
             if (string.IsNullOrWhiteSpace(accountOptions.NodeAccount))
             {

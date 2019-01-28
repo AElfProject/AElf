@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
@@ -10,10 +11,10 @@ namespace AElf.OS.Account
 {
     public class AccountService : IAccountService
     {
-        private readonly AElfKeyStore _keyStore;
+        private readonly IKeyStore _keyStore;
         private readonly AccountOptions _accountOptions;
 
-        public AccountService(AElfKeyStore keyStore, IOptionsSnapshot<AccountOptions> options)
+        public AccountService(IKeyStore keyStore, IOptionsSnapshot<AccountOptions> options)
         {
             _keyStore = keyStore;
             _accountOptions = options.Value;
@@ -21,16 +22,26 @@ namespace AElf.OS.Account
 
         public async Task<byte[]> SignAsync(byte[] data)
         {
-            var signer = new ECSigner();
-            var signature = signer.Sign(await GetAccountKeyPairAsync(), data);
+            var signature = CryptoHelpers.SignWithPrivateKey((await GetAccountKeyPairAsync()).PrivateKey, data);
 
-            return signature.SigBytes;
+            return signature;
         }
 
         public async Task<bool> VerifySignatureAsync(byte[] signature, byte[] data)
-        {
-            var publicKey = (await GetAccountKeyPairAsync()).PublicKey;
-            return CryptoHelpers.Verify(signature, data, publicKey);
+        {          
+            var recoverResult =  CryptoHelpers.RecoverPublicKey(signature, data, out var publicKey);
+            if (!recoverResult)
+            {
+                return false;
+            }
+
+            var publicKeyCurrent = (await GetAccountKeyPairAsync()).PublicKey;
+            if (!publicKeyCurrent.BytesEqual(publicKey))
+            {
+                return false;
+            }
+
+            return CryptoHelpers.Verify(signature, data);
         }
 
         public async Task<byte[]> GetPublicKeyAsync()
