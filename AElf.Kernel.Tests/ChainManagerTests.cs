@@ -11,7 +11,7 @@ namespace AElf.Kernel.Managers.Another.Tests
 {
     public class ChainManagerTests : AElfKernelTestBase
     {
-        private ChainManager _chainManager;
+        private readonly ChainManager _chainManager;
 
 
         private readonly Hash _genesis;
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Managers.Another.Tests
 
             //0 -> *1, no branch
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 1,
                     BlockHash = _blocks[1],
@@ -78,7 +78,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //0 -> 1 -> *2, no branch
 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 2,
                     BlockHash = _blocks[2],
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //not linked: *4
 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 4,
                     BlockHash = _blocks[4],
@@ -118,7 +118,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //not linked: 4, *5
 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 5,
                     BlockHash = _blocks[5],
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //0 -> 1 -> 2 -> *3 -> 4 -> 5
 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 3,
                     BlockHash = _blocks[3],
@@ -156,7 +156,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 , 2 branches
             //                    4 -> *6
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 5,
                     BlockHash = _blocks[6],
@@ -175,7 +175,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //0 -> 1 -> 2 -> 3 -> 4 -> 5         , 2 branches
             //                    4 -> 6 -> *7
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 6,
                     BlockHash = _blocks[7],
@@ -196,7 +196,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> *8[5] 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 5,
                     BlockHash = _blocks[8],
@@ -218,7 +218,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] 
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 6,
                     BlockHash = _blocks[10],
@@ -240,7 +240,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] , (11) -> *12[8]
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 8,
                     BlockHash = _blocks[12],
@@ -263,7 +263,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5]
             {
-                var status = await _chainManager.AttachBlockToChain(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
                 {
                     Height = 7,
                     BlockHash = _blocks[11],

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using JetBrains.Annotations;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -76,7 +77,7 @@ namespace AElf.Kernel.Managers.Another
             await _chainBlockLinks.SetAsync(chainId.ToHex() + chainBlockLink.BlockHash.ToHex(), chainBlockLink);
         }
 
-        public async Task<BlockAttchOperationStatus> AttachBlockToChain(Chain chain, ChainBlockLink chainBlockLink)
+        public async Task<BlockAttchOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)
         {
             BlockAttchOperationStatus status = BlockAttchOperationStatus.None;
 
@@ -147,6 +148,15 @@ namespace AElf.Kernel.Managers.Another
 
 
             return status;
+        }
+
+        public async Task SetIrreversibleBlockAsync(int chainId, Hash irreversibleBlockHash)
+        {
+            var chainBlockLink = await GetChainBlockLinkAsync(chainId, irreversibleBlockHash);
+            while (!chainBlockLink.IsIrreversibleBlock)
+            {
+                chainBlockLink.IsIrreversibleBlock = true;
+            }
         }
     }
 }
