@@ -158,7 +158,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             
-            if (_dataStructures.SnapshotField.TryGet(snapshotTermNumber.ToUInt64Value(), out _))
+            if (_dataHelper.TryToGetSnapshot(snapshotTermNumber, out _))
             {
                 return new ActionResult
                 {
@@ -167,36 +167,47 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            // The information of last round of provided term.
-            var roundInfo = GetRoundInfo(lastRoundNumber);
+            if (!_dataHelper.TryToGetRoundInformation(lastRoundNumber, out var roundInformation))
+            {
+                return new ActionResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Failed to get information of round {lastRoundNumber}."
+                };
+            }
 
-            var minedBlocks = roundInfo.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
+            // To calculate the number of mined blocks.
+            var minedBlocks = roundInformation.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
+            // Snapshot for the number of votes of new victories.
             var candidateInTerms = new List<CandidateInTerm>();
-            foreach (var victory in GetVictories())
+            if (_dataHelper.TryToGetVictories(out var victories))
             {
-                if (_dataStructures.TicketsMap.TryGet(victory.ToStringValue(), out var candidateTickets))
+                foreach (var candidatePublicKey in victories.PublicKeys)
                 {
-                    candidateInTerms.Add(new CandidateInTerm
+                    if (_dataHelper.TryToGetTicketsInformation(candidatePublicKey, out var candidateTickets))
                     {
-                        PublicKey = victory,
-                        Votes = candidateTickets.ObtainedTickets
-                    });
-                }
-                else
-                {
-                    _dataStructures.TicketsMap.SetValue(victory.ToStringValue(), new Tickets());
-                    candidateInTerms.Add(new CandidateInTerm
+                        candidateInTerms.Add(new CandidateInTerm
+                        {
+                            PublicKey = candidatePublicKey,
+                            Votes = candidateTickets.ObtainedTickets
+                        });
+                    }
+                    else
                     {
-                        PublicKey = victory,
-                        Votes = 0
-                    });
+                        _dataHelper.AddOrUpdateTicketsInformation(new Tickets {PublicKey = candidatePublicKey});
+                        candidateInTerms.Add(new CandidateInTerm
+                        {
+                            PublicKey = candidatePublicKey,
+                            Votes = 0
+                        });
+                    }
                 }
             }
 
             // Set snapshot of related term.
-            _dataStructures.SnapshotField.SetValue(snapshotTermNumber.ToUInt64Value(), new TermSnapshot
+            _dataHelper.SetSnapshot(new TermSnapshot
             {
                 TermNumber = snapshotTermNumber,
                 EndRoundNumber = CurrentRoundNumber,
@@ -221,9 +232,9 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var candidate in roundInfo.RealTimeMinersInfo)
             {
                 CandidateInHistory candidateInHistory;
-                if (_dataStructures.HistoryMap.TryGet(candidate.Key.ToStringValue(), out var historyInfo))
+                if (_dataHelper.TryToGetMinerHistoryInformation(candidate.Key, out var historyInformation))
                 {
-                    var terms = new List<ulong>(historyInfo.Terms.ToList());
+                    var terms = new List<ulong>(historyInformation.Terms.ToList());
 
                     if (terms.Contains(previousTermNumber))
                     {
@@ -233,8 +244,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
                     terms.Add(previousTermNumber);
 
-                    var continualAppointmentCount = historyInfo.ContinualAppointmentCount;
-                    if (_dataStructures.MinersMap.TryGet(previousTermNumber.ToUInt64Value(), out var minersOfLastTerm) &&
+                    var continualAppointmentCount = historyInformation.ContinualAppointmentCount;
+                    if (_dataHelper.TryToGetMiners(previousTermNumber, out var minersOfLastTerm) &&
                         minersOfLastTerm.PublicKeys.Contains(candidate.Key))
                     {
                         continualAppointmentCount++;
@@ -247,11 +258,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidateInHistory = new CandidateInHistory
                     {
                         PublicKey = candidate.Key,
-                        MissedTimeSlots = historyInfo.MissedTimeSlots + candidate.Value.MissedTimeSlots,
-                        ProducedBlocks = historyInfo.ProducedBlocks + candidate.Value.ProducedBlocks,
+                        MissedTimeSlots = historyInformation.MissedTimeSlots + candidate.Value.MissedTimeSlots,
+                        ProducedBlocks = historyInformation.ProducedBlocks + candidate.Value.ProducedBlocks,
                         ContinualAppointmentCount = continualAppointmentCount,
-                        ReappointmentCount = historyInfo.ReappointmentCount + 1,
-                        CurrentAlias = historyInfo.CurrentAlias,
+                        ReappointmentCount = historyInformation.ReappointmentCount + 1,
+                        CurrentAlias = historyInformation.CurrentAlias,
                         Terms = {terms}
                     };
                 }
@@ -268,7 +279,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 }
 
-                _dataStructures.HistoryMap.SetValue(candidate.Key.ToStringValue(), candidateInHistory);
+                _dataHelper.AddOrUpdateMinerHistoryInformation(candidateInHistory);
             }
             
             Console.WriteLine($"Miners snapshot duration: {stopwatch.ElapsedMilliseconds} ms.");
@@ -294,12 +305,12 @@ namespace AElf.Contracts.Consensus.DPoS
             var continualAppointmentDict = new Dictionary<string, ulong>();
             foreach (var minerInRound in roundInfo.RealTimeMinersInfo)
             {
-                if (_dataStructures.TicketsMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateTickets))
+                if (_dataHelper.TryToGetTicketsInformation(minerInRound.Key, out var candidateTickets))
                 {
                     totalVotes += candidateTickets.ObtainedTickets;
                 }
 
-                if (_dataStructures.HistoryMap.TryGet(minerInRound.Key.ToStringValue(), out var candidateInHistory))
+                if (_dataHelper.TryToGetMinerHistoryInformation(minerInRound.Key, out var candidateInHistory))
                 {
                     totalReappointment += candidateInHistory.ContinualAppointmentCount;
                     
@@ -319,14 +330,15 @@ namespace AElf.Contracts.Consensus.DPoS
                           totalReappointment));
             }
 
-            var backups =
-                _dataStructures.CandidatesField.GetValue().PublicKeys.Except(roundInfo.RealTimeMinersInfo.Keys).ToList();
-            foreach (var backup in backups)
+            if (_dataHelper.TryToGetBackups(roundInfo.RealTimeMinersInfo.Keys.ToList(), out var backups))
             {
-                var backupCount = (ulong) backups.Count;
-                Api.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
-                    backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
+                foreach (var backup in backups)
+                {
+                    var backupCount = (ulong) backups.Count;
+                    Api.SendDividends(
+                        Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
+                        backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
+                }
             }
             
             Console.WriteLine($"Send dividends duration: {stopwatch.ElapsedMilliseconds} ms.");
@@ -566,7 +578,7 @@ namespace AElf.Contracts.Consensus.DPoS
             _dataHelper.SetBlockAge(1);
             _dataHelper.AddTermNumberToFirstRoundNumber(1, 1);
             _dataHelper.SetBlockchainStartTimestamp(firstTerm.Timestamp);
-            _dataHelper.SetMiners(firstTerm.TermNumber, firstTerm.Miners);
+            _dataHelper.SetMiners(firstTerm.Miners);
         }
 
         private void InitialMainchainToken()

@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -44,6 +47,11 @@ namespace AElf.Contracts.Consensus.DPoS
             throw new System.NotImplementedException();
         }
 
+        public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public bool TryToGetMiners(ulong termNumber, out Miners miners)
         {
             throw new System.NotImplementedException();
@@ -51,7 +59,26 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetVictories(out Miners victories)
         {
-            throw new System.NotImplementedException();
+            var candidates = _dataStructures.CandidatesField.GetValue();
+            var ticketsMap = new Dictionary<string, ulong>();
+            foreach (var candidatePublicKey in candidates.PublicKeys)
+            {
+                if (_dataStructures.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var tickets))
+                {
+                    ticketsMap.Add(candidatePublicKey, tickets.ObtainedTickets);
+                }
+            }
+
+            if (ticketsMap.Keys.Count < GlobalConfig.BlockProducerNumber)
+            {
+                victories = null;
+                return false;
+            }
+
+            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GlobalConfig.BlockProducerNumber)
+                .Select(tm => tm.Key)
+                .ToList().ToMiners();
+            return true;
         }
 
         public bool TryToGetMiningInterval(out int miningInterval)
@@ -73,6 +100,23 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
         {
             throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
+        {
+            var candidates = _dataStructures.CandidatesField.GetValue();
+            backups = candidates.PublicKeys.Except(currentMiners).ToList();
+            return backups.Any();
         }
 
         public void SetTermNumber(ulong termNumber)
@@ -97,10 +141,20 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.HistoryMap.SetValue(historyInformation.PublicKey.ToStringValue(), historyInformation);
         }
 
         public void AddRoundInformation(Round roundInformation)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void AddOrUpdateTicketsInformation(Tickets tickets)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetTermSnapshot(TermSnapshot snapshot)
         {
             throw new System.NotImplementedException();
         }
@@ -121,6 +175,11 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return false;
+        }
+
+        public bool SetSnapshot(TermSnapshot snapshot)
+        {
+            throw new System.NotImplementedException();
         }
 
         public bool IsMiner(Address address)

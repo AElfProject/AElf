@@ -67,6 +67,7 @@ message Tickets {
     string Remark = 7;
     repeated Hash VoteToTransactions = 8;
     repeated Hash VoteFromTransactions = 9;
+    string PublicKey = 10;
 }
 
 // A voting record.
