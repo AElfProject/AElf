@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS
             RoundsMap = new Map<UInt64Value, Round>(GlobalConfig.AElfDPoSRoundsMapString),
             MinersMap = new Map<UInt64Value, Miners>(GlobalConfig.AElfDPoSMinersMapString),
             TicketsMap = new Map<StringValue, Tickets>(GlobalConfig.AElfDPoSTicketsMapString),
-            SnapshotField = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotMapString),
+            SnapshotMap = new Map<UInt64Value, TermSnapshot>(GlobalConfig.AElfDPoSSnapshotMapString),
             AliasesMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesMapString),
             AliasesLookupMap = new Map<StringValue, StringValue>(GlobalConfig.AElfDPoSAliasesLookupMapString),
             HistoryMap = new Map<StringValue, CandidateInHistory>(GlobalConfig.AElfDPoSHistoryMapString),
@@ -713,7 +713,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public TermSnapshot GetTermSnapshot(ulong termNumber)
         {
-            if (DataStructures.SnapshotField.TryGet(termNumber.ToUInt64Value(), out var snapshot))
+            if (DataStructures.SnapshotMap.TryGet(termNumber.ToUInt64Value(), out var snapshot))
             {
                 return snapshot;
             }

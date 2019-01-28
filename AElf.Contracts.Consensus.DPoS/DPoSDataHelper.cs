@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -55,22 +54,40 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetCurrentRoundInformation(out Round roundInformation)
         {
-            throw new System.NotImplementedException();
+            if (TryToGetRoundNumber(out var roundNumber))
+            {
+                if (_dataStructures.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out roundInformation))
+                {
+                    return true;
+                }
+            }
+
+            roundInformation = new Round();
+            return false;
         }
 
         public bool TryToGetPreviousRoundInformation(out Round roundInformation)
         {
-            throw new System.NotImplementedException();
+            if (TryToGetRoundNumber(out var roundNumber))
+            {
+                if (_dataStructures.RoundsMap.TryGet((roundNumber - 1).ToUInt64Value(), out roundInformation))
+                {
+                    return true;
+                }
+            }
+
+            roundInformation = new Round();
+            return false;
         }
 
         public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
         {
-            throw new System.NotImplementedException();
+            return _dataStructures.RoundsMap.TryGet(roundNumber.ToUInt64Value(), out roundInformation);
         }
 
         public bool TryToGetMiners(ulong termNumber, out Miners miners)
         {
-            throw new System.NotImplementedException();
+            return _dataStructures.MinersMap.TryGet(termNumber.ToUInt64Value(), out miners);
         }
 
         public bool TryToGetVictories(out Miners victories)
@@ -99,12 +116,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetMiningInterval(out int miningInterval)
         {
-            throw new System.NotImplementedException();
+            miningInterval = _dataStructures.MiningIntervalField.GetValue();
+            return miningInterval > 0;
         }
 
         public bool TryToGetCurrentAge(out ulong blockAge)
         {
-            throw new System.NotImplementedException();
+            blockAge = _dataStructures.AgeField.GetValue();
+            return blockAge > 0;
         }
 
         public bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
@@ -115,17 +134,17 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
         {
-            throw new System.NotImplementedException();
+            return _dataStructures.HistoryMap.TryGet(publicKey.ToStringValue(), out historyInformation);
         }
 
         public bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot)
         {
-            throw new System.NotImplementedException();
+            return _dataStructures.SnapshotMap.TryGet(termNumber.ToUInt64Value(), out snapshot);
         }
 
         public bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
         {
-            throw new System.NotImplementedException();
+            return _dataStructures.TicketsMap.TryGet(publicKey.ToStringValue(), out tickets);
         }
 
         public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
@@ -184,17 +203,18 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void AddOrUpdateTicketsInformation(Tickets tickets)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.TicketsMap.SetValue(tickets.PublicKey.ToStringValue(), tickets);
         }
 
         public void SetTermSnapshot(TermSnapshot snapshot)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.SnapshotMap.SetValue(snapshot.TermNumber.ToUInt64Value(), snapshot);
         }
 
         public void SetAlias(string publicKey, string alias)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
+            _dataStructures.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
         }
 
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
@@ -217,7 +237,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool SetSnapshot(TermSnapshot snapshot)
         {
-            throw new System.NotImplementedException();
+            if (_dataStructures.SnapshotMap.TryGet(snapshot.TermNumber.ToUInt64Value(), out _))
+            {
+                return false;
+            }
+
+            _dataStructures.SnapshotMap.SetValue(snapshot.TermNumber.ToUInt64Value(), snapshot);
+            return true;
         }
 
         public bool IsMiner(Address address)

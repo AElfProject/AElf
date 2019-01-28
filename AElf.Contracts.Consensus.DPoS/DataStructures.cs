@@ -65,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Snapshots of all terms.
         /// term number -> snapshot
         /// </summary>
-        public Map<UInt64Value, TermSnapshot> SnapshotField;
+        public Map<UInt64Value, TermSnapshot> SnapshotMap;
 
         /// <summary>
         /// Aliases of candidates.
