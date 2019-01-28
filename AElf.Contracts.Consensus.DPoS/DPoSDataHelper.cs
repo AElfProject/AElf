@@ -19,22 +19,38 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToUpdateRoundNumber(ulong roundNumber)
         {
-            throw new System.NotImplementedException();
+            var oldRoundNumber = _dataStructures.CurrentRoundNumberField.GetValue();
+            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
+            {
+                return false;
+            }
+            
+            _dataStructures.CurrentRoundNumberField.SetValue(roundNumber);
+            return true;
         }
 
         public bool TryToUpdateTermNumber(ulong termNumber)
         {
-            throw new System.NotImplementedException();
+            var oldTermNumber = _dataStructures.CurrentTermNumberField.GetValue();
+            if (termNumber != 1 && oldTermNumber + 1 != termNumber)
+            {
+                return false;
+            }
+            
+            _dataStructures.CurrentTermNumberField.SetValue(termNumber);
+            return true;
         }
         
         public bool TryToGetRoundNumber(out ulong roundNumber)
         {
-            throw new System.NotImplementedException();
+            roundNumber = _dataStructures.CurrentRoundNumberField.GetValue();
+            return roundNumber != 0;
         }
 
         public bool TryToGetTermNumber(out ulong termNumber)
         {
-            throw new System.NotImplementedException();
+            termNumber = _dataStructures.CurrentTermNumberField.GetValue();
+            return termNumber != 0;
         }
 
         public bool TryToGetCurrentRoundInformation(out Round roundInformation)
@@ -121,17 +137,17 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void SetTermNumber(ulong termNumber)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.CurrentTermNumberField.SetValue(termNumber);
         }
 
         public void SetRoundNumber(ulong roundNumber)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.CurrentRoundNumberField.SetValue(roundNumber);
         }
 
         public void SetBlockAge(ulong blockAge)
         {
-            throw new System.NotImplementedException();
+            _dataStructures.AgeField.SetValue(blockAge);
         }
 
         public void SetBlockchainStartTimestamp(Timestamp timestamp)
@@ -144,9 +160,26 @@ namespace AElf.Contracts.Consensus.DPoS
             _dataStructures.HistoryMap.SetValue(historyInformation.PublicKey.ToStringValue(), historyInformation);
         }
 
-        public void AddRoundInformation(Round roundInformation)
+        public bool TryToAddRoundInformation(Round roundInformation)
         {
-            throw new System.NotImplementedException();
+            if (_dataStructures.RoundsMap.TryGet(roundInformation.RoundNumber.ToUInt64Value(), out _))
+            {
+                return false;
+            }
+            
+            _dataStructures.RoundsMap.SetValue(roundInformation.RoundNumber.ToUInt64Value(), roundInformation);
+            return true;
+        }
+
+        public bool TryToUpdateRoundInformation(Round roundInformation)
+        {
+            if (!_dataStructures.RoundsMap.TryGet(roundInformation.RoundNumber.ToUInt64Value(), out _))
+            {
+                return false;
+            }
+            
+            _dataStructures.RoundsMap.SetValue(roundInformation.RoundNumber.ToUInt64Value(), roundInformation);
+            return true;
         }
 
         public void AddOrUpdateTicketsInformation(Tickets tickets)
@@ -155,6 +188,11 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         public void SetTermSnapshot(TermSnapshot snapshot)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SetAlias(string publicKey, string alias)
         {
             throw new System.NotImplementedException();
         }

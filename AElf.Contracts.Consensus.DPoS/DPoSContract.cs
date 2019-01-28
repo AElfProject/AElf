@@ -53,7 +53,7 @@ namespace AElf.Contracts.Consensus.DPoS
             _dataHelper = new DPoSDataHelper(DataStructures);
 
             Election = new Election(DataStructures, _dataHelper);
-            Process = new Process(DataStructures, _dataHelper);
+            Process = new Process(_dataHelper);
         }
         
         [View]

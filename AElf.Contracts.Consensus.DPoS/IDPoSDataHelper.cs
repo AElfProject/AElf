@@ -32,13 +32,15 @@ namespace AElf.Contracts.Consensus.DPoS
         void SetBlockAge(ulong blockAge);
         void SetBlockchainStartTimestamp(Timestamp timestamp);
         void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation);
-        void AddRoundInformation(Round roundInformation);
         void AddOrUpdateTicketsInformation(Tickets tickets);
         void SetTermSnapshot(TermSnapshot snapshot);
+        void SetAlias(string publicKey, string alias);
         
         bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber);
         bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false);
         bool SetSnapshot(TermSnapshot snapshot);
+        bool TryToAddRoundInformation(Round roundInformation);
+        bool TryToUpdateRoundInformation(Round roundInformation);
         
         bool IsMiner(Address address);
     }
