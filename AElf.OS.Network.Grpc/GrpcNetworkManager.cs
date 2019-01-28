@@ -180,7 +180,17 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        public async Task<IBlock> GetBlockByHeight(ulong height, string peer = null)
+        {
+            return await GetBlock(new BlockRequest { BlockNumber = (long)height });
+        }
+
         public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null)
+        {
+            return await GetBlock(new BlockRequest { Id = hash.Value });
+        }
+
+        private async Task<IBlock> GetBlock(BlockRequest request, string peer = null)
         {
             // todo use peer if specified
             foreach (var p in _authenticatedPeers)
@@ -195,7 +205,7 @@ namespace AElf.OS.Network.Grpc
             
                     Logger.LogDebug($"Attempting get with {p}");
 
-                    BlockReply block = await p.RequestBlockAsync(new BlockRequest { Id = hash.Value });
+                    BlockReply block = await p.RequestBlockAsync(request);
 
                     if (block.Block != null)
                         return block.Block;

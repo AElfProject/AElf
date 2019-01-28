@@ -7,6 +7,8 @@ using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
+using AElf.OS;
+using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
@@ -38,7 +40,9 @@ namespace AElf.Launcher
         typeof(RpcWalletAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(NetworkAElfModule),
-        typeof(ConsensusKernelAElfModule))]
+        typeof(ConsensusKernelAElfModule),
+        typeof(AElfOSModule),
+        typeof(GrpcNetworkModule))]
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;

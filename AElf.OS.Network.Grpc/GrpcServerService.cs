@@ -139,10 +139,22 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
+            if (request == null)
+                return Task.FromResult(new BlockReply());
+            
             try
             {
-                Block block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
-                byte[] s = block.ToByteArray();
+                Block block;
+                if (request.Id != null && request.Id.Length > 0)
+                {
+                    block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
+                    byte[] s = block.ToByteArray();
+                }
+                else
+                {
+                    block = _blockService.GetBlockByHeight((ulong)request.BlockNumber).Result;
+                    byte[] s = block.ToByteArray();
+                }
                 
                 return Task.FromResult(new BlockReply { Block = block });
             }

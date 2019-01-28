@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Temp;
 using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp.EventBus.Local;
@@ -21,25 +15,10 @@ namespace AElf.OS.Tests.Network
     {
         private GrpcNetworkManager BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null)
         {
-            var kp1 = new KeyPairGenerator().Generate();
+            var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
+            optionsMock.Setup(m => m.Value).Returns(networkOptions);
             
-            // mock IOptionsSnapshot
-            var mock = new Mock<IOptionsSnapshot<NetworkOptions>>();
-            mock.Setup(m => m.Value).Returns(networkOptions);
-            
-            // mock IAccountService
-            var accountService = new Mock<IAccountService>();
-            
-            accountService.Setup(m => m.GetPublicKey()).Returns(Task.FromResult(kp1.PublicKey));
-            
-            accountService
-                .Setup(m => m.Sign(It.IsAny<byte[]>()))
-                .Returns<byte[]>(m => Task.FromResult(new ECSigner().Sign(kp1, m).SigBytes));
-            
-            accountService
-                .Setup(m => m.VerifySignature(It.IsAny<byte[]>(), It.IsAny<byte[]>()))
-                .Returns<byte[], byte[]>( (sig, data) => Task.FromResult(CryptoHelpers.Verify(sig, data, kp1.PublicKey)));
-            
+            var accountServiceMock = NetMockHelpers.MockAccountService();
             var mockLocalEventBus = new Mock<ILocalEventBus>();
             
             // Catch all events on the bus
@@ -51,7 +30,7 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcNetworkManager manager1 = new GrpcNetworkManager(mock.Object, accountService.Object, null, mockLocalEventBus.Object);
+            GrpcNetworkManager manager1 = new GrpcNetworkManager(optionsMock.Object, accountServiceMock.Object, null, mockLocalEventBus.Object);
 
             return manager1;
         }
