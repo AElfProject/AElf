@@ -28,12 +28,12 @@ namespace AElf.OS.Network
 
         public void AddPeer(string address)
         {
-            _networkManager.AddPeer(address);
+            _networkManager.AddPeerAsync(address);
         }
 
         public Task RemovePeer(string address)
         {
-            return Task.FromResult(_networkManager.RemovePeer(address));
+            return Task.FromResult(_networkManager.RemovePeerAsync(address));
         }
 
         public List<string> GetPeers()

@@ -74,11 +74,39 @@ namespace AElf.OS.Tests.Network
             await m2.StartAsync();
             
             var p = m2.GetPeer("127.0.0.1:6800");
+            var p2 = m2.GetPeer("127.0.0.1:6801");
 
             await m1.StopAsync();
             await m2.StopAsync();
             
             Assert.True(!string.IsNullOrWhiteSpace(p));
+        }
+        
+        [Fact]
+        public async Task Basic_AddRemovePeer_Test()
+        {
+            // setup 2 peers
+            
+            var m1 = BuildNetManager(new NetworkOptions {
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.StartAsync();
+            await m2.StartAsync();
+            
+            var p = await m2.RemovePeerAsync("127.0.0.1:6800");
+            var p2 = await m2.AddPeerAsync("127.0.0.1:6800");
+
+            await m1.StopAsync();
+            await m2.StopAsync();
+            
+            //Assert.True(!string.IsNullOrWhiteSpace(p));
         }
         
         [Fact]
@@ -140,7 +168,7 @@ namespace AElf.OS.Tests.Network
 
             Assert.True(!string.IsNullOrWhiteSpace(p));
 
-            await m2.RemovePeer("127.0.0.1:6800");
+            await m2.RemovePeerAsync("127.0.0.1:6800");
             var p2 = m2.GetPeer("127.0.0.1:6800");
             
             Assert.True(string.IsNullOrWhiteSpace(p2));

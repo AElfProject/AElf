@@ -7,8 +7,8 @@ namespace AElf.OS.Network
 {
     public interface INetworkManager
     {
-        Task<bool> AddPeer(string address);
-        Task RemovePeer(string address);
+        Task<bool> AddPeerAsync(string address);
+        Task<bool> RemovePeerAsync(string address);
         List<string> GetPeers();
         
         Task<IBlock> GetBlockByHash(Hash hash, string peer = null);

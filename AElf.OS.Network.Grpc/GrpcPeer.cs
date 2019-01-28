@@ -41,7 +41,7 @@ namespace AElf.OS.Network.Grpc
             await _channel.ShutdownAsync();
         }
         
-        public async Task DisconnectAsync()
+        public async Task SendDisconnectAsync()
         {
             await _client.DisconnectAsync(new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown });
         }

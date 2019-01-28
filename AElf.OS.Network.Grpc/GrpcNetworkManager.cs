@@ -165,15 +165,17 @@ namespace AElf.OS.Network.Grpc
         public async Task StopAsync()
         {
             await _server.KillAsync();
+            
             foreach (var peer in _authenticatedPeers)
             {
                 try
                 {
-                    await peer.DisconnectAsync();
+                    await peer.SendDisconnectAsync();
                     await peer.StopAsync();
                 }
                 catch (Exception e)
                 {
+                    Logger.LogError(e, $"Error while disconnecting peer {peer}.");
                 }
             }
         }
@@ -207,14 +209,25 @@ namespace AElf.OS.Network.Grpc
             return null;
         }
 
-        public async Task<bool> AddPeer(string address)
+        public async Task<bool> AddPeerAsync(string address)
         {
             return await Dial(address);
         }
 
-        public Task RemovePeer(string address)
+        public async Task<bool> RemovePeerAsync(string address)
         {
-            return Task.FromResult(_authenticatedPeers.RemoveAll(p => p.PeerAddress == address));
+            GrpcPeer peer = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
+            
+            if (peer == null)
+            {
+                Logger?.LogWarning($"Could not find peer {address}.");
+                return false;
+            }
+
+            await peer.SendDisconnectAsync();
+            await peer.StopAsync();
+            
+            return _authenticatedPeers.Remove(peer);
         }
 
         public List<string> GetPeers()
