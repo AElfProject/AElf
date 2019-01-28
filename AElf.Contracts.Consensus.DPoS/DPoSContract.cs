@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Kernel;
-using AElf.Kernel.Types.SmartContract;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;

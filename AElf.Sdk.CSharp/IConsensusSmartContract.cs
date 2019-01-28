@@ -1,6 +1,7 @@
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Types.SmartContract
+namespace AElf.Sdk.CSharp
 {
     public interface IConsensusSmartContract : ISmartContract
     {
