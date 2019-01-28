@@ -10,6 +10,46 @@ using Enum = System.Enum;
 
 namespace AElf.Contracts.Resource
 {
+    #region Events
+
+    public class ResourceIssued : Event
+    {
+        [Indexed] public string ResourceType { get; set; }
+        public ulong IssuedAmount { get; set; }
+    }
+
+    public class ResourceBought : Event
+    {
+        [Indexed] public string ResourceType { get; set; }
+        [Indexed] public Address Buyer { get; set; }
+        public ulong PaidElf { get; set; }
+        public ulong ReceivedResource { get; set; }
+    }
+
+    public class ResourceSold : Event
+    {
+        [Indexed] public string ResourceType { get; set; }
+        [Indexed] public Address Seller { get; set; }
+        public ulong PaidResource { get; set; }
+        public ulong ReceivedElf { get; set; }
+    }
+
+    public class ResourceLocked : Event
+    {
+        [Indexed] public string ResourceType { get; set; }
+        [Indexed] public Address User { get; set; }
+        public ulong Amount { get; set; }
+    }
+
+    public class ResourceUnlocked : Event
+    {
+        [Indexed] public string ResourceType { get; set; }
+        [Indexed] public Address User { get; set; }
+        public ulong Amount { get; set; }
+    }
+
+    #endregion
+
     public class ResourceContract : CSharpSmartContract
     {
         #region static
@@ -32,6 +72,11 @@ namespace AElf.Contracts.Resource
             AssertCorrectResourceType(resourceType);
             return (ResourceType) Enum.Parse(typeof(ResourceType),
                 resourceType, ignoreCase: true);
+        }
+
+        internal static string Standardized(string resourceType)
+        {
+            return ParseResourceType(resourceType).ToString();
         }
 
         internal static StringValue GetConverterKey(string resourceType)
@@ -192,6 +237,11 @@ namespace AElf.Contracts.Resource
             var cvt = Converters[rt];
             cvt.ResBalance = cvt.ResBalance.Add(delta);
             Converters[rt] = cvt;
+            new ResourceIssued()
+            {
+                ResourceType = Standardized(resourceType),
+                IssuedAmount = delta
+            }.Fire();
         }
 
         /// <summary>
@@ -210,6 +260,13 @@ namespace AElf.Contracts.Resource
             UserBalances[urk] = UserBalances[urk].Add(payout);
             ElfToken.TransferByUser(Api.GetContractAddress(), elfForRes);
             ElfToken.TransferByUser(FeeAddress.GetValue(), fees);
+            new ResourceBought()
+            {
+                ResourceType = Standardized(resourceType),
+                Buyer = Api.GetFromAddress(),
+                PaidElf = paidElf,
+                ReceivedResource = payout
+            }.Fire();
         }
 
         /// <summary>
@@ -229,6 +286,13 @@ namespace AElf.Contracts.Resource
             UserBalances[urk] = UserBalances[urk].Sub(resToSell);
             ElfToken.TransferByContract(Api.GetFromAddress(), elfToReceive.Sub(fees));
             ElfToken.TransferByContract(FeeAddress.GetValue(), fees);
+            new ResourceSold()
+            {
+                ResourceType = Standardized(resourceType),
+                Seller = Api.GetFromAddress(),
+                PaidResource = resToSell,
+                ReceivedElf = elfToReceive
+            }.Fire();
         }
 
         /// <summary>
@@ -245,6 +309,12 @@ namespace AElf.Contracts.Resource
             // Increase locked amount
             var key = new UserResourceKey(Api.GetFromAddress(), rt);
             LockedUserResources[key] = LockedUserResources[key].Add(amount);
+            new ResourceLocked()
+            {
+                ResourceType = Standardized(resourceType),
+                User = Api.GetFromAddress(),
+                Amount = amount
+            }.Fire();
         }
 
         /// <summary>
@@ -265,6 +335,12 @@ namespace AElf.Contracts.Resource
             // Reduce locked amount
             var key = new UserResourceKey(Api.GetFromAddress(), rt);
             LockedUserResources[key] = LockedUserResources[key].Sub(amount);
+            new ResourceUnlocked()
+            {
+                ResourceType = Standardized(resourceType),
+                User = userAddress,
+                Amount = amount
+            }.Fire();
         }
 
         #endregion Actions
