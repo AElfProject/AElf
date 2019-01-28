@@ -11,7 +11,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Crosschain.Client
+namespace AElf.Crosschain.Grpc.Client
 {
     public abstract class ClientBase<TResponse> : ClientBase where TResponse : IResponseIndexingMessage
     {

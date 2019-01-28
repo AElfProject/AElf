@@ -1,7 +1,8 @@
 using System;
+using AElf.Crosschain.Grpc;
 using Grpc.Core;
 
-namespace AElf.Crosschain.Client
+namespace AElf.Crosschain.Grpc.Client
 {
     public class ClientToSideChain : ClientBase<ResponseSideChainBlockInfo>
     {

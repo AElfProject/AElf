@@ -1,6 +1,6 @@
 using AElf.Kernel;
 
-namespace AElf.Crosschain
+namespace AElf.Crosschain.Grpc
 {
     public interface IRequestIndexingMessage
     {

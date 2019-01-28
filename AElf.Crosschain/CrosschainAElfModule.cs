@@ -1,6 +1,7 @@
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
-using AElf.Crosschain.Server;
+using AElf.Crosschain.Grpc;
+using AElf.Crosschain.Grpc.Server;
 using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

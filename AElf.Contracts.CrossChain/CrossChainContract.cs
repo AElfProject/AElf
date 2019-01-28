@@ -398,7 +398,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
                     _sideChainInfos[chainId] = info;
-                    continue;            
+                    continue;
                 }
                 _indexingBalance[chainId] = lockedToken - indexingPrice;
                 Api.UnlockToken(Api.GetFromAddress(), indexingPrice);

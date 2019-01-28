@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Crosschain";
+option csharp_namespace = "AElf.Crosschain.Grpc";
 import "common.proto";
 import "crosschain.proto";
 
@@ -19,6 +19,16 @@ message ResponseParentChainBlockInfo {
     bool Success = 2;
 }
 
+message IndexingRequestMessage{
+    uint32 Port = 1;
+    string Address = 2;
+    int32 ChainId = 3;
+}
+
+message IndexingRequestResult{
+    bool Result = 1;
+}
+
 service SideChainBlockInfoRpc {
     rpc IndexDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
     rpc IndexServerStreaming (RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
@@ -28,7 +38,7 @@ service SideChainBlockInfoRpc {
 service ParentChainBlockInfoRpc{
     rpc RecordDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
     rpc RecordServerStreaming (RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
-
+    rpc RequestIndexing(IndexingRequestMessage) returns (IndexingRequestResult){}
 }
 
 message MerkleProofMessage {

@@ -1,7 +1,7 @@
 using System;
 using Grpc.Core;
 
-namespace AElf.Crosschain.Client
+namespace AElf.Crosschain.Grpc.Client
 {
     public class ClientToParentChain : ClientBase<ResponseParentChainBlockInfo>
     {

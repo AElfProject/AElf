@@ -9,12 +9,12 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Crosschain.Server
+namespace AElf.Crosschain.Grpc.Server
 {
     public class ServerManager
     {
-        private Grpc.Core.Server _sideChainServer;
-        private Grpc.Core.Server _parentChainServer;
+        private global::Grpc.Core.Server _sideChainServer;
+        private global::Grpc.Core.Server _parentChainServer;
         private CertificateStore _certificateStore;
         private SslServerCredentials _sslServerCredentials;
         private readonly ParentChainBlockInfoRpcServer _parentChainBlockInfoRpcServer;
@@ -57,9 +57,9 @@ namespace AElf.Crosschain.Server
         /// create a new server
         /// </summary>
         /// <returns></returns>
-        private Grpc.Core.Server CreateNewSideChainServer()
+        private global::Grpc.Core.Server CreateNewSideChainServer()
         {
-            var server = new Grpc.Core.Server
+            var server = new global::Grpc.Core.Server
             {
                 Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServer)},
                 Ports =
@@ -76,9 +76,9 @@ namespace AElf.Crosschain.Server
         /// create a new server
         /// </summary>
         /// <returns></returns>
-        private Grpc.Core.Server CreateNewParentChainServer()
+        private global::Grpc.Core.Server CreateNewParentChainServer()
         {
-            var server = new Grpc.Core.Server
+            var server = new global::Grpc.Core.Server
             {
                 Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServer)},
                 Ports =

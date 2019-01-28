@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
@@ -11,7 +9,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Crosschain.Server
+namespace AElf.Crosschain.Grpc
 {
     public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
     {
@@ -64,7 +62,7 @@ namespace AElf.Crosschain.Server
                     IBlock block = await BlockChain.GetBlockByHeightAsync(requestedHeight);
                     
                     var res = new ResponseParentChainBlockInfo
-                    {
+                    { 
                         Success = block != null
                     };
 
@@ -80,7 +78,7 @@ namespace AElf.Crosschain.Server
                                 ChainId = header.ChainId
                             }
                         };
-                        var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
+                        IndexedSideChainBlockInfoResult indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
                         if (indexedSideChainBlockInfoResult != null)
                         {
                             var binaryMerkleTree = new BinaryMerkleTree();
@@ -90,7 +88,8 @@ namespace AElf.Crosschain.Server
                             }
 
                             binaryMerkleTree.ComputeRootHash();
-                            // This is to tell side chain the merkle path for one side chain block, which could be removed with subsequent improvement.
+                            // This is to tell side chain the merkle path for one side chain block,
+                            // which could be removed with subsequent improvement.
                             // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
                             for (int i = 0; i < indexedSideChainBlockInfoResult.SideChainBlockInfos.Count; i++)
                             {
@@ -110,6 +109,12 @@ namespace AElf.Crosschain.Server
             {
                 Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
+        }
+
+        public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
+        {
+            // todo: publish event for indexing new side chain
+            return Task.FromResult(new IndexingRequestResult{Result = true});
         }
 
         /// <summary>

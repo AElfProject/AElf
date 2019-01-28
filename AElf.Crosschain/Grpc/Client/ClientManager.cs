@@ -13,9 +13,10 @@ using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using ClientBase = AElf.Crosschain.Grpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
-namespace AElf.Crosschain.Client
+namespace AElf.Crosschain.Grpc.Client
 {
     public class ClientManager
     {
@@ -74,6 +75,8 @@ namespace AElf.Crosschain.Client
             _interval = interval == 0 ? GlobalConfig.AElfInitCrossChainRequestInterval : interval;
             CreateClientsToSideChain().Wait();
             CreateClientToParentChain().Wait();
+            
+            // todo : subscribe event for client management
         }
 
         /// <summary>
