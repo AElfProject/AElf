@@ -9,6 +9,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using Volo.Abp.AspNetCore.Modularity;
+
 namespace AElf.RPC
 {
     [DependsOn(
@@ -16,20 +17,19 @@ namespace AElf.RPC
         typeof(KernelAElfModule),
         //TODO: remove it
         typeof(NetworkAElfModule))]
-    public class RpcAElfModule: AElfModule
+    public class RpcAElfModule : AElfModule
     {
+        private IServiceCollection _serviceCollection = null;
 
-        private IServiceCollection _serviceCollection=null;
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
             var services = context.Services;
-            
+
             services.AddCors();
 
             services.AddSignalRCore();
             services.AddSignalR();
-            
+
             context.Services.AddScoped<NetContext>();
         }
 
@@ -38,19 +38,13 @@ namespace AElf.RPC
             RpcServerHelpers.ConfigureServices(context.Services);
 
             _serviceCollection = context.Services;
-            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
-            
-            RpcServerHelpers.Configure(app,_serviceCollection);
 
-            
-            app.UseCors(builder => { builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); });
-            app.UseSignalR(routes => { routes.MapHub<NetworkHub>("/events/net"); });
-
+            RpcServerHelpers.Configure(app, _serviceCollection);
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
@@ -60,7 +54,6 @@ namespace AElf.RPC
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
-            
         }
     }
 }
