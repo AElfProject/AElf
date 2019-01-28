@@ -140,6 +140,7 @@ namespace AElf.Runtime.CSharp2.Tests
             };
             Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
+            Console.WriteLine(tc.Trace);
 //            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }

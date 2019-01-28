@@ -13,6 +13,7 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.Tests
@@ -30,6 +31,7 @@ namespace AElf.Runtime.CSharp.Tests
         public int ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
         public ISmartContractService SmartContractService;
 
+        public IStateProviderFactory StateProviderFactory;
         public IStateManager StateManager;
         public DataProvider DataProvider1;
         public DataProvider DataProvider2;
@@ -37,28 +39,24 @@ namespace AElf.Runtime.CSharp.Tests
         public Address ContractAddress1;
         public Address ContractAddress2;
 
-        private ISmartContractManager _smartContractManager;
         private IChainCreationService _chainCreationService;
-        private IFunctionMetadataService _functionMetadataService;
         public IChainService ChainService;
 
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-
-        public MockSetup(IStateManager stateManager, IChainCreationService chainCreationService,
-            IFunctionMetadataService functionMetadataService, ISmartContractRunnerContainer smartContractRunnerContainer,
-            ISmartContractManager smartContractManager, IChainService chainService)
+        public MockSetup(IStateManager stateManager,
+            IStateProviderFactory stateProviderFactory,
+            IChainCreationService chainCreationService,
+            IChainService chainService,
+            ISmartContractService smartContractService)
         {
+            StateProviderFactory = stateProviderFactory;
             StateManager = stateManager;
             _chainCreationService = chainCreationService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
-            _smartContractManager = smartContractManager;
             ChainService = chainService;
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () =>
             {
                 await Init();
             }).Unwrap().Wait();
-            SmartContractService = new SmartContractService(_smartContractManager, _smartContractRunnerContainer, StateManager, _functionMetadataService, ChainService);
             Task.Factory.StartNew(async () =>
             {
                 await DeploySampleContracts();

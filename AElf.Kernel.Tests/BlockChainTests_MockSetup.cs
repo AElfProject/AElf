@@ -15,6 +15,7 @@ using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Address = AElf.Common.Address;
@@ -48,35 +49,26 @@ namespace AElf.Kernel.Tests
 
         public IBlockChain BlockChain => ChainService.GetBlockChain(ChainId1);
 
-        private IFunctionMetadataService _functionMetadataService;
         public ILogger<BlockChainTests_MockSetup> Logger {get;set;}
 
         private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
-        private readonly TransactionManager _transactionManager;
-
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-
         public BlockChainTests_MockSetup(IChainCreationService chainCreationService,
             IChainService chainService,
-            IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            ISmartContractRunnerContainer smartContractRunnerContainer,
-            IStateManager stateManager, TransactionManager transactionManager, ISmartContractManager smartContractManager)
+            IChainContextService chainContextService,
+            IStateProviderFactory stateProviderFactory,
+            ISmartContractManager smartContractManager,
+            ISmartContractService smartContractService)
         {
             Logger = NullLogger<BlockChainTests_MockSetup>.Instance;
-            _stateManager = stateManager;
-            _transactionManager = transactionManager;
+            _stateManager = stateProviderFactory.CreateStateManager();
             _chainCreationService = chainCreationService;
             ChainService = chainService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
-                    functionMetadataService, ChainService);
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
 

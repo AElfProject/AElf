@@ -58,15 +58,15 @@ namespace AElf.Sdk.CSharp.State
             base.OnContextSet();
         }
 
-        internal override void OnStateManagerSet()
+        internal override void OnProviderSet()
         {
             foreach (var kv in PropertyInfos)
             {
                 var propertyInfo = kv.Value;
-                ((StateBase) propertyInfo.GetValue(this)).Manager = this.Manager;
+                ((StateBase) propertyInfo.GetValue(this)).Provider = this.Provider;
             }
 
-            base.OnStateManagerSet();
+            base.OnProviderSet();
         }
 
         internal override void Clear()

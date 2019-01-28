@@ -77,9 +77,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management", "AElf.Man
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Tests", "AElf.Management.Tests\AElf.Management.Tests.csproj", "{71DFC40C-FD36-4F6A-891E-23A24A143ECC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI2", "AElf.CLI2\AElf.CLI2.csproj", "{2B0FCBF9-D72C-4328-874F-29B4466B000D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI", "AElf.CLI\AElf.CLI.csproj", "{2B0FCBF9-D72C-4328-874F-29B4466B000D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI2.Tests", "AElf.CLI2.Tests\AElf.CLI2.Tests.csproj", "{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI.Tests", "AElf.CLI.Tests\AElf.CLI.Tests.csproj", "{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Management.Website", "AElf.Management.Website\AElf.Management.Website.csproj", "{C6F923F1-5C7D-4750-A9EA-E684F265F644}"
 EndProject
@@ -104,10 +104,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Miner.Tests", "AElf.Miner.Tests\AElf.Miner.Tests.csproj", "{5A728F9A-9B25-48E0-8642-BB9098799F78}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Wallet.Rpc", "AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj", "{1F7DA3BB-54AC-41D5-B93D-88C74500937D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim", "AElf.Network.Sim\AElf.Network.Sim.csproj", "{01A3C6AA-5F83-4875-837E-16381394894B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Network.Sim.Node", "AElf.Network.Sim.Node\AElf.Network.Sim.Node.csproj", "{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Monitor", "AElf.Monitor\AElf.Monitor.csproj", "{A4FCD006-B47C-44D9-903B-848E77053422}"
 EndProject
@@ -405,14 +401,6 @@ Global
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F7DA3BB-54AC-41D5-B93D-88C74500937D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01A3C6AA-5F83-4875-837E-16381394894B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01A3C6AA-5F83-4875-837E-16381394894B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01A3C6AA-5F83-4875-837E-16381394894B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01A3C6AA-5F83-4875-837E-16381394894B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E1F2D04-6D46-491C-BE9C-F7EF885D0C51}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A4FCD006-B47C-44D9-903B-848E77053422}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A4FCD006-B47C-44D9-903B-848E77053422}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4FCD006-B47C-44D9-903B-848E77053422}.Release|Any CPU.ActiveCfg = Release|Any CPU
