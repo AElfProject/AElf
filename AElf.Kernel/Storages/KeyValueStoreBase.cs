@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Serializers;
 using AElf.Database;
-using AElf.Kernel.Exceptions;
 
 namespace AElf.Kernel.Storages
 {

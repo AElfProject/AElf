@@ -58,7 +58,6 @@ namespace AElf.Kernel.Tests
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             //init test data here
-            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_TestContractA").GetFormatted();
         }
     }
 }

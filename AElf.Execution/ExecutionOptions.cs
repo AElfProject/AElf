@@ -4,6 +4,7 @@ namespace AElf.Execution
 {
     public class ExecutionOptions
     {
+        public string ExecutorType { get; set; }
         public bool IsCluster { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
