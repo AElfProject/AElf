@@ -26,8 +26,8 @@ namespace AElf.Kernel.Managers
         Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         // TODO: Standardize chainid to int
-        Task MergeBlockStateAsync(long chainId, Hash blockStateHash);
-        Task<ChainStateInfo> GetChainStateInfoAsync(long chainId);
+        Task MergeBlockStateAsync(int chainId, Hash blockStateHash);
+        Task<ChainStateInfo> GetChainStateInfoAsync(int chainId);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -141,7 +141,7 @@ namespace AElf.Kernel.Managers
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        public async Task MergeBlockStateAsync(long chainId, Hash blockStateHash)
+        public async Task MergeBlockStateAsync(int chainId, Hash blockStateHash)
         {
             var chainStateInfo = await GetChainStateInfoAsync(chainId);
 
@@ -202,7 +202,7 @@ namespace AElf.Kernel.Managers
             }
         }
 
-        public async Task<ChainStateInfo> GetChainStateInfoAsync(long chainId)
+        public async Task<ChainStateInfo> GetChainStateInfoAsync(int chainId)
         {
             var o = await _chainStateInfoCollection.GetAsync(chainId.ToHex());
             return o ?? new ChainStateInfo() {ChainId = chainId};

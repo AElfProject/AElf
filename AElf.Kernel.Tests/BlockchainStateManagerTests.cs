@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests
         {
             _blockchainStateManager = GetRequiredService<BlockchainStateManager>();
             _tv = new List<TestPair>();
-            for (int i = 0; i < 200; i++)
+            for (uint i = 0; i < 200; i++)
             {
                 _tv.Add(new TestPair()
                 {
@@ -158,7 +158,7 @@ namespace AElf.Kernel.Tests
             await check2();
             await check3_2();
 
-            long chainId = 1;
+            int chainId = 1;
             await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[1].BlockHash);
 
             await check1();
