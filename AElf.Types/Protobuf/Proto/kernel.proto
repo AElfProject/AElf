@@ -128,6 +128,7 @@ message TransactionTrace {
     ExecutionStatus ExecutionStatus = 11;
     bytes DeferredTransaction = 12;
     TransactionTrace FeeTransactionTrace = 13;
+    TransactionExecutingStateSet StateSet = 14;
 }
 
 message LogEvent {
