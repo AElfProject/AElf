@@ -155,11 +155,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // To initial consensus information.
             if (!_dataHelper.TryToGetRoundNumber(out _))
             {
+                Console.WriteLine(11111111);
                 return new DPoSInformation
                 {
+                    Sender = Address.Genesis,
                     WillUpdateConsensus = true,
-                    Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
-                    NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval)
+                    NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
+                    MinersList =
+                        {extra.InitialMiners.Select(m => Address.FromPublicKey(ByteArrayHelpers.FromHexString(m)))},
                 }.ToByteArray();
             }
 

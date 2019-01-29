@@ -180,23 +180,23 @@ enum TicketsHistoryType {
 
 message DPoSInformation {
     Address Sender = 1;
-    repeated Address MinersList = 2;
-    Round CurrentRound = 3;
-    Forwarding Forwarding = 4;
-    Term NewTerm = 5;
-    bool WillUpdateConsensus = 6;
+    Round CurrentRound = 2;
+    Forwarding Forwarding = 3;
+    Term NewTerm = 4;
+    bool WillUpdateConsensus = 5;
+    repeated Address MinersList = 6;
 }
 
 message DPoSExtraInformation {
     bool changeTerm = 1;
     Hash hashValue = 2;
-    repeated string InitialMiners = 3;
-    int32 MiningInterval = 4;
-    Term NewTerm = 5;
-    Forwarding Forwarding = 6;
-    ToPackage ToPackage = 7;
-    ToBroadcast ToBroadcast = 8;
-    google.protobuf.Timestamp Timestamp = 9;
+    int32 MiningInterval = 3;
+    Term NewTerm = 4;
+    Forwarding Forwarding = 5;
+    ToPackage ToPackage = 6;
+    ToBroadcast ToBroadcast = 7;
+    google.protobuf.Timestamp Timestamp = 8;
+    repeated string InitialMiners = 9;
 }
 
 message ValidationResult {

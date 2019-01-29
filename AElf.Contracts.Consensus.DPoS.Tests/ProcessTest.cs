@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Moq;
 using Xunit;
 
 namespace AElf.Contracts.Consensus.DPoS.Tests
@@ -27,17 +26,17 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             // Arrange
             var stubMiner = new KeyPairGenerator().Generate();
-            
+
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiner,
                 DateTime.UtcNow.ToTimestamp());
             var actual = _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
-            
+
             // Assert
             Assert.Equal(10_000, actual);
         }
-        
-        [Fact(Skip = "Something wrong with deserialization.")]
+
+        [Fact]
         public void Initial_Consensus_GetInformation()
         {
             // Arrange
@@ -46,13 +45,13 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 stubMiners.Add(new KeyPairGenerator().Generate());
             }
-            
+
             var stubInitialInformation = new DPoSExtraInformation
             {
-                InitialMiners = { stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
+                InitialMiners = {stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
                 MiningInterval = 4000
             };
-            
+
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetNewConsensusInformation", stubMiners[0],
                 stubInitialInformation.ToByteArray());
@@ -64,7 +63,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Assert.True(1 == initialInformation.NewTerm.FirstRound.RoundNumber);
             Assert.True(2 == initialInformation.NewTerm.SecondRound.RoundNumber);
         }
-        
+
         [Fact]
         public void Initial_Consensus_Validate()
         {
@@ -81,7 +80,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToMiners().GenerateNewTerm(4000),
                 Sender = Address.FromPublicKey(stubMiners[0].PublicKey)
             };
-            
+
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "ValidateConsensus", stubMiners[1],
                 stubInitialInformation.ToByteArray());
@@ -91,7 +90,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             // Assert
             Assert.True(validationResult?.Success);
         }
-        
+
         [Fact]
         public void Initial_Consensus_GenerateTransaction()
         {
@@ -101,7 +100,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 stubMiners.Add(new KeyPairGenerator().Generate());
             }
-            
+
             var stubInitialExtraInformation = new DPoSExtraInformation
             {
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
@@ -113,7 +112,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
-            
+
             // Assert
             Assert.NotNull(initialTransactions);
             Assert.True(initialTransactions.Transactions[0].MethodName == "InitialTerm");
