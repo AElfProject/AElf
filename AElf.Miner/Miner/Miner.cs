@@ -47,12 +47,14 @@ namespace AElf.Miner.Miner
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;
+        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
              ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IStateManager stateManager)
+            IBlockValidationService blockValidationService, IStateManager stateManager,
+            IBlockchainStateManager blockchainStateManager=null)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -66,6 +68,7 @@ namespace AElf.Miner.Miner
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
+            _blockchainStateManager = blockchainStateManager;
         }
         
         /// <summary>
@@ -162,6 +165,15 @@ namespace AElf.Miner.Miner
                     Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
+
+                var blockStateSet = new BlockStateSet()
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Index,
+                    PreviousHash = block.Header.PreviousBlockHash
+                };
+                FillBlockStateSet(blockStateSet, traces);
+                await _blockchainStateManager?.SetBlockStateSetAsync(blockStateSet);
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
@@ -307,6 +319,18 @@ namespace AElf.Miner.Miner
                 return;
             // insert to tx pool and broadcast
             await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
+        }
+
+        private void FillBlockStateSet(BlockStateSet blockStateSet,IEnumerable<TransactionTrace> traces)
+        {
+            foreach (var trace in traces)
+            {
+                foreach (var w in trace.GetFlattenedWrite())
+                {
+                    blockStateSet.Changes[w.Key] = w.Value;    
+                }
+                
+            }
         }
 
         /// <summary>

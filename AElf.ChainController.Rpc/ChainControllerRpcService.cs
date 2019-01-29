@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
@@ -49,9 +50,11 @@ namespace AElf.ChainController.Rpc
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
         public IElectionInfo ElectionInfo { get; set; }
 
+        public IStateStore<BlockStateSet> BlockStateSets { get; set; }
+
         #endregion Properties
 
-        public ILogger<ChainControllerRpcService> Logger {get;set;}
+        public ILogger<ChainControllerRpcService> Logger { get; set; }
 
         private bool _canBroadcastTxs = true;
 
@@ -61,7 +64,7 @@ namespace AElf.ChainController.Rpc
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
-        
+
         #region Methods
 
         [JsonRpcMethod("get_commands")]
@@ -97,14 +100,19 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var basicContractZero =
-                    ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                    ContractHelpers.GetGenesisBasicContractAddress(
+                        ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var crosschainContract =
                     ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 var authorizationContract =
-                    ContractHelpers.GetAuthorizationContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var tokenContract = ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var consensusContract = ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var dividendsContract = ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                    ContractHelpers.GetAuthorizationContractAddress(
+                        ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var tokenContract =
+                    ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var consensusContract =
+                    ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                var dividendsContract =
+                    ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject
@@ -114,7 +122,8 @@ namespace AElf.ChainController.Rpc
                         {
                             [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
                             [GlobalConfig.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
-                            [GlobalConfig.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
+                            [GlobalConfig.GenesisAuthorizationContractAssemblyName] =
+                                authorizationContract.GetFormatted(),
                             [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
                             [GlobalConfig.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
                             [GlobalConfig.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
@@ -140,7 +149,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var addrHash =Address.Parse(address);
+                var addrHash = Address.Parse(address);
 
                 var abi = await this.GetContractAbi(addrHash);
 
@@ -201,7 +210,7 @@ namespace AElf.ChainController.Rpc
                 res["error"] = "Sync still in progress, cannot send transactions.";
                 return res;
             }
-            
+
             try
             {
                 //TODO: Wait validation done
@@ -220,7 +229,7 @@ namespace AElf.ChainController.Rpc
         public async Task<JObject> ProcessBroadcastTxs(string rawtxs)
         {
             var response = new List<object>();
-            
+
             if (!_canBroadcastTxs)
             {
                 return new JObject
@@ -258,12 +267,13 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Invalid Address Format");
                 }
+
                 var txResult = await this.GetTransactionResult(txHash);
                 /*if(txResult.Status != Status.Mined)
                    throw new Exception("Transaction is not mined.");*/
                 var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
                 var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
-                if(merklePath == null)
+                if (merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
                 MerklePath merklePathInParentChain = null;
                 ulong boundParentChainHeight = 0;
@@ -276,9 +286,10 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception($"Unable to get merkle path from parent chain {e}");
                 }
+
                 /*if(merklePathInParentChain == null)
                     throw new Exception("Not found merkle path in parent chain");*/
-                if(merklePathInParentChain != null)
+                if (merklePathInParentChain != null)
                     merklePath.Path.AddRange(merklePathInParentChain.Path);
                 return new JObject
                 {
@@ -294,7 +305,7 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
-        
+
         [JsonRpcMethod("get_pcb_info", "height")]
         public async Task<JObject> ProcGetPCB(string height)
         {
@@ -309,6 +320,7 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Invalid height");
                 }
+
                 var merklePathInParentChain = await this.GetParentChainBlockInfo(h);
                 if (merklePathInParentChain == null)
                 {
@@ -330,7 +342,7 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
-        
+
         [JsonRpcMethod("get_tx_result", "txhash")]
         public async Task<JObject> ProcGetTxResult(string txhash)
         {
@@ -372,7 +384,7 @@ namespace AElf.ChainController.Rpc
                 });
             }
 
-            if (num<=0 || num > 100)
+            if (num <= 0 || num > 100)
             {
                 return JObject.FromObject(new JObject
                 {
@@ -403,6 +415,7 @@ namespace AElf.ChainController.Rpc
                         ["error"] = "Invalid Block Hash"
                     });
                 }
+
                 var txs = new JArray();
 
                 if (offset <= block.Body.Transactions.Count - 1)
@@ -467,12 +480,12 @@ namespace AElf.ChainController.Rpc
 #if DEBUG
             response["tx_trc"] = txtrc?.ToString();
 #endif
-            
+
             if (txResult.Status == Status.Failed)
             {
                 response["tx_error"] = txResult.RetVal.ToStringUtf8();
             }
-            
+
             if (txResult.Status == Status.Mined)
             {
                 response["block_number"] = txResult.BlockNumber;
@@ -486,7 +499,6 @@ namespace AElf.ChainController.Rpc
                     }
                     else
                         response["return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
-
                 }
                 catch (Exception)
                 {
@@ -581,7 +593,7 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
-        
+
         [JsonRpcMethod("dpos_isalive")]
         public async Task<JObject> IsDPoSAlive()
         {
@@ -593,7 +605,7 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
-        
+
         [JsonRpcMethod("node_isforked")]
         public async Task<JObject> NodeIsForked()
         {
@@ -605,10 +617,11 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
-        
+
         #endregion Methods
 
         #region Proposal
+
         [JsonRpcMethod("check_proposal", "proposal_id")]
         public async Task<JObject> ProcGetProposal(string proposalId)
         {
@@ -647,8 +660,9 @@ namespace AElf.ChainController.Rpc
                 };
             }
         }
+
         #endregion
-        
+
         #region Consensus
 
         public async Task<JObject> VotesGeneral()
@@ -676,12 +690,12 @@ namespace AElf.ChainController.Rpc
         #endregion
 
         #region Admin
-        
+
         [JsonRpcMethod("get_invalid_block")]
         public async Task<JObject> InvalidBlockCount()
         {
             var invalidBlockCount = await this.GetInvalidBlockCountAsync();
-                
+
             var response = new JObject
             {
                 ["InvalidBlockCount"] = invalidBlockCount
@@ -689,18 +703,25 @@ namespace AElf.ChainController.Rpc
 
             return JObject.FromObject(response);
         }
-        
+
         [JsonRpcMethod("get_rollback_times")]
         public async Task<JObject> RollBackTimes()
         {
             var rollBackTimes = await this.GetRollBackTimesAsync();
-                
+
             var response = new JObject
             {
                 ["RollBackTimes"] = rollBackTimes
             };
 
             return JObject.FromObject(response);
+        }
+
+        [JsonRpcMethod("get_blockstateset", "blockHash")]
+        public async Task<JObject> GetBlockStateSet(string blockHash)
+        {
+            var obj = await BlockStateSets.GetAsync(blockHash);
+            return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
         }
 
         #endregion Methods
