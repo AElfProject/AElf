@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -11,7 +12,7 @@ using Volo.Abp.Threading;
 namespace AElf.Kernel.Managers.Another
 {
     [Flags]
-    public enum BlockAttchOperationStatus
+    public enum BlockAttachOperationStatus
     {
         None = 0,
         NewBlockNotLinked = 1 << 1,
@@ -29,12 +30,15 @@ namespace AElf.Kernel.Managers.Another
     {
         private readonly IBlockchainStore<Chain> _chains;
         private readonly IBlockchainStore<ChainBlockLink> _chainBlockLinks;
+        private readonly IBlockchainStore<ChainBlockIndex> _chainBlockIndexes;
 
         public ChainManager(IBlockchainStore<Chain> chains,
-            IBlockchainStore<ChainBlockLink> chainBlockLinks)
+            IBlockchainStore<ChainBlockLink> chainBlockLinks,
+            IBlockchainStore<ChainBlockIndex> chainBlockIndexes)
         {
             _chains = chains;
             _chainBlockLinks = chainBlockLinks;
+            _chainBlockIndexes = chainBlockIndexes;
         }
 
         public async Task<Chain> CreateAsync(int chainId, Hash genesisBlock)
@@ -52,6 +56,14 @@ namespace AElf.Kernel.Managers.Another
                     {genesisBlock.ToHex(), 0}
                 }
             };
+
+            await SetChainBlockLinkAsync(chainId, new ChainBlockLink()
+            {
+                BlockHash = genesisBlock,
+                Height = 0,
+                IsLinked = true
+            });
+            await _chains.SetAsync(chain.Id.ToHex(), chain);
 
             return chain;
         }
@@ -77,9 +89,21 @@ namespace AElf.Kernel.Managers.Another
             await _chainBlockLinks.SetAsync(chainId.ToHex() + chainBlockLink.BlockHash.ToHex(), chainBlockLink);
         }
 
-        public async Task<BlockAttchOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)
+        private async Task SetChainBlockIndexAsync(int chainId, long blockHeight, Hash blockHash)
         {
-            BlockAttchOperationStatus status = BlockAttchOperationStatus.None;
+            await _chainBlockIndexes.SetAsync(chainId.ToHex() + blockHeight.ToHex(),
+                new ChainBlockIndex() {BlockHash = blockHash});
+        }
+
+        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, long blockHeight)
+        {
+            return await _chainBlockIndexes.GetAsync(chainId.ToHex() + blockHeight.ToHex());
+        }
+
+        public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
+            ChainBlockLink chainBlockLink)
+        {
+            BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
 
             while (true)
             {
@@ -95,7 +119,7 @@ namespace AElf.Kernel.Managers.Another
                     {
                         chain.BestChainHeight = chainBlockLink.Height;
                         chain.BestChainHash = chainBlockLink.BlockHash;
-                        status |= BlockAttchOperationStatus.BestChainFound;
+                        status |= BlockAttachOperationStatus.BestChainFound;
                     }
 
 
@@ -103,12 +127,12 @@ namespace AElf.Kernel.Managers.Another
                         throw new Exception("chain block link should not be linked");
 
                     chainBlockLink.IsLinked = true;
-                    
+
                     await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
-                    
+
                     if (!chain.NotLinkedBlocks.ContainsKey(blockHash))
                     {
-                        status |= BlockAttchOperationStatus.NewBlockLinked;
+                        status |= BlockAttachOperationStatus.NewBlockLinked;
                         break;
                     }
 
@@ -117,7 +141,7 @@ namespace AElf.Kernel.Managers.Another
 
                     chain.NotLinkedBlocks.Remove(blockHash);
 
-                    status |= BlockAttchOperationStatus.NewBlocksLinked;
+                    status |= BlockAttachOperationStatus.NewBlocksLinked;
                 }
                 else
                 {
@@ -126,7 +150,7 @@ namespace AElf.Kernel.Managers.Another
                         //check database to ensure whether it can be a branch
                         var previousChainBlockLink =
                             await this.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
-                        if (previousChainBlockLink!=null && previousChainBlockLink.IsLinked)
+                        if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                         {
                             chain.Branches[previousChainBlockLink.BlockHash.ToHex()] = previousChainBlockLink.Height;
                             continue;
@@ -135,10 +159,10 @@ namespace AElf.Kernel.Managers.Another
 
                     chain.NotLinkedBlocks[previousHash] = blockHash;
 
-                    if (status != BlockAttchOperationStatus.None)
+                    if (status != BlockAttachOperationStatus.None)
                         throw new Exception("invalid status");
 
-                    status = BlockAttchOperationStatus.NewBlockNotLinked;
+                    status = BlockAttachOperationStatus.NewBlockNotLinked;
                     await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
                     break;
                 }
@@ -146,16 +170,36 @@ namespace AElf.Kernel.Managers.Another
 
             await _chains.SetAsync(chain.Id.ToHex(), chain);
 
-
             return status;
         }
 
-        public async Task SetIrreversibleBlockAsync(int chainId, Hash irreversibleBlockHash)
+        public async Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)
         {
-            var chainBlockLink = await GetChainBlockLinkAsync(chainId, irreversibleBlockHash);
-            while (!chainBlockLink.IsIrreversibleBlock)
+            Stack<ChainBlockLink> links = new Stack<ChainBlockLink>();
+
+            while (true)
             {
+                if (irreversibleBlockHash == null)
+                    break;
+                var chainBlockLink = await GetChainBlockLinkAsync(chain.Id, irreversibleBlockHash);
+                if (chainBlockLink==null || chainBlockLink.IsIrreversibleBlock)
+                    break;
+                if(!chainBlockLink.IsLinked)
+                    throw new InvalidOperationException("should not set an unlinked block as irreversible block");
                 chainBlockLink.IsIrreversibleBlock = true;
+                links.Push(chainBlockLink);
+                irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
+            }
+
+            while (links.Count > 0)
+            {
+                var chainBlockLink = links.Pop();
+                await SetChainBlockIndexAsync(chain.Id, chainBlockLink.Height, chainBlockLink.BlockHash);
+                await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
+                chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
+                chain.LastIrreversibleBlockHeight = chainBlockLink.Height;
+                await _chains.SetAsync(chain.Id.ToHex(), chain);
+                
             }
         }
     }

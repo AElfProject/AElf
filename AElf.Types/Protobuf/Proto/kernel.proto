@@ -358,4 +358,6 @@ message Chain {
     int64 LastIrreversibleBlockHeight = 9;
 }
 
-
+message ChainBlockIndex{
+    Hash BlockHash = 1;
+}
