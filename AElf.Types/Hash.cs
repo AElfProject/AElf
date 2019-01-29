@@ -109,6 +109,9 @@ namespace AElf.Common
 
         public static readonly Hash Zero = FromString("AElf");
 
+        public static readonly Hash Empty = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
+
+        
         public static readonly Hash Ones = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MaxValue).ToArray());
 
         public static readonly Hash Default = FromRawBytes(new byte[0]);
