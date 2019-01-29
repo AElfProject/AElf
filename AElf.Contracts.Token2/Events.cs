@@ -7,14 +7,14 @@ namespace AElf.Contracts.Token
     {
         [Indexed] public Address From { get; set; }
         [Indexed] public Address To { get; set; }
-        [Indexed] public ulong Amount { get; set; }
+        public ulong Amount { get; set; }
     }
 
     public class Approved : Event
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
-        [Indexed] public ulong Amount { get; set; }
+        public ulong Amount { get; set; }
     }
 
 
@@ -22,12 +22,12 @@ namespace AElf.Contracts.Token
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
-        [Indexed] public ulong Amount { get; set; }
+        public ulong Amount { get; set; }
     }
 
     public class Burned : Event
     {
-        public Address Burner { get; set; }
+        [Indexed] public Address Burner { get; set; }
         public ulong Amount { get; set; }
     }
 }
