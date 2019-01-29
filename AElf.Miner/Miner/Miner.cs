@@ -58,7 +58,7 @@ namespace AElf.Miner.Miner
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IStateManager stateManager, TransactionFilter transactionFilter
             ,ConsensusDataProvider consensusDataProvider, IAccountService accountService,
-            IBlockchainStateManager blockchainStateManager=null)
+            IBlockchainStateManager blockchainStateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -177,7 +177,7 @@ namespace AElf.Miner.Miner
                     PreviousHash = block.Header.PreviousBlockHash
                 };
                 FillBlockStateSet(blockStateSet, traces);
-                await _blockchainStateManager?.SetBlockStateSetAsync(blockStateSet);
+                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
@@ -199,6 +199,7 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 Logger.LogError(e, "Mining failed with exception.");
                 return null;
             }
