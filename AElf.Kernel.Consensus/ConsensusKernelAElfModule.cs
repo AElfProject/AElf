@@ -11,6 +11,7 @@ namespace AElf.Kernel.Consensus
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<ConsensusKernelAElfModule>();
+            context.Services.AddTransient<ConsensusDataProvider>();
         }
     }
 }
