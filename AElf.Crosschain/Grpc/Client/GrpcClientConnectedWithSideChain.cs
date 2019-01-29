@@ -1,15 +1,17 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.Crosschain.Grpc;
 using Grpc.Core;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class ClientToSideChain : ClientBase<ResponseSideChainBlockInfo>
+    public class GrpcClientConnectedWithSideChain : GrpcCrossChainClient<ResponseSideChainBlockInfo>
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public ClientToSideChain(Channel channel, int targetChainId, int interval, int irreversible, int maximalIndexingCount) 
-            : base(channel, targetChainId, interval, irreversible, maximalIndexingCount)
+        public GrpcClientConnectedWithSideChain(Channel channel, int interval, int irreversible, int maximalIndexingCount) 
+            : base(channel, interval, irreversible, maximalIndexingCount)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }

@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
 
 namespace AElf.Crosschain.Grpc
 {
     public class GrpcCrossChainDataProvider : ICrossChainDataProvider
     {
+        private readonly Dictionary<int, GrpcClientConnectedWithSideChain> _clientsConnectedWithSideChains =
+            new Dictionary<int, GrpcClientConnectedWithSideChain>();
+        private GrpcClientConnectedWithParentChain _clientConnectedWithParentChain;
         public GrpcCrossChainDataProvider()
         {
             // subscribe new cross chain data event here
