@@ -28,9 +28,9 @@ namespace AElf.OS.Tests.Account
         [Fact]
         public void GetAccountTest()
         {
-            var publicKey = _accountService.GetAccountAsync().Result;
+            var account = _accountService.GetAccountAsync().Result;
 
-            Assert.Equal(publicKey.GetFormatted(), _accountOptions.NodeAccount);
+            Assert.Equal(account.GetFormatted(), _accountOptions.NodeAccount);
         }
 
         [Fact]
