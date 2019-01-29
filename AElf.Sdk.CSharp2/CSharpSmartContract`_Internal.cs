@@ -25,9 +25,9 @@ namespace AElf.Sdk.CSharp
             State.Provider.TransactionContext = transactionContext;
         }
 
-        internal override void SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
+        internal override void SetStateProvider(IStateProvider stateProvider)
         {
-            State.Provider = stateProviderFactory.CreateStateProvider();
+            State.Provider = stateProvider;
         }
 
         internal override void SetContractAddress(Address address)

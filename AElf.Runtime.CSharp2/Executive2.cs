@@ -26,7 +26,7 @@ namespace AElf.Runtime.CSharp
         private ISmartContract _smartContract;
         private ITransactionContext _currentTransactionContext;
         private ISmartContractContext _currentSmartContractContext;
-        private CachedStateManager _stateManager;
+        private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
 
         public Executive2(Module abiModule)
@@ -47,14 +47,14 @@ namespace AElf.Runtime.CSharp
 
         public IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
-            _stateManager = new CachedStateManager(stateProviderFactory.CreateStateManager());
-            _smartContractProxy.SetStateProviderFactory(stateProviderFactory);
+            _stateProvider = new CachedStateProvider(stateProviderFactory.CreateStateProvider());
+            _smartContractProxy.SetStateProvider(_stateProvider);
             return this;
         }
 
         public void SetDataCache(Dictionary<StatePath, StateCache> cache)
         {
-            _stateManager.Cache = cache;
+            _stateProvider.Cache = cache;
         }
 
         public Executive2 SetSmartContract(ISmartContract smartContract)

@@ -11,7 +11,7 @@ namespace AElf.Sdk.CSharp
     {
         internal abstract void SetSmartContractContext(ISmartContractContext smartContractContext);
         internal abstract void SetTransactionContext(ITransactionContext transactionContext);
-        internal abstract void SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
+        internal abstract void SetStateProvider(IStateProvider stateProvider);
         internal abstract void SetContractAddress(Address address);
         internal abstract Dictionary<StatePath, StateValue> GetChanges();
         internal abstract void Cleanup();

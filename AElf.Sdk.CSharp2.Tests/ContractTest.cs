@@ -17,7 +17,7 @@ namespace AElf.Sdk.CSharp2.Tests
             var addresses = new[] {"a", "b", "c"}.Select(Address.FromString).ToList();
             var stateManager = new MockStateManager();
             var contract = new TokenContract();
-            contract.SetStateProviderFactory(new MockStateProviderFactory(stateManager));
+            contract.SetStateProvider(new MockStateProviderFactory(stateManager).CreateStateProvider());
             contract.SetSmartContractContext(new SmartContractContext()
             {
                 ContractAddress = addresses[0]
