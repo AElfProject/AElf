@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
 using AElf.ChainController.Rpc;
-using AElf.Configuration;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
+using AElf.Kernel.Account;
 using AElf.Kernel.Storages;
 using AElf.Miner.Rpc;
 using AElf.Modularity;
@@ -11,6 +13,7 @@ using AElf.RuntimeSetup;
 using AElf.Wallet.Rpc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
@@ -37,9 +40,9 @@ namespace AElf.RPC.Tests
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
-            
-            //TODO: Remove it
-            NodeConfig.Instance.ECKeyPair = new KeyPairGenerator().Generate();
+            context.Services.AddTransient<IAccountService>(o => Mock.Of<IAccountService>(
+                            c => c.GetAccountAsync() == Task.FromResult(Address.FromString("AELF_Test")) && c
+                                     .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>()) == Task.FromResult(true)));
         }
     }
 }

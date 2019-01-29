@@ -18,6 +18,8 @@ using Moq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
+using AElf.Kernel.Account;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
@@ -50,13 +52,17 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
+        private readonly TransactionFilter _transactionFilter;
+        private readonly ConsensusDataProvider _consensusDataProvider;
+        private readonly IAccountService _accountService;
 
         public MockSetup(IStateManager stateManager,
             ITxRefBlockValidator refBlockValidator,
             ITransactionReceiptManager transactionReceiptManager, ITransactionResultManager transactionResultManager,
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
             IChainService chainService, IExecutingService executingService,
-            IChainCreationService chainCreationService)
+            IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
+            ConsensusDataProvider consensusDataProvider, IAccountService accountService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -69,6 +75,9 @@ namespace AElf.Miner.Tests
             _chainService = chainService;
             _concurrencyExecutingService = executingService;
             _chainCreationService = chainCreationService;
+            _transactionFilter = transactionFilter;
+            _consensusDataProvider = consensusDataProvider;
+            _accountService = accountService;
             Initialize();
         }
 
@@ -118,7 +127,8 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager);
+                MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
+                _accountService);
 
             return miner;
         }
@@ -127,7 +137,8 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
+                _consensusDataProvider);
 
             return blockExecutor;
         }

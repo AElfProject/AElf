@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
@@ -15,15 +16,14 @@ namespace AElf.Kernel
         /// </summary>
         /// <param name="keyPair"></param>
         /// <exception cref="NotImplementedException"></exception>
-        public static void Sign(this IBlock block, ECKeyPair keyPair)
+        public static void Sign(this IBlock block, byte[] publicKey, Func<byte[], Task<byte[]>> sign)
         {
-            var signer = new ECSigner();
             var hash = block.GetHash();
             var bytes = hash.DumpByteArray();
-            var signature = signer.Sign(keyPair, bytes);
+            var signature = sign(bytes).Result;
 
-            block.Header.Sig = ByteString.CopyFrom(signature.SigBytes);
-            block.Header.P = ByteString.CopyFrom(keyPair.PublicKey);
+            block.Header.Sig = ByteString.CopyFrom(signature);
+            block.Header.P = ByteString.CopyFrom(publicKey);
         }
 
         /// <summary>
