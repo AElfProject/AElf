@@ -475,6 +475,8 @@ namespace AElf.ChainController.Rpc
             
             if (txResult.Status == Status.Mined)
             {
+                response["Bloom"] = txResult.Bloom.ToByteArray().ToHex();
+                response["Logs"] = (JArray) JsonConvert.DeserializeObject(txResult.Logs.ToString());
                 response["block_number"] = txResult.BlockNumber;
                 response["block_hash"] = txResult.BlockHash.ToHex();
                 response["return_type"] = txtrc?.RetVal.Type.ToString();
@@ -545,6 +547,7 @@ namespace AElf.ChainController.Rpc
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
+                        ["Bloom"] = blockinfo.Header.Bloom.ToByteArray().ToHex()
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject

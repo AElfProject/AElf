@@ -11,6 +11,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
@@ -43,6 +44,7 @@ namespace AElf.Node.Consensus
         private readonly ITxHub _txHub;
         private readonly IMiner _miner;
         private readonly IChainService _chainService;
+        private readonly IAccountService _accountService;
 
         private IBlockChain _blockChain;
 
@@ -61,7 +63,6 @@ namespace AElf.Node.Consensus
         /// </summary>
         private readonly Stack<Hash> _consensusData = new Stack<Hash>();
 
-        private ECKeyPair _nodeKey;
         private byte[] _ownPubKey;
 
         private static Address ConsensusContractAddress =>
@@ -82,20 +83,24 @@ namespace AElf.Node.Consensus
 
         private static ulong _firstTermChangedRoundNumber;
 
+        private string _publicKey;
+
         private ConsensusObserver ConsensusObserver =>
-            new ConsensusObserver(InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
+            new ConsensusObserver(_publicKey, InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
         public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
-            ConsensusHelper helper)
+            ConsensusHelper helper,IAccountService accountService)
         {
             _txHub = txHub;
             _miner = miner;
             _chainService = chainService;
             _minersManager = minersManager;
             _helper = helper;
+            _accountService = accountService;
 
             Logger = NullLogger<DPoS>.Instance;
 
+            _publicKey = _accountService.GetPublicKeyAsync().Result.ToHex();
             var count = MinersConfig.Instance.Producers.Count;
 
             GlobalConfig.BlockProducerNumber = count;
@@ -188,8 +193,7 @@ namespace AElf.Node.Consensus
 
         public void Start(bool willingToMine)
         {
-            _nodeKey = NodeConfig.Instance.ECKeyPair;
-            _ownPubKey = _nodeKey.PublicKey;
+            _ownPubKey = _accountService.GetPublicKeyAsync().Result;
 
             if (!willingToMine)
             {
@@ -288,9 +292,8 @@ namespace AElf.Node.Consensus
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
                 };
 
-                var signer = new ECSigner();
-                var signature = signer.Sign(_nodeKey, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+                var signature = await _accountService.SignAsync(tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(ByteString.CopyFrom(signature));
 
                 Logger.LogTrace("Leaving generating tx.");
 
@@ -778,12 +781,6 @@ namespace AElf.Node.Consensus
             // Update current term number.
             LatestTermNumber = _helper.CurrentTermNumber.Value;
 
-            // Whether this node willing to mine.
-            if (!NodeConfig.Instance.IsMiner)
-            {
-                return;
-            }
-
             // Dispose previous observer.
             if (ConsensusDisposable != null)
             {
@@ -805,7 +802,7 @@ namespace AElf.Node.Consensus
 
         private bool AmIContainedInCandidatesList()
         {
-            return _helper.Candidates.PublicKeys.Contains(NodeConfig.Instance.ECKeyPair.PublicKey.ToHex());
+            return _helper.Candidates.PublicKeys.Contains(_ownPubKey.ToHex());
         }
 
         public bool IsAlive()
