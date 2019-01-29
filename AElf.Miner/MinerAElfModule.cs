@@ -23,14 +23,6 @@ namespace AElf.Miner
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var minerConfig = MinerConfig.Default;
-            if (NodeConfig.Instance.IsMiner)
-            {
-                minerConfig = new MinerConfig
-                {
-                    CoinBase = Address.Parse(NodeConfig.Instance.NodeAccount) 
-                };
-            }
-
             minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             
             var services = context.Services;
@@ -38,6 +30,7 @@ namespace AElf.Miner
             services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddSingleton<ClientManager>();
             services.AddSingleton<ServerManager>();
+            services.AddTransient<TransactionFilter>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

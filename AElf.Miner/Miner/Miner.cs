@@ -15,6 +15,7 @@ using AElf.Crosschain.Server;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
@@ -42,18 +43,21 @@ namespace AElf.Miner.Miner
         private readonly IBlockValidationService _blockValidationService;
         private IBlockChain _blockChain;
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
-        private ECKeyPair _keyPair;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private BlockGenerator _blockGenerator;
         private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;
+        private readonly IAccountService _accountService;
+
+        private const float RatioMine = 0.3f;
 
         public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
              ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
-            IBlockValidationService blockValidationService, IStateManager stateManager)
+            IBlockValidationService blockValidationService, IStateManager stateManager, TransactionFilter transactionFilter
+            ,ConsensusDataProvider consensusDataProvider, IAccountService accountService)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -63,10 +67,12 @@ namespace AElf.Miner.Miner
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
             Config = config;
-            _consensusDataProvider = new ConsensusDataProvider(stateManager);
-            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * NodeConfig.Instance.RatioMine;
+            _consensusDataProvider = consensusDataProvider;
+            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
+            _txFilter = transactionFilter;
+            _accountService = accountService;
         }
         
         /// <summary>
@@ -74,8 +80,6 @@ namespace AElf.Miner.Miner
         /// </summary>
         public void Init()
         {
-            _txFilter = new TransactionFilter();
-            _keyPair = NodeConfig.Instance.ECKeyPair;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
             _blockGenerator = new BlockGenerator(_chainService, Config.ChainId);
             
@@ -191,7 +195,7 @@ namespace AElf.Miner.Miner
 
         private async Task GenerateClaimFeesTransaction(ulong prevHeight, ulong refBlockHeight, byte[] refBlockPrefix)
         {
-            var address = Address.FromPublicKey(_keyPair.PublicKey);
+            var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var tx = new Transaction()
             {
                 From = address,
@@ -214,7 +218,7 @@ namespace AElf.Miner.Miner
             if (LibHeight <= GlobalConfig.GenesisBlockHeight)
                 return;
             
-            var address = Address.FromPublicKey(_keyPair.PublicKey);
+            var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var txnForIndexingSideChain = await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
                     refBlockPrefix);
             if (txnForIndexingSideChain != null)
@@ -263,8 +267,8 @@ namespace AElf.Miner.Miner
             if (notSignerTransaction.Sigs.Count > 0)
                 return;
             // sign tx
-            var signature = new ECSigner().Sign(_keyPair, notSignerTransaction.GetHash().DumpByteArray());
-            notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
+            notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature));
             await InsertTransactionToPool(notSignerTransaction);
         }
 
@@ -276,8 +280,7 @@ namespace AElf.Miner.Miner
                 if (!noTimeout)
                 {
                     var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
-                    var distanceRation = distance * (NodeConfig.Instance.RatioSynchronize + NodeConfig.Instance.RatioMine);
-                    var timeout = Math.Min(distanceRation, _maxMineTime);
+                    var timeout = distance *  RatioMine;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                     Logger.LogTrace($"Execution limit time: {timeout}ms");
                 }
@@ -285,7 +288,7 @@ namespace AElf.Miner.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(_keyPair.PublicKey));
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(await _accountService.GetPublicKeyAsync()));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
@@ -431,11 +434,12 @@ namespace AElf.Miner.Miner
         /// <param name="sideChainTransactionsRoot"></param>
         /// <param name="currentBlockTime"></param>
         /// <returns></returns>
-        private async Task<IBlock> GenerateBlock(HashSet<TransactionResult> results, Hash sideChainTransactionsRoot,  
+        private async Task<IBlock> GenerateBlock(HashSet<TransactionResult> results, Hash sideChainTransactionsRoot,
             DateTime currentBlockTime)
         {
             var block = await _blockGenerator.GenerateBlockAsync(results, sideChainTransactionsRoot, currentBlockTime);
-            block.Sign(_keyPair);
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            block.Sign(publicKey, data => _accountService.SignAsync(data));
             return block;
         }
     }

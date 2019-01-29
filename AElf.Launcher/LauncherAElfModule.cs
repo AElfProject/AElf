@@ -7,6 +7,7 @@ using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
+using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
@@ -28,6 +29,7 @@ namespace AElf.Launcher
         typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
+        typeof(OSAElfModule),
         typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
         typeof(MinerAElfModule),

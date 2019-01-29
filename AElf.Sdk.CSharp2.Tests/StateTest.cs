@@ -111,7 +111,7 @@ namespace AElf.Sdk.CSharp2.Tests
             path.Path.Add(ByteString.CopyFromUtf8("dummy_address"));
             var state = new MockContractState
             {
-                Manager = stateManager,
+                Provider = new MockStateProvider(stateManager),
                 Path = path,
                 Context = new Context()
                 {

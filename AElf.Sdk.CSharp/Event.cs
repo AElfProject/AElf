@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp
 {
     public class Event
     {
-        private static bool IsIndexed(FieldInfo fieldInfo)
+        private static bool IsIndexed(PropertyInfo fieldInfo)
         {
             var attributes = fieldInfo.GetCustomAttributes(typeof(IndexedAttribute), true);
             return attributes.Length > 0;
@@ -25,13 +25,13 @@ namespace AElf.Sdk.CSharp
                 Address = Api.GetContractAddress()
             };
             le.Topics.Add(ByteString.CopyFrom(Hash.FromString(t.Name).DumpByteArray()));
-            var fields = t.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+            var fields = t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                 .Select(x => new {x.Name, Value = x.GetValue(this), Indexed = IsIndexed(x)})
-                .Where(x => x.Value != null && x.Value.GetType().GetInterfaces().Contains(typeof(IMessage))).ToList();
+                .ToList();
             foreach (var indexedField in fields.Where(x => x.Indexed))
             {
                 le.Topics.Add(ByteString.CopyFrom(
-                    SHA256.Create().ComputeHash(((IMessage) indexedField.Value).ToByteArray()))
+                    SHA256.Create().ComputeHash(ParamsPacker.Pack(indexedField.Value)))
                 );
             }
 

@@ -14,9 +14,6 @@
     <None Update="Config\Node\miners.json" Link="config\miners.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Node\node.json" Link="config\node.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Config\GRPC\grpc-local.json" Link="config\grpc-local.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Account;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Peers;
@@ -12,12 +13,18 @@ using Xunit;
 
 namespace AElf.Network.Tests
 {
-    public class PeerTests
+    public class PeerTests : NetworkTestBase
     {
+        private readonly IAccountService _accountService;
+        
+        public PeerTests()
+        {
+            _accountService = GetRequiredService<IAccountService>();
+        }
         [Fact]
         public void Peer_InitialState()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234, null, 0);
+            Peer p = new Peer(new TcpClient(), null, null, 1234, 0, _accountService);
             Assert.False(p.IsAuthentified);
             Assert.False(p.IsDisposed);
         }
@@ -25,7 +32,7 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsException()
         {
-            Peer p = new Peer(new TcpClient(), null, null, 1234, null, 0);
+            Peer p = new Peer(new TcpClient(), null, null, 1234, 0, _accountService);
             p.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() => p.Start());
@@ -38,7 +45,7 @@ namespace AElf.Network.Tests
             
             int port = 1234;
             
-            Peer p = new Peer(new TcpClient(), null, null, port, null, 0);
+            Peer p = new Peer(new TcpClient(), null, null, port, 0, _accountService);
             
             var (_, handshake) = NetworkTestHelpers.CreateKeyPairAndHandshake(port);
             
@@ -59,8 +66,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
 
-            ECKeyPair kp = new KeyPairGenerator().Generate();
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, kp, 0);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, peerPort, 0, _accountService);
 
             Message authMessage = null;
             messageWritter.Setup(w => w.EnqueueMessage(It.IsAny<Message>(), It.IsAny<Action<Message>>())).Callback<Message, Action<Message>>((m, a) => authMessage = m);
@@ -83,8 +89,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            ECKeyPair key = new KeyPairGenerator().Generate();
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, key, 0);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, 1234, 0, _accountService);
             p.AuthTimeout = 100;
 
             AuthFinishedArgs authFinishedArgs = null;
@@ -117,8 +122,7 @@ namespace AElf.Network.Tests
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
-            ECKeyPair key = new KeyPairGenerator().Generate();
-            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, localPort, key, 0);
+            Peer p = new Peer(new TcpClient(), reader.Object, messageWritter.Object, localPort, 0, _accountService);
             p.AuthTimeout = 10000;
             
             AuthFinishedArgs authFinishedArgs = null;

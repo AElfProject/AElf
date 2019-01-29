@@ -12,6 +12,7 @@ using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.ABI;
 using AElf.Kernel.Types;
+using AElf.SmartContract.Contexts;
 using AElf.Types.CSharp;
 using Akka.Util.Internal;
 using Volo.Abp.DependencyInjection;
@@ -23,17 +24,21 @@ namespace AElf.SmartContract
     {
         private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
-        private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools = new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        private readonly IStateManager _stateManager;
+
+        private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
+            new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+
+        private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IChainService _chainService;
 
-        public SmartContractService(ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer, IStateManager stateManager,
+        public SmartContractService(ISmartContractManager smartContractManager,
+            ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IFunctionMetadataService functionMetadataService, IChainService chainService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _stateManager = stateManager;
+            _stateProviderFactory = stateProviderFactory;
             _functionMetadataService = functionMetadataService;
             _chainService = chainService;
         }
@@ -94,20 +99,20 @@ namespace AElf.SmartContract
 
             // get account dataprovider
             var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
-            dataProvider.StateManager = _stateManager;
+            dataProvider.StateManager = _stateProviderFactory.CreateStateManager();
             // run smartcontract executive info and return executive
 
             executive = await runner.RunAsync(reg);
             executive.ContractHash = reg.ContractHash;
-            executive.SetStateManager(_stateManager);
-            
+            executive.SetStateProviderFactory(_stateProviderFactory);
+
             executive.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = chainId,
                 ContractAddress = contractAddress,
                 DataProvider = dataProvider,
                 SmartContractService = this,
-                ChainService=_chainService
+                ChainService = _chainService
             });
 
             return executive;
@@ -116,12 +121,12 @@ namespace AElf.SmartContract
         public async Task PutExecutiveAsync(int chainId, Address account, IExecutive executive)
         {
             executive.SetTransactionContext(new TransactionContext()
+            {
+                Transaction = new Transaction()
                 {
-                    Transaction = new Transaction()
-                    {
-                        To = account // This is to ensure that the contract has same address
-                    }
-                });
+                    To = account // This is to ensure that the contract has same address
+                }
+            });
             executive.SetDataCache(new Dictionary<StatePath, StateCache>());
             (await GetPoolForAsync(chainId, account)).Add(executive);
 
@@ -135,6 +140,7 @@ namespace AElf.SmartContract
             {
                 throw new NotSupportedException($"Runner for category {registration.Category} is not registered.");
             }
+
             return runner.GetContractType(registration);
         }
 
@@ -196,13 +202,12 @@ namespace AElf.SmartContract
 //            // deserialize
 //            return method.DeserializeParams(parameters);
 //        }
-
         private IMessage GetAbiAsync(SmartContractRegistration reg)
         {
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
             return runner.GetAbi(reg);
         }
-        
+
         public async Task DeployZeroContractAsync(int chainId, SmartContractRegistration registration)
         {
             registration.ContractHash = Hash.FromMessage(ContractHelpers.GetGenesisBasicContractAddress(chainId));
@@ -212,8 +217,10 @@ namespace AElf.SmartContract
 
         public async Task<Address> DeploySystemContractAsync(int chainId, SmartContractRegistration registration)
         {
-            var result = await CallContractAsync(false, chainId, ContractHelpers.GetGenesisBasicContractAddress(chainId),
-                "InitSmartContract", registration.SerialNumber, registration.Category, registration.ContractBytes.ToByteArray());
+            var result = await CallContractAsync(false, chainId,
+                ContractHelpers.GetGenesisBasicContractAddress(chainId),
+                "InitSmartContract", registration.SerialNumber, registration.Category,
+                registration.ContractBytes.ToByteArray());
 
             return result.DeserializeToPbMessage<Address>();
         }
@@ -233,8 +240,9 @@ namespace AElf.SmartContract
             };
 
             var executive = await GetExecutiveAsync(contractAddress, chainId);
+            var stateManager = _stateProviderFactory.CreateStateManager();
             var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
-            dataProvider.StateManager = _stateManager;
+            dataProvider.StateManager = stateManager;
             executive.SetDataCache(dataProvider.StateCache);
             try
             {
@@ -249,7 +257,7 @@ namespace AElf.SmartContract
             {
                 if (smartContractContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
                 {
-                    await smartContractContext.Trace.SmartCommitChangesAsync(_stateManager);
+                    await smartContractContext.Trace.SmartCommitChangesAsync(stateManager);
                 }
             }
 
