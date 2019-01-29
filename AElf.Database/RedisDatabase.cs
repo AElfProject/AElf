@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
-using NServiceKit.Redis;
 using Volo.Abp;
 
 namespace AElf.Database
@@ -9,7 +8,7 @@ namespace AElf.Database
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        private readonly PooledRedisClientManager _pooledRedisLite;
+        private readonly PooledRedisLite _pooledRedisLite;
 
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
@@ -17,33 +16,32 @@ namespace AElf.Database
 
             var endpoint = options.ConnectionString.ToRedisEndpoint();
 
-            _pooledRedisLite = new PooledRedisClientManager($"{endpoint.Host}:{endpoint.Port}");
+            _pooledRedisLite = new PooledRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
         }
 
         public bool IsConnected()
         {
-            return _pooledRedisLite.GetCacheClient().Set("Ping", "");
+            return _pooledRedisLite.Ping();
         }
-
 
         public async Task<byte[]> GetAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await Task.Run(() => _pooledRedisLite.GetCacheClient().Get<byte[]>(key));
+            return await Task.Run(() => _pooledRedisLite.Get(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
 
-            await Task.Run(() => _pooledRedisLite.GetCacheClient().Set(key, bytes));
+            await Task.Run(() => _pooledRedisLite.Set(key, bytes));
         }
 
         public async Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
 
-            await Task.Run(() => _pooledRedisLite.GetCacheClient().Remove(key));
+            await Task.Run(() => _pooledRedisLite.Remove(key));
         }
 
         public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
@@ -55,7 +53,7 @@ namespace AElf.Database
 
             await Task.Run(() =>
             {
-                _pooledRedisLite.GetCacheClient().SetAll(cache);
+                _pooledRedisLite.SetAll(cache);
                 return true;
             });
         }
