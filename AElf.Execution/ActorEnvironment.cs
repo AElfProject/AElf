@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,10 +10,10 @@ using Akka.Configuration;
 using Akka.Routing;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Configuration;
 using AElf.Execution;
 using AElf.Execution.Execution;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Execution
 {
@@ -23,6 +24,7 @@ namespace AElf.Execution
         private IActorRef _router;
         private IActorRef _requestor;
         private readonly ServicePack _servicePack;
+        private readonly ExecutionOptions _executionOptions;
 
         public bool Initialized { get; private set; }
 
@@ -41,17 +43,18 @@ namespace AElf.Execution
             }
         }
 
-        public ActorEnvironment(ServicePack servicePack)
+        public ActorEnvironment(ServicePack servicePack, IOptionsSnapshot<ExecutionOptions> options)
         {
             _servicePack = servicePack;
+            _executionOptions = options.Value;
             Initialized = false;
         }
 
         public void InitActorSystem()
         {
-            if (ActorConfig.Instance.IsCluster)
+            if (_executionOptions.IsCluster)
             {
-                var config = PrepareActorConfig(ActorConfig.Instance.MasterHoconConfig);
+                var config = PrepareActorConfig(File.ReadAllText("akka-master.hocon"));
 
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 //Todo waiting for join cluster. we should get the status here.
@@ -60,7 +63,7 @@ namespace AElf.Execution
             }
             else
             {
-                var config = PrepareActorConfig(ActorConfig.Instance.SingleHoconConfig);
+                var config = PrepareActorConfig(File.ReadAllText("akka-single.hocon"));
 
                 _actorSystem = ActorSystem.Create(SystemName, config);
                 _router = _actorSystem.ActorOf(Props.Empty.WithRouter(FromConfig.Instance), "router");
@@ -77,7 +80,7 @@ namespace AElf.Execution
 
         private void InitLocalWorkers()
         {
-            for (var i = 0; i < ActorConfig.Instance.ActorCount; i++)
+            for (var i = 0; i < _executionOptions.ActorCount; i++)
             {
                 var worker = _actorSystem.ActorOf(Props.Create<Worker>(), "worker" + i);
                 worker.Tell(new LocalSerivcePack(_servicePack));
@@ -86,28 +89,28 @@ namespace AElf.Execution
 
         #region static method
 
-        private static Config PrepareActorConfig(string content)
+        private Config PrepareActorConfig(string content)
         {
-            if (ActorConfig.Instance.Seeds == null || ActorConfig.Instance.Seeds.Count == 0)
+            if (_executionOptions.Seeds == null || _executionOptions.Seeds.Count == 0)
             {
-                ActorConfig.Instance.Seeds = new List<SeedNode>
+                _executionOptions.Seeds = new List<SeedNode>
                 {
-                    new SeedNode {HostName = ActorConfig.Instance.HostName, Port = ActorConfig.Instance.Port}
+                    new SeedNode {HostName = _executionOptions.HostName, Port = _executionOptions.Port}
                 };
             }
 
             var seeds = string.Join(",",
-                ActorConfig.Instance.Seeds.Select(s => $@"""akka.tcp://{SystemName}@{s.HostName}:{s.Port}"""));
+                _executionOptions.Seeds.Select(s => $@"""akka.tcp://{SystemName}@{s.HostName}:{s.Port}"""));
             var seedsString = $"akka.cluster.seed-nodes = [{seeds}]";
 
             var paths = string.Join(",",
-                Enumerable.Range(0, ActorConfig.Instance.ActorCount).Select(i => $@"""/user/worker{i}"""));
+                Enumerable.Range(0, _executionOptions.ActorCount).Select(i => $@"""/user/worker{i}"""));
             var pathsString = $"akka.actor.deployment./router.routees.paths = [{paths}]";
 
             var config = ConfigurationFactory
-                .ParseString($"akka.remote.dot-netty.tcp.hostname = {ActorConfig.Instance.HostName}")
+                .ParseString($"akka.remote.dot-netty.tcp.hostname = {_executionOptions.HostName}")
                 .WithFallback(
-                    ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.port = {ActorConfig.Instance.Port}"))
+                    ConfigurationFactory.ParseString($"akka.remote.dot-netty.tcp.port = {_executionOptions.Port}"))
                 .WithFallback(ConfigurationFactory.ParseString(seedsString))
                 .WithFallback(ConfigurationFactory.ParseString(pathsString))
                 .WithFallback(content);

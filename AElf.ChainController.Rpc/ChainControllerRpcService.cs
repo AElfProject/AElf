@@ -435,8 +435,17 @@ namespace AElf.ChainController.Rpc
             {
                 var transaction = receipt.Transaction;
                 txInfo = transaction.GetTransactionInfo();
-                ((JObject) txInfo["tx"]).Add("params",
-                    string.Join(", ", await this.GetTransactionParameters(transaction)));
+                try
+                {
+                    ((JObject) txInfo["tx"]).Add("params",
+                        (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction))
+                    );
+                }
+                catch (Exception)
+                {
+                    // Ignore for now
+                }
+
                 ((JObject) txInfo["tx"]).Add("SignatureState", receipt.SignatureSt.ToString());
                 ((JObject) txInfo["tx"]).Add("RefBlockState", receipt.RefBlockSt.ToString());
                 ((JObject) txInfo["tx"]).Add("ExecutionState", receipt.Status.ToString());
@@ -466,6 +475,8 @@ namespace AElf.ChainController.Rpc
             
             if (txResult.Status == Status.Mined)
             {
+                response["Bloom"] = txResult.Bloom.ToByteArray().ToHex();
+                response["Logs"] = (JArray) JsonConvert.DeserializeObject(txResult.Logs.ToString());
                 response["block_number"] = txResult.BlockNumber;
                 response["block_hash"] = txResult.BlockHash.ToHex();
                 response["return_type"] = txtrc?.RetVal.Type.ToString();
@@ -536,6 +547,7 @@ namespace AElf.ChainController.Rpc
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),
+                        ["Bloom"] = blockinfo.Header.Bloom.ToByteArray().ToHex()
                         //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                     },
                     ["Body"] = new JObject

@@ -15,7 +15,7 @@ using Org.BouncyCastle.Security;
 
 namespace AElf.Cryptography
 {
-    public class AElfKeyStore //: IKeyStore
+    public class AElfKeyStore : IKeyStore
     {
         private static readonly SecureRandom _random = new SecureRandom();
 

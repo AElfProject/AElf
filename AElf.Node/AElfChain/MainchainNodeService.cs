@@ -9,7 +9,9 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Miner.TxMemPool;
 using AElf.Node.Consensus;
@@ -33,12 +35,11 @@ namespace AElf.Node.AElfChain
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
+        private readonly IAccountService _accountService;
 
         private IBlockChain _blockChain;
         
         private IConsensus _consensus;
-
-        private ECKeyPair _nodeKeyPair;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -51,8 +52,8 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IMiner miner,
-            IConsensus consensus
-            
+            IConsensus consensus,
+            IAccountService accountService
             )
         {
             _chainCreationService = chainCreationService;
@@ -62,6 +63,7 @@ namespace AElf.Node.AElfChain
             _consensus = consensus;
             _miner = miner;
             _blockSynchronizer = blockSynchronizer;
+            _accountService = accountService;
         }
 
         #region Genesis Contracts
@@ -100,10 +102,7 @@ namespace AElf.Node.AElfChain
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-            
-            NodeConfig.Instance.ECKeyPair = conf.KeyPair; // todo config should not be set here 
-            _nodeKeyPair = conf.KeyPair;
-            
+                        
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
                 await _txHub.AddTransactionAsync(inTx.Transaction);
@@ -152,8 +151,8 @@ namespace AElf.Node.AElfChain
             _blockSynchronizer.Init();
 
             _txHub.Start();
-
-            _consensus?.Start(NodeConfig.Instance.IsMiner);
+            
+            _consensus?.Start(true);
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });

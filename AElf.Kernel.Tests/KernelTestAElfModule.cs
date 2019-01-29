@@ -9,7 +9,6 @@ using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Execution;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner;
 using AElf.Miner.Rpc;
 using AElf.Miner.TxMemPool;
@@ -38,6 +37,13 @@ namespace AElf.Kernel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            //TODO: should not be here.because execution tests in this test project.
+            Configure<ExecutionOptions>(o =>
+            {
+                o.ActorCount = 8;
+                o.ConcurrencyLevel = 8;
+            });
+            
             var services = context.Services;
             
             //should move out of this project
@@ -52,7 +58,6 @@ namespace AElf.Kernel.Tests
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             //init test data here
-            NodeConfig.Instance.NodeAccount = Address.FromString("ELF_TestContractA").GetFormatted();
         }
     }
 }

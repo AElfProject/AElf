@@ -6,18 +6,17 @@ using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
-using AElf.Miner.Tests;
 using Google.Protobuf;
 using Xunit;
-using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Moq;
 using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.Account;
+using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 using Easy.MessageHub;
@@ -39,10 +38,12 @@ public sealed class MinerLifetimeTests : MinerTestBase
         }
 
         private MockSetup _mock;
+        private IAccountService _accountService;
 
         public MinerLifetimeTests()
         {
             _mock = GetRequiredService<MockSetup>();
+            _accountService = GetRequiredService<IAccountService>();
         }
 
         public byte[] ExampleContractCode
@@ -179,9 +180,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             var chain = await _mock.CreateChain();
             var minerconfig = _mock.GetMinerConfig(chain.Id);
-
-            NodeConfig.Instance.NodeAccount = minerAddress.GetFormatted();
-            NodeConfig.Instance.ECKeyPair = minerKeypair;
             
             var txHub = _mock.CreateAndInitTxHub();
             txHub.Start();
@@ -205,8 +203,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
             
-            ECVerifier verifier = new ECVerifier();
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
+            Assert.True(await _accountService.VerifySignatureAsync(block.Header.Sig.ToByteArray(),
+                block.Header.GetHash().DumpByteArray())); 
         }
 
         [Fact(Skip = "ChainId changed")]
@@ -214,7 +212,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
         {
             var chain = await _mock.CreateChain();
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
-            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
@@ -226,8 +223,9 @@ public sealed class MinerLifetimeTests : MinerTestBase
             block.Body.TransactionList.Add(txs[0]);
             block.Body.TransactionList.Add(txs[2]);
             block.FillTxsMerkleTreeRootInHeader();
-            block.Body.BlockHeader = block.Header.GetHash();
-            block.Sign(new KeyPairGenerator().Generate());
+            block.Body.BlockHeader = block.Header.GetHash();            
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            block.Sign(publicKey, data => _accountService.SignAsync(data));
 
             var manager = _mock.MinerClientManager();
             var blockExecutor = _mock.GetBlockExecutor(manager);

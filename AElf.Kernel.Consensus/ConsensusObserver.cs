@@ -29,7 +29,9 @@ namespace AElf.Kernel.Consensus
 
         private int Interval => ConsensusConfig.Instance.DPoSMiningInterval;
 
-        public ConsensusObserver(params Func<Task>[] miningFunctions)
+        private readonly string _publicKey;
+
+        public ConsensusObserver(string publicKey, params Func<Task>[] miningFunctions)
         {
             if (miningFunctions.Length != 5)
             {
@@ -43,6 +45,8 @@ namespace AElf.Kernel.Consensus
             _broadcastInValue = miningFunctions[2];
             _nextRound = miningFunctions[3];
             _nextTerm = miningFunctions[4];
+
+            _publicKey = publicKey;
         }
 
         public void OnCompleted()
@@ -131,17 +135,15 @@ namespace AElf.Kernel.Consensus
                 Logger.LogTrace(key);
             }
 
-            var publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
-
-            if (!roundInformation.RealTimeMinersInfo.ContainsKey(publicKey))
+            if (!roundInformation.RealTimeMinersInfo.ContainsKey(_publicKey))
             {
-                Logger.LogTrace($"This node isn't current miner: {publicKey}");
+                Logger.LogTrace($"This node isn't current miner: {_publicKey}");
                 return null;
             }
 
             Logger.LogTrace("Start - Subscribe consensus events.");
 
-            var profile = roundInformation.RealTimeMinersInfo[publicKey];
+            var profile = roundInformation.RealTimeMinersInfo[_publicKey];
             var extraBlockTimeSlot = roundInformation.GetEBPMiningTime(Interval).ToTimestamp();
             var myMiningTime = profile.ExpectedMiningTime;
 

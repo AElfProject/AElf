@@ -24,25 +24,6 @@ namespace AElf.Concurrency.Worker
 
         static void Main(string[] args)
         {
-            //TODO! use abp bootstrap
-
-
-            var confParser = new ConfigParser();
-            bool parsed;
-            try
-            {
-                parsed = confParser.Parse(args);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Exception while parse config.");
-                throw;
-            }
-
-            if (!parsed)
-                return;
-
-
             using (var application = AbpApplicationFactory.Create<WorkerConcurrencyAElfModule>(options =>
             {
                 options.UseAutofac();
@@ -58,9 +39,6 @@ namespace AElf.Concurrency.Worker
                 Console.CancelKeyPress += async (sender, eventArgs) => { await service.StopAsync(); };
                 service.TerminationHandle.Wait();
             }
-
         }
-
-
     }
 }

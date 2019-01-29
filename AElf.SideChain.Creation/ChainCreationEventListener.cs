@@ -15,8 +15,10 @@ using Google.Protobuf;
 using AElf.Kernel.Managers;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.SideChain.Creation
 {
@@ -30,9 +32,11 @@ namespace AElf.SideChain.Creation
         private LogEvent _interestedLogEvent;
         private Bloom _bloom;
         private IChainManager _chainManager;
+        private DeployOptions _deployOptions;
 
         public ChainCreationEventListener( ITransactionResultManager transactionResultManager, 
-            IChainCreationService chainCreationService, IChainManager chainManager)
+            IChainCreationService chainCreationService, IChainManager chainManager, 
+            IOptionsSnapshot<DeployOptions> options)
         {
             Logger = NullLogger<ChainCreationEventListener>.Instance;
             TransactionResultManager = transactionResultManager;
@@ -47,6 +51,7 @@ namespace AElf.SideChain.Creation
                 }
             };
             _bloom = _interestedLogEvent.GetBloom();
+            _deployOptions = options.Value;
             InitializeClient();
         }
 
@@ -129,20 +134,20 @@ namespace AElf.SideChain.Creation
 
         private void InitializeClient()
         {
-            if (string.IsNullOrWhiteSpace(NodeConfig.Instance.DeployServicePath))
+            if (string.IsNullOrWhiteSpace(_deployOptions.DeployServiceUrl))
             {
                 Logger.LogError("Must set the path of deploy Service");
                 return;
             }
 
-            _client = new HttpClient {BaseAddress = new Uri(NodeConfig.Instance.DeployServicePath)};
+            _client = new HttpClient {BaseAddress = new Uri(_deployOptions.DeployServiceUrl    )};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     
         private async Task<HttpResponseMessage> SendChainDeploymentRequestFor(int sideChainId, int parentChainId)
         {
             var chainId = parentChainId.DumpBase58();
-            var endpoint = NodeConfig.Instance.DeployServicePath.TrimEnd('/') + "/" + chainId;
+            var endpoint = _deployOptions.DeployServiceUrl.TrimEnd('/') + "/" + chainId;
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
             var deployArg = new DeployArg();
             deployArg.SideChainId = sideChainId.DumpBase58();

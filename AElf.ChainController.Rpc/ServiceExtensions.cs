@@ -11,6 +11,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
+using Org.BouncyCastle.Bcpg;
 using Newtonsoft.Json.Linq;
 using Svc = AElf.ChainController.Rpc.ChainControllerRpcService;
 
@@ -171,16 +172,26 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static async Task<IEnumerable<string>> GetTransactionParameters(this Svc s, Transaction tx)
+        internal static async Task<string> GetTransactionParameters(this Svc s, Transaction tx)
         {
+            int chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
+            Address address = tx.To;
+            IExecutive executive = null;
+            string output = String.Empty;
             try
             {
-                return await s.SmartContractService.GetInvokingParams(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),tx);
+                executive = await s.SmartContractService.GetExecutiveAsync(address, chainId);
+                output =  executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
-            catch (Exception)
+            finally
             {
-                return new List<string>();
+                if (executive != null)
+                {
+                    await s.SmartContractService.PutExecutiveAsync(chainId, address, executive);    
+                }
             }
+
+            return output;
         }
 
         internal static async Task<ulong> GetCurrentChainHeight(this Svc s)

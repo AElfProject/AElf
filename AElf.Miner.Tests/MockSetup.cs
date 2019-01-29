@@ -18,11 +18,13 @@ using Moq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
+using AElf.Kernel.Account;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types.Transaction;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
+using AElf.SmartContract.Contexts;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
@@ -37,71 +39,50 @@ namespace AElf.Miner.Tests
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
         private List<IBlockHeader> _sideChainHeaders = new List<IBlockHeader>();
         private List<IBlock> _blocks = new List<IBlock>();
-        public ILogger<MockSetup> Logger {get;set;}
+        public ILogger<MockSetup> Logger { get; set; }
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
-        private ISmartContractManager _smartContractManager;
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ITransactionManager _transactionManager;
         private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
-        private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
-        private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private IChainContextService _chainContextService;
-        private ITxSignatureVerifier _signatureVerifier;
         private ITxRefBlockValidator _refBlockValidator;
-        private IChainManager _chainManager;
-        private IBlockManager _blockManager;
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
+        private readonly TransactionFilter _transactionFilter;
+        private readonly ConsensusDataProvider _consensusDataProvider;
+        private readonly IAccountService _accountService;
 
         public MockSetup(IStateManager stateManager,
-            ITxSignatureVerifier signatureVerifier, ITxRefBlockValidator refBlockValidator,
-            IBlockManager blockManager, ISmartContractManager smartContractManager,
-            ITransactionReceiptManager transactionReceiptManager,ITransactionResultManager transactionResultManager, 
-            ITransactionTraceManager transactionTraceManager,IChainManager chainManager,IFunctionMetadataService functionMetadataService,
-            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager)
+            ITxRefBlockValidator refBlockValidator,
+            ITransactionReceiptManager transactionReceiptManager, ITransactionResultManager transactionResultManager,
+            ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
+            IChainService chainService, IExecutingService executingService,
+            IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
+            ConsensusDataProvider consensusDataProvider, IAccountService accountService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
-            _signatureVerifier = signatureVerifier;
             _refBlockValidator = refBlockValidator;
-            _blockManager = blockManager;
-            _smartContractManager = smartContractManager;
             _transactionReceiptManager = transactionReceiptManager;
             _transactionResultManager = transactionResultManager;
-            _transactionTraceManager = transactionTraceManager;
-            _chainManager = chainManager;
-            _functionMetadataService = functionMetadataService;
             _transactionManager = transactionManager;
             _stateManager = stateManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
+            _chainService = chainService;
+            _concurrencyExecutingService = executingService;
+            _chainCreationService = chainCreationService;
+            _transactionFilter = transactionFilter;
+            _consensusDataProvider = consensusDataProvider;
+            _accountService = accountService;
             Initialize();
         }
 
         private void Initialize()
         {
-            _chainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _stateManager);
-            _smartContractRunnerContainer = new SmartContractRunnerContainer();
-            /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerContainer.AddRunner(0, runner);*/
-            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-            _smartContractRunnerContainer.AddRunner(0, runner);
-            _concurrencyExecutingService = new NoFeeSimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
-                    _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
-                new ChainContextService(_chainService));
-
-            _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    _stateManager, _functionMetadataService, _chainService));
-
-            _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
             _electionInfo = new ElectionInfo(_stateManager);
         }
@@ -112,14 +93,17 @@ namespace AElf.Miner.Tests
         {
             get
             {
-                var filePath = Path.GetFullPath("../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
+                var filePath =
+                    Path.GetFullPath(
+                        "../../../../AElf.Contracts.CrossChain/bin/Debug/netstandard2.0/AElf.Contracts.CrossChain.dll");
                 return File.ReadAllBytes(filePath);
             }
         }
+
         public async Task<IChain> CreateChain()
-        {            
+        {
             var chainId = ChainHelpers.GetRandomChainId();
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = 0,
@@ -143,7 +127,8 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager);
+                MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
+                _accountService);
 
             return miner;
         }
@@ -152,7 +137,8 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, _electionInfo), _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
+                _consensusDataProvider);
 
             return blockExecutor;
         }
@@ -161,27 +147,30 @@ namespace AElf.Miner.Tests
         {
             return _chainService.GetBlockChain(chainId);
         }
-        
+
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _signatureVerifier, _refBlockValidator, _electionInfo);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo);
             hub.Initialize();
             return hub;
         }
 
         public IMinerConfig GetMinerConfig(int chainId)
         {
-            return new MinerConfig { ChainId = chainId };
+            return new MinerConfig {ChainId = chainId};
         }
 
         private Mock<ILightChain> MockLightChain()
         {
             Mock<ILightChain> mock = new Mock<ILightChain>();
-            mock.Setup(lc => lc.GetCurrentBlockHeightAsync()).Returns(Task.FromResult((ulong)_headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
+            mock.Setup(lc => lc.GetCurrentBlockHeightAsync())
+                .Returns(Task.FromResult((ulong) _headers.Count - 1 + GlobalConfig.GenesisBlockHeight));
             mock.Setup(lc => lc.GetHeaderByHeightAsync(It.IsAny<ulong>()))
                 .Returns<ulong>(p =>
                 {
-                    return (int)p > _sideChainHeaders.Count ? null :Task.FromResult(_sideChainHeaders[(int) p - 1]);
+                    return (int) p > _sideChainHeaders.Count
+                        ? null
+                        : Task.FromResult(_sideChainHeaders[(int) p - 1]);
                 });
 
             return mock;
@@ -233,15 +222,15 @@ namespace AElf.Miner.Tests
                 BlockHeaderHash = Hash.Generate()
             };
         }
-        
+
         public Mock<IBlock> MockBlock(IBlockHeader header, IBlockBody body)
         {
             Mock<IBlock> mock = new Mock<IBlock>();
-            mock.Setup(b => b.Header).Returns((BlockHeader)header);
-            mock.Setup(b => b.Body).Returns((BlockBody)body);
+            mock.Setup(b => b.Header).Returns((BlockHeader) header);
+            mock.Setup(b => b.Body).Returns((BlockBody) body);
             return mock;
         }
-        
+
         public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServer()
         {
             return new ParentChainBlockInfoRpcServer(MockChainService().Object, MockCrossChainInfoReader().Object);
@@ -251,12 +240,12 @@ namespace AElf.Miner.Tests
         {
             return new SideChainBlockInfoRpcServer(MockChainService().Object);
         }
-        
+
         public ServerManager ServerManager(ParentChainBlockInfoRpcServer impl1, SideChainBlockInfoRpcServer impl2)
         {
             return new ServerManager(impl1, impl2);
         }
-        
+
         public Mock<IChainManager> MockChainManager()
         {
             var mock = new Mock<IChainManager>();
@@ -280,6 +269,7 @@ namespace AElf.Miner.Tests
         }
 
         public ulong GetTimes = 0;
+
         private Mock<ICrossChainInfoReader> MockCrossChainInfoReader()
         {
             var mock = new Mock<ICrossChainInfoReader>();
@@ -291,18 +281,18 @@ namespace AElf.Miner.Tests
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
                 return Task.FromResult(binaryMerkleTree);
             });*/
-            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>())).Returns<Hash>(chainId => Task.FromResult(GetTimes));
+            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>()))
+                .Returns<Hash>(chainId => Task.FromResult(GetTimes));
             return mock;
         }
 
         public void MockKeyPair(int chainId, string dir)
         {
-            
             var certificateStore = new CertificateStore(dir);
             var name = chainId.DumpBase58();
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
-        
+
         public Hash MockSideChainServer(int port, string address, string dir)
         {
             _sideChainHeaders = new List<IBlockHeader>
@@ -311,24 +301,23 @@ namespace AElf.Miner.Tests
                 MockBlockHeader(),
                 MockBlockHeader()
             };
-            
+
             var sideChainId = ChainHelpers.GetRandomChainId();
             ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
-            
+
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.SideChainServer = true;
             //start server, sidechain is server-side
-            
+
             return sideChainId;
         }
 
-        public Hash MockParentChainServer(int port, string address, string dir, int? chainId=0)
+        public Hash MockParentChainServer(int port, string address, string dir, int? chainId = 0)
         {
-            
-            chainId = chainId??ChainHelpers.GetRandomChainId();
-            
+            chainId = chainId ?? ChainHelpers.GetRandomChainId();
+
             _headers = new List<IBlockHeader>
             {
                 MockBlockHeader(),
@@ -348,7 +337,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
             ChainConfig.Instance.ChainId = chainId.Value.DumpBase58();
-            
+
             return chainId;
         }
 
@@ -359,10 +348,10 @@ namespace AElf.Miner.Tests
                 .Returns(() => Task.FromResult(BlockValidationResult.Success));
             return mock;
         }
-        
+
         public void ClearDirectory(string dir)
         {
-            if(Directory.Exists(Path.Combine(dir, "certs")))
+            if (Directory.Exists(Path.Combine(dir, "certs")))
                 Directory.Delete(Path.Combine(dir, "certs"), true);
         }
     }
