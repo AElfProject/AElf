@@ -54,7 +54,7 @@ namespace AElf.Execution
             else
             {
                 //disable parallel module by default because it doesn't finish yet (don't support contract call)
-                if (NodeConfig.Instance.ExecutorType == "akka")
+                if (_executionOptions.ExecutorType == "akka")
                 {
                     var groupRes = await _grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins,
                         _executionOptions.ConcurrencyLevel, chainId, transactions);

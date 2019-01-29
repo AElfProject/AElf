@@ -197,10 +197,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public void Init()
         {
             if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
-                throw new InvalidOperationException("Chain id cannot be empty...");            
-            
-            if (NodeConfig.Instance?.ECKeyPair?.PublicKey == null)
-                throw new InvalidOperationException("Node key pair cannot be empty...");
+                throw new InvalidOperationException("Chain id cannot be empty...");
             
             try
             {
