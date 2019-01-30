@@ -4,12 +4,11 @@ using Grpc.Core;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcClientConnectedWithParentChain : GrpcCrossChainClient<ResponseParentChainBlockInfo>
+    public class GrpcParentChainBlockInfoRpcClient : GrpcCrossChainClient<ResponseParentChainBlockInfo>
     {
         private readonly ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient _client;
 
-        public GrpcClientConnectedWithParentChain(Channel channel, int interval,  int irreversible, int maximalIndexingCount) 
-            : base(channel, interval, irreversible, maximalIndexingCount)
+        public GrpcParentChainBlockInfoRpcClient(Channel channel, ClientBase clientBase) : base(channel, clientBase)
         {
             _client = new ParentChainBlockInfoRpc.ParentChainBlockInfoRpcClient(channel);
         }

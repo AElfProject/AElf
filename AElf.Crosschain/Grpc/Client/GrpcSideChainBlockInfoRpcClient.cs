@@ -6,12 +6,11 @@ using Grpc.Core;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcClientConnectedWithSideChain : GrpcCrossChainClient<ResponseSideChainBlockInfo>
+    public class GrpcSideChainBlockInfoRpcClient : GrpcCrossChainClient<ResponseSideChainBlockInfo>
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public GrpcClientConnectedWithSideChain(Channel channel, int interval, int irreversible, int maximalIndexingCount) 
-            : base(channel, interval, irreversible, maximalIndexingCount)
+        public GrpcSideChainBlockInfoRpcClient(Channel channel, ClientBase clientBase) : base(channel, clientBase)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }

@@ -11,8 +11,7 @@ namespace AElf.Crosschain.Grpc.Client
         public int TargetChainId { get; set; }
         public ulong TargetChainHeight { get; set; }
         public bool TargetIsSideChain { get; set; }
-
-        public BlockInfoCache BlockInfoCache { get;  } = new BlockInfoCache();
+        public BlockInfoCache BlockInfoCache { get; set; }
 
         public string ToUriStr()
         {
@@ -20,8 +19,10 @@ namespace AElf.Crosschain.Grpc.Client
         }
 
         
-        public bool TryAdd(IBlockInfo blockInfo)
+        public bool AddNewBlockInfo(IBlockInfo blockInfo)
         {
+            if (blockInfo.Height != TargetChainHeight)
+                return false;
             var res = BlockInfoCache.TryAdd(blockInfo);
             if (res)
                 TargetChainHeight = blockInfo.Height + 1;

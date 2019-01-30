@@ -19,10 +19,10 @@ namespace AElf.Crosschain.Grpc.Client
 {
     public class ClientManager
     {
-        private readonly Dictionary<int, GrpcClientConnectedWithSideChain> _clientsToSideChains =
-            new Dictionary<int, GrpcClientConnectedWithSideChain>();
+        private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
+            new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();
 
-        private GrpcClientConnectedWithParentChain _grpcClientConnectedWithParentChain;
+        private GrpcParentChainBlockInfoRpcClient _grpcParentChainBlockInfoRpcClient;
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private CertificateStore _certificateStore;
         public ILogger<ClientManager> Logger {get;set;}
@@ -82,7 +82,7 @@ namespace AElf.Crosschain.Grpc.Client
         /// </summary>
         public void UpdateRequestInterval()
         {
-            _grpcClientConnectedWithParentChain?.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
+            _grpcParentChainBlockInfoRpcClient?.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
             _clientsToSideChains.AsParallel().ToList().ForEach(kv =>
             {
                 kv.Value.UpdateRequestInterval(ConsensusConfig.Instance.DPoSMiningInterval);
@@ -105,7 +105,7 @@ namespace AElf.Crosschain.Grpc.Client
 
         public void CreateClient(ClientBase clientCache)
         {
-            var client = CreateClient(clientCache.ToUriStr(), clientCache.TargetChainId, clientCache.TargetIsSideChain);
+            var client = CreateGrpcClient(clientCache);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
             client.StartDuplexStreamingCall(clientCache.TargetIsSideChain
                 ? _tokenSourceToSideChain.Token
@@ -123,7 +123,7 @@ namespace AElf.Crosschain.Grpc.Client
             //if (_clientsToSideChains.TryGetValue(targetChainId, out var clientToSideChain)) return clientToSideChain;
             try
             {
-                ClientToSideChain clientToSideChain = (ClientToSideChain) CreateClient(uriStr, targetChainId, true);
+                ClientToSideChain clientToSideChain = (ClientToSideChain) CreateGrpcClient(uriStr, targetChainId, true);
                 _clientsToSideChains.Add(targetChainId, clientToSideChain);
                 return clientToSideChain;
             }
@@ -151,7 +151,7 @@ namespace AElf.Crosschain.Grpc.Client
                 if (parent == null || parent.Count == 0)
                     throw new ChainInfoNotFoundException("Unable to get parent chain info.");
                 _clientToParentChain =
-                    (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
+                    (ClientToParentChain) CreateGrpcClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
                 var targetHeight = await GetParentChainTargetHeight();
                 // TODO: maybe improvement for NO wait call
                 var task = _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight);
@@ -168,23 +168,20 @@ namespace AElf.Crosschain.Grpc.Client
         /// Create a new client to parent chain 
         /// </summary>
         /// <returns>
-        /// return <see cref="GrpcClientConnectedWithParentChain"/>> Client is to parent chain if <param name="isClientToSideChain"/> is false.
-        /// return <see cref="GrpcClientConnectedWithSideChain"/>> Client is to side chain if <param name="isClientToSideChain"/> is true. 
+        /// return <see cref="GrpcParentChainBlockInfoRpcClient"/>> Client is to parent chain if <param name="isClientToSideChain"/> is false.
+        /// return <see cref="GrpcSideChainBlockInfoRpcClient"/>> Client is to side chain if <param name="isClientToSideChain"/> is true. 
         /// </returns>    
-        private IGrpcCrossChainClient CreateClient(string uriStr, int targetChainId, bool isClientToSideChain)
+        private IGrpcCrossChainClient CreateGrpcClient(ClientBase clientCache)
         {
-            var channel = CreateChannel(uriStr, targetChainId);
+            var channel = CreateChannel(clientCache.ToUriStr(), clientCache.TargetChainId);
 
-            if (isClientToSideChain)
+            if (clientCache.TargetIsSideChain)
             {
-                var clientToSideChain = new GrpcClientConnectedWithSideChain(channel, _interval,
-                    GlobalConfig.MinimalBlockInfoCacheThreshold, GlobalConfig.MaximalCountForIndexingSideChainBlock);
-                _clientsToSideChains.Add(targetChainId, clientToSideChain);
+                var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, clientCache);
                 return clientToSideChain;
             }
-            _grpcClientConnectedWithParentChain = new GrpcClientConnectedWithParentChain(channel, _interval,
-                GlobalConfig.MinimalBlockInfoCacheThreshold, GlobalConfig.MaximalCountForIndexingParentChainBlock);
-            return _grpcClientConnectedWithParentChain;
+            _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, clientCache);
+            return _grpcParentChainBlockInfoRpcClient;
         }
 
         /// <summary>
@@ -213,7 +210,7 @@ namespace AElf.Crosschain.Grpc.Client
         /// Take each side chain's header info 
         /// </summary>
         /// <returns>
-        /// return the first one cached by every <see cref="GrpcClientConnectedWithSideChain"/> client
+        /// return the first one cached by every <see cref="GrpcSideChainBlockInfoRpcClient"/> client
         /// </returns>
         public async Task<List<SideChainBlockInfo>> CollectSideChainBlockInfo()
         {
@@ -251,13 +248,13 @@ namespace AElf.Crosschain.Grpc.Client
         /// </summary>
         /// <param name="parentChainBlocks"> Mining processing if it is null, otherwise synchronization processing.</param>
         /// <returns>
-        /// return the first one cached by <see cref="GrpcClientConnectedWithParentChain"/>
+        /// return the first one cached by <see cref="GrpcParentChainBlockInfoRpcClient"/>
         /// </returns>
         public async Task<List<ParentChainBlockInfo>> TryGetParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlocks = null)
         {
             if (!GrpcLocalConfig.Instance.ClientToParentChain)
                 throw new ClientShutDownException("Client to parent chain is shut down");
-            if (_grpcClientConnectedWithParentChain == null)
+            if (_grpcParentChainBlockInfoRpcClient == null)
                 return null;
             var chainId = GrpcRemoteConfig.Instance.ParentChain?.ElementAtOrDefault(0).Key;
             if (chainId == null)
@@ -279,7 +276,7 @@ namespace AElf.Crosschain.Grpc.Client
                 if (!isMining && (pcb == null || !pcb.ChainId.Equals(parentChainId) || targetHeight != pcb.Height))
                     return null;
 
-                if (!_grpcClientConnectedWithParentChain.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, isMining))
+                if (!_grpcParentChainBlockInfoRpcClient.TryTake(WaitingIntervalInMillisecond, targetHeight, out var blockInfo, isMining))
                 {
                     // no more available parent chain block info
                     parentChainBlockInfos = isMining && parentChainBlockInfos.Count > 0 ? parentChainBlockInfos : null;
@@ -320,7 +317,7 @@ namespace AElf.Crosschain.Grpc.Client
             _tokenSourceToParentChain?.Dispose();
 
             //Todo: probably not needed
-            _grpcClientConnectedWithParentChain = null;
+            _grpcParentChainBlockInfoRpcClient = null;
         }
     }
 }
