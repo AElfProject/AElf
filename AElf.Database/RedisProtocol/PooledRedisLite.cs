@@ -11,7 +11,9 @@ namespace AElf.Database.RedisProtocol
     */
     public class PooledRedisLite
     {
-        private readonly RedisLite[] _redisLites;
+        private readonly RedisLite[] _writeClients;
+        private readonly RedisLite[] _readOnlyClients;
+
         private int PoolSize { get; }
         private int Db { get; }
         public string Host { get; }
@@ -20,7 +22,8 @@ namespace AElf.Database.RedisProtocol
         public int? PoolTimeout { get; set; }
         public int RecheckPoolAfterMs { get; } = 10;
 
-        private int _poolIndex = 0;
+        private int _writeClientIndex = 0;
+        private int _readOnlyClientIndex = 0;
 
         public PooledRedisLite(string host, int port = 6379, string password = null, int db = 0, int poolSize = 20)
         {
@@ -29,15 +32,20 @@ namespace AElf.Database.RedisProtocol
             PoolSize = poolSize;
             Db = db;
             Password = password;
-            _redisLites = new RedisLite[PoolSize];
+
+            // Init clients
+            _writeClients = new RedisLite[PoolSize];
+            _readOnlyClients = new RedisLite[PoolSize];
             for (var i = 0; i < poolSize; i++)
             {
-                _redisLites[i] = new RedisLite(host, port, Password, db);
+                _writeClients[i] = new RedisLite(host, port, Password, db);
+                _readOnlyClients[i] = new RedisLite(host, port, Password, db);
             }
         }
+
         public bool Ping()
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient(true))
             {
                 return client.Ping();
             }
@@ -45,7 +53,7 @@ namespace AElf.Database.RedisProtocol
 
         public void Set(string key, string value)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient())
             {
                 client.Set(key, Encoding.UTF8.GetBytes(value));
             }
@@ -53,7 +61,7 @@ namespace AElf.Database.RedisProtocol
 
         public bool Set(string key, byte[] value)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient())
             {
                 client.Set(key, value);
                 return true;
@@ -62,7 +70,7 @@ namespace AElf.Database.RedisProtocol
 
         public void SetAll(IDictionary<string, byte[]> dict)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient())
             {
                 client.MSet(dict.Keys.ToArray().ToMultiByteArray(), dict.Values.ToArray());
             }
@@ -70,7 +78,7 @@ namespace AElf.Database.RedisProtocol
 
         public bool Remove(string key)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient())
             {
                 var success = client.Del(key);
                 return success == RedisLite.Success;
@@ -79,7 +87,7 @@ namespace AElf.Database.RedisProtocol
 
         public byte[] Get(string key)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient(true))
             {
                 return client.Get(key);
             }
@@ -87,30 +95,31 @@ namespace AElf.Database.RedisProtocol
 
         public string GetString(string key)
         {
-            using (var client = GetSimpleRedisLite())
+            using (var client = GetRedisClient(true))
             {
                 return client.Get(key).FromUtf8Bytes();
-
             }
         }
 
-        private RedisLite GetSimpleRedisLite()
+        private RedisLite GetRedisClient(bool readOnly = false)
         {
+            var lockObject = readOnly ? _readOnlyClients : _writeClients;
+
             try
             {
-                lock (_redisLites)
+                lock (lockObject)
                 {
                     RedisLite inActiveClient;
-                    while ((inActiveClient = GetInActiveSimpleRedisLite()) == null)
+                    while ((inActiveClient = GetInActiveRedisClient(readOnly)) == null)
                     {
                         if (PoolTimeout.HasValue)
                         {
                             // wait for a connection, cry out if made to wait too long
-                            if (!Monitor.Wait(_redisLites, PoolTimeout.Value))
+                            if (!Monitor.Wait(lockObject, PoolTimeout.Value))
                                 throw new TimeoutException("Pool timeout error.");
                         }
                         else
-                            Monitor.Wait(_redisLites, RecheckPoolAfterMs);
+                            Monitor.Wait(lockObject, RecheckPoolAfterMs);
                     }
 
                     inActiveClient.Active = true;
@@ -123,26 +132,32 @@ namespace AElf.Database.RedisProtocol
             }
         }
 
-        private RedisLite GetInActiveSimpleRedisLite()
+        private RedisLite GetInActiveRedisClient(bool readOnly = false)
         {
-            var desiredIndex = (_poolIndex) % PoolSize;
-            for (var i = desiredIndex; i < desiredIndex + _redisLites.Length; i++)
+            var desiredIndex = (readOnly ? _readOnlyClientIndex : _writeClientIndex) % PoolSize;
+            var clients = readOnly ? _readOnlyClients : _writeClients;
+
+            for (var i = desiredIndex; i < desiredIndex + clients.Length; i++)
             {
                 var index = i % PoolSize;
-                _poolIndex = index + 1;
 
-                if (_redisLites[index] != null && !_redisLites[index].Active && !_redisLites[index].HadExceptions)
+                if (readOnly)
+                    _readOnlyClientIndex = index + 1;
+                else
+                    _writeClientIndex = index + 1;
+
+                if (clients[index] != null && !clients[index].Active && !clients[index].HadExceptions)
                 {
-                    return _redisLites[index];
+                    return clients[index];
                 }
-                
-                if (_redisLites[index] == null || _redisLites[index].HadExceptions)
+
+                if (clients[index] == null || clients[index].HadExceptions)
                 {
-                    if (_redisLites[index] != null)
-                        _redisLites[index].Dispose();
+                    if (clients[index] != null)
+                        clients[index].Dispose();
                     var client = new RedisLite(Host, Port, Password, Db);
 
-                    _redisLites[index] = client;
+                    clients[index] = client;
                     return client;
                 }
             }

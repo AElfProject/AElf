@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
 using Volo.Abp;
 
+#pragma warning disable 1998
+
 namespace AElf.Database
 {
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
@@ -13,9 +15,7 @@ namespace AElf.Database
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
             Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
-
             var endpoint = options.ConnectionString.ToRedisEndpoint();
-
             _pooledRedisLite = new PooledRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
         }
 
@@ -27,35 +27,26 @@ namespace AElf.Database
         public async Task<byte[]> GetAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await Task.Run(() => _pooledRedisLite.Get(key));
+            return _pooledRedisLite.Get(key);
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-
-            await Task.Run(() => _pooledRedisLite.Set(key, bytes));
+            _pooledRedisLite.Set(key, bytes);
         }
 
         public async Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-
-            await Task.Run(() => _pooledRedisLite.Remove(key));
+            _pooledRedisLite.Remove(key);
         }
 
         public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
-            {
                 return;
-            }
-
-            await Task.Run(() =>
-            {
-                _pooledRedisLite.SetAll(cache);
-                return true;
-            });
+            _pooledRedisLite.SetAll(cache);
         }
     }
 }
