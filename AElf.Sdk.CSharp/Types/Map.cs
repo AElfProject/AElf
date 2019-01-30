@@ -17,11 +17,7 @@ namespace AElf.Sdk.CSharp.Types
         {
             get
             {
-                if (_dataProvider == null)
-                {
-                    _dataProvider = Api.GetDataProvider(Name);
-                }
-
+                _dataProvider = Api.GetDataProvider(Name);
                 return _dataProvider;
             }
         }
