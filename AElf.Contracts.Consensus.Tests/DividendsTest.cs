@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -194,7 +195,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
             {
-                _initialMiners.Add(new KeyPairGenerator().Generate());
+                _initialMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
         }
 
@@ -202,7 +203,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             for (var i = 0; i < CandidatesCount; i++)
             {
-                var keyPair = new KeyPairGenerator().Generate();
+                var keyPair = CryptoHelpers.GenerateKeyPair();
                 _candidates.Add(keyPair);
                 // Enough for him to announce election
                 _contracts.InitialBalance(_initialMiners[0], GetAddress(keyPair), GlobalConfig.LockTokenForElection);
@@ -214,7 +215,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             for (var i = 0; i < VotersCount; i++)
             {
-                var keyPair = new KeyPairGenerator().Generate();
+                var keyPair = CryptoHelpers.GenerateKeyPair();
                 _voters.Add(keyPair);
                 // Send them some tokens to vote.
                 _contracts.InitialBalance(_initialMiners[0], GetAddress(keyPair), 100_000);

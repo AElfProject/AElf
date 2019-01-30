@@ -4,6 +4,7 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Miner.TxMemPool;
 
 namespace AElf.Kernel.Tests
@@ -38,7 +39,7 @@ namespace AElf.Kernel.Tests
         
         public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
-            keyPair = keyPair ?? new KeyPairGenerator().Generate();
+            keyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
 
             var tx = new Transaction();
             tx.From = Address.Generate();
@@ -66,8 +67,7 @@ namespace AElf.Kernel.Tests
             Hash hash = tx.GetHash();
             
             // Sign the hash
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
+            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
             
             // Update the signature
             //todo review probably useless - or a proper sig is needed

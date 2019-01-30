@@ -25,16 +25,7 @@ namespace AElf.Kernel
                     tx.GetHash().DumpByteArray(), out var pubKey);
                 return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
             }
-
-            foreach (var sig in tx.Sigs)
-            {
-                var verifier = new ECVerifier();
-                if (verifier.Verify(new ECSignature(sig.ToByteArray()), tx.GetHash().DumpByteArray()))
-                    continue;
-
-                return false;
-            }
-
+            
             return true;
         }
     }

@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Contracts.TestBase;
+using AElf.Cryptography;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
@@ -229,9 +230,9 @@ namespace AElf.Contracts.Consensus.Tests
             voters = new List<ECKeyPair>();
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
             {
-                initialMiners.Add(new KeyPairGenerator().Generate());
-                candidates.Add(new KeyPairGenerator().Generate());
-                voters.Add(new KeyPairGenerator().Generate());
+                initialMiners.Add(CryptoHelpers.GenerateKeyPair());
+                candidates.Add(CryptoHelpers.GenerateKeyPair());
+                voters.Add(CryptoHelpers.GenerateKeyPair());
             }
 
             contracts = new ContractsShim(_mock, _simpleExecutingService);

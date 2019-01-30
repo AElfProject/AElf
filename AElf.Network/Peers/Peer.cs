@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Timers;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account;
@@ -398,10 +399,8 @@ namespace AElf.Network.Peers
                     = Address.FromPublicKey(DistantPublicKey).GetFormatted();
 
                 // verify sig
-                ECVerifier verifier = new ECVerifier();
-
-                bool sigValid = verifier.Verify(new ECSignature(handshakeMsg.Sig.ToByteArray()),
-                    SHA256.Create().ComputeHash(handshakeMsg.NodeInfo.ToByteArray()));
+                bool sigValid = _accountService.VerifySignatureAsync(handshakeMsg.Sig.ToByteArray(), SHA256.Create()
+                    .ComputeHash(handshakeMsg.NodeInfo.ToByteArray()), DistantPubKey).Result;
 
                 if (!sigValid)
                 {
