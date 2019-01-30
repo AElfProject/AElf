@@ -99,46 +99,6 @@ namespace AElf.Cryptography
             }
         }
 
-        public static bool Verify(byte[] signature, byte[] hash, byte[] pubKey)
-        {
-            try
-            {
-                Lock.AcquireWriterLock(Timeout.Infinite);
-                var recSig = new byte[Secp256k1.UNSERIALIZED_SIGNATURE_SIZE];
-                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                return Secp256K1.Verify(recSig, hash, pubKey);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while Verify", ex);
-            }
-            finally
-            {
-                Lock.ReleaseWriterLock();
-            }
-        }
-
-        public static bool Verify(byte[] signature, byte[] hash)
-        {
-            try
-            {
-                Lock.AcquireWriterLock(Timeout.Infinite);
-                var publicKeyOutput = new byte[Secp256k1.PUBKEY_LENGTH];
-                var recSig = new byte[65];
-                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                Secp256K1.Recover(publicKeyOutput, recSig, hash);
-                return Secp256K1.Verify(recSig, hash, publicKeyOutput);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while Verify", ex);
-            }
-            finally
-            {
-                Lock.ReleaseWriterLock();
-            }
-        }
-
         /// <summary>
         /// Returns a byte array of the specified length, filled with random bytes.
         /// </summary>

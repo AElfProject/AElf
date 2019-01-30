@@ -26,23 +26,22 @@ namespace AElf.RPC.Tests
         typeof(MinerRpcAElfModule),
         typeof(NetRpcAElfModule),
         typeof(RpcWalletAElfModule),
-        
         typeof(CSharpRuntimeAElfModule),
-
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule)
     )]
-    public class TestsRpcAElfModule: AElfModule
+    public class TestsRpcAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             //TODO: here to generate basic chain data
 
-            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o=>o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o=>o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddTransient<IAccountService>(o => Mock.Of<IAccountService>(
-                            c => c.GetAccountAsync() == Task.FromResult(Address.FromString("AELF_Test")) && c
-                                     .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>()) == Task.FromResult(true)));
+                c => c.GetAccountAsync() == Task.FromResult(Address.FromString("AELF_Test")) && c
+                         .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()) ==
+                     Task.FromResult(true)));
         }
     }
 }
