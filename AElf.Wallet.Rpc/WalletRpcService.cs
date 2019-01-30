@@ -90,14 +90,13 @@ namespace AElf.Wallet.Rpc
 
             var toSig = ByteArrayHelpers.FromHexString(hash);
             // Sign the hash
-            var signer = new ECSigner();
-            var signature = signer.Sign(kp, toSig);
+            var signature = CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, toSig);
 
             // TODO: Standardize encoding
             // todo test
             return new JObject
             {
-                ["sig"] = signature.SigBytes
+                ["sig"] = signature
             };
         }
 

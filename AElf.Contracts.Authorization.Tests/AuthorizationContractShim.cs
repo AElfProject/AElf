@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.SmartContract;
 using AElf.Kernel;
@@ -82,10 +83,9 @@ namespace AElf.Contracts.Authorization.Tests
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(proposal))
                 };
                 
-                var signer = new ECSigner();
-                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                var signature = CryptoHelpers.SignWithPrivateKey(sender.PrivateKey, tx.GetHash().DumpByteArray());
                 
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+                tx.Sigs.Add(ByteString.CopyFrom(signature));
                 
                 TransactionContext = new TransactionContext
                 {
@@ -113,10 +113,9 @@ namespace AElf.Contracts.Authorization.Tests
                     MethodName = "SayYes",
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(approval))
                 };
-                var signer = new ECSigner();
-                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                var signature = CryptoHelpers.SignWithPrivateKey(sender.PrivateKey, tx.GetHash().DumpByteArray());
                 
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+                tx.Sigs.Add(ByteString.CopyFrom(signature));
                 TransactionContext = new TransactionContext()
                 {
                     Transaction = tx
@@ -146,10 +145,9 @@ namespace AElf.Contracts.Authorization.Tests
                 {
                     Transaction = tx
                 };
-                var signer = new ECSigner();
-                var signature = signer.Sign(sender, tx.GetHash().DumpByteArray());
+                var signature = CryptoHelpers.SignWithPrivateKey(sender.PrivateKey, tx.GetHash().DumpByteArray());
                 
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+                tx.Sigs.Add(ByteString.CopyFrom(signature));
                 TransactionContext = new TransactionContext()
                 {
                     Transaction = tx
