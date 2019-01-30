@@ -39,7 +39,8 @@ namespace AElf.Miner.Tests
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddTransient<IAccountService>(o => Mock.Of<IAccountService>(
                 c => c.GetAccountAsync() == Task.FromResult(Address.FromString("AELF_Test")) && c
-                         .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>()) == Task.FromResult(true)));
+                         .VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()) ==
+                     Task.FromResult(true)));
         }
 
 

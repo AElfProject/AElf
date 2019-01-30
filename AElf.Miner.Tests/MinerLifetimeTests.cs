@@ -202,9 +202,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
-            
-            Assert.True(await _accountService.VerifySignatureAsync(block.Header.Sig.ToByteArray(),
-                block.Header.GetHash().DumpByteArray())); 
         }
 
         [Fact(Skip = "ChainId changed")]
