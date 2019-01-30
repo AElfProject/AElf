@@ -20,11 +20,21 @@ namespace AElf.Contracts.Token
     {
     }
 
+    public class ChargedFeesMappedState : MappedState<Address, ulong>
+    {
+    }
+
+    public class FeePoolAddress : SingletonState<Address>
+    {
+    }
+
     public class TokenContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         public TokenInfoState TokenInfo { get; set; }
         public BalanceMappedState Balances { get; set; }
         public AllowanceMappedState Allowances { get; set; }
+        public ChargedFeesMappedState ChargedFees { get; set; }
+        public FeePoolAddress FeePoolAddress { get; set; }
     }
 }

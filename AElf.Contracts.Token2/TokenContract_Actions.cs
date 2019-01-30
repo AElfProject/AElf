@@ -1,10 +1,12 @@
 using System;
+using System.Linq;
 using AElf.Common;
+using AElf.Kernel.Types.SmartContract;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Token
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>
+    public partial class TokenContract : CSharpSmartContract<TokenContractState>, IFeeChargedContract, ITokenCotract
     {
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
@@ -76,5 +78,27 @@ namespace AElf.Contracts.Token
                 Amount = amount
             });
         }
+
+        public void ChargeTransactionFees(ulong feeAmount)
+        {
+            var fromAddress = Context.Sender;
+            State.Balances[fromAddress] = State.Balances[fromAddress].Sub(feeAmount);
+            State.ChargedFees[fromAddress] = State.ChargedFees[fromAddress].Sub(feeAmount);
+        }
+
+        public void ClaimTransactionFees(ulong height)
+        {
+            var feePoolAddressNotSet =
+                State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
+            Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
+            var blk = Context.GetBlockByHeight(height);
+            var senders = blk.Body.TransactionList.Select(t => t.From).ToList();
+            var feePool = State.FeePoolAddress.Value;
+            foreach (var sender in senders)
+            {
+                var fee = State.ChargedFees[sender];
+                State.ChargedFees[sender] = 0UL;
+                State.Balances[feePool] = State.Balances[feePool].Add(fee);
+            }
+        }
     }
-}

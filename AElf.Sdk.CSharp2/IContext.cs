@@ -9,6 +9,8 @@ namespace AElf.Sdk.CSharp
         void FireEvent(Event logEvent);
         Address Sender { get; }
         Address Self { get; }
+
+        Block GetBlockByHeight(ulong height);
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //
