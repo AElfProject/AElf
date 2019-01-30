@@ -4,6 +4,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
+using AElf.Kernel.Account;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.SmartContract;
@@ -17,12 +18,14 @@ namespace AElf.Kernel.Consensus
     public class ConsensusDataProvider
     {
         private readonly IStateManager _stateManager;
+        private readonly IAccountService _accountService;
 
         public ILogger<ConsensusDataProvider> Logger { get; set; }
 
-        public ConsensusDataProvider(IStateManager stateManager)
+        public ConsensusDataProvider(IStateManager stateManager, IAccountService accountService)
         {
             _stateManager = stateManager;
+            _accountService = accountService;
         }
 
         
@@ -107,7 +110,7 @@ namespace AElf.Kernel.Consensus
         {
             if (publicKey == null)
             {
-                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
+                publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
             var round = await GetCurrentRoundInfo();
@@ -123,7 +126,7 @@ namespace AElf.Kernel.Consensus
         {
             if (publicKey == null)
             {
-                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
+                publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
             var info = await GetMinerInfo(publicKey);
@@ -134,7 +137,7 @@ namespace AElf.Kernel.Consensus
         {
             if (publicKey == null)
             {
-                publicKey = NodeConfig.Instance.ECKeyPair.PublicKey.ToHex();
+                publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
             var timeSlot = await GetExpectMiningTime(publicKey);

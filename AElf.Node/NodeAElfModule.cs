@@ -33,31 +33,6 @@ namespace AElf.Node
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            ECKeyPair nodeKey = null;
-            if (!string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
-            {
-                try
-                {
-                    var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
-                    var password = string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccountPassword) ? AskInvisible() : NodeConfig.Instance.NodeAccountPassword;
-                    keyStore.OpenAsync(NodeConfig.Instance.NodeAccount, password, false).Wait();
-                    NodeConfig.Instance.NodeAccountPassword = password;
-
-                    nodeKey = keyStore.GetAccountKeyPair(NodeConfig.Instance.NodeAccount);
-                    if (nodeKey == null)
-                    {
-                        Console.WriteLine("Load keystore failed.");
-                        Environment.Exit(-1);
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Load keystore failed.", e);
-                }
-            }
-
-            NodeConfig.Instance.ECKeyPair = nodeKey;
-
             switch (ConsensusConfig.Instance.ConsensusType)
             {
                 case ConsensusType.AElfDPoS:
@@ -75,13 +50,7 @@ namespace AElf.Node
         {
             Console.WriteLine($"Using consensus: {ConsensusConfig.Instance.ConsensusType}");
 
-            if (NodeConfig.Instance.IsMiner && string.IsNullOrWhiteSpace(NodeConfig.Instance.NodeAccount))
-            {
-                throw new Exception("NodeAccount is needed");
-            }
-
             NodeConfiguration confContext = new NodeConfiguration();
-            confContext.KeyPair = NodeConfig.Instance.ECKeyPair;
             confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node).Assembly.Location);
 
             var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
@@ -89,50 +58,6 @@ namespace AElf.Node
             node.Register(mainChainNodeService);
             node.Initialize(confContext);
             node.Start();
-        }
-
-        private static string AskInvisible()
-        {
-            Console.Write("Node account password: ");
-            var securePassword = new SecureString();
-            while (true)
-            {
-                var consoleKeyInfo = Console.ReadKey(true);
-                if (consoleKeyInfo.Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-
-                if (consoleKeyInfo.Key == ConsoleKey.Backspace)
-                {
-                    if (securePassword.Length > 0)
-                    {
-                        securePassword.RemoveAt(securePassword.Length - 1);
-                    }
-                }
-                else
-                {
-                    securePassword.AppendChar(consoleKeyInfo.KeyChar);
-                }
-            }
-
-            Console.WriteLine();
-
-            var intPtr = IntPtr.Zero;
-            try
-            {
-                intPtr = Marshal.SecureStringToGlobalAllocUnicode(securePassword);
-                return Marshal.PtrToStringUni(intPtr);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while get account password.", ex);
-            }
-            finally
-            {
-                if (intPtr != IntPtr.Zero)
-                    Marshal.ZeroFreeGlobalAllocUnicode(intPtr);
-            }
         }
     }
 }
