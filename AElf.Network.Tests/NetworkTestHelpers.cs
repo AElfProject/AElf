@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Network.Data;
 using Google.Protobuf;
@@ -11,18 +12,17 @@ namespace AElf.Network.Tests
     {
         public static (ECKeyPair, Handshake) CreateKeyPairAndHandshake(int port)
         {
-            ECKeyPair key = new KeyPairGenerator().Generate();
+            ECKeyPair key = CryptoHelpers.GenerateKeyPair();
             
             var nodeInfo = new NodeData { Port = port };
             
-            ECSigner signer = new ECSigner();
-            ECSignature sig = signer.Sign(key, SHA256.Create().ComputeHash(nodeInfo.ToByteArray()));
+            var sig = CryptoHelpers.SignWithPrivateKey(key.PrivateKey, SHA256.Create().ComputeHash(nodeInfo.ToByteArray()));
             
             var handshakeMsg = new Handshake
             {
                 NodeInfo = nodeInfo,
                 PublicKey = ByteString.CopyFrom(key.PublicKey),
-                Sig = ByteString.CopyFrom(sig.SigBytes),
+                Sig = ByteString.CopyFrom(sig),
                 Version = GlobalConfig.ProtocolVersion,
             };
 
