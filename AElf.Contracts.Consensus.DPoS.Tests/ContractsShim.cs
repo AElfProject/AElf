@@ -97,8 +97,20 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return Address.FromPublicKey(keyPair.PublicKey);
         }
 
-        public void ExecuteTransaction(Transaction tx)
+        public void ExecuteTransaction(Transaction tx, ECKeyPair callerKeyPair = null)
         {
+            if (tx == null)
+            {
+                return;
+            }
+
+            if (callerKeyPair != null)
+            {
+                var signer = new ECSigner();
+                var signature = signer.Sign(callerKeyPair, tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            }
+            
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
                 Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
                 TransactionType.ContractTransaction, true).Result;

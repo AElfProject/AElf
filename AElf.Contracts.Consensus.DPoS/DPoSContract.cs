@@ -148,7 +148,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return expect > 0 ? expect : int.MaxValue;
         }
 
-        public byte[] GetNewConsensusInformation(byte[] extraInformation)
+        public IMessage GetNewConsensusInformation(byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
@@ -163,7 +163,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
                     MinersList =
                         {extra.InitialMiners.Select(m => Address.FromPublicKey(ByteArrayHelpers.FromHexString(m)))},
-                }.ToByteArray();
+                };
             }
 
             // To terminate current round.
@@ -175,17 +175,17 @@ namespace AElf.Contracts.Consensus.DPoS
                         WillUpdateConsensus = true,
                         Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
                         NewTerm = GenerateNextTerm(),
-                    }.ToByteArray()
+                    }
                     : new DPoSInformation
                     {
                         WillUpdateConsensus = true,
                         Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
                         Forwarding = GenerateNewForwarding()
-                    }.ToByteArray();
+                    };
             }
 
             // To publish Out Value.
-            return new DPoSInformation {CurrentRound = FillOutValue(extra.HashValue)}.ToByteArray();
+            return new DPoSInformation {CurrentRound = FillOutValue(extra.HashValue)};
         }
         
         public TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation)
@@ -1054,8 +1054,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 Type = TransactionType.DposTransaction,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
             };
-
-            MessageHub.Instance.Publish(StateEvent.ConsensusTxGenerated);
 
             return tx;
         }

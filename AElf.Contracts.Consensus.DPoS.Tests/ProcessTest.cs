@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -12,6 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.DPoS.Tests
 {
+    // ReSharper disable InconsistentNaming
     public sealed class ProcessTest : DPoSContractTestBase
     {
         private readonly ContractsShim _contracts;
@@ -115,7 +117,40 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Assert
             Assert.NotNull(initialTransactions);
-            Assert.True(initialTransactions.Transactions[0].MethodName == "InitialTerm");
+            Assert.True(initialTransactions.Transactions.First().MethodName == "InitialTerm");
+            Assert.True(initialTransactions.Transactions.First().From == Address.FromPublicKey(stubMiners[0].PublicKey));
+        }
+        
+        [Fact]
+        public void NormalBlock_Consensus_WaitingTime()
+        {
+            // Arrange
+            var stubMiners = new List<ECKeyPair>();
+            for (var i = 0; i < 17; i++)
+            {
+                stubMiners.Add(new KeyPairGenerator().Generate());
+            }
+
+            var stubInitialExtraInformation = new DPoSExtraInformation
+            {
+                NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
+                MiningInterval = 4000
+            };
+
+            // Act
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
+                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+            var initialTransactions =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
+            _contracts.ExecuteTransaction(initialTransactions?.Transactions[0], stubMiners[0]);
+            
+            // Act
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiners[0],
+                DateTime.UtcNow.ToTimestamp());
+            var actual = _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
+            
+            // Assert
+            Assert.True(actual != 10000 && actual > 0);
         }
     }
 }

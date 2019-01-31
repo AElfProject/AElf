@@ -1,4 +1,5 @@
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
@@ -7,7 +8,7 @@ namespace AElf.Sdk.CSharp
     {
         ValidationResult ValidateConsensus(byte[] consensusInformation);
         int GetCountingMilliseconds(Timestamp timestamp);
-        byte[] GetNewConsensusInformation(byte[] extraInformation);
+        IMessage GetNewConsensusInformation(byte[] extraInformation);
         TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation);
     }
 }
