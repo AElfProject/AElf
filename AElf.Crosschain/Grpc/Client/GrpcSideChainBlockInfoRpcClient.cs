@@ -10,7 +10,7 @@ namespace AElf.Crosschain.Grpc.Client
     {
         private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
 
-        public GrpcSideChainBlockInfoRpcClient(Channel channel, ClientBase clientBase) : base(channel, clientBase)
+        public GrpcSideChainBlockInfoRpcClient(Channel channel, GrpcClientBase grpcClientBase) : base(channel, grpcClientBase)
         {
             _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
         }

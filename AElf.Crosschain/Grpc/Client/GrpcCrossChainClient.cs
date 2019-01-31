@@ -20,12 +20,12 @@ namespace AElf.Crosschain.Grpc.Client
         private int _adjustedInterval;
         private const int UnavailableConnectionInterval = 1_000;
         private Channel _channel;
-        private readonly ClientBase _clientBase;
-        protected GrpcCrossChainClient(Channel channel, ClientBase clientBase)
+        private readonly GrpcClientBase _grpcClientBase;
+        protected GrpcCrossChainClient(Channel channel, GrpcClientBase grpcClientBase)
         {
             _channel = channel;
             Logger = NullLogger<GrpcCrossChainClient<TResponse>>.Instance;
-            _clientBase = clientBase;
+            _grpcClientBase = grpcClientBase;
             _adjustedInterval = _initInterval;
         }
 
@@ -54,7 +54,7 @@ namespace AElf.Crosschain.Grpc.Client
                         _adjustedInterval = AdjustInterval();
                         continue;
                     }
-                    if(!_clientBase.AddNewBlockInfo(response.BlockInfoResult))
+                    if(!_grpcClientBase.AddNewBlockInfo(response.BlockInfoResult))
                         continue;
                     
                     _adjustedInterval = _initInterval;
@@ -85,7 +85,7 @@ namespace AElf.Crosschain.Grpc.Client
                 var request = new RequestBlockInfo
                 {
                     ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
-                    NextHeight = _clientBase.TargetChainHeight
+                    NextHeight = _grpcClientBase.TargetChainHeight
                 };
                 //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
