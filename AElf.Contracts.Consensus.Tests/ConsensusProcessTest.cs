@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -30,7 +31,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             for (var i = 0; i < 17; i++)
             {
-                _miners.Add(new KeyPairGenerator().Generate());
+                _miners.Add(CryptoHelpers.GenerateKeyPair());
             }
         }
 

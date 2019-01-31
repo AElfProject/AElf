@@ -17,7 +17,7 @@ namespace AElf.OS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var ecKeyPair = new KeyPairGenerator().Generate();
+            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
             var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
             var nodeAccountPassword = "123";
             

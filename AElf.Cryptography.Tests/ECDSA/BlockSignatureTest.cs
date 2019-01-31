@@ -17,7 +17,7 @@ namespace AElf.Cryptography.Tests.ECDSA
         [Fact]
         public void SignAndVerifyTransaction()
         {
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
+            ECKeyPair keyPair = CryptoHelpers.GenerateKeyPair();
             Transaction tx = new Transaction();
             tx.From = Address.FromPublicKey(keyPair.PublicKey);
             tx.To = Address.Generate();
@@ -29,9 +29,8 @@ namespace AElf.Cryptography.Tests.ECDSA
             Hash hash = tx.GetHash();
 
             // Sign the hash
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
             Assert.True(tx.VerifySignature());
         }
     }

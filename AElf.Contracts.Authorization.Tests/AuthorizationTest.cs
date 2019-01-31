@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Types;
@@ -41,9 +42,9 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 MultiSigAccount = msig,
                 ProposerThreshold = 1
             };
-            var kp1 = new KeyPairGenerator().Generate();
-            var kp2 = new KeyPairGenerator().Generate();
-            var kp3 = new KeyPairGenerator().Generate();
+            var kp1 = CryptoHelpers.GenerateKeyPair();
+            var kp2 = CryptoHelpers.GenerateKeyPair();
+            var kp3 = CryptoHelpers.GenerateKeyPair();
             auth.Reviewers.AddRange(new[]
             {
                 new Reviewer
@@ -72,7 +73,7 @@ public class AuthorizationTest : AuthroizationContractTestBase
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
-            var kpMsig = new KeyPairGenerator().Generate();
+            var kpMsig = CryptoHelpers.GenerateKeyPair();
             Address msig = Address.FromPublicKey(kpMsig.PublicKey);
             
             var auth = new Kernel.Authorization
@@ -82,9 +83,9 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 ProposerThreshold = 1
             };
             
-            var kp1 = new KeyPairGenerator().Generate();
-            var kp2 = new KeyPairGenerator().Generate();
-            var kp3 = new KeyPairGenerator().Generate();
+            var kp1 = CryptoHelpers.GenerateKeyPair();
+            var kp2 = CryptoHelpers.GenerateKeyPair();
+            var kp3 = CryptoHelpers.GenerateKeyPair();
             
             auth.Reviewers.AddRange(new[]
             {
@@ -164,7 +165,7 @@ public class AuthorizationTest : AuthroizationContractTestBase
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
-            var kpMsig = new KeyPairGenerator().Generate();
+            var kpMsig = CryptoHelpers.GenerateKeyPair();
             Address msig = Address.FromPublicKey(kpMsig.PublicKey);
             
             var auth = new Kernel.Authorization
@@ -174,9 +175,9 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 ProposerThreshold = 1
             };
             
-            var kp1 = new KeyPairGenerator().Generate();
-            var kp2 = new KeyPairGenerator().Generate();
-            var kp3 = new KeyPairGenerator().Generate();
+            var kp1 = CryptoHelpers.GenerateKeyPair();
+            var kp2 = CryptoHelpers.GenerateKeyPair();
+            var kp3 = CryptoHelpers.GenerateKeyPair();
             
             auth.Reviewers.AddRange(new[]
             {
@@ -220,7 +221,7 @@ public class AuthorizationTest : AuthroizationContractTestBase
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
-            var kpMsig = new KeyPairGenerator().Generate();
+            var kpMsig = CryptoHelpers.GenerateKeyPair();
             Address msig = Address.FromPublicKey(kpMsig.PublicKey);
             
             var auth = new Kernel.Authorization
@@ -230,9 +231,9 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 ProposerThreshold = 1
             };
             
-            var kp1 = new KeyPairGenerator().Generate();
-            var kp2 = new KeyPairGenerator().Generate();
-            var kp3 = new KeyPairGenerator().Generate();
+            var kp1 = CryptoHelpers.GenerateKeyPair();
+            var kp2 = CryptoHelpers.GenerateKeyPair();
+            var kp3 = CryptoHelpers.GenerateKeyPair();
             
             auth.Reviewers.AddRange(new[]
             {
@@ -270,25 +271,24 @@ public class AuthorizationTest : AuthroizationContractTestBase
             var res = _contract.Propose(validProposal, kp1).Result;
             Assert.NotEmpty(res);
             
-            var newKp = new KeyPairGenerator().Generate();
+            var newKp = CryptoHelpers.GenerateKeyPair();
             
-            ECSigner signer = new ECSigner();
-            ECSignature signature = signer.Sign(newKp, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelpers.SignWithPrivateKey(newKp.PrivateKey, tx.GetHash().DumpByteArray());
             
             var notAuthorizedApproval = new Approval
             {
                 ProposalHash = Hash.LoadByteArray(res),
-                Signature = ByteString.CopyFrom(signature.SigBytes)
+                Signature = ByteString.CopyFrom(signature)
             };
             
             var sayYesRes = _contract.SayYes(notAuthorizedApproval, newKp).Result;
             Assert.False(sayYesRes);
             
-            ECSignature signatureKp1 = signer.Sign(kp1, tx.GetHash().DumpByteArray());
+            var signatureKp1 = CryptoHelpers.SignWithPrivateKey(kp1.PrivateKey, tx.GetHash().DumpByteArray());
             var validApproval = new Approval
             {
                 ProposalHash = Hash.LoadByteArray(res),
-                Signature = ByteString.CopyFrom(signatureKp1.SigBytes) 
+                Signature = ByteString.CopyFrom(signatureKp1) 
             };
             
             // todo review print
@@ -309,7 +309,7 @@ public class AuthorizationTest : AuthroizationContractTestBase
             _contract = new AuthorizationContractShim(Mock, ContractHelpers.GetAuthorizationContractAddress(Mock.ChainId), Mock.ChainId.DumpByteArray());
             
             // todo review link a keypair to msig account, for now just to generate the address from pubkey
-            var kpMsig = new KeyPairGenerator().Generate();
+            var kpMsig = CryptoHelpers.GenerateKeyPair();
             Address msig = Address.FromPublicKey(kpMsig.PublicKey);
             
             var auth = new Kernel.Authorization
@@ -319,9 +319,9 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 ProposerThreshold = 1
             };
             
-            var kp1 = new KeyPairGenerator().Generate();
-            var kp2 = new KeyPairGenerator().Generate();
-            var kp3 = new KeyPairGenerator().Generate();
+            var kp1 = CryptoHelpers.GenerateKeyPair();
+            var kp2 = CryptoHelpers.GenerateKeyPair();
+            var kp3 = CryptoHelpers.GenerateKeyPair();
             
             auth.Reviewers.AddRange(new[]
             {
@@ -358,46 +358,44 @@ public class AuthorizationTest : AuthroizationContractTestBase
             
             var res = _contract.Propose(validProposal, kp1).Result;
             Assert.NotEmpty(res);
-            
-            ECSigner signer = new ECSigner();
-            
+                        
             // first approval
-            ECSignature signature = signer.Sign(kp1, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelpers.SignWithPrivateKey(kp1.PrivateKey, tx.GetHash().DumpByteArray());
             var validApproval1 = new Approval
             {
                 ProposalHash = Hash.LoadByteArray(res),
-                Signature = ByteString.CopyFrom(signature.SigBytes)
+                Signature = ByteString.CopyFrom(signature)
             };
             
             var res1 = _contract.SayYes(validApproval1, kp1).Result;
             Assert.True(res1);
             
             // second approval 
-            ECSignature signatureKp3 = signer.Sign(kp3, tx.GetHash().DumpByteArray());
+            var signatureKp3 = CryptoHelpers.SignWithPrivateKey(kp3.PrivateKey, tx.GetHash().DumpByteArray());
             var validApproval2 = new Approval
             {
                 ProposalHash = Hash.LoadByteArray(res),
-                Signature = ByteString.CopyFrom(signatureKp3.SigBytes)
+                Signature = ByteString.CopyFrom(signatureKp3)
             };
             
             var res2 = _contract.SayYes(validApproval2, kp3).Result;
             Assert.True(res2);
 
             // not enough authorization
-            var txnHash = _contract.Release(Hash.LoadByteArray(res), new KeyPairGenerator().Generate()).Result;
+            var txnHash = _contract.Release(Hash.LoadByteArray(res), CryptoHelpers.GenerateKeyPair()).Result;
             Assert.Null(txnHash);
             
             // third approval 
-            ECSignature signatureKp2 = signer.Sign(kp2, tx.GetHash().DumpByteArray());
+            var signatureKp2 = CryptoHelpers.SignWithPrivateKey(kp2.PrivateKey, tx.GetHash().DumpByteArray());
             var validApproval3 = new Approval
             {
                 ProposalHash = Hash.LoadByteArray(res),
-                Signature = ByteString.CopyFrom(signatureKp2.SigBytes)
+                Signature = ByteString.CopyFrom(signatureKp2)
             };
             var res3 = _contract.SayYes(validApproval3, kp2).Result;
             Assert.True(res3);
             
-            txnHash = _contract.Release(Hash.LoadByteArray(res), new KeyPairGenerator().Generate()).Result;
+            txnHash = _contract.Release(Hash.LoadByteArray(res), CryptoHelpers.GenerateKeyPair()).Result;
             
             Assert.NotNull(txnHash);
             Assert.Equal(msig, txnHash.From);

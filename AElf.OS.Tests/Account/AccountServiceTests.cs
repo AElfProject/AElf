@@ -18,28 +18,29 @@ namespace AElf.OS.Tests.Account
         }
 
         [Fact]
-        public void GetPublicKeyTest()
+        public async Task GetPublicKeyTest()
         {
-            var publicKey = _accountService.GetPublicKeyAsync().Result;
+            var publicKey = await _accountService.GetPublicKeyAsync();
 
             Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
         }
         
         [Fact]
-        public void GetAccountTest()
+        public async Task GetAccountTest()
         {
-            var account = _accountService.GetAccountAsync().Result;
+            var account = await _accountService.GetAccountAsync();
 
             Assert.Equal(account.GetFormatted(), _accountOptions.NodeAccount);
         }
 
         [Fact]
-        public void SignAndVerifyPassTest()
+        public async Task SignAndVerifyPassTest()
         {
             var data = Hash.FromString("test").DumpByteArray();
 
-            var signature = _accountService.SignAsync(data).Result;
-            var verifyResult = _accountService.VerifySignatureAsync(signature, data).Result;
+            var signature = await _accountService.SignAsync(data);
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            var verifyResult = await _accountService.VerifySignatureAsync(signature, data, publicKey);
             
             Assert.True(verifyResult);
         }
@@ -51,7 +52,8 @@ namespace AElf.OS.Tests.Account
             var data2 = Hash.FromString("test2").DumpByteArray();
 
             var signature = await _accountService.SignAsync(data1);
-            var verifyResult = _accountService.VerifySignatureAsync(signature, data2).Result;
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            var verifyResult = await _accountService.VerifySignatureAsync(signature, data2, publicKey);
             
             Assert.False(verifyResult);
         }

@@ -83,27 +83,24 @@ namespace AElf.SmartContract
         public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, int chainId)
         {
             var pool = await GetPoolForAsync(chainId, contractAddress);
-            if (pool.TryTake(out var executive))
-                return executive;
-
-            // get registration
-            var reg = await GetContractByAddressAsync(chainId, contractAddress);
-
-            // get runner
-            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-
-            if (runner == null)
+            if (!pool.TryTake(out var executive))
             {
-                throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
+                // get registration
+                var reg = await GetContractByAddressAsync(chainId, contractAddress);
+                // get runner
+                var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+                if (runner == null)
+                {
+                    throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
+                }
+                // run smartcontract executive info and return executive
+                executive = await runner.RunAsync(reg);
+                executive.ContractHash = reg.ContractHash;
             }
-
             // get account dataprovider
             var dataProvider = DataProvider.GetRootDataProvider(chainId, contractAddress);
             dataProvider.StateManager = _stateProviderFactory.CreateStateManager();
-            // run smartcontract executive info and return executive
-
-            executive = await runner.RunAsync(reg);
-            executive.ContractHash = reg.ContractHash;
+            
             executive.SetStateProviderFactory(_stateProviderFactory);
 
             executive.SetSmartContractContext(new SmartContractContext()
