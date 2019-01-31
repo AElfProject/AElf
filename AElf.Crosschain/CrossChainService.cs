@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.BlockService;
 
 namespace AElf.Crosschain
 {
-    public class CrossChainService : ICrossChainService
+    public class CrossChainService : ICrossChainService, IBlockExtraDataProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IClientManager _clientManager;
@@ -44,6 +45,11 @@ namespace AElf.Crosschain
         {
             _clientManager.CreateClient(clientBase);
             _crossChainDataProvider.AddNewSideChainCache(clientBase.BlockInfoCache);
+        }
+
+        public void FillBlcok(Block block)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

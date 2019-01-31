@@ -4,6 +4,7 @@ using AElf.Configuration.Config.Chain;
 using AElf.Crosschain.Grpc;
 using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
+using AElf.Kernel.Txn;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,7 @@ namespace AElf.Crosschain
              Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));
              services.AddSingleton<IClientManager, GrpcClientManager>();
              services.AddSingleton<ICrossChainDataProvider, GrpcCrossChainDataProvider>();
+             services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
          }
          
          public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -36,6 +38,7 @@ namespace AElf.Crosschain
              var opt = context.ServiceProvider.GetService<IOptionsSnapshot<GrpcConfigOption>>().Value;
 
              var clientManager = context.ServiceProvider.GetService<GrpcClientManager>();
+             // Init client connected to parent chain if it exists.
              clientManager.Init(opt.CertificateDir);
              if (!string.IsNullOrEmpty(opt.ParentChainId) && !string.IsNullOrEmpty(opt.ParentChainNodeIp) &&
                  !string.IsNullOrEmpty(opt.ParentChainPort)) return;

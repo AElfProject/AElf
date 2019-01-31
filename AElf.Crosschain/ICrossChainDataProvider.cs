@@ -1,11 +1,14 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Kernel;
 
 namespace AElf.Crosschain
 {
     public interface ICrossChainDataProvider
     {
-        bool GetSideChainBlockInfo(ref SideChainBlockInfo[] sideChainBlockInfo);
-        bool GetParentChainBlockInfo(ref ParentChainBlockInfo[] parentChainBlockInfo);
+        Task<bool> GetSideChainBlockInfo(List<SideChainBlockInfo> sideChainBlockInfo);
+        Task<bool> GetParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo);
+
+        bool AddNewSideChainCache(BlockInfoCache blockInfoCache);
     }
 }
