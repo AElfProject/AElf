@@ -1,19 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
-using AElf.Kernel;
-using AElf.SmartContract;
 using AElf.Execution;
 using AElf.Execution.Execution;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Concurrency.Worker
