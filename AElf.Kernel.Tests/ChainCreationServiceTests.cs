@@ -4,6 +4,7 @@ using AElf.ChainController;
 using Google.Protobuf;
 using Xunit;
 using AElf.Common;
+using AElf.Kernel.Storages;
 using AElf.TestBase;
 using Shouldly;
 
@@ -25,7 +26,7 @@ namespace AElf.Kernel.Tests
         {
 
             var n = (int) Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-            n.ToHex().ShouldBe(new byte[] {0x00, 0x01, 0x02, 0x03 }.ToHex());
+            n.ToStorageKey().ShouldBe(new byte[] {0x00, 0x01, 0x02, 0x03 }.ToHex());
             
             // TODO: *** Contract Issues ***
             var reg = new SmartContractRegistration
