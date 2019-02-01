@@ -169,6 +169,7 @@ message BlockHeader {
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10;
     Hash SideChainTransactionsRoot = 11;
+    int64 Height = 12;
 }
 
 message BlockBody {

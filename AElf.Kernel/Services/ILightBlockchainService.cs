@@ -8,8 +8,8 @@ namespace AElf.Kernel.Services
 {
     public interface ILightBlockchainService
     {
-        Task<bool> HasBlockHeaderAsync(int chainId, Hash blockHash);
-        Task AddBlockHeadersAsync(int chainId, IEnumerable<IBlockHeader> headers);
+        Task<bool> HasBlockHeaderLinkedAsync(int chainId, Hash blockHash);
+        Task AddBlockHeadersAsync(int chainId, IEnumerable<BlockHeader> headers);
         Task<Chain> GetChainAsync(int chainId);
         Task<IBlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockHash);
         Task<IBlockHeader> GetIrreversibleBlockHeaderByHeightAsync(int chainId, long height);
@@ -20,29 +20,42 @@ namespace AElf.Kernel.Services
         private readonly IBlockManager _blockManager;
         private readonly IChainManager _chainManager;
 
-        public LightBlockchainService(IBlockManager blockManager)
+        public LightBlockchainService(IBlockManager blockManager, IChainManager chainManager)
         {
             _blockManager = blockManager;
+            _chainManager = chainManager;
         }
 
-        public async Task<bool> HasBlockHeaderAsync(int chainId, Hash blockHash)
+        public async Task<bool> HasBlockHeaderLinkedAsync(int chainId, Hash blockHash)
         {
-            throw new System.NotImplementedException();
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainId, blockHash);
+            return chainBlockLink.IsLinked;
         }
 
-        public async Task AddBlockHeadersAsync(int chainId, IEnumerable<IBlockHeader> headers)
+        public async Task AddBlockHeadersAsync(int chainId, IEnumerable<BlockHeader> headers)
         {
-            throw new System.NotImplementedException();
+            var chain = await _chainManager.GetAsync(chainId);
+            foreach (var blockHeader in headers)
+            {
+                await _blockManager.AddBlockHeaderAsync(blockHeader);
+                await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                {
+                    Height = blockHeader.Height,
+                    BlockHash = blockHeader.GetHash(),
+                    PreviousBlockHash = blockHeader.PreviousBlockHash
+                });
+            }
         }
 
         public async Task<Chain> GetChainAsync(int chainId)
         {
-            throw new System.NotImplementedException();
+            return await _chainManager.GetAsync(chainId);
         }
 
         public async Task<IBlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockHash)
         {
-            throw new System.NotImplementedException();
+            var header = await _blockManager.GetBlockHeaderAsync(blockHash);
+            return header;
         }
 
         public async Task<IBlockHeader> GetIrreversibleBlockHeaderByHeightAsync(int chainId, long height)
