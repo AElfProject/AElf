@@ -238,22 +238,6 @@ enum DataAccessMode {
     AccountSpecific = 2;
 }
 
-message Key {
-    bytes Value = 1;
-    string type = 2;
-    uint32 HashType = 3;
-}
-
-message DataPath {
-    int32 ChainId = 1;
-    uint64 BlockHeight = 2;
-    Address BlockProducerAddress = 3;
-    Address ContractAddress = 4;
-    Hash DataProviderHash = 5;
-    Hash KeyHash = 6;
-    StatePath StatePath = 7;
-}
-
 message BinaryMerkleTree{
     repeated Hash Nodes = 1;
     Hash Root = 2;
@@ -342,9 +326,10 @@ message ChainBlockLink{
     Hash BlockHash = 1;
     int64 Height = 2;
     Hash PreviousBlockHash = 3;
-    bool IsExecuted = 4;
+    //bool IsExecuted = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
+    bool IsLightBlock = 7;//no block body
 }
 
 message Chain {

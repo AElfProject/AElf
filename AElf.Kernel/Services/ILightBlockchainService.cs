@@ -14,11 +14,11 @@ namespace AElf.Kernel.Services
         Task<IBlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockHash);
         Task<IBlockHeader> GetIrreversibleBlockHeaderByHeightAsync(int chainId, long height);
     }
-    
+
     public class LightBlockchainService: ILightBlockchainService
     {
-        private readonly IBlockManager _blockManager;
-        private readonly IChainManager _chainManager;
+        protected readonly IBlockManager _blockManager;
+        protected readonly IChainManager _chainManager;
 
         public LightBlockchainService(IBlockManager blockManager, IChainManager chainManager)
         {
@@ -60,7 +60,8 @@ namespace AElf.Kernel.Services
 
         public async Task<IBlockHeader> GetIrreversibleBlockHeaderByHeightAsync(int chainId, long height)
         {
-            throw new System.NotImplementedException();
+            var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
+            return await _blockManager.GetBlockHeaderAsync(index.BlockHash);
         }
     }
 }
