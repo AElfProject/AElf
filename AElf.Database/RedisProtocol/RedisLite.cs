@@ -13,7 +13,7 @@ namespace AElf.Database.RedisProtocol
     /**
      * Simplified NServiceKit.Redis
      */
-    public class RedisLite
+    public class RedisLite: IDisposable
     {
         public const long DefaultDb = 0;
         public const int DefaultPort = 6379;
@@ -225,6 +225,8 @@ namespace AElf.Database.RedisProtocol
 
         protected virtual void Dispose(bool disposing)
         {
+            Active = false;
+
             if (disposing)
             {
                 //dispose un managed resources
