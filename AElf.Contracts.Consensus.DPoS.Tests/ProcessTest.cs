@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public void Initial_Consensus_WaitingTime()
         {
             // Arrange
-            var stubMiner = new KeyPairGenerator().Generate();
+            var stubMiner = CryptoHelpers.GenerateKeyPair();
 
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiner,
@@ -45,7 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
-                stubMiners.Add(new KeyPairGenerator().Generate());
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
 
             var stubInitialInformation = new DPoSExtraInformation
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
-                stubMiners.Add(new KeyPairGenerator().Generate());
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
 
             var stubInitialInformation = new DPoSInformation
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
-                stubMiners.Add(new KeyPairGenerator().Generate());
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
 
             var stubInitialExtraInformation = new DPoSExtraInformation
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
-                stubMiners.Add(new KeyPairGenerator().Generate());
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
 
             var stubInitialExtraInformation = new DPoSExtraInformation
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
-            _contracts.ExecuteTransaction(initialTransactions?.Transactions[0], stubMiners[0]);
+            _contracts.ExecuteTransaction(initialTransactions.Transactions.First(), stubMiners[0]);
             
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiners[0],

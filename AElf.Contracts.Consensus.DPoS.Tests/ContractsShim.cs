@@ -7,10 +7,12 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Types;
+using Org.BouncyCastle.Crypto.Generators;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.DPoS.Tests
@@ -27,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         private static Address Sender => Address.Zero;
 
         // To query something.
-        private static ECKeyPair SenderKeyPair => new KeyPairGenerator().Generate();
+        private static ECKeyPair SenderKeyPair => CryptoHelpers.GenerateKeyPair();
 
         public Address ConsensusContractAddress { get; }
         private Address TokenContractAddress { get; }
@@ -106,9 +108,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             if (callerKeyPair != null)
             {
-                var signer = new ECSigner();
-                var signature = signer.Sign(callerKeyPair, tx.GetHash().DumpByteArray());
-                tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+                var signature = CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+                tx.Sigs.Add(ByteString.CopyFrom(signature));
             }
             
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
@@ -137,9 +138,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var signer = new ECSigner();
-            var signature = signer.Sign(callerKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            var signature = CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
 
             ExecuteTransaction(tx);
         }
