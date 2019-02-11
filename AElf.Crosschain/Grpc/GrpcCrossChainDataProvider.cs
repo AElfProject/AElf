@@ -97,9 +97,9 @@ namespace AElf.Crosschain.Grpc
             return parentChainBlockInfo.Count > 0;
         }
 
-        public bool AddNewSideChainCache(BlockInfoCache blockInfoCache)
+        public void AddNewSideChainCache(IClientBase clientBase)
         {
-            return _grpcSideChainClients.TryAdd(blockInfoCache.ChainId, blockInfoCache);
+            _grpcSideChainClients.TryAdd(clientBase.BlockInfoCache.ChainId, clientBase.BlockInfoCache);
         }
 
         private async Task<ulong> GetChainTargetHeight(int chainId)

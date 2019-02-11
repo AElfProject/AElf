@@ -11,6 +11,5 @@ namespace AElf.Crosschain
         Task<bool> ValidateSideChainBlockInfo(List<SideChainBlockInfo> sideChainBlockInfo);
         Task<bool> ValidateParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo);
 
-        void IndexNewSideChain(IClientBase clientBase);
     }
 }

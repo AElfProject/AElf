@@ -17,7 +17,7 @@ namespace AElf.Kernel.BlockService
             block.Header.BlockExtraData = new BlockExtraData();
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                await blockExtraDataProvider.TryAddExtraData(block);
+                await blockExtraDataProvider.FillExtraData(block);
             }
         }
     }

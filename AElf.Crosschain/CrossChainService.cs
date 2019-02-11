@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.BlockService;
@@ -8,12 +9,15 @@ namespace AElf.Crosschain
     public class CrossChainService : ICrossChainService, IBlockExtraDataProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IClientManager _clientManager;
 
+        private delegate void NewSideChainHandler(IClientBase clientBase);
+
+        private readonly NewSideChainHandler _newSideChainHandler;
         public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientManager clientManager)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _clientManager = clientManager;
+            _newSideChainHandler += clientManager.CreateClient;
+            _newSideChainHandler += _crossChainDataProvider.AddNewSideChainCache;
             //Todo: event listener for new side chain.
         }
 
@@ -41,15 +45,16 @@ namespace AElf.Crosschain
             return await _crossChainDataProvider.GetParentChainBlockInfo(parentChainBlockInfo);
         }
 
-        public void IndexNewSideChain(IClientBase clientBase)
+        public async Task FillExtraData(Block block)
         {
-            _clientManager.CreateClient(clientBase);
-            _crossChainDataProvider.AddNewSideChainCache(clientBase.BlockInfoCache);
-        }
-
-        public Task TryAddExtraData(Block block)
-        {
-            throw new System.NotImplementedException();
+            var sideChainBlockData = await GetSideChainBlockInfo();
+            var sideChainTransactionsRoot = new BinaryMerkleTree()
+                .AddNodes(sideChainBlockData.Select(scb => scb.TransactionMKRoot).ToArray()).ComputeRootHash();
+            block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
+            block.Body.SideChainBlockData.AddRange(sideChainBlockData);
+            
+            var parentChainBlockData = await GetParentChainBlockInfo();
+            block.Body.ParentChainBlockData.AddRange(parentChainBlockData);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace AElf.Crosschain
         public static int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
         public static string IndexingParentChainMethodName = "IndexParentChainBlockInfo";
         public static string IndexingSideChainMethodName = "IndexSideChainBlockInfo";
-        
+        public static string CrossChainIndexingMethodName = "RecordCrossChainInfo";
+
     }
 }

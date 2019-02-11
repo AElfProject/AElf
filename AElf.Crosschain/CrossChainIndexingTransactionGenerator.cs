@@ -27,8 +27,7 @@ namespace AElf.Crosschain
         public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService)
         {
             _crossChainService = crossChainService;
-            _crossChainTransactionGenerators += GenerateTransactionForIndexingSideChain;
-            _crossChainTransactionGenerators += GenerateTransactionForIndexingParentChain;
+            _crossChainTransactionGenerators += GenerateCrossChainIndexingTransaction;
         }
         
         /// <summary>
@@ -41,7 +40,7 @@ namespace AElf.Crosschain
 //            var sideChainBlockInfos = await CollectSideChainIndexedInfo();
 //            if (sideChainBlockInfos.Length == 0)
 //                return;
-            generatedTransactions.Append(GenerateNotSignedTransaction(from, ContractHelpers.IndexingSideChainMethodName,
+            generatedTransactions.Append(GenerateNotSignedTransaction(from, TypeConsts.IndexingSideChainMethodName,
                 refBlockNumber, refBlockPrefix, new object[0]));
         }
         
@@ -55,7 +54,14 @@ namespace AElf.Crosschain
             //var parentChainBlockInfo = await CollectParentChainBlockInfo();
             //if (parentChainBlockInfo != null && parentChainBlockInfo.Length != 0)
             generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                ContractHelpers.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
+                TypeConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
+        }
+
+        private void GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber, 
+            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
+        {
+            generatedTransactions.Append(GenerateNotSignedTransaction(from,
+                TypeConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix, new object[0]));
         }
 
         public void GenerateTransactions(Address @from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
@@ -76,7 +82,7 @@ namespace AElf.Crosschain
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, ulong refBlockNumber, 
             byte[] refBlockPrefix, object[] @params)
         {
-            var tx = new Transaction
+            return new Transaction
             {
                 From = from,
                 To = ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
@@ -86,37 +92,6 @@ namespace AElf.Crosschain
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(@params)),
                 Time = Timestamp.FromDateTime(DateTime.UtcNow)
             };
-            return tx;
         }
-        
-        /// <summary>
-        /// Side chains header info    
-        /// </summary>
-        /// <returns></returns>
-        private async Task<SideChainBlockInfo[]> CollectSideChainIndexedInfo()
-        {
-            // interval waiting for each side chain
-            return (await _crossChainService.GetSideChainBlockInfo()).ToArray();
-        }
-
-        /// <summary>
-        /// Get parent chain block info.
-        /// </summary>
-        /// <returns></returns>
-        private async Task<ParentChainBlockInfo[]> CollectParentChainBlockInfo()
-        {
-            try
-            {
-                var blocInfo = await _crossChainService.GetParentChainBlockInfo();
-                return blocInfo?.ToArray();
-            }
-            catch (Exception e)
-            {
-                if (e is ClientShutDownException)
-                    return null;
-                throw;
-            }
-        }
-
     }
 }

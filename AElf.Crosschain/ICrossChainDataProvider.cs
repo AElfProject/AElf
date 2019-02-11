@@ -8,7 +8,6 @@ namespace AElf.Crosschain
     {
         Task<bool> GetSideChainBlockInfo(List<SideChainBlockInfo> sideChainBlockInfo);
         Task<bool> GetParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo);
-
-        bool AddNewSideChainCache(BlockInfoCache blockInfoCache);
+        void AddNewSideChainCache(IClientBase clientBase);
     }
 }
