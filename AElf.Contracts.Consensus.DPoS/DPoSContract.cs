@@ -89,10 +89,11 @@ namespace AElf.Contracts.Consensus.DPoS
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                         }
 
-                        if (!OutInValueAreNull(dpoSInformation.Forwarding.NextRound))
-                        {
-                            return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
-                        }
+                        // Maybe it is acceptable to be null.
+//                        if (!OutInValueAreNull(dpoSInformation.Forwarding.NextRound))
+//                        {
+//                            return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
+//                        }
 
                         // TODO: Validate time slots (distance == 4000 ms)
                     }
