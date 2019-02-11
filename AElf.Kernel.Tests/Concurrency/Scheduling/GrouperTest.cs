@@ -65,7 +65,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txDic = GetTestData();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = (await grouper.ProcessNaive(ChainHelpers.GetRandomChainId(), txDic.Values.SelectMany(x => x).ToList())).Item1;
+            var grouped = (await grouper.ProcessNaive(ChainHelpers.GetChainId(123), txDic.Values.SelectMany(x => x).ToList()))
+            .Item1;
             var s = grouped.Select(
                 x =>
                 String.Join(" ", x.OrderBy(y => _accountList.IndexOf(y.From)).ThenBy(z => _accountList.IndexOf(z.To)).Select(
@@ -88,7 +89,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             var txList = _dataUtil.GetFullTxList();
             Grouper grouper = new Grouper(new MockResourceUsageDetectionService());
-            var grouped = (await grouper.ProcessNaive(ChainHelpers.GetRandomChainId(), txList.Select(x => x).ToList())).Item1;
+            var grouped = (await grouper.ProcessNaive(ChainHelpers.GetChainId(123), txList.Select(x => x).ToList())).Item1;
             var s = grouped.Select(
                 x => _dataUtil.StringRepresentation(x)
             ).ToList();
@@ -135,7 +136,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<Transaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, coreCountList[i], ChainHelpers.GetRandomChainId(), txList)).Item1;
+                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MaxAddMins, 
+                coreCountList[i], ChainHelpers.GetChainId(123), txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }
@@ -189,7 +191,8 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
                 var unmergedGroup = ProduceFakeTxGroup(testCaseSizesList[i]);
                 var txList = new List<Transaction>();
                 unmergedGroup.ForEach(a => txList.AddRange(a));
-                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, coreCountList[i], ChainHelpers.GetRandomChainId(), txList)).Item1;
+                var actualRes = (await grouper.ProcessWithCoreCount(GroupStrategy.Limited_MinsAddUp, 
+                coreCountList[i], ChainHelpers.GetChainId(123), txList)).Item1;
                 var acutalSizes = actualRes.Select(a => a.Count).ToList();
                 Assert.Equal(expectedSizesList[i].OrderBy(a=>a), acutalSizes.OrderBy(a=>a));
             }
