@@ -72,7 +72,7 @@ namespace AElf.Kernel
                 return null;
             }
 
-            return await GetHeaderByHashAsync(blockHash.OfType(HashType.BlockHeaderHash));
+            return await GetHeaderByHashAsync(blockHash);
         }
 
         public async Task<bool> IsOnCanonical(Hash blockId)
