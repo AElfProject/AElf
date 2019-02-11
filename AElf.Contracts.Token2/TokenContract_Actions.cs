@@ -102,3 +102,4 @@ namespace AElf.Contracts.Token
             }
         }
     }
+}
