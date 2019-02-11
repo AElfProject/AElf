@@ -62,9 +62,19 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var dpoSInformation = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
-            if (_dataHelper.IsMiner(dpoSInformation.Sender))
+            if (_dataHelper.TryToGetCurrentRoundInformation(out _))
             {
-                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                if (!_dataHelper.IsMiner(dpoSInformation.Sender))
+                {
+                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                }
+            }
+            else
+            {
+                if (!dpoSInformation.MinersList.Contains(dpoSInformation.Sender))
+                {
+                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                }
             }
 
             if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRound))
@@ -155,7 +165,6 @@ namespace AElf.Contracts.Consensus.DPoS
             // To initial consensus information.
             if (!_dataHelper.TryToGetRoundNumber(out _))
             {
-                Console.WriteLine(11111111);
                 return new DPoSInformation
                 {
                     Sender = Address.Genesis,

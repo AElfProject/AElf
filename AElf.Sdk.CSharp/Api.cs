@@ -76,7 +76,7 @@ namespace AElf.Sdk.CSharp
 
         public static Address TokenContractAddress => ContractHelpers.GetTokenContractAddress(ChainId);
 
-        public static Address ConsensusContractAddress => ContractHelpers.GetConsensusContractAddress(ChainId);
+        public static Address ConsensusContractAddress => ContractHelpers.GetDPoSContractAddress(ChainId);
         
         public static Address DividendsContractAddress => ContractHelpers.GetDividendsContractAddress(ChainId);
 
