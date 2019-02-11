@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -115,6 +116,7 @@ namespace AElf.Contracts.CrossChain
             new Map<UInt64Value, MerklePath>(FieldNames.TxRootMerklePathInParentChain);
 
         private readonly UInt64Field _currentParentChainHeight = new UInt64Field(FieldNames.CurrentParentChainHeight);
+        private readonly UInt64Field _recordedBlockHeight = new UInt64Field("RecordedBlockHeight");
         
         #endregion
         
@@ -319,15 +321,42 @@ namespace AElf.Contracts.CrossChain
         #endregion Side chain lifetime actions
 
         #region Cross chain actions
+
+        [Fee(0)]
+        public void RecordCrossChainData()
+        {
+            Api.IsMiner("Not authorized to do this.");
+            int i = 0;
+            while (i++ < 32)
+            {
+                var targetHeight = _recordedBlockHeight.GetValue();
+                var blk = Api.GetBlockByHeight(targetHeight);
+                if(blk == null)
+                    return;
+                var sideChainBlockData = blk.Body.SideChainBlockData;
+                if (sideChainBlockData.Count > 0)
+                {
+                    var calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray(),
+                        Address.FromPublicKey(blk.Header.P.ToByteArray()));
+                    Api.Assert(calculatedRoot.Equals(blk.Header.BlockExtraData.SideChainTransactionsRoot), 
+                        "Incorrect side chain transaction root."); // this should not happen.
+                }
+
+                var parentChainBlockData = blk.Body.ParentChainBlockData;
+                if (parentChainBlockData.Count > 0)
+                    IndexParentChainBlockInfo(parentChainBlockData.ToArray());
+                _recordedBlockHeight.SetValue(targetHeight + 1);
+            }
+        }
+        
         /// <summary>
         /// Index parent chain blocks.
         /// </summary>
         /// <param name="parentChainBlockInfo"></param>
-        [Fee(0)]
-        public void IndexParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
+        private void IndexParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
         {
             // only miner can do this.
-            Api.IsMiner("Not authorized to do this.");
+            //Api.IsMiner("Not authorized to do this.");
             Api.Assert(parentChainBlockInfo.Length <= GlobalConfig.MaximalCountForIndexingParentChainBlock,
                 "Beyond maximal capacity for once indexing.");
             foreach (var blockInfo in parentChainBlockInfo)
@@ -360,13 +389,13 @@ namespace AElf.Contracts.CrossChain
         /// Index side chain block(s).
         /// </summary>
         /// <param name="sideChainBlockInfo"></param>
+        /// <param name="miner">Miner indexing cross chain data.</param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
-        [Fee(0)]
-        public byte[] IndexSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfo)
+        private Hash IndexSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfo, Address miner)
         {
             // only miner can do this.
-            Api.IsMiner("Not authorized to do this.");
-            Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
+//            Api.IsMiner("Not authorized to do this.");
+//            Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
             var currentHeight = Api.GetCurrentHeight();
             var height = currentHeight + 1;
@@ -376,7 +405,7 @@ namespace AElf.Contracts.CrossChain
             var indexedSideChainBlockInfoResult = new IndexedSideChainBlockInfoResult
             {
                 Height = height,
-                Miner = Api.GetFromAddress()
+                Miner = miner
             };
             foreach (var blockInfo in sideChainBlockInfo)
             {
@@ -401,7 +430,7 @@ namespace AElf.Contracts.CrossChain
                     continue;
                 }
                 _indexingBalance[chainId] = lockedToken - indexingPrice;
-                Api.UnlockToken(Api.GetFromAddress(), indexingPrice);
+                Api.UnlockToken(miner, indexingPrice);
                 
                 _sideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
@@ -414,7 +443,7 @@ namespace AElf.Contracts.CrossChain
             
             // calculate merkle tree for side chain txn roots
             binaryMerkleTree.ComputeRootHash();
-            return binaryMerkleTree.Root.DumpByteArray();
+            return binaryMerkleTree.Root;
         }
 
         
