@@ -6,7 +6,7 @@ namespace AElf.Kernel
 {
     public static class RoundExtensions
     {
-        public static MinerInRound GetEBPInfo(this Round round)
+        public static MinerInRound GetExtraBlockProducerInformation(this Round round)
         {
             return round.RealTimeMinersInfo.First(bp => bp.Value.IsExtraBlockProducer).Value;
         }

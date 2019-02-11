@@ -131,7 +131,7 @@ namespace AElf.Kernel
             var round = new Round {RoundNumber = previousRound.RoundNumber + 1};
 
             // EBP will be the first miner of next round.
-            var extraBlockProducer = previousRound.GetEBPInfo().PublicKey;
+            var extraBlockProducer = previousRound.GetExtraBlockProducerInformation().PublicKey;
 
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();

@@ -35,6 +35,7 @@ namespace AElf.Contracts.Consensus.DPoS
         void AddOrUpdateTicketsInformation(Tickets tickets);
         void SetTermSnapshot(TermSnapshot snapshot);
         void SetAlias(string publicKey, string alias);
+        void SetMiningInterval(int miningInterval);
         
         bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber);
         bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false);

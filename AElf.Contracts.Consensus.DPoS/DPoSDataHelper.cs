@@ -217,6 +217,11 @@ namespace AElf.Contracts.Consensus.DPoS
             _dataStructures.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
         }
 
+        public void SetMiningInterval(int miningInterval)
+        {
+            _dataStructures.MiningIntervalField.SetValue(miningInterval);
+        }
+
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
         {
             if (_dataStructures.TermToFirstRoundMap.TryGet(termNumber.ToUInt64Value(), out _))

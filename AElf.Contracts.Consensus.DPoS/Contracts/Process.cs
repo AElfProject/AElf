@@ -568,19 +568,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private void InitialBlockchain(Term firstTerm)
         {
-            //_dataStructures.CurrentTermNumberField.SetValue(1);
-            //_dataStructures.CurrentRoundNumberField.SetValue(1);
-            //_dataStructures.AgeField.SetValue(1);
-            //var lookUp = new TermNumberLookUp();
-            //lookUp.Map.Add(1, 1);
-            //_dataStructures.TermNumberLookupField.SetValue(lookUp);
-
             _dataHelper.SetTermNumber(1);
             _dataHelper.SetRoundNumber(1);
             _dataHelper.SetBlockAge(1);
             _dataHelper.AddTermNumberToFirstRoundNumber(1, 1);
             _dataHelper.SetBlockchainStartTimestamp(firstTerm.Timestamp);
             _dataHelper.SetMiners(firstTerm.Miners);
+            _dataHelper.SetMiningInterval(firstTerm.MiningInterval);
         }
 
         private void InitialMainchainToken()

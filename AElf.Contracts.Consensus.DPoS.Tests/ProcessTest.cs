@@ -227,9 +227,153 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
         
         [Fact]
-        public void NormalBlock_Consensus_Validate()
+        public void NormalBlock_Consensus_Validate_Success()
         {
+            // Arrange
+            var stubMiners = new List<ECKeyPair>();
+            for (var i = 0; i < 17; i++)
+            {
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
+            }
+
+            var stubInitialExtraInformation = new DPoSExtraInformation
+            {
+                NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
+                MiningInterval = 4000
+            };
+
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
+                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+            var initialTransactions =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
+            Assert.NotNull(initialTransactions);
+            _contracts.ExecuteTransaction(initialTransactions.Transactions.First(), stubMiners[0]);
+
+            var inValue = Hash.Generate();
+            var outValue = Hash.FromMessage(inValue);
+            var stubExtraInformation = new DPoSExtraInformation
+            {
+                HashValue = outValue,
+            };
             
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetNewConsensusInformation", 
+                stubMiners[0], stubExtraInformation.ToByteArray());
+            var stubInformation =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<DPoSInformation>();
+            
+            // Act
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "ValidateConsensus", stubMiners[1],
+                stubInformation.ToByteArray());
+            var validationResult =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<ValidationResult>();
+            
+            // Assert
+            Assert.True(validationResult?.Success);
+        }
+
+        [Fact]
+        public void NormalBlock_Consensus_GenerateTransaction()
+        {
+            // Arrange
+            var stubMiners = new List<ECKeyPair>();
+            for (var i = 0; i < 17; i++)
+            {
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
+            }
+
+            var initialTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000);
+            var stubInitialExtraInformation = new DPoSExtraInformation
+            {
+                NewTerm = initialTerm,
+                MiningInterval = 4000
+            };
+
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
+                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+            var initialTransactions =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
+            Assert.NotNull(initialTransactions);
+            // InitialTerm
+            _contracts.ExecuteTransaction(initialTransactions.Transactions.First(), stubMiners[0]);
+
+            var inValue = Hash.Generate();
+            var outValue = Hash.FromMessage(inValue);
+            var stubExtraInformation = new DPoSExtraInformation
+            {
+                ToPackage = new ToPackage
+                {
+                    OutValue = outValue,
+                    RoundId = initialTerm.FirstRound.RoundId,
+                }
+            };
+            
+            // Act
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
+                stubMiners[0], new BlockHeader {Index = 2}, stubExtraInformation.ToByteArray());
+            var normalTransactions =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
+            var normalTransaction = normalTransactions?.Transactions.First();
+            
+            // Assert
+            Assert.NotNull(normalTransactions);
+            Assert.Single(normalTransactions.Transactions);
+            Assert.True(normalTransaction.MethodName == "PackageOutValue");
+        }
+
+        [Fact]
+        public void ExtraBlock_Consensus_WaitingTime()
+        {
+            // Arrange
+            const int MinersCount = 3;
+            var stubMiners = new List<ECKeyPair>();
+            for (var i = 0; i < MinersCount; i++)
+            {
+                stubMiners.Add(CryptoHelpers.GenerateKeyPair());
+            }
+            
+            var initialTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000);
+            var stubInitialExtraInformation = new DPoSExtraInformation
+            {
+                NewTerm = initialTerm,
+                MiningInterval = 4000
+            };
+            
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
+                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+            var initialTransactions =
+                _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
+            Assert.NotNull(initialTransactions);
+            // InitialTerm
+            _contracts.ExecuteTransaction(initialTransactions.Transactions.First(), stubMiners[0]);
+            
+            // Act
+            var extraInformationToNextRound = new DPoSExtraInformation
+            {
+                Timestamp = initialTerm.Timestamp.ToDateTime().AddMilliseconds(MinersCount * 4000).ToTimestamp(),
+                Forwarding = new Forwarding
+                {
+                    CurrentAge = 1,
+                    CurrentRound = initialTerm.FirstRound.SupplementForFirstRound(),
+                    NextRound = initialTerm.SecondRound
+                }
+            };
+            
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiners[0],
+                initialTerm.Timestamp.ToDateTime().AddMilliseconds(MinersCount * 4000 + 2000).ToTimestamp());
+            var actual1 = _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
+            
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiners[1],
+                initialTerm.Timestamp.ToDateTime().AddMilliseconds(MinersCount * 4000 + 2000).ToTimestamp());
+            var actual2 = _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
+            
+            _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GetCountingMilliseconds", stubMiners[2],
+                initialTerm.Timestamp.ToDateTime().AddMilliseconds(MinersCount * 4000 + 2000).ToTimestamp());
+            var actual3 = _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToInt32();
+            
+            // Assert
+            Assert.True(actual1 != int.MaxValue && actual1 > 0);
+            Assert.True(actual2 != int.MaxValue && actual2 > 0);
+            Assert.True(actual3 != int.MaxValue && actual3 > 0);
         }
     }
 }

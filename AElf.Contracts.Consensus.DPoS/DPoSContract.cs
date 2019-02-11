@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Kernel;
@@ -61,17 +62,16 @@ namespace AElf.Contracts.Consensus.DPoS
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var dpoSInformation = DPoSInformation.Parser.ParseFrom(consensusInformation);
-
             if (_dataHelper.TryToGetCurrentRoundInformation(out _))
             {
-                if (!_dataHelper.IsMiner(dpoSInformation.Sender))
+                if (dpoSInformation.MinersList.Any() && !_dataHelper.IsMiner(dpoSInformation.Sender))
                 {
                     return new ValidationResult {Success = false, Message = "Sender is not a miner."};
                 }
             }
             else
             {
-                if (!dpoSInformation.MinersList.Contains(dpoSInformation.Sender))
+                if (dpoSInformation.MinersList.Any() && !dpoSInformation.MinersList.Contains(dpoSInformation.Sender))
                 {
                     return new ValidationResult {Success = false, Message = "Sender is not a miner."};
                 }
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public int GetCountingMilliseconds(Timestamp timestamp)
         {
             // To initial this chain.
-            if (!_dataHelper.TryToGetCurrentRoundInformation(out _))
+            if (!_dataHelper.TryToGetCurrentRoundInformation(out var roundInformation))
             {
                 return Config.InitialWaitingMilliseconds;
             }
@@ -148,9 +148,22 @@ namespace AElf.Contracts.Consensus.DPoS
             if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
             {
-                return (GetExtraBlockMiningTime(miningInterval)
-                            .AddMilliseconds(minerInformation.Order * miningInterval) - timestamp.ToDateTime())
-                    .Milliseconds;
+                var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Api.RecoverPublicKey().ToHex() &&
+                    extraBlockMiningTime > timestamp.ToDateTime())
+                {
+                    return (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds;
+                }
+
+                var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
+                var roundTime = blockProducerNumber * miningInterval;
+                var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
+                if (passedTime > minerInformation.Order * miningInterval)
+                {
+                    return (int) (roundTime - (passedTime - minerInformation.Order * miningInterval));
+                }
+                
+                return (int) (minerInformation.Order * miningInterval - passedTime);
             }
 
             // To produce a normal block.
@@ -176,7 +189,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(out _) || TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
             {
                 return extra.ChangeTerm
                     ? new DPoSInformation
@@ -194,7 +207,10 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To publish Out Value.
-            return new DPoSInformation {CurrentRound = FillOutValue(extra.HashValue)};
+            return new DPoSInformation
+            {
+                CurrentRound = FillOutValue(extra.HashValue)
+            };
         }
         
         public TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation)
@@ -212,7 +228,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(out _) || TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
             {
                 if (extra.ChangeTerm && _dataHelper.TryToGetRoundNumber(out var roundNumber) &&
                     _dataHelper.TryToGetTermNumber(out var termNumber))
@@ -955,7 +971,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRoundInStateDB) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval) < timestamp.ToDateTime();
+                return currentRoundInStateDB.GetEBPMiningTime(miningInterval).AddMilliseconds(-4000) < timestamp.ToDateTime();
             }
 
             return false;
