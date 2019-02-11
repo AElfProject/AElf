@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
+
 namespace AElf.Kernel.BlockService
 {
     public interface IBlockExtraDataProvider
     {
-        void FillBlcok(Block block);
+        Task TryAddExtraData(Block block);
     }
 }

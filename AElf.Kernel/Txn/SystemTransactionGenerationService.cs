@@ -10,7 +10,8 @@ namespace AElf.Kernel.Txn
         {
             _systemTransactionGenerators = systemTransactionGenerators;
         }
-        public List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight, ulong refBlockNumber, byte[] refBlockPrefix)
+        public List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight, ulong refBlockNumber, 
+            byte[] refBlockPrefix)
         {
             var generatedTxns = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)

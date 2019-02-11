@@ -16,13 +16,11 @@ namespace AElf.Crosschain.Grpc
         private readonly IChainService _chainService;
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
-        private readonly ICrossChainInfoReader _crossChainInfoReader;
         private ulong LibHeight { get; set; }
-        public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
+        public ParentChainBlockInfoRpcServer(IChainService chainService)
         {
             _chainService = chainService;
             Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
-            _crossChainInfoReader = crossChainInfoReader;
         }
 
         public void Init(int chainId)
@@ -74,11 +72,13 @@ namespace AElf.Crosschain.Grpc
                             Root = new ParentChainBlockRootInfo
                             {
                                 Height = requestedHeight,
-                                SideChainTransactionsRoot = header.SideChainTransactionsRoot,
+                                SideChainTransactionsRoot = header.BlockExtraData.SideChainTransactionsRoot,
                                 ChainId = header.ChainId
                             }
                         };
-                        IndexedSideChainBlockInfoResult indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
+                        IndexedSideChainBlockInfoResult indexedSideChainBlockInfoResult = 
+                            await GetIndexedSideChainBlockInfoResult(requestedHeight);
+                        
                         if (indexedSideChainBlockInfoResult != null)
                         {
                             var binaryMerkleTree = new BinaryMerkleTree();
@@ -109,6 +109,12 @@ namespace AElf.Crosschain.Grpc
             {
                 Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
             }
+        }
+
+        private async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong requestedHeight)
+        {
+            // todo: extract side chain block info from blocks.
+            throw new NotImplementedException();
         }
 
         public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)

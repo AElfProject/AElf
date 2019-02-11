@@ -543,7 +543,7 @@ namespace AElf.ChainController.Rpc
                         ["PreviousBlockHash"] = blockinfo.Header.PreviousBlockHash.ToHex(),
                         ["MerkleTreeRootOfTransactions"] = blockinfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                         ["MerkleTreeRootOfWorldState"] = blockinfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                        ["SideChainTransactionsRoot"] = blockinfo.Header.SideChainTransactionsRoot?.ToHex(),
+                        ["SideChainTransactionsRoot"] = blockinfo.Header.BlockExtraData.SideChainTransactionsRoot?.ToHex(),
                         ["Index"] = blockinfo.Header.Index.ToString(),
                         ["Time"] = blockinfo.Header.Time.ToDateTime(),
                         ["ChainId"] = blockinfo.Header.ChainId.DumpBase58(),

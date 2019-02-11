@@ -17,123 +17,108 @@ using Uri = AElf.Configuration.Config.GRPC.Uri;
 namespace AElf.Crosschain.Grpc.Client
 {
     public class GrpcClientManager : IClientManager
-
     {
-    private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
-        new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();
+        private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
+            new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();
 
-    private GrpcParentChainBlockInfoRpcClient _grpcParentChainBlockInfoRpcClient;
-    private CertificateStore _certificateStore;
-    public ILogger<GrpcClientManager> Logger { get; set; }
-    private CancellationTokenSource _tokenSourceToSideChain;
-    private CancellationTokenSource _tokenSourceToParentChain;
+        private GrpcParentChainBlockInfoRpcClient _grpcParentChainBlockInfoRpcClient;
+        private CertificateStore _certificateStore;
+        private CancellationTokenSource _tokenSourceToSideChain;
+        private CancellationTokenSource _tokenSourceToParentChain;
 
-    /// <summary>
-    /// Waiting interval for taking element.
-    /// </summary>
-    private int WaitingIntervalInMillisecond => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
-
-    public GrpcClientManager()
-    {
-        Logger = NullLogger<GrpcClientManager>.Instance;
-    }
-
-    /// <summary>
-    /// Initialize client manager.
-    /// </summary>
-    /// <param name="dir"></param>
-    public void Init(string dir)
-    {
-        _certificateStore = new CertificateStore(dir);
-        _tokenSourceToSideChain = new CancellationTokenSource();
-        _tokenSourceToParentChain = new CancellationTokenSource();
-    }
-
-    /// <summary>
-    /// Extend interval for request after initial block synchronization.
-    /// </summary>
-    public void UpdateRequestInterval(int interval)
-    {
-        _grpcParentChainBlockInfoRpcClient?.UpdateRequestInterval(interval);
-        _clientsToSideChains.AsParallel().ToList().ForEach(kv =>
+        /// <summary>
+        /// Initialize client manager.
+        /// </summary>
+        /// <param name="dir"></param>
+        public void Init(string dir)
         {
-            kv.Value.UpdateRequestInterval(interval);
-        });
-    }
-
-    #region Create client
-
-    public void CreateClient(IClientBase grpcClientBase)
-    {
-        var client = CreateGrpcClient((GrpcClientBase)grpcClientBase);
-        //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
-        client.StartDuplexStreamingCall(((GrpcClientBase)grpcClientBase).TargetIsSideChain
-            ? _tokenSourceToSideChain.Token
-            : _tokenSourceToParentChain.Token);
-    }
-    
-    /// <summary>
-    /// Create a new client to parent chain 
-    /// </summary>
-    /// <returns>
-    /// </returns>    
-    private IGrpcCrossChainClient CreateGrpcClient(GrpcClientBase grpcClientBase)
-    {
-        var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.TargetChainId);
-
-        if (grpcClientBase.TargetIsSideChain)
-        {
-            var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, grpcClientBase);
-            _clientsToSideChains.Add(grpcClientBase.TargetChainId, clientToSideChain);
-            return clientToSideChain;
+            _certificateStore = new CertificateStore(dir);
+            _tokenSourceToSideChain = new CancellationTokenSource();
+            _tokenSourceToParentChain = new CancellationTokenSource();
         }
 
-        _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, grpcClientBase);
-        return _grpcParentChainBlockInfoRpcClient;
-    }
+        /// <summary>
+        /// Extend interval for request after initial block synchronization.
+        /// </summary>
+        public void UpdateRequestInterval(int interval)
+        {
+            _grpcParentChainBlockInfoRpcClient?.UpdateRequestInterval(interval);
+            _clientsToSideChains.AsParallel().ToList().ForEach(kv => { kv.Value.UpdateRequestInterval(interval); });
+        }
 
-    /// <summary>
-    /// Create a new channel
-    /// </summary>
-    /// <param name="uriStr"></param>
-    /// <param name="targetChainId"></param>
-    /// <returns></returns>
-    /// <exception cref="CertificateException"></exception>
-    private Channel CreateChannel(string uriStr, int targetChainId)
-    {
-        string crt = _certificateStore.GetCertificate(targetChainId.ToString());
-        if (crt == null)
-            throw new CertificateException("Unable to load Certificate.");
-        var channelCredentials = new SslCredentials(crt);
-        var channel = new Channel(uriStr, channelCredentials);
-        return channel;
-    }
+        #region Create client
 
-    #endregion
+        public void CreateClient(IClientBase grpcClientBase)
+        {
+            var client = CreateGrpcClient((GrpcClientBase) grpcClientBase);
+            //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
+            client.StartDuplexStreamingCall(((GrpcClientBase) grpcClientBase).TargetIsSideChain
+                ? _tokenSourceToSideChain.Token
+                : _tokenSourceToParentChain.Token);
+        }
 
-    
-    /// <summary>
-    /// Close and clear clients to side chain
-    /// </summary>
-    public void CloseClientsToSideChain()
-    {
-        _tokenSourceToSideChain?.Cancel();
-        _tokenSourceToSideChain?.Dispose();
+        /// <summary>
+        /// Create a new client to parent chain 
+        /// </summary>
+        /// <returns>
+        /// </returns>    
+        private IGrpcCrossChainClient CreateGrpcClient(GrpcClientBase grpcClientBase)
+        {
+            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.TargetChainId);
 
-        //Todo: probably not needed
-        _clientsToSideChains.Clear();
-    }
+            if (grpcClientBase.TargetIsSideChain)
+            {
+                var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, grpcClientBase);
+                _clientsToSideChains.Add(grpcClientBase.TargetChainId, clientToSideChain);
+                return clientToSideChain;
+            }
 
-    /// <summary>
-    /// close and clear clients to parent chain
-    /// </summary>
-    public void CloseClientToParentChain()
-    {
-        _tokenSourceToParentChain?.Cancel();
-        _tokenSourceToParentChain?.Dispose();
+            _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, grpcClientBase);
+            return _grpcParentChainBlockInfoRpcClient;
+        }
 
-        //Todo: probably not needed
-        _grpcParentChainBlockInfoRpcClient = null;
-    }
+        /// <summary>
+        /// Create a new channel
+        /// </summary>
+        /// <param name="uriStr"></param>
+        /// <param name="targetChainId"></param>
+        /// <returns></returns>
+        /// <exception cref="CertificateException"></exception>
+        private Channel CreateChannel(string uriStr, int targetChainId)
+        {
+            string crt = _certificateStore.GetCertificate(targetChainId.ToString());
+            if (crt == null)
+                throw new CertificateException("Unable to load Certificate.");
+            var channelCredentials = new SslCredentials(crt);
+            var channel = new Channel(uriStr, channelCredentials);
+            return channel;
+        }
+
+        #endregion
+
+
+        /// <summary>
+        /// Close and clear clients to side chain
+        /// </summary>
+        public void CloseClientsToSideChain()
+        {
+            _tokenSourceToSideChain?.Cancel();
+            _tokenSourceToSideChain?.Dispose();
+
+            //Todo: probably not needed
+            _clientsToSideChains.Clear();
+        }
+
+        /// <summary>
+        /// close and clear clients to parent chain
+        /// </summary>
+        public void CloseClientToParentChain()
+        {
+            _tokenSourceToParentChain?.Cancel();
+            _tokenSourceToParentChain?.Dispose();
+
+            //Todo: probably not needed
+            _grpcParentChainBlockInfoRpcClient = null;
+        }
     }
 }

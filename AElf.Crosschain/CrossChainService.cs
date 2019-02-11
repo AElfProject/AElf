@@ -47,7 +47,7 @@ namespace AElf.Crosschain
             _crossChainDataProvider.AddNewSideChainCache(clientBase.BlockInfoCache);
         }
 
-        public void FillBlcok(Block block)
+        public Task TryAddExtraData(Block block)
         {
             throw new System.NotImplementedException();
         }
