@@ -19,5 +19,15 @@ namespace AElf.Sdk.CSharp
         {
             State = Activator.CreateInstance<TContractState>();
         }
+
+        public ulong GetMethodFee(string methodName)
+        {
+            return State.__MethodFees__[methodName];
+        }
+
+        public void SetMethodFee(string methodName, ulong fee)
+        {
+            State.__MethodFees__[methodName] = fee;
+        }
     }
 }
