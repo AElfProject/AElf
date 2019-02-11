@@ -31,7 +31,7 @@ namespace AElf.Runtime.CSharp2.Tests
         private IExecutive Executive { get; set; }
         private Dictionary<StatePath, StateCache> GetEmptyCache() => new Dictionary<StatePath, StateCache>();
 
-        private Hash ChainId
+        private int ChainId
         {
             get
             {

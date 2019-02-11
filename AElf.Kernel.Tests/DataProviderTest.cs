@@ -27,7 +27,7 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task Test()
         {
-            var chainId = Hash.FromString("chain1");
+            var chainId = ChainHelpers.GetRandomChainId();
             var address = Address.Generate();
             var root = DataProvider.GetRootDataProvider(chainId, address);
             root.StateManager = _stateManager;

@@ -43,7 +43,7 @@ namespace AElf.Synchronization.Tests
         /// <returns></returns>
         public static IBlock GetGenesisBlock()
         {
-            var builder = new GenesisBlockBuilder().Build(Hash.Generate());
+            var builder = new GenesisBlockBuilder().Build(ChainHelpers.GetRandomChainId());
             return builder.Block;
         }
         
@@ -64,7 +64,7 @@ namespace AElf.Synchronization.Tests
                     Index = previous.Header.Index + 1,
                     MerkleTreeRootOfTransactions = Hash.Generate(),
                     SideChainTransactionsRoot = Hash.Generate(),
-                    ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}),
+                    ChainId = ChainHelpers.GetChainId(123),
                     PreviousBlockHash = previous.GetHash(),
                     MerkleTreeRootOfWorldState = Hash.Generate(),
                     P = producer == null ? ByteString.Empty : ByteString.CopyFromUtf8(producer)
