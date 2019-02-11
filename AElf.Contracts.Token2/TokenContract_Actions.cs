@@ -101,5 +101,15 @@ namespace AElf.Contracts.Token
                 State.Balances[feePool] = State.Balances[feePool].Add(fee);
             }
         }
+
+        public ulong GetMethodFee(string methodName)
+        {
+            return State.MethodFees[methodName];
+        }
+
+        public void SetMethodFee(string methodName, ulong fee)
+        {
+            State.MethodFees[methodName] = fee;
+        }
     }
 }
