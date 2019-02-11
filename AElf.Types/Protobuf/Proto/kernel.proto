@@ -4,7 +4,6 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
-import "crosschain.proto";
 
 message Transaction {
     Address From = 1;

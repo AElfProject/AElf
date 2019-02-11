@@ -5,7 +5,6 @@ option csharp_namespace = "AElf.Network.Data";
 import "google/protobuf/timestamp.proto";
 
 message Handshake {
-    
     NodeData NodeInfo = 1;
     bytes PublicKey = 2;
     int32 Height = 3;
