@@ -1,10 +1,11 @@
 using System;
 using AElf.Common;
+using AElf.Kernel.Types.SmartContract;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Sdk.CSharp2.Tests.TestContract
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>
+    public partial class TokenContract : CSharpSmartContract<TokenContractState>, IFeeChargedContract
     {
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
