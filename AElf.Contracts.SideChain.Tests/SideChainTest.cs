@@ -90,7 +90,6 @@ public class SideChainTest : SideChainContractTestBase
             });
             await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
             
-            ChainConfig.Instance.ChainId = chainId.DumpBase58();
             var crossChainInfo = new CrossChainInfoReader(Mock.StateManager);
             var merklepath = await crossChainInfo.GetTxRootMerklePathInParentChainAsync(pHeight);
             Assert.NotNull(merklepath);
@@ -109,7 +108,6 @@ public class SideChainTest : SideChainContractTestBase
         public async Task VerifyTransactionTest()
         {
             var chainId = Mock.ChainId1;
-            ChainConfig.Instance.ChainId = chainId.DumpBase58();
             //Mock.StateManager.SetAsync()
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(chainId));
             ulong pHeight = 1;
