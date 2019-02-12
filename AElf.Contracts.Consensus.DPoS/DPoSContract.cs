@@ -168,8 +168,9 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To produce a normal block.
-            var expect = (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime()).Milliseconds;
-            return expect > 0 ? expect : int.MaxValue;
+            var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
+                .TotalMilliseconds;
+            return expect >= 0 ? expect : int.MaxValue;
         }
 
         public IMessage GetNewConsensusInformation(byte[] extraInformation)
@@ -181,7 +182,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new DPoSInformation
                 {
-                    Sender = Address.Genesis,
+                    Sender = Address.FromPublicKey(Api.RecoverPublicKey()),
                     WillUpdateConsensus = true,
                     NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
                     MinersList =
