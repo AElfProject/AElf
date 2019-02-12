@@ -88,7 +88,8 @@ namespace AElf.Runtime.CSharp
 
         public void MaybeInsertFeeTransaction()
         {
-            if (!(_smartContract is IFeeChargedContract))
+            // No insertion of transaction if it's not IFeeChargedContract or it's not top level transaction
+            if (!(_smartContract is IFeeChargedContract) || _currentTransactionContext.CallDepth > 0)
             {
                 return;
             }
