@@ -155,10 +155,12 @@ ProjectSection(SolutionItems) = preProject
 	docs\README.md = docs\README.md
 EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
 ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
 	build.sh = build.sh
+	deploy.sh = deploy.sh
+	install_protobuf.sh = install_protobuf.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -178,6 +180,27 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration", "AElf.Configuration\AElf.Configuration.csproj", "{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
+ProjectSection(SolutionItems) = preProject
+	protobuf\common.proto = protobuf\common.proto
+	protobuf\execution.proto = protobuf\execution.proto
+	protobuf\kernel.proto = protobuf\kernel.proto
+	protobuf\abi.proto = protobuf\abi.proto
+	protobuf\address_pair.proto = protobuf\address_pair.proto
+	protobuf\auth.proto = protobuf\auth.proto
+	protobuf\consensus.proto = protobuf\consensus.proto
+	protobuf\contract_info.proto = protobuf\contract_info.proto
+	protobuf\crosschain.proto = protobuf\crosschain.proto
+	protobuf\entities.proto = protobuf\entities.proto
+	protobuf\header_info.proto = protobuf\header_info.proto
+	protobuf\messages.proto = protobuf\messages.proto
+	protobuf\metadata.proto = protobuf\metadata.proto
+	protobuf\params_packer_tests.proto = protobuf\params_packer_tests.proto
+	protobuf\resource.proto = protobuf\resource.proto
+	protobuf\smart_contract.proto = protobuf\smart_contract.proto
+	protobuf\user_type_holder.proto = protobuf\user_type_holder.proto
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
