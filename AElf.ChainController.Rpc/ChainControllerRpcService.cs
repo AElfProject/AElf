@@ -54,7 +54,7 @@ namespace AElf.ChainController.Rpc
 
         public ILogger<ChainControllerRpcService> Logger {get;set;}
 
-        private ChainOptions _chainOptions { get; }
+        private readonly ChainOptions _chainOptions;
 
         private bool _canBroadcastTxs = true;
         private readonly int _chainId;
