@@ -20,12 +20,8 @@ namespace AElf.Miner
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var minerConfig = MinerConfig.Default;
-            minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-            
             var services = context.Services;
 
-            services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddSingleton<ClientManager>();
             services.AddSingleton<ServerManager>();
             services.AddTransient<TransactionFilter>();

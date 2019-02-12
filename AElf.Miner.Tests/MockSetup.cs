@@ -30,6 +30,7 @@ using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Miner.Tests
@@ -55,6 +56,7 @@ namespace AElf.Miner.Tests
         private readonly TransactionFilter _transactionFilter;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private readonly IAccountService _accountService;
+        private readonly ChainOptions _chainOptions;
 
         public MockSetup(IStateManager stateManager,
             ITxRefBlockValidator refBlockValidator,
@@ -62,7 +64,8 @@ namespace AElf.Miner.Tests
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
             IChainService chainService, IExecutingService executingService,
             IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
-            ConsensusDataProvider consensusDataProvider, IAccountService accountService)
+            ConsensusDataProvider consensusDataProvider, IAccountService accountService, 
+            IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -78,6 +81,7 @@ namespace AElf.Miner.Tests
             _transactionFilter = transactionFilter;
             _consensusDataProvider = consensusDataProvider;
             _accountService = accountService;
+            _chainOptions = options.Value;
             Initialize();
         }
 
@@ -123,9 +127,9 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
+        internal IMiner GetMiner( ITxHub hub, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
+            var miner = new AElf.Miner.Miner.Miner(hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
                 _accountService);
@@ -151,13 +155,8 @@ namespace AElf.Miner.Tests
         internal ITxHub CreateAndInitTxHub()
         {
             var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo);
-            hub.Initialize();
+            hub.Initialize(_chainOptions.ChainId.ConvertBase58ToChainId());
             return hub;
-        }
-
-        public IMinerConfig GetMinerConfig(int chainId)
-        {
-            return new MinerConfig {ChainId = chainId};
         }
 
         private Mock<ILightChain> MockLightChain()

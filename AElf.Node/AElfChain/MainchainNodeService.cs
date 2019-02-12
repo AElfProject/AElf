@@ -98,7 +98,7 @@ namespace AElf.Node.AElfChain
 
         #endregion
 
-        public void Initialize(NodeConfiguration conf)
+        public void Initialize(int chainId, NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
             _blockChain = _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
@@ -108,19 +108,13 @@ namespace AElf.Node.AElfChain
                 await _txHub.AddTransactionAsync(inTx.Transaction);
             });
 
-            _txHub.Initialize();
-            _miner.Init();
+            _txHub.Initialize(chainId);
+            _miner.Init(chainId);
         }
 
-        public bool Start()
+        public bool Start(int chainId)
         {
-            if (string.IsNullOrWhiteSpace(ChainConfig.Instance.ChainId))
-            {
-                Logger.LogError("No chain id.");
-                return false;
-            }
-
-            Logger.LogInformation($"Chain Id = {ChainConfig.Instance.ChainId}");
+            Logger.LogInformation($"Chain Id = {chainId.DumpBase58()}");
 
             #region setup
 

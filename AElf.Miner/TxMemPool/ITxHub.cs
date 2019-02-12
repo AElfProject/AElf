@@ -16,7 +16,7 @@ namespace AElf.Miner.TxMemPool
 
         bool TryGetTx(Hash txId, out Transaction tx);
 
-        void Initialize();
+        void Initialize(int chainId);
         
         /// <summary>
         /// open transaction pool

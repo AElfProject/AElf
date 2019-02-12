@@ -5,7 +5,7 @@ namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Init();
+        void Init(int chainId);
         
         /// <summary>
         /// This method mines a block.

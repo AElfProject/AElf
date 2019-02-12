@@ -30,12 +30,13 @@ namespace AElf.Miner.Miner
         /// Generate system txs for parent chain block info and broadcast it.
         /// </summary>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionForIndexingSideChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
+        public async Task<Transaction> GenerateTransactionForIndexingSideChain(Address from, Address to, ulong refBlockNumber,
+         byte[] refBlockPrefix)
         {
             var sideChainBlockInfos = await CollectSideChainIndexedInfo();
             if (sideChainBlockInfos.Length == 0)
                 return null;
-            return GenerateNotSignedTransaction(from, ContractHelpers.IndexingSideChainMethodName, refBlockNumber, refBlockPrefix,
+            return GenerateNotSignedTransaction(from, to, ContractHelpers.IndexingSideChainMethodName, refBlockNumber, refBlockPrefix,
                 new object[]{sideChainBlockInfos});
         }
         
@@ -43,11 +44,11 @@ namespace AElf.Miner.Miner
         /// Generate system txs for parent chain block info and broadcast it.
         /// </summary>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber, byte[] refBlockPrefix)
+        public async Task<Transaction> GenerateTransactionForIndexingParentChain(Address from, Address to, ulong refBlockNumber, byte[] refBlockPrefix)
         {
             var parentChainBlockInfo = await CollectParentChainBlockInfo();
             if (parentChainBlockInfo != null && parentChainBlockInfo.Length != 0)
-                 return GenerateNotSignedTransaction(from, ContractHelpers.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix,
+                 return GenerateNotSignedTransaction(from, to, ContractHelpers.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix,
                     new object[]{parentChainBlockInfo});
             return null;
         }
@@ -60,12 +61,12 @@ namespace AElf.Miner.Miner
         /// <param name="refBlockPrefix"></param>
         /// <param name="params"></param>
         /// <returns></returns>
-        private Transaction GenerateNotSignedTransaction(Address from, String methodName, ulong refBlockNumber, byte[] refBlockPrefix, object[] @params)
+        private Transaction GenerateNotSignedTransaction(Address from, Address to, String methodName, ulong refBlockNumber, byte[] refBlockPrefix, object[] @params)
         {
             var tx = new Transaction
             {
                 From = from,
-                To = ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
+                To = to,
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,

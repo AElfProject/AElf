@@ -43,10 +43,10 @@ namespace AElf.Miner.TxMemPool
         
         private ulong _curHeight;
 
-        private readonly int _chainId;
+        private int _chainId;
 
-        private readonly Address _dPosContractAddress;
-        private readonly Address _crossChainContractAddress;
+        private Address _dPosContractAddress;
+        private Address _crossChainContractAddress;
         
         private List<Address> SystemAddresses => new List<Address>
         {
@@ -65,15 +65,15 @@ namespace AElf.Miner.TxMemPool
             _chainService = chainService;
             _refBlockValidator = refBlockValidator;
             _authorizationInfoReader = authorizationInfoReader;
-
-            _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-
-            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
-            _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(_chainId);
         }
 
-        public void Initialize()
+        public void Initialize(int chainId)
         {
+            _chainId = chainId;
+            
+            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
+            _crossChainContractAddress = ContractHelpers.GetCrossChainContractAddress(_chainId);
+            
             _blockChain = _chainService.GetBlockChain(_chainId);
 
             if (_blockChain == null)
@@ -306,7 +306,7 @@ namespace AElf.Miner.TxMemPool
 
             try
             {
-                await _refBlockValidator.ValidateAsync(tr.Transaction);
+                await _refBlockValidator.ValidateAsync(_chainId, tr.Transaction);
                 tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
             }
             catch (FutureRefBlockException)

@@ -31,7 +31,8 @@ namespace AElf.Miner.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
             context.Services.AddScoped<IExecutingService, NoFeeSimpleExecutingService>();
             

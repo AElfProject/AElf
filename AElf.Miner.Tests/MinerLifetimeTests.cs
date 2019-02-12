@@ -21,6 +21,7 @@ using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
 using Easy.MessageHub;
+using Microsoft.Extensions.Options;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner.Tests
@@ -178,7 +179,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var minerAddress = AddressHelpers.BuildAddress(minerKeypair.PublicKey);
             
             var chain = await _mock.CreateChain();
-            var minerconfig = _mock.GetMinerConfig(chain.Id);
             
             var txHub = _mock.CreateAndInitTxHub();
             txHub.Start();
@@ -190,12 +190,12 @@ public sealed class MinerLifetimeTests : MinerTestBase
             }
             
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, txHub, manager);
+            var miner = _mock.GetMiner(txHub, manager);
 
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
             
-            miner.Init();
+            miner.Init(chain.Id);
             
             var block = await miner.Mine();
             
