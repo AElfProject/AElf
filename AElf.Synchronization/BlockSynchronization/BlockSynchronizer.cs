@@ -194,14 +194,11 @@ namespace AElf.Synchronization.BlockSynchronization
             var t = TryExecuteNextCachedBlock();
         }
 
-        public void Init()
+        public void Init(int chainId)
         {
-            if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
-                throw new InvalidOperationException("Chain id cannot be empty...");
-            
             try
             {
-                _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
+                _chainId = chainId;
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
                 Miners miners = _minersManager.GetMiners(0).Result;

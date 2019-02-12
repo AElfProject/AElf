@@ -142,7 +142,7 @@ namespace AElf.Node.AElfChain
 
             #region start
             
-            _blockSynchronizer.Init();
+            _blockSynchronizer.Init(chainId);
 
             _txHub.Start();
             
