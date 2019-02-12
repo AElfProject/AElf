@@ -302,7 +302,6 @@ namespace AElf.Miner.Tests
             };
 
             var sideChainId = ChainHelpers.GetRandomChainId();
-            ChainConfig.Instance.ChainId = sideChainId.DumpBase58();
 
             MockKeyPair(sideChainId, dir);
             GrpcLocalConfig.Instance.LocalSideChainServerPort = port;
@@ -335,7 +334,6 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.LocalParentChainServerPort = port;
             GrpcLocalConfig.Instance.LocalServerIP = address;
             GrpcLocalConfig.Instance.ParentChainServer = true;
-            ChainConfig.Instance.ChainId = chainId.Value.DumpBase58();
 
             return chainId;
         }

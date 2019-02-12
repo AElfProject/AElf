@@ -25,7 +25,6 @@ namespace AElf.Network.Tests.NetworkManagerTests
             firstPeer.Setup(m => m.KnownHeight).Returns(2);
             
             Mock<IPeerManager> peerManager = new Mock<IPeerManager>();
-            ChainConfig.Instance.ChainId = "kPBx";
             
             NetworkManager nm = new NetworkManager(peerManager.Object, null, null);
             

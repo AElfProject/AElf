@@ -147,8 +147,6 @@ namespace AElf.Network.Tests
         [Fact]
         public void SyncNextAnnouncement_WithSyncingAndEmptyAnnoucements_EndsSync()
         {
-            ChainConfig.Instance.ChainId = "kPBx";
-            
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
 

@@ -207,7 +207,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             

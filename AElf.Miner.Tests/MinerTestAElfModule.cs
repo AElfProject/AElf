@@ -47,8 +47,7 @@ namespace AElf.Miner.Tests
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}).DumpBase58();
+        
         }
-
     }
 }
