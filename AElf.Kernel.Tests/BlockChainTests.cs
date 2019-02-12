@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using Google.Protobuf;
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Tests
         [Fact(Skip = "Skip for now.")]
         public void StateRollbackTest()
         {
-            var key =  new KeyPairGenerator().Generate();
+            var key = CryptoHelpers.GenerateKeyPair();
             var addresses = Enumerable.Range(0, 10).Select(x => Address.FromString(x.ToString())).ToList();
             var txs = addresses.Select(x => _mock.GetInitializeTxn(x, 1)).ToList();
 
