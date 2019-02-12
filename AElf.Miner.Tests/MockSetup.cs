@@ -10,18 +10,19 @@ using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Server;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Moq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Crosschain.Grpc.Client;
+using AElf.Crosschain.Grpc.Server;
+using AElf.Crosschain.Server;
 using AElf.Execution.Execution;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Contexts;
@@ -123,20 +124,20 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, ClientManager clientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, GrpcClientManager grpcClientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
+                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
                 _accountService);
 
             return miner;
         }
 
-        internal IBlockExecutor GetBlockExecutor(ClientManager clientManager = null)
+        internal IBlockExecutor GetBlockExecutor(GrpcClientManager grpcClientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager,
+                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager,
                 new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
                 _consensusDataProvider);
 
@@ -263,9 +264,9 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
-        public ClientManager MinerClientManager()
+        public GrpcClientManager MinerClientManager()
         {
-            return new ClientManager(MockCrossChainInfoReader().Object);
+            return new GrpcClientManager(MockCrossChainInfoReader().Object);
         }
 
         public ulong GetTimes = 0;

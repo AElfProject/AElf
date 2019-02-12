@@ -157,6 +157,10 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
+message BlockExtraData{
+    Hash SideChainTransactionsRoot = 1;
+}
+
 message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;
@@ -168,14 +172,15 @@ message BlockHeader {
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10;
-    Hash SideChainTransactionsRoot = 11;
+    BlockExtraData BlockExtraData = 11;
 }
 
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
     repeated Transaction TransactionList = 3;
-    //repeated SideChainBlockInfo IndexedInfo = 4;
+    repeated SideChainBlockInfo SideChainBlockData = 4;
+    repeated ParentChainBlockInfo ParentChainBlockData = 5; 
 }
 
 message Block {
@@ -195,26 +200,6 @@ message SmartContractDeployment {
     Hash Caller = 2;
     bytes ConstructParams = 3;
     uint64 IncrementId = 4;
-}
-
-message Parameters {
-    repeated Param Params = 1;
-}
-
-message Param {
-    oneof data {
-        int32 intVal = 1;
-        uint32 uintVal = 2;
-        int64 longVal = 3;
-        uint64 ulongVal = 4;
-        bool boolVal = 5;
-        bytes bytesVal = 6;
-        string strVal = 7;
-        double dVal = 8; // Maybe don't allow floating point
-        Hash hashVal = 9;
-        SmartContractRegistration registerVal = 10;
-        SmartContractDeployment deploymentVal = 11;
-    }
 }
 
 message SmartContractInvokeContext {

@@ -2,9 +2,11 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Crosschain;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Storages;
@@ -24,14 +26,15 @@ namespace AElf.Miner.Tests
         typeof(CSharpRuntimeAElfModule),
         typeof(AElf.Miner.MinerAElfModule),
         typeof(ConsensusKernelAElfModule),
-        typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
+        typeof(MinerAElfModule),
+        typeof(CrosschainAElfModule),
         typeof(KernelAElfModule)
     )]
     public class MinerTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
             context.Services.AddScoped<IExecutingService, NoFeeSimpleExecutingService>();
             

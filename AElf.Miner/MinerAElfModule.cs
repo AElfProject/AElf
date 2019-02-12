@@ -1,14 +1,11 @@
 ﻿using AElf.ChainController;
 using AElf.Common;
-using AElf.Common.Application;
-using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.BlockService;
+using AElf.Kernel.Txn;
 using AElf.Miner.Miner;
-using AElf.Miner.Rpc.Client;
-using AElf.Miner.Rpc.Server;
 using AElf.Miner.TxMemPool;
 using AElf.Modularity;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
@@ -24,23 +21,21 @@ namespace AElf.Miner
             minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
             
             var services = context.Services;
-
             services.AddSingleton<IMinerConfig>(minerConfig);
-            services.AddSingleton<ClientManager>();
-            services.AddSingleton<ServerManager>();
             services.AddTransient<TransactionFilter>();
+            services.AddSingleton<ISystemTransactionGenerator, FeeClaimingTransactionGenerator>();
+            services.AddSingleton<IBlockGenerationService, BlockGenerationService>();
+            services.AddTransient<TransactionTypeIdentificationService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             
-            //TODO! should define a interface like RuntimeEnvironment and inject it in ClientManager.
-            context.ServiceProvider.GetService<ClientManager>()
-                .Init(ApplicationHelpers.ConfigPath);
-            context.ServiceProvider.GetService<ServerManager>()
-                .Init(ApplicationHelpers.ConfigPath);
+//            //TODO! should define a interface like RuntimeEnvironment and inject it in GrpcClientManager.
+//            context.ServiceProvider.GetService<GrpcClientManager>()
+//                .Init(ApplicationHelpers.ConfigPath);
+//            context.ServiceProvider.GetService<ServerManager>()
+//                .Init(ApplicationHelpers.ConfigPath);
         }
-
-
     }
 }

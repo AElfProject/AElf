@@ -2,15 +2,12 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
 using AElf.Kernel;
-using AElf.Miner.Rpc;
-using AElf.Miner.Rpc.Server;
 using Grpc.Core;
 using Moq;
 using Xunit;
-
 using AElf.Common;
+using AElf.Crosschain.Grpc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

@@ -12,6 +12,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
@@ -44,22 +45,16 @@ namespace AElf.Miner.TxMemPool
         private ulong _curHeight;
 
         private readonly int _chainId;
-
-        private readonly Address _dPosContractAddress;
-        private readonly Address _crossChainContractAddress;
-        
-        private List<Address> SystemAddresses => new List<Address>
-        {
-            _dPosContractAddress, 
-            _crossChainContractAddress
-        };
+        private readonly TransactionTypeIdentificationService _transactionTypeIdentificationService;
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService, IAuthorizationInfoReader authorizationInfoReader,
-            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo)
+            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo,
+            TransactionTypeIdentificationService transactionTypeIdentificationService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _electionInfo = electionInfo;
+            _transactionTypeIdentificationService = transactionTypeIdentificationService;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
@@ -67,9 +62,6 @@ namespace AElf.Miner.TxMemPool
             _authorizationInfoReader = authorizationInfoReader;
 
             _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-
-            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
-            _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(_chainId);
         }
 
         public void Initialize()
@@ -325,7 +317,7 @@ namespace AElf.Miner.TxMemPool
 
         private void IdentifyTransactionType(TransactionReceipt tr)
         {
-            if (SystemAddresses.Contains(tr.Transaction.To))
+            if (_transactionTypeIdentificationService.IsSystemTransaction(tr.Transaction))
             {
                 tr.IsSystemTxn = true;
             }
@@ -336,7 +328,7 @@ namespace AElf.Miner.TxMemPool
             }
 
             // cross chain txn should not be  broadcasted
-            if (tr.Transaction.IsCrossChainIndexingTransaction())
+            if (_transactionTypeIdentificationService.IsCrossChainIndexingTransaction(tr.Transaction))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -454,10 +446,6 @@ namespace AElf.Miner.TxMemPool
                     if(tr.Transaction == null)
                         continue;
                     
-                    // cross chain transactions should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction())
-                        continue;
-
                     if (tr.Transaction.IsClaimFeesTransaction())
                     {
                         continue;
