@@ -214,7 +214,7 @@ namespace AElf.Contracts.Consensus.DPoS
             };
         }
         
-        public TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation)
+        public TransactionList GenerateConsensusTransactions(BlockHeader previousBlockHeader, byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TransactionList
                 {
                     Transactions =
-                        {GenerateTransaction(blockHeader, "InitialTerm", new List<object> {extra.NewTerm})}
+                        {GenerateTransaction(previousBlockHeader, "InitialTerm", new List<object> {extra.NewTerm})}
                 };
             }
 
@@ -238,10 +238,10 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(blockHeader, "NextTerm", new List<object> {extra.NewTerm}),
-                            GenerateTransaction(blockHeader, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(blockHeader, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(blockHeader, "SendDividends", new List<object>{roundNumber, termNumber})
+                            GenerateTransaction(previousBlockHeader, "NextTerm", new List<object> {extra.NewTerm}),
+                            GenerateTransaction(previousBlockHeader, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
+                            GenerateTransaction(previousBlockHeader, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
+                            GenerateTransaction(previousBlockHeader, "SendDividends", new List<object>{roundNumber, termNumber})
                         }
                     };
                 }
@@ -250,7 +250,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(blockHeader, "NextRound", new List<object> {extra.Forwarding}),
+                        GenerateTransaction(previousBlockHeader, "NextRound", new List<object> {extra.Forwarding}),
                     }
                 };
             }
@@ -260,7 +260,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Transactions =
                 {
-                    GenerateTransaction(blockHeader, "PackageOutValue", new List<object> {extra.ToPackage}),
+                    GenerateTransaction(previousBlockHeader, "PackageOutValue", new List<object> {extra.ToPackage}),
                 }
             };
         }

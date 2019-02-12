@@ -9,6 +9,6 @@ namespace AElf.Sdk.CSharp
         ValidationResult ValidateConsensus(byte[] consensusInformation);
         int GetCountingMilliseconds(Timestamp timestamp);
         IMessage GetNewConsensusInformation(byte[] extraInformation);
-        TransactionList GenerateConsensusTransactions(BlockHeader blockHeader, byte[] extraInformation);
+        TransactionList GenerateConsensusTransactions(BlockHeader previousBlockHeader, byte[] extraInformation);
     }
 }
