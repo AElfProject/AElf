@@ -6,7 +6,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Token
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>, IFeeChargedContract, ITokenCotract
+    public partial class TokenContract : CSharpSmartContract<TokenContractState>, ITokenCotract
     {
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Token
         {
             var fromAddress = Context.Sender;
             State.Balances[fromAddress] = State.Balances[fromAddress].Sub(feeAmount);
-            State.ChargedFees[fromAddress] = State.ChargedFees[fromAddress].Sub(feeAmount);
+            State.ChargedFees[fromAddress] = State.ChargedFees[fromAddress].Add(feeAmount);
         }
 
         public void ClaimTransactionFees(ulong height)
@@ -102,14 +102,5 @@ namespace AElf.Contracts.Token
             }
         }
 
-        public ulong GetMethodFee(string methodName)
-        {
-            return State.MethodFees[methodName];
-        }
-
-        public void SetMethodFee(string methodName, ulong fee)
-        {
-            State.MethodFees[methodName] = fee;
-        }
     }
 }
