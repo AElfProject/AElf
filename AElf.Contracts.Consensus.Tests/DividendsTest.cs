@@ -39,8 +39,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
         }
 
-        [Fact]
-        //[Fact(Skip = "Time consuming.")]
+        [Fact(Skip = "Time consuming.")]
         public void ReceiveDividendsTest()
         {
             GlobalConfig.ElfTokenPerBlock = 1000;
