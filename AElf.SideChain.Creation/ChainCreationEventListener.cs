@@ -33,25 +33,27 @@ namespace AElf.SideChain.Creation
         private Bloom _bloom;
         private IChainManager _chainManager;
         private DeployOptions _deployOptions;
+        private ChainOptions _chainOptions;
 
         public ChainCreationEventListener( ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IChainManager chainManager, 
-            IOptionsSnapshot<DeployOptions> options)
+            IOptionsSnapshot<DeployOptions> deployOptions, IOptionsSnapshot<ChainOptions> chainOptions)
         {
             Logger = NullLogger<ChainCreationEventListener>.Instance;
+            _chainOptions = chainOptions.Value;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
-                Address = ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(_chainOptions.ChainId.ConvertBase58ToChainId()),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
                 }
             };
             _bloom = _interestedLogEvent.GetBloom();
-            _deployOptions = options.Value;
+            _deployOptions = deployOptions.Value;
             InitializeClient();
         }
 
