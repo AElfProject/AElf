@@ -7,6 +7,12 @@ using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
 
 namespace AElf.Kernel.Services
 {
+    public interface IBlockchainServiceBase
+    {
+        Task<bool> AddBlockAsync(int chainId, Block block);
+        
+    }
+    
     public interface IBlockchainService: ILightBlockchainService
     {
         Task<bool> HasBlockAsync(int chainId, Hash blockId);

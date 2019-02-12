@@ -13,7 +13,7 @@ namespace AElf.Kernel.Services
         Task<Chain> GetChainAsync(int chainId);
         Task<IBlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockHash);
         Task<IBlockHeader> GetIrreversibleBlockHeaderByHeightAsync(int chainId, long height);
-    }
+    } 
 
     public class LightBlockchainService: ILightBlockchainService
     {
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Services
                 });
             }
         }
-
+        
         public async Task<Chain> GetChainAsync(int chainId)
         {
             return await _chainManager.GetAsync(chainId);
