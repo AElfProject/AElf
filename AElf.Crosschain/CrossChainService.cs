@@ -6,7 +6,7 @@ using AElf.Kernel.BlockService;
 
 namespace AElf.Crosschain
 {
-    public class CrossChainService : ICrossChainService, IBlockExtraDataProvider
+    public class CrossChainService : ICrossChainService
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
 
@@ -43,18 +43,6 @@ namespace AElf.Crosschain
         public async Task<bool> ValidateParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo)
         {
             return await _crossChainDataProvider.GetParentChainBlockInfo(parentChainBlockInfo);
-        }
-
-        public async Task FillExtraData(Block block)
-        {
-            var sideChainBlockData = await GetSideChainBlockInfo();
-            var sideChainTransactionsRoot = new BinaryMerkleTree()
-                .AddNodes(sideChainBlockData.Select(scb => scb.TransactionMKRoot).ToArray()).ComputeRootHash();
-            block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
-            block.Body.SideChainBlockData.AddRange(sideChainBlockData);
-            
-            var parentChainBlockData = await GetParentChainBlockInfo();
-            block.Body.ParentChainBlockData.AddRange(parentChainBlockData);
         }
     }
 }

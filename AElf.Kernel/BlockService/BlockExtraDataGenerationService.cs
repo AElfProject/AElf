@@ -12,9 +12,8 @@ namespace AElf.Kernel.BlockService
             _blockExtraDataProviders = blockExtraDataProviders;
         }
 
-        public async Task AddBlockExtraData(Block block)
+        public async Task FillBlockExtraData(Block block)
         {
-            block.Header.BlockExtraData = new BlockExtraData();
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
                 await blockExtraDataProvider.FillExtraData(block);

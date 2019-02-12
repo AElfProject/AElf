@@ -36,13 +36,12 @@ namespace AElf.Miner.Miner
                         Bloom.AndMultipleBloomBytes(
                             results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
                         )
-                    ),
-                    //SideChainTransactionsRoot = sideChainTransactionsRoot
+                    )
                 }
             };
             
             // todo: get block extra data with _blockExtraDataGenerationService including consensus data, cross chain data etc.. 
-            await _blockExtraDataGenerationService.AddBlockExtraData(block);
+            await _blockExtraDataGenerationService.FillBlockExtraData(block);
 
             // calculate and set tx merkle tree root 
             block.Complete(currentBlockTime, results);
