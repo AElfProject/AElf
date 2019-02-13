@@ -155,10 +155,12 @@ ProjectSection(SolutionItems) = preProject
 	docs\README.md = docs\README.md
 EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
 ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
 	build.sh = build.sh
+	deploy.sh = deploy.sh
+	install_protobuf.sh = install_protobuf.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -178,6 +180,27 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Configuration", "AElf.Configuration\AElf.Configuration.csproj", "{AC33EAE2-326A-41E1-9048-F4C1CD0B9C72}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
+ProjectSection(SolutionItems) = preProject
+	protobuf\common.proto = protobuf\common.proto
+	protobuf\execution.proto = protobuf\execution.proto
+	protobuf\kernel.proto = protobuf\kernel.proto
+	protobuf\abi.proto = protobuf\abi.proto
+	protobuf\address_pair.proto = protobuf\address_pair.proto
+	protobuf\auth.proto = protobuf\auth.proto
+	protobuf\consensus.proto = protobuf\consensus.proto
+	protobuf\contract_info.proto = protobuf\contract_info.proto
+	protobuf\crosschain.proto = protobuf\crosschain.proto
+	protobuf\entities.proto = protobuf\entities.proto
+	protobuf\header_info.proto = protobuf\header_info.proto
+	protobuf\messages.proto = protobuf\messages.proto
+	protobuf\metadata.proto = protobuf\metadata.proto
+	protobuf\params_packer_tests.proto = protobuf\params_packer_tests.proto
+	protobuf\resource.proto = protobuf\resource.proto
+	protobuf\smart_contract.proto = protobuf\smart_contract.proto
+	protobuf\user_type_holder.proto = protobuf\user_type_holder.proto
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -257,10 +280,6 @@ Global
 		{6F17E8F3-68F9-46A4-8766-5E003688C742}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F17E8F3-68F9-46A4-8766-5E003688C742}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F17E8F3-68F9-46A4-8766-5E003688C742}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3D3CEB2A-7143-4F40-8C9D-776D34C9BC3E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D86E3450-B65D-4999-8C1D-4B1D4403DB51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D86E3450-B65D-4999-8C1D-4B1D4403DB51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D86E3450-B65D-4999-8C1D-4B1D4403DB51}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -325,18 +344,6 @@ Global
 		{9D0EB8CA-EF8B-4044-8582-C3478ECC0313}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D0EB8CA-EF8B-4044-8582-C3478ECC0313}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D0EB8CA-EF8B-4044-8582-C3478ECC0313}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F0E4E351-BE25-4670-905D-231E045A5090}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F0E4E351-BE25-4670-905D-231E045A5090}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F0E4E351-BE25-4670-905D-231E045A5090}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F0E4E351-BE25-4670-905D-231E045A5090}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B0905B6C-1DAA-47BF-9486-094B9FB037E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F44EDCEC-7BE4-4A43-B7AE-04C2570CB17D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Release|Any CPU.ActiveCfg = Release|Any CPU

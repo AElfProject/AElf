@@ -55,13 +55,6 @@ namespace AElf.Kernel.Tests
             
             tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
             tx.MethodName = "hello world";
-            tx.Params = ByteString.CopyFrom(new Parameters
-            {
-                Params = { new Param
-                {
-                    IntVal = 1
-                }}
-            }.ToByteArray());
 
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();
