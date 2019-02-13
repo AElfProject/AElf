@@ -4,9 +4,7 @@ namespace AElf.OS.Network.Grpc
     {
         bool AuthenticatePeer(string peer, Handshake handshake);
         bool IsAuthenticated(string peer);
-
         bool FinalizeAuth(GrpcPeer peer);
-
         Handshake GetHandshake();
     }
 }

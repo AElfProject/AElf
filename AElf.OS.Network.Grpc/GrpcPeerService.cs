@@ -8,28 +8,36 @@ using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcServerService : PeerService.PeerServiceBase
+    /// <summary>
+    /// Implementation of the grpc generated service. It contains the rpc methods
+    /// exposed to peers.
+    /// </summary>
+    public class GrpcPeerService : PeerService.PeerServiceBase
     {
+        /// <summary>
+        /// Event launched when a peer disconnects explicitly.
+        /// </summary>
         public event EventHandler PeerSentDisconnection;
         
         private readonly IPeerAuthentificator _peerAuthenticator;
         private readonly IBlockService _blockService;
         private readonly ILocalEventBus _localEventBus;
 
-        public ILogger<GrpcNetworkManager> Logger { get; set; }
-        private PeerService.PeerServiceClient client;
+        public ILogger<GrpcPeerService> Logger;
         
-        public GrpcServerService(ILogger<GrpcNetworkManager> logger, IPeerAuthentificator peerAuthenticator,
+        public GrpcPeerService(IPeerAuthentificator peerAuthenticator,
             IBlockService blockService, ILocalEventBus localEventBus)
         {
             _peerAuthenticator = peerAuthenticator;
             _blockService = blockService;
             _localEventBus = localEventBus;
-            Logger = logger;
+
+            Logger = NullLogger<GrpcPeerService>.Instance;
         }
 
         /// <summary>
@@ -37,9 +45,6 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
         public override Task<AuthResponse> Connect(Handshake request, ServerCallContext context)
         {
             Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
@@ -50,7 +55,7 @@ namespace AElf.OS.Network.Grpc
                 Logger?.LogDebug($"Attempting connect to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
-                client = new PeerService.PeerServiceClient(channel);
+                var client = new PeerService.PeerServiceClient(channel);
 
                 if (channel.State != ChannelState.Ready)
                 {
@@ -79,9 +84,6 @@ namespace AElf.OS.Network.Grpc
         /// Second step of the connect/auth process. This takes place after the connect to receive the peers
         /// information and on return let him know that we've validated.
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
             Logger.LogTrace($"[{context.Peer}] Is calling back with his auth.");
@@ -101,6 +103,9 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new AuthResponse { Success = true, Port = context.Peer.Split(":")[2] });
         }
 
+        /// <summary>
+        /// This method is called when another peer broadcasts a transaction.
+        /// </summary>
         public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
             try
@@ -116,11 +121,8 @@ namespace AElf.OS.Network.Grpc
         }
 
         /// <summary>
-        /// Call back for when a Peer has broadcast an announcement.
+        /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        /// <param name="an"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
         public override Task<VoidReply> Announce(Announcement an, ServerCallContext context)
         {
             Logger.LogTrace($"Received announce {an.Id.ToByteArray().ToHex()} from {context.Peer}.");
@@ -137,6 +139,11 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new VoidReply());
         }
 
+        /// <summary>
+        /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
+        /// of <see cref="BlockRequest.Id"/> is not null, the request is by ID, otherwise it will be
+        /// by height.
+        /// </summary>
         public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
             if (request == null)
@@ -166,6 +173,9 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new BlockReply());
         }
 
+        /// <summary>
+        /// Clients should call this method to disconnect explicitly.
+        /// </summary>
         public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             try

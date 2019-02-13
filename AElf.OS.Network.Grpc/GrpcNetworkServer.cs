@@ -5,7 +5,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
@@ -18,38 +17,37 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcNetworkManager : INetworkManager, IPeerAuthentificator, ISingletonDependency
+    public class GrpcNetworkServer : IAElfNetworkServer, IPeerAuthentificator, ISingletonDependency
     {
         private readonly IAccountService _accountService;
         private readonly IBlockService _blockService;
         private readonly ILocalEventBus _localEventBus;
         
-        public ILogger<GrpcNetworkManager> Logger { get; set; }
+        public ILogger<GrpcNetworkServer> Logger { get; set; }
                 
         private readonly NetworkOptions _networkOptions;
 
         private Server _server;
 
-        private List<GrpcPeer> _authenticatedPeers;
+        private readonly List<GrpcPeer> _authenticatedPeers;
         
-        public GrpcNetworkManager(IOptionsSnapshot<NetworkOptions> options, 
+        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, 
             IAccountService accountService, IBlockService blockService, ILocalEventBus localEventBus)
         {
             _accountService = accountService;
             _blockService = blockService;
-            Logger = NullLogger<GrpcNetworkManager>.Instance;
+            _localEventBus = localEventBus;
+            _networkOptions = options.Value;
             
-             _localEventBus = localEventBus;
+            Logger = NullLogger<GrpcNetworkServer>.Instance;
             
             _authenticatedPeers = new List<GrpcPeer>();
-            
-            _networkOptions = options.Value;
         }
         
         public async Task StartAsync()
         {
             // todo inject block service
-            var p = new GrpcServerService(Logger, this, _blockService, _localEventBus);
+            var p = new GrpcPeerService(this, _blockService, _localEventBus);
             
             p.PeerSentDisconnection += POnPeerSentDisconnection;
             
@@ -88,8 +86,8 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogTrace($"Attempting to reach {address}.");
                 
-                var splitted = address.Split(":");
-                Channel channel = new Channel(splitted[0], int.Parse(splitted[1]), ChannelCredentials.Insecure);
+                var splitAddress = address.Split(":");
+                Channel channel = new Channel(splitAddress[0], int.Parse(splitAddress[1]), ChannelCredentials.Insecure);
                         
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = BuildHandshake();
@@ -112,56 +110,6 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        private Handshake BuildHandshake()
-        {
-            var nd = new HandshakeData
-            {
-                ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKey().Result),
-                Version = GlobalConfig.ProtocolVersion,
-            };
-            
-            byte[] sig = _accountService.Sign(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
-
-            var hsk = new Handshake
-            {
-                HskData = nd,
-                Sig = ByteString.CopyFrom(sig)
-            };
-
-            return hsk;
-        }
-
-        public async Task BroadcastAnnounce(Block b)
-        {
-            foreach (var peer in _authenticatedPeers)
-            {
-                try
-                {
-                    await peer.AnnounceAsync(new Announcement { Id = ByteString.CopyFrom(b.GetHashBytes()) });
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, "Error while sending block."); // todo improve
-                }
-            }
-        }
-
-        public async Task BroadcastTransaction(Transaction tx)
-        {
-            foreach (var peer in _authenticatedPeers)
-            {
-                try
-                {
-                    await peer.SendTransactionAsync(tx);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, "Error while sending transaction."); // todo improve
-                }
-            }
-        }
-
         public async Task StopAsync()
         {
             await _server.KillAsync();
@@ -180,44 +128,6 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task<IBlock> GetBlockByHeight(ulong height, string peer = null)
-        {
-            return await GetBlock(new BlockRequest { BlockNumber = (long)height });
-        }
-
-        public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null)
-        {
-            return await GetBlock(new BlockRequest { Id = hash.Value });
-        }
-
-        private async Task<IBlock> GetBlock(BlockRequest request, string peer = null)
-        {
-            // todo use peer if specified
-            foreach (var p in _authenticatedPeers)
-            {
-                try
-                {
-                    if (p == null)
-                    {
-                        Logger.LogWarning("No peers left.");
-                        return null;
-                    }
-            
-                    Logger.LogDebug($"Attempting get with {p}");
-
-                    BlockReply block = await p.RequestBlockAsync(request);
-
-                    if (block.Block != null)
-                        return block.Block;
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, "Error while requesting block.");
-                }
-            }
-
-            return null;
-        }
 
         public async Task<bool> AddPeerAsync(string address)
         {
@@ -240,9 +150,9 @@ namespace AElf.OS.Network.Grpc
             return _authenticatedPeers.Remove(peer);
         }
 
-        public List<string> GetPeers()
+        public List<GrpcPeer> GetPeers()
         {
-            return _authenticatedPeers.Select(p => p.PeerAddress).ToList();
+            return _authenticatedPeers.ToList();
         }
 
         public string GetPeer(string address)
@@ -270,6 +180,26 @@ namespace AElf.OS.Network.Grpc
         public Handshake GetHandshake()
         {
             return BuildHandshake();
+        }
+        
+        private Handshake BuildHandshake()
+        {
+            var nd = new HandshakeData
+            {
+                ListeningPort = _networkOptions.ListeningPort,
+                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKey().Result),
+                Version = GlobalConfig.ProtocolVersion,
+            };
+            
+            byte[] sig = _accountService.Sign(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
+
+            var hsk = new Handshake
+            {
+                HskData = nd,
+                Sig = ByteString.CopyFrom(sig)
+            };
+
+            return hsk;
         }
     }
 }

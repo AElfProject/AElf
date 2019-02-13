@@ -8,7 +8,7 @@ namespace AElf.OS.Network.Grpc
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<INetworkManager, GrpcNetworkManager>();
+            context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
         }
     }
 }

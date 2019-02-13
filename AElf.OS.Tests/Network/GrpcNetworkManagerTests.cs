@@ -26,7 +26,7 @@ namespace AElf.OS.Tests.Network
             _testOutputHelper = testOutputHelper;
         }
 
-        private GrpcNetworkManager BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
+        private GrpcNetworkServer BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
@@ -53,7 +53,7 @@ namespace AElf.OS.Tests.Network
                     .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Index == 1)));
             }
             
-            GrpcNetworkManager manager1 = new GrpcNetworkManager(optionsMock.Object, accountServiceMock.Object, mockBlockService.Object, mockLocalEventBus.Object);
+            GrpcNetworkServer manager1 = new GrpcNetworkServer(optionsMock.Object, accountServiceMock.Object, mockBlockService.Object, mockLocalEventBus.Object);
 
             return manager1;
         }
@@ -73,26 +73,40 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
+            var m3 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6800"},
+                ListeningPort = 6802
+            });
+            
             await m1.StartAsync();
             await m2.StartAsync();
+            await m3.StartAsync();
 
-            IBlock b = await m2.GetBlockByHash(genesis.GetHash());
-            IBlock bbh = await m2.GetBlockByHeight(genesis.Index);
+            var service1 = new GrpcNetworkService(m1);
+            var service2 = new GrpcNetworkService(m2);
+            var service3 = new GrpcNetworkService(m3);
+
+            IBlock b = await service2.GetBlockByHash(genesis.GetHash());
+            IBlock bbh = await service3.GetBlockByHeight(genesis.Index);
 
             await m1.StopAsync();
             await m2.StopAsync();
             
             Assert.NotNull(b);
             Assert.NotNull(bbh);
+
+            await m3.StopAsync();
         }
         
         [Fact]
         private async Task Announcement_EventTest()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
+            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>(); 
 
             void TransferEventCallbackAction(object eventData)
             {
+                // todo use event bus
                 try
                 {
                     if (eventData is AnnoucementReceivedEventData data)
@@ -119,7 +133,8 @@ namespace AElf.OS.Tests.Network
             
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            await m2.BroadcastAnnounce(genesis);
+            var servicem2 = new GrpcNetworkService(m2);
+            await servicem2.BroadcastAnnounce(genesis);
             
             await m1.StopAsync();
             await m2.StopAsync();
@@ -135,6 +150,7 @@ namespace AElf.OS.Tests.Network
 
             void TransferEventCallbackAction(object eventData)
             {
+                // todo use event bus
                 try
                 {
                     if (eventData is TxReceivedEventData data)
@@ -161,13 +177,13 @@ namespace AElf.OS.Tests.Network
             
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            await m2.BroadcastTransaction(new Transaction());
+            var servicem2 = new GrpcNetworkService(m2);
+            await servicem2.BroadcastTransaction(new Transaction());
             
             await m1.StopAsync();
             await m2.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
-            //Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
         }
         
         private async Task Announcement_Request_Test()
@@ -202,7 +218,8 @@ namespace AElf.OS.Tests.Network
             
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            await m2.BroadcastAnnounce(genesis);
+            var servicem2 = new GrpcNetworkService(m2);
+            await servicem2.BroadcastAnnounce(genesis);
             
             await m1.StopAsync();
             await m2.StopAsync();
