@@ -17,8 +17,8 @@ fi
 
 name="${osn}_${osb}"
 cp ~/.nuget/packages/grpc.tools/1.18.0/tools/${name}/grpc_csharp_plugin ./
-protoc --proto_path=../AElf.Types/Protobuf/Proto \
+protoc --proto_path=../protobuf \
 --csharp_out=./Generated \
 --csharp_opt=file_extension=.g.cs \
---grpc_out=./Generated PeerService.proto \
+--grpc_out=./Generated peer_service.proto \
 --plugin=protoc-gen-grpc=./grpc_csharp_plugin

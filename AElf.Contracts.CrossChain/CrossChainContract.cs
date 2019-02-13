@@ -163,9 +163,7 @@ namespace AElf.Contracts.CrossChain
                 Api.GetFromAddress().Equals(request.Proposer), "Invalid chain creation request.");
 
             var serialNumber = _sideChainSerialNumber.Increment().Value;
-            var raw = ChainHelpers.GetChainId(serialNumber);
-            var chainId = Hash.LoadByteArray(raw);
-
+            int chainId = ChainHelpers.GetChainId(serialNumber);
             Api.Assert(!_sideChainInfos.TryGet(chainId, out _),"Chain creation request already exists.");
 
             // lock token and resource
@@ -174,14 +172,14 @@ namespace AElf.Contracts.CrossChain
 
             // side chain creation proposal
             Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
-                Api.GetContractAddress(), CreateSideChainMethodName, raw.ToPlainBase58());
+                Api.GetContractAddress(), CreateSideChainMethodName, chainId.DumpBase58());
             request.SideChainStatus = SideChainStatus.Review;
             request.ProposalHash = hash;
             _sideChainInfos.SetValue(chainId, request);
             var res = new JObject
             {
                 ["proposal_hash"] = hash.ToHex(),
-                ["chain_id"] = raw.ToPlainBase58()
+                ["chain_id"] = chainId.DumpBase58()
             };
             return res.ToString();
         }

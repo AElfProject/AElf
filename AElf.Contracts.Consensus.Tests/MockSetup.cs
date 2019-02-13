@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public IStateManager StateManager { get; }
         
-        public int ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
+        public int ChainId { get; } = ChainHelpers.GetChainId(123);
         
         private ISmartContractService SmartContractService { get; }
 

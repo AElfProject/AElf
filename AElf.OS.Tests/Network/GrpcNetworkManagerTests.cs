@@ -53,7 +53,7 @@ namespace AElf.OS.Tests.Network
                     .Returns<Hash>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
                 
                 mockBlockService.Setup(bs => bs.GetBlockByHeight(It.IsAny<ulong>()))
-                    .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Index == 1)));
+                    .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == 1)));
             }
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, mockBlockService.Object, mockLocalEventBus.Object);
@@ -91,7 +91,7 @@ namespace AElf.OS.Tests.Network
             var service3 = new GrpcNetworkService(m3);
 
             IBlock b = await service2.GetBlockByHash(genesis.GetHash());
-            IBlock bbh = await service3.GetBlockByHeight(genesis.Index);
+            IBlock bbh = await service3.GetBlockByHeight(genesis.Height);
 
             await m1.StopAsync();
             await m2.StopAsync();

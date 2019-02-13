@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-option csharp_namespace = "AElf.Kernel";
-
-message TermRounds {
-    repeated uint64 RoundNumbers = 1;
-}
-

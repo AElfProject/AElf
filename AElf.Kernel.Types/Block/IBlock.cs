@@ -8,7 +8,7 @@ namespace AElf.Kernel
     {
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
-        ulong Index { get; set; }
+        ulong Height { get; set; }
         string BlockHashToHex { get; set; }
         byte[] GetHashBytes();
         Block Clone();

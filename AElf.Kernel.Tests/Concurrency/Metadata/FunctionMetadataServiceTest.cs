@@ -30,7 +30,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task TestDepolyContract()
         {
-            var chainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x06});
+            var chainId = ChainHelpers.GetChainId(123);
             var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);
@@ -235,7 +235,7 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         [Fact]
         public async Task TestEmptyContract()
         {
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x07 });
+            var chainId = ChainHelpers.GetChainId(101);
             var runner = _smartContractRunnerContainer.GetRunner(0);
             var contractCType = typeof(TestContractC);
             var contractBType = typeof(TestContractB);

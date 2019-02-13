@@ -13,10 +13,33 @@
     <Compile Remove="IResourcePath.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Protobuf\Proto" />
+    <Content Include="..\protobuf\abi.proto">
+      <Link>Protobuf/Proto/abi.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\auth.proto">
+      <Link>Protobuf/Proto/auth.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\consensus.proto">
+      <Link>Protobuf/Proto/consensus.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\crosschain.proto">
+      <Link>Protobuf/Proto/crosschain.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\kernel.proto">
+      <Link>Protobuf/Proto/kernel.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\metadata.proto">
+      <Link>Protobuf/Proto/metadata.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\resource.proto">
+      <Link>Protobuf/Proto/resource.proto</Link>
+    </Content>
+    <Content Include="..\protobuf\smart_contract.proto">
+      <Link>Protobuf/Proto/smart_contract.proto</Link>
+    </Content>
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Command="protoc --proto_path=../AElf.Types/Protobuf/Proto --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs auth.proto crosschain.proto kernel.proto resource.proto consensus.proto dividends.proto smartcontract.proto ABI.proto metadata.proto" />
+    <Exec Command="protoc --proto_path=../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs auth.proto crosschain.proto kernel.proto resource.proto consensus.proto smart_contract.proto abi.proto metadata.proto" />
   </Target>
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>

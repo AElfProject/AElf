@@ -23,8 +23,8 @@ namespace AElf.Runtime.CSharp2.Tests
             return (ulong) n;
         }
 
-        public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-        public int ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
+        public int ChainId1 { get; } = ChainHelpers.GetChainId(123);
+        public int ChainId2 { get; } = ChainHelpers.GetChainId(124);
         public ISmartContractService SmartContractService;
 
         public IStateManager StateManager;
