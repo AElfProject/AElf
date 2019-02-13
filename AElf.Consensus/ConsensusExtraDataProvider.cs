@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.BlockService;
 using AElf.Kernel.Managers;
 using AElf.SmartContract;
@@ -19,26 +20,27 @@ namespace AElf.Consensus
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
+
+        private readonly IAccountService _accountService;
         
-        public ConsensusExtraDataProvider(IConsensusService consensusService)
+        public ConsensusExtraDataProvider(IConsensusService consensusService, IAccountService accountService)
         {
             _consensusService = consensusService;
+            _accountService = accountService;
         }
         
-        public Task FillExtraData(Block block)
+        public async Task FillExtraData(Block block)
         {
             if (block.Header.BlockExtraData == null)
             {
                 block.Header.BlockExtraData = new BlockExtraData();
             }
 
-            var consensusInformation = _consensusService.GetNewConsensusInformation().ToByteArray();
+            var consensusInformation =
+                _consensusService.GetNewConsensusInformation(block.Header.ChainId,
+                    await _accountService.GetAccountAsync());
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
-
-            return Task.CompletedTask;
         }
-
-
     }
 }

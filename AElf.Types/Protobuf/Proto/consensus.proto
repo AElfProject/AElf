@@ -185,11 +185,12 @@ message DPoSInformation {
     Term NewTerm = 4;
     bool WillUpdateConsensus = 5;
     repeated Address MinersList = 6;
+    bool TimeToChangeTerm = 7;
 }
 
 message DPoSExtraInformation {
-    bool changeTerm = 1;
-    Hash hashValue = 2;
+    bool ChangeTerm = 1;
+    Hash HashValue = 2;
     int32 MiningInterval = 3;
     Term NewTerm = 4;
     Forwarding Forwarding = 5;

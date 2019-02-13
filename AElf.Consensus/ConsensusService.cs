@@ -10,12 +10,13 @@ using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Types;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.EventBus;
-using Volo.Abp.EventBus.Local;
+using Volo.Abp.EventBus.Distributed;
 
 namespace AElf.Consensus
 {
@@ -23,8 +24,8 @@ namespace AElf.Consensus
     {
         private readonly IConsensusObserver _consensusObserver;
         
-        private IExecutingService _executingService;
-        private StateManager _stateManager;
+        private readonly IExecutingService _executingService;
+        private readonly StateManager _stateManager;
 
         public IEventBus EventBus { get; set; }
 
@@ -36,35 +37,43 @@ namespace AElf.Consensus
             _executingService = executingService;
             _stateManager = stateManager;
             
-            EventBus = NullLocalEventBus.Instance;
+            EventBus = NullDistributedEventBus.Instance;
         }
 
-        public ValidationResult ValidateConsensus(byte[] consensusInformation)
+        public bool ValidateConsensus(int chainId, Address fromAddress, byte[] consensusInformation)
         {
-            throw new NotImplementedException();
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.ValidateConsensus, null)
+                .DeserializeToPbMessage<ValidationResult>().Success;
         }
 
-        public int GetCountingMilliseconds(Timestamp timestamp)
+        public int GetCountingMilliseconds(int chainId, Address fromAddress)
         {
-            throw new NotImplementedException();
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetCountingMilliseconds,
+                Timestamp.FromDateTime(DateTime.UtcNow)).DeserializeToInt32();
         }
 
-        public IMessage GetNewConsensusInformation()
+        public byte[] GetNewConsensusInformation(int chainId, Address fromAddress)
         {
-            throw new NotImplementedException();
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation, null)
+                .DeserializeToBytes();
         }
 
-        public TransactionList GenerateConsensusTransactions(ulong currentBlockHeight, Hash previousBlockHash)
+        public TransactionList GenerateConsensusTransactions(int chainId, Address fromAddress, ulong currentBlockHeight, Hash previousBlockHash)
         {
-            throw new NotImplementedException();
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GenerateConsensusTransactions,
+                currentBlockHeight, previousBlockHash, null).DeserializeToPbMessage<TransactionList>();
         }
-        
-        public ByteString ExecuteTransaction(Transaction tx)
+
+        private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, ConsensusMethod consensusMethod,
+            params object[] objects)
         {
-            if (tx == null)
+            var tx = new Transaction
             {
-                return null;
-            }
+                From = fromAddress,
+                To = ContractHelpers.GetConsensusContractAddress(chainId),
+                MethodName = consensusMethod.ToString(),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+            };
 
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
                 Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
@@ -73,31 +82,17 @@ namespace AElf.Consensus
             return traces.Last().RetVal?.Data;
         }
 
-        public void ExecuteAction(Address contractAddress, string methodName, ECKeyPair callerKeyPair,
-            params object[] objects)
-        {
-            var tx = new Transaction
-            {
-                From = GetAddress(callerKeyPair),
-                To = contractAddress,
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
-            };
-
-            var signature = CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
-
-            ExecuteTransaction(tx);
-        }
-        
         private async Task CommitChangesAsync(TransactionTrace trace)
         {
             await trace.SmartCommitChangesAsync(_stateManager);
         }
-        
-        private Address GetAddress(ECKeyPair keyPair)
+
+        enum ConsensusMethod
         {
-            return Address.FromPublicKey(keyPair.PublicKey);
+            ValidateConsensus,
+            GetCountingMilliseconds,
+            GetNewConsensusInformation,
+            GenerateConsensusTransactions
         }
     }
 }

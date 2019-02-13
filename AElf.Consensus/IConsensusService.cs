@@ -7,9 +7,9 @@ namespace AElf.Consensus
 {
     public interface IConsensusService
     {
-        ValidationResult ValidateConsensus(byte[] consensusInformation);
-        int GetCountingMilliseconds(Timestamp timestamp);
-        IMessage GetNewConsensusInformation();
-        TransactionList GenerateConsensusTransactions(ulong currentBlockHeight, Hash previousBlockHash);
+        bool ValidateConsensus(int chainId, Address fromAddress, byte[] consensusInformation);
+        int GetCountingMilliseconds(int chainId, Address fromAddress);
+        byte[] GetNewConsensusInformation(int chainId, Address fromAddress);
+        TransactionList GenerateConsensusTransactions(int chainId, Address fromAddress, ulong currentBlockHeight, Hash previousBlockHash);
     }
 }

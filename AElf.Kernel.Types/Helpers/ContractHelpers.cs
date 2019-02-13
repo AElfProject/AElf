@@ -22,11 +22,6 @@ namespace AElf.Kernel.Types
             return Address.BuildContractAddress(chainId, ContractConsts.ConsensusContract);
         }
         
-        public static Address GetDPoSContractAddress(int chainId)
-        {
-            return Address.BuildContractAddress(chainId, ContractConsts.DPoSContract);
-        }
-        
         public static Address GetTokenContractAddress(int chainId)
         {
             return Address.BuildContractAddress(chainId, ContractConsts.TokenContract);

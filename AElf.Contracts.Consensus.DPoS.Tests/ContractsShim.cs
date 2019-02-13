@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DeployTokenContractAsync();
             DeployDividendsContractAsync();
 
-            ConsensusContractAddress = ContractHelpers.GetDPoSContractAddress(_mock.ChainId);
+            ConsensusContractAddress = ContractHelpers.GetConsensusContractAddress(_mock.ChainId);
             TokenContractAddress = ContractHelpers.GetTokenContractAddress(_mock.ChainId);
             DividendsContractAddress = ContractHelpers.GetDividendsContractAddress(_mock.ChainId);
         }

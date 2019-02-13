@@ -19,7 +19,7 @@ namespace AElf.Miner
         {
             var minerConfig = MinerConfig.Default;
             minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-            
+
             var services = context.Services;
             services.AddSingleton<IMinerConfig>(minerConfig);
             services.AddTransient<TransactionFilter>();
