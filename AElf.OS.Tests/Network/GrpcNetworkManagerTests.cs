@@ -137,7 +137,7 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2);
-            await servicem2.BroadcastAnnounce(genesis);
+            await servicem2.BroadcastAnnounce(genesis.GetHash());
             
             await m1.StopAsync();
             await m2.StopAsync();
@@ -222,7 +222,7 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2);
-            await servicem2.BroadcastAnnounce(genesis);
+            await servicem2.BroadcastAnnounce(genesis.GetHash());
             
             await m1.StopAsync();
             await m2.StopAsync();

@@ -38,13 +38,13 @@ namespace AElf.OS.Network.Grpc
             return _server.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
-        public async Task BroadcastAnnounce(Block b)
+        public async Task BroadcastAnnounce(Hash b)
         {
             foreach (var peer in _server.GetPeers())
             {
                 try
                 {
-                    await peer.AnnounceAsync(new Announcement { Id = ByteString.CopyFrom(b.GetHashBytes()) });
+                    await peer.AnnounceAsync(new Announcement { Id = b.Value });
                 }
                 catch (Exception e)
                 {

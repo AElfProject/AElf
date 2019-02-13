@@ -58,6 +58,9 @@ namespace AElf.OS.Tests.Network
             
             Assert.True(!string.IsNullOrWhiteSpace(p));
             Assert.True(!string.IsNullOrWhiteSpace(p2));
+            
+            await m1.StopAsync();
+            await m2.StopAsync();
         }
                 
         [Fact]

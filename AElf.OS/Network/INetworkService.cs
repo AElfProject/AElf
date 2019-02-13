@@ -12,6 +12,6 @@ namespace AElf.OS.Network
         List<string> GetPeers();
         
         Task<IBlock> GetBlockByHash(Hash hash, string peer);
-        Task BroadcastAnnounce(Block b);
+        Task BroadcastAnnounce(Hash b);
     }
 }
