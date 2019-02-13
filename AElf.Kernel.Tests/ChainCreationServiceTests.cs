@@ -23,10 +23,6 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task Test()
         {
-
-            var n = (int) Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-            n.ToHex().ShouldBe(new byte[] {0x00, 0x01, 0x02, 0x03 }.ToHex());
-            
             // TODO: *** Contract Issues ***
             var reg = new SmartContractRegistration
             {
@@ -34,8 +30,8 @@ namespace AElf.Kernel.Tests
                 ContractBytes = ByteString.CopyFrom(SmartContractZeroCode),
                 ContractHash = Hash.FromRawBytes(SmartContractZeroCode)
             };
-            var chain = await _service.CreateNewChainAsync(Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }), new List<SmartContractRegistration>{reg});
-            Assert.Equal(Hash.LoadByteArray(new byte[] {0x00, 0x01, 0x02, 0x03 }).DumpBase58(), chain.Id.DumpBase58());
+            var chain = await _service.CreateNewChainAsync(ChainHelpers.GetChainId(123), new List<SmartContractRegistration>{reg});
+            Assert.Equal(ChainHelpers.GetChainId(123), chain.Id);
         }
     }
 }

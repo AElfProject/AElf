@@ -49,7 +49,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task SmartContractZeroByCreation()
         {
-            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            int ChainId = ChainHelpers.GetRandomChainId();
         
             var reg = new SmartContractRegistration
             {
@@ -70,7 +70,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task DeployUserContract()
         {
-            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x04 });
+            int ChainId = ChainHelpers.GetRandomChainId();
             
             var reg = new SmartContractRegistration
             {
@@ -121,7 +121,7 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
         [Fact]
         public async Task Invoke()
         {
-            int ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x05 });
+            int ChainId = ChainHelpers.GetRandomChainId();
             
             var reg = new SmartContractRegistration
             {

@@ -496,7 +496,7 @@ namespace AElf.Contracts.Consensus.Tests
         private void ExecuteTransaction(Transaction tx)
         {
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
-                Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
+                ChainHelpers.GetChainId(123), DateTime.UtcNow, new CancellationToken(), null,
                 TransactionType.ContractTransaction, true).Result;
             foreach (var transactionTrace in traces)
             {
