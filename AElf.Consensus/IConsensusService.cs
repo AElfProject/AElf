@@ -1,7 +1,6 @@
+using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Consensus
 {
@@ -10,6 +9,6 @@ namespace AElf.Consensus
         bool ValidateConsensus(int chainId, Address fromAddress, byte[] consensusInformation);
         int GetCountingMilliseconds(int chainId, Address fromAddress);
         byte[] GetNewConsensusInformation(int chainId, Address fromAddress);
-        TransactionList GenerateConsensusTransactions(int chainId, Address fromAddress, ulong currentBlockHeight, Hash previousBlockHash);
+        List<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress, ulong refBlockHeight, byte[] refBlockPrefix);
     }
 }

@@ -1,18 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.BlockService;
-using AElf.Kernel.Managers;
-using AElf.SmartContract;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Consensus

@@ -179,13 +179,14 @@ namespace AElf.Miner.Miner
         {
             var prevHeight = await _blockChain.GetCurrentBlockHeightAsync();
             var refBlockHeight = prevHeight > 4 ? prevHeight - 4 : 0;
-            var bh = refBlockHeight == 0 ? Hash.Genesis : (await _blockChain.GetHeaderByHeightAsync(refBlockHeight)).GetHash();
+            var blockHeader = await _blockChain.GetHeaderByHeightAsync(refBlockHeight);
+            var bh = refBlockHeight == 0 ? Hash.Genesis : blockHeader.GetHash();
             var refBlockPrefix = bh.Value.Where((x, i) => i < 4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, prevHeight, refBlockHeight,
-                    refBlockPrefix);
+                    refBlockPrefix, blockHeader.ChainId);
             foreach (var txn in generatedTxns)
             {
                 await SignAndInsertToPool(txn);

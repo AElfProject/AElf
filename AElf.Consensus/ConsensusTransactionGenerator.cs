@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -8,17 +9,18 @@ namespace AElf.Consensus
 {
     public class ConsensusTransactionGenerator : ISystemTransactionGenerator
     {
-        private readonly IExecutingService _executingService;
+        private readonly IConsensusService _consensusService;
 
-        public ConsensusTransactionGenerator(IExecutingService executingService)
+        public ConsensusTransactionGenerator(IConsensusService consensusService)
         {
-            _executingService = executingService;
+            _consensusService = consensusService;
         }
         
         public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
-            ref List<Transaction> generatedTransactions)
+            ref List<Transaction> generatedTransactions, int chainId)
         {
-            throw new System.NotImplementedException();
+            generatedTransactions.AddRange(
+                _consensusService.GenerateConsensusTransactions(chainId, from, refBlockHeight, refBlockPrefix));
         }
     }
 }

@@ -58,10 +58,10 @@ namespace AElf.Consensus
                 .DeserializeToBytes();
         }
 
-        public TransactionList GenerateConsensusTransactions(int chainId, Address fromAddress, ulong currentBlockHeight, Hash previousBlockHash)
+        public List<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress, ulong refBlockHeight, byte[] refBlockPrefix)
         {
             return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GenerateConsensusTransactions,
-                currentBlockHeight, previousBlockHash, null).DeserializeToPbMessage<TransactionList>();
+                refBlockHeight, refBlockPrefix, null).DeserializeToPbMessage<TransactionList>().Transactions.ToList();
         }
 
         private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, ConsensusMethod consensusMethod,

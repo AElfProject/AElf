@@ -6,6 +6,6 @@ namespace AElf.Kernel.Txn
     public interface ISystemTransactionGenerator
     {
         void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
-            ref List<Transaction> generatedTransactions);
+            ref List<Transaction> generatedTransactions, int chainId);
     }
 }

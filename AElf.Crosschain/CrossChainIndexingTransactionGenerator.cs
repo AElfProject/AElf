@@ -65,7 +65,7 @@ namespace AElf.Crosschain
         }
 
         public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
-            ref List<Transaction> generatedTransactions)
+            ref List<Transaction> generatedTransactions, int chainId)
         {
             _crossChainTransactionGenerators(from, refBlockHeight, refBlockPrefix, generatedTransactions);
         }
