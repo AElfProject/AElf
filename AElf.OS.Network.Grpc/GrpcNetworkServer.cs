@@ -13,6 +13,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Utilities.Encoders;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 

@@ -51,7 +51,9 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
-                var peerServer = context.Peer.Split(":")[1] + ":" + request.HskData.ListeningPort;
+                var peer = GrpcUrl.Parse(context.Peer);
+                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
+                
                 Logger?.LogDebug($"Attempting connect to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
@@ -69,7 +71,7 @@ namespace AElf.OS.Network.Grpc
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
-                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer, context.Peer.Split(":")[2]));
+                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
                 
                 return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
@@ -88,10 +90,14 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"[{context.Peer}] Is calling back with his auth.");
             
+            var peer = GrpcUrl.Parse(context.Peer);
+            
             try
             {
-                var peerServer = context.Peer.Split(":")[1] + ":" + request.HskData.ListeningPort;
+                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
+                
                 bool isAuth = _peerAuthenticator.AuthenticatePeer(peerServer, request);
+                
                 // todo verify auth
             }
             catch (Exception e)
@@ -100,7 +106,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
             }
             
-            return Task.FromResult(new AuthResponse { Success = true, Port = context.Peer.Split(":")[2] });
+            return Task.FromResult(new AuthResponse { Success = true, Port = peer.Port.ToString() });
         }
 
         /// <summary>
@@ -178,7 +184,8 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                PeerSentDisconnection?.Invoke(this, new PeerDcEventArgs { Peer = context.Peer.Split(":")[2] });
+                var peer = GrpcUrl.Parse(context.Peer);
+                PeerSentDisconnection?.Invoke(this, new PeerDcEventArgs { Peer = peer.Port.ToString() });
             }
             catch (Exception e)
             {
