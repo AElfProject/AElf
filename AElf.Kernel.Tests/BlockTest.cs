@@ -55,14 +55,14 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
 
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            var chainId = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
             return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      
        [Fact]
         public void GenesisBlockBuilderTest()
         {
-            var builder = new GenesisBlockBuilder().Build(Hash.Generate());
+            var builder = new GenesisBlockBuilder().Build(ChainHelpers.GetRandomChainId());
             var genesisBlock = builder.Block;
             //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);

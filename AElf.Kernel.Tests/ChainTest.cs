@@ -35,7 +35,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
 
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            var chainId = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
             var blockchain = _chainService.GetBlockChain(chainId);
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
 
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            var chainId = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
             var chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
 
             var blockchain = _chainService.GetBlockChain(chainId);

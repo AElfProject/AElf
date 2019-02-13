@@ -13,9 +13,9 @@ namespace AElf.Common
             return r.Next(198535, 11316496);
         }
 
-        public static byte[] GetChainId(ulong serialNumber)
+        public static int GetChainId(ulong serialNumber)
         {
-            return BitConverter.GetBytes( 198535 + (int)((uint)serialNumber.GetHashCode() % 11316496) % 11316496 );
+            return 198535 + (int) ((uint) serialNumber.GetHashCode() % 11316496) % 11316496;
         }
     }
 }

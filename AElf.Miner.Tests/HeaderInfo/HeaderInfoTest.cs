@@ -42,7 +42,7 @@ public class HeaderInfoTest
         public Mock<IChainService> MockChainService()
         {
             Mock<IChainService> mock = new Mock<IChainService>();
-            mock.Setup(cs => cs.GetLightChain(It.IsAny<Hash>())).Returns(MockLightChain().Object);
+            mock.Setup(cs => cs.GetLightChain(It.IsAny<int>())).Returns(MockLightChain().Object);
             return mock;
         }
 
@@ -119,7 +119,7 @@ public class HeaderInfoTest
 
 
             var headerInfoServer = new SideChainBlockInfoRpcServer(MockChainService().Object);
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            var chainId = ChainHelpers.GetChainId(123);
             headerInfoServer.Init(chainId);
             await headerInfoServer.IndexDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
                 MockResponseStream().Object, null);
