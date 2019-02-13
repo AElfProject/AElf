@@ -72,7 +72,10 @@ namespace AElf.SmartContract
             }
 
             var path = new List<ByteString>(Path) {ByteString.Empty, ByteString.CopyFromUtf8(name)};
-            var child = new DataProvider(ChainId, ContractAddress, path) {StateManager = _stateManager};
+            var child = new DataProvider(ChainId, ContractAddress, path)
+            {
+                StateManager = StateManager, StateCache = StateCache
+            };
             _children.Add(child);
             return child;
         }
