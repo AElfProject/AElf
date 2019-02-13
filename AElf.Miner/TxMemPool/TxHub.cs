@@ -103,8 +103,8 @@ namespace AElf.Miner.TxMemPool
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
             {
-                tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
-                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
+                tr.SignatureStatus = SignatureStatus.SignatureValid;
+                tr.RefBlockStatus = RefBlockStatus.RefBlockValid;
             }
 
             var txn = await _transactionManager.GetTransaction(tr.TransactionId);
@@ -197,7 +197,7 @@ namespace AElf.Miner.TxMemPool
 
         private async Task VerifySignature(int chainId, TransactionReceipt tr)
         {
-            if (tr.SignatureSt != TransactionReceipt.Types.SignatureStatus.UnknownSignatureStatus)
+            if (tr.SignatureStatus != SignatureStatus.UnknownSignatureStatus)
             {
                 return;
             }
@@ -210,7 +210,7 @@ namespace AElf.Miner.TxMemPool
                     var authorizationResult = await ValidateMinersAuthorization(chainId, tr);
                     if (!authorizationResult)
                     {
-                        tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                        tr.SignatureStatus = SignatureStatus.SignatureInvalid;
                         return;
                     }
                 }
@@ -220,18 +220,18 @@ namespace AElf.Miner.TxMemPool
                     var validAuthorization = await CheckAuthority(chainId, tr.Transaction);
                     if (!validAuthorization)
                     {
-                        tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+                        tr.SignatureStatus = SignatureStatus.SignatureInvalid;
                         return;
                     }
                 }
-                tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
+                tr.SignatureStatus = SignatureStatus.SignatureValid;
                 return;
             }
 
             var validSig = tr.Transaction.VerifySignature();
-            tr.SignatureSt = validSig
-                ? TransactionReceipt.Types.SignatureStatus.SignatureValid
-                : TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
+            tr.SignatureStatus = validSig
+                ? SignatureStatus.SignatureValid
+                : SignatureStatus.SignatureInvalid;
         }
 
         /// <summary>
@@ -298,8 +298,8 @@ namespace AElf.Miner.TxMemPool
         
         private async Task ValidateRefBlock(TransactionReceipt tr)
         {
-            if (tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.UnknownRefBlockStatus &&
-                tr.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.FutureRefBlock)
+            if (tr.RefBlockStatus != RefBlockStatus.UnknownRefBlockStatus &&
+                tr.RefBlockStatus != RefBlockStatus.FutureRefBlock)
             {
                 return;
             }
@@ -307,19 +307,19 @@ namespace AElf.Miner.TxMemPool
             try
             {
                 await _refBlockValidator.ValidateAsync(_chainId, tr.Transaction);
-                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockValid;
+                tr.RefBlockStatus = RefBlockStatus.RefBlockValid;
             }
             catch (FutureRefBlockException)
             {
-                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
+                tr.RefBlockStatus = RefBlockStatus.FutureRefBlock;
             }
             catch (RefBlockInvalidException)
             {
-                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockInvalid;
+                tr.RefBlockStatus = RefBlockStatus.RefBlockInvalid;
             }
             catch (RefBlockExpiredException)
             {
-                tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockExpired;
+                tr.RefBlockStatus = RefBlockStatus.RefBlockExpired;
             }
         }
 
@@ -352,7 +352,7 @@ namespace AElf.Miner.TxMemPool
             {
                 if (_allTxns.TryGetValue(txId, out var tr))
                 {
-                    tr.Status = TransactionReceipt.Types.TransactionStatus.TransactionExecuted;
+                    tr.TransactionStatus = TransactionStatus.TransactionExecuted;
                     tr.ExecutedBlockNumber = blockNumber;
                     _transactionManager.AddTransactionAsync(tr.Transaction);
                     receipts.Add(tr);
@@ -370,14 +370,14 @@ namespace AElf.Miner.TxMemPool
             if (_curHeight > GlobalConfig.ReferenceBlockValidPeriod)
             {
                 var expired = _allTxns.Where(tr =>
-                    tr.Value.Status == TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus
-                    && tr.Value.RefBlockSt != TransactionReceipt.Types.RefBlockStatus.RefBlockExpired
+                    tr.Value.TransactionStatus == TransactionStatus.UnknownTransactionStatus
+                    && tr.Value.RefBlockStatus != RefBlockStatus.RefBlockExpired
                     && _curHeight > tr.Value.Transaction.RefBlockNumber
                     && _curHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
                 );
                 foreach (var tr in expired)
                 {
-                    tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.RefBlockExpired;
+                    tr.Value.RefBlockStatus = RefBlockStatus.RefBlockExpired;
                 }
             }
         }
@@ -402,7 +402,7 @@ namespace AElf.Miner.TxMemPool
         {
             // Re-validate FutureRefBlock transactions
             foreach (var tr in _allTxns.Values.Where(x =>
-                x.RefBlockSt == TransactionReceipt.Types.RefBlockStatus.FutureRefBlock))
+                x.RefBlockStatus == RefBlockStatus.FutureRefBlock))
             {
                 await ValidateRefBlock(tr);
             }
@@ -413,14 +413,14 @@ namespace AElf.Miner.TxMemPool
         {
             var blockHeader = block.Header;
             // TODO: Handle LIB
-            if (blockHeader.Index > (_curHeight + 1) && _curHeight != GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Height > (_curHeight + 1) && _curHeight != GlobalConfig.GenesisBlockHeight)
             {
-                throw new Exception($"Invalid block index {blockHeader.Index} but current height is {_curHeight}.");
+                throw new Exception($"Invalid block index {blockHeader.Height} but current height is {_curHeight}.");
             }
 
-            _curHeight = blockHeader.Index;
+            _curHeight = blockHeader.Height;
 
-            UpdateExecutedTransactions(block.Body.Transactions, block.Header.Index);
+            UpdateExecutedTransactions(block.Body.Transactions, block.Header.Height);
 
             IdentifyExpiredTransactions();
 
@@ -431,16 +431,16 @@ namespace AElf.Miner.TxMemPool
 
         private async Task OnBranchRolledBack(List<Block> blocks)
         {
-            var minBN = blocks.Select(x => x.Header.Index).Min();
+            var minBN = blocks.Select(x => x.Header.Height).Min();
 
             // Valid and Invalid RefBlock becomes unknown
             foreach (var tr in _allTxns.Where(x => x.Value.Transaction.RefBlockNumber >= minBN))
             {
-                tr.Value.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
+                tr.Value.RefBlockStatus = RefBlockStatus.FutureRefBlock;
             }
 
             // Executed transactions added back to pending
-            foreach (var b in blocks.OrderByDescending(b => b.Header.Index))
+            foreach (var b in blocks.OrderByDescending(b => b.Header.Height))
             {
                 foreach (var txId in b.Body.Transactions)
                 {
@@ -463,12 +463,12 @@ namespace AElf.Miner.TxMemPool
                         continue;
                     }
                     
-                    tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureValid;
-                    tr.Status = TransactionReceipt.Types.TransactionStatus.UnknownTransactionStatus;
+                    tr.SignatureStatus = SignatureStatus.SignatureValid;
+                    tr.TransactionStatus = TransactionStatus.UnknownTransactionStatus;
                     tr.ExecutedBlockNumber = 0;
                     if (tr.Transaction.RefBlockNumber >= minBN)
                     {
-                        tr.RefBlockSt = TransactionReceipt.Types.RefBlockStatus.FutureRefBlock;
+                        tr.RefBlockStatus = RefBlockStatus.FutureRefBlock;
                     }
                 }
             }

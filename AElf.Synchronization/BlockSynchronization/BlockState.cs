@@ -16,7 +16,7 @@ namespace AElf.Synchronization.BlockSynchronization
         public Hash Previous => _block.Header.PreviousBlockHash;
             
         public Hash BlockHash => _block.GetHash();
-        public ulong Index => _block.Header.Index;
+        public ulong Index => _block.Header.Height;
 
         public BlockState PreviousState { get; set; }
 

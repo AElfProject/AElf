@@ -27,7 +27,7 @@ namespace AElf.Synchronization
 
             var currentHeight = await _blockChain.GetCurrentBlockHeightAsync();
 
-            if (blockHeader.Index == currentHeight + 1)
+            if (blockHeader.Height == currentHeight + 1)
             {
                 var localCurrentBlock = await _blockChain.GetBlockByHeightAsync(currentHeight);
                 if (localCurrentBlock.BlockHashToHex != blockHeader.PreviousBlockHash.ToHex())
@@ -39,7 +39,7 @@ namespace AElf.Synchronization
                 return BlockHeaderValidationResult.Success;
             }
             
-            var localBlock = await _blockChain.GetBlockByHeightAsync(blockHeader.Index);
+            var localBlock = await _blockChain.GetBlockByHeightAsync(blockHeader.Height);
             if (localBlock != null && localBlock.BlockHashToHex == blockHeader.GetHash().ToHex())
             {
                 return BlockHeaderValidationResult.AlreadyExecuted;

@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         public static Hash GetDisambiguationHash(this BlockHeader blockHeader)
         {
-            return HashHelpers.GetDisambiguationHash(blockHeader.Index, Hash.FromRawBytes(blockHeader.P.ToByteArray()));
+            return HashHelpers.GetDisambiguationHash(blockHeader.Height, Hash.FromRawBytes(blockHeader.P.ToByteArray()));
         }
     }
 }

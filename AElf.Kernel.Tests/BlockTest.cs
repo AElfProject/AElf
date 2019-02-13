@@ -55,14 +55,14 @@ namespace AElf.Kernel.Tests
                 ContractHash = Hash.Zero
             };
 
-            var chainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            var chainId = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
             return await _chainCreationService.CreateNewChainAsync(chainId, new List<SmartContractRegistration>{reg});
         }
      
        [Fact]
         public void GenesisBlockBuilderTest()
         {
-            var builder = new GenesisBlockBuilder().Build(Hash.Generate());
+            var builder = new GenesisBlockBuilder().Build(ChainHelpers.GetRandomChainId());
             var genesisBlock = builder.Block;
             //var txs = builder.Txs;
             Assert.NotNull(genesisBlock);
@@ -103,13 +103,11 @@ namespace AElf.Kernel.Tests
 
             await blockchain.AddBlocksAsync(blocks);
 
-            var block389 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Index == 389).GetHash());
-            var block605 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Index == 605).GetHash());
-
-
+            var block389 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Height == 389).GetHash());
+            var block605 = await blockchain.GetBlockByHashAsync(blocks.First(b => b.Height == 605).GetHash());
         }
         
-        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
             
@@ -122,12 +120,11 @@ namespace AElf.Kernel.Tests
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            block.Header.Index = index;
+            block.Header.Height = height;
             block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             block.Body.BlockHeader = block.Header.GetHash();
 
-            
             return block;
         }
 

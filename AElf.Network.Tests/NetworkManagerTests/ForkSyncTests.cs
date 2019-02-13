@@ -16,9 +16,9 @@ namespace AElf.Network.Tests.NetworkManagerTests
         [Fact]
         public void UnlinkableBlockEvt_ShouldTrigger_Request()
         {
-            int unlinkableHeaderIndex = 1;
-            int requestCount = NetworkManager.DefaultHeaderRequestCount;
-            
+            var unlinkableHeaderIndex = 1UL;
+            var requestCount = NetworkManager.DefaultHeaderRequestCount;
+
             // Peer at height 2
             Mock<IPeer> firstPeer = new Mock<IPeer>();
             firstPeer.Setup(m => m.RequestHeaders(It.IsAny<int>(), It.IsAny<int>()));
@@ -31,11 +31,12 @@ namespace AElf.Network.Tests.NetworkManagerTests
             // register peer 
             peerManager.Raise(m => m.PeerEvent += null, new PeerEventArgs(firstPeer.Object, PeerEventType.Added));
             
-            MessageHub.Instance.Publish(new UnlinkableHeader(new BlockHeader { Index = (ulong)unlinkableHeaderIndex }));
+            MessageHub.Instance.Publish(new UnlinkableHeader(new BlockHeader { Height = unlinkableHeaderIndex }));
             
             // Verify that the peer is used to request the appropriate header
+            // TODO RequestHeaders parameter change to ulong
             firstPeer.Verify(mock => mock.RequestHeaders(
-                It.Is<int>(hIndex => hIndex == unlinkableHeaderIndex), It.Is<int>(rCount => rCount == requestCount)), 
+                It.Is<int>(hIndex => hIndex == (int)unlinkableHeaderIndex), It.Is<int>(rCount => rCount == requestCount)), 
                 Times.Once());
         }
     }

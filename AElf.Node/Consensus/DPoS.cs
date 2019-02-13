@@ -153,7 +153,7 @@ namespace AElf.Node.Consensus
                 {
                     var miners = round.RealTimeMinersInfo.Keys.ToMiners();
                     miners.TermNumber = LatestTermNumber;
-                    _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                    _minersManager.SetMiners(miners, ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                 }
             });
         }
@@ -352,7 +352,7 @@ namespace AElf.Node.Consensus
                     }
                     else
                     {
-                        await _minersManager.SetMiners(initialMiners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                        await _minersManager.SetMiners(initialMiners, ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                         firstTerm = initialMiners.GenerateNewTerm(ConsensusConfig.Instance.DPoSMiningInterval);
                     }
 
@@ -607,7 +607,7 @@ var logLevel = new Int32Value {Value = 0};
 
                     if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
                     {
-                        await _minersManager.SetMiners(miners, Hash.LoadBase58(ChainConfig.Instance.ChainId));
+                        await _minersManager.SetMiners(miners, ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
                     }
                     else
                     {

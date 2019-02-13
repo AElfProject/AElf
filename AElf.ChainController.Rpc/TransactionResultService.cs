@@ -35,7 +35,7 @@ namespace AElf.ChainController.Rpc
                 return new TransactionResult
                 {
                     TransactionId = tx.GetHash(),
-                    Status = Status.Pending
+                    Status = TransactionResultStatus.Pending
                 };
             }
             
@@ -43,7 +43,7 @@ namespace AElf.ChainController.Rpc
             return new TransactionResult
             {
                 TransactionId = txId,
-                Status = Status.NotExisted
+                Status = TransactionResultStatus.NotExisted
             };
         }
 

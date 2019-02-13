@@ -39,7 +39,7 @@ namespace AElf.Node.Protocol
 
         public override string ToString()
         {
-            return "{ " + BlockHash.ToHex() + ", " + IsSynced + ", " + Block?.Header?.Index + " }";
+            return "{ " + BlockHash.ToHex() + ", " + IsSynced + ", " + Block?.Header?.Height + " }";
         }
 
         public class PendingTx
