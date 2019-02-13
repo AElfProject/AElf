@@ -68,15 +68,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
                 MethodName = "Print",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            StrVal = "AElf"
-                        }
-                    }
-                }.ToByteArray()),
                 
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
@@ -238,7 +229,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
 
         #region GRPC
 
-        [Fact(Skip = "To be refactored")]
+        /*[Fact(Skip = "To be refactored")]
         public async Task SideChainServerClientsTest()
         {
             string dir = @"/tmp/ServerClientsTestA";
@@ -396,7 +387,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             {
                 Directory.Delete(Path.Combine(dir), true);
             }
-        }
+        }*/
         
         /*[Fact(Skip = "TBD, side chain life time needed.")]
         public async Task MineWithIndexingSideChain()

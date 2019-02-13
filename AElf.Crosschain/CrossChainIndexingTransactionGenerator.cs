@@ -64,7 +64,7 @@ namespace AElf.Crosschain
                 TypeConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix, new object[0]));
         }
 
-        public void GenerateTransactions(Address @from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
+        public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
             ref List<Transaction> generatedTransactions)
         {
             _crossChainTransactionGenerators(from, refBlockHeight, refBlockPrefix, generatedTransactions);

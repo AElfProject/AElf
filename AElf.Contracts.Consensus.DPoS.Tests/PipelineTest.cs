@@ -9,7 +9,6 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Contracts.Consensus.DPoS.Tests

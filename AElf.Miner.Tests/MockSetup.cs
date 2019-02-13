@@ -18,7 +18,6 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Crosschain.Grpc.Client;
 using AElf.Crosschain.Grpc.Server;
-using AElf.Crosschain.Server;
 using AElf.Execution.Execution;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
@@ -127,9 +126,10 @@ namespace AElf.Miner.Tests
         internal IMiner GetMiner(IMinerConfig config, ITxHub hub, GrpcClientManager grpcClientManager = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
-                _accountService);
+                _transactionResultManager, _binaryMerkleTreeManager, null,
+                null, null,null,
+                null,
+                null);
 
             return miner;
         }
@@ -137,8 +137,8 @@ namespace AElf.Miner.Tests
         internal IBlockExecutor GetBlockExecutor(GrpcClientManager grpcClientManager = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
-                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
+                _transactionResultManager, _binaryMerkleTreeManager,
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo, null), _stateManager,
                 _consensusDataProvider);
 
             return blockExecutor;
@@ -151,7 +151,7 @@ namespace AElf.Miner.Tests
 
         internal ITxHub CreateAndInitTxHub()
         {
-            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo);
+            var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo, null);
             hub.Initialize();
             return hub;
         }
@@ -198,7 +198,6 @@ namespace AElf.Miner.Tests
             return new BlockHeader
             {
                 MerkleTreeRootOfTransactions = Hash.Generate(),
-                SideChainTransactionsRoot = Hash.Generate(),
                 ChainId = ChainHelpers.GetRandomChainId(),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()
@@ -232,7 +231,7 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
-        public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServer()
+        /*public ParentChainBlockInfoRpcServer MockParentChainBlockInfoRpcServer()
         {
             return new ParentChainBlockInfoRpcServer(MockChainService().Object, MockCrossChainInfoReader().Object);
         }
@@ -245,7 +244,7 @@ namespace AElf.Miner.Tests
         public ServerManager ServerManager(ParentChainBlockInfoRpcServer impl1, SideChainBlockInfoRpcServer impl2)
         {
             return new ServerManager(impl1, impl2);
-        }
+        }*/
 
         public Mock<IChainManager> MockChainManager()
         {
@@ -266,7 +265,7 @@ namespace AElf.Miner.Tests
 
         public GrpcClientManager MinerClientManager()
         {
-            return new GrpcClientManager(MockCrossChainInfoReader().Object);
+            return new GrpcClientManager();
         }
 
         public ulong GetTimes = 0;

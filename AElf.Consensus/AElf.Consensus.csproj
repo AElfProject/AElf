@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,7 +6,15 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+      <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Volo.Abp.EventBus, Version=0.11.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\..\.nuget\packages\volo.abp.eventbus\0.11.0\lib\netstandard2.0\Volo.Abp.EventBus.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

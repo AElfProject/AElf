@@ -214,8 +214,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 CurrentRound = FillOutValue(extra.HashValue)
             };
         }
-        
-        public TransactionList GenerateConsensusTransactions(BlockHeader previousBlockHeader, byte[] extraInformation)
+
+        public TransactionList GenerateConsensusTransactions(ulong refBlockHeight, byte[] refBlockPrefix,
+            byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
@@ -225,7 +226,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TransactionList
                 {
                     Transactions =
-                        {GenerateTransaction(previousBlockHeader, "InitialTerm", new List<object> {extra.NewTerm})}
+                        {GenerateTransaction(refBlockHeight,refBlockPrefix, "InitialTerm", new List<object> {extra.NewTerm})}
                 };
             }
 
@@ -239,10 +240,10 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(previousBlockHeader, "NextTerm", new List<object> {extra.NewTerm}),
-                            GenerateTransaction(previousBlockHeader, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(previousBlockHeader, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(previousBlockHeader, "SendDividends", new List<object>{roundNumber, termNumber})
+                            GenerateTransaction(refBlockHeight,refBlockPrefix, "NextTerm", new List<object> {extra.NewTerm}),
+                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
+                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
+                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SendDividends", new List<object>{roundNumber, termNumber})
                         }
                     };
                 }
@@ -251,7 +252,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(previousBlockHeader, "NextRound", new List<object> {extra.Forwarding}),
+                        GenerateTransaction(refBlockHeight,refBlockPrefix, "NextRound", new List<object> {extra.Forwarding}),
                     }
                 };
             }
@@ -261,7 +262,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Transactions =
                 {
-                    GenerateTransaction(previousBlockHeader, "PackageOutValue", new List<object> {extra.ToPackage}),
+                    GenerateTransaction(refBlockHeight,refBlockPrefix, "PackageOutValue", new List<object> {extra.ToPackage}),
                 }
             };
         }
@@ -1064,19 +1065,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return DateTime.MaxValue;
         }
 
-        private Transaction GenerateTransaction(BlockHeader blockHeader, string methodName, List<object> parameters)
+        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName, List<object> parameters)
         {
-            var blockNumber = blockHeader.Index;
-            blockNumber = blockNumber > 4 ? blockNumber - 4 : 0;
-            var bh = blockNumber == 0 ? Hash.Genesis : blockHeader.GetHash();
-            var blockPrefix = bh.Value.Where((x, i) => i < 4).ToArray();
+            refBlockHeight = refBlockHeight > 4 ? refBlockHeight - 4 : 0;
 
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(Api.RecoverPublicKey()),
                 To = Api.ConsensusContractAddress,
-                RefBlockNumber = blockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(blockPrefix),
+                RefBlockNumber = refBlockHeight,
+                RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
                 Type = TransactionType.DposTransaction,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))

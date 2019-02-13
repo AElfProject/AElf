@@ -105,7 +105,7 @@ public class SideChainTest : SideChainContractTestBase
             Assert.Equal(parentChainBlockInfo, boundBlockInfo);
         }
 
-        [Fact(Skip = "TBD, side chain lifetime needed.")]
+        /*[Fact(Skip = "TBD, side chain lifetime needed.")]
         public async Task VerifyTransactionTest()
         {
             var chainId = Mock.ChainId1;
@@ -228,6 +228,6 @@ public class SideChainTest : SideChainContractTestBase
             
             b = await _contract.VerifyTransaction(t2.GetHash(), pathForTx2, parentChainBlockRootInfo.Height);
             Assert.True(b);
-        }
+        }*/
     }
 }

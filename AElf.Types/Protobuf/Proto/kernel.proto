@@ -159,6 +159,7 @@ message BlockHeaderList {
 
 message BlockExtraData{
     Hash SideChainTransactionsRoot = 1;
+    bytes ConsensusInformation = 2;
 }
 
 message BlockHeader {
