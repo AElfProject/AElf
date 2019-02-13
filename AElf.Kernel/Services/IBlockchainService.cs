@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Events;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Managers.Another;
 using AElf.Kernel.Storages;
+using Volo.Abp.EventBus.Local;
 using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
 
 namespace AElf.Kernel.Services
@@ -13,7 +15,7 @@ namespace AElf.Kernel.Services
     {
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
-        Task<ChainBlockLink> AttachBlockToChainAsync(Chain chain, Block block);
+        Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
         Task<Chain> GetChainAsync(int chainId);
     }
@@ -60,12 +62,15 @@ namespace AElf.Kernel.Services
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
         private readonly IBlockExecutingService _blockExecutingService;
+        public ILocalEventBus LocalEventBus { get; set; }
 
-        public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager, IBlockExecutingService blockExecutingService)
+        public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
+            IBlockExecutingService blockExecutingService)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _blockExecutingService = blockExecutingService;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task AddBlockAsync(int chainId, Block block)
@@ -79,7 +84,7 @@ namespace AElf.Kernel.Services
             return (await _blockManager.GetBlockHeaderAsync(blockId)) != null;
         }
 
-        public async Task<ChainBlockLink> AttachBlockToChainAsync(Chain chain, Block block)
+        public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
         {
             var chainBlockLink = new ChainBlockLink()
             {
@@ -94,30 +99,43 @@ namespace AElf.Kernel.Services
                 PreviousBlockHash = block.Header.PreviousBlockHash
             });
 
+            List<ChainBlockLink> blockLinks = null;
+
             if (status.HasFlag(BlockAttachOperationStatus.NewBlockLinked))
             {
-                var blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, block.Header.GetHash());
+                blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, block.Header.GetHash());
 
                 foreach (var blockLink in blockLinks)
                 {
                     await ExecuteBlock(chain.Id, blockLink);
                 }
+
+                if (status.HasFlag(BlockAttachOperationStatus.BestChainFound))
+                {
+                    await LocalEventBus.PublishAsync(
+                        new BestChainFoundEvent()
+                        {
+                            ChainId = chain.Id,
+                            BlockHash = chain.BestChainHash,
+                            BlockHeight = chain.BestChainHeight
+                        });
+                }
             }
 
-            return chainBlockLink;
+
+            return blockLinks;
         }
 
         private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
         {
             await _blockExecutingService.ExecuteBlockAsync(chainId, blockLink.BlockHash);
             await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
-            
         }
 
 
         public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
         {
-            throw new System.NotImplementedException();
+            return await _blockManager.GetBlockAsync(blockId);
         }
 
         public async Task<Chain> GetChainAsync(int chainId)
