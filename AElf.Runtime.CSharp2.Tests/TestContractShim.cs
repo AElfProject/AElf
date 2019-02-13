@@ -66,7 +66,8 @@ namespace AElf.Runtime.CSharp2.Tests
                     ChainId = _mock.ChainId1,
                     ContractAddress = _mock.ContractAddress1,
                     DataProvider = _mock.DataProvider1,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService =  _mock.ChainService
                 });
             }
             else
@@ -79,9 +80,46 @@ namespace AElf.Runtime.CSharp2.Tests
                     ChainId = _mock.ChainId2,
                     ContractAddress = _mock.ContractAddress2,
                     DataProvider = _mock.DataProvider2,
-                    SmartContractService = _mock.SmartContractService
+                    SmartContractService = _mock.SmartContractService,
+                    ChainService =  _mock.ChainService
                 });
             }
+        }
+        public ulong GetMethodFee(string methodName)
+        {
+            var tx = new Transaction
+            {
+                From = Address.Zero,
+                To = ContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = nameof(GetMethodFee),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(methodName))
+            };
+            var tc = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            Executive.SetDataCache(GetEmptyCache());
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            return tc.Trace.RetVal.Data.DeserializeToUInt64();
+        }
+        public void SetMethodFee(string methodName, ulong fee)
+        {
+            var tx = new Transaction
+            {
+                From = Address.Zero,
+                To = ContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = nameof(SetMethodFee),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(methodName, fee))
+            };
+            var tc = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            Executive.SetDataCache(GetEmptyCache());
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();   
         }
 
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
@@ -100,7 +138,6 @@ namespace AElf.Runtime.CSharp2.Tests
             };
             Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
-            Console.WriteLine(tc.Trace);
             tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
         }
 
@@ -123,7 +160,26 @@ namespace AElf.Runtime.CSharp2.Tests
             tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToBool();
         }
-
+        public bool TransferAndGetTrace(Address from, Address to, ulong qty, out TransactionTrace trace)
+        {
+            var tx = new Transaction
+            {
+                From = from,
+                To = ContractAddress,
+                IncrementId = _mock.NewIncrementId(),
+                MethodName = nameof(Transfer),
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(to, qty))
+            };
+            var tc = new TransactionContext()
+            {
+                Transaction = tx
+            };
+            Executive.SetDataCache(GetEmptyCache());
+            Executive.SetTransactionContext(tc).Apply().Wait();
+            tc.Trace.SmartCommitChangesAsync(_mock.StateManager).Wait();
+            trace = tc.Trace;
+            return tc.Trace.RetVal.Data.DeserializeToBool();
+        }
         public ulong BalanceOf(Address account)
         {
             var tx = new Transaction
@@ -140,8 +196,6 @@ namespace AElf.Runtime.CSharp2.Tests
             };
             Executive.SetDataCache(GetEmptyCache());
             Executive.SetTransactionContext(tc).Apply().Wait();
-            Console.WriteLine(tc.Trace);
-//            tc.Trace.CommitChangesAsync(_mock.StateManager).Wait();
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
     }

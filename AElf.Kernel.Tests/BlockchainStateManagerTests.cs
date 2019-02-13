@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests
         {
             _blockchainStateManager = GetRequiredService<BlockchainStateManager>();
             _tv = new List<TestPair>();
-            for (uint i = 0; i < 200; i++)
+            for (var i = 0ul; i < 200ul; i++)
             {
                 _tv.Add(new TestPair()
                 {
