@@ -20,7 +20,8 @@ namespace AElf.Sdk.CSharp2.Tests
             contract.SetStateProvider(new MockStateProviderFactory(stateManager).CreateStateProvider());
             contract.SetSmartContractContext(new SmartContractContext()
             {
-                ContractAddress = addresses[0]
+                ContractAddress = addresses[0],
+                ChainService = new MockChainService()
             });
             contract.SetTransactionContext(new TransactionContext()
             {

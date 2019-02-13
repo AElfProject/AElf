@@ -26,7 +26,7 @@ namespace AElf.Runtime.CSharp2.Tests
         public int ChainId1 { get; } = ChainHelpers.GetChainId(123);
         public int ChainId2 { get; } = ChainHelpers.GetChainId(124);
         public ISmartContractService SmartContractService;
-
+        public IChainService ChainService;
         public IStateManager StateManager;
         public DataProvider DataProvider1;
         public DataProvider DataProvider2;
@@ -51,6 +51,7 @@ namespace AElf.Runtime.CSharp2.Tests
             _smartContractRunnerContainer = smartContractRunnerContainer;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
             SmartContractService = smartContractService;
+            ChainService = chainService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
         }
 
