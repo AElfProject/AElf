@@ -9,7 +9,7 @@ message SideChainBlockInfo{
     uint64 Height = 1;
     Hash BlockHeaderHash = 2;
     Hash TransactionMKRoot = 3;
-    Hash ChainId = 4;
+    int32 ChainId = 4;
 }
 
 message IndexedSideChainBlockInfoResult{
@@ -33,7 +33,7 @@ message ParentChainBlockRootInfo
 
     // Merkle tree root of side chain block transaction roots
     Hash SideChainTransactionsRoot = 3;
-    Hash ChainId = 4;
+    int32 ChainId = 4;
 }
 
 message MerklePath{
@@ -56,6 +56,6 @@ message SideChainInfo{
     bytes ContractCode = 4;
     Address Proposer = 5;
     SideChainStatus SideChainStatus = 6;
-    Hash ChainId = 7;
+    int32 ChainId = 7;
     Hash ProposalHash = 8;
 }
