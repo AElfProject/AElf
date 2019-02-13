@@ -58,7 +58,7 @@ namespace AElf.Kernel.Managers
 
         public async Task OnNewBlockHeader(BlockHeader header)
         {
-            var height = header.Index;
+            var height = header.Height;
             if (_blocks.Count == 0)
             {
                 // If empty, just add

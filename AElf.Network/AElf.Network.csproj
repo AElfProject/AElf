@@ -17,12 +17,17 @@
     </ProjectReference>
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\protobuf\messages.proto">
+      <Link>Data/Protobuf/Proto/messages.proto</Link>
+    </Content>
+  </ItemGroup>
   <Target BeforeTargets="BeforeBuild" Name="Gen_proto">
-    <Exec Command="protoc --proto_path=../AElf.Types/Protobuf/Proto --csharp_out=./Data/Protobuf --csharp_opt=file_extension=.g.cs messages.proto" />
+    <Exec Command="protoc --proto_path=../protobuf --csharp_out=./Data/Protobuf/Generated --csharp_opt=file_extension=.g.cs messages.proto" />
   </Target>
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>
-      <Compile Include="./Data/Protobuf/*.g.cs" />
+      <Compile Include="./Data/Protobuf/Generated/*.g.cs" />
     </ItemGroup>
   </Target>
 </Project>

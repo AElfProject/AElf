@@ -11,7 +11,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $"{{ id: {GetHash()}, height: {Index} }}";
+            return $"{{ id: {GetHash()}, height: {Height} }}";
         }
         
         /// <summary>
@@ -25,9 +25,9 @@ namespace AElf.Kernel
             Body = new BlockBody();
         }
 
-        public ulong Index
+        public ulong Height
         {
-            get => Header?.Index ?? 0;
+            get => Header?.Height ?? 0;
             set { }
         }
 
