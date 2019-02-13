@@ -45,12 +45,12 @@ namespace AElf.Miner.TxMemPool
         private ulong _curHeight;
 
         private readonly int _chainId;
-        private readonly TransactionTypeIdentificationService _transactionTypeIdentificationService;
+        private readonly ITransactionTypeIdentificationService _transactionTypeIdentificationService;
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService, IAuthorizationInfoReader authorizationInfoReader,
             ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo,
-            TransactionTypeIdentificationService transactionTypeIdentificationService)
+            ITransactionTypeIdentificationService transactionTypeIdentificationService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _electionInfo = electionInfo;
@@ -327,8 +327,7 @@ namespace AElf.Miner.TxMemPool
                 tr.IsSystemTxn = true;
             }
 
-            // cross chain txn should not be  broadcasted
-            if (_transactionTypeIdentificationService.IsCrossChainIndexingTransaction(tr.Transaction))
+            if (!_transactionTypeIdentificationService.CanBeBroadCast(tr.Transaction))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -446,7 +445,8 @@ namespace AElf.Miner.TxMemPool
                     if(tr.Transaction == null)
                         continue;
                     
-                    if (tr.Transaction.IsClaimFeesTransaction())
+                    if (_transactionTypeIdentificationService.IsSystemTransaction(tr.Transaction) 
+                        || tr.Transaction.IsClaimFeesTransaction())
                     {
                         continue;
                     }

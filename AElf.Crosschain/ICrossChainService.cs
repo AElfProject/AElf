@@ -6,10 +6,10 @@ namespace AElf.Crosschain
 {
     public interface ICrossChainService
     {
-        Task<List<SideChainBlockData>> GetSideChainBlockInfo();
-        Task<List<ParentChainBlockData>> GetParentChainBlockInfo();
-        Task<bool> ValidateSideChainBlockInfo(List<SideChainBlockData> sideChainBlockInfo);
-        Task<bool> ValidateParentChainBlockInfo(List<ParentChainBlockData> parentChainBlockInfo);
+        Task<List<SideChainBlockData>> GetSideChainBlockData();
+        Task<List<ParentChainBlockData>> GetParentChainBlockData();
+        Task<bool> ValidateSideChainBlockData(IList<SideChainBlockData> sideChainBlockInfo);
+        Task<bool> ValidateParentChainBlockData(IList<ParentChainBlockData> parentChainBlockInfo);
 
     }
 }

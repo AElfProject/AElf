@@ -25,7 +25,6 @@ namespace AElf.Miner.Miner
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(preBlockHeight))
             };
             generatedTransactions.Add(tx);
-
         }
     }
 }

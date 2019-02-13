@@ -1,6 +1,6 @@
 namespace AElf.Kernel.Txn
 {
-    public interface ITransactionTypeIdentifier
+    public interface ITransactionTypeIdentificationService
     {
         bool IsSystemTransaction(Transaction transaction);
         bool CanBeBroadCast(Transaction transaction);

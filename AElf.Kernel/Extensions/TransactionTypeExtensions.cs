@@ -21,6 +21,7 @@ namespace AElf.Kernel
             return transaction.IsDposTransaction();
         }
 
+        // todo: claim fee transaction is a system transaction ?
         public static bool IsClaimFeesTransaction(this Kernel.Transaction transaction)
         {
             return transaction.To.Equals(TokenContractAddress) && transaction.MethodName.Equals("ClaimTransactionFees");

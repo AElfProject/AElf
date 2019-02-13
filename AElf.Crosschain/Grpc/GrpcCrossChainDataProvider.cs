@@ -23,9 +23,9 @@ namespace AElf.Crosschain.Grpc
             eventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
         }
 
-        public async Task<bool> GetSideChainBlockInfo(List<SideChainBlockData> sideChainBlockInfo)
+        public async Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
         {
-            if (sideChainBlockInfo.Count == 0)
+            if (sideChainBlockData.Count == 0)
             {
                 foreach (var _ in _grpcSideChainClients)
                 {
@@ -36,27 +36,27 @@ namespace AElf.Crosschain.Grpc
                     if (!_.Value.TryTake(targetHeight, out var blockInfo, true))
                         continue;
 
-                    sideChainBlockInfo.Append((SideChainBlockData) blockInfo);
+                    sideChainBlockData.Append((SideChainBlockData) blockInfo);
                 }
             }
             else
             {
-                foreach (var blockInfo in sideChainBlockInfo)
+                foreach (var blockInfo in sideChainBlockData)
                 {
                     if (!_grpcSideChainClients.TryGetValue(blockInfo.ChainId, out var cache))
                         // TODO: this could be changed.
                         return true;
                     var targetHeight = await GetChainTargetHeight(blockInfo.ChainId);
 
-                    sideChainBlockInfo.Append(blockInfo);
+                    sideChainBlockData.Append(blockInfo);
                     if (!cache.TryTake(targetHeight, out var cachedBlockInfo) || !blockInfo.Equals(cachedBlockInfo))
                         return false;
                 }
             }
-            return sideChainBlockInfo.Count > 0;
+            return sideChainBlockData.Count > 0;
         }
 
-        public async Task<bool> GetParentChainBlockInfo(List<ParentChainBlockData> parentChainBlockInfo)
+        public async Task<bool> GetParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
         {
             var chainId = ParentChainBlockInfoCache?.ChainId ?? 0;
             if (chainId == 0)
@@ -64,16 +64,16 @@ namespace AElf.Crosschain.Grpc
                 return false;
             
             ulong targetHeight = await GetChainTargetHeight(chainId);
-            if (parentChainBlockInfo.Count == 0)
+            if (parentChainBlockData.Count == 0)
             {
                 if (ParentChainBlockInfoCache == null)
                     return false;
             }
-            var isMining = parentChainBlockInfo.Count == 0;
+            var isMining = parentChainBlockData.Count == 0;
             // Size of result is GlobalConfig.MaximalCountForIndexingParentChainBlock if it is mining process.
-            if (!isMining && parentChainBlockInfo.Count > GlobalConfig.MaximalCountForIndexingParentChainBlock)
+            if (!isMining && parentChainBlockData.Count > GlobalConfig.MaximalCountForIndexingParentChainBlock)
                 return false;
-            int length = isMining ? GlobalConfig.MaximalCountForIndexingParentChainBlock : parentChainBlockInfo.Count;
+            int length = isMining ? GlobalConfig.MaximalCountForIndexingParentChainBlock : parentChainBlockData.Count;
             
             int i = 0;
             while (i++ < length)
@@ -85,14 +85,14 @@ namespace AElf.Crosschain.Grpc
                 }
                 
                 if(isMining)
-                    parentChainBlockInfo.Add((ParentChainBlockData) blockInfo);
-                else if (!parentChainBlockInfo[i].Equals(blockInfo))
+                    parentChainBlockData.Add((ParentChainBlockData) blockInfo);
+                else if (!parentChainBlockData[i].Equals(blockInfo))
                     // cached parent chain block info is not compatible with provided.
                     return false;
                 targetHeight++;
             }
             
-            return parentChainBlockInfo.Count > 0;
+            return parentChainBlockData.Count > 0;
         }
 
         public void AddNewSideChainCache(IClientBase clientBase)

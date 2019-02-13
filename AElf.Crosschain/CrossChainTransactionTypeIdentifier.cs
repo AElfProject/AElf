@@ -6,7 +6,7 @@ using AElf.Kernel.Types;
 
 namespace AElf.Crosschain
 {
-    public class CrossChainTransactionTypeIdentifier : TransactionTypeIdentifier
+    public class CrossChainTransactionTypeIdentifier : ITransactionTypeIdentifier
     {
         private static int ChainId { get; } = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
         private static Address CrossChainContractAddress { get; } =
@@ -23,9 +23,19 @@ namespace AElf.Crosschain
                    transaction.MethodName.Equals(TypeConsts.IndexingParentChainMethodName);
         }
         
-        public override bool IsCrossChainIndexingTransaction(Transaction transaction)
+        private bool IsCrossChainIndexingTransaction(Transaction transaction)
         {
             return IsIndexingParentChainTransaction(transaction) || IsIndexingSideChainTransaction(transaction);
+        }
+
+        public bool IsSystemTransaction(Transaction transaction)
+        {
+            return IsCrossChainIndexingTransaction(transaction);
+        }
+
+        public bool CanBeBroadCast(Transaction transaction)
+        {
+            return !IsCrossChainIndexingTransaction(transaction);
         }
     }
 }

@@ -271,7 +271,7 @@ namespace AElf.ChainController.Rpc
             var indexedSideChainBlockInfoResult = await s.CrossChainInfoReader.GetIndexedSideChainBlockInfoResult(height);
             if (indexedSideChainBlockInfoResult == null)
                 return res;
-            foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
+            foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockData)
             {
                 res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
                 {
