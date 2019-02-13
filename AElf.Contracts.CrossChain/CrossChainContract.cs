@@ -99,14 +99,14 @@ namespace AElf.Contracts.CrossChain
         private readonly Map<Hash, SideChainInfo> _sideChainInfos =
             new Map<Hash, SideChainInfo>(FieldNames.SideChainInfos);
         private readonly MapToUInt64<Hash> _sideChainHeight = new MapToUInt64<Hash>(FieldNames.SideChainHeight);
-        private readonly Map<UInt64Value, IndexedSideChainBlockInfoResult> _indexedSideChainBlockInfoResult =
-            new Map<UInt64Value, IndexedSideChainBlockInfoResult>(FieldNames.IndexedSideChainBlockInfoResult);
+        private readonly Map<UInt64Value, IndexedSideChainBlockDataResult> _indexedSideChainBlockInfoResult =
+            new Map<UInt64Value, IndexedSideChainBlockDataResult>(FieldNames.IndexedSideChainBlockInfoResult);
         private readonly MapToUInt64<Hash> _indexingBalance = new MapToUInt64<Hash>(FieldNames.IndexingBalance);
         #endregion
 
         #region parent chain 
-        private readonly Map<UInt64Value, ParentChainBlockInfo> _parentChainBlockInfo =
-            new Map<UInt64Value, ParentChainBlockInfo>(FieldNames.ParentChainBlockInfo);
+        private readonly Map<UInt64Value, ParentChainBlockData> _parentChainBlockInfo =
+            new Map<UInt64Value, ParentChainBlockData>(FieldNames.ParentChainBlockInfo);
         
         // record self height 
         private readonly MapToUInt64<UInt64Value> _childHeightToParentChainHeight =
@@ -165,9 +165,7 @@ namespace AElf.Contracts.CrossChain
                 Api.GetFromAddress().Equals(request.Proposer), "Invalid chain creation request.");
 
             var serialNumber = _sideChainSerialNumber.Increment().Value;
-            var raw = ChainHelpers.GetChainId(serialNumber);
-            var chainId = Hash.LoadByteArray(raw);
-
+            int chainId = ChainHelpers.GetChainId(serialNumber);
             Api.Assert(!_sideChainInfos.TryGet(chainId, out _),"Chain creation request already exists.");
 
             // lock token and resource
@@ -176,14 +174,14 @@ namespace AElf.Contracts.CrossChain
 
             // side chain creation proposal
             Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
-                Api.GetContractAddress(), CreateSideChainMethodName, raw.ToPlainBase58());
+                Api.GetContractAddress(), CreateSideChainMethodName, chainId.DumpBase58());
             request.SideChainStatus = SideChainStatus.Review;
             request.ProposalHash = hash;
             _sideChainInfos.SetValue(chainId, request);
             var res = new JObject
             {
                 ["proposal_hash"] = hash.ToHex(),
-                ["chain_id"] = raw.ToPlainBase58()
+                ["chain_id"] = chainId.DumpBase58()
             };
             return res.ToString();
         }
@@ -333,18 +331,21 @@ namespace AElf.Contracts.CrossChain
                 var blk = Api.GetBlockByHeight(targetHeight);
                 if(blk == null)
                     return;
-                var sideChainBlockData = blk.Body.SideChainBlockData;
-                if (sideChainBlockData.Count > 0)
+                var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(blk.Body.TransactionList.Last().Params);
+                if (blk.Header.BlockExtraData.SideChainTransactionsRoot != null)
                 {
-                    var calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray(),
-                        Address.FromPublicKey(blk.Header.P.ToByteArray()));
-                    Api.Assert(calculatedRoot.Equals(blk.Header.BlockExtraData.SideChainTransactionsRoot), 
-                        "Incorrect side chain transaction root."); // this should not happen.
+                    var sideChainBlockData = crossChainBlockData.SideChainBlockData;
+                    if (sideChainBlockData.Count > 0)
+                    {
+                        var calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray(),
+                            Address.FromPublicKey(blk.Header.P.ToByteArray()));
+                        Api.Assert(calculatedRoot.Equals(blk.Header.BlockExtraData.SideChainTransactionsRoot), 
+                            "Incorrect side chain transaction root."); // this should not happen.
+                    }
                 }
-
-                var parentChainBlockData = blk.Body.ParentChainBlockData;
-                if (parentChainBlockData.Count > 0)
-                    IndexParentChainBlockInfo(parentChainBlockData.ToArray());
+                
+                if (crossChainBlockData.ParentChainBlockData.Count > 0)
+                    IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
                 _recordedBlockHeight.SetValue(targetHeight + 1);
             }
         }
@@ -352,14 +353,14 @@ namespace AElf.Contracts.CrossChain
         /// <summary>
         /// Index parent chain blocks.
         /// </summary>
-        /// <param name="parentChainBlockInfo"></param>
-        private void IndexParentChainBlockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
+        /// <param name="parentChainBlockData"></param>
+        private void IndexParentChainBlockInfo(ParentChainBlockData[] parentChainBlockData)
         {
             // only miner can do this.
             //Api.IsMiner("Not authorized to do this.");
-            Api.Assert(parentChainBlockInfo.Length <= GlobalConfig.MaximalCountForIndexingParentChainBlock,
+            Api.Assert(parentChainBlockData.Length <= GlobalConfig.MaximalCountForIndexingParentChainBlock,
                 "Beyond maximal capacity for once indexing.");
-            foreach (var blockInfo in parentChainBlockInfo)
+            foreach (var blockInfo in parentChainBlockData)
             {
                 ulong parentChainHeight = blockInfo.Height;
                 var currentHeight = _currentParentChainHeight.GetValue();
@@ -367,13 +368,13 @@ namespace AElf.Contracts.CrossChain
                 Api.Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
                 
-                Console.WriteLine("ParentChainBlockInfo.Height is correct."); // Todo: only for debug
+                Console.WriteLine("ParentChainBlockData.Height is correct."); // Todo: only for debug
             
                 var key = new UInt64Value {Value = parentChainHeight};
                 Api.Assert(!_parentChainBlockInfo.TryGet(key, out _),
                     $"Already written parent chain block info at height {parentChainHeight}");
-                Console.WriteLine("Writing ParentChainBlockInfo..");
-                foreach (var indexedBlockInfo in blockInfo.IndexedBlockInfo)
+                Console.WriteLine("Writing ParentChainBlockData..");
+                foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
                     AddIndexedTxRootMerklePathInParentChain(indexedBlockInfo.Key, indexedBlockInfo.Value);
@@ -388,26 +389,26 @@ namespace AElf.Contracts.CrossChain
         /// <summary>
         /// Index side chain block(s).
         /// </summary>
-        /// <param name="sideChainBlockInfo"></param>
+        /// <param name="sideChainBlockData"></param>
         /// <param name="miner">Miner indexing cross chain data.</param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
-        private Hash IndexSideChainBlockInfo(SideChainBlockInfo[] sideChainBlockInfo, Address miner)
+        private Hash IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData, Address miner)
         {
             // only miner can do this.
 //            Api.IsMiner("Not authorized to do this.");
-//            Api.Assert(sideChainBlockInfo.Length > 0, "Empty side chain block information.");
+//            Api.Assert(sideChainBlockData.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
             var currentHeight = Api.GetCurrentHeight();
             var height = currentHeight + 1;
             var wrappedHeight = new UInt64Value {Value = height};
             Api.Assert(!_indexedSideChainBlockInfoResult.TryGet(wrappedHeight, out _)); // This should not happen.
             
-            var indexedSideChainBlockInfoResult = new IndexedSideChainBlockInfoResult
+            var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
             {
                 Height = height,
                 Miner = miner
             };
-            foreach (var blockInfo in sideChainBlockInfo)
+            foreach (var blockInfo in sideChainBlockData)
             {
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
@@ -434,7 +435,7 @@ namespace AElf.Contracts.CrossChain
                 
                 _sideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
-                indexedSideChainBlockInfoResult.SideChainBlockInfos.Add(blockInfo);
+                indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
                 // Todo: only for debug
                 Console.WriteLine($"Side chain block info at {target}");
             }

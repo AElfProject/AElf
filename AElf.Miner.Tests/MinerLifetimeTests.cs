@@ -241,7 +241,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
-                parimpl.Init(Hash.Generate());
+                parimpl.Init(ChainHelpers.GetRandomChainId());
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
@@ -320,7 +320,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 parimpl.Init(parentChainId);
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
-                sideimpl.Init(Hash.Generate());
+                sideimpl.Init(ChainHelpers.GetRandomChainId());
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
                 serverManager.Init(dir);
                 // create client, main chain is client-side

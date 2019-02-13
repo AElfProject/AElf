@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             }
             
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
-                Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
+                GlobalConfig.DefaultChainId.ConvertBase58ToChainId(), DateTime.UtcNow, new CancellationToken(), null,
                 TransactionType.ContractTransaction, true).Result;
             foreach (var transactionTrace in traces)
             {

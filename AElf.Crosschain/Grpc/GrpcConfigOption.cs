@@ -1,4 +1,4 @@
-namespace AElf.Crosschain
+namespace AElf.Crosschain.Grpc
 {
     public class GrpcConfigOption
     {

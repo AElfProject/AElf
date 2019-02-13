@@ -28,8 +28,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
 
         public IStateManager StateManager { get; }
-        
-        public int ChainId { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
+
+        public int ChainId { get; } = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
         
         private ISmartContractService SmartContractService { get; }
 

@@ -6,25 +6,25 @@ using Grpc.Core;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcSideChainBlockInfoRpcClient : GrpcCrossChainClient<ResponseSideChainBlockInfo>
+    public class GrpcSideChainBlockInfoRpcClient : GrpcCrossChainClient<ResponseSideChainBlockData>
     {
-        private readonly SideChainBlockInfoRpc.SideChainBlockInfoRpcClient _client;
+        private readonly SideChainRpc.SideChainRpcClient _client;
 
         public GrpcSideChainBlockInfoRpcClient(Channel channel, GrpcClientBase grpcClientBase) : base(channel, grpcClientBase)
         {
-            _client = new SideChainBlockInfoRpc.SideChainBlockInfoRpcClient(channel);
+            _client = new SideChainRpc.SideChainRpcClient(channel);
         }
 
-        protected override AsyncDuplexStreamingCall<RequestBlockInfo, ResponseSideChainBlockInfo> Call(int milliSeconds = 0)
+        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> Call(int milliSeconds = 0)
         {
             return milliSeconds == 0
-                ? _client.IndexDuplexStreaming()
-                : _client.IndexDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
+                ? _client.RequestSideChainDuplexStreaming()
+                : _client.RequestSideChainDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
         }
 
-        protected override AsyncServerStreamingCall<ResponseSideChainBlockInfo> Call(RequestBlockInfo requestBlockInfo)
+        protected override AsyncServerStreamingCall<ResponseSideChainBlockData> Call(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return _client.IndexServerStreaming(requestBlockInfo);
+            return _client.RequestSideChainServerStreaming(requestCrossChainBlockData);
         }
     }
 }

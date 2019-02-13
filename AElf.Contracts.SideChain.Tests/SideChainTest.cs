@@ -32,7 +32,7 @@ public class SideChainTest : SideChainContractTestBase
         {
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(Mock.ChainId1));
 //            var chainId = Hash.Generate();
-            var chainId = Hash.FromString("Chain1");
+            var chainId = ChainHelpers.GetChainId(123);
             var lockedAddress = Address.Generate();
             ulong lockedToken = 10000;
             // create new chain
@@ -80,21 +80,21 @@ public class SideChainTest : SideChainContractTestBase
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate()
             };
-            ParentChainBlockInfo parentChainBlockInfo = new ParentChainBlockInfo
+            ParentChainBlockData parentChainBlockData = new ParentChainBlockData
             {
                 Root = parentChainBlockRootInfo
             };
-            parentChainBlockInfo.IndexedBlockInfo.Add(pHeight, new MerklePath
+            parentChainBlockData.IndexedMerklePath.Add(pHeight, new MerklePath
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
-            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
+            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockData});
             
             ChainConfig.Instance.ChainId = chainId.DumpBase58();
             var crossChainInfo = new CrossChainInfoReader(Mock.StateManager);
             var merklepath = await crossChainInfo.GetTxRootMerklePathInParentChainAsync(pHeight);
             Assert.NotNull(merklepath);
-            Assert.Equal(parentChainBlockInfo.IndexedBlockInfo[pHeight], merklepath);
+            Assert.Equal(parentChainBlockData.IndexedMerklePath[pHeight], merklepath);
 
             var parentHeight = await crossChainInfo.GetParentChainCurrentHeightAsync();
             Assert.Equal(pHeight, parentHeight);
@@ -102,7 +102,7 @@ public class SideChainTest : SideChainContractTestBase
             Assert.Equal(parentChainBlockRootInfo.Height, boundHeight);
 
             var boundBlockInfo = await crossChainInfo.GetBoundParentChainBlockInfoAsync(parentChainBlockRootInfo.Height);
-            Assert.Equal(parentChainBlockInfo, boundBlockInfo);
+            Assert.Equal(parentChainBlockData, boundBlockInfo);
         }
 
         /*[Fact(Skip = "TBD, side chain lifetime needed.")]
@@ -120,11 +120,11 @@ public class SideChainTest : SideChainContractTestBase
                 SideChainTransactionsRoot = Hash.Generate(),
                 SideChainBlockHeadersRoot = Hash.Generate()
             };
-            ParentChainBlockInfo pcb1 = new ParentChainBlockInfo
+            ParentChainBlockData pcb1 = new ParentChainBlockData
             {
                 Root = pcbr1
             };
-            pcb1.IndexedBlockInfo.Add(pHeight, new MerklePath
+            pcb1.IndexedMerklePath.Add(pHeight, new MerklePath
             {
                 Path = {Hash.FromString("Block1"), Hash.FromString("Block2"), Hash.FromString("Block3")}
             });
@@ -153,11 +153,11 @@ public class SideChainTest : SideChainContractTestBase
             var bmt1 = new BinaryMerkleTree();
             bmt1.AddNodes(list1);
             var root1 = bmt1.ComputeRootHash();
-            var sc1BlockInfo = new SideChainBlockInfo
+            var sc1BlockInfo = new SideChainBlockData
             {
                 Height = pHeight,
                 BlockHeaderHash = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
+                ChainId = ChainHelpers.GetChainId(123),
                 TransactionMKRoot = root1
             };
             
@@ -175,11 +175,11 @@ public class SideChainTest : SideChainContractTestBase
             var bmt2 = new BinaryMerkleTree();
             bmt2.AddNodes(list2);
             var root2 = bmt2.ComputeRootHash();
-            var sc2BlockInfo = new SideChainBlockInfo
+            var sc2BlockInfo = new SideChainBlockData
             {
                 Height = pHeight,
                 BlockHeaderHash = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
+                ChainId = ChainHelpers.GetChainId(123),
                 TransactionMKRoot = root2
             };
             
@@ -192,7 +192,7 @@ public class SideChainTest : SideChainContractTestBase
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(new[] {sc1BlockInfo.TransactionMKRoot, sc2BlockInfo.TransactionMKRoot});
             block.Header.SideChainTransactionsRoot = binaryMerkleTree.ComputeRootHash();
-            //block.Body.IndexedInfo.Add(new List<SideChainBlockInfo>{sc1BlockInfo, sc2BlockInfo});
+            //block.Body.IndexedInfo.Add(new List<SideChainBlockData>{sc1BlockInfo, sc2BlockInfo});
             block.Body.CalculateMerkleTreeRoots();
             
             pHeight = 2;
@@ -203,7 +203,7 @@ public class SideChainTest : SideChainContractTestBase
                 SideChainTransactionsRoot = block.Header.SideChainTransactionsRoot,
             };
             
-            ParentChainBlockInfo parentChainBlockInfo = new ParentChainBlockInfo
+            ParentChainBlockData parentChainBlockData = new ParentChainBlockData
             {
                 Root = parentChainBlockRootInfo
             };
@@ -217,8 +217,8 @@ public class SideChainTest : SideChainContractTestBase
             var pathForSc2Block = binaryMerkleTree.GenerateMerklePath(1);
             pathForTx2.Path.AddRange(pathForSc2Block.Path);
             
-            //parentChainBlockInfo.IndexedBlockInfo.Add(1, tree.GenerateMerklePath(0));
-            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockInfo});
+            //parentChainBlockData.IndexedMerklePath.Add(1, tree.GenerateMerklePath(0));
+            await _contract.WriteParentChainBLockInfo(new []{parentChainBlockData});
             //crossChainInfoReader = new CrossChainInfoReader(Mock.StateStore);
             parentHeight = await crossChainInfo.GetParentChainCurrentHeightAsync();
             Assert.Equal(pHeight, parentHeight);

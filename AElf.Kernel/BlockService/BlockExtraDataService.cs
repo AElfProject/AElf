@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.BlockService
 {
-    public class BlockExtraDataGenerationService : IBlockExtraDataGenerationService
+    public class BlockExtraDataService : IBlockExtraDataService
     {
         private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
 
-        public BlockExtraDataGenerationService(List<IBlockExtraDataProvider> blockExtraDataProviders)
+        public BlockExtraDataService(List<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders;
         }

@@ -76,7 +76,7 @@ namespace AElf.Consensus
             };
 
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
-                Hash.FromString(GlobalConfig.DefaultChainId), DateTime.UtcNow, new CancellationToken(), null,
+                chainId, DateTime.UtcNow, new CancellationToken(), null,
                 TransactionType.ContractTransaction, true).Result;
             CommitChangesAsync(traces.Last()).Wait();
             return traces.Last().RetVal?.Data;

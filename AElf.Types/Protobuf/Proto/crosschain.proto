@@ -5,24 +5,24 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "resource.proto";
 
-message SideChainBlockInfo{
+message SideChainBlockData {
     uint64 Height = 1;
     Hash BlockHeaderHash = 2;
     Hash TransactionMKRoot = 3;
-    Hash ChainId = 4;
+    int32 ChainId = 4;
 }
 
-message IndexedSideChainBlockInfoResult{
+message IndexedSideChainBlockDataResult {
     uint64 Height = 1;
     Address Miner = 2;
-    repeated SideChainBlockInfo SideChainBlockInfos = 3;
+    repeated SideChainBlockData SideChainBlockData = 3;
 }
 
-message ParentChainBlockInfo{
+message ParentChainBlockData {
     ParentChainBlockRootInfo Root = 1;
 
     // Indexed block height from side chain and merkle path for this side chain block
-    map<uint64, MerklePath> IndexedBlockInfo = 2;
+    map<uint64, MerklePath> IndexedMerklePath = 2;
 }
 
 message ParentChainBlockRootInfo
@@ -33,10 +33,10 @@ message ParentChainBlockRootInfo
 
     // Merkle tree root of side chain block transaction roots
     Hash SideChainTransactionsRoot = 3;
-    Hash ChainId = 4;
+    int32 ChainId = 4;
 }
 
-message MerklePath{
+message MerklePath {
     repeated Hash Path = 1;
 }
 
@@ -49,13 +49,18 @@ enum SideChainStatus
     Terminated = 4;
 }
 
-message SideChainInfo{
+message SideChainInfo {
     uint64 IndexingPrice = 1;
     uint64 LockedTokenAmount = 2;
     repeated ResourceTypeBalancePair ResourceBalances = 3; 
     bytes ContractCode = 4;
     Address Proposer = 5;
     SideChainStatus SideChainStatus = 6;
-    Hash ChainId = 7;
+    int32 ChainId = 7;
     Hash ProposalHash = 8;
+}
+
+message CrossChainBlockData {
+    repeated SideChainBlockData SideChainBlockData = 1;
+    repeated ParentChainBlockData ParentChainBlockData = 2;
 }

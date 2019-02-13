@@ -1,8 +1,8 @@
-using System;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Crosschain.Grpc;
 using AElf.Crosschain.Grpc.Client;
+using AElf.Crosschain.Grpc.Server;
 using AElf.Kernel;
 using AElf.Kernel.Txn;
 using AElf.Modularity;
@@ -24,7 +24,7 @@ namespace AElf.Crosschain
              
              var configuration = context.Services.GetConfiguration();
              Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));
-             services.AddSingleton<IClientManager, GrpcClientManager>();
+             services.AddSingleton<IClientService, GrpcClientService>();
              services.AddSingleton<ICrossChainDataProvider, GrpcCrossChainDataProvider>();
              services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
          }
@@ -37,7 +37,7 @@ namespace AElf.Crosschain
                  .Init(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
              var opt = context.ServiceProvider.GetService<IOptionsSnapshot<GrpcConfigOption>>().Value;
 
-             var clientManager = context.ServiceProvider.GetService<GrpcClientManager>();
+             var clientManager = context.ServiceProvider.GetService<GrpcClientService>();
              // Init client connected to parent chain if it exists.
              clientManager.Init(opt.CertificateDir);
              if (!string.IsNullOrEmpty(opt.ParentChainId) && !string.IsNullOrEmpty(opt.ParentChainNodeIp) &&

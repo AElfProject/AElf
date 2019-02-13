@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Crosschain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.BlockService;
+using Volo.Abp.EventBus;
 
 namespace AElf.Crosschain
 {
@@ -13,36 +16,37 @@ namespace AElf.Crosschain
         private delegate void NewSideChainHandler(IClientBase clientBase);
 
         private readonly NewSideChainHandler _newSideChainHandler;
-        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientManager clientManager)
+
+        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientService clientService)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _newSideChainHandler += clientManager.CreateClient;
+            _newSideChainHandler += clientService.CreateClient;
             _newSideChainHandler += _crossChainDataProvider.AddNewSideChainCache;
-            //Todo: event listener for new side chain.
         }
 
-        public async Task<List<SideChainBlockInfo>> GetSideChainBlockInfo()
+        public async Task<List<SideChainBlockData>> GetSideChainBlockInfo()
         {
-            var res = new List<SideChainBlockInfo>();
+            var res = new List<SideChainBlockData>();
             await _crossChainDataProvider.GetSideChainBlockInfo(res);
             return res;
         }
 
-        public async Task<List<ParentChainBlockInfo>> GetParentChainBlockInfo()
+        public async Task<List<ParentChainBlockData>> GetParentChainBlockInfo()
         {
-            var res = new List<ParentChainBlockInfo>();
+            var res = new List<ParentChainBlockData>();
             await _crossChainDataProvider.GetParentChainBlockInfo(res);
             return res;
         }
 
-        public async Task<bool> ValidateSideChainBlockInfo(List<SideChainBlockInfo> sideChainBlockInfo)
+        public async Task<bool> ValidateSideChainBlockInfo(List<SideChainBlockData> sideChainBlockInfo)
         {
             return await _crossChainDataProvider.GetSideChainBlockInfo(sideChainBlockInfo);
         }
-
-        public async Task<bool> ValidateParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo)
+        
+        public async Task<bool> ValidateParentChainBlockInfo(List<ParentChainBlockData> parentChainBlockInfo)
         {
             return await _crossChainDataProvider.GetParentChainBlockInfo(parentChainBlockInfo);
         }
+       
     }
 }

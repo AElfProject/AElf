@@ -42,5 +42,15 @@ namespace AElf.Consensus
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }
+
+        public async Task<bool> ValidateExtraData(Block block)
+        {
+            var consensusInformation = block.Header.BlockExtraData.ConsensusInformation;
+
+            var result = _consensusService.ValidateConsensus(block.Header.ChainId,
+                await _accountService.GetAccountAsync(), consensusInformation.ToByteArray());
+
+            return result;
+        }
     }
 }
