@@ -11,6 +11,7 @@ using Type = System.Type;
 using Module = AElf.Kernel.ABI.Module;
 using Method = AElf.Kernel.ABI.Method;
 using AElf.SmartContract;
+using AElf.SmartContract.Contexts;
 using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp
@@ -48,9 +49,9 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public IExecutive SetStateManager(IStateManager stateManager)
+        public IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
-            _stateManager = stateManager;
+            _stateManager = stateProviderFactory.CreateStateManager();
             return this;
         }
 

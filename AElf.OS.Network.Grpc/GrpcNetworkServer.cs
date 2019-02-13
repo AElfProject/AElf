@@ -5,6 +5,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Account;
 using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;
@@ -187,11 +188,11 @@ namespace AElf.OS.Network.Grpc
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKey().Result),
+                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKeyAsync().Result),
                 Version = GlobalConfig.ProtocolVersion,
             };
             
-            byte[] sig = _accountService.Sign(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
+            byte[] sig = _accountService.SignAsync(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
 
             var hsk = new Handshake
             {

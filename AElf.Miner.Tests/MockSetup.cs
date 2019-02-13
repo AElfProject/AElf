@@ -18,10 +18,13 @@ using Moq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
+using AElf.Kernel.Account;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
+using AElf.SmartContract.Contexts;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
@@ -39,68 +42,47 @@ namespace AElf.Miner.Tests
         public ILogger<MockSetup> Logger { get; set; }
         private ulong _i = 0;
         private IChainCreationService _chainCreationService;
-        private ISmartContractManager _smartContractManager;
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
         private ITransactionManager _transactionManager;
         private ITransactionReceiptManager _transactionReceiptManager;
         private ITransactionResultManager _transactionResultManager;
-        private ITransactionTraceManager _transactionTraceManager;
         private IExecutingService _concurrencyExecutingService;
-        private IFunctionMetadataService _functionMetadataService;
         private IChainService _chainService;
         private IBinaryMerkleTreeManager _binaryMerkleTreeManager;
-        private IChainContextService _chainContextService;
         private ITxRefBlockValidator _refBlockValidator;
-        private IChainManager _chainManager;
-        private IBlockManager _blockManager;
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
+        private readonly TransactionFilter _transactionFilter;
+        private readonly ConsensusDataProvider _consensusDataProvider;
+        private readonly IAccountService _accountService;
 
-        public MockSetup(IStateManager stateManager, ITxRefBlockValidator refBlockValidator,
-            IBlockManager blockManager, ISmartContractManager smartContractManager,
+        public MockSetup(IStateManager stateManager,
+            ITxRefBlockValidator refBlockValidator,
             ITransactionReceiptManager transactionReceiptManager, ITransactionResultManager transactionResultManager,
-            ITransactionTraceManager transactionTraceManager, IChainManager chainManager,
-            IFunctionMetadataService functionMetadataService,
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
-            ISmartContractRunnerContainer smartContractRunnerContainer)
+            IChainService chainService, IExecutingService executingService,
+            IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
+            ConsensusDataProvider consensusDataProvider, IAccountService accountService)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
             _refBlockValidator = refBlockValidator;
-            _blockManager = blockManager;
-            _smartContractManager = smartContractManager;
             _transactionReceiptManager = transactionReceiptManager;
             _transactionResultManager = transactionResultManager;
-            _transactionTraceManager = transactionTraceManager;
-            _chainManager = chainManager;
-            _functionMetadataService = functionMetadataService;
             _transactionManager = transactionManager;
             _stateManager = stateManager;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
+            _chainService = chainService;
+            _concurrencyExecutingService = executingService;
+            _chainCreationService = chainCreationService;
+            _transactionFilter = transactionFilter;
+            _consensusDataProvider = consensusDataProvider;
+            _accountService = accountService;
             Initialize();
         }
 
         private void Initialize()
         {
-            _chainService = new ChainService(_chainManager, _blockManager,
-                _transactionManager, _transactionTraceManager, _stateManager);
-//            _smartContractRunnerContainer = new SmartContractRunnerContainer();
-            /*var runner = new SmartContractRunner("../../../../AElf.SDK.CSharp/bin/Debug/netstandard2.0/");
-            _smartContractRunnerContainer.AddRunner(0, runner);*/
-//            var runner = new SmartContractRunner(ContractCodes.TestContractFolder);
-//            _smartContractRunnerContainer.AddRunner(0, runner);
-            _concurrencyExecutingService = new NoFeeSimpleExecutingService(
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer, _stateManager,
-                    _functionMetadataService, _chainService), _transactionTraceManager, _stateManager,
-                new ChainContextService(_chainService));
-
-            _chainCreationService = new ChainCreationService(_chainService,
-                new SmartContractService(_smartContractManager, _smartContractRunnerContainer,
-                    _stateManager, _functionMetadataService, _chainService));
-
-            _chainContextService = new ChainContextService(_chainService);
             _authorizationInfoReader = new AuthorizationInfoReader(_stateManager);
             _electionInfo = new ElectionInfo(_stateManager);
         }
@@ -145,7 +127,8 @@ namespace AElf.Miner.Tests
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager);
+                MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
+                _accountService);
 
             return miner;
         }
@@ -154,7 +137,8 @@ namespace AElf.Miner.Tests
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager,
-                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager);
+                new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
+                _consensusDataProvider);
 
             return blockExecutor;
         }

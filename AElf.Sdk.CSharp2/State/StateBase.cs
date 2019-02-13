@@ -2,22 +2,23 @@ using System;
 using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp.State
 {
     public class StateBase
     {
-        private IStateManager _stateManager;
+        private IStateProvider _provider;
         private StatePath _path;
         private IContextInternal _context;
 
-        internal IStateManager Manager
+        internal IStateProvider Provider
         {
-            get => _stateManager;
+            get => _provider;
             set
             {
-                _stateManager = value;
-                OnStateManagerSet();
+                _provider = value;
+                OnProviderSet();
             }
         }
 
@@ -41,7 +42,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal virtual void OnStateManagerSet()
+        internal virtual void OnProviderSet()
         {
         }
 

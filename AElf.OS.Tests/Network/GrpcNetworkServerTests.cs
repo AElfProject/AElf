@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Account;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;
@@ -9,17 +10,22 @@ using Moq;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace AElf.OS.Tests.Network
 {
-    public class GrpcNetworkConnectionTests
+    public class GrpcNetworkConnectionTests : OSTestBase
     {
+        private readonly IAccountService _accountService;
+            
+        public GrpcNetworkConnectionTests()
+        {
+            _accountService = GetRequiredService<IAccountService>();
+        }
+        
         private GrpcNetworkServer BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
             
-            var accountServiceMock = NetMockHelpers.MockAccountService();
             var mockLocalEventBus = new Mock<ILocalEventBus>();
             
             // Catch all events on the bus
@@ -31,7 +37,7 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcNetworkServer manager1 = new GrpcNetworkServer(optionsMock.Object, accountServiceMock.Object, null, mockLocalEventBus.Object);
+            GrpcNetworkServer manager1 = new GrpcNetworkServer(optionsMock.Object, _accountService, null, mockLocalEventBus.Object);
 
             return manager1;
         }

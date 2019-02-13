@@ -14,7 +14,9 @@ using AElf.Common;
 using Address = AElf.Common.Address;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;
@@ -37,10 +39,12 @@ public sealed class MinerLifetimeTests : MinerTestBase
         }
 
         private MockSetup _mock;
+        private IAccountService _accountService;
 
         public MinerLifetimeTests()
         {
             _mock = GetRequiredService<MockSetup>();
+            _accountService = GetRequiredService<IAccountService>();
         }
 
         public byte[] ExampleContractCode
@@ -56,8 +60,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var contractAddressZero = ContractHelpers.GetSystemContractAddress(chainId, GlobalConfig.GenesisBasicContract);
             Console.WriteLine($"zero {contractAddressZero}");
             
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            ECSigner signer = new ECSigner();
+            ECKeyPair keyPair = CryptoHelpers.GenerateKeyPair();
             
             var txPrint = new Transaction()
             {
@@ -80,8 +83,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             Hash hash = txPrint.GetHash();
 
-            ECSignature signature = signer.Sign(keyPair, hash.DumpByteArray());
-            txPrint.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            txPrint.Sigs.Add(ByteString.CopyFrom(signature));
             
             var txs = new List<Transaction>(){
                 txPrint
@@ -113,8 +116,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
 
             var code = ExampleContractCode;
             
-            ECKeyPair keyPair = new KeyPairGenerator().Generate();
-            ECSigner signer = new ECSigner();
+            ECKeyPair keyPair = CryptoHelpers.GenerateKeyPair();
             
             var txnDep = new Transaction()
             {
@@ -129,8 +131,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             Hash hash = txnDep.GetHash();
 
-            ECSignature signature1 = signer.Sign(keyPair, hash.DumpByteArray());
-            txnDep.Sigs.Add(ByteString.CopyFrom(signature1.SigBytes));
+            var signature1 = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            txnDep.Sigs.Add(ByteString.CopyFrom(signature1));
             
             var txInv_1 = new Transaction
             {
@@ -143,8 +145,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Type = TransactionType.ContractTransaction
             };
             
-            ECSignature signature2 = signer.Sign(keyPair, txInv_1.GetHash().DumpByteArray());
-            txInv_1.Sigs.Add(ByteString.CopyFrom(signature2.SigBytes));
+            var signature2 = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, txInv_1.GetHash().DumpByteArray());
+            txInv_1.Sigs.Add(ByteString.CopyFrom(signature2));
             
             var txInv_2 = new Transaction
             {
@@ -158,8 +160,8 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 Type = TransactionType.ContractTransaction
             };
             
-            ECSignature signature3 = signer.Sign(keyPair, txInv_2.GetHash().DumpByteArray());
-            txInv_2.Sigs.Add(ByteString.CopyFrom(signature3.SigBytes));
+            var signature3 = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, txInv_2.GetHash().DumpByteArray());
+            txInv_2.Sigs.Add(ByteString.CopyFrom(signature3));
             
             var txs = new List<Transaction>(){
                 txnDep, txInv_1, txInv_2
@@ -172,14 +174,11 @@ public sealed class MinerLifetimeTests : MinerTestBase
         public async Task Mine_ProduceSecondBlock_WithCorrectSig()
         {
             // create the miners keypair, this is the miners identity
-            var minerKeypair = new KeyPairGenerator().Generate();
+            var minerKeypair = CryptoHelpers.GenerateKeyPair();
             var minerAddress = AddressHelpers.BuildAddress(minerKeypair.PublicKey);
             
             var chain = await _mock.CreateChain();
             var minerconfig = _mock.GetMinerConfig(chain.Id);
-
-            NodeConfig.Instance.NodeAccount = minerAddress.GetFormatted();
-            NodeConfig.Instance.ECKeyPair = minerKeypair;
             
             var txHub = _mock.CreateAndInitTxHub();
             txHub.Start();
@@ -202,9 +201,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
-            
-            ECVerifier verifier = new ECVerifier();
-            Assert.True(verifier.Verify(block.Header.GetSignature(), block.Header.GetHash().DumpByteArray()));
         }
 
         [Fact(Skip = "ChainId changed")]
@@ -212,7 +208,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
         {
             var chain = await _mock.CreateChain();
             ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
-            NodeConfig.Instance.NodeAccount = Address.Generate().GetFormatted();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
@@ -224,8 +219,9 @@ public sealed class MinerLifetimeTests : MinerTestBase
             block.Body.TransactionList.Add(txs[0]);
             block.Body.TransactionList.Add(txs[2]);
             block.FillTxsMerkleTreeRootInHeader();
-            block.Body.BlockHeader = block.Header.GetHash();
-            block.Sign(new KeyPairGenerator().Generate());
+            block.Body.BlockHeader = block.Header.GetHash();            
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            block.Sign(publicKey, data => _accountService.SignAsync(data));
 
             var manager = _mock.MinerClientManager();
             var blockExecutor = _mock.GetBlockExecutor(manager);

@@ -35,6 +35,10 @@ namespace AElf.OS.Network.Grpc
         {
             _peerAuthenticator = peerAuthenticator;
             _blockService = blockService;
+
+            if (_blockService == null)
+                ;
+            
             _localEventBus = localEventBus;
 
             Logger = NullLogger<GrpcPeerService>.Instance;
@@ -155,12 +159,10 @@ namespace AElf.OS.Network.Grpc
                 if (request.Id != null && request.Id.Length > 0)
                 {
                     block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
-                    byte[] s = block.ToByteArray();
                 }
                 else
                 {
                     block = _blockService.GetBlockByHeight((ulong)request.BlockNumber).Result;
-                    byte[] s = block.ToByteArray();
                 }
                 
                 return Task.FromResult(new BlockReply { Block = block });

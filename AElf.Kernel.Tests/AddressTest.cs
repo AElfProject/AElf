@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using Xunit;
 
@@ -13,8 +14,7 @@ namespace AElf.Kernel.Tests
             Random rnd = new Random();
             
             // sha sha of pub key
-            KeyPairGenerator kpg = new KeyPairGenerator();
-            byte[] kp = kpg.Generate().PublicKey;
+            byte[] kp = CryptoHelpers.GenerateKeyPair().PublicKey;
             
             byte[] hash = new byte[3];
             rnd.NextBytes(hash);

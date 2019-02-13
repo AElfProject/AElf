@@ -30,6 +30,7 @@ namespace AElf.Launcher
         typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
+        typeof(OSAElfModule),
         typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
         typeof(MinerAElfModule),
@@ -41,7 +42,6 @@ namespace AElf.Launcher
         typeof(MinerRpcAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule),
-        typeof(AElfOSModule),
         typeof(GrpcNetworkModule))]
     public class LauncherAElfModule : AElfModule
     {

@@ -71,14 +71,12 @@ namespace AElf.Contracts.Genesis
                 }
                 return _value;
             }
-            private set => _value = value;
         }
 
         public ContractSerialNumber Increment()
         {
-            Value = Value + 1;
-            SetValue(Value);
-            GlobalConfig.BasicContractZeroSerialNumber = Value;
+            var value = Value + 1;
+            SetValue(value);
             return this;
         }
     }

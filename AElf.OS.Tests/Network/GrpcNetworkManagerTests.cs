@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Account;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -15,15 +16,18 @@ using Volo.Abp.EventBus.Local;
 using Xunit;
 using Xunit.Abstractions;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace AElf.OS.Tests.Network
 {
-    public class GrpcNetworkManagerTests
+    public class GrpcNetworkManagerTests : OSTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly IAccountService _accountService;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            _accountService = GetRequiredService<IAccountService>();
         }
 
         private GrpcNetworkServer BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
@@ -31,7 +35,6 @@ namespace AElf.OS.Tests.Network
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
             
-            var accountServiceMock = NetMockHelpers.MockAccountService();
             var mockLocalEventBus = new Mock<ILocalEventBus>();
             
             // Catch all events on the bus
@@ -53,9 +56,9 @@ namespace AElf.OS.Tests.Network
                     .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Index == 1)));
             }
             
-            GrpcNetworkServer manager1 = new GrpcNetworkServer(optionsMock.Object, accountServiceMock.Object, mockBlockService.Object, mockLocalEventBus.Object);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, mockBlockService.Object, mockLocalEventBus.Object);
 
-            return manager1;
+            return netServer;
         }
 
         [Fact]

@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -59,42 +60,31 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public ServicePack ServicePack;
 
         private IChainCreationService _chainCreationService;
-        private IChainService _chainService;
-        private IFunctionMetadataService _functionMetadataService;
         public ILogger<MockSetup> Logger { get; set; }
 
         private IStateManager _stateManager;
         public IActorEnvironment ActorEnvironment { get; private set; }
 
-        private readonly TransactionManager _transactionManager;
-
-        private ISmartContractRunnerContainer _smartContractRunnerContainer;
-
         public MockSetup(IChainCreationService chainCreationService,
             IChainService chainService, IActorEnvironment actorEnvironment,
             IChainContextService chainContextService, IFunctionMetadataService functionMetadataService,
-            IStateManager stateManager, TransactionManager transactionManager,
-            ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer)
+            IStateProviderFactory stateProviderFactory, TransactionManager transactionManager,
+            ISmartContractManager smartContractManager, ISmartContractRunnerContainer smartContractRunnerContainer,
+            ISmartContractService smartContractService)
         {
             Logger = NullLogger<MockSetup>.Instance;
-            _stateManager = stateManager;
+            _stateManager = stateProviderFactory.CreateStateManager();
             ActorEnvironment = actorEnvironment;
             if (!ActorEnvironment.Initialized)
             {
                 ActorEnvironment.InitActorSystem();
             }
 
-            _transactionManager = transactionManager;
             _chainCreationService = chainCreationService;
-            _chainService = chainService;
             ChainContextService = chainContextService;
-            _functionMetadataService = functionMetadataService;
-            _smartContractRunnerContainer = smartContractRunnerContainer;
             SmartContractManager = smartContractManager;
             Task.Factory.StartNew(async () => { await Init(); }).Unwrap().Wait();
-            SmartContractService =
-                new SmartContractService(SmartContractManager, _smartContractRunnerContainer, _stateManager,
-                    functionMetadataService, _chainService);
+            SmartContractService = smartContractService;
             Task.Factory.StartNew(async () => { await DeploySampleContracts(); }).Unwrap().Wait();
             ServicePack = new ServicePack()
             {

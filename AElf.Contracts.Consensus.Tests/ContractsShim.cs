@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Consensus;
@@ -27,7 +28,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private static Address Sender => Address.Zero;
 
-        private static ECKeyPair SenderKeyPair => new KeyPairGenerator().Generate();
+        private static ECKeyPair SenderKeyPair => CryptoHelpers.GenerateKeyPair();
 
         public Address ConsensusContractAddress { get; }
         private Address TokenContractAddress { get; }
@@ -520,9 +521,8 @@ namespace AElf.Contracts.Consensus.Tests
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var signer = new ECSigner();
-            var signature = signer.Sign(callerKeyPair, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature.SigBytes));
+            var signature = CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
 
             ExecuteTransaction(tx);
         }

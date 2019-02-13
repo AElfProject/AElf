@@ -5,6 +5,7 @@ using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -26,33 +27,35 @@ namespace AElf.Execution
             
             
             //TODO! move into a new project, remove if statement
-            if (NodeConfig.Instance.ExecutorType == "akka")
+            services.AddTransient<ServicePack>();
+            services.AddTransient<IActorEnvironment,ActorEnvironment>();
+            services.AddTransient<IGrouper,Grouper>();
+            services.AddTransient<IResourceUsageDetectionService,ResourceUsageDetectionService>();
+            services.AddTransient<ParallelTransactionExecutingService>();
+            services.AddTransient<NoFeeSimpleExecutingService>();
+            services.AddTransient<SimpleExecutingService>();
+            services.AddTransient<IExecutingService>(provider =>
             {
-                
-                
-                services.AddTransient<IExecutingService,ParallelTransactionExecutingService>();
-                services.AddTransient<ServicePack>();
-                services.AddTransient<IActorEnvironment,ActorEnvironment>();
-                services.AddTransient<IGrouper,Grouper>();
-                services.AddTransient<IResourceUsageDetectionService,ResourceUsageDetectionService>();
+                var executorType = provider.GetService<IOptionsSnapshot<ExecutionOptions>>().Value.ExecutorType;
+                if (executorType == "akka")
+                {
+                    return provider.GetService<ParallelTransactionExecutingService>();
+                }
 
-            }
-            else if (NodeConfig.Instance.ExecutorType == "nofee")
-            {
-                services.AddTransient<IExecutingService, NoFeeSimpleExecutingService>();
-            }
-            else
-            {
-                // services were auto registered.
-                services.AddTransient<IExecutingService,SimpleExecutingService>();
-            }
-            
+                if (executorType == "nofee")
+                {
+                    return provider.GetService<NoFeeSimpleExecutingService>();
+                }
+
+                return provider.GetService<SimpleExecutingService>();
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             //TODO! remove if statement from config
-            if (NodeConfig.Instance.ExecutorType == "akka")
+            var executorType = context.ServiceProvider.GetService<IOptionsSnapshot<ExecutionOptions>>().Value.ExecutorType;
+            if (executorType == "akka")
             {
                 //TODO! change to userAkka():
 
