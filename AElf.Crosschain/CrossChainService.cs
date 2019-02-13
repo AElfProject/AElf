@@ -17,7 +17,7 @@ namespace AElf.Crosschain
 
         private readonly NewSideChainHandler _newSideChainHandler;
 
-        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientService clientService, IEventBus eventBus)
+        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientService clientService)
         {
             _crossChainDataProvider = crossChainDataProvider;
             _newSideChainHandler += clientService.CreateClient;

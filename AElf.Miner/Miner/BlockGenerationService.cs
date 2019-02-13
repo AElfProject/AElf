@@ -13,11 +13,11 @@ namespace AElf.Miner.Miner
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IBlockChain _blockChain;
-        private readonly IBlockExtraDataGenerationService _blockExtraDataGenerationService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
         private int ChainId { get; } = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-        public BlockGenerationService(IChainService chainService, IBlockExtraDataGenerationService blockExtraDataGenerationService)
+        public BlockGenerationService(IChainService chainService, IBlockExtraDataService blockExtraDataService)
         {
-            _blockExtraDataGenerationService = blockExtraDataGenerationService;
+            _blockExtraDataService = blockExtraDataService;
             _blockChain = chainService.GetBlockChain(ChainId);
         }
 
@@ -40,8 +40,8 @@ namespace AElf.Miner.Miner
                 }
             };
             
-            // todo: get block extra data with _blockExtraDataGenerationService including consensus data, cross chain data etc.. 
-            await _blockExtraDataGenerationService.FillBlockExtraData(block);
+            // todo: get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
+            await _blockExtraDataService.FillBlockExtraData(block);
 
             // calculate and set tx merkle tree root 
             block.Complete(currentBlockTime, results);

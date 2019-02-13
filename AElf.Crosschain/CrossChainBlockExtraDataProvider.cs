@@ -42,5 +42,10 @@ namespace AElf.Crosschain
                 Time = Timestamp.FromDateTime(DateTime.UtcNow)
             });
         }
+
+        public Task ValidateExtraData(Block block)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
