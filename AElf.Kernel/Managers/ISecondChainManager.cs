@@ -33,6 +33,8 @@ namespace AElf.Kernel.Managers.Another
             ChainBlockLink chainBlockLink);
 
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
+
+        Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -210,6 +212,11 @@ namespace AElf.Kernel.Managers.Another
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
                 
             }
+        }
+
+        public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash)
+        {
+            throw new NotImplementedException();
         }
     }
 }

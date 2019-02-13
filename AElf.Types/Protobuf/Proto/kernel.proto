@@ -326,7 +326,7 @@ message ChainBlockLink{
     Hash BlockHash = 1;
     int64 Height = 2;
     Hash PreviousBlockHash = 3;
-    //bool IsExecuted = 4;
+    bool IsExecuted = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
     bool IsLightBlock = 7;//no block body

@@ -6,6 +6,7 @@ using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
 
 namespace AElf.Kernel.Services
 {
+    /*
     public interface ILightBlockchainService
     {
         Task<bool> HasBlockHeaderLinkedAsync(int chainId, Hash blockHash);
@@ -63,5 +64,41 @@ namespace AElf.Kernel.Services
             var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
             return await _blockManager.GetBlockHeaderAsync(index.BlockHash);
         }
+    }*/
+    
+    /*
+    public interface IFullBlockchainService: ILightBlockchainService
+    {
+        Task<bool> HasBlockAsync(int chainId, Hash blockId);
+        Task AddBlocksAsync(int chainId, IEnumerable<Block> blocks);
+        Task<Block> GetBlockByHashAsync(int chainId, Hash blockId, bool withTransaction = false);
+        Task<Block> GetBlockByHeightAsync(int chainId, long height, bool withTransaction = false);
     }
+
+    public class BlockchainService : LightBlockchainService, IFullBlockchainService
+    {
+        public BlockchainService(IBlockManager blockManager, IChainManager chainManager) : base(blockManager, chainManager)
+        {
+        }
+
+        public async Task<bool> HasBlockAsync(int chainId, Hash blockId)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task AddBlocksAsync(int chainId, IEnumerable<Block> blocks)
+        {
+            
+        }
+
+        public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId, bool withTransaction = false)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<Block> GetBlockByHeightAsync(int chainId, long height, bool withTransaction = false)
+        {
+            throw new System.NotImplementedException();
+        }
+    }*/
 }

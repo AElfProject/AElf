@@ -9,4 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.13.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services" />
+  </ItemGroup>
 </Project>
