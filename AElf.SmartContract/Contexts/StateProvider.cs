@@ -19,11 +19,11 @@ namespace AElf.SmartContract.Contexts
 
         public async Task<byte[]> GetAsync(StatePath path)
         {
-            // TODO: Standardize: 1. BlockHeight (ulong/long) 2. StatePath (string)
+            // TODO: StatePath (string)
             var byteString = await BlockchainStateManager.GetStateAsync(
                 string.Join("/",
                     GetKeyEnumerable(ContractContext.ContractAddress, path.Path.Select(x => x.ToStringUtf8()))),
-                Convert.ToInt64(TransactionContext.BlockHeight),
+                TransactionContext.BlockHeight,
                 TransactionContext.PreviousBlockHash
             );
             byteString = byteString ?? ByteString.Empty;

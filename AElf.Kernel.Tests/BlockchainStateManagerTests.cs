@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests
         class TestPair
         {
             public Hash BlockHash;
-            public long BlockHeight;
+            public ulong BlockHeight;
             public string Key;
             public ByteString Value;
         }

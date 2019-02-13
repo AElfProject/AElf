@@ -23,7 +23,7 @@ namespace AElf.Kernel.Managers
     public interface IBlockchainStateManager
     {
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
-        Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash);
+        Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         // TODO: Standardize chainid to int
         Task MergeBlockStateAsync(int chainId, Hash blockStateHash);
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Managers
         /// <param name="blockHash">should already in store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        public async Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash)
         {
             ByteString value = null;
 
