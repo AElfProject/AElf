@@ -27,7 +27,7 @@ namespace AElf.Kernel.Managers.Another
         Task<Chain> CreateAsync(int chainId, Hash genesisBlock);
         Task<Chain> GetAsync(int chainId);
         Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, Hash blockHash);
-        Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, long blockHeight);
+        Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight);
 
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
             ChainBlockLink chainBlockLink);
@@ -101,13 +101,13 @@ namespace AElf.Kernel.Managers.Another
             await _chainBlockLinks.SetAsync(chainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
         }
 
-        private async Task SetChainBlockIndexAsync(int chainId, long blockHeight, Hash blockHash)
+        private async Task SetChainBlockIndexAsync(int chainId, ulong blockHeight, Hash blockHash)
         {
             await _chainBlockIndexes.SetAsync(chainId.ToStorageKey() + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
-        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, long blockHeight)
+        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight)
         {
             return await _chainBlockIndexes.GetAsync(chainId.ToStorageKey() + blockHeight.ToStorageKey());
         }

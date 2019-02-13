@@ -9,6 +9,11 @@ namespace AElf.Kernel.Storages
         {
             return BitConverter.GetBytes(n).ToHex();
         }
+        
+        public static string ToStorageKey(this ulong n)
+        {
+            return BitConverter.GetBytes(n).ToHex();
+        }
         public static string ToStorageKey(this int n)
         {
             return BitConverter.GetBytes(n).ToHex();
