@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Method = AElf.Kernel.ABI.Method;
+using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp
 {
     public class MethodsCache
     {
+        private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
         private readonly object _contractInstance;
 
         private readonly Dictionary<Method, Func<byte[], Task<RetVal>>> _asyncHandlersCache =
@@ -19,18 +22,44 @@ namespace AElf.Runtime.CSharp
         private readonly Dictionary<Method, Func<byte[], Task<RetVal>>> _handlersCache =
             new Dictionary<Method, Func<byte[], Task<RetVal>>>();
 
-        public MethodsCache(object contractInstance)
+        private readonly Dictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
+
+        public MethodsCache(Module abi, object contractInstance)
         {
+            foreach (var m in abi.Methods)
+            {
+                _methodMap.Add(m.Name, m);
+            }
+
             _contractInstance = contractInstance;
+            foreach (var m in contractInstance.GetType().GetRuntimeMethods().Where(m => m.IsPublic && !m.IsStatic))
+            {;
+                _methodInfos[m.Name] = m;
+            }
         }
+
+        public Method GetMethodAbi(string methodName)
+        {
+            if (!_methodMap.TryGetValue(methodName, out var methodAbi))
+            {
+                throw new InvalidMethodNameException($"Method name {methodName} not found.");
+            }
+
+            return methodAbi;
+        }
+//        if (!_methodMap.TryGetValue(methodName, out var methodAbi))
+//        {
+//            throw new InvalidMethodNameException($"Method name {methodName} not found.");
+//        }
 
         /// <summary>
         /// Gets a handler from a method abi.
         /// </summary>
-        /// <param name="methodAbi"></param>
+        /// <param name="methodName"></param>
         /// <returns></returns>
-        public Func<byte[], Task<RetVal>> GetHandler(Method methodAbi)
+        public Func<byte[], Task<RetVal>> GetHandler(string methodName)
         {
+            var methodAbi = GetMethodAbi(methodName);
             return methodAbi.IsAsync ? GetAsyncHandler(methodAbi) : GetSyncHandler(methodAbi);
         }
 
@@ -46,7 +75,7 @@ namespace AElf.Runtime.CSharp
                 return handler;
             }
 
-            var methodInfo = _contractInstance.GetType().GetMethod(methodAbi.Name);
+            var methodInfo = _methodInfos[methodAbi.Name];
 
             InvokingHelpers.RetTypes.TryGetValue(methodAbi.ReturnType, out var retType);
 
@@ -99,7 +128,7 @@ namespace AElf.Runtime.CSharp
 
             InvokingHelpers.RetTypes.TryGetValue(methodAbi.ReturnType, out var retType);
 
-            var methodInfo = _contractInstance.GetType().GetMethod(methodAbi.Name);
+            var methodInfo = _methodInfos[methodAbi.Name];
 
             if (!InvokingHelpers.ApplyHanders.TryGetValue(methodAbi.ReturnType, out var applyHandler))
             {
