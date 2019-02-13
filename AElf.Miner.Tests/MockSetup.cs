@@ -124,20 +124,20 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, GrpcClientManager grpcClientManager = null)
+        internal IMiner GetMiner(IMinerConfig config, ITxHub hub, GrpcClientService grpcClientService = null)
         {
             var miner = new AElf.Miner.Miner.Miner(config, hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager, null,
+                _transactionResultManager, grpcClientService, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
                 _accountService);
 
             return miner;
         }
 
-        internal IBlockExecutor GetBlockExecutor(GrpcClientManager grpcClientManager = null)
+        internal IBlockExecutor GetBlockExecutor(GrpcClientService grpcClientService = null)
         {
             var blockExecutor = new BlockExecutor(_chainService, _concurrencyExecutingService,
-                _transactionResultManager, grpcClientManager, _binaryMerkleTreeManager,
+                _transactionResultManager, grpcClientService, _binaryMerkleTreeManager,
                 new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo), _stateManager,
                 _consensusDataProvider);
 
@@ -213,9 +213,9 @@ namespace AElf.Miner.Tests
             };
         }
 
-        private SideChainBlockInfo MockSideChainBlockInfo(ulong height, int? chainId = null)
+        private SideChainBlockData MockSideChainBlockInfo(ulong height, int? chainId = null)
         {
-            return new SideChainBlockInfo
+            return new SideChainBlockData
             {
                 Height = height,
                 ChainId = chainId ?? ChainHelpers.GetRandomChainId(),
@@ -264,9 +264,9 @@ namespace AElf.Miner.Tests
             return mock;
         }
 
-        public GrpcClientManager MinerClientManager()
+        public GrpcClientService MinerClientManager()
         {
-            return new GrpcClientManager(MockCrossChainInfoReader().Object);
+            return new GrpcClientService(MockCrossChainInfoReader().Object);
         }
 
         public ulong GetTimes = 0;

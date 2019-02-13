@@ -9,9 +9,9 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Crosschain.Grpc
+namespace AElf.Crosschain.Grpc.Server
 {
-    public class ParentChainBlockInfoRpcServer : ParentChainBlockInfoRpc.ParentChainBlockInfoRpcBase
+    public class ParentChainBlockInfoRpcServer : ParentChainRpc.ParentChainRpcBase
     {
         private readonly IChainService _chainService;
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
@@ -37,8 +37,8 @@ namespace AElf.Crosschain.Grpc
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task RecordDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
-            IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
+        public override async Task RequestParentChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
+            IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
 
@@ -51,7 +51,7 @@ namespace AElf.Crosschain.Grpc
                     var sideChainId = requestInfo.ChainId;
                     if (requestedHeight > LibHeight)
                     {
-                        await responseStream.WriteAsync(new ResponseParentChainBlockInfo
+                        await responseStream.WriteAsync(new ResponseParentChainBlockData
                         {
                             Success = false
                         });
@@ -59,7 +59,7 @@ namespace AElf.Crosschain.Grpc
                     }
                     IBlock block = await BlockChain.GetBlockByHeightAsync(requestedHeight);
                     
-                    var res = new ResponseParentChainBlockInfo
+                    var res = new ResponseParentChainBlockData
                     { 
                         Success = block != null
                     };
@@ -67,7 +67,7 @@ namespace AElf.Crosschain.Grpc
                     if (block != null)
                     {
                         BlockHeader header = block.Header;
-                        res.BlockInfo = new ParentChainBlockInfo
+                        res.BlockData = new ParentChainBlockData
                         {
                             Root = new ParentChainBlockRootInfo
                             {
@@ -76,13 +76,13 @@ namespace AElf.Crosschain.Grpc
                                 ChainId = header.ChainId
                             }
                         };
-                        IndexedSideChainBlockInfoResult indexedSideChainBlockInfoResult = 
+                        IndexedSideChainBlockDataResult indexedSideChainBlockDataResult = 
                             await GetIndexedSideChainBlockInfoResult(requestedHeight);
                         
-                        if (indexedSideChainBlockInfoResult != null)
+                        if (indexedSideChainBlockDataResult != null)
                         {
                             var binaryMerkleTree = new BinaryMerkleTree();
-                            foreach (var blockInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
+                            foreach (var blockInfo in indexedSideChainBlockDataResult.SideChainBlockData)
                             {
                                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                             }
@@ -91,13 +91,13 @@ namespace AElf.Crosschain.Grpc
                             // This is to tell side chain the merkle path for one side chain block,
                             // which could be removed with subsequent improvement.
                             // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
-                            for (int i = 0; i < indexedSideChainBlockInfoResult.SideChainBlockInfos.Count; i++)
+                            for (int i = 0; i < indexedSideChainBlockDataResult.SideChainBlockData.Count; i++)
                             {
-                                var info = indexedSideChainBlockInfoResult.SideChainBlockInfos[i];
+                                var info = indexedSideChainBlockDataResult.SideChainBlockData[i];
                                 if (!info.ChainId.Equals(sideChainId))
                                     continue;
                                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                                res.BlockInfo.IndexedBlockInfo.Add(info.Height, merklePath);
+                                res.BlockData.IndexedMerklePath.Add(info.Height, merklePath);
                             }
                         }
                     }
@@ -111,7 +111,7 @@ namespace AElf.Crosschain.Grpc
             }
         }
 
-        private async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong requestedHeight)
+        private async Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(ulong requestedHeight)
         {
             // todo: extract side chain block info from blocks.
             throw new NotImplementedException();
@@ -131,7 +131,7 @@ namespace AElf.Crosschain.Grpc
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        /*public override async Task RecordServerStreaming(RequestBlockInfo request, IServerStreamWriter<ResponseParentChainBlockInfo> responseStream, ServerCallContext context)
+        /*public override async Task RecordServerStreaming(RequestCrossChainBlockData request, IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
 
@@ -145,14 +145,14 @@ namespace AElf.Crosschain.Grpc
                     BlockHeader header = block?.Header;
                     BlockBody body = block?.Body;
                 
-                    var res = new ResponseParentChainBlockInfo
+                    var res = new ResponseParentChainBlockData
                     {
                         Success = block != null
                     };
 
                     if (res.Success)
                     {
-                        res.BlockInfo = new ParentChainBlockInfo
+                        res.BlockData = new ParentChainBlockData
                         {
                             Root = new ParentChainBlockRootInfo
                             {
@@ -167,7 +167,7 @@ namespace AElf.Crosschain.Grpc
                         body?.IndexedInfo.Where(predicate: i => i.ChainId.Equals(sideChainId))
                             .Select((info, index) =>
                                 new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ToList().ForEach(kv => res.BlockInfo.IndexedBlockInfo.Add(kv.Key, kv.Value));
+                            .ToList().ForEach(kv => res.BlockData.IndexedMerklePath.Add(kv.Key, kv.Value));
                     }
                 
                     //Logger.LogLog(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");

@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.GRPC;
-using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
 using Akka.Util.Internal;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus;
 
 namespace AElf.Crosschain.Grpc
 {
@@ -19,13 +17,13 @@ namespace AElf.Crosschain.Grpc
 
         internal BlockInfoCache ParentChainBlockInfoCache {get; set;}
         private readonly IChainHeightStore _chainHeightStore;
-        public GrpcCrossChainDataProvider(IChainHeightStore chainHeightStore)
+        public GrpcCrossChainDataProvider(IChainHeightStore chainHeightStore, IEventBus eventBus)
         {
-            _chainHeightStore = chainHeightStore;
-            // Event listener for new side chain block info cache created.
+            _chainHeightStore = chainHeightStore;            
+            eventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
         }
 
-        public async Task<bool> GetSideChainBlockInfo(List<SideChainBlockInfo> sideChainBlockInfo)
+        public async Task<bool> GetSideChainBlockInfo(List<SideChainBlockData> sideChainBlockInfo)
         {
             if (sideChainBlockInfo.Count == 0)
             {
@@ -38,7 +36,7 @@ namespace AElf.Crosschain.Grpc
                     if (!_.Value.TryTake(targetHeight, out var blockInfo, true))
                         continue;
 
-                    sideChainBlockInfo.Append((SideChainBlockInfo) blockInfo);
+                    sideChainBlockInfo.Append((SideChainBlockData) blockInfo);
                 }
             }
             else
@@ -58,7 +56,7 @@ namespace AElf.Crosschain.Grpc
             return sideChainBlockInfo.Count > 0;
         }
 
-        public async Task<bool> GetParentChainBlockInfo(List<ParentChainBlockInfo> parentChainBlockInfo)
+        public async Task<bool> GetParentChainBlockInfo(List<ParentChainBlockData> parentChainBlockInfo)
         {
             var chainId = ParentChainBlockInfoCache?.ChainId ?? 0;
             if (chainId == 0)
@@ -87,7 +85,7 @@ namespace AElf.Crosschain.Grpc
                 }
                 
                 if(isMining)
-                    parentChainBlockInfo.Add((ParentChainBlockInfo) blockInfo);
+                    parentChainBlockInfo.Add((ParentChainBlockData) blockInfo);
                 else if (!parentChainBlockInfo[i].Equals(blockInfo))
                     // cached parent chain block info is not compatible with provided.
                     return false;
@@ -108,5 +106,10 @@ namespace AElf.Crosschain.Grpc
             return height?.Value + 1 ??  GlobalConfig.GenesisBlockHeight;
         }
 
+        private Task OnNewSideChainConnectionReceivedEvent(NewSideChainConnectionReceivedEvent @event)
+        {
+            AddNewSideChainCache(@event.ClientBase);
+            return Task.CompletedTask;
+        }
     }
 }

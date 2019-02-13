@@ -16,7 +16,7 @@ using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcClientManager : IClientManager
+    public class GrpcClientService : IClientService
     {
         private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
             new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();

@@ -9,9 +9,9 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Crosschain.Grpc
+namespace AElf.Crosschain.Grpc.Server
 {
-    public class SideChainBlockInfoRpcServer : SideChainBlockInfoRpc.SideChainBlockInfoRpcBase
+    public class SideChainBlockInfoRpcServer : SideChainRpc.SideChainRpcBase
     {
         private readonly IChainService _chainService;
         public ILogger<SideChainBlockInfoRpcServer> Logger {get;set;}
@@ -38,8 +38,8 @@ namespace AElf.Crosschain.Grpc
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public override async Task IndexDuplexStreaming(IAsyncStreamReader<RequestBlockInfo> requestStream, 
-            IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
+        public override async Task RequestSideChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
+            IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
             Logger.LogDebug("Side Chain Server received IndexedInfo message.");
@@ -54,17 +54,17 @@ namespace AElf.Crosschain.Grpc
                     // Todo: Wait until 10 rounds for most peers to be ready.
                     if (requestedHeight > LibHeight || LibHeight < (ulong) (GlobalConfig.BlockNumberOfEachRound * 10))
                     {
-                        await responseStream.WriteAsync(new ResponseSideChainBlockInfo
+                        await responseStream.WriteAsync(new ResponseSideChainBlockData
                         {
                             Success = false
                         });
                         continue;
                     }
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
-                    var res = new ResponseSideChainBlockInfo
+                    var res = new ResponseSideChainBlockData
                     {
                         Success = blockHeader != null,
-                        BlockInfo = blockHeader == null ? null : new SideChainBlockInfo
+                        BlockData = blockHeader == null ? null : new SideChainBlockData
                         {
                             Height = requestedHeight,
                             BlockHeaderHash = blockHeader.GetHash(),
@@ -90,8 +90,8 @@ namespace AElf.Crosschain.Grpc
         /// <param name="responseStream"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        /*public override async Task IndexServerStreaming(RequestBlockInfo request, 
-            IServerStreamWriter<ResponseSideChainBlockInfo> responseStream, ServerCallContext context)
+        /*public override async Task IndexServerStreaming(RequestCrossChainBlockData request, 
+            IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             // TODO: verify the from address and the chain 
             Logger.LogDebug("Side Chain Server received IndexedInfo message.");
@@ -102,10 +102,10 @@ namespace AElf.Crosschain.Grpc
                 while (height <= await LightChain.GetCurrentBlockHeightAsync())
                 {
                     var blockHeader = await LightChain.GetHeaderByHeightAsync(height);
-                    var res = new ResponseSideChainBlockInfo
+                    var res = new ResponseSideChainBlockData
                     {
                         Success = blockHeader != null,
-                        BlockInfo = blockHeader == null ? null : new SideChainBlockInfo
+                        BlockData = blockHeader == null ? null : new SideChainBlockData
                         {
                             Height = height,
                             BlockHeaderHash = blockHeader.GetHash(),

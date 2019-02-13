@@ -18,8 +18,8 @@ public class HeaderInfoTest
         public ILogger<HeaderInfoTest> Logger {get;set;}
 
         private List<IBlockHeader> _headers = new List<IBlockHeader>();
-        private List<RequestBlockInfo> _requestIndexedInfoList = new List<RequestBlockInfo>();
-        private List<ResponseSideChainBlockInfo> _responseIndexedInfoMessages = new List<ResponseSideChainBlockInfo>();
+        private List<RequestCrossChainBlockData> _requestIndexedInfoList = new List<RequestCrossChainBlockData>();
+        private List<ResponseSideChainBlockData> _responseIndexedInfoMessages = new List<ResponseSideChainBlockData>();
 
         public HeaderInfoTest()
         {
@@ -51,10 +51,10 @@ public class HeaderInfoTest
             return mock;
         }
 
-        /*public Mock<IAsyncEnumerator<RequestBlockInfo>> MockEnumerator(int count)
+        /*public Mock<IAsyncEnumerator<RequestCrossChainBlockData>> MockEnumerator(int count)
         {
-            Mock<IAsyncEnumerator<RequestBlockInfo>> mock =
-                new Mock<IAsyncEnumerator<RequestBlockInfo>>();
+            Mock<IAsyncEnumerator<RequestCrossChainBlockData>> mock =
+                new Mock<IAsyncEnumerator<RequestCrossChainBlockData>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext()).Returns(() => Task.FromResult(i++ < count));
@@ -62,10 +62,10 @@ public class HeaderInfoTest
             return mock;
         }*/
 
-        public Mock<IAsyncStreamReader<RequestBlockInfo>> MockRequestStream(int count)
+        public Mock<IAsyncStreamReader<RequestCrossChainBlockData>> MockRequestStream(int count)
         {
-            Mock<IAsyncStreamReader<RequestBlockInfo>> mock =
-                new Mock<IAsyncStreamReader<RequestBlockInfo>>();
+            Mock<IAsyncStreamReader<RequestCrossChainBlockData>> mock =
+                new Mock<IAsyncStreamReader<RequestCrossChainBlockData>>();
             int i = 0;
             int j = 0;
             mock.Setup(rs => rs.MoveNext(It.IsAny<CancellationToken>())).Returns(() => Task.FromResult(i++ < count));
@@ -74,12 +74,12 @@ public class HeaderInfoTest
             return mock;
         }
 
-        public Mock<IServerStreamWriter<ResponseSideChainBlockInfo>> MockResponseStream()
+        public Mock<IServerStreamWriter<ResponseSideChainBlockData>> MockResponseStream()
         {
-            Mock<IServerStreamWriter<ResponseSideChainBlockInfo>> mock =
-                new Mock<IServerStreamWriter<ResponseSideChainBlockInfo>>();
-            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseSideChainBlockInfo>()))
-                .Returns<ResponseSideChainBlockInfo>(res =>
+            Mock<IServerStreamWriter<ResponseSideChainBlockData>> mock =
+                new Mock<IServerStreamWriter<ResponseSideChainBlockData>>();
+            mock.Setup(rs => rs.WriteAsync(It.IsAny<ResponseSideChainBlockData>()))
+                .Returns<ResponseSideChainBlockData>(res =>
                 {
                     _responseIndexedInfoMessages.Add(res);
                     return Task.CompletedTask;
@@ -98,17 +98,17 @@ public class HeaderInfoTest
                 MockBlockHeader().Object
             };
             
-            _requestIndexedInfoList = new List<RequestBlockInfo>
+            _requestIndexedInfoList = new List<RequestCrossChainBlockData>
             {
-                new RequestBlockInfo
+                new RequestCrossChainBlockData
                 {
                     NextHeight = 0
                 },
-                new RequestBlockInfo
+                new RequestCrossChainBlockData
                 {
                     NextHeight = 1
                 },
-                new RequestBlockInfo
+                new RequestCrossChainBlockData
                 {
                     NextHeight = 2
                 }

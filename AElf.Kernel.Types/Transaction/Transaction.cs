@@ -32,8 +32,6 @@ namespace AElf.Kernel
             if (Time != null &&
                 !Time.Equals(Timestamp.FromDateTime(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))))
                 txData.Time = Time;
-            if (Type == TransactionType.MsigTransaction)
-                return txData.ToByteArray();
             txData.RefBlockNumber = RefBlockNumber;
             txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();

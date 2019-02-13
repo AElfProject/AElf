@@ -61,7 +61,7 @@ namespace AElf.Crosschain.Grpc.Server
         {
             var server = new global::Grpc.Core.Server
             {
-                Services = {SideChainBlockInfoRpc.BindService(_sideChainBlockInfoRpcServer)},
+                Services = {SideChainRpc.BindService(_sideChainBlockInfoRpcServer)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
@@ -80,7 +80,7 @@ namespace AElf.Crosschain.Grpc.Server
         {
             var server = new global::Grpc.Core.Server
             {
-                Services = {ParentChainBlockInfoRpc.BindService(_parentChainBlockInfoRpcServer)},
+                Services = {ParentChainRpc.BindService(_parentChainBlockInfoRpcServer)},
                 Ports =
                 {
                     new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 

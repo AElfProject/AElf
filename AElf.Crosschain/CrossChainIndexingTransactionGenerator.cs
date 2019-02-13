@@ -51,8 +51,8 @@ namespace AElf.Crosschain
         private void GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber, 
             byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
         {
-            //var parentChainBlockInfo = await CollectParentChainBlockInfo();
-            //if (parentChainBlockInfo != null && parentChainBlockInfo.Length != 0)
+            //var parentChainBlockData = await CollectParentChainBlockInfo();
+            //if (parentChainBlockData != null && parentChainBlockData.Length != 0)
             generatedTransactions.Append(GenerateNotSignedTransaction(from,
                 TypeConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
         }

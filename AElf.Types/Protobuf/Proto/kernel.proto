@@ -159,6 +159,7 @@ message BlockHeaderList {
 
 message BlockExtraData{
     Hash SideChainTransactionsRoot = 1;
+    // consensus information
 }
 
 message BlockHeader {
@@ -179,8 +180,6 @@ message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
     repeated Transaction TransactionList = 3;
-    repeated SideChainBlockInfo SideChainBlockData = 4;
-    repeated ParentChainBlockInfo ParentChainBlockData = 5; 
 }
 
 message Block {

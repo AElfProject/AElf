@@ -40,7 +40,7 @@ namespace AElf.Crosschain.Grpc.Client
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        private Task ReadResponse(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call)
+        private Task ReadResponse(AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> call)
         {
             var responseReaderTask = Task.Run(async () =>
             {
@@ -48,7 +48,7 @@ namespace AElf.Crosschain.Grpc.Client
                 {
                     var response = call.ResponseStream.Current;
 
-                    // request failed or useless response
+                    // requestCrossChain failed or useless response
                     if (!response.Success)
                     {
                         _adjustedInterval = AdjustInterval();
@@ -72,29 +72,29 @@ namespace AElf.Crosschain.Grpc.Client
         }
 
         /// <summary>
-        /// Task to create request in loop.
+        /// Task to create requestCrossChain in loop.
         /// </summary>
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
+        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> call, 
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var request = new RequestBlockInfo
+                var request = new RequestCrossChainBlockData
                 {
                     ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
                     NextHeight = _grpcClientBase.TargetChainHeight
                 };
-                //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
+                //Logger.LogTrace($"New requestCrossChain for height {requestCrossChain.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
                 await Task.Delay(_adjustedInterval);
             }
         }
 
         /// <summary>
-        /// Start to request one by one and also response one bye one.
+        /// Start to requestCrossChain one by one and also response one bye one.
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -112,7 +112,7 @@ namespace AElf.Crosschain.Grpc.Client
                     // response reader task
                     var responseReaderTask = ReadResponse(call);
 
-                    // request in loop
+                    // requestCrossChain in loop
                     await RequestLoop(call, cancellationToken);
                     await responseReaderTask;
                 }
@@ -139,8 +139,8 @@ namespace AElf.Crosschain.Grpc.Client
             }
         }
 
-        protected abstract AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> Call(int milliSeconds = 0);
-        protected abstract AsyncServerStreamingCall<TResponse> Call(RequestBlockInfo requestBlockInfo);
+        protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> Call(int milliSeconds = 0);
+        protected abstract AsyncServerStreamingCall<TResponse> Call(RequestCrossChainBlockData requestCrossChainBlockData);
     }
 
     public interface IGrpcCrossChainClient
