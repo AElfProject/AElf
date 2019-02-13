@@ -37,14 +37,14 @@ namespace AElf.Kernel
             var rawBlock = new BlockHeader
             {
                 ChainId = ChainId,
-                Index = Index,
+                Height = Height,
                 PreviousBlockHash = PreviousBlockHash?.Clone(),
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
                 MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
                 Bloom = Bloom,
                 BlockExtraData = BlockExtraData?.Clone()
             };
-            if (Index > ChainConsts.GenesisBlockHeight)
+            if (Height > ChainConsts.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();

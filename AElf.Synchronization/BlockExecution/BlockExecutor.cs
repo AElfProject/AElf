@@ -106,7 +106,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (result.IsFailed())
                 {
                     Logger.LogWarning(
-                        $"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                        $"Collect transaction from block failed: {result}, block height: {block.Header.Height}, " +
                         $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
@@ -202,7 +202,7 @@ namespace AElf.Synchronization.BlockExecution
                         var txRes = new TransactionResult()
                         {
                             TransactionId = trace.TransactionId,
-                            Status = Status.Mined,
+                            Status = TransactionResultStatus.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                             StateHash = trace.GetSummarizedStateHash(),
                             Index = index++
@@ -224,7 +224,7 @@ namespace AElf.Synchronization.BlockExecution
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                            Status = Status.Failed,
+                            Status = TransactionResultStatus.Failed,
                             StateHash = Hash.Default,
                             Index = index++
                         };
@@ -235,7 +235,7 @@ namespace AElf.Synchronization.BlockExecution
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
-                            Status = Status.Failed,
+                            Status = TransactionResultStatus.Failed,
                             StateHash = trace.GetSummarizedStateHash(),
                             Index = index++
                         };
@@ -389,11 +389,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="block"></param>
         private async Task InsertTxs(List<TransactionResult> txResults, IBlock block)
         {
-            var bn = block.Header.Index;
+            var bn = block.Header.Height;
             var bh = block.Header.GetHash();
 
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
-                block.Header.ChainId, block.Header.Index);
+                block.Header.ChainId, block.Header.Height);
             txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
@@ -412,7 +412,7 @@ namespace AElf.Synchronization.BlockExecution
                 return;
             var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
             await blockChain.RollbackStateForTransactions(
-                txRes.Where(x => x.Status == Status.Mined).Select(x => x.TransactionId),
+                txRes.Where(x => x.Status == TransactionResultStatus.Mined).Select(x => x.TransactionId),
                 block.Header.GetDisambiguationHash()
             );
         }

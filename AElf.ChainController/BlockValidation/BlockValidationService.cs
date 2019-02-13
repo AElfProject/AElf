@@ -36,7 +36,7 @@ namespace AElf.ChainController
                 return BlockValidationResult.DoingRollback;
             }
 
-            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Index, true,
+            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Height, true,
                 BlockValidationResult.Success));
 
             var resultCollection = new List<BlockValidationResult>();
@@ -50,7 +50,7 @@ namespace AElf.ChainController
 
             var finalResult = resultCollection.Max();
 
-            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Index, false,
+            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Height, false,
                 finalResult));
 
             return finalResult;

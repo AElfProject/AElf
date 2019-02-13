@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local
-        private Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
+        private Block CreateBlock(Hash preBlockHash, int chainId, ulong height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Tests
             block.FillTxsMerkleTreeRootInHeader();
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            block.Header.Index = index;
+            block.Header.Height = height;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.MerkleTreeRootOfWorldState = Hash.Generate();
             

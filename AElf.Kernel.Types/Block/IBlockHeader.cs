@@ -11,6 +11,6 @@ namespace AElf.Kernel
         int Version { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
         int ChainId { get; set; }
-        ulong Index { get; set; }
+        ulong Height { get; set; }
     }
 }

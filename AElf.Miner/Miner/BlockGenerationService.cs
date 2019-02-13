@@ -30,7 +30,7 @@ namespace AElf.Miner.Miner
             {
                 Header =
                 {
-                    Index = index,
+                    Height = index,
                     ChainId = ChainId,
                     Bloom = ByteString.CopyFrom(
                         Bloom.AndMultipleBloomBytes(

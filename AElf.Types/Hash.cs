@@ -31,13 +31,6 @@ namespace AElf.Common
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
 
-        public Hash OfType(HashType hashType)
-        {
-            var hash = Clone();
-            hash.HashType = hashType;
-            return hash;
-        }
-
         #region Hashes from various types
 
         /// <summary>

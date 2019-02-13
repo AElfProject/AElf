@@ -4,7 +4,6 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
-import "crosschain.proto";
 
 message Transaction {
     Address From = 1;
@@ -20,37 +19,38 @@ message Transaction {
     google.protobuf.Timestamp Time = 11;
 }
 
+enum TransactionStatus {
+    UnknownTransactionStatus = 0;
+    TransactionExecuting = 1;
+    TransactionExecuted = 2;
+}
+
+enum SignatureStatus {
+    UnknownSignatureStatus = 0;
+    SignatureValid = 1;
+    SignatureInvalid = -1;
+}
+
+enum RefBlockStatus {
+    UnknownRefBlockStatus = 0;
+    RefBlockValid = 1;
+    RefBlockInvalid = -1;
+    RefBlockExpired = -2;
+    FutureRefBlock = -3;
+}
+
 message TransactionReceipt {
-    enum TransactionStatus {
-        UnknownTransactionStatus = 0;
-        TransactionExecuting = 1;
-        TransactionExecuted = 2;
-    }
-    enum SignatureStatus {
-        UnknownSignatureStatus = 0;
-        SignatureValid = 1;
-        SignatureInvalid = -1;
-    }
-    enum RefBlockStatus {
-        UnknownRefBlockStatus = 0;
-        RefBlockValid = 1;
-        RefBlockInvalid = -1;
-        RefBlockExpired = -2;
-        FutureRefBlock = -3;
-    }
     Hash TransactionId = 1;
     Transaction Transaction = 2;
-    SignatureStatus SignatureSt = 3;
-    RefBlockStatus RefBlockSt = 4;
-    TransactionStatus Status = 5;
+    SignatureStatus SignatureStatus = 3;
+    RefBlockStatus RefBlockStatus = 4;
+    TransactionStatus TransactionStatus = 5;
     bool IsSystemTxn = 6;
     uint64 ExecutedBlockNumber = 7;
 }
 
 message StatePath {
     repeated bytes Path = 1;
-//    Address ContractAddress = 2;
-//    int32 ChainId = 3;
 }
 
 message StateValue {
@@ -74,7 +74,7 @@ enum TransactionType {
     ContractDeployTransaction=3;
 }
 
-enum Status {
+enum TransactionResultStatus {
     NotExisted = 0;
     Pending = 1;
     Failed = 2;
@@ -83,7 +83,7 @@ enum Status {
 
 message TransactionResult {
     Hash TransactionId = 1;
-    Status Status = 2;
+    TransactionResultStatus Status = 2;
     repeated LogEvent Logs = 3;
     bytes Bloom = 4;
     bytes RetVal = 5;
@@ -168,7 +168,7 @@ message BlockHeader {
     Hash MerkleTreeRootOfTransactions = 3;
     Hash MerkleTreeRootOfWorldState = 4;
     bytes Bloom = 5;
-    uint64 Index = 6;
+    uint64 Height = 6;
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
@@ -219,22 +219,6 @@ enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
     ReadWriteAccountSharing = 1;
     AccountSpecific = 2;
-}
-
-message Key {
-    bytes Value = 1;
-    string type = 2;
-    uint32 HashType = 3;
-}
-
-message DataPath {
-    int32 ChainId = 1;
-    uint64 BlockHeight = 2;
-    Address BlockProducerAddress = 3;
-    Address ContractAddress = 4;
-    Hash DataProviderHash = 5;
-    Hash KeyHash = 6;
-    StatePath StatePath = 7;
 }
 
 message BinaryMerkleTree{
@@ -295,6 +279,7 @@ message BlockStateSet{
     map<string, bytes> Changes = 4;
 }
 
+// TODO: Not used, it should be removed
 message TransactionExecutingStateSet{
     int64 Version = 1;
     map<string, bytes> Writes = 2;
@@ -320,7 +305,6 @@ message ActionResult {
     string ErrorMessage = 2;
 }
 
-
 message ChainBlockLink{
     Hash BlockHash = 1;
     int64 Height = 2;
@@ -334,8 +318,7 @@ message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
     Hash BestChainHash = 3;
-    int64 BestChainHeight = 4;
-    
+    int64 BestChainHeight = 4;    
     map<string, int64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
     Hash LastIrreversibleBlockHash = 8;
