@@ -31,13 +31,6 @@ namespace AElf.Common
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
 
-        public Hash OfType(HashType hashType)
-        {
-            var hash = Clone();
-            hash.HashType = hashType;
-            return hash;
-        }
-
         #region Hashes from various types
 
         /// <summary>
@@ -266,14 +259,6 @@ namespace AElf.Common
         #endregion Load and dump
         
         //TODO: should remove, it's temp solved long to Hash
-        public static implicit operator int(Hash d)
-        {
-            var bytes = new byte[4];
-            var hashArray = d.DumpByteArray();
-            var length = Math.Min(hashArray.Length, 4);
-            Array.Copy(hashArray,0,bytes,4-length,length);
-            return BitConverter.ToInt32(bytes,0);
-        }
         //  User-defined conversion from double to Digit
         public static implicit operator Hash(int d)
         {

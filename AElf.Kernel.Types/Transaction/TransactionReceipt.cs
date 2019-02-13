@@ -10,9 +10,9 @@ namespace AElf.Kernel
             Transaction = transaction;
         }
 
-        public bool IsExecutable => SignatureSt == Types.SignatureStatus.SignatureValid &&
-                                  RefBlockSt == Types.RefBlockStatus.RefBlockValid &&
-                                  Status == Types.TransactionStatus.UnknownTransactionStatus;
+        public bool IsExecutable => SignatureStatus == SignatureStatus.SignatureValid &&
+                                  RefBlockStatus == RefBlockStatus.RefBlockValid &&
+                                  TransactionStatus == TransactionStatus.UnknownTransactionStatus;
 
         public bool ToBeBroadCasted { get; set; } = true;
     }

@@ -41,8 +41,8 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
         public IActorRef Worker2 { get; }
         public IActorRef Requestor { get; }
 
-        public int ChainId1 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03});
-        public int ChainId2 { get; } = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x04});
+        public int ChainId1 { get; } = ChainHelpers.GetChainId(101);
+        public int ChainId2 { get; } = ChainHelpers.GetChainId(102);
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 

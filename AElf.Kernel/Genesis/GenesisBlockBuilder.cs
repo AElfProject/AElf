@@ -15,7 +15,7 @@ namespace AElf.Kernel
             {
                 Header = new BlockHeader
                 {
-                    Index = GlobalConfig.GenesisBlockHeight,
+                    Height = GlobalConfig.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),

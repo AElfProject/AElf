@@ -220,7 +220,7 @@ namespace AElf.Network.Peers
         public void StopBlockTimer(Block block)
         {
             byte[] blockHash = block.GetHashBytes();
-            int blockHeight = (int) block.Header.Index;
+            int blockHeight = (int) block.Header.Height;
 
             Logger.LogInformation($"[{this}] Receiving block {block.BlockHashToHex} from {this} at height {blockHeight}, " +
                          $"with {block.Body.Transactions.Count} txns. (TransactionListCount = {block.Body.TransactionList.Count})");

@@ -189,8 +189,8 @@ namespace AElf.Miner.Tests
         private Mock<IChainService> MockChainService()
         {
             Mock<IChainService> mock = new Mock<IChainService>();
-            mock.Setup(cs => cs.GetLightChain(It.IsAny<Hash>())).Returns(MockLightChain().Object);
-            mock.Setup(cs => cs.GetBlockChain(It.IsAny<Hash>())).Returns(MockBlockChain().Object);
+            mock.Setup(cs => cs.GetLightChain(It.IsAny<int>())).Returns(MockLightChain().Object);
+            mock.Setup(cs => cs.GetBlockChain(It.IsAny<int>())).Returns(MockBlockChain().Object);
             return mock;
         }
 
@@ -251,12 +251,12 @@ namespace AElf.Miner.Tests
         public Mock<IChainManager> MockChainManager()
         {
             var mock = new Mock<IChainManager>();
-            mock.Setup(cm => cm.GetCurrentBlockHeightAsync(It.IsAny<Hash>())).Returns(() =>
+            mock.Setup(cm => cm.GetCurrentBlockHeightAsync(It.IsAny<int>())).Returns(() =>
             {
                 var k = _i;
                 return Task.FromResult(k);
             });
-            mock.Setup(cm => cm.UpdateCurrentBlockHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mock.Setup(cm => cm.UpdateCurrentBlockHeightAsync(It.IsAny<int>(), It.IsAny<ulong>()))
                 .Returns<Hash, ulong>((h, u) =>
                 {
                     _i = u;
@@ -283,7 +283,7 @@ namespace AElf.Miner.Tests
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
                 return Task.FromResult(binaryMerkleTree);
             });*/
-            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>()))
+            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<int>()))
                 .Returns<Hash>(chainId => Task.FromResult(GetTimes));
             return mock;
         }
@@ -295,7 +295,7 @@ namespace AElf.Miner.Tests
             var keyPair = certificateStore.WriteKeyAndCertificate(name, "127.0.0.1");
         }
 
-        public Hash MockSideChainServer(int port, string address, string dir)
+        public int MockSideChainServer(int port, string address, string dir)
         {
             _sideChainHeaders = new List<IBlockHeader>
             {
@@ -316,7 +316,7 @@ namespace AElf.Miner.Tests
             return sideChainId;
         }
 
-        public Hash MockParentChainServer(int port, string address, string dir, int? chainId = 0)
+        public int MockParentChainServer(int port, string address, string dir, int? chainId = 0)
         {
             chainId = chainId ?? ChainHelpers.GetRandomChainId();
 
@@ -340,7 +340,7 @@ namespace AElf.Miner.Tests
             GrpcLocalConfig.Instance.ParentChainServer = true;
             ChainConfig.Instance.ChainId = chainId.Value.DumpBase58();
 
-            return chainId;
+            return chainId.Value;
         }
 
         private Mock<IBlockValidationService> MockBlockValidationService()

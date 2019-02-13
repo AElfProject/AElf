@@ -108,12 +108,12 @@ namespace AElf.Synchronization.BlockSynchronization
                     return;
                 }
 
-                var headers = inHeaders.Headers.OrderByDescending(h => h.Index).ToList();
+                var headers = inHeaders.Headers.OrderByDescending(h => h.Height).ToList();
 
                 foreach (var blockHeader in headers)
                 {
                     // Get previous block from the chain
-                    var correspondingBlockHeader = await _blockChain.GetBlockByHeightAsync(blockHeader.Index - 1);
+                    var correspondingBlockHeader = await _blockChain.GetBlockByHeightAsync(blockHeader.Height - 1);
 
                     // If the hash of this previous block corresponds to "previous block hash" of the current header
                     // the link has been found
@@ -278,12 +278,12 @@ namespace AElf.Synchronization.BlockSynchronization
                     Logger.LogDebug($"Info log cache count is high {_blockCache.Count}.");
 
                 // execute the block with the lowest index
-                next = _blockCache.OrderBy(b => b.Index).FirstOrDefault();
+                next = _blockCache.OrderBy(b => b.Height).FirstOrDefault();
 
                 if (next == null)
                     return;
 
-                if (next.Index > HeadBlock.Index + 1)
+                if (next.Height > HeadBlock.Index + 1)
                 {
                     Logger.LogWarning($"Future block {next}, current height {HeadBlock.Index}, don't handle it.");
                     return;
@@ -331,7 +331,7 @@ namespace AElf.Synchronization.BlockSynchronization
                 
                 // todo check existence in database
             
-                if (block.Index > HeadBlock.Index + 1)
+                if (block.Height > HeadBlock.Index + 1)
                 {
                     Logger.LogWarning($"Future block {block}, current height {HeadBlock.Index} ");
                     MessageHub.Instance.Publish(StateEvent.InvalidBlock); // get back to Catching
@@ -570,7 +570,7 @@ namespace AElf.Synchronization.BlockSynchronization
             if (chainContext.BlockHash != Hash.Genesis && chainContext.BlockHash != null)
             {
                 chainContext.BlockHeight =
-                    ((BlockHeader) await _blockChain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+                    ((BlockHeader) await _blockChain.GetHeaderByHashAsync(chainContext.BlockHash)).Height;
             }
 
             return chainContext;

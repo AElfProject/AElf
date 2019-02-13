@@ -160,7 +160,7 @@ namespace AElf.Miner.Miner
 
                 // generate block
                 var block = await GenerateBlock(results, sideChainTransactionsRoot, currentBlockTime);
-                Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Index} with {block.Body.TransactionsCount} txs.");
+                Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Height} with {block.Body.TransactionsCount} txs.");
 
                 // validate block before appending
                 var blockValidationResult = await _blockValidationService.ValidateBlockAsync(block);
@@ -173,7 +173,7 @@ namespace AElf.Miner.Miner
                 var blockStateSet = new BlockStateSet()
                 {
                     BlockHash = block.GetHash(),
-                    BlockHeight = block.Header.Index,
+                    BlockHeight = block.Header.Height,
                     PreviousHash = block.Header.PreviousBlockHash
                 };
                 FillBlockStateSet(blockStateSet, traces);
@@ -192,7 +192,7 @@ namespace AElf.Miner.Miner
                 
                 stopwatch.Stop();
                 
-                Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Index} " +
+                Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
                               $"with {block.Body.TransactionsCount} txs, duration {stopwatch.ElapsedMilliseconds} ms.");
 
                 return block;
@@ -360,7 +360,7 @@ namespace AElf.Miner.Miner
                             var txRes = new TransactionResult()
                             {
                                 TransactionId = trace.TransactionId,
-                                Status = Status.Mined,
+                                Status = TransactionResultStatus.Mined,
                                 RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                                 StateHash = trace.GetSummarizedStateHash(),
                                 Index = index++,
@@ -383,7 +383,7 @@ namespace AElf.Miner.Miner
                             {
                                 TransactionId = trace.TransactionId,
                                 RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                                Status = Status.Failed,
+                                Status = TransactionResultStatus.Failed,
                                 StateHash = Hash.Default,
                                 Index = index++
                             };
@@ -394,7 +394,7 @@ namespace AElf.Miner.Miner
                             {
                                 TransactionId = trace.TransactionId,
                                 RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
-                                Status = Status.Failed,
+                                Status = TransactionResultStatus.Failed,
                                 StateHash = trace.GetSummarizedStateHash(),
                                 Index = index++
                             };
@@ -438,7 +438,7 @@ namespace AElf.Miner.Miner
         /// <param name="block"></param>
         private void UpdateStorage(HashSet<TransactionResult> txResults, IBlock block)
         {
-            var bn = block.Header.Index;
+            var bn = block.Header.Height;
             var bh = block.Header.GetHash();
             txResults.AsParallel().ToList().ForEach(async r =>
             {
@@ -448,7 +448,7 @@ namespace AElf.Miner.Miner
             });
             // update merkle tree
             _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
-                block.Header.Index);
+                block.Header.Height);
         }
 
         /// <summary>
