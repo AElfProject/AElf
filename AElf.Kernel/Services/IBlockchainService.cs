@@ -6,6 +6,7 @@ using AElf.Kernel.Events;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Managers.Another;
 using AElf.Kernel.Storages;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
 
@@ -57,7 +58,7 @@ namespace AElf.Kernel.Services
     {
     }
 
-    public class FullBlockchainService : IFullBlockchainService
+    public class FullBlockchainService : IFullBlockchainService, ITransientDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
