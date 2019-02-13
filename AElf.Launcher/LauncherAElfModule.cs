@@ -36,6 +36,7 @@ namespace AElf.Launcher
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule2),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
         typeof(MinerRpcAElfModule),

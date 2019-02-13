@@ -17,9 +17,11 @@ namespace AElf.Sdk.CSharp2.Tests
             var addresses = new[] {"a", "b", "c"}.Select(Address.FromString).ToList();
             var stateManager = new MockStateManager();
             var contract = new TokenContract();
+            contract.SetStateProvider(new MockStateProviderFactory(stateManager).CreateStateProvider());
             contract.SetSmartContractContext(new SmartContractContext()
             {
-                ContractAddress = addresses[0]
+                ContractAddress = addresses[0],
+                ChainService = new MockChainService()
             });
             contract.SetTransactionContext(new TransactionContext()
             {
@@ -30,7 +32,6 @@ namespace AElf.Sdk.CSharp2.Tests
                 }
             });
 
-            contract.SetStateProviderFactory(new MockStateProviderFactory(stateManager));
             contract.SetContractAddress(addresses[0]);
             contract.Initialize("ELF", "ELF Token", 1000000000, 0);
             Assert.Equal("ELF", contract.Symbol());
@@ -40,6 +41,8 @@ namespace AElf.Sdk.CSharp2.Tests
             Assert.Equal(1000000000UL, contract.BalanceOf(addresses[1]));
             contract.Transfer(addresses[2], 99);
             Assert.Equal(1000000000UL - 99UL, contract.BalanceOf(addresses[1]));
+            contract.SetMethodFee("Transfer", 1000);
+            Assert.Equal(1000UL, contract.GetMethodFee("Transfer"));
         }
     }
 }

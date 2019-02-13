@@ -18,7 +18,8 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
+        private readonly Module _abi;
+//        private readonly Dictionary<string, Method> _methodMap = new Dictionary<string, Method>();
         private MethodsCache _cache;
 
         private delegate void SetSmartContractContextHandler(ISmartContractContext contractContext);
@@ -35,10 +36,7 @@ namespace AElf.Runtime.CSharp
 
         public Executive(Module abiModule)
         {
-            foreach (var m in abiModule.Methods)
-            {
-                _methodMap.Add(m.Name, m);
-            }
+            _abi = abiModule;
         }
 
         public Hash ContractHash { get; set; }
@@ -93,7 +91,7 @@ namespace AElf.Runtime.CSharp
         internal Executive SetSmartContract(ISmartContract smartContract)
         {
             _smartContract = smartContract;
-            _cache = new MethodsCache(smartContract);
+            _cache = new MethodsCache(_abi, smartContract);
             return this;
         }
 
@@ -135,14 +133,11 @@ namespace AElf.Runtime.CSharp
 
             try
             {
-                if (!_methodMap.TryGetValue(methodName, out var methodAbi))
-                {
-                    throw new InvalidMethodNameException($"Method name {methodName} not found.");
-                }
+                var methodAbi = _cache.GetMethodAbi(methodName);
 
                 var tx = _currentTransactionContext.Transaction;
 
-                var handler = _cache.GetHandler(methodAbi);
+                var handler = _cache.GetHandler(methodName);
 
                 if (handler == null)
                 {
@@ -190,10 +185,7 @@ namespace AElf.Runtime.CSharp
 
         public ulong GetFee(string methodName)
         {
-            if (!_methodMap.TryGetValue(methodName, out var methodAbi))
-            {
-                throw new InvalidMethodNameException($"Method name {methodName} not found.");
-            }
+            var methodAbi = _cache.GetMethodAbi(methodName);
 
             return methodAbi.Fee;
         }
@@ -206,7 +198,7 @@ namespace AElf.Runtime.CSharp
             var parameterTypes = methodInfo.GetParameters().Select(y => y.ParameterType).ToArray();
             var parameters = ParamsPacker.Unpack(paramsBytes, parameterTypes);
             // get method in abi
-            var method = _methodMap[methodName];
+            var method = _cache.GetMethodAbi(methodName);
 
             // deserialize
             var values = method.DeserializeParams(parameters, parameterTypes);

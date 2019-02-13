@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -20,6 +21,22 @@ namespace AElf.Kernel
                 }
 
                 return o;
+            }
+        }
+
+        public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrite()
+        {
+            foreach (var kv in StateSet.Writes)
+            {
+                yield return kv;
+            }
+
+            foreach (var trace in InlineTraces)
+            {
+                foreach (var kv in trace.GetFlattenedWrite())
+                {
+                    yield return kv;
+                }
             }
         }
     }
