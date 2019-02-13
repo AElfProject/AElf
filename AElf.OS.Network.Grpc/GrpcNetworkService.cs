@@ -23,14 +23,14 @@ namespace AElf.OS.Network.Grpc
             _logger = NullLogger<GrpcNetworkServer>.Instance;
         }
 
-        public void AddPeer(string address)
+        public async Task AddPeerAsync(string address)
         {
-            _server.AddPeerAsync(address);
+            await _server.AddPeerAsync(address);
         }
 
-        public Task RemovePeer(string address)
+        public async Task<bool> RemovePeerAsync(string address)
         {
-            return Task.FromResult(_server.RemovePeerAsync(address));
+            return await _server.RemovePeerAsync(address);
         }
 
         public List<string> GetPeers()
