@@ -32,7 +32,7 @@ public class SideChainTest : SideChainContractTestBase
         {
             _contract = new SideChainContractShim(Mock, ContractHelpers.GetCrossChainContractAddress(Mock.ChainId1));
 //            var chainId = Hash.Generate();
-            var chainId = Hash.FromString("Chain1");
+            var chainId = ChainHelpers.GetChainId(123);
             var lockedAddress = Address.Generate();
             ulong lockedToken = 10000;
             // create new chain
@@ -157,7 +157,7 @@ public class SideChainTest : SideChainContractTestBase
             {
                 Height = pHeight,
                 BlockHeaderHash = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
+                ChainId = ChainHelpers.GetChainId(123),
                 TransactionMKRoot = root1
             };
             
@@ -179,7 +179,7 @@ public class SideChainTest : SideChainContractTestBase
             {
                 Height = pHeight,
                 BlockHeaderHash = Hash.Generate(),
-                ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 }),
+                ChainId = ChainHelpers.GetChainId(123),
                 TransactionMKRoot = root2
             };
             

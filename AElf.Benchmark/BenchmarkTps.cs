@@ -53,7 +53,7 @@ namespace AElf.Benchmark
             IChainContextService chainContextService, ISmartContractService smartContractService,
              IFunctionMetadataService functionMetadataService,BenchmarkOptions options, IExecutingService executingService, IMinersManager minersManager)
         {
-            ChainId = Hash.LoadByteArray(new byte[] { 0x01, 0x02, 0x03 });
+            ChainId = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
             _stateManager = stateManager;
             _chainCreationService = chainCreationService;
             _smartContractService = smartContractService;

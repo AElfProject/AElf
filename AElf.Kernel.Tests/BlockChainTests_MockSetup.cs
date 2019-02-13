@@ -34,7 +34,7 @@ namespace AElf.Kernel.Tests
             return (ulong) n;
         }
 
-        public int ChainId1 { get; } = Hash.FromString(GlobalConfig.DefaultChainId);
+        public int ChainId1 { get; } = GlobalConfig.DefaultChainId.ConvertBase58ToChainId();
         public ISmartContractManager SmartContractManager;
         public ISmartContractService SmartContractService;
 

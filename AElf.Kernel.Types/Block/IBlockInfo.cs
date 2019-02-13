@@ -5,7 +5,7 @@ namespace AElf.Kernel
     public interface IBlockInfo
     {
         ulong Height { get; }
-        Hash ChainId { get; }
+        int ChainId { get; }
     }
     
     public partial class SideChainBlockData : IBlockInfo
@@ -15,6 +15,6 @@ namespace AElf.Kernel
     public partial class ParentChainBlockData : IBlockInfo
     {
         public ulong Height => Root.Height;
-        public Hash ChainId => Root.ChainId;
+        public int ChainId => Root.ChainId;
     }
 }
