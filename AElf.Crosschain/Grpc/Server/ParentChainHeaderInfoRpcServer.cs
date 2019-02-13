@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
+using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
 using Easy.MessageHub;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain.Grpc.Server
 {
@@ -17,10 +19,14 @@ namespace AElf.Crosschain.Grpc.Server
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
         private IBlockChain BlockChain { get; set; }
         private ulong LibHeight { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public ParentChainBlockInfoRpcServer(IChainService chainService)
         {
             _chainService = chainService;
             Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public void Init(int chainId)
@@ -120,6 +126,15 @@ namespace AElf.Crosschain.Grpc.Server
         public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
         {
             // todo: publish event for indexing new side chain
+            LocalEventBus.PublishAsync(new NewSideChainConnectionReceivedEvent
+            {
+                ClientBase = new GrpcClientBase
+                {
+                    BlockInfoCache = new BlockInfoCache(request.ChainId),
+                    TargetIp = request.Ip,
+                    TargetPort = request.Port
+                }
+            });
             return Task.FromResult(new IndexingRequestResult{Result = true});
         }
 

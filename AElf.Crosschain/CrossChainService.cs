@@ -12,16 +12,10 @@ namespace AElf.Crosschain
     public class CrossChainService : ICrossChainService
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-
-        private delegate void NewSideChainHandler(IClientBase clientBase);
-
-        private readonly NewSideChainHandler _newSideChainHandler;
-
-        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IClientService clientService)
+        
+        public CrossChainService(ICrossChainDataProvider crossChainDataProvider)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _newSideChainHandler += clientService.CreateClient;
-            _newSideChainHandler += _crossChainDataProvider.AddNewSideChainCache;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockData()
@@ -47,6 +41,5 @@ namespace AElf.Crosschain
         {
             return await _crossChainDataProvider.GetParentChainBlockData(parentChainBlockData);
         }
-       
     }
 }

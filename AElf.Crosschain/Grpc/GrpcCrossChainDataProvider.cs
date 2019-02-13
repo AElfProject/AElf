@@ -7,6 +7,7 @@ using AElf.Kernel.Storages;
 using Akka.Util.Internal;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain.Grpc
 {
@@ -17,10 +18,17 @@ namespace AElf.Crosschain.Grpc
 
         internal BlockInfoCache ParentChainBlockInfoCache {get; set;}
         private readonly IChainHeightStore _chainHeightStore;
-        public GrpcCrossChainDataProvider(IChainHeightStore chainHeightStore, IEventBus eventBus)
+        private delegate void NewSideChainHandler(IClientBase clientBase);
+
+        private readonly NewSideChainHandler _newSideChainHandler;
+        public ILocalEventBus LocalEventBus { get; set; }
+        public GrpcCrossChainDataProvider(IChainHeightStore chainHeightStore, IClientService clientService)
         {
-            _chainHeightStore = chainHeightStore;            
-            eventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
+            _chainHeightStore = chainHeightStore;
+            LocalEventBus = NullLocalEventBus.Instance;
+            _newSideChainHandler += clientService.CreateClient;
+            _newSideChainHandler += AddNewSideChainCache;
+            LocalEventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
         }
 
         public async Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
@@ -108,7 +116,7 @@ namespace AElf.Crosschain.Grpc
 
         private Task OnNewSideChainConnectionReceivedEvent(NewSideChainConnectionReceivedEvent @event)
         {
-            AddNewSideChainCache(@event.ClientBase);
+            _newSideChainHandler(@event.ClientBase);
             return Task.CompletedTask;
         }
     }

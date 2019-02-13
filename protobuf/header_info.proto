@@ -21,7 +21,7 @@ message ResponseParentChainBlockData {
 
 message IndexingRequestMessage {
     uint32 Port = 1;
-    string Address = 2;
+    string Ip = 2;
     int32 ChainId = 3;
 }
 
