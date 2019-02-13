@@ -97,7 +97,7 @@ namespace AElf.Kernel
             Logger.LogTrace("Will rollback to " + height);
 
             var currentHash = await GetCurrentBlockHashAsync();
-            var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Index;
+            var currentHeight = ((BlockHeader) await GetHeaderByHashAsync(currentHash)).Height;
 
             if (currentHeight <= height)
             {
@@ -148,7 +148,7 @@ namespace AElf.Kernel
         {
             var txIds = block.Body.Transactions;
             var disambiguationHash =
-                HashHelpers.GetDisambiguationHash(block.Header.Index, Hash.FromRawBytes(block.Header.P.ToByteArray()));
+                HashHelpers.GetDisambiguationHash(block.Header.Height, Hash.FromRawBytes(block.Header.P.ToByteArray()));
             await RollbackStateForTransactions(txIds, disambiguationHash);
         }
 

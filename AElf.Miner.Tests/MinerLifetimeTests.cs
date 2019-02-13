@@ -67,17 +67,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 From = AddressHelpers.BuildAddress(keyPair.PublicKey),
                 To = contractAddressZero,
                 IncrementId = NewIncrementId(),
-                MethodName = "Print",
-                Params = ByteString.CopyFrom(new Parameters()
-                {
-                    Params = {
-                        new Param
-                        {
-                            StrVal = "AElf"
-                        }
-                    }
-                }.ToByteArray()),
-                
+                MethodName = "Print",                
                 Fee = TxPoolConfig.Default.FeeThreshold + 1
             };
             
@@ -93,14 +83,14 @@ public sealed class MinerLifetimeTests : MinerTestBase
             return txs;
         }
         
-        public Block GenerateBlock(int chainId, Hash previousHash, ulong index)
+        public Block GenerateBlock(int chainId, Hash previousHash, ulong height)
         {
             var block = new Block(previousHash)
             {
                 Header = new BlockHeader
                 {
                     ChainId = chainId,
-                    Index = index,
+                    Height = height,
                     PreviousBlockHash = previousHash,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     MerkleTreeRootOfWorldState = Hash.Default
@@ -200,7 +190,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var block = await miner.Mine();
             
             Assert.NotNull(block);
-            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Index);
+            Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Height);
         }
 
         [Fact(Skip = "ChainId changed")]
@@ -231,7 +221,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
 
             var blockchain = _mock.GetBlockChain(chain.Id); 
             var curHash = await blockchain.GetCurrentBlockHashAsync();
-            var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
+            var index = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Height;
             Assert.Equal(GlobalConfig.GenesisBlockHeight, index);
             Assert.Equal(chain.GenesisBlockHash.ToHex(), curHash.ToHex());
         }

@@ -49,7 +49,7 @@ namespace AElf.Synchronization.BlockSynchronization
             CurrentHead = new BlockState(currentDbBlock, null, true, _miners);
             _blocks.Add(CurrentHead);
             
-            if (currentDbBlock.Index == GlobalConfig.GenesisBlockHeight)
+            if (currentDbBlock.Height == GlobalConfig.GenesisBlockHeight)
                 CurrentLib = CurrentHead;
             
             return CurrentHead;

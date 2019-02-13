@@ -36,7 +36,7 @@ namespace AElf.Kernel
             }
 
             var header = (BlockHeader) await GetHeaderByHashAsync(hash);
-            return header.Index;
+            return header.Height;
         }
 
         public async Task<Hash> GetCurrentBlockHashAsync()
@@ -83,7 +83,7 @@ namespace AElf.Kernel
                 return false;
             }
 
-            var canonicalHash = await GetCanonicalHashAsync(header.Index);
+            var canonicalHash = await GetCanonicalHashAsync(header.Height);
             return canonicalHash == blockId;
         }
 
@@ -108,7 +108,7 @@ namespace AElf.Kernel
             #region genesis
 
             // TODO: more strict genesis
-            if (blockHeader.Index == GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Height == GlobalConfig.GenesisBlockHeight)
             {
                 var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
                 if (curHash.IsNull())
@@ -127,8 +127,8 @@ namespace AElf.Kernel
                 throw new InvalidOperationException($"Parent is unknown for {blockHeader}.");
             }
 
-            var expected = ((BlockHeader) prevHeader).Index + 1;
-            var actual = blockHeader.Index;
+            var expected = ((BlockHeader) prevHeader).Height + 1;
+            var actual = blockHeader.Height;
 
             if (actual != expected)
             {
@@ -144,13 +144,13 @@ namespace AElf.Kernel
             var tempNewHead = (BlockHeader) newHead;
             var oldBranch = new List<IBlockHeader>();
             var newBranch = new List<IBlockHeader>();
-            while (((BlockHeader) oldHead).Index > ((BlockHeader) newHead).Index)
+            while (((BlockHeader) oldHead).Height > ((BlockHeader) newHead).Height)
             {
                 oldBranch.Add(tempOldHead);
                 tempOldHead = (BlockHeader) await GetHeaderByHashAsync(tempOldHead.PreviousBlockHash);
             }
 
-            while (((BlockHeader) newHead).Index > ((BlockHeader) oldHead).Index)
+            while (((BlockHeader) newHead).Height > ((BlockHeader) oldHead).Height)
             {
                 newBranch.Add(tempNewHead);
                 if (tempNewHead == null)
@@ -181,9 +181,9 @@ namespace AElf.Kernel
         protected async Task MaybeSwitchBranch(IBlockHeader header)
         {
             var blockHeader = (BlockHeader) header;
-            if (blockHeader.Index <= GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Height <= GlobalConfig.GenesisBlockHeight)
             {
-                await _chainManager.SetCanonical(_chainId, blockHeader.Index, header.GetHash());
+                await _chainManager.SetCanonical(_chainId, blockHeader.Height, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
@@ -193,12 +193,12 @@ namespace AElf.Kernel
             if (currentHeader.GetHash().Equals(((BlockHeader) header).PreviousBlockHash) ||
                 ((BlockHeader) header).PreviousBlockHash.Equals(Hash.Genesis))
             {
-                await _chainManager.SetCanonical(_chainId, header.Index, header.GetHash());
+                await _chainManager.SetCanonical(_chainId, header.Height, header.GetHash());
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 return;
             }
 
-            if (((BlockHeader) header).Index > ((BlockHeader) currentHeader).Index)
+            if (((BlockHeader) header).Height > ((BlockHeader) currentHeader).Height)
             {
                 await _chainManager.UpdateCurrentBlockHashAsync(_chainId, header.GetHash());
                 var branches = await GetComparedBranchesAsync(currentHeader, header);
@@ -211,7 +211,7 @@ namespace AElf.Kernel
                             break;
                         }
 
-                        await _chainManager.SetCanonical(_chainId, newBranchHeader.Index, newBranchHeader.GetHash());
+                        await _chainManager.SetCanonical(_chainId, newBranchHeader.Height, newBranchHeader.GetHash());
                     }
                 }
             }

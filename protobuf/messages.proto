@@ -22,7 +22,7 @@ message PeerListData {
 }
 
 message ReqPeerListData {
-    int32 numPeers = 1;
+    int32 NumPeers = 1;
 }
 
 message BlockRequest {
@@ -31,8 +31,8 @@ message BlockRequest {
 }
 
 message BlockHeaderRequest {
-    int32 height = 1;
-    int32 count = 2;
+    int32 Height = 1;
+    int32 Count = 2;
 }
 
 message Announce {
@@ -57,4 +57,3 @@ message Pong {
     string Id = 1;
     google.protobuf.Timestamp Time = 2;
 }
-

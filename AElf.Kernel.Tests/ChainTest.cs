@@ -42,19 +42,12 @@ namespace AElf.Kernel.Tests
             var getNextHeight = new Func<Task<ulong>>(async () =>
             {
                 var curHash = await blockchain.GetCurrentBlockHashAsync();
-                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
-                return indx + 1;
+                var height = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Height;
+                return height + 1;
             });
             Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
             return chain;
         }
-
-//        public async Task ChainStoreTest(int chainId)
-//        {
-//            await _chainManager.AddChainAsync(chainId, Hash.Generate());
-//            Assert.NotNull(_chainManager.GetChainAsync(chainId).Result);
-//        }
-        
 
         [Fact]
         public async Task AppendBlockTest()
@@ -73,8 +66,8 @@ namespace AElf.Kernel.Tests
             var getNextHeight = new Func<Task<ulong>>(async () =>
             {
                 var curHash = await blockchain.GetCurrentBlockHashAsync();
-                var indx = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Index;
-                return indx + 1;
+                var height = ((BlockHeader) await blockchain.GetHeaderByHashAsync(curHash)).Height;
+                return height + 1;
             });
             Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 1);
 
@@ -83,10 +76,10 @@ namespace AElf.Kernel.Tests
             
             Assert.Equal(await getNextHeight(), GlobalConfig.GenesisBlockHeight + 2);
             Assert.Equal((await blockchain.GetCurrentBlockHashAsync()).ToHex(), block.GetHash().ToHex());
-            Assert.Equal(block.Header.Index, GlobalConfig.GenesisBlockHeight + 1);
+            Assert.Equal(block.Header.Height, GlobalConfig.GenesisBlockHeight + 1);
         }
         
-        private static Block CreateBlock(Hash preBlockHash, int chainId, ulong index)
+        private static Block CreateBlock(Hash preBlockHash, int chainId, ulong height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Zero, null);
             
@@ -99,7 +92,7 @@ namespace AElf.Kernel.Tests
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
-            block.Header.Index = index;
+            block.Header.Height = height;
             block.Header.MerkleTreeRootOfWorldState = Hash.Default;
 
             return block;

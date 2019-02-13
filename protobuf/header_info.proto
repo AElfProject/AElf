@@ -44,8 +44,3 @@ message VerificationNeededMessage {
 service MerkleProofInfoRpc {
     rpc MerkleProofInfo (VerificationNeededMessage) returns (MerkleProofMessage) {}
 }
-
-
-
-
-
