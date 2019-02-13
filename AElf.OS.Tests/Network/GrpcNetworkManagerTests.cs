@@ -56,7 +56,8 @@ namespace AElf.OS.Tests.Network
                     .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == 1)));
             }
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, mockBlockService.Object, mockLocalEventBus.Object);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, mockBlockService.Object);
+            netServer.EventBus = mockLocalEventBus.Object;
 
             return netServer;
         }

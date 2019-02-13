@@ -21,27 +21,26 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, IPeerAuthentificator, ISingletonDependency
     {
+        private readonly NetworkOptions _networkOptions;
+        
         private readonly IAccountService _accountService;
         private readonly IBlockService _blockService;
-        private readonly ILocalEventBus _localEventBus;
         
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
-                
-        private readonly NetworkOptions _networkOptions;
-
         private Server _server;
-
         private readonly List<GrpcPeer> _authenticatedPeers;
         
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, 
-            IAccountService accountService, IBlockService blockService, ILocalEventBus localEventBus)
+        public ILocalEventBus EventBus { get; set; }
+        public ILogger<GrpcNetworkServer> Logger { get; set; }
+        
+        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, IAccountService accountService, 
+            IBlockService blockService)
         {
             _accountService = accountService;
             _blockService = blockService;
-            _localEventBus = localEventBus;
             _networkOptions = options.Value;
             
             Logger = NullLogger<GrpcNetworkServer>.Instance;
+            EventBus = NullLocalEventBus.Instance;
             
             _authenticatedPeers = new List<GrpcPeer>();
         }
@@ -49,7 +48,8 @@ namespace AElf.OS.Network.Grpc
         public async Task StartAsync()
         {
             // todo inject block service
-            var p = new GrpcPeerService(this, _blockService, _localEventBus);
+            var p = new GrpcPeerService(this, _blockService);
+            p.EventBus = EventBus;
             
             p.PeerSentDisconnection += POnPeerSentDisconnection;
             

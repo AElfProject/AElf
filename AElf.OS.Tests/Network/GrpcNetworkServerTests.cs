@@ -37,9 +37,10 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcNetworkServer manager1 = new GrpcNetworkServer(optionsMock.Object, _accountService, null, mockLocalEventBus.Object);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, null);
+            netServer.EventBus = mockLocalEventBus.Object;
 
-            return manager1;
+            return netServer;
         }
 
         [Fact]

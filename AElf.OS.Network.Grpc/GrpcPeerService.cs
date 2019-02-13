@@ -26,17 +26,16 @@ namespace AElf.OS.Network.Grpc
         
         private readonly IPeerAuthentificator _peerAuthenticator;
         private readonly IBlockService _blockService;
-        private readonly ILocalEventBus _localEventBus;
+        public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcPeerService> Logger;
         
-        public GrpcPeerService(IPeerAuthentificator peerAuthenticator,
-            IBlockService blockService, ILocalEventBus localEventBus)
+        public GrpcPeerService(IPeerAuthentificator peerAuthenticator, IBlockService blockService)
         {
             _peerAuthenticator = peerAuthenticator;
             _blockService = blockService;
-            _localEventBus = localEventBus;
-
+            
+            EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcPeerService>.Instance;
         }
 
@@ -116,7 +115,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                _localEventBus.PublishAsync(new TxReceivedEventData(tx));
+                EventBus.PublishAsync(new TxReceivedEventData(tx));
             }
             catch (Exception e)
             {
@@ -135,7 +134,7 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
-                _localEventBus.PublishAsync(new AnnoucementReceivedEventData(Hash.LoadByteArray(an.Id.ToByteArray())));
+                EventBus.PublishAsync(new AnnoucementReceivedEventData(Hash.LoadByteArray(an.Id.ToByteArray())));
             }
             catch (Exception e)
             {
