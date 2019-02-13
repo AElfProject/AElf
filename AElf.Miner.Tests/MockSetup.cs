@@ -56,7 +56,7 @@ namespace AElf.Miner.Tests
         private readonly TransactionFilter _transactionFilter;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private readonly IAccountService _accountService;
-        private readonly ChainOptions _chainOptions;
+        private readonly IOptionsSnapshot<ChainOptions> _chainOptions;
 
         public MockSetup(IStateManager stateManager,
             ITxRefBlockValidator refBlockValidator,
@@ -81,7 +81,7 @@ namespace AElf.Miner.Tests
             _transactionFilter = transactionFilter;
             _consensusDataProvider = consensusDataProvider;
             _accountService = accountService;
-            _chainOptions = options.Value;
+            _chainOptions = options;
             Initialize();
         }
 
@@ -155,7 +155,7 @@ namespace AElf.Miner.Tests
         internal ITxHub CreateAndInitTxHub()
         {
             var hub = new TxHub(_transactionManager, _transactionReceiptManager, _chainService, _authorizationInfoReader, _refBlockValidator, _electionInfo);
-            hub.Initialize(_chainOptions.ChainId.ConvertBase58ToChainId());
+            hub.Initialize(_chainOptions.Value.ChainId.ConvertBase58ToChainId());
             return hub;
         }
 
@@ -264,7 +264,7 @@ namespace AElf.Miner.Tests
 
         public ClientManager MinerClientManager()
         {
-            return new ClientManager(MockCrossChainInfoReader().Object);
+            return new ClientManager(MockCrossChainInfoReader().Object, _chainOptions);
         }
 
         public ulong GetTimes = 0;
@@ -272,7 +272,8 @@ namespace AElf.Miner.Tests
         private Mock<ICrossChainInfoReader> MockCrossChainInfoReader()
         {
             var mock = new Mock<ICrossChainInfoReader>();
-            mock.Setup(m => m.GetParentChainCurrentHeightAsync()).Returns(() => Task.FromResult(GetTimes));
+            mock.Setup(m => m.GetParentChainCurrentHeightAsync(It.IsAny<int>())).Returns(() => Task.FromResult
+            (GetTimes));
             /*mock.Setup(m => m.GetMerkleTreeForSideChainTransactionRootAsync(It.IsAny<ulong>())).Returns<ulong>(u =>
             {
                 var binaryMerkleTree = new BinaryMerkleTree();
@@ -280,8 +281,8 @@ namespace AElf.Miner.Tests
                 Console.WriteLine($"merkle tree root for {u} : {binaryMerkleTree.ComputeRootHash()}");
                 return Task.FromResult(binaryMerkleTree);
             });*/
-            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<Hash>()))
-                .Returns<Hash>(chainId => Task.FromResult(GetTimes));
+            mock.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<int>(),It.IsAny<int>()))
+                .Returns(() => Task.FromResult(GetTimes));
             return mock;
         }
 

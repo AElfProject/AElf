@@ -311,7 +311,7 @@ namespace AElf.Miner.Miner
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
+            await _txHub.AddTransactionAsync(_chainId, tx, skipValidation: skipValidation);
         }
 
         /// <summary>

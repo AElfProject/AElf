@@ -844,7 +844,7 @@ var logLevel = new Int32Value {Value = 0};
                     $"Try to insert DPoS transaction to pool: {tx.GetHash().ToHex()} " +
                     $"threadId: {Thread.CurrentThread.ManagedThreadId}");
 
-            await _txHub.AddTransactionAsync(tx, true);
+            await _txHub.AddTransactionAsync(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(), tx, true);
         }
 
         public bool Shutdown()

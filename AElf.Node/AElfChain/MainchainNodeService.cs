@@ -105,7 +105,7 @@ namespace AElf.Node.AElfChain
                         
             MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
             {
-                await _txHub.AddTransactionAsync(inTx.Transaction);
+                await _txHub.AddTransactionAsync(chainId, inTx.Transaction);
             });
 
             _txHub.Initialize(chainId);

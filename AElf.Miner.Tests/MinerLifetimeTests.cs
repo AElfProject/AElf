@@ -186,7 +186,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txHub.AddTransactionAsync(tx);
+                await txHub.AddTransactionAsync(chain.Id, tx);
             }
             
             var manager = _mock.MinerClientManager();

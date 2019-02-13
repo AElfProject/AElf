@@ -23,6 +23,8 @@ namespace AElf.Runtime.CSharp.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            
             context.Services.AddAssemblyOf<TestCSharpRuntimeAElfModule>();
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());

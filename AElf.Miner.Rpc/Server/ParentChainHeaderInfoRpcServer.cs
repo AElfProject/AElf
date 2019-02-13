@@ -24,6 +24,9 @@ namespace AElf.Miner.Rpc.Server
         private IBlockChain BlockChain { get; set; }
         private readonly ICrossChainInfoReader _crossChainInfoReader;
         private ulong LibHeight { get; set; }
+
+        private int _chainId;
+        
         public ParentChainBlockInfoRpcServer(IChainService chainService, ICrossChainInfoReader crossChainInfoReader)
         {
             _chainService = chainService;
@@ -33,7 +36,8 @@ namespace AElf.Miner.Rpc.Server
 
         public void Init(int chainId)
         {
-            BlockChain = _chainService.GetBlockChain(chainId);
+            _chainId = chainId;
+            BlockChain = _chainService.GetBlockChain(_chainId);
             MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
         
@@ -84,7 +88,8 @@ namespace AElf.Miner.Rpc.Server
                                 ChainId = header.ChainId
                             }
                         };
-                        var indexedSideChainBlockInfoResult = await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(requestedHeight);
+                        var indexedSideChainBlockInfoResult =
+                            await _crossChainInfoReader.GetIndexedSideChainBlockInfoResult(_chainId, requestedHeight);
                         if (indexedSideChainBlockInfoResult != null)
                         {
                             var binaryMerkleTree = new BinaryMerkleTree();

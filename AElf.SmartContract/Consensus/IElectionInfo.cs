@@ -7,10 +7,10 @@ namespace AElf.SmartContract.Consensus
 {
     public interface IElectionInfo
     {
-        Task<bool> IsCandidate(string publicKey);
-        Task<Tickets> GetVotingInfo(string publicKey);
-        Task<Tuple<ulong, ulong>> GetVotesGeneral();
-        Task<Round> GetRoundInfo(ulong roundNumber);
-        Task<List<string>> GetCurrentMines();
+        Task<bool> IsCandidate(int chainId, string publicKey);
+        Task<Tickets> GetVotingInfo(int chainId, string publicKey);
+        Task<Tuple<ulong, ulong>> GetVotesGeneral(int chainId);
+        Task<Round> GetRoundInfo(int chainId, ulong roundNumber);
+        Task<List<string>> GetCurrentMines(int chainId);
     }
 }

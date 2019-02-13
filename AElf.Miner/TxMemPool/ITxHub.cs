@@ -8,10 +8,10 @@ namespace AElf.Miner.TxMemPool
 {
     public interface ITxHub
     {
-        Task AddTransactionAsync(Transaction transaction, bool skipValidation=false);
+        Task AddTransactionAsync(int chainId, Transaction transaction, bool skipValidation=false);
 
         Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync();
-        Task<TransactionReceipt> GetCheckedReceiptsAsync(Transaction txn);
+        Task<TransactionReceipt> GetCheckedReceiptsAsync(int chainId, Transaction txn);
         Task<TransactionReceipt> GetReceiptAsync(Hash txId);
 
         bool TryGetTx(Hash txId, out Transaction tx);

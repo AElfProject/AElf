@@ -16,6 +16,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using ClientBase = AElf.Miner.Rpc.Client.ClientBase;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -35,16 +36,21 @@ namespace AElf.Miner.Rpc.Client
         private CancellationTokenSource _tokenSourceToSideChain;
         private CancellationTokenSource _tokenSourceToParentChain;
         private int _interval;
+        private int _chainId;
 
         /// <summary>
         /// Waiting interval for taking element.
         /// </summary>
         private int WaitingIntervalInMillisecond => GrpcLocalConfig.Instance.WaitingIntervalInMillisecond;
 
-        public ClientManager( ICrossChainInfoReader crossChainInfoReader)
+        public ClientManager(ICrossChainInfoReader crossChainInfoReader, IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<ClientManager>.Instance;
             _crossChainInfoReader = crossChainInfoReader;
+            
+            // TODO: Remove it after refactor cross chain
+            _chainId = options.Value.ChainId.ConvertBase58ToChainId();
+            
             GrpcRemoteConfig.ConfigChanged += GrpcRemoteConfigOnConfigChanged;
         }
 
@@ -93,15 +99,15 @@ namespace AElf.Miner.Rpc.Client
             });
         }
 
-        private async Task<ulong> GetSideChainTargetHeight(int chainId)
+        private async Task<ulong> GetSideChainTargetHeight(int sideChainId)
         {
-            var height = await _crossChainInfoReader.GetSideChainCurrentHeightAsync(chainId);
+            var height = await _crossChainInfoReader.GetSideChainCurrentHeightAsync(_chainId, sideChainId);
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
         
         private async Task<ulong> GetParentChainTargetHeight()
         {
-            var height = await _crossChainInfoReader.GetParentChainCurrentHeightAsync();
+            var height = await _crossChainInfoReader.GetParentChainCurrentHeightAsync(_chainId);
             return height == 0 ? GlobalConfig.GenesisBlockHeight : height + 1;
         }
         

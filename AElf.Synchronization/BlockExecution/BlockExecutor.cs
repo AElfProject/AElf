@@ -110,7 +110,8 @@ namespace AElf.Synchronization.BlockExecution
                 // 1. Collection result.
                 // 2. Transaction for indexing side chain block, if exists. 
                 Hash crossChainIndexingSideChainTransactionId;
-                (res, crossChainIndexingSideChainTransactionId) = await TryCollectTransactions(block, cts);
+                (res, crossChainIndexingSideChainTransactionId) =
+                    await TryCollectTransactions(block.Header.ChainId, block, cts);
                 if (result.IsFailed())
                 {
                     Logger.LogWarning(
@@ -126,7 +127,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 // Execute transactions.
                 // After this, rollback needed
-                if ((res = ExtractTransactionResults(traces, crossChainIndexingSideChainTransactionId,
+                if ((res = ExtractTransactionResults(block.Header.ChainId, traces, crossChainIndexingSideChainTransactionId,
                     block.Header.SideChainTransactionsRoot, out txnRes)).IsFailed())
                 {
                     throw new InvalidBlockException(res.ToString());
@@ -197,7 +198,7 @@ namespace AElf.Synchronization.BlockExecution
             return traces;
         }
 
-        private BlockExecutionResult ExtractTransactionResults(List<TransactionTrace> traces,
+        private BlockExecutionResult ExtractTransactionResults(int chainId, List<TransactionTrace> traces,
             Hash chainIndexingSideChainTransactionId,
             Hash sideChainTransactionsRoot, out List<TransactionResult> results)
         {
@@ -235,7 +236,7 @@ namespace AElf.Synchronization.BlockExecution
                         if (trace.DeferredTransaction.Length != 0)
                         {
                             var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                            _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                            _txHub.AddTransactionAsync(chainId, deferredTxn).ConfigureAwait(false);
                             txRes.DeferredTxnId = deferredTxn.GetHash();
                         }
 
@@ -344,7 +345,7 @@ namespace AElf.Synchronization.BlockExecution
         /// 2. Transaction receipts.
         /// 3. Transaction for indexing side chain block, if exists. 
         /// </returns>
-        private async Task<(BlockExecutionResult, Hash)> TryCollectTransactions(IBlock block,
+        private async Task<(BlockExecutionResult, Hash)> TryCollectTransactions(int chainId, IBlock block,
             CancellationTokenSource cancellationTokenSource)
         {
             var res = BlockExecutionResult.CollectTransactionsSuccess;
@@ -407,7 +408,7 @@ namespace AElf.Synchronization.BlockExecution
                     break;
                 }
 
-                var receipt = await _txHub.GetCheckedReceiptsAsync(tx);
+                var receipt = await _txHub.GetCheckedReceiptsAsync(chainId, tx);
                 if (receipt.IsExecutable)
                     continue;
                 res = BlockExecutionResult.NotExecutable;

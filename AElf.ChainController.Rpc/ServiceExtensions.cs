@@ -255,18 +255,18 @@ namespace AElf.ChainController.Rpc
 
         #region Cross chain
 
-        internal static async Task<MerklePath> GetTxRootMerklePathInParentChain(this Svc s, ulong height)
+        internal static async Task<MerklePath> GetTxRootMerklePathInParentChain(this Svc s, int chainId, ulong height)
         {
-            var merklePath = await s.CrossChainInfoReader.GetTxRootMerklePathInParentChainAsync(height);
+            var merklePath = await s.CrossChainInfoReader.GetTxRootMerklePathInParentChainAsync(chainId, height);
             if (merklePath != null)
                 return merklePath;
             throw new Exception();
         }
 
-        internal static async Task<JObject> GetIndexedSideChainBlockInfo(this Svc s, ulong height)
+        internal static async Task<JObject> GetIndexedSideChainBlockInfo(this Svc s, int chainId, ulong height)
         {
             var res = new JObject();
-            var indexedSideChainBlockInfoResult = await s.CrossChainInfoReader.GetIndexedSideChainBlockInfoResult(height);
+            var indexedSideChainBlockInfoResult = await s.CrossChainInfoReader.GetIndexedSideChainBlockInfoResult(chainId, height);
             if (indexedSideChainBlockInfoResult == null)
                 return res;
             foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
@@ -281,17 +281,17 @@ namespace AElf.ChainController.Rpc
 
             return res;
         }
-        internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, ulong height)
+        internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
         {
-            var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(height);
+            var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(chainId, height);
             if (parentChainBlockInfo != null)
                 return parentChainBlockInfo;
             throw new Exception();
         }
 
-        internal static async Task<ulong> GetBoundParentChainHeight(this Svc s, ulong height)
+        internal static async Task<ulong> GetBoundParentChainHeight(this Svc s, int chainId, ulong height)
         {
-            var parentHeight = await s.CrossChainInfoReader.GetBoundParentChainHeightAsync(height);
+            var parentHeight = await s.CrossChainInfoReader.GetBoundParentChainHeightAsync(chainId, height);
             if (parentHeight != 0)
                 return parentHeight;
             throw new Exception();
@@ -301,14 +301,14 @@ namespace AElf.ChainController.Rpc
 
         #region Proposal
 
-        internal static async Task<Proposal> GetProposal(this Svc s, Hash proposalHash)
+        internal static async Task<Proposal> GetProposal(this Svc s, int chainId, Hash proposalHash)
         {
-            return await s.AuthorizationInfoReader.GetProposal(proposalHash);
+            return await s.AuthorizationInfoReader.GetProposal(chainId, proposalHash);
         }
 
-        internal static async Task<Authorization> GetAuthorization(this Svc s, Address msig)
+        internal static async Task<Authorization> GetAuthorization(this Svc s, int chainId, Address msig)
         {
-            return await s.AuthorizationInfoReader.GetAuthorization(msig);
+            return await s.AuthorizationInfoReader.GetAuthorization(chainId, msig);
         }
 
         #endregion
@@ -327,14 +327,14 @@ namespace AElf.ChainController.Rpc
         
         #region Consensus
 
-        internal static async Task<Tuple<ulong, ulong>> GetVotesGeneral(this Svc s)
+        internal static async Task<Tuple<ulong, ulong>> GetVotesGeneral(this Svc s, int chainId)
         {
-            return await s.ElectionInfo.GetVotesGeneral();
+            return await s.ElectionInfo.GetVotesGeneral(chainId);
         }
         
-        internal static async Task<Tickets> GetVotingInfo(this Svc s, string pubKey)
+        internal static async Task<Tickets> GetVotingInfo(this Svc s, int chainId, string pubKey)
         {
-            return await s.ElectionInfo.GetVotingInfo(pubKey);
+            return await s.ElectionInfo.GetVotingInfo(chainId, pubKey);
         }
         
         #endregion

@@ -43,6 +43,7 @@ namespace AElf.Kernel.Tests
                 o.ActorCount = 8;
                 o.ConcurrencyLevel = 8;
             });
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
             
             var services = context.Services;
             

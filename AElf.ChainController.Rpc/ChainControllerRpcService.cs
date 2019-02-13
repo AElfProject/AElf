@@ -211,7 +211,7 @@ namespace AElf.ChainController.Rpc
             {
                 //TODO: Wait validation done
                 transaction.GetTransactionInfo();
-                await TxHub.AddTransactionAsync(transaction);
+                await TxHub.AddTransactionAsync(_chainId, transaction);
             }
             catch (Exception e)
             {
@@ -274,8 +274,8 @@ namespace AElf.ChainController.Rpc
                 ulong boundParentChainHeight = 0;
                 try
                 {
-                    merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
-                    boundParentChainHeight = await this.GetBoundParentChainHeight(txResult.BlockNumber);
+                    merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, txResult.BlockNumber);
+                    boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, txResult.BlockNumber);
                 }
                 catch (Exception e)
                 {
@@ -314,7 +314,7 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Invalid height");
                 }
-                var merklePathInParentChain = await this.GetParentChainBlockInfo(h);
+                var merklePathInParentChain = await this.GetParentChainBlockInfo(_chainId, h);
                 if (merklePathInParentChain == null)
                 {
                     throw new Exception("Unable to get parent chain block at height " + height);
@@ -558,7 +558,7 @@ namespace AElf.ChainController.Rpc
                     ["Body"] = new JObject
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(blockinfo.Header.Index)
+                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(_chainId, blockinfo.Header.Index)
                     }
                 }
             };
@@ -632,7 +632,7 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Invalid Hash Format");
                 }
 
-                var proposal = await this.GetProposal(proposalHash);
+                var proposal = await this.GetProposal(_chainId, proposalHash);
                 var origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                 return new JObject
                 {
@@ -663,7 +663,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var general = await this.GetVotesGeneral();
+                var general = await this.GetVotesGeneral(_chainId);
                 return new JObject
                 {
                     ["error"] = 0,

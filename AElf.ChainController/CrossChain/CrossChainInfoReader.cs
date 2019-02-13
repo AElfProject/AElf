@@ -14,13 +14,10 @@ namespace AElf.ChainController.CrossChain
     public class CrossChainInfoReader : ICrossChainInfoReader
     {
         private readonly ContractInfoReader _contractInfoReader;
-        private Address CrossChainContractAddress =>
-            ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-        
+
         public CrossChainInfoReader(IStateManager stateManager)
         {
-            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
+            _contractInfoReader = new ContractInfoReader(stateManager);
         }
 
         /// <summary>
@@ -28,11 +25,12 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="blockHeight">Child chain block height.</param>
         /// <returns></returns>
-        public async Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight)
+        public async Task<MerklePath> GetTxRootMerklePathInParentChainAsync(int chainId, ulong blockHeight)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<MerklePath>(CrossChainContractAddress,
-                            Hash.FromMessage(new UInt64Value {Value = blockHeight}),
-                            GlobalConfig.AElfTxRootMerklePathInParentChain);
+            var bytes = await _contractInfoReader.GetBytesAsync<MerklePath>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId),
+                Hash.FromMessage(new UInt64Value {Value = blockHeight}),
+                GlobalConfig.AElfTxRootMerklePathInParentChain);
             return bytes == null ? null : MerklePath.Parser.ParseFrom(bytes);
         }
 
@@ -41,11 +39,11 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="localChainHeight"></param>
         /// <returns></returns>
-        public async Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight)
+        public async Task<ulong> GetBoundParentChainHeightAsync(int chainId, ulong localChainHeight)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress,
-                            Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
-                            GlobalConfig.AElfBoundParentChainHeight);
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId),
+                Hash.FromMessage(new UInt64Value {Value = localChainHeight}), GlobalConfig.AElfBoundParentChainHeight);
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
 
@@ -53,10 +51,11 @@ namespace AElf.ChainController.CrossChain
         /// Return current height of parent chain block stored locally.
         /// </summary>
         /// <returns></returns>
-        public async Task<ulong> GetParentChainCurrentHeightAsync()
+        public async Task<ulong> GetParentChainCurrentHeightAsync(int chainId)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress,
-                            Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight));
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId),
+                Hash.FromString(GlobalConfig.AElfCurrentParentChainHeight));
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
 
@@ -66,9 +65,10 @@ namespace AElf.ChainController.CrossChain
         /// <param name="chainId">Side chain id.</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<ulong> GetSideChainCurrentHeightAsync(int chainId)
+        public async Task<ulong> GetSideChainCurrentHeightAsync(int chainId, int sideChainId)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(CrossChainContractAddress, Hash.FromRawBytes( chainId.DumpByteArray()),
+            var bytes = await _contractInfoReader.GetBytesAsync<UInt64Value>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId), Hash.FromRawBytes(sideChainId.DumpByteArray()),
                 GlobalConfig.AElfCurrentSideChainHeight);
             return bytes == null ? 0 : UInt64Value.Parser.ParseFrom(bytes).Value;
         }
@@ -78,12 +78,12 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="height">Self(Parent) chain height.</param>
         /// <returns></returns>
-        public async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong height)
+        public async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(int chainId, ulong height)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<IndexedSideChainBlockInfoResult>(CrossChainContractAddress,
-                Hash.FromMessage(new UInt64Value {Value = height}),
-                GlobalConfig.IndexedSideChainBlockInfoResult);
-            return bytes == null? null : IndexedSideChainBlockInfoResult.Parser.ParseFrom(bytes);
+            var bytes = await _contractInfoReader.GetBytesAsync<IndexedSideChainBlockInfoResult>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId),
+                Hash.FromMessage(new UInt64Value {Value = height}), GlobalConfig.IndexedSideChainBlockInfoResult);
+            return bytes == null ? null : IndexedSideChainBlockInfoResult.Parser.ParseFrom(bytes);
         }
 
         /// <summary>
@@ -91,11 +91,12 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="localChainHeight">Self(Side) chain height</param>
         /// <returns></returns>
-        public async Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(ulong localChainHeight)
+        public async Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(int chainId, ulong localChainHeight)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<ParentChainBlockInfo>(CrossChainContractAddress,
-                            Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
-                            GlobalConfig.AElfParentChainBlockInfo);
+            var bytes = await _contractInfoReader.GetBytesAsync<ParentChainBlockInfo>(chainId,
+                ContractHelpers.GetCrossChainContractAddress(chainId),
+                Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
+                GlobalConfig.AElfParentChainBlockInfo);
             return bytes == null ? null : ParentChainBlockInfo.Parser.ParseFrom(bytes);
         }
     }

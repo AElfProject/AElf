@@ -98,7 +98,7 @@ namespace AElf.Miner.TxMemPool
             return Task.CompletedTask;
         }
 
-        public async Task AddTransactionAsync(Transaction transaction, bool skipValidation = false)
+        public async Task AddTransactionAsync(int chainId, Transaction transaction, bool skipValidation = false)
         {
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
@@ -130,7 +130,7 @@ namespace AElf.Miner.TxMemPool
 
             var task = Task.Run(async () =>
             {
-                await VerifySignature(tr);
+                await VerifySignature(chainId, tr);
                 await ValidateRefBlock(tr);
                 MaybePublishTransaction(tr);
             });
@@ -141,14 +141,14 @@ namespace AElf.Miner.TxMemPool
             return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
         }
 
-        public async Task<TransactionReceipt> GetCheckedReceiptsAsync(Transaction txn)
+        public async Task<TransactionReceipt> GetCheckedReceiptsAsync(int chainId, Transaction txn)
         {
             if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
             {
                 tr = new TransactionReceipt(txn);
                 _allTxns.TryAdd(tr.TransactionId, tr);
             }
-            await VerifySignature(tr);
+            await VerifySignature(chainId, tr);
             await ValidateRefBlock(tr);
             return tr;
         }
@@ -195,7 +195,7 @@ namespace AElf.Miner.TxMemPool
 
         #region Private Methods
 
-        private async Task VerifySignature(TransactionReceipt tr)
+        private async Task VerifySignature(int chainId, TransactionReceipt tr)
         {
             if (tr.SignatureSt != TransactionReceipt.Types.SignatureStatus.UnknownSignatureStatus)
             {
@@ -207,7 +207,7 @@ namespace AElf.Miner.TxMemPool
                 if (tr.Transaction.From.Equals(Address.Genesis))
                 {
                     // validate miners authorization
-                    var authorizationResult = await ValidateMinersAuthorization(tr);
+                    var authorizationResult = await ValidateMinersAuthorization(chainId, tr);
                     if (!authorizationResult)
                     {
                         tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
@@ -217,7 +217,7 @@ namespace AElf.Miner.TxMemPool
                 else
                 {
                     // validate authorization for multi-sig address
-                    var validAuthorization = await CheckAuthority(tr.Transaction);
+                    var validAuthorization = await CheckAuthority(chainId, tr.Transaction);
                     if (!validAuthorization)
                     {
                         tr.SignatureSt = TransactionReceipt.Types.SignatureStatus.SignatureInvalid;
@@ -239,9 +239,9 @@ namespace AElf.Miner.TxMemPool
         /// </summary>
         /// <param name="tr"></param>
         /// <returns></returns>
-        private async Task<bool> ValidateMinersAuthorization(TransactionReceipt tr)
+        private async Task<bool> ValidateMinersAuthorization(int chainId, TransactionReceipt tr)
         {
-            var minerPublicKeysInHex = await _electionInfo.GetCurrentMines();
+            var minerPublicKeysInHex = await _electionInfo.GetCurrentMines(chainId);
             var auth = new Authorization
             {
                 MultiSigAccount =Address.Genesis,
@@ -271,7 +271,7 @@ namespace AElf.Miner.TxMemPool
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        private async Task<bool> CheckAuthority(Transaction transaction)
+        private async Task<bool> CheckAuthority(int chainId, Transaction transaction)
         {
             var sigCount = transaction.Sigs.Count;
             if (sigCount == 0)
@@ -292,7 +292,7 @@ namespace AElf.Miner.TxMemPool
                 publicKeys.Add(publicKey);
             }
             
-            return await _authorizationInfoReader.CheckAuthority(transaction.From, publicKeys);
+            return await _authorizationInfoReader.CheckAuthority(chainId, transaction.From, publicKeys);
         }
         
         
