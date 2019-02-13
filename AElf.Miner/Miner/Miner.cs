@@ -247,7 +247,7 @@ namespace AElf.Miner.Miner
         {
             if (sysTxnTraces == null) throw new ArgumentNullException(nameof(sysTxnTraces));
             var crossChainIndexingSideChainTransaction =
-                sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction());
+                sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction(_chainId));
             if (crossChainIndexingSideChainTransaction == null)
             {
                 return null;
@@ -280,7 +280,7 @@ namespace AElf.Miner.Miner
             {
                 if (!noTimeout)
                 {
-                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd(_chainId);
                     var timeout = distance *  RatioMine;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                     Logger.LogTrace($"Execution limit time: {timeout}ms");

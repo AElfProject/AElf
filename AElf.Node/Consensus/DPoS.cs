@@ -566,7 +566,8 @@ var logLevel = new Int32Value {Value = 0};
 
                     var miners = Miners;
 
-                    var nextRoundInfo = miners.GenerateNextRound(roundInfo.Clone());
+                    var nextRoundInfo = miners.GenerateNextRound(ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
+                        roundInfo.Clone());
 
                     var calculatedAge = _helper.CalculateBlockchainAge();
                     Logger.LogTrace("Current blockchain age: " + calculatedAge);

@@ -330,13 +330,13 @@ namespace AElf.Miner.TxMemPool
                 tr.IsSystemTxn = true;
             }
 
-            if (tr.Transaction.IsClaimFeesTransaction())
+            if (tr.Transaction.IsClaimFeesTransaction(_chainId))
             {
                 tr.IsSystemTxn = true;
             }
 
             // cross chain txn should not be  broadcasted
-            if (tr.Transaction.IsCrossChainIndexingTransaction())
+            if (tr.Transaction.IsCrossChainIndexingTransaction(_chainId))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -455,10 +455,10 @@ namespace AElf.Miner.TxMemPool
                         continue;
                     
                     // cross chain transactions should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction())
+                    if (tr.Transaction.IsCrossChainIndexingTransaction(_chainId))
                         continue;
 
-                    if (tr.Transaction.IsClaimFeesTransaction())
+                    if (tr.Transaction.IsClaimFeesTransaction(_chainId))
                     {
                         continue;
                     }

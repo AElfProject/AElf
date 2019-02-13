@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
@@ -24,19 +23,6 @@ namespace AElf.Kernel.Consensus
         private readonly IMinersManager _minersManager;
         private readonly ConsensusDataReader _reader;        
         public ILogger<ConsensusHelper> Logger { get; set; }
-
-        public List<string> Miners
-        {
-            get
-            {
-                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
-                {
-                    return _minersManager.GetMiners(CurrentTermNumber.Value).Result.PublicKeys.ToList();
-                }
-            
-                return _minersManager.GetMiners(GetCurrentRoundInfo().MinersTermNumber).Result.PublicKeys.ToList();
-            }
-        }
 
         public UInt64Value CurrentRoundNumber
         {

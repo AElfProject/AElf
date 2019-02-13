@@ -102,7 +102,7 @@ namespace AElf.Synchronization.BlockExecution
                 double timeout = 0;
                 if (_isLimitExecutionTime)
                 {
-                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd(block.Header.ChainId);
                     timeout = distanceToTimeSlot * RatioSynchronize;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                 }
@@ -361,7 +361,7 @@ namespace AElf.Synchronization.BlockExecution
             var noIndexingParentChainTransaction = true;
             foreach (var tx in txs)
             {
-                if (tx.IsIndexingParentChainTransaction())
+                if (tx.IsIndexingParentChainTransaction(chainId))
                 {
                     var parentBlockInfos = (ParentChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(ParentChainBlockInfo[])})[0];
@@ -380,7 +380,7 @@ namespace AElf.Synchronization.BlockExecution
 
                     noIndexingParentChainTransaction = false;
                 }
-                else if (tx.IsIndexingSideChainTransaction())
+                else if (tx.IsIndexingSideChainTransaction(chainId))
                 {
                     var sideChainBlockInfos = (SideChainBlockInfo[]) ParamsPacker.Unpack(tx.Params.ToByteArray(),
                         new[] {typeof(SideChainBlockInfo[])})[0];
