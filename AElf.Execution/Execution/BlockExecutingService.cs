@@ -27,12 +27,13 @@ namespace AElf.Execution.Execution
         {
             var block = await _blockManager.GetBlockAsync(blockHash);
             var readyTxs = block.Body.TransactionList.ToList();
+            // TODO: Use BlockStateSet to calculate merkle tree
             var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
                 block.Header.Time.ToDateTime(), block.Header.GetDisambiguationHash(), CancellationToken.None);
             var blockStateSet = new BlockStateSet()
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Index,
+                BlockHeight = block.Header.Height,
                 PreviousHash = block.Header.PreviousBlockHash
             };
             FillBlockStateSet(blockStateSet, traces);
