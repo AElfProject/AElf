@@ -58,15 +58,13 @@ namespace AElf.OS.Network.Grpc
                 Ports = { new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure) }
             };
             
-            _server.Start();
+            await Task.Run(() => _server.Start());
             
             // Add the provided boot nodes
             if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
-                foreach (var btn in _networkOptions.BootNodes)
-                {
-                    await Dial(btn);
-                }
+                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(Dial).ToList();
+                await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
             {
@@ -94,7 +92,7 @@ namespace AElf.OS.Network.Grpc
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = BuildHandshake();
                         
-                var resp = await client.ConnectAsync(hsk);
+                var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(2)));
 
                 if (resp.Success != true)
                     return false;
@@ -129,7 +127,6 @@ namespace AElf.OS.Network.Grpc
                 }
             }
         }
-
 
         public async Task<bool> AddPeerAsync(string address)
         {

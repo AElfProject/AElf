@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Account;
@@ -7,17 +8,21 @@ using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;
 using Moq;
+using Org.BouncyCastle.Asn1.Crmf;
 using Volo.Abp.EventBus.Local;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.OS.Tests.Network
 {
     public class GrpcNetworkConnectionTests : OSTestBase
     {
         private readonly IAccountService _accountService;
+        private readonly ITestOutputHelper _testOutputHelper;
             
-        public GrpcNetworkConnectionTests()
+        public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _accountService = GetRequiredService<IAccountService>();
         }
         
@@ -42,7 +47,7 @@ namespace AElf.OS.Tests.Network
 
             return netServer;
         }
-
+       
         [Fact]
         public async Task Basic_Net_Formation()
         {
