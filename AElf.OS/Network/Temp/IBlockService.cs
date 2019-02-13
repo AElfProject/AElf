@@ -9,4 +9,22 @@ namespace AElf.OS.Network.Temp
         Task<Block> GetBlockAsync(Hash block);
         Task<Block> GetBlockByHeight(ulong height);
     }
+    
+    /// <summary>
+    /// todo
+    /// TEMP: temporary dependency of GrpcPeerService until BlockChainService gets implemented
+    /// </summary>
+
+    public class BlockService : IBlockService
+    {
+        public Task<Block> GetBlockAsync(Hash block)
+        {
+            return Task.FromResult(new Block());
+        }
+
+        public Task<Block> GetBlockByHeight(ulong height)
+        {
+            return Task.FromResult(new Block());
+        }
+    }
 }

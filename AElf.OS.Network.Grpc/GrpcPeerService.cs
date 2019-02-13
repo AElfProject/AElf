@@ -35,10 +35,6 @@ namespace AElf.OS.Network.Grpc
         {
             _peerAuthenticator = peerAuthenticator;
             _blockService = blockService;
-
-            if (_blockService == null)
-                ;
-            
             _localEventBus = localEventBus;
 
             Logger = NullLogger<GrpcPeerService>.Instance;
