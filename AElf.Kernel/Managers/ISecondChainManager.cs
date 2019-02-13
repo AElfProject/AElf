@@ -35,6 +35,7 @@ namespace AElf.Kernel.Managers.Another
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
 
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
+        Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -217,6 +218,14 @@ namespace AElf.Kernel.Managers.Another
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink)
+        {
+            if(blockLink.IsExecuted)
+                throw new InvalidOperationException();
+            blockLink.IsExecuted = true;
+            await SetChainBlockLinkAsync(chainId, blockLink);
         }
     }
 }

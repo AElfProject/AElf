@@ -59,11 +59,13 @@ namespace AElf.Kernel.Services
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
+        private readonly IBlockExecutingService _blockExecutingService;
 
-        public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager)
+        public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager, IBlockExecutingService blockExecutingService)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
+            _blockExecutingService = blockExecutingService;
         }
 
         public async Task AddBlockAsync(int chainId, Block block)
@@ -94,10 +96,22 @@ namespace AElf.Kernel.Services
 
             if (status.HasFlag(BlockAttachOperationStatus.NewBlockLinked))
             {
-                
+                var blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, block.Header.GetHash());
+
+                foreach (var blockLink in blockLinks)
+                {
+                    await ExecuteBlock(chain.Id, blockLink);
+                }
             }
 
             return chainBlockLink;
+        }
+
+        private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
+        {
+            await _blockExecutingService.ExecuteBlockAsync(chainId, blockLink.BlockHash);
+            await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            
         }
 
 
