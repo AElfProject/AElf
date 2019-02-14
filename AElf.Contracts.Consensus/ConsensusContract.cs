@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus
             VotingRecordsMap = new Map<Hash, VotingRecord>(GlobalConfig.AElfDPoSVotingRecordsMapString)
         };
 
-        private Process Process => new Process(Collection);
+        private Process Process => new Process(Api.ChainId, Collection);
 
         private Election Election => new Election(Collection);
 

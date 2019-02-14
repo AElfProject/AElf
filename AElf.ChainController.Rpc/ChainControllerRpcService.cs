@@ -8,7 +8,6 @@ using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Kernel;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
@@ -27,6 +26,7 @@ using Newtonsoft.Json;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Transaction = AElf.Kernel.Transaction;
 
 namespace AElf.ChainController.Rpc
@@ -56,11 +56,15 @@ namespace AElf.ChainController.Rpc
 
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
-        private bool _canBroadcastTxs = true;
+        private readonly ChainOptions _chainOptions;
 
-        public ChainControllerRpcService()
+        private bool _canBroadcastTxs = true;
+        private readonly int _chainId;
+        public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
+            _chainOptions = options.Value;
+            _chainId = _chainOptions.ChainId.ConvertBase58ToChainId();
 
             MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
@@ -100,19 +104,14 @@ namespace AElf.ChainController.Rpc
             try
             {
                 var basicContractZero =
-                    ContractHelpers.GetGenesisBasicContractAddress(
-                        ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                    ContractHelpers.GetGenesisBasicContractAddress(_chainId);
                 var crosschainContract =
-                    ContractHelpers.GetCrossChainContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                    ContractHelpers.GetCrossChainContractAddress(_chainId);
                 var authorizationContract =
-                    ContractHelpers.GetAuthorizationContractAddress(
-                        ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var tokenContract =
-                    ContractHelpers.GetTokenContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var consensusContract =
-                    ContractHelpers.GetConsensusContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                var dividendsContract =
-                    ContractHelpers.GetDividendsContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
+                    ContractHelpers.GetAuthorizationContractAddress(_chainId);
+                var tokenContract = ContractHelpers.GetTokenContractAddress(_chainId);
+                var consensusContract = ContractHelpers.GetConsensusContractAddress(_chainId);
+                var dividendsContract = ContractHelpers.GetDividendsContractAddress(_chainId);
 
                 //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
                 var response = new JObject
@@ -127,7 +126,7 @@ namespace AElf.ChainController.Rpc
                             [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
                             [GlobalConfig.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
                             [GlobalConfig.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
-                            ["chain_id"] = ChainConfig.Instance.ChainId
+                            ["chain_id"] = _chainOptions.ChainId
                         }
                 };
 
@@ -151,7 +150,7 @@ namespace AElf.ChainController.Rpc
             {
                 var addrHash = Address.Parse(address);
 
-                var abi = await this.GetContractAbi(addrHash);
+                var abi = await this.GetContractAbi(_chainId, addrHash);
 
                 return new JObject
                 {
@@ -180,7 +179,7 @@ namespace AElf.ChainController.Rpc
             JObject response;
             try
             {
-                var res = await this.CallReadOnly(transaction);
+                var res = await this.CallReadOnly(_chainId, transaction);
                 response = new JObject
                 {
                     ["return"] = res?.ToHex()
@@ -215,7 +214,7 @@ namespace AElf.ChainController.Rpc
             {
                 //TODO: Wait validation done
                 transaction.GetTransactionInfo();
-                await TxHub.AddTransactionAsync(transaction);
+                await TxHub.AddTransactionAsync(_chainId, transaction);
             }
             catch (Exception e)
             {
@@ -271,7 +270,7 @@ namespace AElf.ChainController.Rpc
                 var txResult = await this.GetTransactionResult(txHash);
                 /*if(txResult.Status != Status.Mined)
                    throw new Exception("Transaction is not mined.");*/
-                var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(txResult.BlockNumber);
+                var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, txResult.BlockNumber);
                 var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
                 if (merklePath == null)
                     throw new Exception("Not found merkle path for this transaction.");
@@ -279,8 +278,8 @@ namespace AElf.ChainController.Rpc
                 ulong boundParentChainHeight = 0;
                 try
                 {
-                    merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(txResult.BlockNumber);
-                    boundParentChainHeight = await this.GetBoundParentChainHeight(txResult.BlockNumber);
+                    merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, txResult.BlockNumber);
+                    boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, txResult.BlockNumber);
                 }
                 catch (Exception e)
                 {
@@ -320,8 +319,7 @@ namespace AElf.ChainController.Rpc
                 {
                     throw new Exception("Invalid height");
                 }
-
-                var merklePathInParentChain = await this.GetParentChainBlockInfo(h);
+                var merklePathInParentChain = await this.GetParentChainBlockInfo(_chainId, h);
                 if (merklePathInParentChain == null)
                 {
                     throw new Exception("Unable to get parent chain block at height " + height);
@@ -407,7 +405,7 @@ namespace AElf.ChainController.Rpc
 
             try
             {
-                var block = await this.GetBlock(blockHash);
+                var block = await this.GetBlock(_chainId, blockHash);
                 if (block == null)
                 {
                     return JObject.FromObject(new JObject
@@ -451,7 +449,7 @@ namespace AElf.ChainController.Rpc
                 try
                 {
                     ((JObject) txInfo["tx"]).Add("params",
-                        (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction))
+                        (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(_chainId, transaction))
                     );
                 }
                 catch (Exception)
@@ -475,7 +473,7 @@ namespace AElf.ChainController.Rpc
                 ["tx_status"] = txResult.Status.ToString(),
                 ["tx_info"] = txInfo["tx"]
             };
-            var txtrc = await this.GetTransactionTrace(txHash, txResult.BlockNumber);
+            var txtrc = await this.GetTransactionTrace(_chainId, txHash, txResult.BlockNumber);
 
 #if DEBUG
             response["tx_trc"] = txtrc?.ToString();
@@ -516,7 +514,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("get_block_height")]
         public async Task<JObject> ProGetBlockHeight()
         {
-            var height = await this.GetCurrentChainHeight();
+            var height = await this.GetCurrentChainHeight(_chainId);
             var response = new JObject
             {
                 ["result"] = new JObject
@@ -540,7 +538,7 @@ namespace AElf.ChainController.Rpc
                 return invalidBlockHeightError;
             }
 
-            var blockinfo = await this.GetBlockAtHeight(height);
+            var blockinfo = await this.GetBlockAtHeight(_chainId, height);
             if (blockinfo == null)
                 return invalidBlockHeightError;
 
@@ -565,7 +563,7 @@ namespace AElf.ChainController.Rpc
                     ["Body"] = new JObject
                     {
                         ["TransactionsCount"] = blockinfo.Body.TransactionsCount,
-                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(blockinfo.Header.Height)
+                        ["IndexedSideChainBlcokInfo"] = await this.GetIndexedSideChainBlockInfo(_chainId, blockinfo.Header.Height)
                     }
                 }
             };
@@ -640,7 +638,7 @@ namespace AElf.ChainController.Rpc
                     throw new Exception("Invalid Hash Format");
                 }
 
-                var proposal = await this.GetProposal(proposalHash);
+                var proposal = await this.GetProposal(_chainId, proposalHash);
                 var origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
                 return new JObject
                 {
@@ -672,7 +670,7 @@ namespace AElf.ChainController.Rpc
         {
             try
             {
-                var general = await this.GetVotesGeneral();
+                var general = await this.GetVotesGeneral(_chainId);
                 return new JObject
                 {
                     ["error"] = 0,

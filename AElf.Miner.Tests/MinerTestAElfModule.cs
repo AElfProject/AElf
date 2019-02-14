@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel;
@@ -31,7 +29,8 @@ namespace AElf.Miner.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
             context.Services.AddScoped<IExecutingService, NoFeeSimpleExecutingService>();
             
@@ -46,8 +45,7 @@ namespace AElf.Miner.Tests
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}).DumpBase58();
+        
         }
-
     }
 }

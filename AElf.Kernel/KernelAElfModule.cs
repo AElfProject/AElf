@@ -26,6 +26,8 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            // TODO : Maybe it shouldn't be set here
+            Configure<ChainOptions>(configuration);
 
             //Configure<DbConnectionOptions>(configuration);
             
