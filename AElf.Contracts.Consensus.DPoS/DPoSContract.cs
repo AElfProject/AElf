@@ -190,7 +190,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            // To terminate current round.
+            // To terminate current round or term.
             if (AllOutValueFilled(out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
             {
                 return extra.ChangeTerm
@@ -294,21 +294,30 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            // To terminate current round.
+            var timeToChangeTerm = false;
+            if (_dataHelper.TryToGetCurrentAge(out var blockAge) && _dataHelper.TryToGetTermNumber(out var termNumber))
+            {
+                timeToChangeTerm = blockAge / Config.DaysEachTerm != termNumber - 1;
+            }
+
+            // To terminate current round or term.
             if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
             {
+                // This node is Extra Block Provider of current round.
                 var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
                 if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Api.RecoverPublicKey().ToHex() &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new DPoSCommand
                     {
-                        CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
-                        Behaviour = DPoSBehaviour.NextRound
+                        CountingMilliseconds =
+                            (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
+                        Behaviour = timeToChangeTerm ? DPoSBehaviour.NextTerm : DPoSBehaviour.NextRound
                     };
                 }
-
+                
+                // This node isn't Extra Block Provider of current round.
                 var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
                 var roundTime = blockProducerNumber * miningInterval;
                 var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
@@ -318,14 +327,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         CountingMilliseconds =
                             (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
-                        Behaviour = DPoSBehaviour.NextRound
+                        Behaviour = timeToChangeTerm ? DPoSBehaviour.NextTerm : DPoSBehaviour.NextRound
                     };
                 }
 
                 return new DPoSCommand
                 {
                     CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
-                    Behaviour = DPoSBehaviour.NextRound
+                    Behaviour = timeToChangeTerm ? DPoSBehaviour.NextTerm : DPoSBehaviour.NextRound
                 };
             }
 

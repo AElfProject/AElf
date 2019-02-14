@@ -45,5 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return minedBlocks * GlobalConfig.ElfTokenPerBlock;
         }
+
+        public const int DaysEachTerm = 7;
     }
 }
