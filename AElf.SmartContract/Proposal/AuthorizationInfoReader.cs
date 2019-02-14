@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -16,32 +15,30 @@ namespace AElf.SmartContract.Proposal
     {
         private readonly ContractInfoReader _contractInfoReader;
 
-        private Address AuthorizationContractAddress =>
-            ContractHelpers.GetAuthorizationContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-        
         public AuthorizationInfoReader(IStateManager stateManager)
         {
-            var chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-            _contractInfoReader = new ContractInfoReader(chainId, stateManager);
+            _contractInfoReader = new ContractInfoReader(stateManager);
         }
-        
-        public async Task<Kernel.Proposal> GetProposal(Hash proposalHash)
+
+        public async Task<Kernel.Proposal> GetProposal(int chainId, Hash proposalHash)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
-                Hash.FromMessage(proposalHash), GlobalConfig.AElfProposal);
+            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(chainId,
+                ContractHelpers.GetAuthorizationContractAddress(chainId), Hash.FromMessage(proposalHash),
+                GlobalConfig.AElfProposal);
             return Kernel.Proposal.Parser.ParseFrom(bytes);
         }
 
-        public async Task<Authorization> GetAuthorization(Address msig)
+        public async Task<Authorization> GetAuthorization(int chainId, Address msig)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(AuthorizationContractAddress,
-                Hash.FromMessage(msig), GlobalConfig.AElfMultiSig);
+            var bytes = await _contractInfoReader.GetBytesAsync<Authorization>(chainId,
+                ContractHelpers.GetAuthorizationContractAddress(chainId), Hash.FromMessage(msig),
+                GlobalConfig.AElfMultiSig);
             return bytes != null ? Authorization.Parser.ParseFrom(bytes) : new Authorization();
         }
 
-        public async Task<bool> CheckAuthority(Address mSigAddress, IEnumerable<byte[]> pubKeys)
+        public async Task<bool> CheckAuthority(int chainId, Address mSigAddress, IEnumerable<byte[]> pubKeys)
         {
-            var auth = await GetAuthorization(mSigAddress);
+            var auth = await GetAuthorization(chainId, mSigAddress);
             return ValidateAuthorization(auth, pubKeys);
         }
 
@@ -55,7 +52,8 @@ namespace AElf.SmartContract.Proposal
         {
             var enumerable = pubKeys as byte[][] ?? pubKeys.ToArray();
             var provided = enumerable
-                .Select(pubKey => authorization.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
+                .Select(pubKey =>
+                    authorization.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
                 .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, long>(0, (current, r) => current + r.Weight);
 
             return provided >= authorization.ExecutionThreshold;

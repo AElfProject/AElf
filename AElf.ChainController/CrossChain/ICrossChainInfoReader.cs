@@ -6,11 +6,11 @@ namespace AElf.ChainController.CrossChain
 {
     public interface ICrossChainInfoReader
     {
-        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight);
-        Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(ulong height);
-        Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight);
-        Task<ulong> GetParentChainCurrentHeightAsync();
-        Task<ulong> GetSideChainCurrentHeightAsync(int chainId);
-        Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(ulong height);
+        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(int chainId, ulong blockHeight);
+        Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(int chainId, ulong height);
+        Task<ulong> GetBoundParentChainHeightAsync(int chainId, ulong localChainHeight);
+        Task<ulong> GetParentChainCurrentHeightAsync(int chainId);
+        Task<ulong> GetSideChainCurrentHeightAsync(int chainId, int sideChainId);
+        Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(int chainId, ulong height);
     }
 }

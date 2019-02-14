@@ -5,16 +5,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AElf.ChainController;
-
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Kernel.Managers;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,25 +30,27 @@ namespace AElf.SideChain.Creation
         private Bloom _bloom;
         private IChainManager _chainManager;
         private DeployOptions _deployOptions;
+        private ChainOptions _chainOptions;
 
         public ChainCreationEventListener( ITransactionResultManager transactionResultManager, 
             IChainCreationService chainCreationService, IChainManager chainManager, 
-            IOptionsSnapshot<DeployOptions> options)
+            IOptionsSnapshot<DeployOptions> deployOptions, IOptionsSnapshot<ChainOptions> chainOptions)
         {
             Logger = NullLogger<ChainCreationEventListener>.Instance;
+            _chainOptions = chainOptions.Value;
             TransactionResultManager = transactionResultManager;
             ChainCreationService = chainCreationService;
             _chainManager = chainManager;
             _interestedLogEvent = new LogEvent()
             {
-                Address = ContractHelpers.GetGenesisBasicContractAddress(ChainConfig.Instance.ChainId.ConvertBase58ToChainId()),
+                Address = ContractHelpers.GetGenesisBasicContractAddress(_chainOptions.ChainId.ConvertBase58ToChainId()),
                 Topics =
                 {
                     ByteString.CopyFrom("SideChainCreationRequestApproved".CalculateHash())
                 }
             };
             _bloom = _interestedLogEvent.GetBloom();
-            _deployOptions = options.Value;
+            _deployOptions = deployOptions.Value;
             InitializeClient();
         }
 

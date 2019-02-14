@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
 using Google.Protobuf.WellKnownTypes;
@@ -25,138 +24,90 @@ namespace AElf.Kernel.Consensus
         private readonly ConsensusDataReader _reader;        
         public ILogger<ConsensusHelper> Logger { get; set; }
 
-        public List<string> Miners
+        public UInt64Value GetCurrentRoundNumber(int chainId)
         {
-            get
+            try
             {
-                if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId)
-                {
-                    return _minersManager.GetMiners(CurrentTermNumber.Value).Result.PublicKeys.ToList();
-                }
-            
-                return _minersManager.GetMiners(GetCurrentRoundInfo().MinersTermNumber).Result.PublicKeys.ToList();
+                return UInt64Value.Parser.ParseFrom(
+                    _reader.ReadFiled<UInt64Value>(chainId, GlobalConfig.AElfDPoSCurrentRoundNumber));
+            }
+            catch (Exception)
+            {
+                return new UInt64Value {Value = 0};
             }
         }
 
-        public UInt64Value CurrentRoundNumber
+        public UInt64Value GetCurrentTermNumber(int chainId)
         {
-            get
+            try
             {
-                try
-                {
-                    return UInt64Value.Parser.ParseFrom(
-                        _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSCurrentRoundNumber));
-                }
-                catch (Exception)
-                {
-                    return new UInt64Value {Value = 0};
-                }
+                return UInt64Value.Parser.ParseFrom(
+                    _reader.ReadFiled<UInt64Value>(chainId, GlobalConfig.AElfDPoSCurrentTermNumber));
+            }
+            catch (Exception)
+            {
+                return new UInt64Value {Value = 0};
             }
         }
 
-        public UInt64Value CurrentTermNumber
+        public UInt64Value GetBlockchainAge(int chainId)
         {
-            get
+            try
             {
-                try
-                {
-                    return UInt64Value.Parser.ParseFrom(
-                        _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSCurrentTermNumber));
-                }
-                catch (Exception)
-                {
-                    return new UInt64Value {Value = 0};
-                }
+                return UInt64Value.Parser.ParseFrom(
+                    _reader.ReadFiled<UInt64Value>(chainId, GlobalConfig.AElfDPoSAgeFieldString));
+            }
+            catch (Exception)
+            {
+                return new UInt64Value {Value = 0};
             }
         }
 
-        public UInt64Value BlockchainAge
+        public Timestamp GetBlockchainStartTimestamp(int chainId)
         {
-            get
+            try
             {
-                try
-                {
-                    return UInt64Value.Parser.ParseFrom(
-                        _reader.ReadFiled<UInt64Value>(GlobalConfig.AElfDPoSAgeFieldString));
-                }
-                catch (Exception)
-                {
-                    return new UInt64Value {Value = 0};
-                }
+                return Timestamp.Parser.ParseFrom(
+                    _reader.ReadFiled<Timestamp>(chainId, GlobalConfig.AElfDPoSBlockchainStartTimestamp));
+            }
+            catch (Exception)
+            {
+                return DateTime.UtcNow.ToTimestamp();
             }
         }
 
-        public Timestamp BlockchainStartTimestamp
+        public Candidates GetCandidates(int chainId)
         {
-            get
+            try
             {
-                try
+                var candidates = Candidates.Parser.ParseFrom(
+                    _reader.ReadFiled<Candidates>(chainId, GlobalConfig.AElfDPoSCandidatesString));
+                if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
                 {
-                    return Timestamp.Parser.ParseFrom(
-                        _reader.ReadFiled<Timestamp>(GlobalConfig.AElfDPoSBlockchainStartTimestamp));
+                    throw new Exception();
                 }
-                catch (Exception)
-                {
-                    return DateTime.UtcNow.ToTimestamp();
-                }
+
+                return candidates;
+            }
+            catch (Exception)
+            {
+                Logger.LogTrace("No candidate, so the miners of next term will still be the initial miners.");
+                var initialMiners = _minersManager.GetMiners(0).Result.PublicKeys.ToCandidates();
+                initialMiners.IsInitialMiners = true;
+                return initialMiners;
             }
         }
 
-        public Candidates Candidates
+        private SInt32Value GetMiningInterval(int chainId)
         {
-            get
+            try
             {
-                try
-                {
-                    var candidates = Candidates.Parser.ParseFrom(
-                        _reader.ReadFiled<Candidates>(GlobalConfig.AElfDPoSCandidatesString));
-                    if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
-                    {
-                        throw new Exception();
-                    }
-
-                    return candidates;
-                }
-                catch (Exception)
-                {
-                    Logger.LogTrace("No candidate, so the miners of next term will still be the initial miners.");
-                    var initialMiners = _minersManager.GetMiners(0).Result.PublicKeys.ToCandidates();
-                    initialMiners.IsInitialMiners = true;
-                    return initialMiners;
-                }
+                return SInt32Value.Parser.ParseFrom(
+                    _reader.ReadFiled<SInt32Value>(chainId, GlobalConfig.AElfDPoSMiningIntervalString));
             }
-        }
-
-        private Round CurrentRoundInformation
-        {
-            get
+            catch (Exception)
             {
-                try
-                {
-                    return Round.Parser.ParseFrom(_reader.ReadMap<Round>(CurrentRoundNumber,
-                        GlobalConfig.AElfDPoSRoundsMapString));
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, "Failed to get DPoS information of current round.\n");
-                    return new Round();
-                }
-            }
-        }
-
-        private SInt32Value MiningInterval
-        {
-            get
-            {
-                try
-                {
-                    return SInt32Value.Parser.ParseFrom(
-                        _reader.ReadFiled<SInt32Value>(GlobalConfig.AElfDPoSMiningIntervalString));
-                }
-                catch (Exception)
-                {
-                    return new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval};
-                }
+                return new SInt32Value {Value = ConsensusConfig.Instance.DPoSMiningInterval};
             }
         }
 
@@ -166,57 +117,26 @@ namespace AElf.Kernel.Consensus
             _reader = reader;
         }
 
-        /// <summary>
-        /// Get block producer information of current round.
-        /// </summary>
-        /// <param name="accountAddressHex"></param>
-        public MinerInRound this[string accountAddressHex]
+        private Round GetRound(int chainId, UInt64Value roundNumber)
         {
-            get
+            try
             {
-                try
-                {
-                    var bytes = _reader.ReadMap<Round>(CurrentRoundNumber, GlobalConfig.AElfDPoSRoundsMapString);
-                    var round = Round.Parser.ParseFrom(bytes);
-                    if (round.RealTimeMinersInfo.ContainsKey(accountAddressHex))
-                        return round.RealTimeMinersInfo[accountAddressHex];
-
-                    Logger.LogError("No such Block Producer in current round.");
-                    return default(MinerInRound);
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "Failed to get Block Producer information of current round.");
-                    return default(MinerInRound);
-                }
+                var bytes = _reader.ReadMap<Round>(chainId, roundNumber, GlobalConfig.AElfDPoSRoundsMapString);
+                var round = Round.Parser.ParseFrom(bytes);
+                return round;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogTrace(ex, $"Error while getting Round information of round {roundNumber.Value}.");
+                return default(Round);
             }
         }
 
-        public MinerInRound this[byte[] pubKey] => this[pubKey.ToPlainBase58()];
-
-        private Round this[UInt64Value roundNumber]
-        {
-            get
-            {
-                try
-                {
-                    var bytes = _reader.ReadMap<Round>(roundNumber, GlobalConfig.AElfDPoSRoundsMapString);
-                    var round = Round.Parser.ParseFrom(bytes);
-                    return round;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogTrace(ex, $"Error while getting Round information of round {roundNumber.Value}.");
-                    return default(Round);
-                }
-            }
-        }
-
-        public bool TryToGetVictories(out List<string> victories)
+        public bool TryToGetVictories(int chainId, out List<string> victories)
         {
             var ticketsMap = new Dictionary<string, ulong>();
             victories = new List<string>();
-            var candidates = Candidates;
+            var candidates = GetCandidates(chainId);
             if (candidates.PublicKeys.Count < GlobalConfig.BlockProducerNumber)
             {
                 return false;
@@ -224,7 +144,7 @@ namespace AElf.Kernel.Consensus
 
             foreach (var candidate in candidates.PublicKeys)
             {
-                var tickets = GetTickets(candidate);
+                var tickets = GetTickets(chainId, candidate);
                 if (tickets.ObtainedTickets != 0)
                 {
                     ticketsMap[candidate] = tickets.ObtainedTickets;
@@ -242,45 +162,18 @@ namespace AElf.Kernel.Consensus
             return !candidates.IsInitialMiners;
         }
 
-        private Tickets GetTickets(string candidatePublicKey)
+        private Tickets GetTickets(int chainId, string candidatePublicKey)
         {
-            var bytes = _reader.ReadMap<Tickets>(candidatePublicKey.ToStringValue(),
+            var bytes = _reader.ReadMap<Tickets>(chainId, candidatePublicKey.ToStringValue(),
                 GlobalConfig.AElfDPoSTicketsMapString);
             return bytes == null ? new Tickets() : Tickets.Parser.ParseFrom(bytes);
         }
 
-        public StringValue GetDPoSInfoToString()
-        {
-            ulong count = 1;
-
-            if (CurrentRoundNumber.Value != 0)
-            {
-                count = CurrentRoundNumber.Value;
-            }
-
-            var infoOfOneRound = "";
-
-            ulong i = 1;
-            while (i <= count)
-            {
-                var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
-                infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
-                i++;
-            }
-
-            var res = new StringValue
-            {
-                Value = infoOfOneRound + "Current round: " + CurrentRoundNumber?.Value
-            };
-
-            return res;
-        }
-
-        private string GetDPoSInfoToStringOfLatestRounds(ulong countOfRounds)
+        private string GetDPoSInfoToStringOfLatestRounds(int chainId, ulong countOfRounds)
         {
             try
             {
-                if (CurrentRoundNumber.Value == 0)
+                if (GetCurrentRoundNumber(chainId).Value == 0)
                 {
                     return "Somehow current round number is 0";
                 }
@@ -290,7 +183,7 @@ namespace AElf.Kernel.Consensus
                     return "";
                 }
 
-                var currentRoundNumber = CurrentRoundNumber.Value;
+                var currentRoundNumber = GetCurrentRoundNumber(chainId).Value;
                 ulong startRound;
                 if (countOfRounds >= currentRoundNumber)
                 {
@@ -310,12 +203,12 @@ namespace AElf.Kernel.Consensus
                         continue;
                     }
 
-                    var roundInfoStr = GetRoundInfoToString(new UInt64Value {Value = i});
+                    var roundInfoStr = GetRoundInfoToString(chainId, new UInt64Value {Value = i});
                     infoOfOneRound += $"\n[Round {i}]\n" + roundInfoStr;
                     i++;
                 }
 
-                return infoOfOneRound + $"Current round: {CurrentRoundNumber.Value}";
+                return infoOfOneRound + $"Current round: {GetCurrentRoundNumber(chainId).Value}";
             }
             catch (Exception e)
             {
@@ -333,23 +226,22 @@ namespace AElf.Kernel.Consensus
             return GlobalConfig.BlockProducerNumber == 1;
         }
 
-        public ulong CalculateBlockchainAge()
+        public ulong CalculateBlockchainAge(int chainId)
         {
-            return (ulong) (DateTime.UtcNow - BlockchainStartTimestamp.ToDateTime()).TotalMinutes + 1;
+            return (ulong) (DateTime.UtcNow - GetBlockchainStartTimestamp(chainId).ToDateTime()).TotalMinutes + 1;
         }
 
-        public void SyncMiningInterval()
+        public void SyncMiningInterval(int chainId)
         {
-            ConsensusConfig.Instance.DPoSMiningInterval = MiningInterval.Value;
+            ConsensusConfig.Instance.DPoSMiningInterval = GetMiningInterval(chainId).Value;
             Logger.LogInformation($"Set AElf DPoS mining interval to: {ConsensusConfig.Instance.DPoSMiningInterval} ms.");
         }
 
-        public void LogDPoSInformation(ulong height)
+        public void LogDPoSInformation(int chainId, ulong height)
         {
             Logger.LogTrace("Log dpos information - Start");
-            Logger.LogTrace(GetDPoSInfoToStringOfLatestRounds(GlobalConfig.AElfDPoSLogRoundCount) +
-                           $". Current height: {height}. Current term: {CurrentTermNumber.Value}. Current age: {BlockchainAge.Value}");
-            Logger.LogTrace(GetCurrentElectionInformation());
+            Logger.LogTrace(GetDPoSInfoToStringOfLatestRounds(chainId, GlobalConfig.AElfDPoSLogRoundCount) +$". Current height: {height}. Current term: {GetCurrentTermNumber(chainId).Value}. Currentage:{GetBlockchainAge(chainId).Value}");
+            Logger.LogTrace(GetCurrentElectionInformation(chainId));
             Logger.LogTrace("Log dpos information - End");
         }
 
@@ -358,12 +250,12 @@ namespace AElf.Kernel.Consensus
         /// </summary>
         /// <param name="validCandidates"></param>
         /// <returns></returns>
-        private bool TryToGetValidCandidates(out List<string> validCandidates)
+        private bool TryToGetValidCandidates(int chainId, out List<string> validCandidates)
         {
             validCandidates = new List<string>();
-            foreach (var candidate in Candidates.PublicKeys)
+            foreach (var candidate in GetCandidates(chainId).PublicKeys)
             {
-                if (GetTickets(candidate).ObtainedTickets > 0)
+                if (GetTickets(chainId, candidate).ObtainedTickets > 0)
                 {
                     validCandidates.Add(candidate);
                 }
@@ -372,18 +264,18 @@ namespace AElf.Kernel.Consensus
             return validCandidates.Any();
         }
 
-        private string GetCurrentElectionInformation()
+        private string GetCurrentElectionInformation(int chainId)
         {
             var result = "";
             var dictionary = new Dictionary<string, ulong>();
-            if (!TryToGetValidCandidates(out var candidates))
+            if (!TryToGetValidCandidates(chainId, out var candidates))
                 return result;
 
             foreach (var candidatePublicKey in candidates)
             {
-                var tickets = GetTickets(candidatePublicKey);
+                var tickets = GetTickets(chainId, candidatePublicKey);
 
-                dictionary.Add(GetAlias(candidatePublicKey), tickets.ObtainedTickets);
+                dictionary.Add(GetAlias(chainId, candidatePublicKey), tickets.ObtainedTickets);
             }
 
             result += "\nElection information:\n";
@@ -392,27 +284,27 @@ namespace AElf.Kernel.Consensus
                 .Aggregate(result, (current, pair) => current + $"[{pair.Key}]\n{pair.Value}\n");
         }
 
-        public Round GetCurrentRoundInfo()
+        public Round GetCurrentRoundInfo(int chainId)
         {
-            return CurrentRoundNumber.Value != 0 ? this[CurrentRoundNumber] : null;
+            return GetCurrentRoundNumber(chainId).Value != 0 ? GetRound(chainId, GetCurrentRoundNumber(chainId)) : null;
         }
 
-        public Miners GetCurrentMiners()
+        public Miners GetCurrentMiners(int chainId)
         {
-            Logger.LogTrace($"Current term number: {CurrentTermNumber.Value}");
-            var bytes = _reader.ReadMap<Miners>(CurrentTermNumber, GlobalConfig.AElfDPoSMinersMapString);
+            Logger.LogTrace($"Current term number: {GetCurrentTermNumber(chainId).Value}");
+            var bytes = _reader.ReadMap<Miners>(chainId, GetCurrentTermNumber(chainId), GlobalConfig.AElfDPoSMinersMapString);
             var miners = AElf.Kernel.Miners.Parser.ParseFrom(bytes);
             return miners;
         }
 
-        public TermSnapshot GetLatestTermSnapshot()
+        public TermSnapshot GetLatestTermSnapshot(int chainId)
         {
-            var bytes = _reader.ReadMap<TermSnapshot>(CurrentTermNumber, GlobalConfig.AElfDPoSSnapshotMapString);
+            var bytes = _reader.ReadMap<TermSnapshot>(chainId, GetCurrentTermNumber(chainId), GlobalConfig.AElfDPoSSnapshotMapString);
             var snapshot = TermSnapshot.Parser.ParseFrom(bytes);
             return snapshot;
         }
 
-        public bool TryGetRoundInfo(ulong roundNumber, out Round roundInfo)
+        public bool TryGetRoundInfo(int chainId, ulong roundNumber, out Round roundInfo)
         {
             if (roundNumber == 0)
             {
@@ -420,7 +312,7 @@ namespace AElf.Kernel.Consensus
                 return false;
             }
 
-            var info = this[roundNumber.ToUInt64Value()];
+            var info = GetRound(chainId, roundNumber.ToUInt64Value());
             if (info != null)
             {
                 roundInfo = info;
@@ -431,16 +323,16 @@ namespace AElf.Kernel.Consensus
             return false;
         }
 
-        private string GetRoundInfoToString(UInt64Value roundNumber)
+        private string GetRoundInfoToString(int chainId, UInt64Value roundNumber)
         {
             try
             {
                 var result = "";
 
-                var roundInfo = this[roundNumber];
+                var roundInfo = GetRound(chainId, roundNumber);
                 foreach (var minerInfo in roundInfo.RealTimeMinersInfo.OrderBy(m => m.Value.Order))
                 {
-                    result += GetAlias(minerInfo.Key) +
+                    result += GetAlias(chainId, minerInfo.Key) +
                               (minerInfo.Value.IsExtraBlockProducer ? " [Current EBP]:\n" : ":\n");
                     result += "Order:\t\t" + minerInfo.Value.Order + "\n";
                     result += "Mining Time:\t" +
@@ -460,7 +352,7 @@ namespace AElf.Kernel.Consensus
                 }
 
                 return result +
-                       $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(MiningInterval.Value).ToLocalTime():u}\n";
+                       $"\nEBP TimeSlot of current round: {roundInfo.GetEBPMiningTime(GetMiningInterval(chainId).Value).ToLocalTime():u}\n";
             }
             catch (Exception e)
             {
@@ -469,9 +361,9 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        private string GetAlias(string publicKey)
+        private string GetAlias(int chainId, string publicKey)
         {
-            var bytes = _reader.ReadMap<StringValue>(new StringValue {Value = publicKey},
+            var bytes = _reader.ReadMap<StringValue>(chainId, new StringValue {Value = publicKey},
                 GlobalConfig.AElfDPoSAliasesMapString);
             return bytes == null
                 ? publicKey.Substring(0, GlobalConfig.AliasLimit)

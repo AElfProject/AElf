@@ -1,9 +1,4 @@
-﻿using System.IO;
-using AElf.ChainController.CrossChain;
-using AElf.Common.Application;
-using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
+﻿using AElf.ChainController.CrossChain;
 using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

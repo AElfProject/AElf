@@ -1,7 +1,5 @@
 using System;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -36,7 +34,7 @@ namespace AElf.Runtime.CSharp2.Tests
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}).DumpBase58();
+            
         }
     }
 }
