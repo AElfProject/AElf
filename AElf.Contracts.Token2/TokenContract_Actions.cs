@@ -91,7 +91,7 @@ namespace AElf.Contracts.Token
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-            var blk = Context.GetBlockByHeight(height);
+            var blk = Context.GetPreviousBlock();
             var senders = blk.Body.TransactionList.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
             foreach (var sender in senders)

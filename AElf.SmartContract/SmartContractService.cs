@@ -10,6 +10,7 @@ using AElf.Configuration;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.ABI;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Types;
 using AElf.SmartContract.Contexts;
@@ -30,11 +31,11 @@ namespace AElf.SmartContract
 
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IFunctionMetadataService _functionMetadataService;
-        private readonly IChainService _chainService;
+        private readonly IBlockchainService _chainService;
 
         public SmartContractService(ISmartContractManager smartContractManager,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IFunctionMetadataService functionMetadataService, IChainService chainService)
+            IFunctionMetadataService functionMetadataService, IBlockchainService chainService)
         {
             _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;

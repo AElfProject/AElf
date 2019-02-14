@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf;
@@ -24,7 +25,7 @@ namespace AElf.Sdk.CSharp
         private static ISmartContractContext _smartContractContext;
         private static ITransactionContext _transactionContext;
         private static ITransactionContext _lastCallContext;
-        private static IBlockChain _blockChain;
+        private static IBlockchainService _blockChain;
 
         public static ProtobufSerializer Serializer { get; } = new ProtobufSerializer();
 
@@ -33,7 +34,7 @@ namespace AElf.Sdk.CSharp
         public static void SetSmartContractContext(ISmartContractContext contractContext)
         {
             _smartContractContext = contractContext;
-            _blockChain = contractContext.ChainService.GetBlockChain(contractContext.ChainId);
+            _blockChain = contractContext.ChainService;
             _dataProviders = new Dictionary<string, IDataProvider> {{"", _smartContractContext.DataProvider}};
         }
 

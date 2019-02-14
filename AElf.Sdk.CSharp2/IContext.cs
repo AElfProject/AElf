@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp
         Address Sender { get; }
         Address Self { get; }
 
-        Block GetBlockByHeight(ulong height);
+        Block GetPreviousBlock();
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //

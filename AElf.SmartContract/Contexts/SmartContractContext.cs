@@ -1,5 +1,6 @@
 ﻿using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.SmartContract
@@ -10,6 +11,6 @@ namespace AElf.SmartContract
         public Address ContractAddress { get; set; }
         public IDataProvider DataProvider { get; set; }
         public ISmartContractService SmartContractService { get; set; }
-        public IChainService ChainService { get; set; }
+        public IBlockchainService ChainService { get; set; }
     }
 }

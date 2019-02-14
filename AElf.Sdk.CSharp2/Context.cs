@@ -3,17 +3,19 @@ using AElf.Common;
 using AElf.Kernel;
 using System.Linq;
 using System.Reflection;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.Threading;
 
 namespace AElf.Sdk.CSharp
 {
     public class Context : IContextInternal
     {
-        private IBlockChain BlockChain { get; set; }
+        private IBlockchainService _blockChain { get; set; }
         private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
 
@@ -29,7 +31,7 @@ namespace AElf.Sdk.CSharp
 
         private void OnSmartContractContextSet()
         {
-            BlockChain = _smartContractContext.ChainService.GetBlockChain(_smartContractContext.ChainId);
+            _blockChain = _smartContractContext.ChainService;
         }
 
         public void FireEvent(Event logEvent)
@@ -51,9 +53,12 @@ namespace AElf.Sdk.CSharp
             });
         }
 
-        public Block GetBlockByHeight(ulong height)
+
+        public Block GetPreviousBlock()
         {
-            return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
+            return AsyncHelper.RunSync(
+                () => _blockChain.GetBlockByHashAsync(_smartContractContext.ChainId,
+                    TransactionContext.PreviousBlockHash));
         }
     }
 }
