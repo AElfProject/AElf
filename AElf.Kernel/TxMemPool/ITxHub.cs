@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 
-namespace AElf.Miner.TxMemPool
+namespace AElf.Kernel.TxMemPool
 {
     public interface ITxHub
     {

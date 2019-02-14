@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Storages;
-using AElf.Miner.TxMemPool;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;

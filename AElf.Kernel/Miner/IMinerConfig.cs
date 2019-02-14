@@ -1,6 +1,6 @@
 ﻿using AElf.Common;
 
-namespace AElf.Miner.Miner
+namespace AElf.Kernel.Miner
 {
     public interface IMinerConfig
     {

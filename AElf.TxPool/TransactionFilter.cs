@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
-using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.TxMemPool;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Miner.TxMemPool
+namespace AElf.TxPool
 {
     // ReSharper disable InconsistentNaming
-    public class TransactionFilter
+    public class TransactionFilter : ITransactionFilter
     {
         private readonly IAccountService _accountService;
 

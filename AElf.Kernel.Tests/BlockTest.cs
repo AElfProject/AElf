@@ -9,6 +9,8 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
+using AElf.Kernel.Extensions;
+using AElf.Kernel.Genesis;
 using Shouldly;
 
 namespace AElf.Kernel.Tests

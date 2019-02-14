@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Runtime.CSharp.Core.ABI;
 using Type = System.Type;

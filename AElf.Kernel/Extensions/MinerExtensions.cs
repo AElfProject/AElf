@@ -6,7 +6,7 @@ using AElf.Configuration.Config.Chain;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     // ReSharper disable InconsistentNaming
     public static class MinersExtensions

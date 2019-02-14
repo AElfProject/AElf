@@ -10,8 +10,8 @@ using Xunit;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Types;
-using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

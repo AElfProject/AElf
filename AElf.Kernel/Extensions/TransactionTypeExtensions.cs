@@ -2,7 +2,7 @@ using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Types;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class TransactionTypeExtensions
     {

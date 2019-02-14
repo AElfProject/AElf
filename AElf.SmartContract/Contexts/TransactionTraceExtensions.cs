@@ -7,6 +7,7 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Kernel;
+using AElf.Kernel.Extensions;
 
 namespace AElf.SmartContract
 {

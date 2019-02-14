@@ -2,7 +2,7 @@
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Miner.Miner
+namespace AElf.Kernel.Miner
 {
     public class MinerConfig : IMinerConfig
     {

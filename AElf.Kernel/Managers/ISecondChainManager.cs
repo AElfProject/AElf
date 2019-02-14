@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
-using JetBrains.Annotations;
-using Volo.Abp;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Managers.Another
 {
@@ -63,7 +59,7 @@ namespace AElf.Kernel.Managers.Another
                 Height = 0,
                 IsLinked = true
             });
-            await _chains.SetAsync(chain.Id.ToHex(), chain);
+            await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
 
             return chain;
         }
@@ -137,7 +133,7 @@ namespace AElf.Kernel.Managers.Another
                     }
 
                     chainBlockLink = await GetChainBlockLinkAsync(
-                        chain.Id, chain.NotLinkedBlocks[blockHash]);
+                        (int) chain.Id, (string) chain.NotLinkedBlocks[blockHash]);
 
                     chain.NotLinkedBlocks.Remove(blockHash);
 
@@ -168,7 +164,7 @@ namespace AElf.Kernel.Managers.Another
                 }
             }
 
-            await _chains.SetAsync(chain.Id.ToHex(), chain);
+            await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
 
             return status;
         }
@@ -198,7 +194,7 @@ namespace AElf.Kernel.Managers.Another
                 await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
                 chain.LastIrreversibleBlockHeight = chainBlockLink.Height;
-                await _chains.SetAsync(chain.Id.ToHex(), chain);
+                await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
                 
             }
         }

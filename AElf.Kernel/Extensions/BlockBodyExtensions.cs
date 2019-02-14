@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Common;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class BlockBodyExtensions
     {

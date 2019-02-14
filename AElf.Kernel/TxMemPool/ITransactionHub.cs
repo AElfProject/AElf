@@ -1,4 +1,4 @@
-namespace AElf.Miner.TxMemPool
+namespace AElf.Kernel.TxMemPool
 {
     public interface ITransactionHub
     {

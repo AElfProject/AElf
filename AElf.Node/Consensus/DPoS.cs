@@ -14,14 +14,15 @@ using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
+using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using AElf.Miner.Miner;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

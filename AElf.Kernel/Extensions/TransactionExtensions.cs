@@ -1,9 +1,8 @@
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class TransactionExtensions
     {

@@ -1,7 +1,4 @@
-using System.Linq;
-using System.Security.Cryptography;
-
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class AddressExtensions
     {

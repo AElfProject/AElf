@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using System.Text;
+using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Common;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class RetValExtensions
     {

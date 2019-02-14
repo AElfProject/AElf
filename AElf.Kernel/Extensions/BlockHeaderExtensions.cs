@@ -1,7 +1,6 @@
 using AElf.Common;
-using AElf.Cryptography.ECDSA;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class BlockHeaderExtensions
     {

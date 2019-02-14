@@ -6,6 +6,7 @@ using AElf.Kernel.Managers;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using HashExtensions = AElf.Kernel.Extensions.HashExtensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -30,7 +31,7 @@ namespace AElf.Kernel
         public async Task<ulong> GetCurrentBlockHeightAsync()
         {
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
-            if (hash.IsNull())
+            if (HashExtensions.IsNull(hash))
             {
                 return GlobalConfig.GenesisBlockHeight;
             }
@@ -111,7 +112,7 @@ namespace AElf.Kernel
             if (blockHeader.Height == GlobalConfig.GenesisBlockHeight)
             {
                 var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
-                if (curHash.IsNull())
+                if (HashExtensions.IsNull(curHash))
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
                 }

@@ -5,6 +5,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
+using AElf.Kernel.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 

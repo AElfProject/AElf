@@ -1,4 +1,4 @@
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class LogEventExtensions
     {

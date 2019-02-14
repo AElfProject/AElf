@@ -1,6 +1,6 @@
 using AElf.Kernel;
 
-namespace AElf.Miner.EventMessages
+namespace AElf.Kernel.EventMessages
 {
     public sealed class BlockMined
     {

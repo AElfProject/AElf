@@ -1,9 +1,9 @@
 ﻿using System;
-using AElf.Kernel.Types;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Extensions;
+using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Genesis
 {
     public class GenesisBlockBuilder
     {
@@ -27,7 +27,8 @@ namespace AElf.Kernel
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            block.Complete(DateTime.UtcNow);          
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Body.Complete(block.Header.GetHash());         
             Block = block;
 
             return this;

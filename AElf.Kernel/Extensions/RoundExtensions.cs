@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Extensions
 {
     public static class RoundExtensions
     {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool;
+using AElf.Kernel.TxMemPool;
 
 namespace AElf.ChainController.Rpc
 {

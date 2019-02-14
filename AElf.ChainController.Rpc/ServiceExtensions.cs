@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Extensions;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;

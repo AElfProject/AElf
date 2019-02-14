@@ -5,7 +5,7 @@ using Google.Protobuf;
 using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Miner.TxMemPool;
+using AElf.Kernel.TxMemPool;
 
 namespace AElf.Kernel.Tests
 {

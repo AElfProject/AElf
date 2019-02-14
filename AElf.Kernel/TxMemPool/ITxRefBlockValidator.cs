@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Kernel;
 
-namespace AElf.Miner.TxMemPool
+namespace AElf.Kernel.TxMemPool
 {
     public interface ITxRefBlockValidator
     {

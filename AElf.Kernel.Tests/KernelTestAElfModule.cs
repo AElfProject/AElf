@@ -11,7 +11,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Miner;
 using AElf.Miner.Rpc;
-using AElf.Miner.TxMemPool;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;

@@ -1,6 +1,7 @@
 ﻿using System;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel.Extensions;
 
 namespace AElf.Kernel.Tests.BlockSyncTests
 {

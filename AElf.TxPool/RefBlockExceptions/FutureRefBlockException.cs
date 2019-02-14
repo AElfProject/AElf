@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.Miner.TxMemPool.RefBlockExceptions
+namespace AElf.TxPool.RefBlockExceptions
 {
     public class FutureRefBlockException : Exception
     {

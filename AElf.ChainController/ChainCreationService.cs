@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Genesis;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
