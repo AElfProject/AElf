@@ -10,12 +10,9 @@ namespace AElf.Consensus
     {
         private readonly IConsensusService _consensusService;
 
-        private readonly IAccountService _accountService;
-        
-        public ConsensusExtraDataProvider(IConsensusService consensusService, IAccountService accountService)
+        public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
             _consensusService = consensusService;
-            _accountService = accountService;
         }
         
         public async Task FillExtraData(Block block)
@@ -25,9 +22,7 @@ namespace AElf.Consensus
                 block.Header.BlockExtraData = new BlockExtraData();
             }
 
-            var consensusInformation =
-                _consensusService.GetNewConsensusInformation(block.Header.ChainId,
-                    await _accountService.GetAccountAsync());
+            var consensusInformation = await _consensusService.GetNewConsensusInformation(block.Header.ChainId);
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }
@@ -36,10 +31,7 @@ namespace AElf.Consensus
         {
             var consensusInformation = block.Header.BlockExtraData.ConsensusInformation;
 
-            var result = _consensusService.ValidateConsensus(block.Header.ChainId,
-                await _accountService.GetAccountAsync(), consensusInformation.ToByteArray());
-
-            return result;
+            return await _consensusService.ValidateConsensus(block.Header.ChainId, consensusInformation.ToByteArray());
         }
     }
 }

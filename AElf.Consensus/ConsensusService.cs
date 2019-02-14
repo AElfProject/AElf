@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Account;
 using AElf.Kernel.Types;
-using AElf.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.EventBus;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.Consensus
 {
@@ -22,60 +19,67 @@ namespace AElf.Consensus
         private readonly IConsensusObserver _consensusObserver;
         private readonly IExecutingService _executingService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
-        private readonly StateManager _stateManager;
-
-        public IEventBus EventBus { get; set; }
+        private readonly IAccountService _accountService;
+        private readonly IConsensusTransactionFilter _consensusTransactionFilter;
 
         private IDisposable _consensusObservables;
 
         private byte[] _latestGeneratedConsensusInformation;
 
+        private List<Transaction> _transactionsForBroadcasting = new List<Transaction>();
+
         public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
-            IConsensusInformationGenerationService consensusInformationGenerationService, StateManager stateManager)
+            IConsensusInformationGenerationService consensusInformationGenerationService, IAccountService accountService, IConsensusTransactionFilter consensusTransactionFilter)
         {
             _consensusObserver = consensusObserver;
             _executingService = executingService;
             _consensusInformationGenerationService = consensusInformationGenerationService;
-            _stateManager = stateManager;
-
-            EventBus = NullLocalEventBus.Instance;
+            _accountService = accountService;
+            _consensusTransactionFilter = consensusTransactionFilter;
         }
 
-        public bool ValidateConsensus(int chainId, Address fromAddress, byte[] consensusInformation)
+        public async Task<bool> ValidateConsensus(int chainId, byte[] consensusInformation)
         {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.ValidateConsensus, consensusInformation)
+            return ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+                    ConsensusMethod.ValidateConsensus, consensusInformation)
                 .DeserializeToPbMessage<ValidationResult>().Success;
         }
 
-        public byte[] GetNewConsensusInformation(int chainId, Address fromAddress)
+        public async Task<byte[]> GetNewConsensusInformation(int chainId)
         {
-            var newConsensusInformation =
-                ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation,
-                        _consensusInformationGenerationService.GenerateExtraInformationAsync())
-                    .DeserializeToBytes();
+            var newConsensusInformation = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+                ConsensusMethod.GetNewConsensusInformation,
+                _consensusInformationGenerationService.GenerateExtraInformationAsync()).DeserializeToBytes();
+
             _latestGeneratedConsensusInformation = newConsensusInformation;
+
             return newConsensusInformation;
         }
 
-        public IEnumerable<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress,
-            ulong refBlockHeight,
+        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactions(int chainId, ulong refBlockHeight,
             byte[] refBlockPrefix)
         {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GenerateConsensusTransactions,
-                    refBlockHeight, refBlockPrefix,
+            var generatedTransactions = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+                    ConsensusMethod.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
                     _consensusInformationGenerationService.GenerateExtraInformationForTransactionAsync(
                         _latestGeneratedConsensusInformation)).DeserializeToPbMessage<TransactionList>().Transactions
                 .ToList();
+            
+            _transactionsForBroadcasting =
+                _consensusTransactionFilter.RemoveTransactionsJustForBroadcasting(ref generatedTransactions);
+
+            return generatedTransactions;
         }
 
-        public byte[] GetConsensusCommand(int chainId, Address fromAddress)
+        public async Task<byte[]> GetConsensusCommand(int chainId)
         {
-            var consensusCommand = ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetConsensusCommand,
-                Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
-            
+            var consensusCommand = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+                ConsensusMethod.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
+
+            // Initial or update the schedule.
             _consensusObservables?.Dispose();
             _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
-            
+
             return consensusCommand;
         }
 
@@ -93,16 +97,10 @@ namespace AElf.Consensus
             var traces = _executingService.ExecuteAsync(new List<Transaction> {tx},
                 chainId, DateTime.UtcNow, new CancellationToken(), null,
                 TransactionType.ContractTransaction, true).Result;
-            CommitChangesAsync(traces.Last()).Wait();
             return traces.Last().RetVal?.Data;
         }
 
-        private async Task CommitChangesAsync(TransactionTrace trace)
-        {
-            await trace.SmartCommitChangesAsync(_stateManager);
-        }
-
-        enum ConsensusMethod
+        private enum ConsensusMethod
         {
             ValidateConsensus,
             GetNewConsensusInformation,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using AElf.Kernel;
 using AElf.Management.Interfaces;
@@ -15,6 +16,8 @@ namespace AElf.Consensus.DPoS
         private readonly INetworkService _networkService;
 
         public IEventBus EventBus { get; set; }
+
+        public List<Transaction> TransactionsForBroadcasting { get; set; } = new List<Transaction>();
 
         public DPoSObserver(IMiner miner, INetworkService networkService)
         {
@@ -53,11 +56,16 @@ namespace AElf.Consensus.DPoS
             switch (value)
             {
                 case ConsensusPerformanceType.MineBlock:
+                    EventBus.PublishAsync(new MineBlock());
                     break;
                 
                 case ConsensusPerformanceType.BroadcastTransaction:
-                    // Schedule a job to call BroadcastTransaction
+                    EventBus.PublishAsync(new BroadcastTransaction
+                    {
+                        Transactions = TransactionsForBroadcasting
+                    });
                     break;
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(value), value, null);
             }

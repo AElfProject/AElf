@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Election = new Election(DataStructures, _dataHelper);
             Process = new Process(_dataHelper);
         }
-        
+
         [View]
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
@@ -105,17 +105,17 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                         }
-                        
+
                         if (!OutInValueAreNull(dpoSInformation.NewTerm.FirstRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
-                        
+
                         if (!OutInValueAreNull(dpoSInformation.NewTerm.SecondRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
-                        
+
                         // TODO: Validate time slots (distance == 4000 ms)
                     }
                 }
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return Config.InitialWaitingMilliseconds;
             }
-            
+
             // To terminate current round.
             if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
@@ -163,7 +163,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return (int) (roundTime - (passedTime - minerInformation.Order * miningInterval));
                 }
-                
+
                 return (int) (minerInformation.Order * miningInterval - passedTime);
             }
 
@@ -226,7 +226,10 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TransactionList
                 {
                     Transactions =
-                        {GenerateTransaction(refBlockHeight,refBlockPrefix, "InitialTerm", new List<object> {extra.NewTerm})}
+                    {
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "InitialTerm",
+                            new List<object> {extra.NewTerm})
+                    }
                 };
             }
 
@@ -240,10 +243,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(refBlockHeight,refBlockPrefix, "NextTerm", new List<object> {extra.NewTerm}),
-                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SnapshotForMiners", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SnapshotForTerm", new List<object>{roundNumber, termNumber}),
-                            GenerateTransaction(refBlockHeight,refBlockPrefix, "SendDividends", new List<object>{roundNumber, termNumber})
+                            GenerateTransaction(refBlockHeight, refBlockPrefix, "NextTerm",
+                                new List<object> {extra.NewTerm}),
+                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SnapshotForMiners",
+                                new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SnapshotForTerm",
+                                new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SendDividends",
+                                new List<object> {roundNumber, termNumber})
                         }
                     };
                 }
@@ -252,30 +259,27 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight,refBlockPrefix, "BroadcastInValue", new List<object> {extra.ToBroadcast}),
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "BroadcastInValue",
+                            new List<object> {extra.ToBroadcast}),
                     }
                 };
             }
 
-            if (extra.InValue != null)
+            if (extra.InValue != null && extra.ToPackage != null)
             {
                 return new TransactionList
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight,refBlockPrefix, "PublishInValue", new List<object> {extra.InValue}),
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "PackageOutValue",
+                            new List<object> {extra.ToPackage}),
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "PublishInValue",
+                            new List<object> {extra.InValue}),
                     }
                 };
             }
 
-            // To publish Out Value.
-            return new TransactionList
-            {
-                Transactions =
-                {
-                    GenerateTransaction(refBlockHeight,refBlockPrefix, "PackageOutValue", new List<object> {extra.ToPackage}),
-                }
-            };
+            return new TransactionList();
         }
 
         public IMessage GetConsensusCommand(Timestamp timestamp)
@@ -289,7 +293,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     Behaviour = DPoSBehaviour.InitialTerm
                 };
             }
-            
+
             // To terminate current round.
             if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
@@ -312,11 +316,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return new DPoSCommand
                     {
-                        CountingMilliseconds = (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
+                        CountingMilliseconds =
+                            (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
                         Behaviour = DPoSBehaviour.NextRound
                     };
                 }
-                
+
                 return new DPoSCommand
                 {
                     CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
@@ -562,7 +567,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         tickets.VotingRecords.Add(votingRecord);
                     }
                 }
-                
+
                 foreach (var transactionId in tickets.VoteFromTransactions)
                 {
                     if (DataStructures.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
@@ -570,7 +575,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         tickets.VotingRecords.Add(votingRecord);
                     }
                 }
-                
+
                 tickets.VotingRecordsCount = (ulong) tickets.VotingRecords.Count;
                 return tickets;
             }
@@ -614,7 +619,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             var tickets = GetTicketsInfo(publicKey);
-            
+
             var count = tickets.VotingRecords.Count;
             var take = Math.Min(length - startIndex, count - startIndex);
 
@@ -676,7 +681,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
-            
+
             var tickets = GetTicketsInfo(publicKey);
 
             foreach (var votingRecord in tickets.VotingRecords)
@@ -974,7 +979,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         #endregion Election
-        
+
         #region Utilities
 
         private bool MinersAreSame(Round round1, Round round2)
@@ -1029,6 +1034,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
                 }
+
                 return currentRoundInStateDB.RealTimeMinersInfo.Values.Count(info => info.OutValue != null) ==
                        GlobalConfig.BlockProducerNumber;
             }
@@ -1041,7 +1047,8 @@ namespace AElf.Contracts.Consensus.DPoS
             if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRoundInStateDB) &&
                 _dataHelper.TryToGetMiningInterval(out var miningInterval))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval).AddMilliseconds(-4000) < timestamp.ToDateTime();
+                return currentRoundInStateDB.GetEBPMiningTime(miningInterval).AddMilliseconds(-4000) <
+                       timestamp.ToDateTime();
             }
 
             return false;
@@ -1057,7 +1064,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new Round();
         }
-        
+
         private Round GenerateNextRound(Round currentRound)
         {
             return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(currentRound);
@@ -1065,7 +1072,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private Forwarding GenerateNewForwarding()
         {
-            if (_dataHelper.TryToGetCurrentAge(out var blockAge) && 
+            if (_dataHelper.TryToGetCurrentAge(out var blockAge) &&
                 _dataHelper.TryToGetCurrentRoundInformation(out var currentRound))
             {
                 if (currentRound.RoundNumber != 1 &&
@@ -1132,7 +1139,8 @@ namespace AElf.Contracts.Consensus.DPoS
             return DateTime.MaxValue;
         }
 
-        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName, List<object> parameters)
+        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName,
+            List<object> parameters)
         {
             refBlockHeight = refBlockHeight > 4 ? refBlockHeight - 4 : 0;
 
