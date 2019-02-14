@@ -1,7 +1,6 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using AElf.SmartContract;

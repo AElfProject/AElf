@@ -1,7 +1,6 @@
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.Contracts

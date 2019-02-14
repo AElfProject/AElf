@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 

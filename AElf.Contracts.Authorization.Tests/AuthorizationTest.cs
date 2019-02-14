@@ -4,7 +4,6 @@ using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
