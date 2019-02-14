@@ -1,8 +1,7 @@
 using AElf.Common;
 using AElf.Common.Serializers;
-using AElf.Database;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.Infrastructure
 {
     public class BinaryMerkleTreeStore : KeyValueStoreBase<StateKeyValueDbContext>, IBinaryMerkleTreeStore
     {

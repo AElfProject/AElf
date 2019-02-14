@@ -9,7 +9,8 @@ using Xunit;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using AElf.TestBase;
 

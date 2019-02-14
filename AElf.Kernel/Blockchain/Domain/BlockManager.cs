@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Blockchain.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

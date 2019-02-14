@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using AElf.SmartContract;
 using Google.Protobuf;

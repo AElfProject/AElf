@@ -7,7 +7,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;

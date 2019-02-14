@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Serializers;
 using AElf.Database;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.Infrastructure
 {
     public abstract class KeyValueStoreBase<TKeyValueDbContext> : IKeyValueStore
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>

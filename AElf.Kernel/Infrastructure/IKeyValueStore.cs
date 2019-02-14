@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.Infrastructure
 {
     public interface IKeyValueStore
     {

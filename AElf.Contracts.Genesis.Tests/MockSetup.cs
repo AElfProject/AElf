@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.ChainController;
 using AElf.SmartContract;
-using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 

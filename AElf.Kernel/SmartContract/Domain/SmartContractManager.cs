@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.SmartContract.Domain
 {
     public class SmartContractManager : ISmartContractManager
     {

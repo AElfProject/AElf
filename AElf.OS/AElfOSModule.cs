@@ -6,6 +6,7 @@ using AElf.Configuration;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Modularity;
 using AElf.OS.Account;
 using AElf.OS.Network.Temp;

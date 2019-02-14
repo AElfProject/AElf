@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.SmartContract.Contexts;
 
 namespace AElf.SmartContract

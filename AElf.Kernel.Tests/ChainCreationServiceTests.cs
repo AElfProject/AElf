@@ -4,7 +4,6 @@ using AElf.ChainController;
 using Google.Protobuf;
 using Xunit;
 using AElf.Common;
-using AElf.Kernel.Storages;
 using AElf.TestBase;
 using Shouldly;
 

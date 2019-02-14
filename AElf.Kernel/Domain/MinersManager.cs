@@ -2,11 +2,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.Domain
 {
     public class MinersManager : IMinersManager
     {

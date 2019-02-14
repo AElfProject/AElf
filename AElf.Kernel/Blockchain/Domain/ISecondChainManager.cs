@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
-using JetBrains.Annotations;
-using Volo.Abp;
+using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
-namespace AElf.Kernel.Managers.Another
+namespace AElf.Kernel.Blockchain.Domain
 {
     [Flags]
     public enum BlockAttachOperationStatus

@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.SmartContract;
 using AElf.SmartContract.Contexts;
 

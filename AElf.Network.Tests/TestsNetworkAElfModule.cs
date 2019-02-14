@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

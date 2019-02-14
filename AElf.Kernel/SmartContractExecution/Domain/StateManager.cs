@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Storages;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.SmartContractExecution.Domain
 {
     //TODO: remove
     public class StateManager : IStateManager

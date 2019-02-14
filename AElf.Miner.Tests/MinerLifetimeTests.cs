@@ -15,6 +15,7 @@ using Address = AElf.Common.Address;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using AElf.Synchronization.BlockExecution;

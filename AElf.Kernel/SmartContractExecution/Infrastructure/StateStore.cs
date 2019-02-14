@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Serializers;
-using AElf.Database;
-using AElf.Kernel.Types;
-using Google.Protobuf;
+using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.SmartContractExecution.Infrastructure
 {
     public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
     {

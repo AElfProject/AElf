@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
-using CSharpx;
+using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using Google.Protobuf;
-using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.SmartContractExecution.Domain
 {
     public interface IStateManager
     {

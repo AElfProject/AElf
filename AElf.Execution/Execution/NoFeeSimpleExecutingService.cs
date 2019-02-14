@@ -1,6 +1,6 @@
 using System;
 using AElf.ChainController;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract;
 
 namespace AElf.Execution.Execution

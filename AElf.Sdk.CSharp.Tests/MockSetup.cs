@@ -10,6 +10,8 @@ using AElf.Kernel.Tests;
 using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 

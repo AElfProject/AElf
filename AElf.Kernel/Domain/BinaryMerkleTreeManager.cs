@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.Domain
 {
     public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
     {

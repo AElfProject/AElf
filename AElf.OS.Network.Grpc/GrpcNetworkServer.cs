@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
 using Google.Protobuf;

@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using AElf.Common;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.Blockchain.Domain
 {
     public interface ITransactionResultManager
     {

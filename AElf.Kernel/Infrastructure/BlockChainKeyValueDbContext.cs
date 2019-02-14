@@ -1,7 +1,7 @@
 using AElf.Database;
 using Volo.Abp.Data;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.Infrastructure
 {
     [ConnectionStringName("BlockchainDb")]
     public class BlockchainKeyValueDbContext : KeyValueDbContext<BlockchainKeyValueDbContext>

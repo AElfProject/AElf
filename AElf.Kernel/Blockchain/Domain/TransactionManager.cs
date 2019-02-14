@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Blockchain.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.Blockchain.Domain
 {
     public class TransactionManager: ITransactionManager
     {

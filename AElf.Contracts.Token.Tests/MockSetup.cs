@@ -8,7 +8,8 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
 using Volo.Abp.DependencyInjection;
 
 

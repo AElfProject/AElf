@@ -1,8 +1,8 @@
 using AElf.Common;
 using AElf.Common.Serializers;
-using AElf.Database;
+using AElf.Kernel.Infrastructure;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public class CallGraphStore : KeyValueStoreBase<StateKeyValueDbContext>, ICallGraphStore
     {

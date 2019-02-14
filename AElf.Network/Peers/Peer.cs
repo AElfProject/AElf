@@ -9,6 +9,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using Google.Protobuf;

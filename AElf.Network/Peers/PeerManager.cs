@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Network.Connection;
 using AElf.Network.Data;
 using AElf.Network.Eventing;

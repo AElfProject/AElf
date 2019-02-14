@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;

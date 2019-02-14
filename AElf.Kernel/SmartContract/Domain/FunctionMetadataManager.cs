@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract.Infrastructure;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.SmartContract.Domain
 {
     public class FunctionFunctionMetadataManager : IFunctionMetadataManager
     {

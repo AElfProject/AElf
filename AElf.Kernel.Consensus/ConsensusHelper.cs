@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
+using AElf.Kernel.Domain;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -8,7 +8,6 @@ using AElf.ChainController.EventMessages;
 using AElf.Kernel;
 using Grpc.Core;
 using AElf.Common;
-using AElf.Kernel.Managers;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

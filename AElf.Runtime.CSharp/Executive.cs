@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Runtime.CSharp.Core.ABI;
 using Type = System.Type;
 using Module = AElf.Kernel.ABI.Module;

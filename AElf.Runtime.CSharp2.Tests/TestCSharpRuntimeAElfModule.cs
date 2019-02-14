@@ -2,7 +2,7 @@ using System;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.Sdk.CSharp2.Tests;

@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Storages;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 
-namespace AElf.Kernel.Managers
+namespace AElf.Kernel.Blockchain.Domain
 {
     public class TransactionResultManager : ITransactionResultManager
     {

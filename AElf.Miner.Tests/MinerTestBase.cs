@@ -1,5 +1,5 @@
 using AElf.Database;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using Volo.Abp;
 
 namespace AElf.Miner.Tests

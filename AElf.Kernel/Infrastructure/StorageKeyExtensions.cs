@@ -1,7 +1,7 @@
 using System;
 using AElf.Common;
 
-namespace AElf.Kernel.Storages
+namespace AElf.Kernel.Infrastructure
 {
     public static class StorageKeyExtensions
     {

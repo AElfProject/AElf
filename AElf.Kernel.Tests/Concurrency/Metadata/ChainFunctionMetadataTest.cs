@@ -9,6 +9,7 @@ using AElf.Common;
 using AElf.TestBase;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Domain;
 using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;
 using AElf.SmartContract.Contexts;

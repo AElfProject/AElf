@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Sdk.CSharp;

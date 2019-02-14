@@ -1,4 +1,5 @@
 using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 
 namespace AElf.Runtime.CSharp2.Tests

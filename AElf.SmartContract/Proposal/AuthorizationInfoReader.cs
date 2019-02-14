@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 
 namespace AElf.SmartContract.Proposal

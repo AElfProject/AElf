@@ -1,5 +1,5 @@
 using AElf.Database;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.TestBase;
 using Volo.Abp;

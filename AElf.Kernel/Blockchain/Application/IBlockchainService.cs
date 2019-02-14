@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Managers.Another;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
-using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
+using IChainManager = AElf.Kernel.Blockchain.Domain.IChainManager;
 
 namespace AElf.Kernel.Blockchain.Application
 {

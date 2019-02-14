@@ -5,7 +5,7 @@ using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Miner;
 using AElf.Miner.Rpc;
