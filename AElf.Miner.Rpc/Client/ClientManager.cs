@@ -36,6 +36,7 @@ namespace AElf.Miner.Rpc.Client
         private CancellationTokenSource _tokenSourceToSideChain;
         private CancellationTokenSource _tokenSourceToParentChain;
         private int _interval;
+        // TODO: Shouldn't keep it in here, remove it after module refactor
         private int _chainId;
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace AElf.Miner.Rpc.Client
 
                 // keep-alive
                 // TODO: maybe improvement for NO wait call 
-                var task = client.StartDuplexStreamingCall(_tokenSourceToSideChain.Token, height);
+                var task = client.StartDuplexStreamingCall(_chainId, _tokenSourceToSideChain.Token, height);
                 Logger.LogInformation($"Created client to side chain {sideChainId}");
             }
         }
@@ -182,7 +183,7 @@ namespace AElf.Miner.Rpc.Client
                     (ClientToParentChain) CreateClient(parent.ElementAt(0).Value, parent.ElementAt(0).Key, false);
                 var targetHeight = await GetParentChainTargetHeight();
                 // TODO: maybe improvement for NO wait call
-                var task = _clientToParentChain.StartDuplexStreamingCall(_tokenSourceToParentChain.Token, targetHeight);
+                var task = _clientToParentChain.StartDuplexStreamingCall(_chainId, _tokenSourceToParentChain.Token, targetHeight);
                 Logger.LogInformation($"Created client to parent chain {parent.ElementAt(0).Key}");
             }
             catch (Exception e)

@@ -234,16 +234,17 @@ public sealed class MinerLifetimeTests : MinerTestBase
             _mock.ClearDirectory(dir);
             try
             {
+                var chainId = ChainHelpers.GetChainId(123);
                 GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
-                parimpl.Init(ChainHelpers.GetRandomChainId());
+                parimpl.Init(chainId);
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
-                serverManager.Init(dir);
+                serverManager.Init(chainId, dir);
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
@@ -310,6 +311,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             _mock.ClearDirectory(dir);
             try
             {
+                var chainId = ChainHelpers.GetChainId(123);
                 GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50053;
                 var address = "127.0.0.1";
@@ -318,9 +320,9 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 parimpl.Init(parentChainId);
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
-                sideimpl.Init(ChainHelpers.GetRandomChainId());
+                sideimpl.Init(chainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
-                serverManager.Init(dir);
+                serverManager.Init(chainId, dir);
                 // create client, main chain is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
