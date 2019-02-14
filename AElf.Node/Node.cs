@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
-
+using AElf.Common;
+using AElf.Kernel;
 using AElf.Network;
 using AElf.Node.AElfChain;
 using AElf.Node.EventMessages;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Node
@@ -17,15 +19,17 @@ namespace AElf.Node
     {
         public ILogger<Node> Logger {get;set;}
         private readonly INetworkManager _netManager;
+        private readonly ChainOptions _chainOptions;
 
         private readonly List<INodeService> _services = new List<INodeService>();
 
         private bool _startRpc;
 
-        public Node( INetworkManager netManager)
+        public Node( INetworkManager netManager, IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<Node>.Instance;
             _netManager = netManager;
+            _chainOptions = options.Value;
         }
 
         public void Register(INodeService s)
@@ -39,7 +43,7 @@ namespace AElf.Node
 
             foreach (var service in _services)
             {
-                service.Initialize(conf);
+                service.Initialize(_chainOptions.ChainId.ConvertBase58ToChainId(), conf);
             }
         }
 
@@ -52,7 +56,7 @@ namespace AElf.Node
 
             foreach (var service in _services)
             {
-                service.Start();
+                service.Start(_chainOptions.ChainId.ConvertBase58ToChainId());
             }
 
             return true;

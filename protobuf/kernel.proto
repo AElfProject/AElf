@@ -92,7 +92,9 @@ message TransactionResult {
     int32 Index = 8;
     Hash StateHash = 9;
     // Merkle proof path for this transaction
-    Hash DeferredTxnId = 10; 
+    // TODO: Remove DeferredTxnId
+    repeated Transaction DeferredTransactions = 10;
+    Hash DeferredTxnId = 11;
 }
 
 // For failed transactions, its status follows the Min of
@@ -123,11 +125,21 @@ message TransactionTrace {
     repeated LogEvent Logs = 6;
     repeated Transaction InlineTransactions = 7;
     repeated TransactionTrace InlineTraces = 8;
+    // TODO: Remove state changes
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
     bytes DeferredTransaction = 12;
     TransactionTrace FeeTransactionTrace = 13;
+    TransactionExecutingStateSet StateSet = 14;
+}
+
+message ExecutionReturnSet {
+    Hash TransactionId = 1;
+    TransactionResultStatus Status = 2;
+    map<string, bytes> StateChanges = 3;
+    bytes Bloom = 4;
+    repeated Transaction DeferredTransactions = 5;
 }
 
 message LogEvent {
@@ -167,7 +179,7 @@ message BlockHeader {
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
-    int32 ChainId = 10;
+    int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
     Hash SideChainTransactionsRoot = 11;
 }
 
@@ -241,7 +253,7 @@ enum BlockValidationResult {
 message VersionedState{
     string Key = 1;
     bytes Value = 2;
-    int64 BlockHeight = 3;
+    uint64 BlockHeight = 3;
     Hash BlockHash = 4;
     Hash OriginBlockHash = 5;
 }
@@ -249,7 +261,7 @@ message VersionedState{
 message BlockStateSet{
     Hash BlockHash = 1;
     Hash PreviousHash = 2;
-    int64 BlockHeight = 3;
+    uint64 BlockHeight = 3;
     map<string, bytes> Changes = 4;
 }
 
@@ -269,7 +281,7 @@ enum ChainStateMergingStatus {
 message ChainStateInfo{
     int64 ChainId = 1;
     Hash BlockHash = 2;
-    int64 BlockHeight = 3;
+    uint64 BlockHeight = 3;
     Hash MergingBlockHash = 4;
     ChainStateMergingStatus Status = 5;
 }
@@ -281,23 +293,24 @@ message ActionResult {
 
 message ChainBlockLink{
     Hash BlockHash = 1;
-    int64 Height = 2;
+    uint64 Height = 2;
     Hash PreviousBlockHash = 3;
     bool IsExecuted = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
+    bool IsLightBlock = 7;//no block body
 }
 
 message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
     Hash BestChainHash = 3;
-    int64 BestChainHeight = 4;
+    uint64 BestChainHeight = 4;
 
-    map<string, int64> Branches = 5;
+    map<string, uint64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
     Hash LastIrreversibleBlockHash = 8;
-    int64 LastIrreversibleBlockHeight = 9;
+    uint64 LastIrreversibleBlockHeight = 9;
 }
 
 message ChainBlockIndex{

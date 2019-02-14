@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
@@ -11,7 +9,6 @@ using AElf.Kernel.Storages;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Miner;
 using AElf.Miner.Rpc;
-using AElf.Miner.TxMemPool;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -28,7 +25,6 @@ namespace AElf.Kernel.Tests
         //TODO: only test kernel aelf module here
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
         typeof(SmartContractAElfModule),
-        typeof(MinerAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(CSharpRuntimeAElfModule),
         
@@ -43,6 +39,7 @@ namespace AElf.Kernel.Tests
                 o.ActorCount = 8;
                 o.ConcurrencyLevel = 8;
             });
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
             
             var services = context.Services;
             

@@ -7,6 +7,7 @@ using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Contracts.Consensus.Contracts;
+using AElf.Kernel;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus
@@ -41,7 +42,7 @@ namespace AElf.Contracts.Consensus
             VotingRecordsMap = new Map<Hash, VotingRecord>(GlobalConfig.AElfDPoSVotingRecordsMapString)
         };
 
-        private Process Process => new Process(Collection);
+        private Process Process => new Process(Api.ChainId, Collection);
 
         private Election Election => new Election(Collection);
 

@@ -31,7 +31,7 @@ using Volo.Abp.DependencyInjection;
 namespace AElf.Miner.Miner
 {
     
-    public class Miner : IMiner, ISingletonDependency
+    /*public class Miner : IMiner, ISingletonDependency
     {
         public ILogger<Miner> Logger {get;set;}
         private readonly ITxHub _txHub;
@@ -44,19 +44,20 @@ namespace AElf.Miner.Miner
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private BlockGenerator _blockGenerator;
-        private IMinerConfig Config { get; }
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IAccountService _accountService;
 
         private const float RatioMine = 0.3f;
 
-        public Miner(IMinerConfig config, ITxHub txHub, IChainService chainService,
+        public Miner(ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
              ClientManager clientManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager, ServerManager serverManager,
             IBlockValidationService blockValidationService, IStateManager stateManager, TransactionFilter transactionFilter
-            ,ConsensusDataProvider consensusDataProvider, IAccountService accountService)
+            ,ConsensusDataProvider consensusDataProvider, IAccountService accountService,
+            IBlockchainStateManager blockchainStateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -65,11 +66,11 @@ namespace AElf.Miner.Miner
             Logger = NullLogger<Miner>.Instance;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _blockValidationService = blockValidationService;
-            Config = config;
             _consensusDataProvider = consensusDataProvider;
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * RatioMine;
             _crossChainIndexingTransactionGenerator = new CrossChainIndexingTransactionGenerator(clientManager,
                 serverManager);
+            _blockchainStateManager = blockchainStateManager;
             _txFilter = transactionFilter;
             _accountService = accountService;
         }
@@ -77,10 +78,10 @@ namespace AElf.Miner.Miner
         /// <summary>
         /// Initializes the mining with the producers key pair.
         /// </summary>
-        public void Init()
+        public void Init(int chainId)
         {
-            _blockChain = _chainService.GetBlockChain(Config.ChainId);
-            _blockGenerator = new BlockGenerator(_chainService, Config.ChainId);
+            _blockChain = _chainService.GetBlockChain(chainId);
+            _blockGenerator = new BlockGenerator(_chainService, chainId);
             
             MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
         }
@@ -92,7 +93,7 @@ namespace AElf.Miner.Miner
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(int chainId)
         {
             try
             {
@@ -105,10 +106,10 @@ namespace AElf.Miner.Miner
                 var bhPref = bh.Value.Where((x, i) => i < 4).ToArray();
                 if (!UnitTestDetector.IsInUnitTest)
                 {
-                    await GenerateClaimFeesTransaction(currHeight, bn, bhPref);    
+                    await GenerateClaimFeesTransaction(chainId, currHeight, bn, bhPref);    
                 }
                 // generate txns for cross chain indexing if possible
-                await GenerateCrossChainTransaction(bn, bhPref);
+                await GenerateCrossChainTransaction(chainId, bn, bhPref);
                 DateTime currentBlockTime = DateTime.UtcNow;
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
@@ -119,15 +120,15 @@ namespace AElf.Miner.Miner
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
                     _txFilter.Execute(sysTxs);
                     Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
+                    traces = await ExecuteTransactions(chainId, sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
                     
                     // need check result of cross chain transaction 
-                    sideChainTransactionsRoot = ExtractSideChainTransactionRoot(sysTxs, traces);
+                    sideChainTransactionsRoot = ExtractSideChainTransactionRoot(chainId, sysTxs, traces);
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(Config.ChainId);
+                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
                     var regTxs = new List<Transaction>();
                     var contractTxs = new List<Transaction>();
 
@@ -144,16 +145,16 @@ namespace AElf.Miner.Miner
                     }
                     
                     Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
-                    traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
+                    traces.AddRange(await ExecuteTransactions(chainId, regTxs, currentBlockTime));
                     Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
                     
                     Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
-                    traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
+                    traces.AddRange(await ExecuteTransactions(chainId, contractTxs, currentBlockTime,
                         transactionType: TransactionType.ContractDeployTransaction));
                     Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
-                ExtractTransactionResults(traces, out var results);
+                ExtractTransactionResults(chainId, traces, out var results);
 
                 // generate block
                 var block = await GenerateBlock(results, sideChainTransactionsRoot, currentBlockTime);
@@ -166,13 +167,22 @@ namespace AElf.Miner.Miner
                     Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
                     return null;
                 }
+
+                var blockStateSet = new BlockStateSet()
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height,
+                    PreviousHash = block.Header.PreviousBlockHash
+                };
+                FillBlockStateSet(blockStateSet, traces);
+                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
                 MessageHub.Instance.Publish(new BlockMined(block));
 
                 // insert to db
-                UpdateStorage(results, block);
+                UpdateStorage(chainId, results, block);
                 
                 await _txHub.OnNewBlock((Block)block);
                 
@@ -187,50 +197,54 @@ namespace AElf.Miner.Miner
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 Logger.LogError(e, "Mining failed with exception.");
                 return null;
             }
         }
 
-        private async Task GenerateClaimFeesTransaction(ulong prevHeight, ulong refBlockHeight, byte[] refBlockPrefix)
+        private async Task GenerateClaimFeesTransaction(int chainId, ulong prevHeight, ulong refBlockHeight, byte[] 
+        refBlockPrefix)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var tx = new Transaction()
             {
                 From = address,
-                To = ContractHelpers.GetTokenContractAddress(Config.ChainId),
+                To = ContractHelpers.GetTokenContractAddress(chainId),
                 MethodName = "ClaimTransactionFees",
                 RefBlockNumber = refBlockHeight,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(prevHeight))
             };
-            await SignAndInsertToPool(tx);
+            await SignAndInsertToPool(chainId, tx);
         }
 
         /// <summary>
         /// Generate transactions for cross chain indexing.
         /// </summary>
         /// <returns></returns>
-        private async Task GenerateCrossChainTransaction(ulong refBlockHeight, byte[] refBlockPrefix)
+        private async Task GenerateCrossChainTransaction(int chainId, ulong refBlockHeight, byte[] refBlockPrefix)
         {
             // Do not index cross chain information if no LIB found.
             if (LibHeight <= GlobalConfig.GenesisBlockHeight)
                 return;
             
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var txnForIndexingSideChain = await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address, refBlockHeight,
-                    refBlockPrefix);
+            var crossChainContractAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
+            var txnForIndexingSideChain =
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingSideChain(address,
+                    crossChainContractAddress, refBlockHeight, refBlockPrefix);
             if (txnForIndexingSideChain != null)
             {
-                await SignAndInsertToPool(txnForIndexingSideChain);
+                await SignAndInsertToPool(chainId, txnForIndexingSideChain);
             }
-                
+
             var txnForIndexingParentChain =
-                await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address, refBlockHeight,
-                    refBlockPrefix);
+                await _crossChainIndexingTransactionGenerator.GenerateTransactionForIndexingParentChain(address,
+                    crossChainContractAddress, refBlockHeight, refBlockPrefix);
             if (txnForIndexingParentChain != null)
             {
-                await SignAndInsertToPool(txnForIndexingParentChain);
+                await SignAndInsertToPool(chainId, txnForIndexingParentChain);
             }
                 
         }
@@ -241,11 +255,11 @@ namespace AElf.Miner.Miner
         /// <returns>
         /// Merkle tree root of side chain block transaction roots.
         /// </returns>
-        private Hash ExtractSideChainTransactionRoot(IEnumerable<Transaction> sysTxs, List<TransactionTrace> sysTxnTraces)
+        private Hash ExtractSideChainTransactionRoot(int chainId, IEnumerable<Transaction> sysTxs, List<TransactionTrace> sysTxnTraces)
         {
             if (sysTxnTraces == null) throw new ArgumentNullException(nameof(sysTxnTraces));
             var crossChainIndexingSideChainTransaction =
-                sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction());
+                sysTxs.FirstOrDefault(t => t.IsIndexingSideChainTransaction(chainId));
             if (crossChainIndexingSideChainTransaction == null)
             {
                 return null;
@@ -261,24 +275,24 @@ namespace AElf.Miner.Miner
         }
             
 
-        private async Task SignAndInsertToPool(Transaction notSignerTransaction)
+        private async Task SignAndInsertToPool(int chainId, Transaction notSignerTransaction)
         {
             if (notSignerTransaction.Sigs.Count > 0)
                 return;
             // sign tx
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
             notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature));
-            await InsertTransactionToPool(notSignerTransaction);
+            await InsertTransactionToPool(chainId, notSignerTransaction);
         }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, DateTime currentBlockTime, bool noTimeout = false,
+        private async Task<List<TransactionTrace>> ExecuteTransactions(int chainId, List<Transaction> txs, DateTime currentBlockTime, bool noTimeout = false,
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
             using (var cts = new CancellationTokenSource())
             {
                 if (!noTimeout)
                 {
-                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    var distance = await _consensusDataProvider.GetDistanceToTimeSlotEnd(chainId);
                     var timeout = distance *  RatioMine;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                     Logger.LogTrace($"Execution limit time: {timeout}ms");
@@ -287,29 +301,41 @@ namespace AElf.Miner.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(await _accountService.GetPublicKeyAsync()));
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(chainId), Hash.FromRawBytes(await _accountService.GetPublicKeyAsync()));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(txs, Config.ChainId, currentBlockTime, cts.Token, disambiguationHash, transactionType);
+                    : await _executingService.ExecuteAsync(txs, chainId, currentBlockTime, cts.Token, disambiguationHash, transactionType);
 
                 return traces;
             }
         }
 
-        private async Task<ulong> GetNewBlockIndexAsync()
+        private async Task<ulong> GetNewBlockIndexAsync(int chainId)
         {
-            var blockChain = _chainService.GetBlockChain(Config.ChainId);
+            var blockChain = _chainService.GetBlockChain(chainId);
             var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
             return index;
         }
 
-        private async Task InsertTransactionToPool(Transaction tx, bool skipValidation = true)
+        private async Task InsertTransactionToPool(int chainId, Transaction tx, bool skipValidation = true)
         {
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
+            await _txHub.AddTransactionAsync(chainId, tx, skipValidation: skipValidation);
+        }
+
+        private void FillBlockStateSet(BlockStateSet blockStateSet,IEnumerable<TransactionTrace> traces)
+        {
+            foreach (var trace in traces)
+            {
+                foreach (var w in trace.GetFlattenedWrite())
+                {
+                    blockStateSet.Changes[w.Key] = w.Value;    
+                }
+                
+            }
         }
 
         /// <summary>
@@ -317,7 +343,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="traces"></param>
         /// <param name="results"></param>
-        private void ExtractTransactionResults(IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
+        private void ExtractTransactionResults(int chainId, IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
         {
             results = new HashSet<TransactionResult>();
             try
@@ -347,7 +373,7 @@ namespace AElf.Miner.Miner
                             if (trace.DeferredTransaction.Length != 0)
                             {
                                 var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                                InsertTransactionToPool(deferredTxn, false).ConfigureAwait(false);
+                                InsertTransactionToPool(chainId, deferredTxn, false).ConfigureAwait(false);
                                 txRes.DeferredTxnId = deferredTxn.GetHash();
                             }
 
@@ -411,7 +437,7 @@ namespace AElf.Miner.Miner
         /// </summary>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private void UpdateStorage(HashSet<TransactionResult> txResults, IBlock block)
+        private void UpdateStorage(int chainId, HashSet<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Height;
             var bh = block.Header.GetHash();
@@ -422,7 +448,7 @@ namespace AElf.Miner.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, chainId,
                 block.Header.Height);
         }
 
@@ -441,5 +467,5 @@ namespace AElf.Miner.Miner
             block.Sign(publicKey, data => _accountService.SignAsync(data));
             return block;
         }
-    }
+    }*/
 }

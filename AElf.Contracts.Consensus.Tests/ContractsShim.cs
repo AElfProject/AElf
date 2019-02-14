@@ -11,6 +11,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Services;
 using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
 

@@ -5,12 +5,12 @@ namespace AElf.Miner.Miner
 {
     public interface IMiner
     {
-        void Init();
+        void Init(int chainId);
         
         /// <summary>
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced</returns>
-        Task<IBlock> Mine();
+        Task<IBlock> Mine(int chainId);
     }
 }

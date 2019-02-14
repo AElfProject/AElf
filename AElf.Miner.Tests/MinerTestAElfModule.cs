@@ -1,14 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
-using AElf.Miner.TxMemPool;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +20,7 @@ namespace AElf.Miner.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(AElf.Miner.MinerAElfModule),
+        typeof(AElf.TxPool.TxPoolAElfModule),
         typeof(ConsensusKernelAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)
@@ -31,7 +29,8 @@ namespace AElf.Miner.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            
             context.Services.AddAssemblyOf<MinerTestAElfModule>();
             context.Services.AddScoped<IExecutingService, NoFeeSimpleExecutingService>();
             
@@ -46,8 +45,7 @@ namespace AElf.Miner.Tests
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}).DumpBase58();
+        
         }
-
     }
 }

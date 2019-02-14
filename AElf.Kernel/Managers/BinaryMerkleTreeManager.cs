@@ -41,7 +41,7 @@ namespace AElf.Kernel.Managers
 
         private string GetTransactionsMerkleTreeKey(int chainId, ulong height)
         {
-            return chainId.ToHex() + height;
+            return chainId.ToStorageKey() + height;
         }
     }
 }
