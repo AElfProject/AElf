@@ -29,6 +29,8 @@ namespace AElf.Consensus
 
         private IDisposable _consensusObservables = null;
 
+        private byte[] _latestGeneratedConsensusInformation;
+
         public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
             IConsensusInformationGenerationService consensusInformationGenerationService, StateManager stateManager)
         {
@@ -49,16 +51,22 @@ namespace AElf.Consensus
         public byte[] GetNewConsensusInformation(int chainId, Address fromAddress)
         {
             var newConsensusInformation =
-                ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation, null)
+                ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation,
+                        _consensusInformationGenerationService.GenerateExtraInformationAsync())
                     .DeserializeToBytes();
+            _latestGeneratedConsensusInformation = newConsensusInformation;
             return newConsensusInformation;
         }
 
-        public IEnumerable<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress, ulong refBlockHeight,
+        public IEnumerable<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress,
+            ulong refBlockHeight,
             byte[] refBlockPrefix)
         {
             return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GenerateConsensusTransactions,
-                refBlockHeight, refBlockPrefix, null).DeserializeToPbMessage<TransactionList>().Transactions.ToList();
+                    refBlockHeight, refBlockPrefix,
+                    _consensusInformationGenerationService.GenerateExtraInformationForTransactionAsync(
+                        _latestGeneratedConsensusInformation)).DeserializeToPbMessage<TransactionList>().Transactions
+                .ToList();
         }
 
         public byte[] GetConsensusCommand(int chainId, Address fromAddress)

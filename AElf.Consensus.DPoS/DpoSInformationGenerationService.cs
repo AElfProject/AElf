@@ -22,17 +22,15 @@ namespace AElf.Consensus.DPoS
             _minersManager = minersManager;
         }
         
-        public async Task<byte[]> GenerateExtraInformationAsync(byte[] consensusInformation)
+        public async Task<byte[]> GenerateExtraInformationAsync()
         {
-            var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-
             switch (_command.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     return new DPoSExtraInformation
                     {
                         InitialMiners = {(await _minersManager.GetMiners(0)).PublicKeys},
-                        MiningInterval = 4000 // TODO: Need to get from somewhere
+                        MiningInterval = DPoSConsensusConsts.MiningInterval
                     }.ToByteArray();
                 
                 case DPoSBehaviour.PackageOutValue:
@@ -122,6 +120,5 @@ namespace AElf.Consensus.DPoS
         {
             _command = DPoSCommand.Parser.ParseFrom(consensusCommand);
         }
-        
     }
 }
