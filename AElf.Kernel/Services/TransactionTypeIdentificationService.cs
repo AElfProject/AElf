@@ -5,9 +5,9 @@ namespace AElf.Kernel.Services
 {
     public class TransactionTypeIdentificationService : ITransactionTypeIdentificationService
     {
-        private readonly List<ITransactionTypeIdentifier> _transactionTypeIdentifiers;
+        private readonly IEnumerable<ITransactionTypeIdentifier> _transactionTypeIdentifiers;
 
-        public TransactionTypeIdentificationService(List<ITransactionTypeIdentifier> transactionTypeIdentifiers)
+        public TransactionTypeIdentificationService(IEnumerable<ITransactionTypeIdentifier> transactionTypeIdentifiers)
         {
             _transactionTypeIdentifiers = transactionTypeIdentifiers;
         }
