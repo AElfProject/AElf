@@ -26,7 +26,7 @@ namespace AElf.Consensus
 
         public IEventBus EventBus { get; set; }
 
-        private IDisposable _consensusObservables = null;
+        private IDisposable _consensusObservables;
 
         private byte[] _latestGeneratedConsensusInformation;
 
@@ -70,8 +70,13 @@ namespace AElf.Consensus
 
         public byte[] GetConsensusCommand(int chainId, Address fromAddress)
         {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetConsensusCommand,
+            var consensusCommand = ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetConsensusCommand,
                 Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
+            
+            _consensusObservables?.Dispose();
+            _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
+            
+            return consensusCommand;
         }
 
         private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, ConsensusMethod consensusMethod,

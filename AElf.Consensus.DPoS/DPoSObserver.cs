@@ -3,6 +3,8 @@ using System.Reactive.Linq;
 using AElf.Kernel;
 using AElf.Management.Interfaces;
 using AElf.Miner.Miner;
+using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Consensus.DPoS
 {
@@ -12,10 +14,14 @@ namespace AElf.Consensus.DPoS
         private readonly IMiner _miner;
         private readonly INetworkService _networkService;
 
+        public IEventBus EventBus { get; set; }
+
         public DPoSObserver(IMiner miner, INetworkService networkService)
         {
             _miner = miner;
             _networkService = networkService;
+            
+            EventBus = NullLocalEventBus.Instance;
         }
         
         public IDisposable Subscribe(byte[] consensusCommand)
@@ -47,7 +53,6 @@ namespace AElf.Consensus.DPoS
             switch (value)
             {
                 case ConsensusPerformanceType.MineBlock:
-                    // Schedule a job to call Mine
                     break;
                 
                 case ConsensusPerformanceType.BroadcastTransaction:
