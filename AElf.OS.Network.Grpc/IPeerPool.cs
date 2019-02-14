@@ -8,11 +8,11 @@ namespace AElf.OS.Network.Grpc
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<GrpcPeer> GetPeers();
-        GrpcPeer GetPeer(string address);
+        GrpcPeer FindPeer(string address, byte[] pubKey = null);
         
-        bool AuthenticatePeer(string peer, Handshake handshake);
+        bool AuthenticatePeer(string peerEndpoint, byte[] pubKey, Handshake handshake);
         bool IsAuthenticated(string peer);
-        bool FinalizeAuth(GrpcPeer peer);
+        bool AddPeer(GrpcPeer peer);
         void ProcessDisconnection(string peer);
         Task<Handshake> GetHandshakeAsync();
     }

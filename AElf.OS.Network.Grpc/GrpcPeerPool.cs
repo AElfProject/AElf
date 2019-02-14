@@ -42,6 +42,9 @@ namespace AElf.OS.Network.Grpc
         
         public async Task<bool> AddPeerAsync(string address)
         {
+            if (FindPeer(address) != null)
+                return false;
+            
             return await Dial(address);
         }
 
@@ -78,7 +81,7 @@ namespace AElf.OS.Network.Grpc
                 if (resp.Success != true)
                     return false;
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client, address, resp.Port));
+                _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); // todo reply with handshake
                         
                 Logger.LogTrace($"Connected to {address}.");
 
@@ -96,18 +99,35 @@ namespace AElf.OS.Network.Grpc
             return _authenticatedPeers.ToList();
         }
 
-        public GrpcPeer GetPeer(string address)
+        public GrpcPeer FindPeer(string peerEndpoint, byte[] publicKey = null)
         {
-            return _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
+            if (string.IsNullOrWhiteSpace(peerEndpoint) && publicKey == null)
+                throw new InvalidOperationException("address and public cannot be both null.");
+
+            IEnumerable<GrpcPeer> _toFind = _authenticatedPeers;
+
+            if (!string.IsNullOrWhiteSpace(peerEndpoint))
+                _toFind = _toFind.Where(p => p.PeerAddress == peerEndpoint);
+
+            if (publicKey != null)
+                _toFind = _toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
+            
+            return _toFind.FirstOrDefault();
         }
 
-        public bool AuthenticatePeer(string peer, Handshake handshake)
+        public bool AuthenticatePeer(string peerEndpoint, byte[] pubkey, Handshake handshake)
         {
-            // todo verify use _accountService
+             bool alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == peerEndpoint || pubkey.BytesEqual(p.PublicKey)) != null;
+
+             if (alreadyConnected == true)
+                 return false;
+             
+             // todo check handshake
+             
             return true;
         }
 
-        public bool FinalizeAuth(GrpcPeer peer)
+        public bool AddPeer(GrpcPeer peer)
         {
             _authenticatedPeers.Add(peer);
             return true;
@@ -145,7 +165,7 @@ namespace AElf.OS.Network.Grpc
         
         public void ProcessDisconnection(string peer)
         {
-            _authenticatedPeers.RemoveAll(p => p.RemoteEndpoint == peer);
+            _authenticatedPeers.RemoveAll(p => p.RemoteListenPort == peer);
         }
     }
 }

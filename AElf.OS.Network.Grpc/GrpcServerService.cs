@@ -46,16 +46,16 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        public override Task<AuthResponse> Connect(Handshake request, ServerCallContext context)
+        public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
             
             try
             {
                 var peer = GrpcUrl.Parse(context.Peer);
-                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
+                var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
-                Logger?.LogDebug($"Attempting connect to {peerServer}");
+                Logger?.LogDebug($"Attempting to create channel to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);
@@ -65,14 +65,17 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
-                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
+                var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerServer, peer.Port.ToString());
+                
+                // Verify auth
+                bool isAuth = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
                 
                 // send our credentials
                 var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
                 var resp = client.Authentify(hsk);
                 
-                // If auth ok -> finalize
-                _peerPool.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
+                // If auth ok -> add it to our peers
+                _peerPool.AddPeer(grpcPeer);
                 
                 return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
@@ -89,24 +92,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
-            Logger.LogTrace($"[{context.Peer}] Is calling back with his auth.");
-            
             var peer = GrpcUrl.Parse(context.Peer);
-            
-            try
-            {
-                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
-                
-                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
-                
-                // todo verify auth
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error during connect.");
-                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
-            }
-            
             return Task.FromResult(new AuthResponse { Success = true, Port = peer.Port.ToString() });
         }
 
