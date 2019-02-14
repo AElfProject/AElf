@@ -15,7 +15,6 @@ namespace AElf.Runtime.CSharp.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(AElf.Miner.MinerAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)
     )]

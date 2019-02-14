@@ -21,6 +21,7 @@ using AElf.Kernel.Extensions;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using AElf.Synchronization.BlockExecution;
+using AElf.TxPool;
 using Easy.MessageHub;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
@@ -185,9 +186,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
 
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-            
-            miner.Init();
-            
             var block = await miner.Mine();
             
             Assert.NotNull(block);

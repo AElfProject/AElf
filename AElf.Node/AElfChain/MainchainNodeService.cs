@@ -11,9 +11,9 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Miner;
 using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
-using AElf.Miner.Miner;
 using AElf.Node.Consensus;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
@@ -31,7 +31,6 @@ namespace AElf.Node.AElfChain
     {
         public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;
-        private readonly IMiner _miner;
         private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
@@ -51,17 +50,14 @@ namespace AElf.Node.AElfChain
             IChainCreationService chainCreationService,
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
-            IMiner miner,
             IConsensus consensus,
-            IAccountService accountService
-            )
+            IAccountService accountService)
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
             Logger = NullLogger<MainchainNodeService>.Instance;
             _consensus = consensus;
-            _miner = miner;
             _blockSynchronizer = blockSynchronizer;
             _accountService = accountService;
         }
@@ -109,7 +105,6 @@ namespace AElf.Node.AElfChain
             });
 
             _txHub.Initialize();
-            _miner.Init();
         }
 
         public bool Start()

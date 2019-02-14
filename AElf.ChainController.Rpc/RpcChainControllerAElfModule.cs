@@ -8,9 +8,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.ChainController.Rpc
 {
-    [DependsOn(typeof(RpcAElfModule),typeof(ChainControllerAElfModule),
-        
-        typeof(SmartContractAElfModule), typeof(MinerAElfModule) //TODO: remove
+    [DependsOn(typeof(RpcAElfModule),typeof(ChainControllerAElfModule)
         )]
     public class RpcChainControllerAElfModule: AElfModule
     {

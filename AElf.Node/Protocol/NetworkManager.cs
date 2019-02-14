@@ -7,7 +7,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Collections;
 using AElf.Kernel;
-using AElf.Miner.EventMessages;
+using AElf.Kernel.EventMessages;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;

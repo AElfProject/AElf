@@ -6,6 +6,7 @@ using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.TxMemPool;
+using AElf.TxPool;
 
 namespace AElf.Kernel.Tests
 {

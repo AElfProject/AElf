@@ -27,7 +27,6 @@ namespace AElf.Kernel.Tests
         //TODO: only test kernel aelf module here
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
         typeof(SmartContractAElfModule),
-        typeof(MinerAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(CSharpRuntimeAElfModule),
         

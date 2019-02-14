@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Extensions;
+using AElf.Kernel.Services;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -24,8 +25,8 @@ namespace AElf.Kernel.Blk
             {
                 Header =
                 {
-                    Height = generateBlockDto.PreBlockHeight,
-                    PreviousBlockHash = generateBlockDto.PreBlockHash,
+                    Height = generateBlockDto.PreviousBlockHeight,
+                    PreviousBlockHash = generateBlockDto.PreviousBlockHash,
                     ChainId = generateBlockDto.ChainId,
                     Time = Timestamp.FromDateTime(currentBlockTime)
                 },
@@ -56,7 +57,6 @@ namespace AElf.Kernel.Blk
                 new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
             
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            // Todo: improvement needed?
             block.Body.Complete(block.Header.GetHash());
         }
     }

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
@@ -11,8 +13,8 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
-using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
+using AElf.Miner.EventMessages;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.TxPool.RefBlockExceptions;
@@ -21,8 +23,9 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using TransactionAddedToPool = AElf.Miner.EventMessages.TransactionAddedToPool;
 
-namespace AElf.TxPool
+namespace AElf.Miner.TxMemPool
 {
     public class TxHub : ITxHub, ISingletonDependency 
     {

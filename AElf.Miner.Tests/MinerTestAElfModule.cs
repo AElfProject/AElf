@@ -7,6 +7,7 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Execution;
 using AElf.Kernel.Storages;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
@@ -21,7 +22,7 @@ namespace AElf.Miner.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(AElf.Miner.MinerAElfModule),
+        typeof(AElf.TxPool.TxPoolAElfModule),
         typeof(ConsensusKernelAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
         typeof(KernelAElfModule)

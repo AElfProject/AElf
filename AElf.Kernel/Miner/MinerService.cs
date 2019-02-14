@@ -7,19 +7,17 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Account;
-using AElf.Kernel.Blk;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Execution;
 using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
+using AElf.Kernel.Services;
 using AElf.Kernel.TxMemPool;
-using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner
 {
@@ -38,6 +36,7 @@ namespace AElf.Kernel.Miner
         private ITransactionFilter _txFilter;
         private readonly double _maxMineTime;
         private readonly IAccountService _accountService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
 
         private const float RatioMine = 0.3f;
 
@@ -45,7 +44,7 @@ namespace AElf.Kernel.Miner
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager,
             ITransactionFilter transactionFilter, IAccountService accountService, IBlockGenerationService blockGenerationService, 
-            ISystemTransactionGenerationService systemTransactionGenerationService)
+            ISystemTransactionGenerationService systemTransactionGenerationService, IBlockchainStateManager blockchainStateManager)
         {
             _txHub = txHub;
             _chainService = chainService;
@@ -57,6 +56,7 @@ namespace AElf.Kernel.Miner
             _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * RatioMine;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
+            _blockchainStateManager = blockchainStateManager;
             _txFilter = transactionFilter;
             _accountService = accountService;
             _blockChain = _chainService.GetBlockChain(Config.ChainId);
@@ -132,6 +132,16 @@ namespace AElf.Kernel.Miner
 //                    Logger.LogWarning($"Found the block generated before invalid: {blockValidationResult}.");
 //                    return null;
 //                }
+
+                var blockStateSet = new BlockStateSet()
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height,
+                    PreviousHash = block.Header.PreviousBlockHash
+                };
+                FillBlockStateSet(blockStateSet, traces);
+                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+                
                 // append block
                 await _blockChain.AddBlocksAsync(new List<IBlock> {block});
 
@@ -229,6 +239,17 @@ namespace AElf.Kernel.Miner
             await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
         }
 
+        private void FillBlockStateSet(BlockStateSet blockStateSet,IEnumerable<TransactionTrace> traces)
+        {
+            foreach (var trace in traces)
+            {
+                foreach (var w in trace.GetFlattenedWrite())
+                {
+                    blockStateSet.Changes[w.Key] = w.Value;    
+                }
+            }
+        }
+        
         /// <summary>
         /// Extract tx results from traces
         /// </summary>
@@ -352,8 +373,8 @@ namespace AElf.Kernel.Miner
             var block = await _blockGenerationService.GenerateBlockAsync(new GenerateBlockDto
             {
                 ChainId = chainId,
-                PreBlockHash = preBlockHash,
-                PreBlockHeight = preBlockHeight
+                PreviousBlockHash = preBlockHash,
+                PreviousBlockHeight = preBlockHeight
             });
             return block;
         }

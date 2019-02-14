@@ -1,6 +1,4 @@
-﻿using AElf.Kernel;
-
-namespace AElf.TxPool.EventMessages
+﻿namespace AElf.Kernel.EventMessages
 {
     public sealed class TransactionAddedToPool
     {
