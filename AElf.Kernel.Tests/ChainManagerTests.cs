@@ -41,7 +41,7 @@ namespace AElf.Kernel.Managers.Another.Tests
             var chain = await _chainManager.CreateAsync(0, _genesis);
             chain.BestChainHash.ShouldBe(_genesis);
             chain.GenesisBlockHash.ShouldBe(_genesis);
-            chain.BestChainHeight.ShouldBe(0);
+            chain.BestChainHeight.ShouldBe(0u);
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(1);
+                chain.BestChainHeight.ShouldBe(1u);
                 chain.BestChainHash.ShouldBe(_blocks[1]);
             }
 
@@ -90,7 +90,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
 
@@ -102,7 +102,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0)).BlockHash.ShouldBe(_blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1)).BlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
-                chain.LastIrreversibleBlockHeight.ShouldBe(1);
+                chain.LastIrreversibleBlockHeight.ShouldBe(1u);
             }
 
             //0 -> 1 -> 2, no branch
@@ -121,7 +121,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
             
@@ -130,7 +130,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0)).BlockHash.ShouldBe(_blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1)).BlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
-                chain.LastIrreversibleBlockHeight.ShouldBe(1);
+                chain.LastIrreversibleBlockHeight.ShouldBe(1u);
             }
 
             //0 -> 1 -> 2, no branch
@@ -149,7 +149,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
 
@@ -168,7 +168,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(5);
+                chain.BestChainHeight.ShouldBe(5u);
                 chain.BestChainHash.ShouldBe(_blocks[5]);
             }
             
@@ -182,7 +182,7 @@ namespace AElf.Kernel.Managers.Another.Tests
 
 
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[4]);
-                chain.LastIrreversibleBlockHeight.ShouldBe(4);
+                chain.LastIrreversibleBlockHeight.ShouldBe(4u);
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 , 2 branches
@@ -200,7 +200,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(5);
+                chain.BestChainHeight.ShouldBe(5u);
                 chain.BestChainHash.ShouldBe(_blocks[5]);
             }
 
@@ -219,7 +219,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
             }
 
@@ -240,7 +240,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -262,7 +262,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -284,7 +284,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -307,7 +307,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(8);
+                chain.BestChainHeight.ShouldBe(8u);
                 chain.BestChainHash.ShouldBe(_blocks[12]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -325,7 +325,7 @@ namespace AElf.Kernel.Managers.Another.Tests
 
 
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[12]);
-                chain.LastIrreversibleBlockHeight.ShouldBe(8);
+                chain.LastIrreversibleBlockHeight.ShouldBe(8u);
             }
         }
         
@@ -356,7 +356,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(1);
+                chain.BestChainHeight.ShouldBe(1u);
                 chain.BestChainHash.ShouldBe(_blocks[1]);
             }
 
@@ -375,7 +375,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
 
@@ -395,7 +395,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
 
@@ -415,7 +415,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(2);
+                chain.BestChainHeight.ShouldBe(2u);
                 chain.BestChainHash.ShouldBe(_blocks[2]);
             }
 
@@ -434,7 +434,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(5);
+                chain.BestChainHeight.ShouldBe(5u);
                 chain.BestChainHash.ShouldBe(_blocks[5]);
             }
 
@@ -453,7 +453,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(5);
+                chain.BestChainHeight.ShouldBe(5u);
                 chain.BestChainHash.ShouldBe(_blocks[5]);
             }
 
@@ -472,7 +472,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
             }
 
@@ -493,7 +493,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -515,7 +515,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -537,7 +537,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(6);
+                chain.BestChainHeight.ShouldBe(6u);
                 chain.BestChainHash.ShouldBe(_blocks[7]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
@@ -560,7 +560,7 @@ namespace AElf.Kernel.Managers.Another.Tests
                 status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
                 status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
 
-                chain.BestChainHeight.ShouldBe(8);
+                chain.BestChainHeight.ShouldBe(8u);
                 chain.BestChainHash.ShouldBe(_blocks[12]);
 
                 chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());

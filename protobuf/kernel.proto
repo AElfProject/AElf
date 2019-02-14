@@ -282,23 +282,24 @@ message ActionResult {
 
 message ChainBlockLink{
     Hash BlockHash = 1;
-    int64 Height = 2;
+    uint64 Height = 2;
     Hash PreviousBlockHash = 3;
     bool IsExecuted = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
+    bool IsLightBlock = 7;//no block body
 }
 
 message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
     Hash BestChainHash = 3;
-    int64 BestChainHeight = 4;
+    uint64 BestChainHeight = 4;
 
-    map<string, int64> Branches = 5;
+    map<string, uint64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
     Hash LastIrreversibleBlockHash = 8;
-    int64 LastIrreversibleBlockHeight = 9;
+    uint64 LastIrreversibleBlockHeight = 9;
 }
 
 message ChainBlockIndex{

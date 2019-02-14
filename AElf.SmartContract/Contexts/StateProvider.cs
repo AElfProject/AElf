@@ -18,7 +18,7 @@ namespace AElf.SmartContract.Contexts
 
         public async Task<byte[]> GetAsync(StatePath path)
         {
-            // TODO: Standardize: 1. BlockHeight (ulong/long) 2. StatePath (string)
+            // TODO: StatePath (string)
             var byteString = await BlockchainStateManager.GetStateAsync(
                 string.Join("/", path.Path.Select(x => x.ToStringUtf8())),
                 TransactionContext.BlockHeight,
