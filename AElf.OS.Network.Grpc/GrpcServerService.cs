@@ -24,16 +24,16 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public event EventHandler PeerSentDisconnection;
         
-        private readonly IPeerManager _peerManager;
+        private readonly IPeerPool _peerPool;
         private readonly IBlockService _blockService;
         
         public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcServerService> Logger;
         
-        public GrpcServerService(IPeerManager peerManager, IBlockService blockService)
+        public GrpcServerService(IPeerPool peerPool, IBlockService blockService)
         {
-            _peerManager = peerManager;
+            _peerPool = peerPool;
             _blockService = blockService;
             
             EventBus = NullLocalEventBus.Instance;
@@ -64,14 +64,14 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
-                bool isAuth = _peerManager.AuthenticatePeer(peerServer, request);
+                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
                 
                 // send our credentials
-                var hsk = _peerManager.GetHandshake();
+                var hsk = _peerPool.GetHandshakeAsync().Result; // todo avoid .Result if possible
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
-                _peerManager.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
+                _peerPool.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
                 
                 return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
@@ -96,7 +96,7 @@ namespace AElf.OS.Network.Grpc
             {
                 var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
                 
-                bool isAuth = _peerManager.AuthenticatePeer(peerServer, request);
+                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
                 
                 // todo verify auth
             }
@@ -185,7 +185,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var peer = GrpcUrl.Parse(context.Peer);
-                _peerManager.ProcessDisconnection(peer.Port.ToString());
+                _peerPool.ProcessDisconnection(peer.Port.ToString());
             }
             catch (Exception e)
             {

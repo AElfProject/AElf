@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace AElf.OS.Network.Grpc
 {
-    public interface IPeerManager
+    public interface IPeerPool
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
@@ -14,6 +14,6 @@ namespace AElf.OS.Network.Grpc
         bool IsAuthenticated(string peer);
         bool FinalizeAuth(GrpcPeer peer);
         void ProcessDisconnection(string peer);
-        Handshake GetHandshake();
+        Task<Handshake> GetHandshakeAsync();
     }
 }

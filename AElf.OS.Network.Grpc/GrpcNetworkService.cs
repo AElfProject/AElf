@@ -12,35 +12,35 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkService : INetworkService, ISingletonDependency
     {
-        private readonly IPeerManager _peerManager;
+        private readonly IPeerPool _peerPool;
         
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcNetworkService(IPeerManager peerManager)
+        public GrpcNetworkService(IPeerPool peerPool)
         {
-            _peerManager = peerManager;
+            _peerPool = peerPool;
             
             Logger = NullLogger<GrpcServerService>.Instance;
         }
 
         public async Task AddPeerAsync(string address)
         {
-            await _peerManager.AddPeerAsync(address);
+            await _peerPool.AddPeerAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _peerManager.RemovePeerAsync(address);
+            return await _peerPool.RemovePeerAsync(address);
         }
 
         public List<string> GetPeers()
         {
-            return _peerManager.GetPeers().Select(p => p.PeerAddress).ToList();
+            return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
         public async Task BroadcastAnnounce(Hash b)
         {
-            foreach (var peer in _peerManager.GetPeers())
+            foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task BroadcastTransaction(Transaction tx)
         {
-            foreach (var peer in _peerManager.GetPeers())
+            foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
@@ -81,7 +81,7 @@ namespace AElf.OS.Network.Grpc
         private async Task<IBlock> GetBlock(BlockRequest request, string peer = null)
         {
             // todo use peer if specified
-            foreach (var p in _peerManager.GetPeers())
+            foreach (var p in _peerPool.GetPeers())
             {
                 try
                 {

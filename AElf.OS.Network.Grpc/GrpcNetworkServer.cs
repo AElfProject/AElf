@@ -18,7 +18,7 @@ namespace AElf.OS.Network.Grpc
         
         private readonly PeerService.PeerServiceBase _serverService;
         
-        private readonly IPeerManager _peerManager;
+        private readonly IPeerPool _peerPool;
 
         private Server _server;
         
@@ -26,10 +26,10 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcNetworkServer> Logger { get; set; }
         
         public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService, 
-            IPeerManager peerManager)
+            IPeerPool peerPool)
         {
             _serverService = serverService;
-            _peerManager = peerManager;
+            _peerPool = peerPool;
             _networkOptions = options.Value;
             
             Logger = NullLogger<GrpcNetworkServer>.Instance;
@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Grpc
             // Add the provided boot nodes
             if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerManager.AddPeerAsync).ToList();
+                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Grpc
         {
             await _server.KillAsync();
             
-            foreach (var peer in _peerManager.GetPeers())
+            foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {

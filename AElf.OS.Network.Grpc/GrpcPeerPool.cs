@@ -15,7 +15,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class PeerManager : IPeerManager
+    public class GrpcPeerPool : IPeerPool
     {
         private readonly NetworkOptions _networkOptions;
         private readonly IAccountService _accountService;
@@ -25,7 +25,7 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
         
-        public PeerManager(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService)
+        public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
@@ -67,7 +67,7 @@ namespace AElf.OS.Network.Grpc
                 Channel channel = new Channel(splitAddress[0], int.Parse(splitAddress[1]), ChannelCredentials.Insecure);
                         
                 var client = new PeerService.PeerServiceClient(channel);
-                var hsk = BuildHandshake();
+                var hsk = await BuildHandshakeAsync();
                         
                 var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(2)));
 
@@ -114,21 +114,21 @@ namespace AElf.OS.Network.Grpc
             throw new NotImplementedException();
         }
 
-        public Handshake GetHandshake()
+        public async Task<Handshake> GetHandshakeAsync()
         {
-            return BuildHandshake();
+            return await BuildHandshakeAsync();
         }
         
-        private Handshake BuildHandshake()
+        private async Task<Handshake> BuildHandshakeAsync()
         {
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(_accountService.GetPublicKeyAsync().Result),
+                PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 Version = GlobalConfig.ProtocolVersion,
             };
             
-            byte[] sig = _accountService.SignAsync(SHA256.Create().ComputeHash(nd.ToByteArray())).Result;
+            byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
 
             var hsk = new Handshake
             {

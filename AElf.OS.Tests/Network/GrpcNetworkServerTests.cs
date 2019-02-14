@@ -24,7 +24,7 @@ namespace AElf.OS.Tests.Network
             _accountService = GetRequiredService<IAccountService>();
         }
         
-        private (GrpcNetworkServer, IPeerManager) BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
+        private (GrpcNetworkServer, IPeerPool) BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
@@ -40,14 +40,14 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            PeerManager peerManager = new PeerManager(optionsMock.Object, _accountService);
-            GrpcServerService serverService = new GrpcServerService(peerManager, null);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, _accountService);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, null);
             serverService.EventBus = mockLocalEventBus.Object;
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, peerManager);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
             netServer.EventBus = mockLocalEventBus.Object;
 
-            return (netServer, peerManager);
+            return (netServer, grpcPeerPool);
         }
        
         [Fact]
