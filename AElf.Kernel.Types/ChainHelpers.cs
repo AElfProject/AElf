@@ -16,16 +16,16 @@ namespace AElf.Common
             // For 4 base58 chars use following range (2111 ~ zzzz):
             // Max: 57*58*58*58+57*58*58+57*58+57 = 11316496 (zzzz)
             // Min: 1*58*58*58+0*58*58+0*58+0 = 195112 (2111)
-            var invalidNUmber = serialNumber.GetHashCode() % 11316496;
-            if (invalidNUmber < 195112)
-                invalidNUmber += 195112;
+            var validNUmber = serialNumber.GetHashCode() % 11316496;
+            if (validNUmber < 195112)
+                validNUmber += 195112;
 
-            var invalidNUmberBytes = BitConverter.GetBytes(invalidNUmber);
+            var validNUmberBytes = BitConverter.GetBytes(validNUmber);
 
             // Use BigInteger(BigEndian) format (bytes size = 3)
             var integerBytes = new byte[4];
             for (var i = 0; i < 3; i++)
-                integerBytes[2 - i] = invalidNUmberBytes[i];
+                integerBytes[2 - i] = validNUmberBytes[i];
 
             return BitConverter.ToInt32(integerBytes, 0);
         }
