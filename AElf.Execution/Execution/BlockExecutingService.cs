@@ -12,11 +12,12 @@ namespace AElf.Execution.Execution
 {
     public class BlockExecutingService : IBlockExecutingService
     {
-        private readonly IExecutingService _executingService;
+        private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
 
-        public BlockExecutingService(IExecutingService executingService, IBlockManager blockManager, IBlockchainStateManager blockchainStateManager)
+        public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
+            IBlockchainStateManager blockchainStateManager)
         {
             _executingService = executingService;
             _blockManager = blockManager;
@@ -25,40 +26,36 @@ namespace AElf.Execution.Execution
 
         public async Task ExecuteBlockAsync(int chainId, Hash blockHash)
         {
+            // TODO: If already executed, don't execute again. Maybe check blockStateSet?
             var block = await _blockManager.GetBlockAsync(blockHash);
             var readyTxs = block.Body.TransactionList.ToList();
+
             // TODO: Use BlockStateSet to calculate merkle tree
-            var traces = await ExecuteTransactions(readyTxs, block.Header.ChainId,
-                block.Header.Time.ToDateTime(), block.Header.GetDisambiguationHash(), CancellationToken.None);
+
             var blockStateSet = new BlockStateSet()
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Header.Height,
                 PreviousHash = block.Header.PreviousBlockHash
             };
-            FillBlockStateSet(blockStateSet, traces);
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-        }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> readyTxs, int chainId,
-            DateTime toDateTime, Hash disambiguationHash, CancellationToken cancellationToken)
-        {
-            var traces = readyTxs.Count == 0
-                ? new List<TransactionTrace>()
-                : await _executingService.ExecuteAsync(readyTxs, chainId, toDateTime, cancellationToken,
-                    disambiguationHash);
-            return traces;
-        }
-
-        private void FillBlockStateSet(BlockStateSet blockStateSet, IEnumerable<TransactionTrace> traces)
-        {
-            foreach (var trace in traces)
+            var chainContext = new ChainContext()
             {
-                foreach (var w in trace.GetFlattenedWrite())
+                ChainId = block.Header.ChainId,
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Header.Height - 1
+            };
+            var returnSets = await _executingService.ExecuteAsync(chainId, chainContext, readyTxs,
+                block.Header.Time.ToDateTime(), CancellationToken.None);
+            foreach (var returnSet in returnSets)
+            {
+                foreach (var change in returnSet.StateChanges)
                 {
-                    blockStateSet.Changes[w.Key] = w.Value;
+                    blockStateSet.Changes.Add(change.Key, change.Value);
                 }
             }
+
+            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
         }
     }
 }
