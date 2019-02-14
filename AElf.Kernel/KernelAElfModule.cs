@@ -6,7 +6,6 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Database;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

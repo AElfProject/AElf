@@ -6,7 +6,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Xunit;
 
 

@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Storages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

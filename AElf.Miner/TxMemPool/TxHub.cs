@@ -10,7 +10,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;

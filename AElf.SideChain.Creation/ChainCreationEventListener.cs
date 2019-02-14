@@ -12,7 +12,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Kernel.Managers;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

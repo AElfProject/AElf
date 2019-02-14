@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.Kernel.Services;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Blk
+namespace AElf.Kernel.Services
 {
     public class BlockGenerationService : IBlockGenerationService
     {

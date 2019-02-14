@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Blk
+namespace AElf.Kernel.Services
 {
     public interface IBlockExtraDataService
     {

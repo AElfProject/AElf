@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Kernel.TxMemPool
+namespace AElf.Kernel
 {
     public interface ITransactionFilter
     {

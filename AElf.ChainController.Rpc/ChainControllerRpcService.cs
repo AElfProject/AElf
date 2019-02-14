@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Managers;
-using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Node.AElfChain;

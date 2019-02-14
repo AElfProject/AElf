@@ -1,5 +1,5 @@
 ﻿using AElf.Cryptography.ECDSA;
-using AElf.Kernel.TxMemPool;
+using AElf.Kernel;
 
 namespace AElf.TxPool
  {

@@ -6,7 +6,6 @@ using AElf.Kernel.Managers;
 using Easy.MessageHub;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using HashExtensions = AElf.Kernel.Extensions.HashExtensions;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

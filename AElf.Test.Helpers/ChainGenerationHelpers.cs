@@ -3,7 +3,6 @@ using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Genesis;
 using Google.Protobuf;
 using Xunit;
 

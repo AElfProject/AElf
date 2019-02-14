@@ -3,7 +3,7 @@ using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel.Extensions
+namespace AElf.Kernel
 {
     public static class ConsensusExtensions
     {

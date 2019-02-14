@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 
-namespace AElf.Kernel.TxMemPool
+namespace AElf.Kernel
 {
     public interface ITxHub
     {

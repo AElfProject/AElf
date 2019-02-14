@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Volo.Abp.DependencyInjection;
 
 // ReSharper disable once CheckNamespace

@@ -1,6 +1,6 @@
 using AElf.Kernel.Types;
 
-namespace AElf.Kernel.Extensions
+namespace AElf.Kernel
 {
     public static class TransactionTypeExtensions
     {

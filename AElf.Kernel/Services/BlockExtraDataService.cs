@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Blk
+namespace AElf.Kernel.Services
 {
     public class BlockExtraDataService : IBlockExtraDataService
     {

@@ -9,7 +9,7 @@ using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.TestBase;
 using Microsoft.Extensions.Logging;
 

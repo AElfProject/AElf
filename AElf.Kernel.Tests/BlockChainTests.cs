@@ -8,7 +8,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel.Execution;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Google.Protobuf;
 using Xunit;
 

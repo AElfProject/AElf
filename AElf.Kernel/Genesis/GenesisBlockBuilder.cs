@@ -1,9 +1,9 @@
 ﻿using System;
-using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel.Types;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Common;
 
-namespace AElf.Kernel.Genesis
+namespace AElf.Kernel
 {
     public class GenesisBlockBuilder
     {

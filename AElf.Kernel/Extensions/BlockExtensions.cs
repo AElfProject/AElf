@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography.ECDSA;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Extensions
+namespace AElf.Kernel
 {
     public static class BlockExtensions
     {

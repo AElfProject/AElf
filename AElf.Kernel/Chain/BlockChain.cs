@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Managers;
 using Easy.MessageHub;
+using AElf.Common;
+using AElf.Kernel.Managers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

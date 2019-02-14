@@ -5,21 +5,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Execution;
-using AElf.Kernel.Extensions;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
-using AElf.Kernel.TxMemPool;
 using AElf.Kernel.Types;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.Miner
+namespace AElf.Kernel.Services
 {
     public class MinerService : IMinerService
     {

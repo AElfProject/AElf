@@ -6,7 +6,6 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

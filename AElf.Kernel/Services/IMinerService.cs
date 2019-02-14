@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.Miner
+namespace AElf.Kernel.Services
 {
     public interface IMinerService
     {

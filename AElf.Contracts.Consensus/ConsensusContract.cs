@@ -7,7 +7,7 @@ using AElf.Sdk.CSharp.Types;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using AElf.Contracts.Consensus.Contracts;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Api = AElf.Sdk.CSharp.Api;
 
 namespace AElf.Contracts.Consensus

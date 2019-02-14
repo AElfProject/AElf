@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.SmartContract;
 using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;

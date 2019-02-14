@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
-namespace AElf.Kernel.Blk
+
+namespace AElf.Kernel
 {
     public interface IBlockExtraDataProvider
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp;

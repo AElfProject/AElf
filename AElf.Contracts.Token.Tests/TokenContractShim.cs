@@ -8,7 +8,7 @@ using Akka.IO;
 using Xunit;
 using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

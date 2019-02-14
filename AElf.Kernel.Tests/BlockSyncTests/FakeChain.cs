@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.BlockSyncTests

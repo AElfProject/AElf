@@ -7,7 +7,7 @@ using AElf.ChainController;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Execution;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;

@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Configuration.Config.Consensus;
-using AElf.Kernel.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

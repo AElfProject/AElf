@@ -8,7 +8,7 @@ using Google.Protobuf;
 using Xunit;
 
 using AElf.Common;
-using AElf.Kernel.Extensions;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 
 namespace AElf.Contracts.SideChain.Tests

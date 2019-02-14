@@ -1,6 +1,6 @@
 using Google.Protobuf;
 
-namespace AElf.Kernel.Extensions
+namespace AElf.Kernel
 {
     public static class TransactionResultExtensions
     {
