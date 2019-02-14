@@ -10,7 +10,6 @@ using AElf.Common.FSM;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Execution;
-using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.Rpc.Client;
 using AElf.Miner.Rpc.Exceptions;
