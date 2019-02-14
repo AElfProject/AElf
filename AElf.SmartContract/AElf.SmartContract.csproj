@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />

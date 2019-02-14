@@ -6,7 +6,6 @@ using System.Linq;
 //using AElf.Runtime.CSharp.Core.ABI;
 using Google.Protobuf;
 using AElf.Kernel;
-using AElf.Configuration;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.ABI;
@@ -15,7 +14,6 @@ using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Types;
 using AElf.SmartContract.Contexts;
 using AElf.Types.CSharp;
-using Akka.Util.Internal;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.SmartContract
