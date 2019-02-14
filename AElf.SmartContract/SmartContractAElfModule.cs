@@ -1,6 +1,5 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
-using AElf.SmartContract.Proposal;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -15,7 +14,6 @@ namespace AElf.SmartContract
 
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
 
-            context.Services.AddSingleton<IAuthorizationInfoReader,AuthorizationInfoReader>();
         }
     }
 }

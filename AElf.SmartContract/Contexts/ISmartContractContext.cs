@@ -9,7 +9,6 @@ namespace AElf.SmartContract
     {
         int ChainId { get; }
         Address ContractAddress { get; }
-        IDataProvider DataProvider { get; }
         ISmartContractService SmartContractService { get; }
         IBlockchainService ChainService { get; }
     }

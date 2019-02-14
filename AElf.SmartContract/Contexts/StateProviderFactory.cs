@@ -6,12 +6,10 @@ namespace AElf.SmartContract.Contexts
     public class StateProviderFactory : IStateProviderFactory
     {
         private readonly IBlockchainStateManager _blockchainStateManager;
-        private readonly IStateManager _stateManager;
 
-        public StateProviderFactory(IBlockchainStateManager blockchainStateManager, IStateManager stateManager)
+        public StateProviderFactory(IBlockchainStateManager blockchainStateManager)
         {
             _blockchainStateManager = blockchainStateManager;
-            _stateManager = stateManager;
         }
 
         public IStateProvider CreateStateProvider()
@@ -22,9 +20,5 @@ namespace AElf.SmartContract.Contexts
             };
         }
 
-        public IStateManager CreateStateManager()
-        {
-            return _stateManager;
-        }
     }
 }

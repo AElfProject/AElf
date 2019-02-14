@@ -10,14 +10,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContractExecution.Domain
 {
-    public interface IStateManager
-    {
-        Task SetAsync(StatePath path, byte[] value);
-
-        Task<byte[]> GetAsync(StatePath path);
-
-        Task PipelineSetAsync(Dictionary<StatePath, byte[]> pipelineSet);
-    }
 
     public interface IBlockchainStateManager
     {

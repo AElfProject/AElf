@@ -6,7 +6,5 @@ namespace AElf.SmartContract.Contexts
     {
         IStateProvider CreateStateProvider();
 
-        // Temporarily put here, delete after migration
-        IStateManager CreateStateManager();
     }
 }
