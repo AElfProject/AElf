@@ -10,6 +10,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -67,7 +68,7 @@ namespace AElf.OS.Network.Grpc
                 bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
                 
                 // send our credentials
-                var hsk = _peerPool.GetHandshakeAsync().Result; // todo avoid .Result if possible
+                var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
