@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Storages;
+using JetBrains.Annotations;
+using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Managers.Another
 {
@@ -19,8 +23,19 @@ namespace AElf.Kernel.Managers.Another
 
     public interface IChainManager
     {
-    }
+        Task<Chain> CreateAsync(int chainId, Hash genesisBlock);
+        Task<Chain> GetAsync(int chainId);
+        Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, Hash blockHash);
+        Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight);
 
+        Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
+            ChainBlockLink chainBlockLink);
+
+        Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
+
+        Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
+        Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
+    }
 
     public class ChainManager : IChainManager, ISingletonDependency
     {
@@ -39,7 +54,7 @@ namespace AElf.Kernel.Managers.Another
 
         public async Task<Chain> CreateAsync(int chainId, Hash genesisBlock)
         {
-            var chain = await _chains.GetAsync(chainId.ToHex());
+            var chain = await _chains.GetAsync(chainId.ToStorageKey());
             if (chain != null)
                 throw new InvalidOperationException("chain already exists");
 
@@ -49,7 +64,7 @@ namespace AElf.Kernel.Managers.Another
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
-                    {genesisBlock.ToHex(), 0}
+                    {genesisBlock.ToStorageKey(), 0}
                 }
             };
 
@@ -59,41 +74,41 @@ namespace AElf.Kernel.Managers.Another
                 Height = 0,
                 IsLinked = true
             });
-            await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             return chain;
         }
 
         public async Task<Chain> GetAsync(int chainId)
         {
-            var chain = await _chains.GetAsync(chainId.ToHex());
+            var chain = await _chains.GetAsync(chainId.ToStorageKey());
             return chain;
         }
 
         public async Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, Hash blockHash)
         {
-            return await GetChainBlockLinkAsync(chainId, blockHash.ToHex());
+            return await GetChainBlockLinkAsync(chainId, blockHash.ToStorageKey());
         }
 
-        public async Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, string blockHash)
+        protected async Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, string blockHash)
         {
-            return await _chainBlockLinks.GetAsync(chainId.ToHex() + blockHash);
+            return await _chainBlockLinks.GetAsync(chainId.ToStorageKey() + blockHash);
         }
 
         public async Task SetChainBlockLinkAsync(int chainId, ChainBlockLink chainBlockLink)
         {
-            await _chainBlockLinks.SetAsync(chainId.ToHex() + chainBlockLink.BlockHash.ToHex(), chainBlockLink);
+            await _chainBlockLinks.SetAsync(chainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
         }
 
-        private async Task SetChainBlockIndexAsync(int chainId, long blockHeight, Hash blockHash)
+        private async Task SetChainBlockIndexAsync(int chainId, ulong blockHeight, Hash blockHash)
         {
-            await _chainBlockIndexes.SetAsync(chainId.ToHex() + blockHeight.ToHex(),
+            await _chainBlockIndexes.SetAsync(chainId.ToStorageKey() + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
-        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, long blockHeight)
+        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight)
         {
-            return await _chainBlockIndexes.GetAsync(chainId.ToHex() + blockHeight.ToHex());
+            return await _chainBlockIndexes.GetAsync(chainId.ToStorageKey() + blockHeight.ToStorageKey());
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
@@ -103,8 +118,8 @@ namespace AElf.Kernel.Managers.Another
 
             while (true)
             {
-                var previousHash = chainBlockLink.PreviousBlockHash.ToHex();
-                var blockHash = chainBlockLink.BlockHash.ToHex();
+                var previousHash = chainBlockLink.PreviousBlockHash.ToStorageKey();
+                var blockHash = chainBlockLink.BlockHash.ToStorageKey();
 
                 if (chain.Branches.ContainsKey(previousHash))
                 {
@@ -148,7 +163,7 @@ namespace AElf.Kernel.Managers.Another
                             await this.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
                         if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                         {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToHex()] = previousChainBlockLink.Height;
+                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
                             continue;
                         }
                     }
@@ -164,7 +179,7 @@ namespace AElf.Kernel.Managers.Another
                 }
             }
 
-            await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             return status;
         }
@@ -194,9 +209,22 @@ namespace AElf.Kernel.Managers.Another
                 await SetChainBlockLinkAsync(chain.Id, chainBlockLink);
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
                 chain.LastIrreversibleBlockHeight = chainBlockLink.Height;
-                await _chains.SetAsync(HexExtensions.ToHex((int) chain.Id), chain);
+                await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
                 
             }
+        }
+
+        public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink)
+        {
+            if(blockLink.IsExecuted)
+                throw new InvalidOperationException();
+            blockLink.IsExecuted = true;
+            await SetChainBlockLinkAsync(chainId, blockLink);
         }
     }
 }

@@ -2,7 +2,7 @@ using AElf.Common;
 using AElf.Sdk.CSharp.State;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Sdk.CSharp2.Tests.TestContract
+namespace AElf.Contracts.Token
 {
     public class TokenInfoState : StructuredState
     {
@@ -20,6 +20,14 @@ namespace AElf.Sdk.CSharp2.Tests.TestContract
     {
     }
 
+    public class ChargedFeesMappedState : MappedState<Address, ulong>
+    {
+    }
+
+    public class FeePoolAddress : SingletonState<Address>
+    {
+    }
+
     public class MethodFeesMappedState : MappedState<string, ulong>
     {
     }
@@ -31,5 +39,7 @@ namespace AElf.Sdk.CSharp2.Tests.TestContract
         public TokenInfoState TokenInfo { get; set; }
         public BalanceMappedState Balances { get; set; }
         public AllowanceMappedState Allowances { get; set; }
+        public ChargedFeesMappedState ChargedFees { get; set; }
+        public FeePoolAddress FeePoolAddress { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
@@ -139,10 +140,13 @@ namespace AElf.Execution.Execution
                 executive.SetDataCache(stateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
 
+                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
                 foreach (var kv in txCtxt.Trace.StateChanges)
                 {
                     // TODO: Better encapsulation/abstraction for committing to state cache
                     stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
+                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
+                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
                 }
 
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)

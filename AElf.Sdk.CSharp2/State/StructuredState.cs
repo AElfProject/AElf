@@ -19,7 +19,9 @@ namespace AElf.Sdk.CSharp.State
 
         private void DetectPropertyInfos()
         {
-            PropertyInfos = this.GetType().GetProperties().Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
+            PropertyInfos = this.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
                 .ToDictionary(x => x.Name, x => x);
         }
 
