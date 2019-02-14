@@ -2,9 +2,8 @@ using System;
 
 namespace AElf.Consensus
 {
-    public interface IConsensusObserver
+    public interface IConsensusObserver : IObserver<ConsensusPerformanceType>
     {
-        IDisposable SubscribeInitialProcess();
-        IDisposable SubscribeMiningProcess();
+        IDisposable Subscribe(byte[] consensusCommand);
     }
 }

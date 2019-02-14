@@ -20,7 +20,6 @@ namespace AElf.Consensus
     public class ConsensusService : IConsensusService
     {
         private readonly IConsensusObserver _consensusObserver;
-
         private readonly IExecutingService _executingService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly StateManager _stateManager;
@@ -101,7 +100,6 @@ namespace AElf.Consensus
         enum ConsensusMethod
         {
             ValidateConsensus,
-            GetCountingMilliseconds,
             GetNewConsensusInformation,
             GenerateConsensusTransactions,
             GetConsensusCommand

@@ -7,6 +7,8 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Consensus\AElf.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+      <ProjectReference Include="..\AElf.Management\AElf.Management.csproj" />
+      <ProjectReference Include="..\AElf.Miner\AElf.Miner.csproj" />
     </ItemGroup>
 
 </Project>
