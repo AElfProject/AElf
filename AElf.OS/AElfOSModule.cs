@@ -8,6 +8,8 @@ using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Modularity;
 using AElf.OS.Account;
+using AElf.OS.Network;
+using AElf.OS.Network.Temp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -22,10 +24,14 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
             Configure<AccountOptions>(configuration.GetSection("Account"));
+            Configure<NetworkOptions>(configuration.GetSection("Network"));
 
             var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
+            
+            //todo temp remove after peer service is wired up with the correct service 
+             context.Services.AddSingleton<IBlockService, BlockService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

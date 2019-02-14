@@ -110,7 +110,7 @@ namespace AElf.Crosschain.Grpc
 
         private async Task<ulong> GetChainTargetHeight(int chainId)
         {
-            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToHex());
+            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToStorageKey());
             return height?.Value + 1 ??  GlobalConfig.GenesisBlockHeight;
         }
 

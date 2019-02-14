@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;

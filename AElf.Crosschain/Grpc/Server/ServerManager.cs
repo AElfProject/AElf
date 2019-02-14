@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.GRPC;
 using AElf.Crosschain.Exceptions;
 using AElf.Cryptography.Certificate;
@@ -27,13 +26,8 @@ namespace AElf.Crosschain.Grpc.Server
             _parentChainBlockInfoRpcServer = parentChainBlockInfoRpcServer;
             _sideChainBlockInfoRpcServer = sideChainBlockInfoRpcServer;
             Logger = NullLogger<ServerManager>.Instance;
-            GrpcLocalConfig.ConfigChanged += GrpcLocalConfigOnConfigChanged;
         }
 
-        private void GrpcLocalConfigOnConfigChanged(object sender, EventArgs e)
-        {
-            Init();
-        }
         
         /// <summary>
         /// generate key-certificate pair from pem file 
@@ -41,13 +35,12 @@ namespace AElf.Crosschain.Grpc.Server
         /// <returns></returns>
         /// <exception cref="CertificateException"></exception>
         /// <exception cref="PrivateKeyException"></exception>
-        private KeyCertificatePair GenerateKeyCertificatePair()
+        private KeyCertificatePair GenerateKeyCertificatePair(int chainId)
         {
-            string ch = ChainConfig.Instance.ChainId;
-            string certificate = _certificateStore.GetCertificate(ch);
+            string certificate = _certificateStore.GetCertificate(chainId.ToString());
             if(certificate == null)
                 throw new CertificateException("Unable to load Certificate.");
-            string privateKey = _certificateStore.GetPrivateKey(ch);
+            string privateKey = _certificateStore.GetPrivateKey(chainId.ToString());
             if(privateKey == null)
                 throw new PrivateKeyException("Unable to load private key.");
             return new KeyCertificatePair(certificate, privateKey);
@@ -165,20 +158,21 @@ namespace AElf.Crosschain.Grpc.Server
             await _parentChainServer.ShutdownAsync();
             _parentChainServer = null;
         }
-        
+
         /// <summary>
         /// init pem storage
         /// and try to start servers if configuration set.
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="dir"></param>
-        public void Init(string dir = "")
+        public void Init(int chainId, string dir = "")
         {
             if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
                 return;
             try
             {
                 _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
-                var keyCertificatePair = GenerateKeyCertificatePair();
+                var keyCertificatePair = GenerateKeyCertificatePair(chainId);
                 // create credentials 
                 _sslServerCredentials = new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
             }

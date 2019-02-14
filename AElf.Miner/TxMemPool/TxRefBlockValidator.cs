@@ -3,11 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool.RefBlockExceptions;
+using AElf.TxPool.RefBlockExceptions;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -19,35 +17,23 @@ namespace AElf.Miner.TxMemPool
         private IBlockChain _blockChain;
         private CanonicalBlockHashCache _canonicalBlockHashCache;
 
-        private IBlockChain BlockChain
-        {
-            get
-            {
-                if (_blockChain == null)
-                {
-                    _blockChain =
-                        _chainService.GetBlockChain(ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-                }
-
-                return _blockChain;
-            }
-        }
-
         public TxRefBlockValidator(IChainService chainService)
         {
-            try
-            {
-                _chainService = chainService;
-                _canonicalBlockHashCache = new CanonicalBlockHashCache(BlockChain);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            _chainService = chainService;
         }
 
-        public async Task ValidateAsync(Transaction tx)
+        public async Task ValidateAsync(int chainId, Transaction tx)
         {
+            if (_blockChain == null)
+            {
+                _blockChain = _chainService.GetBlockChain(chainId);
+            }
+
+            if (_canonicalBlockHashCache == null)
+            {
+                _canonicalBlockHashCache = new CanonicalBlockHashCache(_blockChain);
+            }
+
             if (tx.RefBlockNumber < GlobalConfig.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return;
@@ -68,7 +54,7 @@ namespace AElf.Miner.TxMemPool
             Hash canonicalHash;
             if (curHeight == 0)
             {
-                canonicalHash = await BlockChain.GetCurrentBlockHashAsync();
+                canonicalHash = await _blockChain.GetCurrentBlockHashAsync();
             }
             else
             {
@@ -77,7 +63,7 @@ namespace AElf.Miner.TxMemPool
 
             if (canonicalHash == null)
             {
-                canonicalHash = (await BlockChain.GetBlockByHeightAsync(tx.RefBlockNumber)).GetHash();
+                canonicalHash = (await _blockChain.GetBlockByHeightAsync(tx.RefBlockNumber)).GetHash();
             }
 
             if (canonicalHash == null)

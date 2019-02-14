@@ -6,12 +6,9 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;
@@ -194,14 +191,11 @@ namespace AElf.Synchronization.BlockSynchronization
             var t = TryExecuteNextCachedBlock();
         }
 
-        public void Init()
+        public void Init(int chainId)
         {
-            if (string.IsNullOrEmpty(ChainConfig.Instance?.ChainId))
-                throw new InvalidOperationException("Chain id cannot be empty...");
-            
             try
             {
-                _chainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
+                _chainId = chainId;
                 _blockChain = _chainService.GetBlockChain(_chainId);
             
                 Miners miners = _minersManager.GetMiners(0).Result;

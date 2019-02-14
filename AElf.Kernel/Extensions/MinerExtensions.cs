@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
@@ -115,7 +114,7 @@ namespace AElf.Kernel
             return term;
         }
 
-        public static Round GenerateNextRound(this Miners miners, Round previousRound)
+        public static Round GenerateNextRound(this Miners miners, int chainId, Round previousRound)
         {
             if (previousRound.RoundNumber == 1)
             {
@@ -133,7 +132,7 @@ namespace AElf.Kernel
 
             var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
 
-            if (ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId ||
+            if (chainId.DumpBase58() == GlobalConfig.DefaultChainId ||
                 previousRound.RealTimeMinersInfo.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
             {
                 foreach (var miner in previousRound.RealTimeMinersInfo.Values)

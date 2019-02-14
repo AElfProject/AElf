@@ -26,6 +26,8 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            // TODO : Maybe it shouldn't be set here
+            Configure<ChainOptions>(configuration);
 
             //Configure<DbConnectionOptions>(configuration);
             
@@ -46,12 +48,8 @@ namespace AElf.Kernel
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
 
-            
-            
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-
 
         }
 

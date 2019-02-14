@@ -11,7 +11,8 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool;
+using AElf.Kernel.Services;
+using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -95,7 +96,7 @@ namespace AElf.Synchronization.BlockExecution
                 double timeout = 0;
                 if (_isLimitExecutionTime)
                 {
-                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd(block.Header.ChainId);
                     timeout = distanceToTimeSlot * RatioSynchronize;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                 }
@@ -118,7 +119,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 // Execute transactions.
                 // After this, rollback needed
-                if ((res = ExtractTransactionResults(traces, out txnRes)).IsFailed())
+                if ((res = ExtractTransactionResults(block.Header.ChainId, traces, out txnRes)).IsFailed())
                 {
                     throw new InvalidBlockException(res.ToString());
                 }
@@ -188,7 +189,8 @@ namespace AElf.Synchronization.BlockExecution
             return traces;
         }
 
-        private BlockExecutionResult ExtractTransactionResults(List<TransactionTrace> traces, out List<TransactionResult> results)
+        private BlockExecutionResult ExtractTransactionResults(int chainId, List<TransactionTrace> traces, 
+            out List<TransactionResult> results)
         {
             results = new List<TransactionResult>();
             int index = 0;
@@ -213,7 +215,7 @@ namespace AElf.Synchronization.BlockExecution
                         if (trace.DeferredTransaction.Length != 0)
                         {
                             var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                            _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                            _txHub.AddTransactionAsync(chainId, deferredTxn).ConfigureAwait(false);
                             txRes.DeferredTxnId = deferredTxn.GetHash();
                         }
 
@@ -298,6 +300,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <summary>
         /// Get txs from tx pool
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="block"></param>
         /// <param name="cancellationTokenSource"></param>
         /// <returns>
@@ -326,7 +329,7 @@ namespace AElf.Synchronization.BlockExecution
                     break;
                 }
 
-                var receipt = await _txHub.GetCheckedReceiptsAsync(tx);
+                var receipt = await _txHub.GetCheckedReceiptsAsync(block.Header.ChainId, tx);
                 if (receipt.IsExecutable)
                     continue;
                 res = BlockExecutionResult.NotExecutable;

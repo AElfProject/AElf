@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;
@@ -23,6 +21,9 @@ namespace AElf.Miner.Rpc.Server
         private readonly SideChainBlockInfoRpcServer _sideChainBlockInfoRpcServer;
         public ILogger<ServerManager> Logger {get;set;}
 
+        // TODO: Shouldn't keep it in here, remove it after module refactor
+        private int _chainId;
+
         public ServerManager(ParentChainBlockInfoRpcServer parentChainBlockInfoRpcServer, 
             SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer)
         {
@@ -34,7 +35,7 @@ namespace AElf.Miner.Rpc.Server
 
         private void GrpcLocalConfigOnConfigChanged(object sender, EventArgs e)
         {
-            Init();
+            Init(_chainId);
         }
         
         /// <summary>
@@ -43,9 +44,9 @@ namespace AElf.Miner.Rpc.Server
         /// <returns></returns>
         /// <exception cref="CertificateException"></exception>
         /// <exception cref="PrivateKeyException"></exception>
-        private KeyCertificatePair GenerateKeyCertificatePair()
+        private KeyCertificatePair GenerateKeyCertificatePair(int chainId)
         {
-            string ch = ChainConfig.Instance.ChainId;
+            string ch = chainId.DumpBase58();
             string certificate = _certificateStore.GetCertificate(ch);
             if(certificate == null)
                 throw new CertificateException("Unable to load Certificate.");
@@ -173,14 +174,14 @@ namespace AElf.Miner.Rpc.Server
         /// and try to start servers if configuration set.
         /// </summary>
         /// <param name="dir"></param>
-        public void Init(string dir = "")
+        public void Init(int chainId, string dir = "")
         {
             if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
                 return;
             try
             {
                 _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);
-                var keyCertificatePair = GenerateKeyCertificatePair();
+                var keyCertificatePair = GenerateKeyCertificatePair(chainId);
                 // create credentials 
                 _sslServerCredentials = new SslServerCredentials(new List<KeyCertificatePair> {keyCertificatePair});
             }

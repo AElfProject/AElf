@@ -1,8 +1,6 @@
 ﻿using AElf.ChainController.Rpc;
-using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel.Consensus;
-using AElf.Miner;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
@@ -28,13 +26,11 @@ namespace AElf.FullNodeHosting
         typeof(AbpAspNetCoreMvcModule),
         typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
-        typeof(MinerAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
-        typeof(CrosschainAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule))]
     public class FullNodeHostingAElfModule : AElfModule

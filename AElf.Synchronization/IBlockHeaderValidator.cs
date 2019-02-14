@@ -5,6 +5,6 @@ namespace AElf.Synchronization
 {
     public interface IBlockHeaderValidator
     {
-        Task<BlockHeaderValidationResult> ValidateBlockHeaderAsync(BlockHeader blockHeader);
+        Task<BlockHeaderValidationResult> ValidateBlockHeaderAsync(int chainId, BlockHeader blockHeader);
     }
 }

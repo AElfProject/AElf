@@ -1,8 +1,8 @@
-namespace AElf.Kernel.Txn
+namespace AElf.Kernel
 {
     public interface ITransactionTypeIdentifier
     {
-        bool IsSystemTransaction(Transaction transaction);
-        bool CanBeBroadCast(Transaction transaction);
+        bool IsSystemTransaction(int chainId, Transaction transaction);
+        bool CanBeBroadCast(int chainId, Transaction transaction);
     }
 }

@@ -25,18 +25,18 @@ namespace AElf.Kernel.Managers
 
         public async Task AddChainAsync(int chainId, Hash genesisBlockHash)
         {
-            await _genesisBlockHashStore.SetAsync(chainId.ToHex(), genesisBlockHash);
+            await _genesisBlockHashStore.SetAsync(chainId.ToStorageKey(), genesisBlockHash);
             await UpdateCurrentBlockHashAsync(chainId, genesisBlockHash);
         }
 
         public async Task UpdateCurrentBlockHashAsync(int chainId, Hash blockHash)
         {
-            await _currentBlockHashStore.SetAsync(chainId.ToHex(), blockHash);
+            await _currentBlockHashStore.SetAsync(chainId.ToStorageKey(), blockHash);
         }
 
         public async Task<Hash> GetCurrentBlockHashAsync(int chainId)
         {
-            var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.ToHex());
+            var hash = await _currentBlockHashStore.GetAsync<Hash>(chainId.ToStorageKey());
             return hash;
         }
 
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task UpdateCurrentBlockHeightAsync(int chainId, ulong height)
         {
-            await _chainHeightStore.SetAsync(chainId.ToHex(), new UInt64Value
+            await _chainHeightStore.SetAsync(chainId.ToStorageKey(), new UInt64Value
             {
                 Value = height
             });
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Managers
         /// <returns></returns>
         public async Task<ulong> GetCurrentBlockHeightAsync(int chainId)
         {
-            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToHex());
+            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToStorageKey());
             return height?.Value ?? 0;
         }
 
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Managers
 
         private string GetCanonicalKey(int chainId, ulong height)
         {
-            return chainId.ToHex() + height;
+            return chainId.ToStorageKey() + height;
         }
     }
 }

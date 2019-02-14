@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 
 namespace AElf.ChainController
 {
@@ -16,8 +14,6 @@ namespace AElf.ChainController
 
         public async Task<IChainContext> GetChainContextAsync(int chainId)
         {
-
-            
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {

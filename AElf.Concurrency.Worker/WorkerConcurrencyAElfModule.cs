@@ -1,6 +1,7 @@
 using AElf.ChainController;
 using AElf.Execution;
 using AElf.Execution.Execution;
+using AElf.Kernel.Consensus;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;

@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
-using AElf.Kernel.BlockService;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

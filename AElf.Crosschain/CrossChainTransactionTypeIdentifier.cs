@@ -1,41 +1,35 @@
-using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 
 namespace AElf.Crosschain
 {
     public class CrossChainTransactionTypeIdentifier : ITransactionTypeIdentifier
     {
-        private static int ChainId { get; } = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-        private static Address CrossChainContractAddress { get; } =
-            ContractHelpers.GetCrossChainContractAddress(ChainId);
-        private static bool IsIndexingSideChainTransaction(Transaction transaction)
+        private static bool IsIndexingSideChainTransaction(int chainId, Transaction transaction)
         {
-            return transaction.To.Equals(CrossChainContractAddress) &&
+            return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
                    transaction.MethodName.Equals(TypeConsts.IndexingSideChainMethodName);
         }
 
-        private bool IsIndexingParentChainTransaction(Transaction transaction)
+        private bool IsIndexingParentChainTransaction(int chainId, Transaction transaction)
         {
-            return transaction.To.Equals(CrossChainContractAddress) &&
+            return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
                    transaction.MethodName.Equals(TypeConsts.IndexingParentChainMethodName);
         }
         
-        private bool IsCrossChainIndexingTransaction(Transaction transaction)
+        private bool IsCrossChainIndexingTransaction(int chainId, Transaction transaction)
         {
-            return IsIndexingParentChainTransaction(transaction) || IsIndexingSideChainTransaction(transaction);
+            return IsIndexingParentChainTransaction(chainId, transaction) || IsIndexingSideChainTransaction(chainId, transaction);
         }
 
-        public bool IsSystemTransaction(Transaction transaction)
+        public bool IsSystemTransaction(int chainId, Transaction transaction)
         {
-            return IsCrossChainIndexingTransaction(transaction);
+            return IsCrossChainIndexingTransaction(chainId, transaction);
         }
 
-        public bool CanBeBroadCast(Transaction transaction)
+        public bool CanBeBroadCast(int chainId, Transaction transaction)
         {
-            return !IsCrossChainIndexingTransaction(transaction);
+            return !IsCrossChainIndexingTransaction(chainId, transaction);
         }
     }
 }

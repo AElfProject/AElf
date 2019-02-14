@@ -3,6 +3,7 @@ using AElf.Configuration;
 using AElf.Execution.Execution;
 using AElf.Execution.Scheduling;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
-using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -76,15 +74,16 @@ namespace AElf.Crosschain.Grpc.Client
         /// </summary>
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
+        /// <param name="chainId"></param>
         /// <returns></returns>
         private async Task RequestLoop(AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> call, 
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, int chainId)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 var request = new RequestCrossChainBlockData
                 {
-                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
+                    ChainId = chainId,
                     NextHeight = _grpcClientBase.TargetChainHeight
                 };
                 //Logger.LogTrace($"New requestCrossChain for height {requestCrossChain.NextHeight} to chain {_targetChainId.DumpHex()}");
@@ -96,9 +95,10 @@ namespace AElf.Crosschain.Grpc.Client
         /// <summary>
         /// Start to requestCrossChain one by one and also response one bye one.
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task StartDuplexStreamingCall(CancellationToken cancellationToken)
+        public async Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken)
         {
             using (var call = Call())
             {
@@ -113,7 +113,7 @@ namespace AElf.Crosschain.Grpc.Client
                     var responseReaderTask = ReadResponse(call);
 
                     // requestCrossChain in loop
-                    await RequestLoop(call, cancellationToken);
+                    await RequestLoop(call, cancellationToken, chainId);
                     await responseReaderTask;
                 }
                 catch (RpcException e)
@@ -124,7 +124,7 @@ namespace AElf.Crosschain.Grpc.Client
                         var detail = e.Status.Detail;
 
                         // TODO: maybe improvement for NO wait call, or change the try solution
-                        var task = StartDuplexStreamingCall(cancellationToken);
+                        var task = StartDuplexStreamingCall(chainId, cancellationToken);
                         return;
                     }
 
@@ -145,7 +145,7 @@ namespace AElf.Crosschain.Grpc.Client
 
     public interface IGrpcCrossChainClient
     {
-        Task StartDuplexStreamingCall(CancellationToken cancellationToken);
+        Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
     }
 
     
