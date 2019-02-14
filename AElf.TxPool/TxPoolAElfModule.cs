@@ -1,7 +1,4 @@
-using AElf.Common;
-using AElf.Common.Application;
-using AElf.Configuration.Config.Chain;
-using AElf.Kernel.Miner;
+using AElf.Kernel.TxMemPool;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -13,10 +10,9 @@ namespace AElf.TxPool
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var minerConfig = MinerConfig.Default;
-            minerConfig.ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-            
             var services = context.Services;
+            services.AddSingleton<ITxHub, TxHub>();
+            services.AddSingleton<ITransactionFilter, TransactionFilter>();
             services.AddTransient<TransactionFilter>();
         }
 

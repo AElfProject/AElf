@@ -5,9 +5,9 @@ namespace AElf.Kernel.Blk
 {
     public class BlockExtraDataService : IBlockExtraDataService
     {
-        private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
+        private readonly IEnumerable<IBlockExtraDataProvider> _blockExtraDataProviders;
 
-        public BlockExtraDataService(List<IBlockExtraDataProvider> blockExtraDataProviders)
+        public BlockExtraDataService(IEnumerable<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders;
         }

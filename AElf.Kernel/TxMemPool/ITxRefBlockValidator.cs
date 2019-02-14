@@ -4,6 +4,6 @@ namespace AElf.Kernel.TxMemPool
 {
     public interface ITxRefBlockValidator
     {
-        Task ValidateAsync(Transaction tx);
+        Task ValidateAsync(int chainId, Transaction tx);
     }
 }

@@ -6,6 +6,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Database;
 using AElf.Kernel.Storages;
+using AElf.Kernel.Txn;
 using AElf.Kernel.Types;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,12 +49,8 @@ namespace AElf.Kernel
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
 
-            
-            
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-
 
         }
 

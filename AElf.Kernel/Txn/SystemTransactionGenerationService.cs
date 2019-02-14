@@ -6,8 +6,8 @@ namespace AElf.Kernel.Txn
 {
     public class SystemTransactionGenerationService : ISystemTransactionGenerationService
     {
-        private readonly List<ISystemTransactionGenerator> _systemTransactionGenerators;
-        public SystemTransactionGenerationService(List<ISystemTransactionGenerator> systemTransactionGenerators)
+        private readonly IEnumerable<ISystemTransactionGenerator> _systemTransactionGenerators;
+        public SystemTransactionGenerationService(IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
             _systemTransactionGenerators = systemTransactionGenerators;
         }

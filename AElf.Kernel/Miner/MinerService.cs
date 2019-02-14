@@ -32,15 +32,13 @@ namespace AElf.Kernel.Miner
         private IBlockChain _blockChain;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
-        private IMinerConfig Config { get; }
         private ITransactionFilter _txFilter;
-        private readonly double _maxMineTime;
         private readonly IAccountService _accountService;
         private readonly IBlockchainStateManager _blockchainStateManager;
 
         private const float RatioMine = 0.3f;
 
-        public MinerService(IMinerConfig config, ITxHub txHub, IChainService chainService,
+        public MinerService(ITxHub txHub, IChainService chainService,
             IExecutingService executingService, ITransactionResultManager transactionResultManager,
             IBinaryMerkleTreeManager binaryMerkleTreeManager,
             ITransactionFilter transactionFilter, IAccountService accountService, IBlockGenerationService blockGenerationService, 
@@ -52,14 +50,11 @@ namespace AElf.Kernel.Miner
             _transactionResultManager = transactionResultManager;
             Logger = NullLogger<MinerService>.Instance;
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
-            Config = config;
-            _maxMineTime = ConsensusConfig.Instance.DPoSMiningInterval * RatioMine;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockchainStateManager = blockchainStateManager;
             _txFilter = transactionFilter;
             _accountService = accountService;
-            _blockChain = _chainService.GetBlockChain(Config.ChainId);
         }
         
         /// <inheritdoc />
@@ -67,18 +62,20 @@ namespace AElf.Kernel.Miner
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<IBlock> Mine()
+        public async Task<IBlock> Mine(int chainId)
         {
             try
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 
+                _blockChain = _chainService.GetBlockChain(chainId);
+
                 // generate block without txns
-                var block = await GenerateBlock(Config.ChainId, await _blockChain.GetCurrentBlockHashAsync(),
+                var block = await GenerateBlock(chainId, await _blockChain.GetCurrentBlockHashAsync(),
                     await _blockChain.GetCurrentBlockHeightAsync());
                 
-                await GenerateSystemTransactions();
+                await GenerateSystemTransactions(chainId);
                 DateTime currentBlockTime = block.Header.Time.ToDateTime();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
@@ -88,12 +85,12 @@ namespace AElf.Kernel.Miner
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
                     _txFilter.Execute(sysTxs);
                     Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
+                    traces = await ExecuteTransactions(chainId, sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(Config.ChainId);
+                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
                     var regTxs = new List<Transaction>();
                     var contractTxs = new List<Transaction>();
 
@@ -110,16 +107,16 @@ namespace AElf.Kernel.Miner
                     }
                     
                     Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
-                    traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
+                    traces.AddRange(await ExecuteTransactions(chainId, regTxs, currentBlockTime));
                     Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
                     
                     Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
-                    traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
+                    traces.AddRange(await ExecuteTransactions(chainId, contractTxs, currentBlockTime,
                         transactionType: TransactionType.ContractDeployTransaction));
                     Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
-                ExtractTransactionResults(traces, out var results);
+                ExtractTransactionResults(chainId, traces, out var results);
 
                 // complete block
                 await CompleteBlock(block, results);
@@ -148,7 +145,7 @@ namespace AElf.Kernel.Miner
                 MessageHub.Instance.Publish(new BlockMined(block));
 
                 // insert to db
-                UpdateStorage(results, block);
+                UpdateStorage(chainId, results, block);
                 
                 await _txHub.OnNewBlock((Block)block);
                 
@@ -168,7 +165,7 @@ namespace AElf.Kernel.Miner
             }
         }
 
-        private async Task GenerateSystemTransactions()
+        private async Task GenerateSystemTransactions(int chainId)
         {
             var prevHeight = await _blockChain.GetCurrentBlockHeightAsync();
             var refBlockHeight = prevHeight > 4 ? prevHeight - 4 : 0;
@@ -181,21 +178,21 @@ namespace AElf.Kernel.Miner
                     refBlockPrefix);
             foreach (var txn in generatedTxns)
             {
-                await SignAndInsertToPool(txn);
+                await SignAndInsertToPool(chainId, txn);
             }
         }
 
-        private async Task SignAndInsertToPool(Transaction notSignerTransaction)
+        private async Task SignAndInsertToPool(int chainId, Transaction notSignerTransaction)
         {
             if (notSignerTransaction.Sigs.Count > 0)
                 return;
             // sign tx
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
             notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature));
-            await InsertTransactionToPool(notSignerTransaction);
+            await InsertTransactionToPool(chainId, notSignerTransaction);
         }
 
-        private async Task<List<TransactionTrace>> ExecuteTransactions(List<Transaction> txs, DateTime currentBlockTime, bool noTimeout = false,
+        private async Task<List<TransactionTrace>> ExecuteTransactions(int chainId, List<Transaction> txs, DateTime currentBlockTime, bool noTimeout = false,
             TransactionType transactionType = TransactionType.ContractTransaction)
         {
             using (var cts = new CancellationTokenSource())
@@ -214,29 +211,29 @@ namespace AElf.Kernel.Miner
                 if (cts.IsCancellationRequested)
                     return null;
                 var disambiguationHash =
-                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(), Hash.FromRawBytes(await _accountService.GetPublicKeyAsync()));
+                    HashHelpers.GetDisambiguationHash(await GetNewBlockIndexAsync(chainId), Hash.FromRawBytes(await _accountService.GetPublicKeyAsync()));
 
                 var traces = txs.Count == 0
                     ? new List<TransactionTrace>()
-                    : await _executingService.ExecuteAsync(txs, Config.ChainId, currentBlockTime, cts.Token, disambiguationHash, transactionType);
+                    : await _executingService.ExecuteAsync(txs, chainId, currentBlockTime, cts.Token, disambiguationHash, transactionType);
 
                 return traces;
             }
         }
 
-        private async Task<ulong> GetNewBlockIndexAsync()
+        private async Task<ulong> GetNewBlockIndexAsync(int chainId)
         {
-            var blockChain = _chainService.GetBlockChain(Config.ChainId);
+            var blockChain = _chainService.GetBlockChain(chainId);
             var index = await blockChain.GetCurrentBlockHeightAsync() + 1;
             return index;
         }
 
-        private async Task InsertTransactionToPool(Transaction tx, bool skipValidation = true)
+        private async Task InsertTransactionToPool(int chainId, Transaction tx, bool skipValidation = true)
         {
             if (tx == null)
                 return;
             // insert to tx pool and broadcast
-            await _txHub.AddTransactionAsync(tx, skipValidation: skipValidation);
+            await _txHub.AddTransactionAsync(chainId, tx, skipValidation: skipValidation);
         }
 
         private void FillBlockStateSet(BlockStateSet blockStateSet,IEnumerable<TransactionTrace> traces)
@@ -249,13 +246,14 @@ namespace AElf.Kernel.Miner
                 }
             }
         }
-        
+
         /// <summary>
         /// Extract tx results from traces
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="traces"></param>
         /// <param name="results"></param>
-        private void ExtractTransactionResults(IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
+        private void ExtractTransactionResults(int chainId, IEnumerable<TransactionTrace> traces, out HashSet<TransactionResult> results)
         {
             results = new HashSet<TransactionResult>();
             try
@@ -285,7 +283,7 @@ namespace AElf.Kernel.Miner
                             if (trace.DeferredTransaction.Length != 0)
                             {
                                 var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                                InsertTransactionToPool(deferredTxn, false).ConfigureAwait(false);
+                                InsertTransactionToPool(chainId, deferredTxn, false).ConfigureAwait(false);
                                 txRes.DeferredTxnId = deferredTxn.GetHash();
                             }
 
@@ -347,9 +345,10 @@ namespace AElf.Kernel.Miner
         /// <summary>
         /// Update database.
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="txResults"></param>
         /// <param name="block"></param>
-        private void UpdateStorage(HashSet<TransactionResult> txResults, IBlock block)
+        private void UpdateStorage(int chainId, HashSet<TransactionResult> txResults, IBlock block)
         {
             var bn = block.Header.Height;
             var bh = block.Header.GetHash();
@@ -360,7 +359,7 @@ namespace AElf.Kernel.Miner
                 await _transactionResultManager.AddTransactionResultAsync(r);
             });
             // update merkle tree
-            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, Config.ChainId,
+            _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree, chainId,
                 block.Header.Height);
         }
 

@@ -161,7 +161,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             return txs;
         }
         
-        [Fact]
+        [Fact(Skip = "Miner refactor needed.")]
         public async Task Mine_ProduceSecondBlock_WithCorrectSig()
         {
             // create the miners keypair, this is the miners identity

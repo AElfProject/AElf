@@ -21,7 +21,7 @@ namespace AElf.TxPool
         private readonly IAccountService _accountService;
 
         //TODO: should change to an interface like ITransactionFilter
-        private Func<List<Transaction>, Address, ILogger, List<Transaction>> _txFilter;
+        private Func<int, List<Transaction>, Address, ILogger, List<Transaction>> _txFilter;
 
         private delegate int WhoIsFirst(Transaction t1, Transaction t2);
 
@@ -30,27 +30,27 @@ namespace AElf.TxPool
 
         private static readonly List<string> _latestTxs = new List<string>();
 
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>> _generatedByMe =
-            (list, account, logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>> _generatedByMe =
+            (chainId, list, account, logger) =>
             {
                 var toRemove = new List<Transaction>();
                 toRemove.AddRange(list.FindAll(tx => tx.From != account));
                 return toRemove;
             };
 
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>> _firstCrossChainTxnGeneratedByMe =
-            (list, account, logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>> _firstCrossChainTxnGeneratedByMe =
+            (chainId, list, account, logger) =>
             {
                 var toRemove = new List<Transaction>();
 
                 // remove cross chain transaction from others
                 // actually this should be empty, because this transaction type won't be broadcast  
                 var crossChainTxnsFromOthers = list.FindAll(tx =>
-                        tx.IsCrossChainIndexingTransaction() && !tx.From.Equals(account))
+                        tx.IsCrossChainIndexingTransaction(chainId) && !tx.From.Equals(account))
                     .ToList();
                 toRemove.AddRange(crossChainTxnsFromOthers);
 
-                var crossChainTxnsFromMe = list.Where(tx => tx.IsCrossChainIndexingTransaction() &&
+                var crossChainTxnsFromMe = list.Where(tx => tx.IsCrossChainIndexingTransaction(chainId) &&
                                                             tx.From.Equals(account)).ToList();
                 if (crossChainTxnsFromMe.Count <= 1)
                     return toRemove;
@@ -58,7 +58,7 @@ namespace AElf.TxPool
                 // transaction indexing side chain
                 // sort txns with timestamp
                 var indexingSideChainTxns =
-                    crossChainTxnsFromMe.Where(t => t.IsIndexingSideChainTransaction()).ToList();
+                    crossChainTxnsFromMe.Where(t => t.IsIndexingSideChainTransaction(chainId)).ToList();
                 indexingSideChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
                 var firstIndexingSideChainTxn = indexingSideChainTxns.FirstOrDefault();
                 // only reserve first txn
@@ -67,7 +67,7 @@ namespace AElf.TxPool
 
                 // transaction indexing parent chain
                 var indexingParentChainTxns =
-                    crossChainTxnsFromMe.Where(t => t.IsIndexingParentChainTransaction()).ToList();
+                    crossChainTxnsFromMe.Where(t => t.IsIndexingParentChainTransaction(chainId)).ToList();
                 indexingParentChainTxns.Sort((t1, t2) => IsFirst(t1, t2));
                 var firstIndexingParentChainTxn = indexingParentChainTxns.FirstOrDefault();
                 // only reserve first txn
@@ -80,8 +80,8 @@ namespace AElf.TxPool
         /// If tx pool contains more than ore InitializeAElfDPoS tx:
         /// Keep the latest one.
         /// </summary>
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>> _oneInitialTx = (list, account,
-            logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>> _oneInitialTx = (chainId, 
+        list, account,logger) =>
         {
             var toRemove = new List<Transaction>();
             var count = list.Count(tx => tx.MethodName == ConsensusBehavior.InitialTerm.ToString());
@@ -103,8 +103,8 @@ namespace AElf.TxPool
             return toRemove;
         };
 
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>> _onePublishOutValueTx =
-            (list, account, logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>> _onePublishOutValueTx =
+            (chainId, list, account, logger) =>
             {
                 var toRemove = new List<Transaction>();
                 var count = list.Count(tx => tx.MethodName == ConsensusBehavior.PackageOutValue.ToString());
@@ -126,8 +126,8 @@ namespace AElf.TxPool
                 return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
             };
 
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>>
-            _oneNextRoundTxAndOnePublishInValueTxByMe = (list, account, logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>>
+            _oneNextRoundTxAndOnePublishInValueTxByMe = (chainId, list, account, logger) =>
             {
                 var toRemove = new List<Transaction>();
 
@@ -164,8 +164,8 @@ namespace AElf.TxPool
                 return toRemove.Where(t => t.Type == TransactionType.DposTransaction).ToList();
             };
 
-        private readonly Func<List<Transaction>, Address, ILogger, List<Transaction>>
-            _oneNextTermTxAndOnePublishInValueTxByMe = (list, account, logger) =>
+        private readonly Func<int, List<Transaction>, Address, ILogger, List<Transaction>>
+            _oneNextTermTxAndOnePublishInValueTxByMe = (chainId, list, account, logger) =>
             {
                 var toRemove = new List<Transaction>();
 
