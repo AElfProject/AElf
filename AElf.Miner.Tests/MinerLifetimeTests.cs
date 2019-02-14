@@ -185,7 +185,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             
             miner.Init(chain.Id);
             
-            var block = await miner.Mine();
+            var block = await miner.Mine(chain.Id);
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Height);

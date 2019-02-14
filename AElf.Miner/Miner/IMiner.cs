@@ -11,6 +11,6 @@ namespace AElf.Miner.Miner
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced</returns>
-        Task<IBlock> Mine();
+        Task<IBlock> Mine(int chainId);
     }
 }
