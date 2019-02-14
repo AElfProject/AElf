@@ -198,6 +198,20 @@ message DPoSExtraInformation {
     ToBroadcast ToBroadcast = 7;
     google.protobuf.Timestamp Timestamp = 8;
     repeated string InitialMiners = 9;
+    Hash InValue = 10;
+}
+
+message DPoSCommand {
+    int32 CountingMilliseconds = 1;
+    DPoSBehaviour Behaviour = 2;
+}
+
+enum DPoSBehaviour {
+    InitialTerm = 0;
+    PackageOutValue = 1;
+    PublishInValue = 2;
+    NextRound = 3;
+    NextTerm = 4;
 }
 
 message ValidationResult {

@@ -11,5 +11,6 @@ namespace AElf.Sdk.CSharp
         int GetCountingMilliseconds(Timestamp timestamp);
         IMessage GetNewConsensusInformation(byte[] extraInformation);
         TransactionList GenerateConsensusTransactions(ulong refBlockHeight, byte[] refBlockPrefix, byte[] extraInformation);
+        IMessage GetConsensusCommand(Timestamp timestamp);
     }
 }

@@ -74,7 +74,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 new DPoSExtraInformation
                 {
                     NewTerm = consensusInformation.NewTerm,
-
                 });
             var initialTransactions = GetReturnData().DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -111,7 +110,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 new DPoSExtraInformation
                 {
                     NewTerm = initialInformation.NewTerm,
-
                 });
             var initialTransactions = GetReturnData().DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);

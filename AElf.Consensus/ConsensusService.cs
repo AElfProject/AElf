@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -16,52 +13,58 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.EventBus;
-using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Consensus
 {
     public class ConsensusService : IConsensusService
     {
         private readonly IConsensusObserver _consensusObserver;
-        
+
         private readonly IExecutingService _executingService;
+        private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly StateManager _stateManager;
 
         public IEventBus EventBus { get; set; }
 
         private IDisposable _consensusObservables = null;
 
-        public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService, StateManager stateManager)
+        public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
+            IConsensusInformationGenerationService consensusInformationGenerationService, StateManager stateManager)
         {
             _consensusObserver = consensusObserver;
             _executingService = executingService;
+            _consensusInformationGenerationService = consensusInformationGenerationService;
             _stateManager = stateManager;
-            
-            EventBus = NullDistributedEventBus.Instance;
+
+            EventBus = NullLocalEventBus.Instance;
         }
 
         public bool ValidateConsensus(int chainId, Address fromAddress, byte[] consensusInformation)
         {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.ValidateConsensus, null)
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.ValidateConsensus, consensusInformation)
                 .DeserializeToPbMessage<ValidationResult>().Success;
-        }
-
-        public int GetCountingMilliseconds(int chainId, Address fromAddress)
-        {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetCountingMilliseconds,
-                Timestamp.FromDateTime(DateTime.UtcNow)).DeserializeToInt32();
         }
 
         public byte[] GetNewConsensusInformation(int chainId, Address fromAddress)
         {
-            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation, null)
-                .DeserializeToBytes();
+            var newConsensusInformation =
+                ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetNewConsensusInformation, null)
+                    .DeserializeToBytes();
+            return newConsensusInformation;
         }
 
-        public List<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress, ulong refBlockHeight, byte[] refBlockPrefix)
+        public IEnumerable<Transaction> GenerateConsensusTransactions(int chainId, Address fromAddress, ulong refBlockHeight,
+            byte[] refBlockPrefix)
         {
             return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GenerateConsensusTransactions,
                 refBlockHeight, refBlockPrefix, null).DeserializeToPbMessage<TransactionList>().Transactions.ToList();
+        }
+
+        public byte[] GetConsensusCommand(int chainId, Address fromAddress)
+        {
+            return ExecuteConsensusContract(chainId, fromAddress, ConsensusMethod.GetConsensusCommand,
+                Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
         }
 
         private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, ConsensusMethod consensusMethod,
@@ -92,7 +95,8 @@ namespace AElf.Consensus
             ValidateConsensus,
             GetCountingMilliseconds,
             GetNewConsensusInformation,
-            GenerateConsensusTransactions
+            GenerateConsensusTransactions,
+            GetConsensusCommand
         }
     }
 }

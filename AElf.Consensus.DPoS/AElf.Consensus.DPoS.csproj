@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,6 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Consensus\AElf.Consensus.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
 
 </Project>

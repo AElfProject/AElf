@@ -198,7 +198,6 @@ namespace AElf.Miner.Tests
             return new BlockHeader
             {
                 MerkleTreeRootOfTransactions = Hash.Generate(),
-                SideChainTransactionsRoot = Hash.Generate(),
                 ChainId = ChainHelpers.GetRandomChainId(),
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate()

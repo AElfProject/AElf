@@ -252,7 +252,18 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight,refBlockPrefix, "NextRound", new List<object> {extra.Forwarding}),
+                        GenerateTransaction(refBlockHeight,refBlockPrefix, "BroadcastInValue", new List<object> {extra.ToBroadcast}),
+                    }
+                };
+            }
+
+            if (extra.InValue != null)
+            {
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction(refBlockHeight,refBlockPrefix, "PublishInValue", new List<object> {extra.InValue}),
                     }
                 };
             }
@@ -264,6 +275,62 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     GenerateTransaction(refBlockHeight,refBlockPrefix, "PackageOutValue", new List<object> {extra.ToPackage}),
                 }
+            };
+        }
+
+        public IMessage GetConsensusCommand(Timestamp timestamp)
+        {
+            // To initial this chain.
+            if (!_dataHelper.TryToGetCurrentRoundInformation(out var roundInformation))
+            {
+                return new DPoSCommand
+                {
+                    CountingMilliseconds = Config.InitialWaitingMilliseconds,
+                    Behaviour = DPoSBehaviour.InitialTerm
+                };
+            }
+            
+            // To terminate current round.
+            if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
+                _dataHelper.TryToGetMiningInterval(out var miningInterval))
+            {
+                var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Api.RecoverPublicKey().ToHex() &&
+                    extraBlockMiningTime > timestamp.ToDateTime())
+                {
+                    return new DPoSCommand
+                    {
+                        CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
+                        Behaviour = DPoSBehaviour.NextRound
+                    };
+                }
+
+                var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
+                var roundTime = blockProducerNumber * miningInterval;
+                var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
+                if (passedTime > minerInformation.Order * miningInterval)
+                {
+                    return new DPoSCommand
+                    {
+                        CountingMilliseconds = (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
+                        Behaviour = DPoSBehaviour.NextRound
+                    };
+                }
+                
+                return new DPoSCommand
+                {
+                    CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
+                    Behaviour = DPoSBehaviour.NextRound
+                };
+            }
+
+            // To produce a normal block.
+            var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
+                .TotalMilliseconds;
+            return new DPoSCommand
+            {
+                CountingMilliseconds = expect >= 0 ? expect : int.MaxValue,
+                Behaviour = DPoSBehaviour.PackageOutValue
             };
         }
 
