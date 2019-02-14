@@ -10,7 +10,7 @@ namespace AElf.ChainController.Rpc
         {
             return new JObject
             {
-                ["tx"] = new JObject
+                ["Tx"] = new JObject
                 {
                     {"TxId", tx.GetHash().ToHex()},
                     {"From", tx.From.GetFormatted()},

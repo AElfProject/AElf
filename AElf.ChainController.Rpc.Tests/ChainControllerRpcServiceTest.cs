@@ -24,7 +24,7 @@ namespace AElf.ChainController.Rpc.Tests
         [Fact]
         public async Task TestGetBlockHeight()
         {
-            var height = await _chainControllerRpcService.ProGetBlockHeight();
+            var height = await _chainControllerRpcService.GetBlockHeight();
         }
 
         public ChainControllerRpcServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
