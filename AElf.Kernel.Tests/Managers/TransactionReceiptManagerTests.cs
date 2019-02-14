@@ -22,7 +22,13 @@ namespace AElf.Kernel.Tests.Managers
             var transactionReceipt = new TransactionReceipt()
             {
                 TransactionId = transactionId,
-                Transaction = new Transaction(),
+                Transaction = new Transaction()
+                {
+                    From = Address.Generate(),
+                    To = Address.Generate(),
+                    MethodName = "TestMethod",
+                    IncrementId = 0
+                },
                 ExecutedBlockNumber = 1,
                 IsSystemTxn = false,
                 RefBlockStatus = RefBlockStatus.RefBlockValid
