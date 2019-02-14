@@ -12,8 +12,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using Address = AElf.Common.Address;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;
@@ -23,6 +21,7 @@ using AElf.Kernel.Types;
 using AElf.Synchronization.BlockExecution;
 using AElf.TxPool;
 using Easy.MessageHub;
+using Microsoft.Extensions.Options;
 using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Miner.Tests
@@ -170,7 +169,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var minerAddress = AddressHelpers.BuildAddress(minerKeypair.PublicKey);
             
             var chain = await _mock.CreateChain();
-            var minerconfig = _mock.GetMinerConfig(chain.Id);
             
             var txHub = _mock.CreateAndInitTxHub();
             txHub.Start();
@@ -178,15 +176,15 @@ public sealed class MinerLifetimeTests : MinerTestBase
             var txs = CreateTx(chain.Id);
             foreach (var tx in txs)
             {
-                await txHub.AddTransactionAsync(tx);
+                await txHub.AddTransactionAsync(chain.Id, tx);
             }
             
             var manager = _mock.MinerClientManager();
-            var miner = _mock.GetMiner(minerconfig, txHub, manager);
+            var miner = _mock.GetMiner(txHub, manager);
 
             GrpcLocalConfig.Instance.ClientToSideChain = false;
             GrpcLocalConfig.Instance.WaitingIntervalInMillisecond = 10;
-            var block = await miner.Mine();
+            var block = await miner.Mine(chain.Id);
             
             Assert.NotNull(block);
             Assert.Equal(GlobalConfig.GenesisBlockHeight + 1, block.Header.Height);
@@ -196,7 +194,6 @@ public sealed class MinerLifetimeTests : MinerTestBase
         public async Task SyncGenesisBlock_False_Rollback()
         {
             var chain = await _mock.CreateChain();
-            ChainConfig.Instance.ChainId = chain.Id.DumpBase58();
             
             var block = GenerateBlock(chain.Id, chain.GenesisBlockHash, GlobalConfig.GenesisBlockHeight + 1);
             
@@ -234,16 +231,17 @@ public sealed class MinerLifetimeTests : MinerTestBase
             _mock.ClearDirectory(dir);
             try
             {
+                var chainId = ChainHelpers.GetChainId(123);
                 GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50052;
                 var address = "127.0.0.1";
                 var sideChainId = _mock.MockSideChainServer(port, address, dir);
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
-                parimpl.Init(ChainHelpers.GetRandomChainId());
+                parimpl.Init(chainId);
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
                 sideimpl.Init(sideChainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
-                serverManager.Init(dir);
+                serverManager.Init(chainId, dir);
                 // create client, main chian is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;
@@ -310,6 +308,7 @@ public sealed class MinerLifetimeTests : MinerTestBase
             _mock.ClearDirectory(dir);
             try
             {
+                var chainId = ChainHelpers.GetChainId(123);
                 GlobalConfig.MinimalBlockInfoCacheThreshold = 0;
                 var port = 50053;
                 var address = "127.0.0.1";
@@ -318,9 +317,9 @@ public sealed class MinerLifetimeTests : MinerTestBase
                 var parimpl = _mock.MockParentChainBlockInfoRpcServer();
                 parimpl.Init(parentChainId);
                 var sideimpl = _mock.MockSideChainBlockInfoRpcServer();
-                sideimpl.Init(ChainHelpers.GetRandomChainId());
+                sideimpl.Init(chainId);
                 var serverManager = _mock.ServerManager(parimpl, sideimpl);
-                serverManager.Init(dir);
+                serverManager.Init(chainId, dir);
                 // create client, main chain is client-side
                 var manager = _mock.MinerClientManager();
                 int t = 1000;

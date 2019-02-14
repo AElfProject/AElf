@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.OS.Network.Grpc";
+
+import "kernel.proto";
+
+service PeerService {
+    rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+
+    rpc Announce (Announcement) returns (VoidReply) {}
+    rpc SendTransaction (Transaction) returns (VoidReply) {}
+
+    rpc Connect (Handshake) returns (AuthResponse) {}
+    rpc Authentify (Handshake) returns (AuthResponse) {}
+    
+    rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+}
+
+message DisconnectReason {
+    Reason Why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
+message Announcement {
+    int32 Height = 1;
+    bytes Id = 2;
+}
+
+message Handshake {
+    HandshakeData HskData = 1;
+    bytes Sig = 2;
+    bool Success = 3;
+}
+
+message AuthResponse{
+    bool Success = 1;
+    AuthError Err = 2;
+    string Port = 3;
+}
+
+enum AuthError {
+    UnknownError = 0;
+    WrongSig = 1;
+}
+
+message HandshakeData {
+    int64 ListeningPort = 1;
+    bytes PublicKey = 2;
+    int32 Height = 3;
+    int32 Version = 4;
+}
+
+message BlockRequest {
+    int64 BlockNumber = 1;
+    bytes Id = 2;
+}
+
+message BlockReply {
+    string Error = 1;
+    Block Block = 2;
+}
+
+message VoidReply {
+}
+

@@ -14,10 +14,10 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void Init_WithGenesisBlock_LibIsGenesis()
         {
-            var genesis = SyncTestHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            blockSet.Init(ChainGenerationHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
             
             Assert.Equal(blockSet.CurrentLib.BlockHash, genesis.GetHash());
         }
@@ -25,13 +25,13 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void PushBlock_PushHigherThanHead_ShouldThrowUnlikable()
         {
-            var genesis = SyncTestHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            blockSet.Init(ChainGenerationHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
 
-            var block1 = SyncTestHelpers.BuildNext(genesis);
-            var block2 = SyncTestHelpers.BuildNext(block1);
+            var block1 = ChainGenerationHelpers.BuildNext(genesis);
+            var block2 = ChainGenerationHelpers.BuildNext(block1);
             
             UnlinkableBlockException e = Assert.Throws<UnlinkableBlockException>(() => blockSet.PushBlock(block2));
             
@@ -41,8 +41,8 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void BlockStateCheck()
         {
-            var genesis = SyncTestHelpers.GetGenesisBlock();
-            IBlock block1 = SyncTestHelpers.BuildNext(genesis); // miner 01
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
+            IBlock block1 = ChainGenerationHelpers.BuildNext(genesis); // miner 01
             
             BlockState state = new BlockState(block1, null, false, null);
             
@@ -52,12 +52,12 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void RemoveInvalidBlocks_ShouldRemoveBlock()
         {
-            var genesis = SyncTestHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            blockSet.Init(ChainGenerationHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
 
-            var invalidBlock = SyncTestHelpers.BuildNext(genesis);
+            var invalidBlock = ChainGenerationHelpers.BuildNext(genesis);
             
             blockSet.PushBlock(invalidBlock);
             blockSet.RemoveInvalidBlock(invalidBlock.GetHash());
@@ -68,17 +68,17 @@ namespace AElf.Synchronization.Tests
         [Fact]
         public void GetBranch_WithFork_ShouldReturnFirstHeadsBranch()
         {
-            var genesis = SyncTestHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
-            blockSet.Init(SyncTestHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
+            blockSet.Init(ChainGenerationHelpers.GetRandomMiners().ToPubKeyStrings(), genesis);
             
-            IBlock forkRoot = SyncTestHelpers.BuildNext(genesis); // Height 2
+            IBlock forkRoot = ChainGenerationHelpers.BuildNext(genesis); // Height 2
             
-            IBlock blockForkA = SyncTestHelpers.BuildNext(forkRoot); // Height 3
-            IBlock blockForkB = SyncTestHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkA = ChainGenerationHelpers.BuildNext(forkRoot); // Height 3
+            IBlock blockForkB = ChainGenerationHelpers.BuildNext(forkRoot); // Height 3
             
-            IBlock blockForkB1 = SyncTestHelpers.BuildNext(blockForkB); // Height 4
+            IBlock blockForkB1 = ChainGenerationHelpers.BuildNext(blockForkB); // Height 4
             
             blockSet.PushBlock(forkRoot);
             blockSet.PushBlock(blockForkA);
@@ -99,9 +99,9 @@ namespace AElf.Synchronization.Tests
             List<BlockState> eventList = new List<BlockState>();
             
             // 3 miners (self included).
-            var minerPubKeys = SyncTestHelpers.GetRandomMiners().ToPubKeyStrings();
+            var minerPubKeys = ChainGenerationHelpers.GetRandomMiners().ToPubKeyStrings();
             
-            var genesis = SyncTestHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
             
             BlockSet blockSet = new BlockSet();
             blockSet.LibChanged += (sender, args) =>
@@ -112,11 +112,11 @@ namespace AElf.Synchronization.Tests
             
             blockSet.Init(minerPubKeys, genesis); // CurrentLIB = head = genesis
 
-            IBlock block1 = SyncTestHelpers.BuildNext(genesis, minerPubKeys[0]); // miner 01 
-            IBlock block2 = SyncTestHelpers.BuildNext(block1, minerPubKeys[1]);  // miner 02
-            IBlock block3 = SyncTestHelpers.BuildNext(block2, minerPubKeys[2]);  // miner 03 
+            IBlock block1 = ChainGenerationHelpers.BuildNext(genesis, minerPubKeys[0]); // miner 01 
+            IBlock block2 = ChainGenerationHelpers.BuildNext(block1, minerPubKeys[1]);  // miner 02
+            IBlock block3 = ChainGenerationHelpers.BuildNext(block2, minerPubKeys[2]);  // miner 03 
             
-            IBlock block4 = SyncTestHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
+            IBlock block4 = ChainGenerationHelpers.BuildNext(block3, minerPubKeys[0]);  // miner 04
             
             blockSet.PushBlock(block1);
             blockSet.PushBlock(block2);

@@ -4,12 +4,12 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.RPC;
 using Community.AspNetCore.JsonRpc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.Wallet.Rpc
@@ -33,6 +33,13 @@ namespace AElf.Wallet.Rpc
                 return _ks;
             }
         }
+        
+        private readonly ChainOptions _chainOptions;
+        
+        public WalletRpcService(IOptionsSnapshot<ChainOptions> options)
+        {
+            _chainOptions = options.Value;
+        }
 
         #region Methods
 
@@ -41,12 +48,7 @@ namespace AElf.Wallet.Rpc
         {
             try
             {
-                var chainPrefixBase58 =
-                    Base58CheckEncoding.EncodePlain(ByteArrayHelpers.FromHexString(ChainConfig.Instance.ChainId));
-
-                var chainPrefix = chainPrefixBase58.Substring(0, 4);
-
-                var keypair = await KeyStore.CreateAsync(password, chainPrefix);
+                var keypair = await KeyStore.CreateAsync(password, _chainOptions.ChainId);
                 if (keypair != null)
                 {
                     // todo warning return null for now

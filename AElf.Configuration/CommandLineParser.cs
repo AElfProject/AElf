@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Common.Enums;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using CommandLine;
 

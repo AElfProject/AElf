@@ -1,49 +1,40 @@
-using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Types;
 
 namespace AElf.Kernel.Extensions
 {
     public static class TransactionTypeExtensions
     {
-        private static int ChainId { get; } = ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-        private static Address DPosContractAddress { get; } = ContractHelpers.GetConsensusContractAddress(ChainId);
-
-        private static Address CrossChainContractAddress { get; } =
-            ContractHelpers.GetCrossChainContractAddress(ChainId);
-
-        private static Address TokenContractAddress { get; } = ContractHelpers.GetTokenContractAddress(ChainId);
-
-        public static bool IsDposTransaction(this Kernel.Transaction transaction)
+        public static bool IsDposTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.To.Equals(DPosContractAddress);
+            return transaction.To.Equals(ContractHelpers.GetConsensusContractAddress(chainId));
         }
 
-        public static bool IsIndexingSideChainTransaction(this Kernel.Transaction transaction)
+        public static bool IsIndexingSideChainTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.To.Equals(CrossChainContractAddress) &&
+            return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
                    transaction.MethodName.Equals(ContractHelpers.IndexingSideChainMethodName);
         }
 
-        public static bool IsIndexingParentChainTransaction(this Kernel.Transaction transaction)
+        public static bool IsIndexingParentChainTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.To.Equals(CrossChainContractAddress) &&
+            return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
                    transaction.MethodName.Equals(ContractHelpers.IndexingParentChainMethodName);
         }
 
-        public static bool IsCrossChainIndexingTransaction(this Kernel.Transaction transaction)
+        public static bool IsCrossChainIndexingTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.IsIndexingParentChainTransaction() || transaction.IsIndexingSideChainTransaction();
+            return transaction.IsIndexingParentChainTransaction(chainId) || transaction.IsIndexingSideChainTransaction(chainId);
         }
 
-        public static bool IsSystemTransaction(this Kernel.Transaction transaction)
+        public static bool IsSystemTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.IsDposTransaction() || transaction.IsCrossChainIndexingTransaction();
+            return transaction.IsDposTransaction(chainId) || transaction.IsCrossChainIndexingTransaction(chainId);
         }
 
-        public static bool IsClaimFeesTransaction(this Kernel.Transaction transaction)
+        public static bool IsClaimFeesTransaction(this Transaction transaction, int chainId)
         {
-            return transaction.To.Equals(TokenContractAddress) && transaction.MethodName.Equals("ClaimTransactionFees");
+            return transaction.To.Equals(ContractHelpers.GetTokenContractAddress(chainId)) &&
+                   transaction.MethodName.Equals("ClaimTransactionFees");
         }
     }
 }

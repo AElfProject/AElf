@@ -1,6 +1,4 @@
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Storages;
@@ -22,6 +20,8 @@ namespace AElf.Runtime.CSharp.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            
             context.Services.AddAssemblyOf<TestCSharpRuntimeAElfModule>();
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
@@ -31,8 +31,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            ChainConfig.Instance.ChainId = Hash.LoadByteArray(new byte[] {0x01, 0x02, 0x03}).DumpBase58();
-        }
 
+        }
     }
 }

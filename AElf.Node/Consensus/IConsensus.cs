@@ -5,7 +5,7 @@ namespace AElf.Node.Consensus
 {
     public interface IConsensus
     {
-        void Start(bool willingToMine);
+        void Start(bool willingToMine, int chainId);
         void DisposeConsensusEventList();
         Task UpdateConsensusInformation();
         bool IsAlive();
