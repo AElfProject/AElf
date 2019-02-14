@@ -146,7 +146,7 @@ namespace AElf.Node.AElfChain
 
             _txHub.Start();
             
-            _consensus?.Start(true);
+            _consensus?.Start(true, chainId);
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
