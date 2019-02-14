@@ -1,5 +1,4 @@
 using AElf.Common;
-using AElf.Cryptography.ECDSA;
 
 namespace AElf.Kernel
 {

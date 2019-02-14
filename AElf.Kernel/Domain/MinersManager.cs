@@ -1,7 +1,7 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
 using AElf.Kernel.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,7 +22,7 @@ namespace AElf.Kernel.Domain
 
         public async Task<Miners> GetMiners(ulong termNumber)
         {
-            Miners miners;
+            /*Miners miners;
             if (termNumber != 0)
             {
                 miners = await GetMiners(CalculateKey(termNumber));
@@ -40,7 +40,8 @@ namespace AElf.Kernel.Domain
 
             miners.MainchainLatestTermNumber = 0;
 
-            return miners;
+            return miners;*/
+            throw new NotImplementedException();
         }
 
         public async Task<bool> IsMinersInDatabase()
