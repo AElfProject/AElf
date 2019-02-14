@@ -21,7 +21,6 @@ namespace AElf.Kernel.Managers.Another
         NewBlocksLinked = 1 << 4 | NewBlockLinked
     }
 
-
     public interface IChainManager
     {
         Task<Chain> CreateAsync(int chainId, Hash genesisBlock);
