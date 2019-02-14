@@ -9,6 +9,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Helpers;
 using Shouldly;
 
 namespace AElf.Kernel.Tests

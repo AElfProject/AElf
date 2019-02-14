@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.Kernel</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+    </ItemGroup>
+
+</Project>

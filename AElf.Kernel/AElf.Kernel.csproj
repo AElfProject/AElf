@@ -58,4 +58,9 @@
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="SmartContractExecution\Application" />
+    <Folder Include="SmartContract\Application" />
+    <Folder Include="TransactionPool\Application" />
+  </ItemGroup>
 </Project>

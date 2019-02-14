@@ -209,6 +209,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\peer_service.proto = protobuf\peer_service.proto
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core", "AElf.Kernel.Core\AElf.Kernel.Core.csproj", "{8F1ACBB5-E233-4512-8EA0-664C9D464013}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -531,6 +533,10 @@ Global
 		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F1ACBB5-E233-4512-8EA0-664C9D464013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F1ACBB5-E233-4512-8EA0-664C9D464013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F1ACBB5-E233-4512-8EA0-664C9D464013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F1ACBB5-E233-4512-8EA0-664C9D464013}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
