@@ -1,7 +1,5 @@
-using AElf.Configuration;
 using AElf.Miner.Rpc.Server;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

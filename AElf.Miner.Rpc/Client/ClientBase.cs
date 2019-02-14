@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;

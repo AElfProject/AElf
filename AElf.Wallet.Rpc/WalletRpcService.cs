@@ -4,8 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;

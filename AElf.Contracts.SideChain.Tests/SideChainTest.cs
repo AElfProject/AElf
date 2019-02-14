@@ -8,8 +8,6 @@ using Google.Protobuf;
 using Xunit;
 
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel.Types;
 using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;

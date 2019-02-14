@@ -1,6 +1,4 @@
 ﻿using AElf.ChainController.EventMessages;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Network.Eventing;
 using AElf.Network.Peers;

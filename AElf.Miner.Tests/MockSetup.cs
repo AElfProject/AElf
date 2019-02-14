@@ -16,7 +16,6 @@ using AElf.SmartContract;
 using Google.Protobuf;
 using Moq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Execution.Execution;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;

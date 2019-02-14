@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace

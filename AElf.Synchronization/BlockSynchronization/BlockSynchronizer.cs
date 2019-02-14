@@ -6,8 +6,6 @@ using AElf.ChainController;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;

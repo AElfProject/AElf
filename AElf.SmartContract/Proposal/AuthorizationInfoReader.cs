@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Managers;

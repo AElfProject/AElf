@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -42,7 +41,7 @@ namespace AElf.Miner.TxMemPool
         private IBlockChain _blockChain;
         
         private ulong _curHeight;
-
+        // TODO: Shouldn't keep it in here, remove it after module refactor
         private int _chainId;
 
         private Address _dPosContractAddress;

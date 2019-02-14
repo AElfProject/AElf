@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;

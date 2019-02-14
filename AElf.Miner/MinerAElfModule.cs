@@ -1,8 +1,6 @@
 ﻿using AElf.ChainController;
 using AElf.Common;
 using AElf.Common.Application;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Client;

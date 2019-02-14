@@ -12,8 +12,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
 using Address = AElf.Common.Address;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;

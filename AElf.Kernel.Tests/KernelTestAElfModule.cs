@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;

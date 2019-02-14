@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Sockets;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account;
 using AElf.Network.Connection;

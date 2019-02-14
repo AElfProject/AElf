@@ -7,7 +7,6 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;

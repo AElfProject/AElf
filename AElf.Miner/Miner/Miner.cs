@@ -44,6 +44,7 @@ namespace AElf.Miner.Miner
         private readonly CrossChainIndexingTransactionGenerator _crossChainIndexingTransactionGenerator;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private BlockGenerator _blockGenerator;
+        // TODO: Shouldn't keep it in here, remove it after module refactor
         private int _chainId;
         private TransactionFilter _txFilter;
         private readonly double _maxMineTime;

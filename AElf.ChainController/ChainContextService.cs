@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 
 namespace AElf.ChainController
 {

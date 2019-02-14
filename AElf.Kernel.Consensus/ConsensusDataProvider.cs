@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Account;
 using AElf.Kernel.Managers;

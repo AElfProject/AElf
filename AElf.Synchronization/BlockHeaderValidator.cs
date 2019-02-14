@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Synchronization.EventMessages;
 using Easy.MessageHub;

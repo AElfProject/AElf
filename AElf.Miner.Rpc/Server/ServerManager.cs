@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Miner.Rpc.Exceptions;

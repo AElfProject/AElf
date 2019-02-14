@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Miner.TxMemPool.RefBlockExceptions;
