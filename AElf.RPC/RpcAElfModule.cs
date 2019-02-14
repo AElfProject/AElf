@@ -2,12 +2,9 @@
 using AElf.Modularity;
 using AElf.Network;
 using AElf.RPC.Hubs.Net;
-using Community.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 using Volo.Abp.AspNetCore.Modularity;
 
 namespace AElf.RPC
