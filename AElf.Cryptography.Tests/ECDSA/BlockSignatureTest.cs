@@ -4,7 +4,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf;
 
 namespace AElf.Cryptography.Tests.ECDSA
