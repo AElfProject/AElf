@@ -16,7 +16,8 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly NetworkOptions _networkOptions;
         
-        private readonly IAElfServerService _serverService;
+        private readonly PeerService.PeerServiceBase _serverService;
+        
         private readonly IPeerManager _peerManager;
 
         private Server _server;
@@ -24,7 +25,7 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
         
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, IAElfServerService serverService, 
+        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService, 
             IPeerManager peerManager)
         {
             _serverService = serverService;
@@ -38,7 +39,7 @@ namespace AElf.OS.Network.Grpc
         public async Task StartAsync()
         {
             _server = new Server {
-                Services = { PeerService.BindService(_serverService as PeerService.PeerServiceBase) },
+                Services = { PeerService.BindService(_serverService) },
                 Ports = { new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure) }
             };
             
