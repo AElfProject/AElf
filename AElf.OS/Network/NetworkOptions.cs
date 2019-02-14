@@ -27,6 +27,6 @@ namespace AElf.OS.Network
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
-        public int PeerDialTimeout { get; set; } 
+        public int? PeerDialTimeout { get; set; } 
     }
 }

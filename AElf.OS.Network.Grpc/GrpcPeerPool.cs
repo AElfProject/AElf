@@ -17,6 +17,8 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeerPool : IPeerPool
     {
+        private readonly int _dialTimeout;
+            
         private readonly NetworkOptions _networkOptions;
         private readonly IAccountService _accountService;
         
@@ -34,6 +36,8 @@ namespace AElf.OS.Network.Grpc
             
             Logger = NullLogger<GrpcNetworkServer>.Instance;
             EventBus = NullLocalEventBus.Instance;
+
+            _dialTimeout = networkOptions.Value.PeerDialTimeout ?? NetworkConsts.DefaultPeerDialTimeout;
         }
         
         public async Task<bool> AddPeerAsync(string address)
@@ -69,7 +73,7 @@ namespace AElf.OS.Network.Grpc
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = await BuildHandshakeAsync();
                         
-                var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(2)));
+                var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_dialTimeout)));
 
                 if (resp.Success != true)
                     return false;
