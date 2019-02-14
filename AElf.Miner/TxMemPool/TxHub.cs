@@ -41,8 +41,6 @@ namespace AElf.Miner.TxMemPool
         private IBlockChain _blockChain;
         
         private ulong _curHeight;
-        // TODO: Shouldn't keep it in here, remove it after module refactor
-        private int _chainId;
 
         private Address _dPosContractAddress;
         private Address _crossChainContractAddress;
@@ -68,23 +66,21 @@ namespace AElf.Miner.TxMemPool
 
         public void Initialize(int chainId)
         {
-            _chainId = chainId;
+            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(chainId);
+            _crossChainContractAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
             
-            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(_chainId);
-            _crossChainContractAddress = ContractHelpers.GetCrossChainContractAddress(_chainId);
-            
-            _blockChain = _chainService.GetBlockChain(_chainId);
+            _blockChain = _chainService.GetBlockChain(chainId);
 
             if (_blockChain == null)
             {
-                Logger.LogWarning($"Could not find the blockchain for {_chainId}.");
+                Logger.LogWarning($"Could not find the blockchain for {chainId}.");
                 return;
             }
 
             _curHeight = _blockChain.GetCurrentBlockHeightAsync().Result;
                 
             MessageHub.Instance.Subscribe<BranchRolledBack>(async branch =>
-                await OnBranchRolledBack(branch.Blocks).ConfigureAwait(false));
+                await OnBranchRolledBack(chainId, branch.Blocks).ConfigureAwait(false));
             
         }
 
@@ -121,7 +117,7 @@ namespace AElf.Miner.TxMemPool
                 return;
             }
 
-            IdentifyTransactionType(tr);
+            IdentifyTransactionType(chainId, tr);
 
             // todo this should be up to the caller of this method to choose
             // todo weither or not this is done on another thread, currently 
@@ -130,7 +126,7 @@ namespace AElf.Miner.TxMemPool
             var task = Task.Run(async () =>
             {
                 await VerifySignature(chainId, tr);
-                await ValidateRefBlock(tr);
+                await ValidateRefBlock(chainId, tr);
                 MaybePublishTransaction(tr);
             });
         }
@@ -148,7 +144,7 @@ namespace AElf.Miner.TxMemPool
                 _allTxns.TryAdd(tr.TransactionId, tr);
             }
             await VerifySignature(chainId, tr);
-            await ValidateRefBlock(tr);
+            await ValidateRefBlock(chainId, tr);
             return tr;
         }
 
@@ -295,7 +291,7 @@ namespace AElf.Miner.TxMemPool
         }
         
         
-        private async Task ValidateRefBlock(TransactionReceipt tr)
+        private async Task ValidateRefBlock(int chainId, TransactionReceipt tr)
         {
             if (tr.RefBlockStatus != RefBlockStatus.UnknownRefBlockStatus &&
                 tr.RefBlockStatus != RefBlockStatus.FutureRefBlock)
@@ -305,7 +301,7 @@ namespace AElf.Miner.TxMemPool
 
             try
             {
-                await _refBlockValidator.ValidateAsync(_chainId, tr.Transaction);
+                await _refBlockValidator.ValidateAsync(chainId, tr.Transaction);
                 tr.RefBlockStatus = RefBlockStatus.RefBlockValid;
             }
             catch (FutureRefBlockException)
@@ -322,20 +318,20 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        private void IdentifyTransactionType(TransactionReceipt tr)
+        private void IdentifyTransactionType(int chainId, TransactionReceipt tr)
         {
             if (SystemAddresses.Contains(tr.Transaction.To))
             {
                 tr.IsSystemTxn = true;
             }
 
-            if (tr.Transaction.IsClaimFeesTransaction(_chainId))
+            if (tr.Transaction.IsClaimFeesTransaction(chainId))
             {
                 tr.IsSystemTxn = true;
             }
 
             // cross chain txn should not be  broadcasted
-            if (tr.Transaction.IsCrossChainIndexingTransaction(_chainId))
+            if (tr.Transaction.IsCrossChainIndexingTransaction(chainId))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -397,13 +393,13 @@ namespace AElf.Miner.TxMemPool
             }
         }
 
-        private async Task RevalidateFutureTransactions()
+        private async Task RevalidateFutureTransactions(int chainId)
         {
             // Re-validate FutureRefBlock transactions
             foreach (var tr in _allTxns.Values.Where(x =>
                 x.RefBlockStatus == RefBlockStatus.FutureRefBlock))
             {
-                await ValidateRefBlock(tr);
+                await ValidateRefBlock(chainId, tr);
             }
         }
 
@@ -425,10 +421,10 @@ namespace AElf.Miner.TxMemPool
 
             RemoveOldTransactions();
 
-            await RevalidateFutureTransactions();
+            await RevalidateFutureTransactions(block.Header.ChainId);
         }
 
-        private async Task OnBranchRolledBack(List<Block> blocks)
+        private async Task OnBranchRolledBack(int chainId, List<Block> blocks)
         {
             var minBN = blocks.Select(x => x.Header.Height).Min();
 
@@ -454,10 +450,10 @@ namespace AElf.Miner.TxMemPool
                         continue;
                     
                     // cross chain transactions should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction(_chainId))
+                    if (tr.Transaction.IsCrossChainIndexingTransaction(chainId))
                         continue;
 
-                    if (tr.Transaction.IsClaimFeesTransaction(_chainId))
+                    if (tr.Transaction.IsClaimFeesTransaction(chainId))
                     {
                         continue;
                     }

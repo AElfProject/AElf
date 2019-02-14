@@ -12,7 +12,6 @@ namespace AElf.Runtime.CSharp2.Tests
     {
         private IStateManager _stateManager;
         public ITransactionContext TransactionContext { get; set; }
-        public ISmartContractContext ContractContext { get; set; }
 
         public MockStateProvider(IStateManager stateManager)
         {

@@ -56,6 +56,7 @@ namespace AElf.Miner.Tests
         private readonly ConsensusDataProvider _consensusDataProvider;
         private readonly IAccountService _accountService;
         private readonly IOptionsSnapshot<ChainOptions> _chainOptions;
+        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public MockSetup(IStateManager stateManager,
             ITxRefBlockValidator refBlockValidator,
@@ -64,7 +65,7 @@ namespace AElf.Miner.Tests
             IChainService chainService, IExecutingService executingService,
             IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
             ConsensusDataProvider consensusDataProvider, IAccountService accountService, 
-            IOptionsSnapshot<ChainOptions> options)
+            IOptionsSnapshot<ChainOptions> options, IBlockchainStateManager blockchainStateManager)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -81,6 +82,7 @@ namespace AElf.Miner.Tests
             _consensusDataProvider = consensusDataProvider;
             _accountService = accountService;
             _chainOptions = options;
+            _blockchainStateManager = blockchainStateManager;
             Initialize();
         }
 
@@ -131,7 +133,7 @@ namespace AElf.Miner.Tests
             var miner = new AElf.Miner.Miner.Miner(hub, _chainService, _concurrencyExecutingService,
                 _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
                 MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
-                _accountService);
+                _accountService, _blockchainStateManager);
 
             return miner;
         }
