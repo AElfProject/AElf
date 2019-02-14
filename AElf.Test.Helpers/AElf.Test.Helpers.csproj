@@ -5,15 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="xunit.assert, Version=2.4.1.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c">
-        <HintPath>..\..\..\..\.nuget\packages\xunit.assert\2.4.1\lib\netstandard1.1\xunit.assert.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

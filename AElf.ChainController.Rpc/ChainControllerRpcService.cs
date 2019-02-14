@@ -12,7 +12,6 @@ using AElf.Database;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
-using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;
