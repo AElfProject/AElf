@@ -148,7 +148,7 @@ namespace AElf.Kernel.Managers.Another
                     }
 
                     chainBlockLink = await GetChainBlockLinkAsync(
-                        (int) chain.Id, (string) chain.NotLinkedBlocks[blockHash]);
+                        chain.Id, chain.NotLinkedBlocks[blockHash]);
 
                     chain.NotLinkedBlocks.Remove(blockHash);
 

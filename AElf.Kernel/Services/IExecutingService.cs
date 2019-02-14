@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 
-namespace AElf.Kernel.Execution
+namespace AElf.Kernel.Services
 {
     public interface IExecutingService
     {

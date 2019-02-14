@@ -30,7 +30,7 @@ namespace AElf.Kernel
         public async Task<ulong> GetCurrentBlockHeightAsync()
         {
             var hash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
-            if (HashExtensions.IsNull(hash))
+            if (hash.IsNull())
             {
                 return GlobalConfig.GenesisBlockHeight;
             }
@@ -111,7 +111,7 @@ namespace AElf.Kernel
             if (blockHeader.Height == GlobalConfig.GenesisBlockHeight)
             {
                 var curHash = await _chainManager.GetCurrentBlockHashAsync(_chainId);
-                if (HashExtensions.IsNull(curHash))
+                if (curHash.IsNull())
                 {
                     await _chainManager.AddChainAsync(_chainId, header.GetHash());
                 }
