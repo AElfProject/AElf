@@ -15,7 +15,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.Execution;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;

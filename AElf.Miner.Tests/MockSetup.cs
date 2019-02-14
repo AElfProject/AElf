@@ -16,7 +16,6 @@ using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Account;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Execution;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 using AElf.Miner.Rpc.Client;
