@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 
-namespace AElf.Kernel.Account
+namespace AElf.Kernel.Services
 {
     public interface IAccountService
     {
