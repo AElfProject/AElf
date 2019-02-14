@@ -208,6 +208,15 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
             }
 
+            // To publish In Value.
+            if (extra.InValue != null && _dataHelper.TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                return new DPoSInformation
+                {
+                    CurrentRound = currentRound
+                };
+            }
+
             // To publish Out Value.
             return new DPoSInformation
             {
