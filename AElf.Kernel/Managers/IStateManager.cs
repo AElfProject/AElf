@@ -23,11 +23,11 @@ namespace AElf.Kernel.Managers
     public interface IBlockchainStateManager
     {
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
-        Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash);
+        Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         // TODO: Standardize chainid to int
-        Task MergeBlockStateAsync(long chainId, Hash blockStateHash);
-        Task<ChainStateInfo> GetChainStateInfoAsync(long chainId);
+        Task MergeBlockStateAsync(int chainId, Hash blockStateHash);
+        Task<ChainStateInfo> GetChainStateInfoAsync(int chainId);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -53,7 +53,7 @@ namespace AElf.Kernel.Managers
         /// <param name="blockHash">should already in store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public async Task<ByteString> GetStateAsync(string key, long blockHeight, Hash blockHash)
+        public async Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash)
         {
             ByteString value = null;
 
@@ -141,11 +141,11 @@ namespace AElf.Kernel.Managers
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        public async Task MergeBlockStateAsync(long chainId, Hash blockStateHash)
+        public async Task MergeBlockStateAsync(int chainId, Hash blockStateHash)
         {
             var chainStateInfo = await GetChainStateInfoAsync(chainId);
 
-            var blockState = await _blockStateSets.GetAsync(blockStateHash.ToHex());
+            var blockState = await _blockStateSets.GetAsync(blockStateHash.ToStorageKey());
             if (blockState == null)
             {
                 if (chainStateInfo.Status == ChainStateMergingStatus.Merged &&
@@ -154,11 +154,11 @@ namespace AElf.Kernel.Managers
                     chainStateInfo.Status = ChainStateMergingStatus.Common;
                     chainStateInfo.MergingBlockHash = null;
 
-                    await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                    await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
                     return;
                 }
 
-                throw new InvalidOperationException($"cannot get block state of {blockStateHash.ToHex()}");
+                throw new InvalidOperationException($"cannot get block state of {blockStateHash}");
             }
 
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
@@ -171,7 +171,7 @@ namespace AElf.Kernel.Managers
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
-                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
                 var dic = blockState.Changes.Select(change => new VersionedState()
                 {
                     Key = change.Key,
@@ -186,14 +186,14 @@ namespace AElf.Kernel.Managers
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;
                 chainStateInfo.BlockHeight = blockState.BlockHeight;
-                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
 
-                await _blockStateSets.RemoveAsync(blockStateHash.ToHex());
+                await _blockStateSets.RemoveAsync(blockStateHash.ToStorageKey());
 
                 chainStateInfo.Status = ChainStateMergingStatus.Common;
                 chainStateInfo.MergingBlockHash = null;
 
-                await _chainStateInfoCollection.SetAsync(chainId.ToHex(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
             }
             else
             {
@@ -202,16 +202,16 @@ namespace AElf.Kernel.Managers
             }
         }
 
-        public async Task<ChainStateInfo> GetChainStateInfoAsync(long chainId)
+        public async Task<ChainStateInfo> GetChainStateInfoAsync(int chainId)
         {
-            var o = await _chainStateInfoCollection.GetAsync(chainId.ToHex());
+            var o = await _chainStateInfoCollection.GetAsync(chainId.ToStorageKey());
             return o ?? new ChainStateInfo() {ChainId = chainId};
         }
 
 
         private string GetKey(BlockStateSet blockStateSet)
         {
-            return blockStateSet.BlockHash.ToHex();
+            return blockStateSet.BlockHash.ToStorageKey();
         }
     }
 }

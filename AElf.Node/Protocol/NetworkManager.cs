@@ -46,7 +46,6 @@ namespace AElf.Node.Protocol
 
         #endregion
 
-        private readonly IPeerManager _peerManager;
         public ILogger<NetworkManager> Logger { get; set; }
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
@@ -68,17 +67,14 @@ namespace AElf.Node.Protocol
 
         private readonly object _syncLock = new object();
 
-        public NetworkManager(IPeerManager peerManager, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
+        public NetworkManager(IBlockSynchronizer blockSynchronizer, INodeService nodeService)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _peers = new List<IPeer>();
 
-            _peerManager = peerManager;
             Logger = NullLogger<NetworkManager>.Instance;
             _blockSynchronizer = blockSynchronizer;
             _nodeService = nodeService;
-
-            peerManager.PeerEvent += OnPeerAdded;
 
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(inTx =>
             {
@@ -289,7 +285,7 @@ namespace AElf.Node.Protocol
 
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
-                _peerManager.Start();
+                //_peerManager.Start();
                 Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
 
@@ -525,7 +521,7 @@ namespace AElf.Node.Protocol
 
         public async Task Stop()
         {
-            await _peerManager.Stop();
+            //await _peerManager.Stop();
         }
 
         private void AnnounceBlock(IBlock block)

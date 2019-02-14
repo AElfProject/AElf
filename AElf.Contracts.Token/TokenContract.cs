@@ -8,6 +8,7 @@ using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Configuration.Config.Chain;
+using AElf.Kernel.Types.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
@@ -49,7 +50,7 @@ namespace AElf.Contracts.Token
 
     #endregion Events
 
-    public class TokenContract : CSharpSmartContract
+    public class TokenContract : CSharpSmartContract, ITokenCotract
     {
         private Address ConsensusContractAddress;
 

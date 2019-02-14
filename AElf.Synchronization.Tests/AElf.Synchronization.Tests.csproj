@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
+      <ProjectReference Include="..\AElf.Test.Helpers\AElf.Test.Helpers.csproj" />
     </ItemGroup>
 
     <ItemGroup>
