@@ -2,6 +2,7 @@ using AElf.ChainController;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.Network;
 using AElf.Runtime.CSharp;

@@ -24,14 +24,6 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
-    <None Include="akka-single.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="akka-master.hocon">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="..\protobuf\execution.proto">
       <Link>Protobuf/Proto/execution.proto</Link>
     </Content>

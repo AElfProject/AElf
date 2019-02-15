@@ -4,14 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.SmartContract;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.SmartContractExecution.Execution
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface ITransactionExecutingService
     {

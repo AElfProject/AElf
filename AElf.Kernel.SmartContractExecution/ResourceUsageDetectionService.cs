@@ -4,10 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
-using AElf.Kernel;
-using AElf.SmartContract;
 using AElf.Common;
-using GlobalConfig = AElf.Common.GlobalConfig;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.SmartContractExecution
 {

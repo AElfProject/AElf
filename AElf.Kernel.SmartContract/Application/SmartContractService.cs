@@ -111,87 +111,11 @@ namespace AElf.Kernel.SmartContract.Application
 //
 //        
 //        
-//        private async Task<ConcurrentBag<IExecutive>> GetPoolForAsync(int chainId, Address account)
-//        {
-//            var contractHash = await GetContractHashAsync(chainId, account);
-//            if (!_executivePools.TryGetValue(contractHash, out var pool))
-//            {
-//                pool = new ConcurrentBag<IExecutive>();
-//                _executivePools[contractHash] = pool;
-//            }
 //
-//            return pool;
-//        }
-//
-//        private async Task<Hash> GetContractHashAsync(int chainId, Address address)
-//        {
-//            Hash contractHash;
-//            var zeroContractAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
-//
-//            if (address == zeroContractAddress)
-//            {
-//                contractHash = Hash.FromMessage(zeroContractAddress);
-//            }
-//            else
-//            {
-//                var result = await CallContractAsync(true, chainId, zeroContractAddress, "GetContractHash", address);
-//
-//                contractHash = result.DeserializeToPbMessage<Hash>();
-//            }
-//
-//            return contractHash;
-//        }
 
-//        public async Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address)
-//        {
-//            var contractHash = await GetContractHashAsync(chainId, address);
-//            return await _smartContractManager.GetAsync(contractHash);
-//        }
+
 //
-//        public async Task<IExecutive> GetExecutiveAsync(Address contractAddress, int chainId)
-//        {
-//            var pool = await GetPoolForAsync(chainId, contractAddress);
-//            if (!pool.TryTake(out var executive))
-//            {
-//                // get registration
-//                var reg = await GetContractByAddressAsync(chainId, contractAddress);
-//                // get runner
-//                var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-//                if (runner == null)
-//                {
-//                    throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
-//                }
-//                // run smartcontract executive info and return executive
-//                executive = await runner.RunAsync(reg);
-//                executive.ContractHash = reg.ContractHash;
-//            }
-//            executive.SetStateProviderFactory(_stateProviderFactory);
-//
-//            executive.SetSmartContractContext(new SmartContractContext()
-//            {
-//                ChainId = chainId,
-//                ContractAddress = contractAddress,
-//                SmartContractService = this,
-//                ChainService = _chainService
-//            });
-//
-//            return executive;
-//        }
-//
-//        public async Task PutExecutiveAsync(int chainId, Address account, IExecutive executive)
-//        {
-//            executive.SetTransactionContext(new TransactionContext()
-//            {
-//                Transaction = new Transaction()
-//                {
-//                    To = account // This is to ensure that the contract has same address
-//                }
-//            });
-//            executive.SetDataCache(new Dictionary<StatePath, StateCache>());
-//            (await GetPoolForAsync(chainId, account)).Add(executive);
-//
-//            await Task.CompletedTask;
-//        }
+
 //        private Type GetContractType(SmartContractRegistration registration)
 //        {
 //            var runner = _smartContractRunnerContainer.GetRunner(registration.Category);

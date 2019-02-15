@@ -11,6 +11,7 @@ using Akka.Routing;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Execution;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;

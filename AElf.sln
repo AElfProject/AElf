@@ -209,6 +209,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel", "AElf.Kernel\AElf.Kernel.csproj", "{6127E436-97F1-4824-9FE3-E37A5E1CA916}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Akka", "AElf.Kernel.SmartContractExecution.Akka\AElf.Kernel.SmartContractExecution.Akka.csproj", "{BBA3CF7F-BA54-4157-81FC-F25B51D43454}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -531,6 +533,10 @@ Global
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBA3CF7F-BA54-4157-81FC-F25B51D43454}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBA3CF7F-BA54-4157-81FC-F25B51D43454}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBA3CF7F-BA54-4157-81FC-F25B51D43454}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBA3CF7F-BA54-4157-81FC-F25B51D43454}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

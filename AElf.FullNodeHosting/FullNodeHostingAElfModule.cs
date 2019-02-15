@@ -27,7 +27,7 @@ namespace AElf.FullNodeHosting
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
         typeof(RpcChainControllerAElfModule),
-        typeof(ExecutionAElfModule),
+        typeof(SmartContractExecutionAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),

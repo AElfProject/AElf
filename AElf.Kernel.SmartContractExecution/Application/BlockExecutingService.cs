@@ -1,14 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Services;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
 
-namespace AElf.Kernel.SmartContractExecution.Execution
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService
     {

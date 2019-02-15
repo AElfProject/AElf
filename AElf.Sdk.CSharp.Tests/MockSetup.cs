@@ -12,6 +12,7 @@ using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;

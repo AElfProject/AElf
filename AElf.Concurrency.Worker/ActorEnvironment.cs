@@ -8,6 +8,7 @@ using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Execution;
 using Microsoft.Extensions.Options;
 

@@ -12,7 +12,7 @@ namespace AElf.Contracts.TestBase
         typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(ExecutionAElfModule),
+        typeof(SmartContractExecutionAElfModule),
         typeof(CoreKernelAElfModule),
         typeof(DatabaseAElfModule)
     )]

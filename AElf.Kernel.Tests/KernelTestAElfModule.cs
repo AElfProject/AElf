@@ -6,6 +6,7 @@ using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Tests.Concurrency.Execution;
 using AElf.Miner;
 using AElf.Miner.Rpc;
@@ -23,7 +24,7 @@ namespace AElf.Kernel.Tests
     [DependsOn(typeof(CoreKernelAElfModule),
         
         //TODO: only test kernel aelf module here
-        typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
+        typeof(ChainControllerAElfModule),typeof(SmartContractExecutionAElfModule), 
         typeof(SmartContractAElfModule),
         typeof(MinerRpcAElfModule),
         typeof(CSharpRuntimeAElfModule),

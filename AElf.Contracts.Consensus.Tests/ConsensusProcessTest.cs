@@ -6,6 +6,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.SmartContractExecution.Application;
 using Xunit;
 
 

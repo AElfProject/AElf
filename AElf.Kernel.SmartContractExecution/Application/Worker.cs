@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Execution;
 using Akka.Actor;
 

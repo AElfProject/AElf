@@ -1,7 +1,5 @@
-﻿using AElf.Kernel.ChainController;
-using AElf.Configuration;
-using AElf.Kernel;
-using AElf.Kernel.Services;
+﻿
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
@@ -13,18 +11,18 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(typeof(CoreKernelAElfModule))]
-    public class ExecutionAElfModule: AElfModule
+    public class SmartContractExecutionAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
             Configure<ExecutionOptions>(configuration.GetSection("Execution"));
             
-            var assembly = typeof(ParallelTransactionExecutingService).Assembly;
+            //var assembly = typeof(ParallelTransactionExecutingService).Assembly;
 
             var services = context.Services;
 
-            services.AddAssemblyOf<ExecutionAElfModule>();
+            services.AddAssemblyOf<SmartContractExecutionAElfModule>();
             
             
             //TODO! move into a new project, remove if statement
@@ -32,20 +30,20 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IActorEnvironment,ActorEnvironment>();
             services.AddTransient<IGrouper,Grouper>();
             services.AddTransient<IResourceUsageDetectionService,ResourceUsageDetectionService>();
-            services.AddTransient<ParallelTransactionExecutingService>();
-            services.AddTransient<NoFeeSimpleExecutingService>();
+            //services.AddTransient<ParallelTransactionExecutingService>();
+            //services.AddTransient<NoFeeSimpleExecutingService>();
             services.AddTransient<SimpleExecutingService>();
             services.AddTransient<IExecutingService>(provider =>
             {
                 var executorType = provider.GetService<IOptionsSnapshot<ExecutionOptions>>().Value.ExecutorType;
                 if (executorType == "akka")
                 {
-                    return provider.GetService<ParallelTransactionExecutingService>();
+                    //return provider.GetService<ParallelTransactionExecutingService>();
                 }
 
                 if (executorType == "nofee")
                 {
-                    return provider.GetService<NoFeeSimpleExecutingService>();
+                    //return provider.GetService<NoFeeSimpleExecutingService>();
                 }
 
                 return provider.GetService<SimpleExecutingService>();
