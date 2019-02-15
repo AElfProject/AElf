@@ -21,6 +21,7 @@ namespace AElf.Sdk.CSharp
         ulong CurrentHeight { get; }
 
         DateTime CurrentBlockTime { get; }
+        Hash PreviousBlockHash { get; }
 
         // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
         byte[] RecoverPublicKey(byte[] signature, byte[] hash);

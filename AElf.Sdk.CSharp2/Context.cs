@@ -45,6 +45,7 @@ namespace AElf.Sdk.CSharp
         public Address Genesis => Address.Genesis.ToReadOnly();
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
+        public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
