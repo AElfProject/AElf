@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            Api.LockToken(GlobalConfig.LockTokenForElection);
+            State.TokenContract.Lock(Context.Sender, GlobalConfig.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
             if (!candidates.PublicKeys.Contains(publicKey))
             {
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult QuitElection()
         {
-            Api.UnlockToken(Context.Sender, GlobalConfig.LockTokenForElection);
+            State.TokenContract.Unlock(Context.Sender, GlobalConfig.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
             candidates.PublicKeys.Remove(Context.RecoverPublicKey().ToHex());
             State.CandidatesField.Value = candidates;
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 GlobalConfig.CandidateCannotVote);
 
             // Transfer the tokens to Consensus Contract address.
-            Api.LockToken(amount);
+            State.TokenContract.Lock(Context.Sender, amount);
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
             var currentRoundNumber = State.CurrentRoundNumberField.Value;

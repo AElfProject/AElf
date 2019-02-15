@@ -49,7 +49,7 @@ namespace AElf.Contracts.Consensus.DPoS
     public class DividendContractReferenceState : ContractReferenceState
     {
         public Action<ulong> KeepWeights { get; set; }
-        public Action<ulong,ulong> SubWeights { get; set; }
+        public Action<ulong, ulong> SubWeights { get; set; }
         public Action<ulong, ulong> AddWeights { get; set; }
         public Action<ulong, ulong> AddDividends { get; set; }
         public Action<VotingRecord> TransferDividends { get; set; }
@@ -60,6 +60,8 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public Action<string, string, ulong, uint> Initialize { get; set; }
         public Action<Address, ulong> Transfer { get; set; }
+        public Action<Address, ulong> Lock { get; set; }
+        public Action<Address, ulong> Unlock { get; set; }
     }
 
     public class DPoSContractState : ContractState
