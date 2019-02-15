@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;

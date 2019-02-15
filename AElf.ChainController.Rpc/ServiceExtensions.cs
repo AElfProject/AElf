@@ -12,7 +12,7 @@ using Community.AspNetCore.JsonRpc;
 using Google.Protobuf;
 using Org.BouncyCastle.Bcpg;
 using Newtonsoft.Json.Linq;
-using Svc = AElf.ChainController.Rpc.ChainControllerRpcService;
+using Svc = AElf.Kernel.ChainController.Rpc.ChainControllerRpcService;
 
 namespace AElf.ChainController.Rpc
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController.CrossChain;
+using AElf.Kernel.ChainController.CrossChain;
 using AElf.Common;
 using AElf.Configuration.Config.Consensus;
 using AElf.Configuration.Config.GRPC;

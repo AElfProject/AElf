@@ -18,7 +18,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Miner.Tests
 {
     [DependsOn(
-        typeof(AElf.ChainController.ChainControllerAElfModule),
+        typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(Kernel.TransactionPool.TxPoolAElfModule),

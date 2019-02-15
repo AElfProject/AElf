@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.ChainController.EventMessages;
+using AElf.Kernel.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Network.Connection;

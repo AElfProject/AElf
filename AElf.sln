@@ -65,7 +65,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Execution", "AElf.Exec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract", "AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj", "{05996EDC-D17E-4DC4-82C0-EDD4408E5F8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController", "AElf.ChainController\AElf.ChainController.csproj", "{74446502-51C1-48EE-BE10-F7B3551005A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController", "AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj", "{74446502-51C1-48EE-BE10-F7B3551005A5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Node", "AElf.Node\AElf.Node.csproj", "{9D0EB8CA-EF8B-4044-8582-C3478ECC0313}"
 EndProject

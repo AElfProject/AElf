@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Kernel;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Kernel.ChainController.Application.Filters
 {
     public interface IBlockValidationFilter
     {

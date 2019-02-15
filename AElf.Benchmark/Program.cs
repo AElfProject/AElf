@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Common;
 using AElf.Common.Enums;
 using AElf.Execution;

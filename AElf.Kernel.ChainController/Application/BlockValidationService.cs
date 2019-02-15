@@ -1,23 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController.EventMessages;
-using AElf.Kernel;
-using AElf.Kernel.EventMessages;
-using Easy.MessageHub;
+using AElf.Kernel.ChainController.Application;
+using AElf.Kernel.ChainController.Application.Filters;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 
 // ReSharper disable once CheckNamespace
-namespace AElf.ChainController
+namespace AElf.Kernel.ChainController
 {
     public class BlockValidationService : IBlockValidationService
     {
         private readonly IEnumerable<IBlockValidationFilter> _filters;
         public ILogger<BlockValidationService> Logger { get; set; }
 
-        private bool _doingRollback;
 
         public BlockValidationService(IEnumerable<IBlockValidationFilter> filters)
         {
@@ -25,19 +22,10 @@ namespace AElf.ChainController
 
             Logger = NullLogger<BlockValidationService>.Instance;
 
-            MessageHub.Instance.Subscribe<RollBackStateChanged>(inState => { _doingRollback = inState.DoingRollback; });
         }
 
         public async Task<BlockValidationResult> ValidateBlockAsync(IBlock block)
         {
-            if (_doingRollback)
-            {
-                Logger.LogTrace("Could not validate block during rollbacking!");
-                return BlockValidationResult.DoingRollback;
-            }
-
-            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Height, true,
-                BlockValidationResult.Success));
 
             var resultCollection = new List<BlockValidationResult>();
             foreach (var filter in _filters)
@@ -49,9 +37,6 @@ namespace AElf.ChainController
             }
 
             var finalResult = resultCollection.Max();
-
-            MessageHub.Instance.Publish(new ValidationStateChanged(block.BlockHashToHex, block.Height, false,
-                finalResult));
 
             return finalResult;
         }

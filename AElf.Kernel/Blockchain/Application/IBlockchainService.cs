@@ -16,6 +16,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
         Task<Chain> GetChainAsync(int chainId);
+
+        Task<Chain> CreateChainAsync(int chainId, Block block);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -139,6 +141,12 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Chain> GetChainAsync(int chainId)
         {
             return await _chainManager.GetAsync(chainId);
+        }
+
+        public async Task<Chain> CreateChainAsync(int chainId, Block block)
+        {
+            await AddBlockAsync(chainId, block);
+            return await _chainManager.CreateAsync(chainId, block.GetHash());
         }
     }
 }

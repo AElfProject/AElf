@@ -2,7 +2,7 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Kernel;
 using AElf.Miner.Rpc;
 using AElf.Miner.Rpc.Server;

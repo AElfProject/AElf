@@ -1,5 +1,5 @@
 using System;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract;
 

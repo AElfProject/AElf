@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 
-namespace AElf.ChainController
+namespace AElf.Kernel.ChainController
 {
     /// <summary>
     /// Create a new chain never existing

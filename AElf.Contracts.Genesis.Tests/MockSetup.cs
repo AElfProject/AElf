@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;

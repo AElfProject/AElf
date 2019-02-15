@@ -11,9 +11,6 @@
     <PackageReference Include="Akka" Version="1.3.9" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Remove="IParallelTransactionExecutingService.cs" />
     <Compile Remove="IConcurrencyExecutingService.cs" />
     <Compile Remove="ConcurrencyExecutingService.cs" />
@@ -38,5 +35,8 @@
     <Content Include="..\protobuf\execution.proto">
       <Link>Protobuf/Proto/execution.proto</Link>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
   </ItemGroup>
 </Project>

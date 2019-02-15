@@ -1,28 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Helpers;
-using AElf.Kernel.SmartContract;
-using Google.Protobuf;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.ChainController
+namespace AElf.Kernel.ChainController.Application
 {
     public class ChainCreationService : IChainCreationService
     {
-        private readonly IChainService _chainService;
         private readonly ISmartContractService _smartContractService;
+        private readonly IBlockchainService _blockchainService;
         public ILogger<ChainCreationService> Logger {get;set;}
 
-        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
+        public ChainCreationService(ISmartContractService smartContractService, IBlockchainService blockchainService)
         {
-            _chainService = chainService;
             _smartContractService = smartContractService;
+            _blockchainService = blockchainService;
             Logger = NullLogger<ChainCreationService>.Instance;
         }
 
@@ -42,25 +38,19 @@ namespace AElf.ChainController
                 var zeroRegistration = smartContractRegistration.Find(s => s.SerialNumber == 0);
                 await _smartContractService.DeployZeroContractAsync(chainId, zeroRegistration);
                 
+                /*
                 foreach (var reg in smartContractRegistration)
                 {
                     if (reg.SerialNumber != 0)
                     {
                         await _smartContractService.DeploySystemContractAsync(chainId, reg);
                     }
-                }
+                }*/
 
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
-
-                // add block to storage
-                var blockchain = _chainService.GetBlockChain(chainId);
-                await blockchain.AddBlocksAsync(new List<IBlock> {builder.Block});
-                var chain = new Chain
-                {
-                    GenesisBlockHash = await blockchain.GetCurrentBlockHashAsync(),
-                    Id = chainId
-                };
+                
+                var chain = await _blockchainService.CreateChainAsync(chainId, builder.Block);
                 return chain;
             }
             catch (Exception e)

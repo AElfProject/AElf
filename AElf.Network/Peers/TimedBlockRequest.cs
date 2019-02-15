@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Timers;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Common;
 using AElf.Network.Connection;
 using AElf.Network.Data;

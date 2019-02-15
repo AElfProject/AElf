@@ -8,9 +8,9 @@
     <PackageReference Include="Grpc.Tools" Version="1.14.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
   <ItemGroup>

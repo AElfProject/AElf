@@ -8,7 +8,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.Authorization.Tests
 {
     [DependsOn(
-        typeof(AElf.ChainController.ChainControllerAElfModule),
+        typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(KernelAElfModule),

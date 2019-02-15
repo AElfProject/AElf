@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController.EventMessages;
+using AElf.Kernel.ChainController.EventMessages;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.ECDSA;
 using Google.Protobuf;

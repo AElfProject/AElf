@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;

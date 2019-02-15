@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
