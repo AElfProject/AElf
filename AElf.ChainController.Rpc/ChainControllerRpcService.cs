@@ -82,7 +82,7 @@ namespace AElf.ChainController.Rpc
             return await Task.FromResult(JObject.FromObject(response));
         }
 
-        [JsonRpcMethod("GetChainInfo")]
+        [JsonRpcMethod("ConnectChain")]
         public async Task<JObject> GetChainInfo()
         {
             var basicContractZero =
