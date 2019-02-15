@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.Contracts.CrossChain2
 {
-    public class CrossChainContract : CSharpSmartContract<CrossChainContractState>
+    public partial class CrossChainContract : CSharpSmartContract<CrossChainContractState>
     {
         private static string CreateSideChainMethodName { get; } = "CreateSideChain";
         private static string DisposeSideChainMethodName { get; } = "DisposeSideChain";
@@ -64,8 +64,8 @@ namespace AElf.Contracts.CrossChain2
             LockTokenAndResource(request);
 
             // side chain creation proposal
-            Hash hash = Api.Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
-                Api.GetContractAddress(), CreateSideChainMethodName, chainId.DumpBase58());
+            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
+                Context.Self, CreateSideChainMethodName, chainId.DumpBase58());
             request.SideChainStatus = SideChainStatus.Review;
             request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
@@ -145,7 +145,7 @@ namespace AElf.Contracts.CrossChain2
                 State.SideChainInfos[chainIdHash] = sideChainInfo;
             }
 
-            Api.LockToken(amount);
+            State.TokenContract.Lock(Context.Sender, amount);
         }
 
         /// <summary>
@@ -165,8 +165,8 @@ namespace AElf.Contracts.CrossChain2
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
-            Hash proposalHash = Api.Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.Genesis,
-                Api.GetContractAddress(), DisposeSideChainMethodName, chainId);
+            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.Genesis,
+                Context.Self, DisposeSideChainMethodName, chainId);
             return proposalHash.DumpByteArray();
         }
 
@@ -210,7 +210,7 @@ namespace AElf.Contracts.CrossChain2
             var chainIdHash = Hash.LoadBase58(chainId);
             var sideChainInfo = State.SideChainInfos[chainIdHash];
             Assert(sideChainInfo.IsNotEmpty(), "Not existed side chain.");
-            Api.Equal(Api.GetFromAddress(), sideChainInfo.Proposer, "Unable to check balance.");
+            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return State.IndexingBalance[chainIdHash];
         }
 
@@ -332,7 +332,7 @@ namespace AElf.Contracts.CrossChain2
                 }
 
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
-                Api.UnlockToken(miner, indexingPrice);
+                State.TokenContract.Unlock(miner, indexingPrice);
 
                 State.SideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
@@ -402,7 +402,7 @@ namespace AElf.Contracts.CrossChain2
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
             // update locked token balance
-            Api.LockToken(sideChainInfo.LockedTokenAmount);
+            State.TokenContract.Lock(Context.Sender, sideChainInfo.LockedTokenAmount);
             var chainId = sideChainInfo.ChainId;
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -420,7 +420,7 @@ namespace AElf.Contracts.CrossChain2
             var chainId = sideChainInfo.ChainId;
             var balance = State.IndexingBalance[chainId];
             if (balance != 0)
-                Api.UnlockToken(sideChainInfo.Proposer, balance);
+                State.TokenContract.Unlock(sideChainInfo.Proposer, balance);
             State.IndexingBalance[chainId] = 0;
 
             // unlock resource 

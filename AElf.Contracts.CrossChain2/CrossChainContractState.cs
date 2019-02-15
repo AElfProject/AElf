@@ -1,11 +1,25 @@
+using System;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.CrossChain2
 {
+    public class AuthorizationContractReferenceState : ContractReferenceState
+    {
+        public Action<Proposal> Propose { get; set; }
+    }
+
+    public class TokenContractReferenceState : ContractReferenceState
+    {
+        public Action<Address, ulong> Lock { get; set; }
+        public Action<Address, ulong> Unlock { get; set; }
+    }
+
     public class CrossChainContractState : ContractState
     {
+        public AuthorizationContractReferenceState AuthorizationContract { get; set; }
+        public TokenContractReferenceState TokenContract { get; set; }
         public UInt64State SideChainSerialNumber { get; set; }
 
         #region side chain
