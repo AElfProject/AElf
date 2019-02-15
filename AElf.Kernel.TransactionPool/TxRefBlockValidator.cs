@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.TransactionPool.RefBlockExceptions;
 using Google.Protobuf;
@@ -13,33 +13,26 @@ namespace AElf.Kernel.TransactionPool
 {
     public class TxRefBlockValidator : ITxRefBlockValidator, ISingletonDependency
     {
-        private IChainService _chainService;
-        private IBlockChain _blockChain;
-        private CanonicalBlockHashCache _canonicalBlockHashCache;
+        private IBlockchainService _blockchainService;
 
-        public TxRefBlockValidator(IChainService chainService)
+        public TxRefBlockValidator(IBlockchainService blockchainService)
         {
-            _chainService = chainService;
+            _blockchainService = blockchainService;
         }
 
         public async Task ValidateAsync(int chainId, Transaction tx)
         {
-            if (_blockChain == null)
-            {
-                _blockChain = _chainService.GetBlockChain(chainId);
-            }
-
-            if (_canonicalBlockHashCache == null)
-            {
-                _canonicalBlockHashCache = new CanonicalBlockHashCache(_blockChain);
-            }
 
             if (tx.RefBlockNumber < GlobalConfig.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return;
             }
 
-            var curHeight = _canonicalBlockHashCache.CurrentHeight;
+            var chain = await _blockchainService.GetChainAsync(chainId);
+
+            var canonicalHash = await _blockchainService.GetBlockHashByHeightAsync(chain, tx.RefBlockNumber);
+
+            var curHeight = chain.BestChainHeight;
             if (tx.RefBlockNumber > curHeight && curHeight > GlobalConfig.GenesisBlockHeight)
             {
                 throw  new FutureRefBlockException();
@@ -51,31 +44,10 @@ namespace AElf.Kernel.TransactionPool
                 throw new RefBlockExpiredException();
             }
 
-            Hash canonicalHash;
-            if (curHeight == 0)
-            {
-                canonicalHash = await _blockChain.GetCurrentBlockHashAsync();
-            }
-            else
-            {
-                canonicalHash = _canonicalBlockHashCache.GetHashByHeight(tx.RefBlockNumber);
-            }
-
-            if (canonicalHash == null)
-            {
-                canonicalHash = (await _blockChain.GetBlockByHeightAsync(tx.RefBlockNumber)).GetHash();
-            }
-
             if (canonicalHash == null)
             {
                 throw new Exception(
                     $"Unable to get canonical hash for height {tx.RefBlockNumber} - current height: {curHeight}");
-            }
-
-            // TODO: figure out why do we need this
-            if (GlobalConfig.BlockProducerNumber == 1)
-            {
-                return;
             }
 
             if (CheckPrefix(canonicalHash, tx.RefBlockPrefix))

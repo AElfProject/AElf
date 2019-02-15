@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -18,6 +19,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Chain> GetChainAsync(int chainId);
 
         Task<Chain> CreateChainAsync(int chainId, Block block);
+
+        Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -147,6 +150,38 @@ namespace AElf.Kernel.Blockchain.Application
         {
             await AddBlockAsync(chainId, block);
             return await _chainManager.CreateAsync(chainId, block.GetHash());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="height"></param>
+        /// <param name="currentBlockHash">the search beginning of block, if it is null, it will start at best chain block</param>
+        /// <returns></returns>
+        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null)
+        {
+            if (chain.LastIrreversibleBlockHeight <= height)
+            {
+                return (await _chainManager.GetChainBlockIndexAsync(chain.Id, chain.LastIrreversibleBlockHeight)).BlockHash;
+            }
+
+            if (currentBlockHash == null)
+                currentBlockHash = chain.BestChainHash;
+            
+            //TODO: may introduce cache to improve the performance
+
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, currentBlockHash);
+            if (chainBlockLink.Height < height)
+                return null;
+            
+            while (true)
+            {
+                if (chainBlockLink.Height == height)
+                    return chainBlockLink.BlockHash;
+                currentBlockHash = chainBlockLink.PreviousBlockHash;
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, currentBlockHash);
+            }
         }
     }
 }

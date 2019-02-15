@@ -39,21 +39,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             
         }
 
-        public void Initialize(int chainId)
-        {
-            
-        }
-
-        public void Start()
-        {
-        }
-
-        public Task Stop()
-        {
-            return Task.CompletedTask;
-        }
-
-        public async Task AddTransactionAsync(int chainId, Transaction transaction, bool skipValidation = false)
+        public async Task<bool> AddTransactionAsync(int chainId, Transaction transaction, bool skipValidation = false)
         {
             var tr = new TransactionReceipt(transaction);
             if (skipValidation)
@@ -65,30 +51,26 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var txn = await _transactionManager.GetTransaction(tr.TransactionId);
 
             // if the transaction is in TransactionManager, it is either executed or added into _allTxns
-            if (txn != null && !txn.Equals(new Transaction()))
+            if (txn != null)
             {
                 // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
-                return;
+                return false;
             }
 
+            await VerifySignature(chainId, tr);
+
+            await ValidateRefBlock(chainId, tr);
+
+            
             if (!_allTxns.TryAdd(tr.TransactionId, tr))
             {
                 // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
-                return;
+                return false;
             }
+            
+            //TODO: publish events
 
-            IdentifyTransactionType(chainId, tr);
-
-            // todo this should be up to the caller of this method to choose
-            // todo weither or not this is done on another thread, currently 
-            // todo this gives the caller no choice.
-
-            var task = Task.Run(async () =>
-            {
-                await VerifySignature(chainId, tr);
-                await ValidateRefBlock(chainId, tr);
-                MaybePublishTransaction(tr);
-            });
+            return true;
         }
 
         public async Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync()
@@ -135,19 +117,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return tx != null;
         }
 
-        private static void MaybePublishTransaction(TransactionReceipt tr)
-        {
-            if (tr.Transaction.ShouldNotBroadcast())
-            {
-                return;
-            }
-            
-            if (tr.IsExecutable && tr.ToBeBroadCasted)
-            {
-                MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));
-            }
-        }
-
         #region Private Methods
 
         private async Task VerifySignature(int chainId, TransactionReceipt tr)
@@ -159,28 +128,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             if(tr.Transaction.Sigs.Count > 1)
             {
-                if (tr.Transaction.From.Equals(Address.Genesis))
-                {
-                    // validate miners authorization
-                    var authorizationResult = await ValidateMinersAuthorization(chainId, tr);
-                    if (!authorizationResult)
-                    {
-                        tr.SignatureStatus = SignatureStatus.SignatureInvalid;
-                        return;
-                    }
-                }
-                else
-                {
-                    // validate authorization for multi-sig address
-                    var validAuthorization = await CheckAuthority(chainId, tr.Transaction);
-                    if (!validAuthorization)
-                    {
-                        tr.SignatureStatus = SignatureStatus.SignatureInvalid;
-                        return;
-                    }
-                }
-                tr.SignatureStatus = SignatureStatus.SignatureValid;
-                return;
+                throw new NotImplementedException();
             }
 
             var validSig = tr.Transaction.VerifySignature();
@@ -220,13 +168,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void IdentifyTransactionType(int chainId, TransactionReceipt tr)
-        {
-            if (SystemAddresses.Contains(tr.Transaction.To))
-            {
-                tr.IsSystemTxn = true;
-            }
-        }
 
         #endregion Private Methods
 
