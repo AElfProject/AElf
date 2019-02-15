@@ -62,6 +62,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
+        public bool TryToGetChainId(out int chainId)
+        {
+            chainId = State.ChainIdField.Value;
+            return chainId >= 0;
+        }
+
         public bool TryToGetRoundNumber(out ulong roundNumber)
         {
             roundNumber = State.CurrentRoundNumberField.Value;
@@ -197,6 +203,11 @@ namespace AElf.Contracts.Consensus.DPoS
         public void SetBlockAge(ulong blockAge)
         {
             State.AgeField.Value = blockAge;
+        }
+
+        public void SetChainId(int chainId)
+        {
+            State.ChainIdField.Value = chainId;
         }
 
         public void SetBlockchainStartTimestamp(Timestamp timestamp)
@@ -378,20 +389,14 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Round GenerateNextRound()
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                return currentRoundInStateDB.RealTimeMinersInfo.Keys.ToMiners()
-                    .GenerateNextRound(currentRoundInStateDB);
-            }
-
-            return new Round();
-        }
-
         private Round GenerateNextRound(Round currentRound)
         {
-            return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(currentRound);
+            if (TryToGetChainId(out var chainId))
+            {
+                return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(chainId, currentRound);
+            }
+
+            return null;
         }
 
         private Forwarding GenerateNewForwarding()

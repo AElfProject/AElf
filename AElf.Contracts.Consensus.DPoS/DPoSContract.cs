@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable InconsistentNaming
     // ReSharper disable UnusedMember.Global
     // ReSharper disable MemberCanBePrivate.Global
-    public class DPoSContract : CSharpSmartContract, IConsensusSmartContract
+    public class DPoSContract : CSharpSmartContract
     {
         private readonly IDPoSDataHelper _dataHelper;
 

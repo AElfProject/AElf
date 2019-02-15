@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract : CSharpSmartContract<DPoSContractState>//, IConsensusSmartContract
+    public partial class Contract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
         [View]
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
@@ -89,42 +89,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ValidationResult {Success = true};
         }
 
-        public int GetCountingMilliseconds(Timestamp timestamp)
-        {
-            // To initial this chain.
-            if (!TryToGetCurrentRoundInformation(out var roundInformation))
-            {
-                return Config.InitialWaitingMilliseconds;
-            }
-
-            // To terminate current round.
-            if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
-                TryToGetMiningInterval(out var miningInterval))
-            {
-                var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Context.RecoverPublicKey().ToHex() &&
-                    extraBlockMiningTime > timestamp.ToDateTime())
-                {
-                    return (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds;
-                }
-
-                var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
-                var roundTime = blockProducerNumber * miningInterval;
-                var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
-                if (passedTime > minerInformation.Order * miningInterval)
-                {
-                    return (int) (roundTime - (passedTime - minerInformation.Order * miningInterval));
-                }
-
-                return (int) (minerInformation.Order * miningInterval - passedTime);
-            }
-
-            // To produce a normal block.
-            var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
-                .TotalMilliseconds;
-            return expect >= 0 ? expect : int.MaxValue;
-        }
-
+        [View]
         public IMessage GetNewConsensusInformation(byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
@@ -167,6 +132,7 @@ namespace AElf.Contracts.Consensus.DPoS
             };
         }
 
+        [View]
         public TransactionList GenerateConsensusTransactions(ulong refBlockHeight, byte[] refBlockPrefix,
             byte[] extraInformation)
         {

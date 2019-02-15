@@ -176,5 +176,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Term Number -> First Round Number of this term.
         /// </summary>
         public TermToFirstRoundMapState TermToFirstRoundMap;
+
+        public Int32State ChainIdField;
     }
 }

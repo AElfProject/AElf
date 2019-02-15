@@ -5,7 +5,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public static class Config
     {
-        public static List<string> Aliases => new List<string>
+        public static List<string> InitialMinersAliases => new List<string>
         {
             "YQ", "SM", "WK", "CP", "PG", 
             "SC", "ZX", "ZY", "YS", "MH", 
@@ -13,7 +13,7 @@ namespace AElf.Contracts.Consensus.DPoS
             "BB", "MM", "DZ", "JJ", "DD"
         };
 
-        public static int InitialWaitingMilliseconds = 10_000;
+        public static int InitialWaitingMilliseconds = 8000;
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
@@ -345,7 +344,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
-            if (IsMainchain() && TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
+            if (TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
                 forwarding.NextRound.GetMinersHash() != currentRoundInformation.GetMinersHash() &&
                 forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber &&
                 TryToGetTermNumber(out var termNumber))
@@ -560,6 +559,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private void InitialBlockchain(Term firstTerm)
         {
+            SetChainId(firstTerm.ChainId);
             SetTermNumber(1);
             SetRoundNumber(1);
             SetBlockAge(1);
@@ -577,28 +577,16 @@ namespace AElf.Contracts.Consensus.DPoS
         private void SetAliases(Term term)
         {
             var index = 0;
-            if (IsMainchain())
+            foreach (var publicKey in term.Miners.PublicKeys)
             {
-                foreach (var publicKey in term.Miners.PublicKeys)
-                {
-                    if (index >= Config.Aliases.Count)
-                        return;
+                if (index >= Config.InitialMinersAliases.Count)
+                    return;
 
-                    var alias = Config.Aliases[index];
-                    SetAlias(publicKey, alias);
-                    AddOrUpdateMinerHistoryInformation(new CandidateInHistory
-                        {PublicKey = publicKey, CurrentAlias = alias});
-                    index++;
-                }
-            }
-            else
-            {
-                foreach (var publicKey in term.Miners.PublicKeys)
-                {
-                    var alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
-                    SetAlias(publicKey, alias);
-                    ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
-                }
+                var alias = Config.InitialMinersAliases[index];
+                SetAlias(publicKey, alias);
+                AddOrUpdateMinerHistoryInformation(new CandidateInHistory
+                    {PublicKey = publicKey, CurrentAlias = alias});
+                index++;
             }
         }
 
@@ -684,11 +672,6 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Console.WriteLine(ex);
             }
-        }
-
-        private bool IsMainchain()
-        {
-            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId;
         }
     }
 }

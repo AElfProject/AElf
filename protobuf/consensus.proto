@@ -218,3 +218,12 @@ message ValidationResult {
     bool Success = 1;
     string Message = 2;
 }
+
+message DividendsSettings {
+    uint64 ElfTokenPerBlock = 1;
+    double MinersBasicRatio = 2;
+    double MinersVotesRatio = 3;
+    double MinersReappointmentRatio = 4;
+    double BackupNodesRatio = 5;
+    double VotersRatio = 6;
+}
