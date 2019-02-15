@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Google.Protobuf;
 using Org.BouncyCastle.Security;
 using AElf.Kernel;
-using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
@@ -13,8 +12,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.MetaData;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class ChainFunctionMetadata : IChainFunctionMetadata
     {

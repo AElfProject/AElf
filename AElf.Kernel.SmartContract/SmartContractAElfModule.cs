@@ -3,7 +3,7 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     [DependsOn(typeof(KernelAElfModule))]
     public class SmartContractAElfModule: AElfModule

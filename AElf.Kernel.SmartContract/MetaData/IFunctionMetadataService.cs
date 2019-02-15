@@ -5,7 +5,7 @@ using AElf.Kernel.Types;
 using AElf.Common;
 using AElf.Kernel.SmartContract;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public interface IFunctionMetadataService
     {

@@ -19,7 +19,7 @@ namespace AElf.Miner.Tests
 {
     [DependsOn(
         typeof(AElf.ChainController.ChainControllerAElfModule),
-        typeof(AElf.SmartContract.SmartContractAElfModule),
+        typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(Kernel.TransactionPool.TxPoolAElfModule),
         typeof(ConsensusKernelAElfModule),

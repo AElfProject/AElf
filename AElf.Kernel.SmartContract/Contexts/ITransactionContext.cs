@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public interface ITransactionContext
     {

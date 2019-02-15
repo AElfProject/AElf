@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Runtime.CSharp
 {

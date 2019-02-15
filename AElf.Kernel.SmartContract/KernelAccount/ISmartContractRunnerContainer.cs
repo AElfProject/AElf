@@ -1,4 +1,4 @@
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public interface ISmartContractRunnerContainer
     {

@@ -10,7 +10,7 @@ namespace AElf.Contracts.TestBase
 {
     [DependsOn(
         typeof(AElf.ChainController.ChainControllerAElfModule),
-        typeof(AElf.SmartContract.SmartContractAElfModule),
+        typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(ExecutionAElfModule),
         typeof(KernelAElfModule),

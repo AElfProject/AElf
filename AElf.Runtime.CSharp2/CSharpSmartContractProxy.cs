@@ -4,8 +4,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using AElf.Kernel;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Runtime.CSharp
 {

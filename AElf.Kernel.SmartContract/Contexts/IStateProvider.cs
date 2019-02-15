@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 
-namespace AElf.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract.Contexts
 {
     public interface IStateProvider
     {

@@ -1,23 +1,13 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-//using AElf.Runtime.CSharp.Core.ABI;
-using Google.Protobuf;
-using AElf.Kernel;
-using Type = System.Type;
 using AElf.Common;
-using AElf.Kernel.ABI;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel;
 using AElf.Kernel.Types;
-using AElf.SmartContract.Contexts;
-using AElf.Types.CSharp;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract.Application
 {
     //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
     public class SmartContractService : ISmartContractService, ISingletonDependency

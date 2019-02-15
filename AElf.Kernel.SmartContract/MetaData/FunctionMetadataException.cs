@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.SmartContract.MetaData
+namespace AElf.Kernel.SmartContract.MetaData
 {
     public class FunctionMetadataException : Exception
     {

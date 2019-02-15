@@ -1,9 +1,10 @@
 ﻿using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class SmartContractContext : ISmartContractContext
     {

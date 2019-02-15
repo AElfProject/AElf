@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Org.BouncyCastle.Security;
 
-namespace AElf.SmartContract.MetaData
+namespace AElf.Kernel.SmartContract.MetaData
 {
     public static class Replacement
     {

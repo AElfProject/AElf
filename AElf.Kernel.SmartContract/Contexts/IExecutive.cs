@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Contexts;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public interface IExecutive
     {

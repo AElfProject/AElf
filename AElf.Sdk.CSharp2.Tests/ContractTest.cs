@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using Xunit;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp2.Tests.TestContract;

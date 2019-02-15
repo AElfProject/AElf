@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
-using AElf.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Common;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.MetaData;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class FunctionMetadataTemplate : IEquatable<FunctionMetadataTemplate>
     {

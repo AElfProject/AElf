@@ -13,4 +13,7 @@
   <ItemGroup>
     <Compile Remove="Contexts\TentativeDataProvider.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Infrastructure" />
+  </ItemGroup>
 </Project>

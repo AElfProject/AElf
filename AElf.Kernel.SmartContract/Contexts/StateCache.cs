@@ -1,5 +1,5 @@
 ﻿// ReSharper disable once CheckNamespace
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class StateCache
     {

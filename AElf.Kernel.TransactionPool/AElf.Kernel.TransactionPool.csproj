@@ -5,8 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
     </ItemGroup>
 
     <ItemGroup>

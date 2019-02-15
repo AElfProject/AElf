@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Google.Protobuf;
-using AElf.Kernel;
+﻿using System.Threading.Tasks;
 using AElf.Common;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractService
     {

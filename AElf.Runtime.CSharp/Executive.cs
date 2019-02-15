@@ -10,8 +10,8 @@ using AElf.Runtime.CSharp.Core.ABI;
 using Type = System.Type;
 using Module = AElf.Kernel.ABI.Module;
 using Method = AElf.Kernel.ABI.Method;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp

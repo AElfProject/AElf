@@ -7,7 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Domain;
 using Google.Protobuf;
 
-namespace AElf.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract.Contexts
 {
     internal class StateProvider : IStateProvider
     {

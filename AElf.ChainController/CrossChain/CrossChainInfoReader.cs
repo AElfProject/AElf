@@ -4,7 +4,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.ChainController.CrossChain

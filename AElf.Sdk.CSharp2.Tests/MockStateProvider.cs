@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp2.Tests
 {

@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Org.BouncyCastle.Security;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class SmartContractRunnerContainer : ISmartContractRunnerContainer
     {

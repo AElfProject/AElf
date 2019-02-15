@@ -6,7 +6,7 @@ using System.Reflection;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Sdk.CSharp.State;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.Threading;

@@ -2,7 +2,7 @@
  using AElf.Kernel;
 using AElf.Common;
 
-namespace AElf.SmartContract
+namespace AElf.Kernel.SmartContract
 {
     public class TransactionContext : ITransactionContext
     {

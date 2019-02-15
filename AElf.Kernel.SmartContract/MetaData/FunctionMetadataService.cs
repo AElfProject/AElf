@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
 
-namespace AElf.SmartContract.Metadata
+namespace AElf.Kernel.SmartContract.Metadata
 {
     
     public class FunctionMetadataService : IFunctionMetadataService

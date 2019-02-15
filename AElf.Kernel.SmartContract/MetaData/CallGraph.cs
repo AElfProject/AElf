@@ -4,7 +4,7 @@ using Google.Protobuf.Collections;
 using QuickGraph;
 
 
-namespace AElf.SmartContract.MetaData
+namespace AElf.Kernel.SmartContract.MetaData
 {
     public class CallGraph : AdjacencyGraph<string, Edge<string>>, IEquatable<CallGraph>
     {
