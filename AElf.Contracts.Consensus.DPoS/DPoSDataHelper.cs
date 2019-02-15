@@ -154,6 +154,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return backups.Any();
         }
 
+        public bool TryToGetChainId(out int chainId)
+        {
+            chainId = _dataStructures.ChainIdField.GetValue();
+            return chainId >= 0;
+        }
+
         public void SetTermNumber(ulong termNumber)
         {
             _dataStructures.CurrentTermNumberField.SetValue(termNumber);
@@ -220,6 +226,11 @@ namespace AElf.Contracts.Consensus.DPoS
         public void SetMiningInterval(int miningInterval)
         {
             _dataStructures.MiningIntervalField.SetValue(miningInterval);
+        }
+
+        public void SetChainId(int chainId)
+        {
+            _dataStructures.ChainIdField.SetValue(chainId);
         }
 
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)

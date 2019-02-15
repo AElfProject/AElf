@@ -52,7 +52,7 @@ namespace AElf.Crosschain.Grpc.Client
         {
             var client = CreateGrpcClient((GrpcClientBase) grpcClientBase);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
-            client.StartDuplexStreamingCall(((GrpcClientBase) grpcClientBase).TargetIsSideChain
+            client.StartDuplexStreamingCall(((GrpcClientBase)grpcClientBase).TargetChainId, ((GrpcClientBase) grpcClientBase).TargetIsSideChain
                 ? _tokenSourceToSideChain.Token
                 : _tokenSourceToParentChain.Token);
         }

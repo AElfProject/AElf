@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.ChainController;
 using AElf.Common;
 using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Managers;

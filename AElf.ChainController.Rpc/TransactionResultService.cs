@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool;
 
 namespace AElf.ChainController.Rpc
 {
@@ -35,7 +34,7 @@ namespace AElf.ChainController.Rpc
                 return new TransactionResult
                 {
                     TransactionId = tx.GetHash(),
-                    Status = Status.Pending
+                    Status = TransactionResultStatus.Pending
                 };
             }
             
@@ -43,7 +42,7 @@ namespace AElf.ChainController.Rpc
             return new TransactionResult
             {
                 TransactionId = txId,
-                Status = Status.NotExisted
+                Status = TransactionResultStatus.NotExisted
             };
         }
 

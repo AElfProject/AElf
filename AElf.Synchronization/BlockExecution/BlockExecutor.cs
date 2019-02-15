@@ -11,7 +11,8 @@ using AElf.Execution.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
-using AElf.Miner.TxMemPool;
+using AElf.Kernel.Services;
+using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -95,7 +96,7 @@ namespace AElf.Synchronization.BlockExecution
                 double timeout = 0;
                 if (_isLimitExecutionTime)
                 {
-                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd();
+                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd(block.Header.ChainId);
                     timeout = distanceToTimeSlot * RatioSynchronize;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                 }
@@ -106,7 +107,7 @@ namespace AElf.Synchronization.BlockExecution
                 if (result.IsFailed())
                 {
                     Logger.LogWarning(
-                        $"Collect transaction from block failed: {result}, block height: {block.Header.Index}, " +
+                        $"Collect transaction from block failed: {result}, block height: {block.Header.Height}, " +
                         $"block hash: {block.BlockHashToHex}.");
                     res = result;
                     return res;
@@ -118,7 +119,7 @@ namespace AElf.Synchronization.BlockExecution
 
                 // Execute transactions.
                 // After this, rollback needed
-                if ((res = ExtractTransactionResults(traces, out txnRes)).IsFailed())
+                if ((res = ExtractTransactionResults(block.Header.ChainId, traces, out txnRes)).IsFailed())
                 {
                     throw new InvalidBlockException(res.ToString());
                 }
@@ -188,7 +189,8 @@ namespace AElf.Synchronization.BlockExecution
             return traces;
         }
 
-        private BlockExecutionResult ExtractTransactionResults(List<TransactionTrace> traces, out List<TransactionResult> results)
+        private BlockExecutionResult ExtractTransactionResults(int chainId, List<TransactionTrace> traces, 
+            out List<TransactionResult> results)
         {
             results = new List<TransactionResult>();
             int index = 0;
@@ -202,7 +204,7 @@ namespace AElf.Synchronization.BlockExecution
                         var txRes = new TransactionResult()
                         {
                             TransactionId = trace.TransactionId,
-                            Status = Status.Mined,
+                            Status = TransactionResultStatus.Mined,
                             RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                             StateHash = trace.GetSummarizedStateHash(),
                             Index = index++
@@ -213,7 +215,7 @@ namespace AElf.Synchronization.BlockExecution
                         if (trace.DeferredTransaction.Length != 0)
                         {
                             var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                            _txHub.AddTransactionAsync(deferredTxn).ConfigureAwait(false);
+                            _txHub.AddTransactionAsync(chainId, deferredTxn).ConfigureAwait(false);
                             txRes.DeferredTxnId = deferredTxn.GetHash();
                         }
 
@@ -224,7 +226,7 @@ namespace AElf.Synchronization.BlockExecution
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
-                            Status = Status.Failed,
+                            Status = TransactionResultStatus.Failed,
                             StateHash = Hash.Default,
                             Index = index++
                         };
@@ -235,7 +237,7 @@ namespace AElf.Synchronization.BlockExecution
                         {
                             TransactionId = trace.TransactionId,
                             RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
-                            Status = Status.Failed,
+                            Status = TransactionResultStatus.Failed,
                             StateHash = trace.GetSummarizedStateHash(),
                             Index = index++
                         };
@@ -298,6 +300,7 @@ namespace AElf.Synchronization.BlockExecution
         /// <summary>
         /// Get txs from tx pool
         /// </summary>
+        /// <param name="chainId"></param>
         /// <param name="block"></param>
         /// <param name="cancellationTokenSource"></param>
         /// <returns>
@@ -326,7 +329,7 @@ namespace AElf.Synchronization.BlockExecution
                     break;
                 }
 
-                var receipt = await _txHub.GetCheckedReceiptsAsync(tx);
+                var receipt = await _txHub.GetCheckedReceiptsAsync(block.Header.ChainId, tx);
                 if (receipt.IsExecutable)
                     continue;
                 res = BlockExecutionResult.NotExecutable;
@@ -389,11 +392,11 @@ namespace AElf.Synchronization.BlockExecution
         /// <param name="block"></param>
         private async Task InsertTxs(List<TransactionResult> txResults, IBlock block)
         {
-            var bn = block.Header.Index;
+            var bn = block.Header.Height;
             var bh = block.Header.GetHash();
 
             await _binaryMerkleTreeManager.AddTransactionsMerkleTreeAsync(block.Body.BinaryMerkleTree,
-                block.Header.ChainId, block.Header.Index);
+                block.Header.ChainId, block.Header.Height);
             txResults.AsParallel().ToList().ForEach(async r =>
             {
                 r.BlockNumber = bn;
@@ -412,7 +415,7 @@ namespace AElf.Synchronization.BlockExecution
                 return;
             var blockChain = _chainService.GetBlockChain(block.Header.ChainId);
             await blockChain.RollbackStateForTransactions(
-                txRes.Where(x => x.Status == Status.Mined).Select(x => x.TransactionId),
+                txRes.Where(x => x.Status == TransactionResultStatus.Mined).Select(x => x.TransactionId),
                 block.Header.GetDisambiguationHash()
             );
         }

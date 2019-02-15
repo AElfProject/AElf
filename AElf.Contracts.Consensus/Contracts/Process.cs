@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
@@ -26,9 +25,12 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private readonly DataCollection _collection;
 
-        public Process(DataCollection collection)
+        private readonly int _chainId;
+
+        public Process(int chainId, DataCollection collection)
         {
             _collection = collection;
+            _chainId = chainId;
         }
 
         public void InitialTerm(Term firstTerm)
@@ -741,7 +743,7 @@ namespace AElf.Contracts.Consensus.Contracts
 
         private bool IsMainchain()
         {
-            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId;
+            return _chainId.DumpBase58() == GlobalConfig.DefaultChainId;
         }
     }
 }

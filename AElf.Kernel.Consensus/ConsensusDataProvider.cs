@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Configuration.Config.Consensus;
 using AElf.Kernel.Account;
 using AElf.Kernel.Managers;
@@ -28,21 +26,11 @@ namespace AElf.Kernel.Consensus
             _accountService = accountService;
         }
 
-        
-        //TODO: configuration need be changed.
-        public int ChainId => ChainConfig.Instance.ChainId.ConvertBase58ToChainId();
-
-        public Address ContractAddress => ContractHelpers.GetConsensusContractAddress(
-            ChainConfig.Instance.ChainId.ConvertBase58ToChainId());
-
-        private DataProvider DataProvider
+        private DataProvider GetDataProvider(int chainId)
         {
-            get
-            {
-                var dp = DataProvider.GetRootDataProvider(ChainId, ContractAddress);
-                dp.StateManager = _stateManager;
-                return dp;
-            }
+            var dp = DataProvider.GetRootDataProvider(chainId, ContractHelpers.GetConsensusContractAddress(chainId));
+            dp.StateManager = _stateManager;
+            return dp;
         }
 
         /// <summary>
@@ -51,20 +39,20 @@ namespace AElf.Kernel.Consensus
         /// <param name="keyHash"></param>
         /// <param name="resourceStr"></param>
         /// <returns></returns>
-        private async Task<byte[]> GetBytes<T>(Hash keyHash, string resourceStr = "") where T : IMessage, new()
+        private async Task<byte[]> GetBytes<T>(int chainId, Hash keyHash, string resourceStr = "") where T : IMessage, new()
         {
             return await (resourceStr != ""
-                ? DataProvider.GetChild(resourceStr).GetAsync<T>(keyHash)
-                : DataProvider.GetAsync<T>(keyHash));
+                ? GetDataProvider(chainId).GetChild(resourceStr).GetAsync<T>(keyHash)
+                : GetDataProvider(chainId).GetAsync<T>(keyHash));
         }
 
-        public async Task<Miners> GetMiners()
+        public async Task<Miners> GetMiners(int chainId)
         {
             try
             {
                 var miners =
                     Miners.Parser.ParseFrom(
-                        await GetBytes<Miners>(Hash.FromString(GlobalConfig.AElfDPoSMinersString)));
+                        await GetBytes<Miners>(chainId, Hash.FromString(GlobalConfig.AElfDPoSMinersString)));
                 return miners;
             }
             catch (Exception ex)
@@ -74,11 +62,11 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<ulong> GetCurrentRoundNumber()
+        public async Task<ulong> GetCurrentRoundNumber(int chainId)
         {
             try
             {
-                var rawValue = await GetBytes<UInt64Value>(Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber));
+                var rawValue = await GetBytes<UInt64Value>(chainId, Hash.FromString(GlobalConfig.AElfDPoSCurrentRoundNumber));
                 return rawValue != null ?  UInt64Value.Parser.ParseFrom(rawValue).Value : 0;
             }
             catch (Exception ex)
@@ -88,12 +76,12 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<Round> GetCurrentRoundInfo()
+        public async Task<Round> GetCurrentRoundInfo(int chainId)
         {
-            var currentRoundNumber = await GetCurrentRoundNumber();
+            var currentRoundNumber = await GetCurrentRoundNumber(chainId);
             try
             {
-                var bytes = await GetBytes<Round>(Hash.FromMessage(new UInt64Value {Value = currentRoundNumber}),
+                var bytes = await GetBytes<Round>(chainId, Hash.FromMessage(new UInt64Value {Value = currentRoundNumber}),
                     GlobalConfig.AElfDPoSRoundsMapString);
                 var round = Round.Parser.ParseFrom(bytes);
                 return round;
@@ -106,14 +94,14 @@ namespace AElf.Kernel.Consensus
             }
         }
 
-        public async Task<MinerInRound> GetMinerInfo(string publicKey = null)
+        public async Task<MinerInRound> GetMinerInfo(int chainId, string publicKey = null)
         {
             if (publicKey == null)
             {
                 publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
-            var round = await GetCurrentRoundInfo();
+            var round = await GetCurrentRoundInfo(chainId);
             if (round.RealTimeMinersInfo.ContainsKey(publicKey))
             {
                 return round.RealTimeMinersInfo[publicKey];
@@ -122,25 +110,25 @@ namespace AElf.Kernel.Consensus
             return null;
         }
 
-        public async Task<Timestamp> GetExpectMiningTime(string publicKey = null)
+        public async Task<Timestamp> GetExpectMiningTime(int chainId, string publicKey = null)
         {
             if (publicKey == null)
             {
                 publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
-            var info = await GetMinerInfo(publicKey);
+            var info = await GetMinerInfo(chainId, publicKey);
             return info?.ExpectedMiningTime;
         }
 
-        public async Task<double> GetDistanceToTimeSlot(string publicKey = null)
+        public async Task<double> GetDistanceToTimeSlot(int chainId, string publicKey = null)
         {
             if (publicKey == null)
             {
                 publicKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             }
 
-            var timeSlot = await GetExpectMiningTime(publicKey);
+            var timeSlot = await GetExpectMiningTime(chainId, publicKey);
             if (timeSlot == null)
             {
                 return double.MaxValue;
@@ -149,13 +137,13 @@ namespace AElf.Kernel.Consensus
             return distance.ToTimeSpan().TotalMilliseconds;
         }
 
-        public async Task<double> GetDistanceToTimeSlotEnd(string publicKey = null)
+        public async Task<double> GetDistanceToTimeSlotEnd(int chainId, string publicKey = null)
         {
             var distance = (double) ConsensusConfig.Instance.DPoSMiningInterval;
-            var currentRoundNumber = await GetCurrentRoundNumber();
+            var currentRoundNumber = await GetCurrentRoundNumber(chainId);
             if (currentRoundNumber != 0)
             {
-                var info = await GetMinerInfo(publicKey);
+                var info = await GetMinerInfo(chainId, publicKey);
 
                 if (info == null)
                 {

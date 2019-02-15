@@ -26,6 +26,7 @@ namespace AElf.Contracts.Consensus.DPoS
         bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot);
         bool TryToGetTicketsInformation(string publicKey, out Tickets tickets);
         bool TryToGetBackups(List<string> currentMiners, out List<string> backups);
+        bool TryToGetChainId(out int chainId);
 
         void SetTermNumber(ulong termNumber);
         void SetRoundNumber(ulong roundNumber);
@@ -36,6 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS
         void SetTermSnapshot(TermSnapshot snapshot);
         void SetAlias(string publicKey, string alias);
         void SetMiningInterval(int miningInterval);
+        void SetChainId(int chainId);
         
         bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber);
         bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false);

@@ -7,7 +7,7 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.Collections;
 using AElf.Kernel;
-using AElf.Miner.EventMessages;
+using AElf.Kernel.EventMessages;
 using AElf.Network;
 using AElf.Network.Connection;
 using AElf.Network.Data;
@@ -46,7 +46,6 @@ namespace AElf.Node.Protocol
 
         #endregion
 
-        private readonly IPeerManager _peerManager;
         public ILogger<NetworkManager> Logger { get; set; }
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly INodeService _nodeService;
@@ -68,17 +67,14 @@ namespace AElf.Node.Protocol
 
         private readonly object _syncLock = new object();
 
-        public NetworkManager(IPeerManager peerManager, IBlockSynchronizer blockSynchronizer, INodeService nodeService)
+        public NetworkManager(IBlockSynchronizer blockSynchronizer, INodeService nodeService)
         {
             _incomingJobs = new BlockingPriorityQueue<PeerMessageReceivedArgs>();
             _peers = new List<IPeer>();
 
-            _peerManager = peerManager;
             Logger = NullLogger<NetworkManager>.Instance;
             _blockSynchronizer = blockSynchronizer;
             _nodeService = nodeService;
-
-            peerManager.PeerEvent += OnPeerAdded;
 
             MessageHub.Instance.Subscribe<TransactionAddedToPool>(inTx =>
             {
@@ -116,9 +112,9 @@ namespace AElf.Node.Protocol
 
                 Logger.LogInformation(
                     $"Block produced, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}) with " +
-                    $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Index}.");
+                    $"{inBlock.Block.Body.TransactionsCount} txs, block height {inBlock.Block.Header.Height}.");
 
-                LocalHeight = (int) inBlock.Block.Index;
+                LocalHeight = (int) inBlock.Block.Height;
             });
 
             MessageHub.Instance.Subscribe<BlockAccepted>(inBlock =>
@@ -148,7 +144,7 @@ namespace AElf.Node.Protocol
 
                 Logger.LogTrace(
                     $"Block accepted, announcing {blockHash.ToHex()} to peers ({string.Join("|", _peers)}), " +
-                    $"block height {acceptedBlock.Header.Index}.");
+                    $"block height {acceptedBlock.Header.Height}.");
 
                 lock (_syncLock)
                 {
@@ -171,7 +167,7 @@ namespace AElf.Node.Protocol
                 if (UnlinkableHeaderIndex != 0)
                     return;
             
-                LocalHeight = (int) inBlock.Block.Index;
+                LocalHeight = (int) inBlock.Block.Height;
             
                 DoNext(inBlock.Block);
             });
@@ -203,7 +199,7 @@ namespace AElf.Node.Protocol
                     if (UnlinkableHeaderIndex != 0)
                     {
                         // Set state with the first occurence of the unlinkable block
-                        UnlinkableHeaderIndex = (int) unlinkableHeaderMsg.Header.Index;
+                        UnlinkableHeaderIndex = (int) unlinkableHeaderMsg.Header.Height;
                     }
                     else
                     {
@@ -219,11 +215,11 @@ namespace AElf.Node.Protocol
                     }
                 }
 
-                Logger.LogTrace($"Header unlinkable, height {unlinkableHeaderMsg.Header.Index}.");
+                Logger.LogTrace($"Header unlinkable, height {unlinkableHeaderMsg.Header.Height}.");
 
                 // Use the peer with the highest target to request headers.
                 IPeer target = _peers
-                    .Where(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Index)
+                    .Where(p => p.KnownHeight >= (int) unlinkableHeaderMsg.Header.Height)
                     .OrderByDescending(p => p.KnownHeight)
                     .FirstOrDefault();
 
@@ -233,7 +229,7 @@ namespace AElf.Node.Protocol
                     return;
                 }
 
-                target.RequestHeaders((int) unlinkableHeaderMsg.Header.Index, DefaultHeaderRequestCount);
+                target.RequestHeaders((int) unlinkableHeaderMsg.Header.Height, DefaultHeaderRequestCount);
             });
 
             MessageHub.Instance.Subscribe<HeaderAccepted>(header =>
@@ -260,13 +256,13 @@ namespace AElf.Node.Protocol
                 lock (_syncLock)
                 {
                     // Local height reset 
-                    LocalHeight = (int) header.Header.Index - 1;
+                    LocalHeight = (int) header.Header.Height - 1;
 
                     // Reset Unlinkable header state
                     UnlinkableHeaderIndex = 0;
 
                     Logger.LogTrace(
-                        $"[event] header accepted, height {header.Header.Index}, local height reset to {header.Header.Index - 1}.");
+                        $"[event] header accepted, height {header.Header.Height}, local height reset to {header.Header.Height - 1}.");
 
                     // Use the peer with the highest target that is higher than our height.
                     IPeer target = _peers
@@ -289,7 +285,7 @@ namespace AElf.Node.Protocol
 
             MessageHub.Instance.Subscribe<ChainInitialized>(inBlock =>
             {
-                _peerManager.Start();
+                //_peerManager.Start();
                 Task.Run(StartProcessingIncoming).ConfigureAwait(false);
             });
 
@@ -349,7 +345,7 @@ namespace AElf.Node.Protocol
         private void DoNext(IBlock acceptedBlock)
         {
             var blockHash = acceptedBlock.GetHash().DumpByteArray();
-            var blockHeight = acceptedBlock.Header.Index;
+            var blockHeight = acceptedBlock.Header.Height;
             
             lock (_syncLock)
             {
@@ -525,7 +521,7 @@ namespace AElf.Node.Protocol
 
         public async Task Stop()
         {
-            await _peerManager.Stop();
+            //await _peerManager.Stop();
         }
 
         private void AnnounceBlock(IBlock block)
@@ -543,7 +539,7 @@ namespace AElf.Node.Protocol
             {
                 Announce anc = new Announce
                 {
-                    Height = (int) block.Header.Index,
+                    Height = (int) block.Header.Height,
                     Id = ByteString.CopyFrom(block.GetHashBytes())
                 };
 

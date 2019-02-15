@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Crosschain.Grpc";
+import "common.proto";
+import "crosschain.proto";
+
+message RequestCrossChainBlockData {
+    int32 ChainId = 1; // parent(own) chain id
+    uint64 NextHeight = 2;
+}
+
+message ResponseSideChainBlockData {
+    SideChainBlockData BlockData = 1;
+    bool Success = 2;
+}
+
+message ResponseParentChainBlockData {
+    ParentChainBlockData BlockData = 1;
+    bool Success = 2;
+}
+
+message IndexingRequestMessage {
+    uint32 Port = 1;
+    string Ip = 2;
+    int32 ChainId = 3;
+}
+
+message IndexingRequestResult {
+    bool Result = 1;
+}
+
+service SideChainRpc {
+    rpc RequestSideChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
+    rpc RequestSideChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
+
+}
+
+service ParentChainRpc {
+    rpc RequestParentChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestParentChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestIndexing (IndexingRequestMessage) returns (IndexingRequestResult) {}
+}
+
+message MerkleProofMessage {
+    repeated Hash BlockMerkleProof = 1;
+    repeated Hash TransactionMerkleProof = 2;
+}
+
+message VerificationNeededMessage {
+    int32 ChainId = 1;
+    uint64 BlockHeight = 2;
+}
+
+service MerkleProofInfoRpc {
+    rpc MerkleProofInfo (VerificationNeededMessage) returns (MerkleProofMessage) {}
+}

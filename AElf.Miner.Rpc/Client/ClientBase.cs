@@ -5,8 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -88,14 +86,14 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="call"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        private async Task RequestLoop(AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
+        private async Task RequestLoop(int chainId, AsyncDuplexStreamingCall<RequestBlockInfo, TResponse> call, 
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 var request = new RequestBlockInfo
                 {
-                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
+                    ChainId = chainId,
                     NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
                 };
                 //Logger.LogTrace($"New request for height {request.NextHeight} to chain {_targetChainId.DumpHex()}");
@@ -110,7 +108,7 @@ namespace AElf.Miner.Rpc.Client
         /// <param name="cancellationToken"></param>
         /// <param name="next"></param>
         /// <returns></returns>
-        public async Task StartDuplexStreamingCall(CancellationToken cancellationToken, ulong next)
+        public async Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken, ulong next)
         {
             _next = Math.Max(next, ToBeIndexedInfoQueue.LastOrDefault()?.Height?? -1 + 1);
             
@@ -127,7 +125,7 @@ namespace AElf.Miner.Rpc.Client
                     var responseReaderTask = ReadResponse(call);
 
                     // request in loop
-                    await RequestLoop(call, cancellationToken);
+                    await RequestLoop(chainId, call, cancellationToken);
                     await responseReaderTask;
                 }
                 catch (RpcException e)
@@ -138,7 +136,7 @@ namespace AElf.Miner.Rpc.Client
                         var detail = e.Status.Detail;
 
                         // TODO: maybe improvement for NO wait call, or change the try solution
-                        var task = StartDuplexStreamingCall(cancellationToken, _next);
+                        var task = StartDuplexStreamingCall(chainId, cancellationToken, _next);
                         return;
                     }
 
@@ -158,39 +156,39 @@ namespace AElf.Miner.Rpc.Client
         /// </summary>
         /// <param name="next"></param>
         /// <returns></returns>
-        public async Task StartServerStreamingCall(ulong next)
-        {
-            _next = Math.Max(next, ToBeIndexedInfoQueue.Last()?.Height?? -1 + 1);
-            try
-            {
-                var request = new RequestBlockInfo
-                {
-                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
-                    NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
-                };
-                
-                using (var call = Call(request))
-                {
-                    while (await call.ResponseStream.MoveNext())
-                    {
-                        var response = call.ResponseStream.Current;
-
-                        // request failed or useless response
-                        if (!response.Success || response.Height != _next)
-                            continue;
-                        if (ToBeIndexedInfoQueue.TryAdd(response.BlockInfoResult))
-                        {
-                            _next++;
-                        }
-                    }
-                }
-            }
-            catch (RpcException e)
-            {
-                Logger.LogError(e.ToString());
-                throw;
-            }
-        }
+//        public async Task StartServerStreamingCall(ulong next)
+//        {
+//            _next = Math.Max(next, ToBeIndexedInfoQueue.Last()?.Height?? -1 + 1);
+//            try
+//            {
+//                var request = new RequestBlockInfo
+//                {
+//                    ChainId = ChainConfig.Instance.ChainId.ConvertBase58ToChainId(),
+//                    NextHeight = ToBeIndexedInfoQueue.Count == 0 ? _next : ToBeIndexedInfoQueue.Last().Height + 1
+//                };
+//                
+//                using (var call = Call(request))
+//                {
+//                    while (await call.ResponseStream.MoveNext())
+//                    {
+//                        var response = call.ResponseStream.Current;
+//
+//                        // request failed or useless response
+//                        if (!response.Success || response.Height != _next)
+//                            continue;
+//                        if (ToBeIndexedInfoQueue.TryAdd(response.BlockInfoResult))
+//                        {
+//                            _next++;
+//                        }
+//                    }
+//                }
+//            }
+//            catch (RpcException e)
+//            {
+//                Logger.LogError(e.ToString());
+//                throw;
+//            }
+//        }
 
         /// <summary>
         /// Try Take element from cached queue.

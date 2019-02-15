@@ -17,4 +17,4 @@ fi
 
 name="${osn}_${osb}"
 cp ~/.nuget/packages/grpc.tools/1.14.1/tools/${name}/grpc_csharp_plugin ./Grpc
-protoc --proto_path=../AElf.Types/Protobuf/Proto --csharp_out=./Grpc/Protobuf/Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Grpc/Protobuf/Generated headerinfo.proto --plugin=protoc-gen-grpc=./Grpc/grpc_csharp_plugin
+protoc --proto_path=../protobuf --csharp_out=./Grpc/Protobuf/Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Grpc/Protobuf/Generated header_info.proto --plugin=protoc-gen-grpc=./Grpc/grpc_csharp_plugin

@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Common;
-using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Txn;
 
 namespace AElf.Consensus
 {
@@ -17,7 +14,7 @@ namespace AElf.Consensus
         }
         
         public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
-            ref List<Transaction> generatedTransactions, int chainId)
+            int chainId, ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
                 _consensusService.GenerateConsensusTransactions(chainId, refBlockHeight, refBlockPrefix).Result);

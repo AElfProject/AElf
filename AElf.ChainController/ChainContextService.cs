@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
 
 namespace AElf.ChainController
 {
@@ -16,8 +14,6 @@ namespace AElf.ChainController
 
         public async Task<IChainContext> GetChainContextAsync(int chainId)
         {
-
-            
             var blockchain = _chainService.GetBlockChain(chainId);
             IChainContext chainContext = new ChainContext
             {
@@ -26,7 +22,7 @@ namespace AElf.ChainController
             };
             if (chainContext.BlockHash != Hash.Genesis && chainContext.BlockHash != null)
             {
-                chainContext.BlockHeight = ((BlockHeader)await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Index;
+                chainContext.BlockHeight = ((BlockHeader)await blockchain.GetHeaderByHashAsync(chainContext.BlockHash)).Height;
             }
             return chainContext;
         }

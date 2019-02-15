@@ -23,8 +23,5 @@
     <None Update="Config\Consensus\consensus.json" Link="config\consensus.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Chain\chain.json" Link="config\chain.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

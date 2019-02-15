@@ -4,8 +4,8 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -140,7 +140,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
 
@@ -168,7 +168,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -201,7 +201,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -244,7 +244,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -290,7 +290,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -310,7 +310,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 2}, stubExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 2}, stubExtraInformation.ToByteArray());
             var normalTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             var normalTransaction = normalTransactions?.Transactions.First();
@@ -340,7 +340,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -385,7 +385,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -432,7 +432,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -475,7 +475,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -520,7 +520,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -540,7 +540,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 2}, stubExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 2}, stubExtraInformation.ToByteArray());
             var nextRoundTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(nextRoundTransactions);
@@ -569,7 +569,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             };
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 1}, stubInitialExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
             var initialTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
             Assert.NotNull(initialTransactions);
@@ -585,7 +585,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
-                stubMiners[0], new BlockHeader {Index = 2}, stubExtraInformation.ToByteArray());
+                stubMiners[0], new BlockHeader {Height = 2}, stubExtraInformation.ToByteArray());
             var nextRoundTransactions =
                 _contracts.TransactionContext.Trace.RetVal?.Data.DeserializeToPbMessage<TransactionList>();
 

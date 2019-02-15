@@ -11,6 +11,7 @@ using AElf.Configuration;
 using Type = System.Type;
 using AElf.Common;
 using AElf.Kernel.ABI;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.SmartContract.Contexts;
 using AElf.Types.CSharp;

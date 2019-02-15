@@ -1,0 +1,333 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+message Transaction {
+    Address From = 1;
+    Address To = 2;
+    uint64 RefBlockNumber = 3;
+    bytes RefBlockPrefix = 4;
+    uint64 IncrementId = 5;
+    string MethodName = 6;
+    bytes Params = 7;
+    uint64 Fee = 8;
+    repeated bytes Sigs = 9;
+    TransactionType Type = 10;
+    google.protobuf.Timestamp Time = 11;
+}
+
+enum TransactionStatus {
+    UnknownTransactionStatus = 0;
+    TransactionExecuting = 1;
+    TransactionExecuted = 2;
+}
+
+enum SignatureStatus {
+    UnknownSignatureStatus = 0;
+    SignatureValid = 1;
+    SignatureInvalid = -1;
+}
+
+enum RefBlockStatus {
+    UnknownRefBlockStatus = 0;
+    RefBlockValid = 1;
+    RefBlockInvalid = -1;
+    RefBlockExpired = -2;
+    FutureRefBlock = -3;
+}
+
+message TransactionReceipt {
+    Hash TransactionId = 1;
+    Transaction Transaction = 2;
+    SignatureStatus SignatureStatus = 3;
+    RefBlockStatus RefBlockStatus = 4;
+    TransactionStatus TransactionStatus = 5;
+    bool IsSystemTxn = 6;
+    uint64 ExecutedBlockNumber = 7;
+}
+
+message StatePath {
+    repeated bytes Path = 1;
+}
+
+message StateValue {
+    bytes CurrentValue = 1;
+    bytes OriginalValue = 2;
+}
+
+message StateChange {
+    StatePath StatePath = 1;
+    StateValue StateValue = 2;
+}
+
+message TransactionList {
+    repeated Transaction Transactions = 1;
+}
+
+enum TransactionType {
+    ContractTransaction = 0;
+    DposTransaction = 1;
+    MsigTransaction = 2;
+    ContractDeployTransaction=3;
+}
+
+enum TransactionResultStatus {
+    NotExisted = 0;
+    Pending = 1;
+    Failed = 2;
+    Mined = 3;
+}
+
+message TransactionResult {
+    Hash TransactionId = 1;
+    TransactionResultStatus Status = 2;
+    repeated LogEvent Logs = 3;
+    bytes Bloom = 4;
+    bytes RetVal = 5;
+    uint64 BlockNumber = 6;
+    Hash BlockHash = 7;
+    int32 Index = 8;
+    Hash StateHash = 9;
+    // Merkle proof path for this transaction
+    Hash DeferredTxnId = 10; 
+}
+
+// For failed transactions, its status follows the Min of
+// its own status and its inline transactions'
+enum ExecutionStatus {
+    Undefined = 0;
+    // Successful =>
+    ExecutedButNotCommitted = 1;
+    ExecutedAndCommitted = 2;
+
+    // Failed =>
+    //   Infrastructure reasons
+    Canceled = -1;
+    SystemError = -2;
+
+    //   Contract reasons
+    ContractError = -10;
+    ExceededMaxCallDepth = -11;
+    InsufficientTransactionFees = -12;
+}
+
+message TransactionTrace {
+    Hash TransactionId = 1;
+    RetVal RetVal = 2;
+    string StdOut = 3;
+    string StdErr = 4;
+    Hash StateHash = 5;
+    repeated LogEvent Logs = 6;
+    repeated Transaction InlineTransactions = 7;
+    repeated TransactionTrace InlineTraces = 8;
+    repeated StateChange StateChanges = 9;
+    int64 Elapsed = 10;
+    ExecutionStatus ExecutionStatus = 11;
+    bytes DeferredTransaction = 12;
+    TransactionTrace FeeTransactionTrace = 13;
+    TransactionExecutingStateSet StateSet = 14;
+}
+
+message LogEvent {
+    Address Address = 1;
+    repeated bytes Topics = 2;
+    bytes Data = 3;
+}
+
+message RetVal {
+    RetType Type = 1;
+    bytes Data = 2;
+    enum RetType {
+        Void = 0;
+        Bool = 1;
+        Int32 = 2;
+        UInt32 = 3;
+        Int64 = 4;
+        UInt64 = 5;
+        String = 6;
+        Bytes = 7;
+        PbMessage = 8;
+        UserType = 9;
+    }
+}
+
+message BlockHeaderList {
+    repeated BlockHeader Headers = 1;
+}
+
+message BlockExtraData{
+    Hash SideChainTransactionsRoot = 1;
+    bytes ConsensusInformation = 2;
+}
+
+message BlockHeader {
+    int32 Version = 1;
+    Hash PreviousBlockHash = 2;
+    Hash MerkleTreeRootOfTransactions = 3;
+    Hash MerkleTreeRootOfWorldState = 4;
+    bytes Bloom = 5;
+    uint64 Height = 6;
+    bytes Sig = 7;
+    bytes P = 8;
+    google.protobuf.Timestamp Time = 9;
+    int32 ChainId = 10;
+    BlockExtraData BlockExtraData = 11;
+}
+
+message BlockBody {
+    Hash BlockHeader = 1;
+    repeated Hash Transactions = 2;
+    repeated Transaction TransactionList = 3;
+}
+
+message Block {
+    BlockHeader Header = 1;
+    BlockBody Body = 2;
+}
+
+message SmartContractRegistration {
+    int32 Category = 1;
+    Hash ContractHash = 2;
+    bytes ContractBytes = 3;
+    uint64 SerialNumber=4;
+}
+
+message SmartContractDeployment {
+    Hash ContractHash = 1;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
+}
+
+message SmartContractInvokeContext {
+    Hash Caller = 1;
+    uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
+}
+
+message DataItem {
+    Hash ResourcePath = 1;
+    Hash ResourcePointer = 2;
+    Hash StateMerkleTreeLeaf = 3;
+}
+
+
+enum DataAccessMode {
+    ReadOnlyAccountSharing = 0;
+    ReadWriteAccountSharing = 1;
+    AccountSpecific = 2;
+}
+
+message BinaryMerkleTree{
+    repeated Hash Nodes = 1;
+    Hash Root = 2;
+    int32 LeafCount = 3;
+}
+
+message StringList {
+    repeated string Values = 1;
+    string Remark = 2;
+}
+
+message ULongList {
+    repeated uint64 Values = 1;
+    string Remark = 2;
+}
+
+message BlockAbstract {
+    string MinerPublicKey = 1;
+    google.protobuf.Timestamp Time = 2;
+}
+
+enum BlockValidationResult {
+    // The chosen one!
+    Success = 0;
+    
+    // Cache them.
+    NotMiner = 11;
+    InvalidTimeSlot = 12;
+    FailedToCheckConsensusInvalidation = 13;
+    DoingRollback = 14;
+    
+    // Discard.
+    BlockIsNull = 101;
+    SameWithCurrentRound = 102;
+    IncorrectConsensusTransaction = 103;
+    ParseProblem = 104;
+    NoTransaction = 105;
+    IncorrectTxMerkleTreeRoot = 106;
+    IncorrectSideChainInfo = 107;
+    IncorrectPoWResult = 108;
+    NotImplementConsensus = 109;
+}
+
+message VersionedState{
+    string Key = 1;
+    bytes Value = 2;
+    uint64 BlockHeight = 3;
+    Hash BlockHash = 4;
+    Hash OriginBlockHash = 5;
+}
+
+message BlockStateSet{
+    Hash BlockHash = 1;
+    Hash PreviousHash = 2;
+    uint64 BlockHeight = 3;
+    map<string, bytes> Changes = 4;
+}
+
+// TODO: Not used, it should be removed
+message TransactionExecutingStateSet{
+    int64 Version = 1;
+    map<string, bytes> Writes = 2;
+    map<string, bool> Reads = 3;
+}
+
+enum ChainStateMergingStatus {
+    Common = 0;
+    Merging = 1;
+    Merged = 2;
+}
+
+message ChainStateInfo{
+    int64 ChainId = 1;
+    Hash BlockHash = 2;
+    uint64 BlockHeight = 3;
+    Hash MergingBlockHash = 4;
+    ChainStateMergingStatus Status = 5;
+}
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
+
+message ChainBlockLink{
+    Hash BlockHash = 1;
+    uint64 Height = 2;
+    Hash PreviousBlockHash = 3;
+    bool IsExecuted = 4;
+    bool IsIrreversibleBlock = 5;
+    bool IsLinked = 6;
+    bool IsLightBlock = 7;//no block body
+}
+
+message Chain {
+    int32 Id = 1;
+    Hash GenesisBlockHash = 2;
+    Hash BestChainHash = 3;
+    uint64 BestChainHeight = 4;
+
+    map<string, uint64> Branches = 5;
+    map<string, string> NotLinkedBlocks = 6;
+    Hash LastIrreversibleBlockHash = 8;
+    uint64 LastIrreversibleBlockHeight = 9;
+}
+
+message ChainBlockIndex{
+    Hash BlockHash = 1;
+}

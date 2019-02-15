@@ -1,13 +1,8 @@
-namespace AElf.Kernel.Txn
+namespace AElf.Kernel
 {
     public interface ITransactionTypeIdentifier
     {
-        bool IsDposTransaction(Transaction transaction);
-
-        bool IsCrossChainIndexingTransaction(Transaction transaction);
-
-        bool IsSystemTransaction(Transaction transaction);
-
-        bool IsClaimFeesTransaction(Transaction transaction);
+        bool IsSystemTransaction(int chainId, Transaction transaction);
+        bool CanBeBroadCast(int chainId, Transaction transaction);
     }
 }

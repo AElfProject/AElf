@@ -2,12 +2,12 @@
 using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel.Consensus;
-using AElf.Miner;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
 using AElf.OS;
+using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
@@ -32,15 +32,16 @@ namespace AElf.Launcher
         typeof(OSAElfModule),
         typeof(RpcChainControllerAElfModule),
         typeof(ExecutionAElfModule),
-        typeof(MinerAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule2),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
-        typeof(CrosschainAElfModule),
+        typeof(CrossChainAElfModule),
         typeof(NetworkAElfModule),
-        typeof(ConsensusKernelAElfModule))]
+        typeof(ConsensusKernelAElfModule),
+        typeof(GrpcNetworkModule))]
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;

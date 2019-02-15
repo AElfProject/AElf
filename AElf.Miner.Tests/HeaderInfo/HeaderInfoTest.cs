@@ -3,11 +3,12 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using Grpc.Core;
 using Moq;
 using Xunit;
 using AElf.Common;
 using AElf.Crosschain.Grpc;
+using AElf.Crosschain.Grpc.Server;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -118,7 +119,7 @@ public class HeaderInfoTest
             var headerInfoServer = new SideChainBlockInfoRpcServer(MockChainService().Object);
             var chainId = ChainHelpers.GetChainId(123);
             headerInfoServer.Init(chainId);
-            await headerInfoServer.IndexDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
+            await headerInfoServer.RequestSideChainDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
                 MockResponseStream().Object, null);
             Assert.Equal(_requestIndexedInfoList.Count, _requestIndexedInfoList.Count);
 

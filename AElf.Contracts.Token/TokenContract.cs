@@ -6,10 +6,7 @@ using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using Api = AElf.Sdk.CSharp.Api;
 using AElf.Common;
-using AElf.Configuration;
-using AElf.Configuration.Config.Chain;
-using AElf.Types.CSharp;
-using Google.Protobuf;
+using AElf.Kernel.Types.SmartContract;
 
 #pragma warning disable CS0169,CS0649
 
@@ -49,7 +46,7 @@ namespace AElf.Contracts.Token
 
     #endregion Events
 
-    public class TokenContract : CSharpSmartContract
+    public class TokenContract : CSharpSmartContract, ITokenCotract
     {
         private Address ConsensusContractAddress;
 

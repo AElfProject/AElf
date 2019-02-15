@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Account;
-using AElf.Kernel.BlockService;
 using Google.Protobuf;
 
 namespace AElf.Consensus

@@ -114,5 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Term Number -> First Round Number of this term.
         /// </summary>
         public Map<UInt64Value, UInt64Value> TermToFirstRoundMap;
+
+        public Int32Field ChainIdField;
     }
 }

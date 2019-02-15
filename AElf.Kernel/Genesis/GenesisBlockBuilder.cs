@@ -15,7 +15,7 @@ namespace AElf.Kernel
             {
                 Header = new BlockHeader
                 {
-                    Index = GlobalConfig.GenesisBlockHeight,
+                    Height = GlobalConfig.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
@@ -27,7 +27,8 @@ namespace AElf.Kernel
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            block.Complete(DateTime.UtcNow);          
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Body.Complete(block.Header.GetHash());         
             Block = block;
 
             return this;

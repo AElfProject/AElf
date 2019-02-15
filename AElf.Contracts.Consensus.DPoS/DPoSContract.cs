@@ -1072,20 +1072,14 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Round GenerateNextRound()
+        private Round GenerateNextRound(Round currentRound)
         {
-            if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
+            if (_dataHelper.TryToGetChainId(out var chainId))
             {
-                return currentRoundInStateDB.RealTimeMinersInfo.Keys.ToMiners()
-                    .GenerateNextRound(currentRoundInStateDB);
+                return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(chainId, currentRound);
             }
 
             return new Round();
-        }
-
-        private Round GenerateNextRound(Round currentRound)
-        {
-            return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(currentRound);
         }
 
         private Forwarding GenerateNewForwarding()

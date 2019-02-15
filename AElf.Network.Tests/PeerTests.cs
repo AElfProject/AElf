@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using AElf.Configuration.Config.Chain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account;
 using AElf.Network.Connection;
@@ -41,8 +40,6 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_Disposed_ThrowsInvalidOperationException()
         {
-            ChainConfig.Instance.ChainId = "kPBx";
-            
             int port = 1234;
             
             Peer p = new Peer(new TcpClient(), null, null, port, 0, _accountService);
@@ -59,8 +56,6 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_ShouldSend_Auth()
         {
-            ChainConfig.Instance.ChainId = "kPBx";
-            
             int peerPort = 1234;
             
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
@@ -84,8 +79,6 @@ namespace AElf.Network.Tests
         [Fact]
         public void Start_AuthentificationTimout_ShouldThrowEvent()
         {
-            ChainConfig.Instance.ChainId = "kPBx";
-            
             Mock<IMessageReader> reader = new Mock<IMessageReader>();
             Mock<IMessageWriter> messageWritter = new Mock<IMessageWriter>();
             
@@ -111,9 +104,7 @@ namespace AElf.Network.Tests
         
         [Fact]
         public void Start_AuthentificationNoTimout_ShouldThrowEvent()
-        {
-            ChainConfig.Instance.ChainId = "kPBx";
-                
+        {                
             int localPort = 1234;
             int remotePort = 1235;
             

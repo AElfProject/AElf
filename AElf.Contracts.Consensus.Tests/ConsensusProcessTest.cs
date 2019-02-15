@@ -20,10 +20,13 @@ namespace AElf.Contracts.Consensus.Tests
 
         private readonly List<ECKeyPair> _miners = new List<ECKeyPair>();
 
+        private readonly MockSetup _mock;
+
         private int MiningInterval => 1;
 
         public ConsensusProcessTest(MockSetup mock, SimpleExecutingService simpleExecutingService)
         {
+            _mock = mock;
             _contracts = new ContractsShim(mock, simpleExecutingService);
         }
 
@@ -260,7 +263,7 @@ namespace AElf.Contracts.Consensus.Tests
             {
                 TermNumber = 1,
                 PublicKeys = {_miners.Select(m => m.PublicKey.ToHex())}
-            }.GenerateNextRound(suppliedFirstRound);
+            }.GenerateNextRound(_mock.ChainId, suppliedFirstRound);
             _contracts.NextRound(_miners[0], new Forwarding
             {
                 CurrentAge = 1,

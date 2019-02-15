@@ -9,7 +9,7 @@ namespace AElf.Synchronization.BlockSynchronization
     {
         int RollBackTimes { get; }
         
-        void Init();
+        void Init(int chainId);
         
         IBlock GetBlockByHash(Hash blockHash);
         Task<BlockHeaderList> GetBlockHeaderList(ulong index, int count);

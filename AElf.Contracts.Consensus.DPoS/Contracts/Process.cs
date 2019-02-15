@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
-using AElf.Configuration.Config.Chain;
 using AElf.Kernel;
-using Google.Protobuf.WellKnownTypes;
 using Api = AElf.Sdk.CSharp.Api;
 
 // ReSharper disable once CheckNamespace
@@ -353,7 +351,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var senderPublicKey = Api.RecoverPublicKey().ToHex();
             
-            if (IsMainchain() && _dataHelper.TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
+            if ( _dataHelper.TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
                 forwarding.NextRound.GetMinersHash() != currentRoundInformation.GetMinersHash() &&
                 forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GlobalConfig.BlockProducerNumber &&
                 _dataHelper.TryToGetTermNumber(out var termNumber))
@@ -585,6 +583,20 @@ namespace AElf.Contracts.Consensus.DPoS
         private void SetAliases(Term term)
         {
             var index = 0;
+            
+            foreach (var publicKey in term.Miners.PublicKeys)
+            {
+                if (index >= Config.Aliases.Count)
+                    return;
+
+                var alias = Config.Aliases[index];
+                _dataHelper.SetAlias(publicKey, alias);
+                _dataHelper.AddOrUpdateMinerHistoryInformation(new CandidateInHistory
+                    {PublicKey = publicKey, CurrentAlias = alias});
+                index++;
+            }
+            /*
+
             if (IsMainchain())
             {
                 foreach (var publicKey in term.Miners.PublicKeys)
@@ -607,7 +619,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     _dataHelper.SetAlias(publicKey, alias);
                     ConsoleWriteLine(nameof(SetAliases), $"Set alias {alias} to {publicKey}");
                 }
-            }
+            }*/
         }
 
         /// <summary>
@@ -692,10 +704,6 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Console.WriteLine(ex);
             }
-        }
-        private bool IsMainchain()
-        {
-            return ChainConfig.Instance.ChainId == GlobalConfig.DefaultChainId;
         }
     }
 }

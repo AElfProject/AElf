@@ -6,6 +6,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -70,7 +71,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress,
                 ConsensusMethod.GenerateConsensusTransactions.ToString(),
                 initialMiner,
-                new BlockHeader {Index = 1},
+                new BlockHeader {Height = 1},
                 new DPoSExtraInformation
                 {
                     NewTerm = consensusInformation.NewTerm,
@@ -106,7 +107,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress,
                 ConsensusMethod.GenerateConsensusTransactions.ToString(),
                 initialMiner,
-                new BlockHeader {Index = 1},
+                new BlockHeader {Height = 1},
                 new DPoSExtraInformation
                 {
                     NewTerm = initialInformation.NewTerm,
@@ -165,7 +166,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress,
                 ConsensusMethod.GenerateConsensusTransactions.ToString(),
                 initialMiner,
-                new BlockHeader {Index = 2},
+                new BlockHeader {Height = 2},
                 new DPoSExtraInformation
                 {
                     ToPackage = new ToPackage

@@ -25,12 +25,13 @@ namespace AElf.Miner.Miner
         {
             var currentBlockHash = await _blockChain.GetCurrentBlockHashAsync();
             var index = await _blockChain.GetCurrentBlockHeightAsync() + 1;
-            
+            var preBlockHash = await _blockChain.GetCurrentBlockHashAsync();
             var block = new Block(currentBlockHash)
             {
                 Header =
                 {
-                    Index = index,
+                    Height = index,
+                    PreviousBlockHash = preBlockHash,
                     ChainId = ChainId,
                     Bloom = ByteString.CopyFrom(
                         Bloom.AndMultipleBloomBytes(
