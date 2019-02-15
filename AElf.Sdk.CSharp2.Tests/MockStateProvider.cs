@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -12,6 +13,7 @@ namespace AElf.Sdk.CSharp2.Tests
     {
         private IStateManager _stateManager;
         public ITransactionContext TransactionContext { get; set; }
+        public Dictionary<StatePath, StateCache> Cache { get; set; }
         public ISmartContractContext ContractContext { get; set; }
 
         public MockStateProvider(IStateManager stateManager)

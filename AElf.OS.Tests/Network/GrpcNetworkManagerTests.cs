@@ -23,12 +23,10 @@ namespace AElf.OS.Tests.Network
     public class GrpcNetworkManagerTests : OSTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly IAccountService _accountService;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            _accountService = GetRequiredService<IAccountService>();
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
@@ -57,7 +55,7 @@ namespace AElf.OS.Tests.Network
                     .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == 1)));
             }
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, _accountService);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
             

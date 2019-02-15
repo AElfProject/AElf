@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Contexts
 
         // TODO: Combine SmartContractContext and TransactionContext
         public ITransactionContext TransactionContext { get; set; }
+        public Dictionary<StatePath, StateCache> Cache { get; set; }
 
         public async Task<byte[]> GetAsync(StatePath path)
         {

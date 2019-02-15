@@ -16,13 +16,11 @@ namespace AElf.OS.Tests.Network
 {
     public class GrpcNetworkConnectionTests : OSTestBase
     {
-        private readonly IAccountService _accountService;
         private readonly ITestOutputHelper _testOutputHelper;
             
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            _accountService = GetRequiredService<IAccountService>();
         }
         
         private (GrpcNetworkServer, IPeerPool) BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
@@ -41,7 +39,8 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, _accountService);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
+            
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, null);
             serverService.EventBus = mockLocalEventBus.Object;
             
@@ -49,6 +48,28 @@ namespace AElf.OS.Tests.Network
             netServer.EventBus = mockLocalEventBus.Object;
 
             return (netServer, grpcPeerPool);
+        }
+
+        [Fact]
+        public async Task SelfConnectionTest()
+        {
+            var server = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"}, // Himself as a bootnode
+                ListeningPort = 6800
+            });
+
+            await server.Item1.StartAsync();
+            var peers1 = server.Item2.GetPeers();
+
+            Assert.True(peers1.Count == 0);
+            
+            await server.Item2.AddPeerAsync("127.0.0.1:6800");
+            
+            var peers2 = server.Item2.GetPeers();
+            Assert.True(peers2.Count == 0);
+            
+            await server.Item1.StopAsync();
         }
        
         [Fact]
@@ -62,8 +83,8 @@ namespace AElf.OS.Tests.Network
             
             await m2.Item2.AddPeerAsync("127.0.0.1:6800");
             
-            var p = m1.Item2.GetPeer("127.0.0.1:6801");
-            var p2 = m2.Item2.GetPeer("127.0.0.1:6800");
+            var p = m1.Item2.FindPeer("127.0.0.1:6801");
+            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
             
             Assert.NotNull(p);
             Assert.NotNull(p2);
@@ -89,8 +110,8 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.GetPeer("127.0.0.1:6800");
-            var p2 = m2.Item2.GetPeer("127.0.0.1:6801");
+            var p = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p2 = m2.Item2.FindPeer("127.0.0.1:6801");
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -180,12 +201,12 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.GetPeer("127.0.0.1:6800");
+            var p = m2.Item2.FindPeer("127.0.0.1:6800");
 
             Assert.NotNull(p);
 
             await m2.Item2.RemovePeerAsync("127.0.0.1:6800");
-            var p2 = m2.Item2.GetPeer("127.0.0.1:6800");
+            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
             
             Assert.Null(p2);
 
@@ -212,13 +233,13 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.GetPeer("127.0.0.1:6800");
+            var p = m2.Item2.FindPeer("127.0.0.1:6800");
 
             Assert.NotNull(p);
 
             await m1.Item1.StopAsync();
            
-            var p2 = m2.Item2.GetPeer("127.0.0.1:6800");
+            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
             
             Assert.Null(p2);
 
@@ -244,13 +265,13 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m1.Item2.GetPeer("127.0.0.1:6801");
+            var p = m1.Item2.FindPeer("127.0.0.1:6801");
 
             Assert.NotNull(p);
 
             await m2.Item1.StopAsync();
            
-            var p2 = m1.Item2.GetPeer("127.0.0.1:6801");
+            var p2 = m1.Item2.FindPeer("127.0.0.1:6801");
             
             Assert.Null(p2);
 

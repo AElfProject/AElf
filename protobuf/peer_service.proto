@@ -43,6 +43,7 @@ message AuthResponse{
 enum AuthError {
     UnknownError = 0;
     WrongSig = 1;
+    WrongAuth = 2;
 }
 
 message HandshakeData {
