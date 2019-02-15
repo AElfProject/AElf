@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -9,10 +10,14 @@ namespace AElf.Sdk.CSharp
         void FireEvent(Event logEvent);
         Hash TransactionId { get; }
         Address Sender { get; }
+
         Address Self { get; }
+
         // TODO: Remove genesis
         Address Genesis { get; }
-        Block GetBlockByHeight(ulong height);
+        ulong CurrentHeight { get; }
+        DateTime CurrentBlockTime { get; }
+
         byte[] RecoverPublicKey();
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }

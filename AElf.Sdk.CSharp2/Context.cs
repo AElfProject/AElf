@@ -42,6 +42,8 @@ namespace AElf.Sdk.CSharp
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
         public Address Genesis => Address.Genesis.ToReadOnly();
+        public ulong CurrentHeight => TransactionContext.BlockHeight;
+        public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
 
         /// <summary>
         /// Recovers the first public key signing this transaction.
