@@ -9,7 +9,6 @@ using AElf.Common.FSM;
 using AElf.Kernel;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
-using AElf.Miner.EventMessages;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;

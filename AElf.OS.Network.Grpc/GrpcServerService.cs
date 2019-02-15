@@ -10,6 +10,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -17,26 +18,27 @@ namespace AElf.OS.Network.Grpc
     /// Implementation of the grpc generated service. It contains the rpc methods
     /// exposed to peers.
     /// </summary>
-    public class GrpcPeerService : PeerService.PeerServiceBase
+    public class GrpcServerService : PeerService.PeerServiceBase, IAElfServerService
     {
         /// <summary>
         /// Event launched when a peer disconnects explicitly.
         /// </summary>
         public event EventHandler PeerSentDisconnection;
         
-        private readonly IPeerAuthentificator _peerAuthenticator;
+        private readonly IPeerPool _peerPool;
         private readonly IBlockService _blockService;
+        
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<GrpcPeerService> Logger;
+        public ILogger<GrpcServerService> Logger;
         
-        public GrpcPeerService(IPeerAuthentificator peerAuthenticator, IBlockService blockService)
+        public GrpcServerService(IPeerPool peerPool, IBlockService blockService)
         {
-            _peerAuthenticator = peerAuthenticator;
+            _peerPool = peerPool;
             _blockService = blockService;
             
             EventBus = NullLocalEventBus.Instance;
-            Logger = NullLogger<GrpcPeerService>.Instance;
+            Logger = NullLogger<GrpcServerService>.Instance;
         }
 
         /// <summary>
@@ -63,14 +65,14 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
-                bool isAuth = _peerAuthenticator.AuthenticatePeer(peerServer, request);
+                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
                 
                 // send our credentials
-                var hsk = _peerAuthenticator.GetHandshake();
+                var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> finalize
-                _peerAuthenticator.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
+                _peerPool.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
                 
                 return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
@@ -95,7 +97,7 @@ namespace AElf.OS.Network.Grpc
             {
                 var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
                 
-                bool isAuth = _peerAuthenticator.AuthenticatePeer(peerServer, request);
+                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
                 
                 // todo verify auth
             }
@@ -184,7 +186,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var peer = GrpcUrl.Parse(context.Peer);
-                PeerSentDisconnection?.Invoke(this, new PeerDcEventArgs { Peer = peer.Port.ToString() });
+                _peerPool.ProcessDisconnection(peer.Port.ToString());
             }
             catch (Exception e)
             {

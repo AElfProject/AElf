@@ -13,14 +13,15 @@ using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.Miner.EventMessages;
-using AElf.Miner.TxMemPool.RefBlockExceptions;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
+using AElf.TxPool.RefBlockExceptions;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using TransactionAddedToPool = AElf.Miner.EventMessages.TransactionAddedToPool;
 
 namespace AElf.Miner.TxMemPool
 {
