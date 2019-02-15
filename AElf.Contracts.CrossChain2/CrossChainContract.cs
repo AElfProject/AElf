@@ -15,6 +15,16 @@ namespace AElf.Contracts.CrossChain2
 
         private double RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
+        public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
+            Address authorizationContractAddress)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.ConsensusContract.Value = consensusContractAddress;
+            State.TokenContract.Value = tokenContractAddress;
+            State.AuthorizationContract.Value = authorizationContractAddress;
+            State.Initialized.Value = true;
+        }
+
         [View]
         public ulong CurrentSideChainSerialNumber()
         {
@@ -221,7 +231,7 @@ namespace AElf.Contracts.CrossChain2
         [Fee(0)]
         public void RecordCrossChainData()
         {
-            Assert(IsMiner(),"Not authorized to do this.");
+            Assert(IsMiner(), "Not authorized to do this.");
             int i = 0;
             while (i++ < 32)
             {

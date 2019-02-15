@@ -25,6 +25,7 @@ namespace AElf.Contracts.CrossChain2
 
     public class CrossChainContractState : ContractState
     {
+        public BoolState Initialized { get; set; }
         public AuthorizationContractReferenceState AuthorizationContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
         public ConsensusContractReferenceState ConsensusContract { get; set; }
