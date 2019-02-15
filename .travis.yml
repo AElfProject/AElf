@@ -4,20 +4,17 @@ mono: none
 dotnet: 2.2
 dist: xenial
 before_install:
-  - chmod a+x ./install_protobuf.sh
-  - ./install_protobuf.sh
+  - bash scripts/install_protobuf.sh
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
-  - curl -SL https://aka.ms/chakracore/install | bash
+  - bash scripts/download_chakracore.sh 1_11_1
   - export LD_LIBRARY_PATH=$(pwd)/ChakraCoreFiles/lib/:$LD_LIBRARY_PATH
-  - chmod a+x ./build.sh
-  - chmod a+x ./deploy.sh
 script:
-  - ./build.sh
+  - bash scripts/build.sh
 deploy:
   - provider: script
-    script: ./deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
+    script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
     skip_cleanup: true
     on:
       tags: true
