@@ -117,34 +117,7 @@ namespace AElf.OS.Tests.Network
             
             Assert.NotNull(p);
         }
-        
-        [Fact]
-        public async Task Basic_AddRemovePeer_Test()
-        {
-            // setup 2 peers
-            
-            var m1 = BuildGrpcNetworkServer(new NetworkOptions {
-                ListeningPort = 6800 
-            });
-            
-            var m2 = BuildGrpcNetworkServer(new NetworkOptions
-            {
-                BootNodes = new List<string> {"127.0.0.1:6800"},
-                ListeningPort = 6801
-            });
-            
-            await m1.Item1.StartAsync();
-            await m2.Item1.StartAsync();
-            
-            var p = await m2.Item2.RemovePeerAsync("127.0.0.1:6800");
-            var p2 = await m2.Item2.AddPeerAsync("127.0.0.1:6800");
 
-            await m1.Item1.StopAsync();
-            await m2.Item1.StopAsync();
-            
-            //Assert.True(!string.IsNullOrWhiteSpace(p));
-        }
-        
         [Fact]
         public async Task GetPeers_Test()
         {
