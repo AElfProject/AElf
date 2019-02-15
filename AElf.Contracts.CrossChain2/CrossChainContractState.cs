@@ -8,6 +8,7 @@ namespace AElf.Contracts.CrossChain2
     public class AuthorizationContractReferenceState : ContractReferenceState
     {
         public Action<Proposal> Propose { get; set; }
+        public Func<Address, Authorization> GetAuthorization { get; set; }
     }
 
     public class TokenContractReferenceState : ContractReferenceState
@@ -16,10 +17,17 @@ namespace AElf.Contracts.CrossChain2
         public Action<Address, ulong> Unlock { get; set; }
     }
 
+    public class ConsensusContractReferenceState : ContractReferenceState
+    {
+        public Func<ulong> GetCurrentRoundNumber { get; set; }
+        public Func<ulong, Round> GetRoundInfo { get; set; }
+    }
+
     public class CrossChainContractState : ContractState
     {
         public AuthorizationContractReferenceState AuthorizationContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
+        public ConsensusContractReferenceState ConsensusContract { get; set; }
         public UInt64State SideChainSerialNumber { get; set; }
 
         #region side chain

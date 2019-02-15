@@ -104,7 +104,7 @@ namespace AElf.Contracts.CrossChain2
         {
             // side chain creation should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.CheckAuthority(Context.Genesis);
+            CheckAuthority(Context.Genesis);
 
             var request = State.SideChainInfos[chainIdHash];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
@@ -179,7 +179,7 @@ namespace AElf.Contracts.CrossChain2
         {
             // side chain disposal should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.CheckAuthority(Context.Genesis);
+            CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[chainIdHash];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
 
@@ -221,7 +221,7 @@ namespace AElf.Contracts.CrossChain2
         [Fee(0)]
         public void RecordCrossChainData()
         {
-            Api.IsMiner("Not authorized to do this.");
+            Assert(IsMiner(),"Not authorized to do this.");
             int i = 0;
             while (i++ < 32)
             {
@@ -297,7 +297,7 @@ namespace AElf.Contracts.CrossChain2
 //            Api.IsMiner("Not authorized to do this.");
 //            Api.Assert(sideChainBlockData.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
-            var currentHeight = Api.GetCurrentHeight();
+            var currentHeight = Context.CurrentHeight;
             var height = currentHeight + 1;
             var result = State.IndexedSideChainBlockInfoResult[height];
             Assert(result.IsEmpty()); // This should not happen.
