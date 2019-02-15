@@ -217,6 +217,8 @@ EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TxPool", "AElf.TxPool\AElf.TxPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS2", "AElf.Contracts.Consensus.DPoS2\AElf.Contracts.Consensus.DPoS2.csproj", "{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -555,6 +557,10 @@ Global
 		{74FA5F2B-E691-483B-B19E-8DF288C1C04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74FA5F2B-E691-483B-B19E-8DF288C1C04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74FA5F2B-E691-483B-B19E-8DF288C1C04B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -611,5 +617,6 @@ Global
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{621FA51E-593C-4E2E-86A4-CF173F108839} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{AC8BC006-BEE1-4DBE-878B-696FC56EE1AD} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
