@@ -8,44 +8,10 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="MerkleNode.cs" />
-    <Compile Remove="MerkleTree.cs" />
-    <Compile Remove="Merkle\Node.cs" />
-    <Compile Remove="SmartContract\SmartContract.cs" />
-    <Compile Remove="Concurrency\Execution\ChainExecutor.cs" />
-    <Compile Remove="Concurrency\Execution\ChainRequestor.cs" />
-    <Compile Remove="Concurrency\Execution\GeneralExecutor.cs" />
-    <Compile Remove="Concurrency\Execution\GeneralRequestor.cs" />
-    <Compile Remove="Concurrency\Execution\GroupExecutor.cs" />
-    <Compile Remove="Concurrency\Execution\JobExecutor.cs" />
-    <Compile Remove="Concurrency\Execution\LocalServicesProvider.cs" />
-    <Compile Remove="Concurrency\Execution\BatchExecutor.cs" />
-    <Compile Remove="Concurrency\Scheduling\Batcher.cs" />
-    <Compile Remove="Concurrency\Scheduling\IBatcher.cs" />
-    <Compile Remove="Storages\ICanonicalHashStore.cs" />
-    <Compile Remove="Storages\ICurrentHashStore.cs" />
-    <Compile Remove="Storages\IGenesisHashStore.cs" />
-    <Compile Remove="Storages\GenesisHashStore.cs" />
-    <Compile Remove="Storages\CurrentHashStore.cs" />
-    <Compile Remove="Storages\CanonicalHashStore.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="System.Reactive" Version="4.1.2" />
     <PackageReference Include="Volo.Abp.Core" Version="0.11.0" />
     <PackageReference Include="Volo.Abp.EventBus" Version="0.11.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Extensions\CommonExtensions.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Merkle\MerklePartriciaNode.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Merkle\MerklePartriciaTree.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Merkle\BinaryMerkleNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
