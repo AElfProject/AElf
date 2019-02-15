@@ -38,12 +38,19 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.Logs.Add(logEvent.GetLogEvent(Self));
         }
 
+        public Transaction Transaction => TransactionContext.Transaction.ToReadOnly();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
         public Address Genesis => Address.Genesis.ToReadOnly();
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
+
+        public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        {
+            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            return !cabBeRecovered ? null : publicKey;
+        }
 
         /// <summary>
         /// Recovers the first public key signing this transaction.
@@ -69,12 +76,6 @@ namespace AElf.Sdk.CSharp
         public Block GetBlockByHeight(ulong height)
         {
             return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
-        }
-
-        private static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
-        {
-            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
-            return !cabBeRecovered ? null : publicKey;
         }
     }
 }

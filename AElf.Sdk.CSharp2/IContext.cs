@@ -8,6 +8,8 @@ namespace AElf.Sdk.CSharp
     public interface IContext
     {
         void FireEvent(Event logEvent);
+        // TODO: Remove Transaction
+        Transaction Transaction { get; }
         Hash TransactionId { get; }
         Address Sender { get; }
 
@@ -17,7 +19,8 @@ namespace AElf.Sdk.CSharp
         Address Genesis { get; }
         ulong CurrentHeight { get; }
         DateTime CurrentBlockTime { get; }
-
+        // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
+        byte[] RecoverPublicKey(byte[] signature, byte[] hash);
         byte[] RecoverPublicKey();
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
