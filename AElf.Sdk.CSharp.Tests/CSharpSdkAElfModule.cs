@@ -11,7 +11,7 @@ namespace AElf.Sdk.CSharp.Tests
         typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class TestCSharpSdkAElfModule : AElfModule
     {

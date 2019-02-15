@@ -21,10 +21,10 @@ namespace AElf.Miner.Tests
         typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(Kernel.TransactionPool.TxPoolAElfModule),
+        typeof(Kernel.TransactionPool.TransactionPoolAElfModule),
         typeof(ConsensusKernelAElfModule),
         typeof(AElf.Miner.Rpc.MinerRpcAElfModule),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class MinerTestAElfModule : AElfModule
     {

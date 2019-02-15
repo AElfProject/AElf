@@ -19,7 +19,7 @@ namespace AElf.Runtime.CSharp2.Tests
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule2),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class TestCSharpRuntimeAElfModule : AElfModule
     {

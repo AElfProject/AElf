@@ -9,7 +9,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.ChainController.Rpc
 {
-    [DependsOn(typeof(RpcAElfModule),typeof(ChainControllerAElfModule),typeof(TxPoolAElfModule)
+    [DependsOn(typeof(RpcAElfModule),typeof(ChainControllerAElfModule),typeof(TransactionPoolAElfModule)
         )]
     public class RpcChainControllerAElfModule: AElfModule
     {

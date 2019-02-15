@@ -16,7 +16,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel
 {
     [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule),typeof(CoreAElfModule))]
-    public class KernelAElfModule: AElfModule
+    public class CoreKernelAElfModule: AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
@@ -33,7 +33,7 @@ namespace AElf.Kernel
             
             var services = context.Services;
 
-            services.AddAssemblyOf<KernelAElfModule>();
+            services.AddAssemblyOf<CoreKernelAElfModule>();
 
             services.AddTransient<IByteSerializer, AElf.Common.Serializers.ProtobufSerializer>();
             

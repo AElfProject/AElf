@@ -14,7 +14,7 @@ namespace AElf.RPC
 {
     [DependsOn(
         typeof(Volo.Abp.AspNetCore.AbpAspNetCoreModule),
-        typeof(KernelAElfModule),
+        typeof(CoreKernelAElfModule),
         //TODO: remove it
         typeof(NetworkAElfModule))]
     public class RpcAElfModule : AElfModule

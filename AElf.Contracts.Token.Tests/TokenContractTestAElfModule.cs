@@ -11,7 +11,7 @@ namespace AElf.Contracts.Token.Tests
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(ContractTestAElfModule),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class TokenContractTestAElfModule : AElfModule
     {

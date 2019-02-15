@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.TransactionPool
 {
-    public class TxPoolAElfModule : AElfModule
+    public class TransactionPoolAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

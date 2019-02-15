@@ -11,7 +11,7 @@ namespace AElf.Contracts.Authorization.Tests
         typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(KernelAElfModule),
+        typeof(CoreKernelAElfModule),
         typeof(ContractTestAElfModule)
         
     )]

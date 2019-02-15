@@ -13,7 +13,7 @@ namespace AElf.Contracts.TestBase
         typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(ExecutionAElfModule),
-        typeof(KernelAElfModule),
+        typeof(CoreKernelAElfModule),
         typeof(DatabaseAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule

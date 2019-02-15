@@ -20,7 +20,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Tests
 {
     
-    [DependsOn(typeof(KernelAElfModule),
+    [DependsOn(typeof(CoreKernelAElfModule),
         
         //TODO: only test kernel aelf module here
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 

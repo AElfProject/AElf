@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract
 {
-    [DependsOn(typeof(KernelAElfModule))]
+    [DependsOn(typeof(CoreKernelAElfModule))]
     public class SmartContractAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
