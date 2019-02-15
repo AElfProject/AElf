@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.TxPool
+namespace AElf.Kernel.TransactionPool
 {
     public class TxPoolAElfModule : AElfModule
     {
@@ -13,8 +13,6 @@ namespace AElf.TxPool
         {
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
-            services.AddSingleton<ITransactionFilter, TransactionFilter>();
-            services.AddTransient<TransactionFilter>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

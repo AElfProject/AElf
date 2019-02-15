@@ -6,7 +6,7 @@ using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.TxPool;
+using AElf.Kernel.TransactionPool;
 
 namespace AElf.Kernel.Tests
 {

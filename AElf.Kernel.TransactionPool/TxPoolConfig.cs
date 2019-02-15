@@ -2,7 +2,7 @@
 using AElf.Kernel;
 using AElf.Kernel.TransactionPool.Infrastructure;
 
-namespace AElf.TxPool
+namespace AElf.Kernel.TransactionPool
  {
      public class TxPoolConfig : ITxPoolConfig
      {

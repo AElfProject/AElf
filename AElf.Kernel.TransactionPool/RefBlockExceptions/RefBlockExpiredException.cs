@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.TxPool.RefBlockExceptions
+namespace AElf.Kernel.TransactionPool.RefBlockExceptions
 {
     public class RefBlockExpiredException : Exception
     {

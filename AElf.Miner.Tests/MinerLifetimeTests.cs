@@ -18,7 +18,7 @@ using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Types;
 using AElf.Synchronization.BlockExecution;
-using AElf.TxPool;
+using AElf.Kernel.TransactionPool;
 using Easy.MessageHub;
 using Microsoft.Extensions.Options;
 using Uri = AElf.Configuration.Config.GRPC.Uri;

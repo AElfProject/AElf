@@ -61,6 +61,5 @@
     <Folder Include="Services" />
     <Folder Include="SmartContract\Application" />
     <Folder Include="TransactionPool\Application" />
-    <Folder Include="Txn" />
   </ItemGroup>
 </Project>

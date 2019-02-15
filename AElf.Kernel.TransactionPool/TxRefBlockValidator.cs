@@ -5,11 +5,11 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.TxPool.RefBlockExceptions;
+using AElf.Kernel.TransactionPool.RefBlockExceptions;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.TxPool
+namespace AElf.Kernel.TransactionPool
 {
     public class TxRefBlockValidator : ITxRefBlockValidator, ISingletonDependency
     {

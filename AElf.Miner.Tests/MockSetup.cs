@@ -31,7 +31,7 @@ using AElf.SmartContract.Contexts;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
-using AElf.TxPool;
+using AElf.Kernel.TransactionPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

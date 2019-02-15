@@ -65,7 +65,6 @@ namespace AElf.Kernel.Services
                                 
                 var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p=>p.Transaction).ToList();
 
-                
                 /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
