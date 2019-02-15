@@ -4,15 +4,15 @@ namespace AElf.ChainController.Rpc
 {
     public static class ChainRpcErrorConsts
     {
-        public const long NotFound = 10001;
-        public const long InvalidAddress = 10002;
-        public const long InvalidBlockHash = 10003;
-        public const long InvalidTxId = 10004;
-        public const long InvalidProposalId = 10005;
-        public const long InvalidOffset = 10006;
-        public const long InvalidNum = 10007;
-        public const long InvalidTransaction = 10008;
-        public const long CannotSendTx = 10009;
+        public const long NotFound = 20001;
+        public const long InvalidAddress = 20002;
+        public const long InvalidBlockHash = 20003;
+        public const long InvalidTxId = 20004;
+        public const long InvalidProposalId = 20005;
+        public const long InvalidOffset = 20006;
+        public const long InvalidNum = 20007;
+        public const long InvalidTransaction = 20008;
+        public const long CannotSendTx = 20009;
         
         public static readonly Dictionary<long, string> RpcErrorMessage = new Dictionary<long, string>
         {
