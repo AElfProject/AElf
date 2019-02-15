@@ -4,8 +4,8 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
-    <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
-        <Exec Command="bash DownloadChakraCore.sh $(OutDir)" />
+    <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
+        <Exec Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
     </Target>
     <Target Name="CopyChakraCoreToPublish" AfterTargets="Publish">
         <Exec Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\" />
