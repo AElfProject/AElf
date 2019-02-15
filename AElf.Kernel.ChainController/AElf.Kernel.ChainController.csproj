@@ -19,7 +19,4 @@
   <ItemGroup>
     <None Remove="BlockExecution\**" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BlockValidation" />
-  </ItemGroup>
 </Project>

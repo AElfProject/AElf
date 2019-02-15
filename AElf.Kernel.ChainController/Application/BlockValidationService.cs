@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.ChainController.Application.Filters;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel.ChainController
+namespace AElf.Kernel.ChainController.Application
 {
     public class BlockValidationService : IBlockValidationService
     {

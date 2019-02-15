@@ -9,6 +9,7 @@ using Google.Protobuf;
 using AElf.Kernel.Tests;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
 
-namespace AElf.Kernel.ChainController
+namespace AElf.Kernel.ChainController.Application
 {
     /// <summary>
     /// Create a new chain never existing

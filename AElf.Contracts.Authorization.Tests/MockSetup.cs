@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
+using AElf.Kernel.ChainController.Application;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
