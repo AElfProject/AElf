@@ -64,7 +64,7 @@ namespace AElf.Contracts.CrossChain2
             LockTokenAndResource(request);
 
             // side chain creation proposal
-            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Api.Genesis,
+            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
                 Context.Self, CreateSideChainMethodName, chainId.DumpBase58());
             request.SideChainStatus = SideChainStatus.Review;
             request.ProposalHash = hash;
@@ -104,7 +104,7 @@ namespace AElf.Contracts.CrossChain2
         {
             // side chain creation should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.CheckAuthority(Api.Genesis);
+            Api.CheckAuthority(Context.Genesis);
 
             var request = State.SideChainInfos[chainIdHash];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
@@ -165,7 +165,7 @@ namespace AElf.Contracts.CrossChain2
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
-            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Api.Genesis,
+            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Context.Genesis,
                 Context.Self, DisposeSideChainMethodName, chainId);
             return proposalHash.DumpByteArray();
         }
@@ -179,7 +179,7 @@ namespace AElf.Contracts.CrossChain2
         {
             // side chain disposal should be triggered by multi sig txn from system address.
             var chainIdHash = Hash.LoadBase58(chainId);
-            Api.CheckAuthority(Api.Genesis);
+            Api.CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[chainIdHash];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
 
@@ -226,7 +226,7 @@ namespace AElf.Contracts.CrossChain2
             while (i++ < 32)
             {
                 var targetHeight = State.RecordedBlockHeight.Value;
-                var blk = Api.GetBlockByHeight(targetHeight);
+                var blk = Context.GetBlockByHeight(targetHeight);
                 if (blk == null)
                     return;
                 var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(blk.Body.TransactionList.Last().Params);

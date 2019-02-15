@@ -39,6 +39,7 @@ namespace AElf.Sdk.CSharp
 
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
+        public Address Genesis => Address.Genesis.ToReadOnly();
 
         public void SendInline(Address address, string methodName, params object[] args)
         {
