@@ -1,6 +1,6 @@
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class DividendsSettings
+    public static class DividendsSettings
     {
         public const ulong ElfTokenPerBlock = 10000;
         public const double MinersBasicRatio = 0.4;

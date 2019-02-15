@@ -10,33 +10,35 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class Contract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
+        public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.TokenContract.Value = tokenContractAddress;
+            State.DividendContract.Value = dividendsContractAddress;
+            State.Initialized.Value = true;
+        }
+
         [View]
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
-            var dpoSInformation = DPoSInformation.Parser.ParseFrom(consensusInformation);
-            if (TryToGetCurrentRoundInformation(out _))
+            var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
+
+            // Validate the sender.
+            if (!IsMiner(information.Sender) || !information.MinersList.Contains(information.Sender))
             {
-                if (dpoSInformation.MinersList.Any() && !IsMiner(dpoSInformation.Sender))
-                {
-                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-                }
-            }
-            else
-            {
-                if (dpoSInformation.MinersList.Any() && !dpoSInformation.MinersList.Contains(dpoSInformation.Sender))
-                {
-                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-                }
+                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
 
+            // Yes the consensus information exists.
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                if (dpoSInformation.WillUpdateConsensus)
+                // The mining process will go next round or next term.
+                if (information.WillUpdateConsensus)
                 {
-                    if (dpoSInformation.Forwarding != null)
+                    // Will go next round.
+                    if (information.Forwarding != null)
                     {
-                        // Next Round
-                        if (!MinersAreSame(currentRound, dpoSInformation.Forwarding.NextRound))
+                        if (!ValidateMinersList(currentRound, information.Forwarding.NextRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                         }
@@ -50,20 +52,20 @@ namespace AElf.Contracts.Consensus.DPoS
                         // TODO: Validate time slots (distance == 4000 ms)
                     }
 
-                    if (dpoSInformation.NewTerm != null)
+                    if (information.NewTerm != null)
                     {
                         // Next Term
-                        if (!ValidateVictories(dpoSInformation.NewTerm.Miners))
+                        if (!ValidateVictories(information.NewTerm.Miners))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                         }
 
-                        if (!OutInValueAreNull(dpoSInformation.NewTerm.FirstRound))
+                        if (!OutInValueAreNull(information.NewTerm.FirstRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
 
-                        if (!OutInValueAreNull(dpoSInformation.NewTerm.SecondRound))
+                        if (!OutInValueAreNull(information.NewTerm.SecondRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
@@ -74,12 +76,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 else
                 {
                     // Same Round
-                    if (!RoundIdMatched(dpoSInformation.CurrentRound))
+                    if (!RoundIdMatched(information.CurrentRound))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
-                    if (!NewOutValueFilled(dpoSInformation.CurrentRound))
+                    if (!NewOutValueFilled(information.CurrentRound))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
@@ -104,6 +106,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
                     MinersList =
                         {extra.InitialMiners.Select(m => Address.FromPublicKey(ByteArrayHelpers.FromHexString(m)))},
+                    Behaviour = DPoSBehaviour.InitialTerm
                 };
             }
 
@@ -116,19 +119,22 @@ namespace AElf.Contracts.Consensus.DPoS
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
                         NewTerm = GenerateNextTerm(),
+                        Behaviour = DPoSBehaviour.NextTerm
                     }
                     : new DPoSInformation
                     {
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
-                        Forwarding = GenerateNewForwarding()
+                        Forwarding = GenerateNewForwarding(),
+                        Behaviour = DPoSBehaviour.NextRound
                     };
             }
 
             // To publish Out Value.
             return new DPoSInformation
             {
-                CurrentRound = FillOutValue(extra.HashValue)
+                CurrentRound = FillOutValue(extra.HashValue),
+                Behaviour = DPoSBehaviour.PackageOutValue
             };
         }
 
@@ -200,6 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new TransactionList();
         }
 
+        [View]
         public IMessage GetConsensusCommand(Timestamp timestamp)
         {
             // To initial this chain.
@@ -217,7 +224,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetMiningInterval(out var miningInterval))
             {
                 var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Context.RecoverPublicKey().ToHex() &&
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey ==
+                    Context.RecoverPublicKey().ToHex() &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new DPoSCommand

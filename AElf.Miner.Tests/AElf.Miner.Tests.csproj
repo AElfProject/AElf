@@ -24,9 +24,4 @@
   <ItemGroup>
     <Folder Include="Grpc" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad">
-      <HintPath>..\..\..\..\..\.nuget\packages\grpc.core\1.14.1\lib\netstandard1.5\Grpc.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

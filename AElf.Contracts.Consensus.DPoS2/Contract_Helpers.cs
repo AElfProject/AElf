@@ -317,9 +317,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #region Utilities
 
-        private bool MinersAreSame(Round round1, Round round2)
+        private bool ValidateMinersList(Round round1, Round round2)
         {
-            return round1.GetMinersHash() == round2.GetMinersHash();
+            if (round1.GetMinersHash() == round2.GetMinersHash())
+            {
+                return true;
+            }
+            
+            // If the miners are different, 
         }
 
         private bool OutInValueAreNull(Round round)

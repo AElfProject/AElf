@@ -10,10 +10,4 @@
       <ProjectReference Include="..\AElf.Management\AElf.Management.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="Volo.Abp.EventBus, Version=0.11.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\..\.nuget\packages\volo.abp.eventbus\0.11.0\lib\netstandard2.0\Volo.Abp.EventBus.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

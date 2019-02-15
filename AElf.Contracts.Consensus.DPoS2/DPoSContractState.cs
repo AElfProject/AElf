@@ -66,6 +66,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
     public class DPoSContractState : ContractState
     {
+        public BoolState Initialized { get; set; }
         public DividendContractReferenceState DividendContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
 

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using AElf.Kernel;
-using AElf.Kernel.Services;
-using AElf.Management.Interfaces;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 

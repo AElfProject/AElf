@@ -287,9 +287,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
                         State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
                         State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
-//                        Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
-//                        Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
-//                            State.CurrentTermNumberField.Value);
 
                         var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
                         votingRecord.WithdrawTimestamp =
