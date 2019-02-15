@@ -3,6 +3,7 @@ using AElf.Common;
 using AElf.Kernel;
 using System.Linq;
 using System.Reflection;
+using AElf.Cryptography;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;
@@ -37,9 +38,20 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.Logs.Add(logEvent.GetLogEvent(Self));
         }
 
+        public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
         public Address Genesis => Address.Genesis.ToReadOnly();
+
+        /// <summary>
+        /// Recovers the first public key signing this transaction.
+        /// </summary>
+        /// <returns>Public key byte array</returns>
+        public byte[] RecoverPublicKey()
+        {
+            return RecoverPublicKey(TransactionContext.Transaction.Sigs.First().ToByteArray(),
+                TransactionContext.Transaction.GetHash().DumpByteArray());
+        }
 
         public void SendInline(Address address, string methodName, params object[] args)
         {
@@ -55,6 +67,12 @@ namespace AElf.Sdk.CSharp
         public Block GetBlockByHeight(ulong height)
         {
             return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
+        }
+
+        private static byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        {
+            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            return !cabBeRecovered ? null : publicKey;
         }
     }
 }
