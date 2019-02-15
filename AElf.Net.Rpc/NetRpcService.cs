@@ -34,7 +34,7 @@ namespace AElf.Net.Rpc
 
             if (nodeData == null)
             {
-                throw new JsonRpcServiceException(-32602, "Invalid address");
+                throw new JsonRpcServiceException(20001, "Invalid address");
             }
 
             await Task.Run(() => Manager.AddPeer(nodeData));
@@ -55,7 +55,7 @@ namespace AElf.Net.Rpc
 
             if (nodeData == null)
             {
-                throw new JsonRpcServiceException(-32602, "Invalid address");
+                throw new JsonRpcServiceException(20001, "Invalid address");
             }
 
             await Task.Run(() => Manager.RemovePeer(nodeData));
