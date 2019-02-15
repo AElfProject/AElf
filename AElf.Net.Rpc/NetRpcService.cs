@@ -15,13 +15,13 @@ namespace AElf.Net.Rpc
         //public IBlockSynchronizer BlockSynchronizer { get; set; }
         public INetworkManager NetworkManager { get; set; }
 
-        [JsonRpcMethod("get_peers")]
+        [JsonRpcMethod("GetPeers")]
         public async Task<JObject> GetPeers()
         {
             return await Manager.GetPeers();
         }
 
-        [JsonRpcMethod("add_peer", "address")]
+        [JsonRpcMethod("AddPeer", "address")]
         public async Task<JObject> AddPeer(string address)
         {
             NodeData nodeData = null;
@@ -39,10 +39,10 @@ namespace AElf.Net.Rpc
 
             await Task.Run(() => Manager.AddPeer(nodeData));
             
-            return new JObject { ["result"] = true };
+            return new JObject { true };
         }
         
-        [JsonRpcMethod("remove_peer", "address")]
+        [JsonRpcMethod("RemovePeer", "address")]
         public async Task<JObject> RemovePeer(string address)
         {
             NodeData nodeData = null;
@@ -60,7 +60,7 @@ namespace AElf.Net.Rpc
 
             await Task.Run(() => Manager.RemovePeer(nodeData));
             
-            return new JObject { ["result"] = true };
+            return new JObject { true };
         }
 
         //TODO:
