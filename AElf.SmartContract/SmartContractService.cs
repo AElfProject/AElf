@@ -11,6 +11,7 @@ using AElf.Common;
 using AElf.Kernel.ABI;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.SmartContract.Contexts;
 using AElf.Types.CSharp;

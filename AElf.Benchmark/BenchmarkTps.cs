@@ -14,6 +14,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Common;
 using AElf.Execution.Execution;
+using AElf.Kernel.Services;
 using AElf.Kernel.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;

@@ -13,7 +13,6 @@ using AElf.Kernel.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.Types;
-using AElf.Miner.TxMemPool;
 using AElf.Node.AElfChain;
 using AElf.RPC;
 using AElf.SmartContract;

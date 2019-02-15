@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Miner.TxMemPool;
 
 namespace AElf.ChainController.Rpc
 {

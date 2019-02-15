@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Kernel.Domain;
 using AElf.Kernel.EventMessages;
 using AElf.Miner.EventMessages;
+using AElf.Kernel.Managers;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.EventMessages;

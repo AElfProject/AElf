@@ -51,23 +51,7 @@ namespace AElf.Kernel
             return block.Body.AddTransaction(tx);
         }
 
-        public static void Complete(this IBlock block, DateTime currentBlockTime, HashSet<TransactionResult> results = null)
-        {
-            if (results != null)
-            {
-                // add tx hash
-                block.AddTransactions(results.Select(x => x.TransactionId));
-                // set ws merkle tree root
-                block.Header.MerkleTreeRootOfWorldState =
-                    new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
-            }
-
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            // Todo: improvement needed?
-            block.Header.Time = Timestamp.FromDateTime(currentBlockTime);
-            block.Body.Complete(block.Header.GetHash());
-        }
-
+        
         public static void FillTxsMerkleTreeRootInHeader(this IBlock block)
         {
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();

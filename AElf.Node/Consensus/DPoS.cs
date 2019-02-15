@@ -16,12 +16,10 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Domain;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types;
-using AElf.Miner.Miner;
 using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Miner.TxMemPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -42,7 +40,7 @@ namespace AElf.Node.Consensus
         private bool _minerFlag;
 
         private readonly ITxHub _txHub;
-        private readonly IMiner _miner;
+        private readonly IMinerService _minerService;
         private readonly IChainService _chainService;
         private readonly IAccountService _accountService;
 
@@ -91,15 +89,15 @@ namespace AElf.Node.Consensus
         private ConsensusObserver ConsensusObserver =>
             new ConsensusObserver(_publicKey, InitialTerm, PackageOutValue, BroadcastInValue, NextRound, NextTerm);
 
-        public DPoS(ITxHub txHub, IMiner miner, IChainService chainService, IMinersManager minersManager,
-            ConsensusHelper helper,IAccountService accountService)
+        public DPoS(ITxHub txHub, IChainService chainService, IMinersManager minersManager,
+            ConsensusHelper helper,IAccountService accountService, IMinerService minerService)
         {
             _txHub = txHub;
-            _miner = miner;
             _chainService = chainService;
             _minersManager = minersManager;
             _helper = helper;
             _accountService = accountService;
+            _minerService = minerService;
 
             Logger = NullLogger<DPoS>.Instance;
 
@@ -264,7 +262,7 @@ namespace AElf.Node.Consensus
         {
             try
             {
-                var block = await _miner.Mine(_chainId);
+                var block = await _minerService.Mine(_chainId);
 
                 return block;
             }

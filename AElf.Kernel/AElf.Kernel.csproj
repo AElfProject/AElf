@@ -56,6 +56,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Block" />
+    <Folder Include="Miner\Domain" />
     <Folder Include="SmartContractExecution\Application" />
     <Folder Include="SmartContract\Application" />
     <Folder Include="TransactionPool\Application" />

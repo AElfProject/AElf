@@ -9,10 +9,7 @@ using AElf.Configuration;
 using AElf.Configuration.Config.GRPC;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Miner.Miner;
 using AElf.Miner.Rpc.Server;
-using AElf.Runtime.CSharp;
-using AElf.SmartContract;
 using Google.Protobuf;
 using Moq;
 using AElf.Common;
@@ -22,15 +19,17 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Domain;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.TransactionPool.Domain;
+using AElf.Kernel.Services;
 using AElf.Miner.Rpc.Client;
-using AElf.Miner.TxMemPool;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Contexts;
 using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
+using AElf.TxPool;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -56,20 +55,25 @@ namespace AElf.Miner.Tests
         private IAuthorizationInfoReader _authorizationInfoReader;
         private IElectionInfo _electionInfo;
         private IStateManager _stateManager;
-        private readonly TransactionFilter _transactionFilter;
+        private readonly ITransactionFilter _transactionFilter;
         private readonly ConsensusDataProvider _consensusDataProvider;
         private readonly IAccountService _accountService;
         private readonly IOptionsSnapshot<ChainOptions> _chainOptions;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
+        private readonly IBlockGenerationService _blockGenerationService;
 
         public MockSetup(IStateManager stateManager,
             ITxRefBlockValidator refBlockValidator,
             ITransactionReceiptManager transactionReceiptManager, ITransactionResultManager transactionResultManager,
             ITransactionManager transactionManager, IBinaryMerkleTreeManager binaryMerkleTreeManager,
             IChainService chainService, IExecutingService executingService,
-            IChainCreationService chainCreationService,TransactionFilter transactionFilter, 
+            IChainCreationService chainCreationService, ITransactionFilter transactionFilter, 
             ConsensusDataProvider consensusDataProvider, IAccountService accountService, 
-            IOptionsSnapshot<ChainOptions> options, IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager, 
+            ISystemTransactionGenerationService systemTransactionGenerationService, 
+            IBlockGenerationService blockGenerationService,
+            IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<MockSetup>.Instance;
             _stateManager = stateManager;
@@ -87,6 +91,8 @@ namespace AElf.Miner.Tests
             _accountService = accountService;
             _chainOptions = options;
             _blockchainStateManager = blockchainStateManager;
+            _systemTransactionGenerationService = systemTransactionGenerationService;
+            _blockGenerationService = blockGenerationService;
             Initialize();
         }
 
@@ -132,12 +138,11 @@ namespace AElf.Miner.Tests
             return chain;
         }
 
-        internal IMiner GetMiner( ITxHub hub, ClientManager clientManager = null)
+        internal IMinerService GetMiner(ITxHub hub, ClientManager clientManager = null)
         {
-            var miner = new AElf.Miner.Miner.Miner(hub, _chainService, _concurrencyExecutingService,
-                _transactionResultManager, clientManager, _binaryMerkleTreeManager, null,
-                MockBlockValidationService().Object, _stateManager,_transactionFilter,_consensusDataProvider,
-                _accountService, _blockchainStateManager);
+            var miner = new MinerService(hub, _chainService, _concurrencyExecutingService,
+                _transactionResultManager, _binaryMerkleTreeManager, null,
+                _accountService, _blockGenerationService, _systemTransactionGenerationService, _blockchainStateManager);
 
             return miner;
         }

@@ -26,7 +26,8 @@ namespace AElf.Kernel.Blockchain.Helpers
             // Genesis block is empty
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
-            block.Complete(DateTime.UtcNow);          
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Body.Complete(block.Header.GetHash());         
             Block = block;
 
             return this;

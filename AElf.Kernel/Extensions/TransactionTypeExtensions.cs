@@ -2,6 +2,7 @@ using AElf.Kernel.Types;
 
 namespace AElf.Kernel
 {
+    /*
     public static class TransactionTypeExtensions
     {
         public static bool IsDposTransaction(this Transaction transaction, int chainId)
@@ -36,5 +37,5 @@ namespace AElf.Kernel
             return transaction.To.Equals(ContractHelpers.GetTokenContractAddress(chainId)) &&
                    transaction.MethodName.Equals("ClaimTransactionFees");
         }
-    }
+    }*/
 }

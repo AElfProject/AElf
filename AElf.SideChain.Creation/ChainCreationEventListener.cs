@@ -12,6 +12,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using SideChainInfo = AElf.Kernel.SideChainInfo;
+using AElf.Kernel;
 using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

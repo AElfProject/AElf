@@ -34,7 +34,7 @@ using Volo.Abp.DependencyInjection;
 namespace AElf.Miner.Miner
 {
     
-    public class Miner : IMiner, ISingletonDependency
+    /*public class Miner : IMiner, ISingletonDependency
     {
         public ILogger<Miner> Logger {get;set;}
         private readonly ITxHub _txHub;
@@ -470,5 +470,5 @@ namespace AElf.Miner.Miner
             block.Sign(publicKey, data => _accountService.SignAsync(data));
             return block;
         }
-    }
+    }*/
 }

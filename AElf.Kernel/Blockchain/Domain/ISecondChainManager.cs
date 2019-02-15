@@ -18,7 +18,6 @@ namespace AElf.Kernel.Blockchain.Domain
         NewBlocksLinked = 1 << 4 | NewBlockLinked
     }
 
-
     public interface IChainManager
     {
         Task<Chain> CreateAsync(int chainId, Hash genesisBlock);

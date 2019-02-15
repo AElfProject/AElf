@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.SmartContract;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.Services;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
