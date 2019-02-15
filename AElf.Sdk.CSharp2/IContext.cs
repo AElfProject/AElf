@@ -7,8 +7,10 @@ namespace AElf.Sdk.CSharp
     public interface IContext
     {
         void FireEvent(Event logEvent);
+        Hash TransactionId { get; }
         Address Sender { get; }
         Address Self { get; }
+        byte[] RecoverPublicKey();
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //
