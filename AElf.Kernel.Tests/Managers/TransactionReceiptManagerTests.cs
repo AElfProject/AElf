@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.Managers;
+﻿using System.Collections.Generic;
+using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
 using Shouldly;
@@ -18,36 +19,83 @@ namespace AElf.Kernel.Tests.Managers
         [Fact]
         public async Task AddOrUpdateReceiptTest()
         {
-            var transactionId = Hash.Generate();
-            var transactionReceipt = new TransactionReceipt()
-            {
-                TransactionId = transactionId,
-                Transaction = new Transaction()
-                {
-                    From = Address.Generate(),
-                    To = Address.Generate(),
-                    MethodName = "TestMethod",
-                    IncrementId = 0
-                },
-                ExecutedBlockNumber = 1,
-                IsSystemTxn = false,
-                RefBlockStatus = RefBlockStatus.RefBlockValid
-            };
 
+            var transactionReceipt = GenerateTransactionReceipts(1)[0];
             await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
-            var result = await _transactionReceiptManager.GetReceiptAsync(transactionId);
-
+            var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
             result.ShouldBe(transactionReceipt);
+
+            transactionReceipt.SignatureStatus = SignatureStatus.SignatureInvalid;
+            transactionReceipt.Transaction.MethodName = "TestUpdate";
+            await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
+
+            result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
+
+            result.SignatureStatus.ShouldBe(SignatureStatus.SignatureInvalid);
+            transactionReceipt.Transaction.MethodName.ShouldBe("TestUpdate");
         }
 
         [Fact]
         public async Task AddOrUpdateReceiptsTest()
         {
+            var transactionReceipts = GenerateTransactionReceipts(3);
+            await _transactionReceiptManager.AddOrUpdateReceiptsAsync(transactionReceipts);
+
+            var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipts[0].TransactionId);
+            result.ShouldBe(transactionReceipts[0]);
+
+            //update
+            foreach (var transactionReceipt in transactionReceipts)
+            {
+                transactionReceipt.SignatureStatus = SignatureStatus.SignatureValid;
+                transactionReceipt.Transaction.MethodName = "UpdateMethod";
+            }
+
+            await _transactionReceiptManager.AddOrUpdateReceiptsAsync(transactionReceipts);
+            var result1 = await _transactionReceiptManager.GetReceiptAsync(transactionReceipts[0].TransactionId);
+            result1.SignatureStatus.ShouldBe(SignatureStatus.SignatureValid);
+            result1.Transaction.MethodName.ShouldBe("UpdateMethod");
         }
 
         [Fact]
         public async Task GetReceiptTest()
         {
+            var randomHash = Hash.Generate();
+            var transactionRecepit = await _transactionReceiptManager.GetReceiptAsync(randomHash);
+            transactionRecepit.ShouldBe(null);
+
+            var transactionReceipt = GenerateTransactionReceipts(1)[0];
+
+            await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
+            var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
+
+            result.ShouldBe(transactionReceipt);
+        }
+
+        private List<TransactionReceipt> GenerateTransactionReceipts(int count)
+        {
+            var transactionReceipts = new List<TransactionReceipt>();
+            for (int i = 0; i < count; i++)
+            {
+                var transactionId = Hash.Generate();
+                var transactionReceipt = new TransactionReceipt()
+                {
+                    TransactionId = transactionId,
+                    Transaction = new Transaction()
+                    {
+                        From = Address.Generate(),
+                        To = Address.Generate(),
+                        MethodName = "TestMethod",
+                        IncrementId = (ulong)i
+                    },
+                    ExecutedBlockNumber = (ulong)i,
+                    IsSystemTxn = false,
+                    RefBlockStatus = RefBlockStatus.RefBlockValid
+                };
+                transactionReceipts.Add(transactionReceipt);
+            }
+
+            return transactionReceipts;
         }
     }
 }
