@@ -49,11 +49,11 @@ namespace AElf.ChainController.Rpc.Tests
         [Fact]
         public async Task TestGetBlockHeight()
         {
-            var response = await JsonCallAsJObject("/chain", "get_block_height");
+            var response = await JsonCallAsJObject("/chain", "GetBlockHeight");
 
             Logger.LogInformation(response.ToString());
 
-            var height = (int) response["result"]["result"]["block_height"];
+            var height = (int) response["result"]["BlockHeight"];
 
             height.ShouldBeGreaterThanOrEqualTo(0);
         }
@@ -62,11 +62,11 @@ namespace AElf.ChainController.Rpc.Tests
         [Fact]
         public async Task TestGetBlockHeight2()
         {
-            var response = await JsonCallAsJObject("/chain", "get_block_height");
+            var response = await JsonCallAsJObject("/chain", "GetBlockHeight");
 
             Logger.LogInformation(response.ToString());
 
-            var height = (int) response["result"]["result"]["block_height"];
+            var height = (int) response["result"]["BlockHeight"];
 
             height.ShouldBeGreaterThanOrEqualTo(0);
         }
