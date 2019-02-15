@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -77,11 +78,14 @@ namespace AElf.OS.Network.Grpc
                 var hsk = await BuildHandshakeAsync();
                         
                 var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_dialTimeout)));
+                
+                // todo refactor so that connect returns the handshake and we'll check here 
+                // todo if not correct we kill the channel. 
 
                 if (resp.Success != true)
                     return false;
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); // todo reply with handshake
+                _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); 
                         
                 Logger.LogTrace($"Connected to {address}.");
 
@@ -117,9 +121,12 @@ namespace AElf.OS.Network.Grpc
 
         public bool AuthenticatePeer(string peerEndpoint, byte[] pubkey, Handshake handshake)
         {
+            if (pubkey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
+                return false;
+            
              bool alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == peerEndpoint || pubkey.BytesEqual(p.PublicKey)) != null;
 
-             if (alreadyConnected == true)
+             if (alreadyConnected)
                  return false;
              
              // todo check handshake
@@ -131,11 +138,6 @@ namespace AElf.OS.Network.Grpc
         {
             _authenticatedPeers.Add(peer);
             return true;
-        }
-
-        public bool IsAuthenticated(string peer)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<Handshake> GetHandshakeAsync()

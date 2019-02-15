@@ -9,6 +9,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -20,11 +21,6 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase, IAElfServerService
     {
-        /// <summary>
-        /// Event launched when a peer disconnects explicitly.
-        /// </summary>
-        public event EventHandler PeerSentDisconnection;
-        
         private readonly IPeerPool _peerPool;
         private readonly IBlockService _blockService;
         
@@ -42,7 +38,7 @@ namespace AElf.OS.Network.Grpc
         }
 
         /// <summary>
-        /// First step of the connect/auth process.Used to initiate a connection. The provided payload should be the
+        /// First step of the connect/auth process. Used to initiate a connection. The provided payload should be the
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
@@ -51,7 +47,7 @@ namespace AElf.OS.Network.Grpc
             Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
             
             try
-            {
+            {                
                 var peer = GrpcUrl.Parse(context.Peer);
                 var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
@@ -68,7 +64,10 @@ namespace AElf.OS.Network.Grpc
                 var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerServer, peer.Port.ToString());
                 
                 // Verify auth
-                bool isAuth = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
+                bool valid = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
+
+                if (!valid)
+                    return Task.FromResult(new AuthResponse { Err = AuthError.WrongAuth });
                 
                 // send our credentials
                 var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
@@ -82,7 +81,7 @@ namespace AElf.OS.Network.Grpc
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during connect.");
-                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
+                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError });
             }
         }
 

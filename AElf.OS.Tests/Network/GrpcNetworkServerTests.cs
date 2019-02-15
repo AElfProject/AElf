@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Account;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;
@@ -15,13 +14,11 @@ namespace AElf.OS.Tests.Network
 {
     public class GrpcNetworkConnectionTests : OSTestBase
     {
-        private readonly IAccountService _accountService;
         private readonly ITestOutputHelper _testOutputHelper;
             
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            _accountService = GetRequiredService<IAccountService>();
         }
         
         private (GrpcNetworkServer, IPeerPool) BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
@@ -40,7 +37,8 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, _accountService);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
+            
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, null);
             serverService.EventBus = mockLocalEventBus.Object;
             
@@ -48,6 +46,28 @@ namespace AElf.OS.Tests.Network
             netServer.EventBus = mockLocalEventBus.Object;
 
             return (netServer, grpcPeerPool);
+        }
+
+        [Fact]
+        public async Task SelfConnectionTest()
+        {
+            var server = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"}, // Himself as a bootnode
+                ListeningPort = 6800
+            });
+
+            await server.Item1.StartAsync();
+            var peers1 = server.Item2.GetPeers();
+
+            Assert.True(peers1.Count == 0);
+            
+            await server.Item2.AddPeerAsync("127.0.0.1:6800");
+            
+            var peers2 = server.Item2.GetPeers();
+            Assert.True(peers2.Count == 0);
+            
+            await server.Item1.StopAsync();
         }
        
         [Fact]

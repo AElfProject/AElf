@@ -11,7 +11,6 @@ namespace AElf.OS.Network.Grpc
         GrpcPeer FindPeer(string address, byte[] pubKey = null);
         
         bool AuthenticatePeer(string peerEndpoint, byte[] pubKey, Handshake handshake);
-        bool IsAuthenticated(string peer);
         bool AddPeer(GrpcPeer peer);
         void ProcessDisconnection(string peer);
         Task<Handshake> GetHandshakeAsync();
