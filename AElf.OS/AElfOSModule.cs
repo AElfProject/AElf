@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using AElf.Common.Application;
 using AElf.Configuration;
+using AElf.Consensus;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account;
@@ -25,7 +26,8 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
-
+            Configure<ConsensusOptions>(configuration.GetSection("Consensus"));
+            
             var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();

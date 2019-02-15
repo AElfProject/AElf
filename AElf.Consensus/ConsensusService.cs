@@ -11,11 +11,13 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Consensus
 {
     public class ConsensusService : IConsensusService
     {
+        private readonly ConsensusOptions _consensusOptions;
         private readonly IConsensusObserver _consensusObserver;
         private readonly IExecutingService _executingService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
@@ -26,11 +28,12 @@ namespace AElf.Consensus
 
         private byte[] _latestGeneratedConsensusInformation;
 
-        private List<Transaction> _transactionsForBroadcasting = new List<Transaction>();
-
-        public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
-            IConsensusInformationGenerationService consensusInformationGenerationService, IAccountService accountService, IConsensusTransactionFilter consensusTransactionFilter)
+        public ConsensusService(IOptions<ConsensusOptions> options, IConsensusObserver consensusObserver,
+            IExecutingService executingService, IConsensusInformationGenerationService consensusInformationGenerationService,
+            IAccountService accountService, IConsensusTransactionFilter consensusTransactionFilter)
         {
+            _consensusOptions = options.Value;
+            
             _consensusObserver = consensusObserver;
             _executingService = executingService;
             _consensusInformationGenerationService = consensusInformationGenerationService;
@@ -65,7 +68,7 @@ namespace AElf.Consensus
                         _latestGeneratedConsensusInformation)).DeserializeToPbMessage<TransactionList>().Transactions
                 .ToList();
             
-            _transactionsForBroadcasting =
+            _consensusObserver.TransactionsForBroadcasting =
                 _consensusTransactionFilter.RemoveTransactionsJustForBroadcasting(ref generatedTransactions);
 
             return generatedTransactions;

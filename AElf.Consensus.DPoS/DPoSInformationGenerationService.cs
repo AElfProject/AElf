@@ -30,7 +30,7 @@ namespace AElf.Consensus.DPoS
                     return new DPoSExtraInformation
                     {
                         InitialMiners = {(await _minersManager.GetMiners(0)).PublicKeys},
-                        MiningInterval = DPoSConsensusConsts.MiningInterval
+                        MiningInterval = DPoSConsensusConsts.MiningInterval,
                     }.ToByteArray();
                 
                 case DPoSBehaviour.PackageOutValue:

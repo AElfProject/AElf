@@ -10,6 +10,8 @@ namespace AElf.OS.Network
         Task AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<string> GetPeers();
+
+        Task BroadcastTransaction(Transaction tx);
         
         Task<IBlock> GetBlockByHash(Hash hash, string peer);
         Task BroadcastAnnounce(Hash b);
