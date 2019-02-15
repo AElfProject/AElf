@@ -8,16 +8,24 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
+        private readonly HandshakeData _handshakeData;
 
-        public string PeerAddress { get; private set; }
-        public string RemoteEndpoint { get; private set; }
+        public string PeerAddress { get; }
+        public string RemoteListenPort { get; }
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string peerAddress, string remoteEndpoint)
+        private byte[] _pubKey;
+        public byte[] PublicKey
+        {
+            get { return _pubKey ?? (_pubKey = _handshakeData?.PublicKey?.ToByteArray()); }
+        }
+
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, HandshakeData handshakeData, string peerAddress, string remoteListenPort)
         {
             _channel = channel;
             _client = client;
-            
-            RemoteEndpoint = remoteEndpoint;
+            _handshakeData = handshakeData;
+
+            RemoteListenPort = remoteListenPort;
             PeerAddress = peerAddress;
         }
 
