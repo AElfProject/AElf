@@ -1,6 +1,6 @@
 ﻿using AElf.Cryptography.ECDSA;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public interface ITxPoolConfig
     {

@@ -1,4 +1,5 @@
 using AElf.Kernel;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;

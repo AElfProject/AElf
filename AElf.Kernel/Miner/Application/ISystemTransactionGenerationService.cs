@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Common;
 
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.Miner.Application
 {
     public interface ISystemTransactionGenerationService
     {

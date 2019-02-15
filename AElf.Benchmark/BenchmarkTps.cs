@@ -16,6 +16,7 @@ using AElf.Common;
 using AElf.Execution.Execution;
 using AElf.Kernel.Services;
 using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using Microsoft.Extensions.Logging;

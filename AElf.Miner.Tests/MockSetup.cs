@@ -23,6 +23,8 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.TransactionPool.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Miner.Rpc.Client;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Contexts;

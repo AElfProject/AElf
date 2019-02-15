@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;

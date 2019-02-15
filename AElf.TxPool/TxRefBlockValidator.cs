@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.TxPool.RefBlockExceptions;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface IExecutingService
     {

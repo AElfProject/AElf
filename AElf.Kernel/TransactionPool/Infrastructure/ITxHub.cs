@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public interface ITxHub
     {
