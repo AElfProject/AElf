@@ -540,32 +540,33 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void BroadcastInValue(ToBroadcast toBroadcast)
         {
-            if (_dataHelper.TryToGetCurrentRoundInformation(out var currentRound) && 
-                toBroadcast.RoundId != currentRound.RoundId)
+            if (_dataHelper.TryToGetPreviousRoundInformation(out var previousRound) && 
+                toBroadcast.RoundId != previousRound.RoundId)
             {
                 return;
             }
 
-            Api.Assert(_dataHelper.TryToGetCurrentRoundInformation(out var roundInformation),
+            Api.Assert(_dataHelper.TryToGetPreviousRoundInformation(out var previousRoundInformation),
                 "Round information not found.");
-            Api.Assert(roundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue != null,
+            Api.Assert(previousRoundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue != null,
                 GlobalConfig.OutValueIsNull);
-            Api.Assert(roundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].Signature != null,
+            Api.Assert(previousRoundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].Signature != null,
                 GlobalConfig.SignatureIsNull);
             Api.Assert(
-                roundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue ==
+                previousRoundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].OutValue ==
                 Hash.FromMessage(toBroadcast.InValue),
                 GlobalConfig.InValueNotMatchToOutValue);
 
-            roundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
+            previousRoundInformation.RealTimeMinersInfo[Api.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 
-            _dataHelper.TryToAddRoundInformation(roundInformation);
+            _dataHelper.TryToAddRoundInformation(previousRoundInformation);
         }
 
         #region Vital Steps
 
         private void InitialBlockchain(Term firstTerm)
         {
+            _dataHelper.SetChainId(firstTerm.ChainId);
             _dataHelper.SetTermNumber(1);
             _dataHelper.SetRoundNumber(1);
             _dataHelper.SetBlockAge(1);

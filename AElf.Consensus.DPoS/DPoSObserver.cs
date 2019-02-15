@@ -12,18 +12,12 @@ namespace AElf.Consensus.DPoS
     // ReSharper disable once InconsistentNaming
     public class DPoSObserver : IConsensusObserver
     {
-        private readonly IMinerService _minerService;
-        private readonly INetworkService _networkService;
-
         public IEventBus EventBus { get; set; }
 
         public List<Transaction> TransactionsForBroadcasting { get; set; } = new List<Transaction>();
 
-        public DPoSObserver(IMinerService minerService, INetworkService networkService)
+        public DPoSObserver()
         {
-            _minerService = minerService;
-            _networkService = networkService;
-            
             EventBus = NullLocalEventBus.Instance;
         }
         
@@ -31,44 +25,21 @@ namespace AElf.Consensus.DPoS
         {
             var command = DPoSCommand.Parser.ParseFrom(consensusCommand);
             
-            if (command.Behaviour == DPoSBehaviour.PublishInValue)
-            {
-                return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
-                    .Select(_ => ConsensusPerformanceType.BroadcastTransaction).Subscribe(this);
-            }
-
             return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
                 .Select(_ => ConsensusPerformanceType.MineBlock).Subscribe(this);
         }
 
         public void OnCompleted()
         {
-            throw new NotImplementedException();
         }
 
         public void OnError(Exception error)
         {
-            throw new NotImplementedException();
         }
 
         public void OnNext(ConsensusPerformanceType value)
         {
-            switch (value)
-            {
-                case ConsensusPerformanceType.MineBlock:
-                    EventBus.PublishAsync(new MineBlock());
-                    break;
-                
-                case ConsensusPerformanceType.BroadcastTransaction:
-                    EventBus.PublishAsync(new BroadcastTransaction
-                    {
-                        Transactions = TransactionsForBroadcasting
-                    });
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
-            }
+            EventBus.PublishAsync(new MineBlock());
         }
     }
 }

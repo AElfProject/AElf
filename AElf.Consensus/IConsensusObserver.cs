@@ -6,7 +6,6 @@ namespace AElf.Consensus
 {
     public interface IConsensusObserver : IObserver<ConsensusPerformanceType>
     {
-        List<Transaction> TransactionsForBroadcasting { get; set; }
         IDisposable Subscribe(byte[] consensusCommand);
     }
 }

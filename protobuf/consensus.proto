@@ -210,9 +210,8 @@ message DPoSCommand {
 enum DPoSBehaviour {
     InitialTerm = 0;
     PackageOutValue = 1;
-    PublishInValue = 2;
-    NextRound = 3;
-    NextTerm = 4;
+    NextRound = 2;
+    NextTerm = 3;
 }
 
 message ValidationResult {

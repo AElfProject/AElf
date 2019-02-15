@@ -22,23 +22,22 @@ namespace AElf.Consensus
         private readonly IExecutingService _executingService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
-        private readonly IConsensusTransactionFilter _consensusTransactionFilter;
 
         private IDisposable _consensusObservables;
 
         private byte[] _latestGeneratedConsensusInformation;
 
         public ConsensusService(IOptions<ConsensusOptions> options, IConsensusObserver consensusObserver,
-            IExecutingService executingService, IConsensusInformationGenerationService consensusInformationGenerationService,
-            IAccountService accountService, IConsensusTransactionFilter consensusTransactionFilter)
+            IExecutingService executingService,
+            IConsensusInformationGenerationService consensusInformationGenerationService,
+            IAccountService accountService)
         {
             _consensusOptions = options.Value;
-            
+
             _consensusObserver = consensusObserver;
             _executingService = executingService;
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
-            _consensusTransactionFilter = consensusTransactionFilter;
         }
 
         public async Task<bool> ValidateConsensus(int chainId, byte[] consensusInformation)
@@ -65,11 +64,9 @@ namespace AElf.Consensus
             var generatedTransactions = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
                     ConsensusMethod.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
                     _consensusInformationGenerationService.GenerateExtraInformationForTransactionAsync(
-                        _latestGeneratedConsensusInformation)).DeserializeToPbMessage<TransactionList>().Transactions
+                        _latestGeneratedConsensusInformation, chainId)).DeserializeToPbMessage<TransactionList>()
+                .Transactions
                 .ToList();
-            
-            _consensusObserver.TransactionsForBroadcasting =
-                _consensusTransactionFilter.RemoveTransactionsJustForBroadcasting(ref generatedTransactions);
 
             return generatedTransactions;
         }
@@ -82,6 +79,8 @@ namespace AElf.Consensus
             // Initial or update the schedule.
             _consensusObservables?.Dispose();
             _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
+
+            _consensusInformationGenerationService.Tell(consensusCommand);
 
             return consensusCommand;
         }

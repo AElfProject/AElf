@@ -7,18 +7,21 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
 
 namespace AElf.Consensus.DPoS
 {
     // ReSharper disable once InconsistentNaming
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
+        private readonly ConsensusOptions _consensusOptions;
         private readonly IMinersManager _minersManager;
         private DPoSCommand _command;
         private Hash _inValue;
 
-        public DPoSInformationGenerationService(IMinersManager minersManager)
+        public DPoSInformationGenerationService(IOptions<ConsensusOptions> options, IMinersManager minersManager)
         {
+            _consensusOptions = options.Value;
             _minersManager = minersManager;
         }
         
@@ -34,11 +37,27 @@ namespace AElf.Consensus.DPoS
                     }.ToByteArray();
                 
                 case DPoSBehaviour.PackageOutValue:
-                    _inValue = Hash.Generate();
-                    return new DPoSExtraInformation
+                    if (_inValue == null)
                     {
-                        HashValue = Hash.FromMessage(_inValue)
-                    }.ToByteArray();
+                        // For Round 1.
+                        _inValue = Hash.Generate();
+                        return new DPoSExtraInformation
+                        {
+                            HashValue = Hash.FromMessage(_inValue),
+                            InValue = Hash.Zero
+                        }.ToByteArray();
+                    }
+                    else
+                    {
+                        var previousInValue = _inValue;
+                        var outValue = Hash.FromMessage(_inValue);
+                        _inValue = Hash.Generate();
+                        return new DPoSExtraInformation
+                        {
+                            HashValue = outValue,
+                            InValue = previousInValue
+                        }.ToByteArray();
+                    }
                 
                 case DPoSBehaviour.NextRound:
                     return new DPoSExtraInformation
@@ -53,21 +72,20 @@ namespace AElf.Consensus.DPoS
                         ChangeTerm = true
                     }.ToByteArray();
                 
-                case DPoSBehaviour.PublishInValue:
-                    return null;
-                
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        public async Task<byte[]> GenerateExtraInformationForTransactionAsync(byte[] consensusInformation)
+        public async Task<byte[]> GenerateExtraInformationForTransactionAsync(byte[] consensusInformation, int chainId)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
             switch (_command.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
+                    information.NewTerm.ChainId = chainId;
+                    information.NewTerm.FirstRound.MiningInterval = _consensusOptions.MiningInterval;
                     return new DPoSExtraInformation
                     {
                         NewTerm = information.NewTerm
@@ -83,12 +101,7 @@ namespace AElf.Consensus.DPoS
                             OutValue = currentMinerInformation.OutValue,
                             RoundId = information.CurrentRound.RoundId,
                             Signature = currentMinerInformation.Signature
-                        }
-                    }.ToByteArray();
-                
-                case DPoSBehaviour.PublishInValue:
-                    return new DPoSExtraInformation
-                    {
+                        },
                         ToBroadcast = new ToBroadcast
                         {
                             InValue = _inValue,
