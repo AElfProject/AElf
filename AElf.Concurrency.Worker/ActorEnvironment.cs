@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
-using AElf.Execution;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.SmartContractExecution.Execution;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Concurrency.Worker
@@ -67,7 +67,7 @@ namespace AElf.Concurrency.Worker
         {
             for (var i = 0; i < _executionOptions.ActorCount; i++)
             {
-                var worker = _actorSystem.ActorOf(Props.Create<Execution.Worker>(), "worker" + i);
+                var worker = _actorSystem.ActorOf(Props.Create<Kernel.SmartContractExecution.Worker>(), "worker" + i);
                 worker.Tell(new LocalSerivcePack(_servicePack));
             }
         }

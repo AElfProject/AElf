@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
 
-namespace AElf.Execution.Scheduling
+namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
 	public interface IGrouper
     {

@@ -11,7 +11,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     public interface ITransactionExecutingService
     {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Common;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     public interface IResourceUsageDetectionService
     {

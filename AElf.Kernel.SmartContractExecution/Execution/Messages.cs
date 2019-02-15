@@ -7,7 +7,7 @@ using AElf.SmartContract;
 using Akka.Actor;
 using Address = AElf.Common.Address;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     #region LocalServices
 

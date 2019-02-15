@@ -1,16 +1,16 @@
 ﻿using AElf.Kernel.ChainController;
 using AElf.Configuration;
-using AElf.Execution.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Kernel;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(typeof(CoreKernelAElfModule))]
     public class ExecutionAElfModule: AElfModule

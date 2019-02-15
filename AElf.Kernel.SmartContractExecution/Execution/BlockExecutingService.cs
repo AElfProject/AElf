@@ -8,7 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     public class BlockExecutingService : IBlockExecutingService
     {

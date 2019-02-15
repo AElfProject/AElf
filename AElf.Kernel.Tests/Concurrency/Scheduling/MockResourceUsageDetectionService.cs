@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling

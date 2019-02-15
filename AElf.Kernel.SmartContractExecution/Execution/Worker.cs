@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Execution.Execution;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContractExecution.Execution;
 using Akka.Actor;
 
 /*
@@ -12,7 +12,7 @@ using Akka.Actor;
  */
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     /// <summary>
     /// A worker that runs a list of transactions sequentially.

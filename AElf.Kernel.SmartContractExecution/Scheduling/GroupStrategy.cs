@@ -1,4 +1,4 @@
-﻿namespace AElf.Execution.Scheduling
+﻿namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
     public enum GroupStrategy
     {

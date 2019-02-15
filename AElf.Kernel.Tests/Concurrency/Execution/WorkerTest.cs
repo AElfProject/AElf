@@ -4,9 +4,9 @@ using System.Linq;
 using Xunit;
 using Akka.Actor;
 using Akka.TestKit.Xunit;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Common;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution.Execution;
 using Google.Protobuf;
 using Address= AElf.Common.Address;
 

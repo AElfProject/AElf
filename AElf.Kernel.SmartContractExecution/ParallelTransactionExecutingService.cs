@@ -7,14 +7,14 @@ using System.Threading;
 using Akka.Actor;
 using AElf.Kernel;
 using AElf.Configuration;
-using AElf.Execution.Scheduling;
 using AElf.Common;
-using AElf.Execution.Execution;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Kernel.SmartContractExecution.Scheduling;
 using Microsoft.Extensions.Options;
 using Address = AElf.Common.Address;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     public class ParallelTransactionExecutingService : IExecutingService
     {

@@ -9,7 +9,7 @@ using AElf.SmartContract;
 using AElf.Common;
 using GlobalConfig = AElf.Common.GlobalConfig;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     public class ResourceUsageDetectionService : IResourceUsageDetectionService
     {

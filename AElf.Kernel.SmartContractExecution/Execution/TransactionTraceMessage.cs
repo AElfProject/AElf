@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Kernel;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     public partial class TransactionTraceMessage
     {

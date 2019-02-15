@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel;
 using Xunit;
 

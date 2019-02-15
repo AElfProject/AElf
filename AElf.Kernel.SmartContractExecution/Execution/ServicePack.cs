@@ -3,7 +3,7 @@ using AElf.Kernel.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     //TODO: maybe should change this class
     public class ServicePack

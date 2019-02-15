@@ -13,7 +13,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     public class SimpleExecutingService : IExecutingService
     {

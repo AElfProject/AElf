@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using Google.Protobuf;
 
-namespace AElf.Execution.Protobuf
+namespace AElf.Kernel.SmartContractExecution.Protobuf
 {
     /// <summary>
     /// Protobuf serializer. This uses the serialization code

@@ -3,7 +3,7 @@ using AElf.Kernel.ChainController;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     public class NoFeeSimpleExecutingService : SimpleExecutingService
     {

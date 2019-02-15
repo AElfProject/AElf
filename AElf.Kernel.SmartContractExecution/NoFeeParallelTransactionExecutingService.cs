@@ -1,9 +1,9 @@
 using System;
-using AElf.Execution.Execution;
-using AElf.Execution.Scheduling;
+using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Kernel.SmartContractExecution.Scheduling;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Execution
+namespace AElf.Kernel.SmartContractExecution
 {
     public class NoFeeParallelTransactionExecutingService : ParallelTransactionExecutingService
     {

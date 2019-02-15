@@ -8,7 +8,7 @@ using Akka.Actor;
 using Akka.Routing;
 using AElf.Kernel;
 
-namespace AElf.Execution.Execution
+namespace AElf.Kernel.SmartContractExecution.Execution
 {
     class TaskNotCompletedProperlyException : Exception
     {

@@ -9,7 +9,7 @@ using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Execution.Scheduling
+namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
     /// <summary>
     /// The grouper can be used in both producing subgroup and splitting the job in batch

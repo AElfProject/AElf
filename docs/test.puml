@@ -1,21 +1,21 @@
 @startuml
 digraph G {
-    "AElf.Kernel" -> {"AElf.Core";"AElf.Database";"AElf.Types";"AElf.Common"};
+    "AElf.Kernel.Core" -> {"AElf.Core";"AElf.Database";"AElf.Types";"AElf.Common"};
     
-    "AElf.OS" -> "AElf.Kernel";
-    "AElf.Execution" -> "AElf.Kernel";
+    "AElf.OS" -> "AElf.Kernel.Core";
+    "AElf.Execution" -> "AElf.Kernel.Core";
     "AElf.Execution"[label="AElf.Kernel.Execution" , fontcolor = red];
     "AElf.Execution.Akka" -> {"AElf.Execution", "Akka"};
     
-    "AElf.SmartContract" -> "AElf.Kernel";
+    "AElf.SmartContract" -> "AElf.Kernel.Core";
     "AElf.SmartContract"[label="AElf.Kernel.SmartContract\n executing smart contract " , fontcolor = red];
     
     "AElf.ChainController" -> {"AElf.SmartContract","AElf.Kernel.Consensus"}
     "AElf.ChainController"[fontcolor=darkgreen]
     
-    "AElf.Kernel.Consensus" -> "AElf.Kernel";
+    "AElf.Kernel.Consensus" -> "AElf.Kernel.Core";
     
-    "AElf.MiniSystem" -> {"AElf.Kernel";"AElf.SmartContract";"AElf.Execution","AElf.ChainController"}[color=blue];
+    "AElf.MiniSystem" -> {"AElf.Kernel.Core";"AElf.SmartContract";"AElf.Execution","AElf.ChainController"}[color=blue];
     
     
     "AElf.ChainController"[label="AElf.Kernel.ChainController\nContext, Events, FSM "]
@@ -31,10 +31,10 @@ digraph G {
     "AElf.FullNode" [color=red] ;
     "AElf.Launcher" -> {"AElf.FullNode","ThirdParty.MongodbDatabse"};
     "AElf.Rpc";
-    "AElf.Rpc.Kernel" -> {"AElf.Rpc","AElf.Kernel"};
+    "AElf.Rpc.Kernel" -> {"AElf.Rpc","AElf.Kernel.Core"};
     "AElf.Rpc.Network" -> {"AElf.Rpc","AElf.Network"};
     "AElf.RpcServer" -> {"AElf.Rpc.Kernel","AElf.Rpc.Network","AElf.FullNode"}
-    "AElf.Kernel.Tests" -> "AElf.Kernel";
+    "AElf.Kernel.Tests" -> "AElf.Kernel.Core";
     "AElf.Execution.Tests" -> {"AElf.Execution","AElf.TestBase"};
     "AElf.TestBase" -> {"Autofac", "XUnit"}
     "AElf.Execution.Akka.Tests" -> {"AElf.Execution.Akka","AElf.TestBase","Akka.TestBase"};

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace AElf.Execution.Scheduling
+namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
 	/// <summary>
 	/// A UnionFindNode represents a set of nodes that it is a member of.
