@@ -6,6 +6,7 @@ import "kernel.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+    rpc RequestBlockIds (BlockIdsRequest) returns (BlockIdList) {}
 
     rpc Announce (Announcement) returns (VoidReply) {}
     rpc SendTransaction (Transaction) returns (VoidReply) {}
@@ -14,6 +15,15 @@ service PeerService {
     rpc Authentify (Handshake) returns (AuthResponse) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+}
+
+message BlockIdsRequest {
+    bytes FirstBlockId = 1;
+    int32 Count = 2;
+}
+
+message BlockIdList {
+    repeated bytes Ids = 1;
 }
 
 message DisconnectReason {

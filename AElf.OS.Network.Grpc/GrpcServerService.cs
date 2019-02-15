@@ -163,6 +163,11 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new BlockReply());
         }
 
+        public override Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
+        {
+            return base.RequestBlockIds(request, context); // todo 
+        }
+
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
