@@ -8,6 +8,7 @@ using Xunit;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.TestBase;
 
 namespace AElf.Kernel.Tests

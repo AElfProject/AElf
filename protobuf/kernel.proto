@@ -92,7 +92,9 @@ message TransactionResult {
     int32 Index = 8;
     Hash StateHash = 9;
     // Merkle proof path for this transaction
-    Hash DeferredTxnId = 10; 
+    // TODO: Remove DeferredTxnId
+    repeated Transaction DeferredTransactions = 10;
+    Hash DeferredTxnId = 11;
 }
 
 // For failed transactions, its status follows the Min of
@@ -123,12 +125,21 @@ message TransactionTrace {
     repeated LogEvent Logs = 6;
     repeated Transaction InlineTransactions = 7;
     repeated TransactionTrace InlineTraces = 8;
+    // TODO: Remove state changes
     repeated StateChange StateChanges = 9;
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
     bytes DeferredTransaction = 12;
     TransactionTrace FeeTransactionTrace = 13;
     TransactionExecutingStateSet StateSet = 14;
+}
+
+message ExecutionReturnSet {
+    Hash TransactionId = 1;
+    TransactionResultStatus Status = 2;
+    map<string, bytes> StateChanges = 3;
+    bytes Bloom = 4;
+    repeated Transaction DeferredTransactions = 5;
 }
 
 message LogEvent {
@@ -168,7 +179,7 @@ message BlockHeader {
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
-    int32 ChainId = 10;
+    int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
     Hash SideChainTransactionsRoot = 11;
 }
 

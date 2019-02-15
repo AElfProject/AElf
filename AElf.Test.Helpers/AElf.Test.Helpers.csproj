@@ -5,13 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
         <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
     </ItemGroup>
-
 </Project>
