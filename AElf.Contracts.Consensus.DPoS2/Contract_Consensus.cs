@@ -8,8 +8,16 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract : CSharpSmartContract<DPoSContractState>//, IConsensusSmartContract
+    public partial class Contract : CSharpSmartContract<DPoSContractState> //, IConsensusSmartContract
     {
+        public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.TokenContract.Value = tokenContractAddress;
+            State.DividendContract.Value = dividendsContractAddress;
+            State.Initialized.Value = true;
+        }
+
         [View]
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
@@ -102,7 +110,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetMiningInterval(out var miningInterval))
             {
                 var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Context.RecoverPublicKey().ToHex() &&
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey ==
+                    Context.RecoverPublicKey().ToHex() &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds;
@@ -251,7 +260,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetMiningInterval(out var miningInterval))
             {
                 var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == Context.RecoverPublicKey().ToHex() &&
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey ==
+                    Context.RecoverPublicKey().ToHex() &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new DPoSCommand
