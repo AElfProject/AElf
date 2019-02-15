@@ -7,12 +7,4 @@ namespace AElf.Kernel.Services
     {
         Task ExecuteBlockAsync(int chainId, Hash blockHash);
     }
-    
-    public class BlockExecutingService : IBlockExecutingService
-    {
-        public async Task ExecuteBlockAsync(int chainId, Hash blockHash)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
 }
