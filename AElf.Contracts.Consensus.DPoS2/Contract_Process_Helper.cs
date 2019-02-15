@@ -303,18 +303,19 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 // Transfer dividends for actual miners. (The miners list based on last round of current term.)
-                Api.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)),
-                    Config.GetDividendsForEveryMiner(minedBlocks) +
-                    (totalVotes == 0
-                        ? 0
-                        : Config.GetDividendsForTicketsCount(minedBlocks) * candidateTickets.ObtainedTickets /
-                          totalVotes) +
-                    (totalReappointment == 0
-                        ? 0
-                        : Config.GetDividendsForReappointment(minedBlocks) *
-                          continualAppointmentDict[minerInRound.Key] /
-                          totalReappointment));
+                var amount = Config.GetDividendsForEveryMiner(minedBlocks) +
+                             (totalVotes == 0
+                                 ? 0
+                                 : Config.GetDividendsForTicketsCount(minedBlocks) * candidateTickets.ObtainedTickets /
+                                   totalVotes) +
+                             (totalReappointment == 0
+                                 ? 0
+                                 : Config.GetDividendsForReappointment(minedBlocks) *
+                                   continualAppointmentDict[minerInRound.Key] /
+                                   totalReappointment);
+                // TODO: Can we ask the miners to claim the rewards ???
+                State.DividendContract.SendDividends(
+                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)), amount);
             }
 
             if (TryToGetBackups(roundInformation.RealTimeMinersInfo.Keys.ToList(), out var backups))
@@ -322,9 +323,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 foreach (var backup in backups)
                 {
                     var backupCount = (ulong) backups.Count;
-                    Api.SendDividends(
-                        Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
-                        backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount);
+                    var amount = backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount;
+                    State.DividendContract.SendDividends(Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
+                        amount);
                 }
             }
 
@@ -514,7 +515,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public void Process_PackageOutValue(ToPackage toPackage)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                       toPackage.RoundId == currentRound.RoundId, GlobalConfig.RoundIdNotMatched);
+                   toPackage.RoundId == currentRound.RoundId, GlobalConfig.RoundIdNotMatched);
 
             Assert(TryToGetCurrentRoundInformation(out var roundInformation),
                 "Round information not found.");

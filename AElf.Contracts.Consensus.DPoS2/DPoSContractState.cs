@@ -53,6 +53,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public Action<ulong, ulong> AddWeights { get; set; }
         public Action<ulong, ulong> AddDividends { get; set; }
         public Action<VotingRecord> TransferDividends { get; set; }
+        public Action<Address, ulong> SendDividends { get; set; }
     }
 
     public class TokenContractReferenceState : ContractReferenceState
