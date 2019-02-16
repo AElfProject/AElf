@@ -48,7 +48,7 @@ namespace AElf.Management.Services
 
         public async Task<ulong> GetPoolSize(string chainId)
         {
-            var jsonRpcArg = new JsonRpcArg {Method = "get_txpool_size"};
+            var jsonRpcArg = new JsonRpcArg {Method = "GetTransactionPoolSize"};
 
             var state = await HttpRequestHelper.Request<JsonRpcResult<TxPoolSizeResult>>(
                 _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);

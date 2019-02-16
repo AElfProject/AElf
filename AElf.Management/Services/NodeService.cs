@@ -26,7 +26,7 @@ namespace AElf.Management.Services
         public async Task<bool> IsAlive(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
-            jsonRpcArg.Method = "dpos_isalive";
+            jsonRpcArg.Method = "GetDposStatus";
 
             var state = await HttpRequestHelper.Request<JsonRpcResult<DposStateResult>>(
                 _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
@@ -37,7 +37,7 @@ namespace AElf.Management.Services
         public async Task<bool> IsForked(string chainId)
         {
             var jsonRpcArg = new JsonRpcArg();
-            jsonRpcArg.Method = "node_isforked";
+            jsonRpcArg.Method = "GetNodeStatus";
 
             var state = await HttpRequestHelper.Request<JsonRpcResult<NodeStateResult>>(
                 _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);

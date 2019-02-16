@@ -133,7 +133,7 @@ namespace AElf.Network.Peers
         /// <summary>
         /// The data received in the handshake message.
         /// </summary>
-        [JsonProperty(PropertyName = "address")]
+        [JsonProperty(PropertyName = "Address")]
         public NodeData DistantNodeData => _lastReceivedHandshake?.NodeInfo ?? new NodeData
         {
             IpAddress = IsDisposed ? "disposed" : ((IPEndPoint)_client.Client.RemoteEndPoint).Address.ToString(),
@@ -147,7 +147,7 @@ namespace AElf.Network.Peers
         public string DistantNodeAddress { get; private set; }
         public byte[] DistantPublicKey => _lastReceivedHandshake?.PublicKey.ToByteArray();
 
-        [JsonProperty(PropertyName = "isBp")] public bool IsBp { get; internal set; }
+        [JsonProperty(PropertyName = "IsBp")] public bool IsBp { get; internal set; }
 
         public string IpAddress => DistantNodeData?.IpAddress;
 

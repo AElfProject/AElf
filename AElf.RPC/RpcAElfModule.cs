@@ -1,19 +1,16 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
 using AElf.Network;
-using AElf.RPC.Hubs.Net;
-using Community.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
-using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
+using Volo.Abp.AspNetCore;
 using Volo.Abp.AspNetCore.Modularity;
+using Volo.Abp.Modularity;
 
 namespace AElf.RPC
 {
     [DependsOn(
-        typeof(Volo.Abp.AspNetCore.AbpAspNetCoreModule),
+        typeof(AbpAspNetCoreModule),
         typeof(CoreKernelAElfModule),
         //TODO: remove it
         typeof(NetworkAElfModule))]
@@ -24,13 +21,7 @@ namespace AElf.RPC
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-
             services.AddCors();
-
-            services.AddSignalRCore();
-            services.AddSignalR();
-
-            context.Services.AddScoped<NetContext>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
@@ -49,7 +40,6 @@ namespace AElf.RPC
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            context.ServiceProvider.GetRequiredService<NetContext>();
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
