@@ -5,7 +5,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Authorization2
 {
@@ -182,7 +181,7 @@ namespace AElf.Contracts.Authorization2
             // check authorization of proposal
             var proposedTxn = CheckAndFillTxnData(proposal, approved);
             // send deferred transaction
-            Api.SendDeferredTransaction(proposedTxn);
+            Context.SendDeferredTransaction(proposedTxn);
             proposal.Status = ProposalStatus.Released;
             State.Proposals[proposalHash] = proposal;
             return proposedTxn.GetHash().DumpByteArray();
@@ -270,7 +269,7 @@ namespace AElf.Contracts.Authorization2
         {
             var proposedTxn = GetPendingTxn(txnData);
             proposedTxn.Sigs.Add(ByteString.CopyFrom(approvalSignature));
-            Assert(Api.VerifySignature(proposedTxn), "Incorrect signature");
+            Assert(Context.VerifySignature(proposedTxn), "Incorrect signature");
         }
 
         private void CheckTxnData(Address msigAddress, byte[] txnData)
