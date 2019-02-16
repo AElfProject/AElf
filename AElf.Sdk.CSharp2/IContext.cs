@@ -9,6 +9,8 @@ namespace AElf.Sdk.CSharp
     {
         void FireEvent(Event logEvent);
 
+        int ChainId { get; }
+
         // TODO: Remove Transaction
         Transaction Transaction { get; }
         Hash TransactionId { get; }
@@ -38,6 +40,10 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         /// <param name="deferredTxn"></param>
         void SendDeferredTransaction(Transaction deferredTxn);
+        
+        Task DeployContractAsync(Address address, SmartContractRegistration registration);
+        
+        Task UpdateContractAsync(Address address, SmartContractRegistration registration);
 
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }

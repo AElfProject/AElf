@@ -3,7 +3,9 @@ using AElf.Common;
 using AElf.Kernel;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Kernel.Types;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Sdk.CSharp.State;
 using AElf.SmartContract;
@@ -38,6 +40,7 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.Logs.Add(logEvent.GetLogEvent(Self));
         }
 
+        public int ChainId => SmartContractContext.ChainId;
         public Transaction Transaction => TransactionContext.Transaction.ToReadOnly();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
@@ -99,6 +102,26 @@ namespace AElf.Sdk.CSharp
         public void SendDeferredTransaction(Transaction deferredTxn)
         {
             TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
+        }
+
+        public async Task DeployContractAsync(Address address, SmartContractRegistration registration)
+        {
+            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
+            {
+                throw new AssertionError("no permission.");
+            }
+
+            await SmartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration, false);
+        }
+
+        public async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
+        {
+            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
+            {
+                throw new AssertionError("no permission.");
+            }
+
+            await SmartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration, false);
         }
     }
 }
