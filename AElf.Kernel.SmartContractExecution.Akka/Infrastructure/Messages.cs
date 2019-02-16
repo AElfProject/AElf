@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.SmartContract;
 using Akka.Actor;
 using Address = AElf.Common.Address;
 

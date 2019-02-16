@@ -89,12 +89,12 @@ namespace AElf.Kernel.SmartContractExecution.Execution
 
     public sealed class TrackedGroup : Group
     {
-        public TrackedGroup(Akka.Configuration.Config config)
+        /*public TrackedGroup(Akka.Configuration.Config config)
             : this(
                 config.GetStringList("routees.paths"),
                 Dispatchers.DefaultDispatcherId)
         {
-        }
+        }*/
 
         public TrackedGroup(params string[] paths) : this(paths, Dispatchers.DefaultDispatcherId)
         {

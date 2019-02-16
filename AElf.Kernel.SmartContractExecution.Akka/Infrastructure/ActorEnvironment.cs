@@ -9,7 +9,6 @@ using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
 using AElf.Kernel;
-using AElf.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Execution;
@@ -37,7 +36,7 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 if (_requestor == null)
                 {
-                    _requestor = _actorSystem.ActorOf(Execution.Requestor.Props(_router));    
+                    _requestor = _actorSystem.ActorOf(Akka.Infrastructure.Requestor.Props(_router));    
                 }
 
                 return _requestor;

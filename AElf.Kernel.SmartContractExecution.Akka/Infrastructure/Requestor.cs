@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContractExecution.Execution;
 using Akka.Actor;
+using AkkaAssembly = Akka;
 using Akka.Routing;
-using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContractExecution.Execution
+namespace AElf.Kernel.SmartContractExecution.Akka.Infrastructure
 {
     class TaskNotCompletedProperlyException : Exception
     {
@@ -99,7 +99,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         
         public static Props Props(IActorRef router)
         {
-            return Akka.Actor.Props.Create(() => new Requestor(router));
+            return AkkaAssembly.Actor.Props.Create(() => new Requestor(router));
         }
     }
 }

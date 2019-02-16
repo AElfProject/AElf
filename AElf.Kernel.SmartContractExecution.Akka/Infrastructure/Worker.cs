@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContractExecution
         private State _state = State.PendingSetSericePack;
         // private long _servingRequestId = -1;
         private ServicePack _servicePack;
-        private IExecutingService _proxyExecutingService;
+        //private IExecutingService _proxyExecutingService;
 
         // TODO: Add cancellation
         private CancellationTokenSource _cancellationTokenSource;
@@ -44,9 +44,9 @@ namespace AElf.Kernel.SmartContractExecution
                     if (_state == State.PendingSetSericePack)
                     {
                         _servicePack = res.ServicePack;
-                        _proxyExecutingService = new SimpleExecutingService(_servicePack.SmartContractService,
+                        /*_proxyExecutingService = new SimpleExecutingService(_servicePack.SmartContractService,
                             _servicePack.TransactionTraceManager, _servicePack.StateManager,
-                            _servicePack.ChainContextService);
+                            _servicePack.ChainContextService);*/
                         _state = State.Idle;
                     }
 
@@ -113,30 +113,31 @@ namespace AElf.Kernel.SmartContractExecution
 
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
-            _state = State.Running;
-*/
-            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId,
-                request.CurrentBlockTime, _cancellationTokenSource.Token, request.DisambiguationHash,
-                request.TransactionType, request.SkipFee);
-            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
-
-            // TODO: What if actor died in the middle
-
-            var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
-            // TODO: tell requestor and router about the worker complete job,and set to idle state.
-/*
- Temporarily disabled.
- TODO: https://github.com/AElfProject/AElf/issues/338
-            request.ResultCollector?.Tell(retMsg);
-            request.Router?.Tell(retMsg);
-
-            _servingRequestId = -1;
-            _state = State.Idle;
-*/
-            return retMsg;
+            throw new NotImplementedException();
+///*
+// Temporarily disabled.
+// TODO: https://github.com/AElfProject/AElf/issues/338
+//            _state = State.Running;
+//*/
+//            var result = await _proxyExecutingService.ExecuteAsync(request.Transactions, request.ChainId,
+//                request.CurrentBlockTime, _cancellationTokenSource.Token, request.DisambiguationHash,
+//                request.TransactionType, request.SkipFee);
+//            request.ResultCollector?.Tell(new TransactionTraceMessage(request.RequestId, result));
+//
+//            // TODO: What if actor died in the middle
+//
+//            var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
+//            // TODO: tell requestor and router about the worker complete job,and set to idle state.
+///*
+// Temporarily disabled.
+// TODO: https://github.com/AElfProject/AElf/issues/338
+//            request.ResultCollector?.Tell(retMsg);
+//            request.Router?.Tell(retMsg);
+//
+//            _servingRequestId = -1;
+//            _state = State.Idle;
+//*/
+//            return retMsg;
         }
     }
 }
