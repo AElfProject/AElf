@@ -30,6 +30,8 @@ namespace AElf.Sdk.CSharp
 
         // TODO: Remove GetBlockByHeight
         Block GetBlockByHeight(ulong height);
+
+        bool VerifySignature(Transaction tx);
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //

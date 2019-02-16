@@ -78,5 +78,22 @@ namespace AElf.Sdk.CSharp
         {
             return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
         }
+
+        public bool VerifySignature(Transaction tx)
+        {
+            if (tx.Sigs == null || tx.Sigs.Count == 0)
+            {
+                return false;
+            }
+
+            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
+            {
+                var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
+                    tx.GetHash().DumpByteArray(), out var pubKey);
+                return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
+            }
+
+            return true;
+        }
     }
 }
