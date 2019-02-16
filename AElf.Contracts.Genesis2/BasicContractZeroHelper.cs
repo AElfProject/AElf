@@ -14,6 +14,11 @@ namespace AElf.Contracts.Genesis
         private ulong GetNexSerialNumber()
         {
             var serialNumber = State.ContractSerialNumber.Value + 1;
+            if (serialNumber < GlobalConfig.BasicContractZeroSerialNumber)
+            {
+                serialNumber = GlobalConfig.BasicContractZeroSerialNumber + 1;
+            }
+
             State.ContractSerialNumber.Value = serialNumber;
             return serialNumber;
         }

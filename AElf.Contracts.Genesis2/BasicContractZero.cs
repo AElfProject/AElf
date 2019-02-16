@@ -12,14 +12,8 @@ namespace AElf.Contracts.Genesis
     public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>
     {
         private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
-
-        public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
-            Address authorizationContractAddress)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.AuthorizationContract.Value = authorizationContractAddress;
-            State.Initialized.Value = true;
-        }
+        
+        #region Views
         
         [View]
         public ulong CurrentContractSerialNumber()
@@ -37,6 +31,31 @@ namespace AElf.Contracts.Genesis
             }
 
             return info.ToString();
+        }
+        
+        [View]
+        public Address GetContractOwner(Address contractAddress)
+        {
+            var info = State.ContractInfos[contractAddress];
+            return info?.Owner;
+        }
+        
+        [View]
+        public Hash GetContractHash(Address contractAddress)
+        {
+            var info = State.ContractInfos[contractAddress];
+            return info?.ContractHash;
+        }
+        
+        #endregion Views
+        
+        #region Actions
+        
+        public void Initialize(Address authorizationContractAddress)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.AuthorizationContract.Value = authorizationContractAddress;
+            State.Initialized.Value = true;
         }
 
         public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
@@ -150,7 +169,7 @@ namespace AElf.Contracts.Genesis
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             State.ContractInfos[contractAddress] = info;
-            Context.FireEvent(new Events.OwnerHasBeenChanged
+            Context.FireEvent(new OwnerHasBeenChanged
             {
                 Address = contractAddress,
                 OldOwner = oldOwner,
@@ -158,18 +177,6 @@ namespace AElf.Contracts.Genesis
             });
         }
 
-        [View]
-        public Address GetContractOwner(Address contractAddress)
-        {
-            var info = State.ContractInfos[contractAddress];
-            return info?.Owner;
-        }
-        
-        [View]
-        public Hash GetContractHash(Address contractAddress)
-        {
-            var info = State.ContractInfos[contractAddress];
-            return info?.ContractHash;
-        }
+        #endregion Actions
     }
 }
