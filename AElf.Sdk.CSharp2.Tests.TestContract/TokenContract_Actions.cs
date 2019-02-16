@@ -43,7 +43,7 @@ namespace AElf.Sdk.CSharp2.Tests.TestContract
 
         public void Approve(Address spender, ulong amount)
         {
-            State.Allowances[Context.Sender][spender].Add(amount);
+            State.Allowances[Context.Sender][spender] = State.Allowances[Context.Sender][spender].Add(amount);
             Context.FireEvent(new Approved()
             {
                 Owner = Context.Sender,

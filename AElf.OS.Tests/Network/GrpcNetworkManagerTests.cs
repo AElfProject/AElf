@@ -11,8 +11,10 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Temp;
 using AElf.Synchronization.Tests;
+using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Moq;
+using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,9 +40,9 @@ namespace AElf.OS.Tests.Network
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
-            
+
             var mockLocalEventBus = new Mock<ILocalEventBus>();
-            
+
             // Catch all events on the bus
             if (eventCallBack != null)
             {
@@ -67,7 +69,7 @@ namespace AElf.OS.Tests.Network
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
-            
+
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
             netServer.EventBus = mockLocalEventBus.Object;
 
@@ -75,26 +77,26 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task RequestBlockTest()
+        private async Task Request_Block_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 },
-            null, 
+            null,
             new List<Block> { (Block) genesis });
-            
+
             var m2 = BuildNetManager(new NetworkOptions
             {
                 BootNodes = new List<string> {"127.0.0.1:6800"},
                 ListeningPort = 6801
             });
-            
+
             var m3 = BuildNetManager(new NetworkOptions
             {
                 BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6800"},
                 ListeningPort = 6802
             });
-            
+
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             await m3.Item1.StartAsync();
@@ -105,20 +107,73 @@ namespace AElf.OS.Tests.Network
 
             IBlock b = await service2.GetBlockByHash(genesis.GetHash());
             IBlock bbh = await service3.GetBlockByHeight(genesis.Height);
+            IBlock bbh2 = await service3.GetBlockByHeight((ulong)2);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
-            
+
             Assert.NotNull(b);
             Assert.NotNull(bbh);
+            Assert.Equal(bbh2, null);
 
             await m3.Item1.StopAsync();
         }
-        
+
         [Fact]
-        private async Task Announcement_EventTest()
+        private async Task Request_Block_With_MoreData_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>(); 
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
+            var header = new BlockHeader()
+            {
+                PreviousBlockHash = genesis.GetHash(),
+                Height = 2
+            };
+            var transactionItems = GenerateTransactionListInfo(10);
+            var body = new BlockBody()
+            {
+                BlockHeader = header.GetHash(),
+                TransactionList = { transactionItems.Item1 },
+                Transactions = { transactionItems.Item2 }
+            };
+            var block = new Block()
+            {
+                Header = header,
+                Body = body,
+                Height = (ulong)2
+            };
+
+            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 },
+                null,
+                new List<Block> { (Block) genesis, block });
+
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+
+            var service1 = new GrpcNetworkService(m1.Item2);
+            var service2 = new GrpcNetworkService(m2.Item2);
+
+            var block21 = await service2.GetBlockByHeight(2);
+            var block22 = await service2.GetBlockByHash(block.GetHash());
+
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
+
+            block21.ShouldNotBeNull();
+            block21.Height.ShouldBe((ulong)2);
+            block22.ShouldNotBeNull();
+            block21.ShouldBe(block22);
+        }
+
+        [Fact]
+        private async Task Announcement_Event_Test()
+        {
+            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
 
             void TransferEventCallbackAction(object eventData)
             {
@@ -137,16 +192,16 @@ namespace AElf.OS.Tests.Network
             }
 
             var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, TransferEventCallbackAction);
-            
+
             var m2 = BuildNetManager(new NetworkOptions
             {
                 BootNodes = new List<string> {"127.0.0.1:6800"},
                 ListeningPort = 6801
             });
-            
+
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
-            
+
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
@@ -154,13 +209,13 @@ namespace AElf.OS.Tests.Network
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
-            
+
             Assert.True(receivedEventDatas.Count == 1);
             Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
         }
-        
+
         [Fact]
-        private async Task Transaction_EventTest()
+        private async Task Transaction_Event_Test()
         {
             List<TxReceivedEventData> receivedEventDatas = new List<TxReceivedEventData>();
 
@@ -181,27 +236,28 @@ namespace AElf.OS.Tests.Network
             }
 
             var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, TransferEventCallbackAction);
-            
+
             var m2 = BuildNetManager(new NetworkOptions
             {
                 BootNodes = new List<string> {"127.0.0.1:6800"},
                 ListeningPort = 6801
             });
-            
+
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
-            
+
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
             await servicem2.BroadcastTransaction(new Transaction());
-            
+
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
-            
+
             Assert.True(receivedEventDatas.Count == 1);
         }
-        
+
+        [Fact]
         private async Task Announcement_Request_Test()
         {
             List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
@@ -222,16 +278,16 @@ namespace AElf.OS.Tests.Network
             }
 
             var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 }, TransferEventCallbackAction);
-            
+
             var m2 = BuildNetManager(new NetworkOptions
             {
                 BootNodes = new List<string> {"127.0.0.1:6800"},
                 ListeningPort = 6801
             });
-            
+
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
-            
+
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
@@ -239,9 +295,33 @@ namespace AElf.OS.Tests.Network
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
-            
+
             Assert.True(receivedEventDatas.Count == 1);
             Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
+        }
+
+        private (List<Transaction>, List<Hash>) GenerateTransactionListInfo(int count)
+        {
+            var transactionList = new List<Transaction>();
+            var hashList = new List<Hash>();
+
+            for (int i = 0; i < count; i++)
+            {
+                var transaction = new Transaction()
+                {
+                    From = Address.Generate(),
+                    To = Address.Generate(),
+                    MethodName = $"Test{i}",
+                    Params = ByteString.CopyFromUtf8($"Test{i}"),
+                    IncrementId = (ulong)i
+                };
+                var hash = transaction.GetHash();
+
+                transactionList.Add(transaction);
+                hashList.Add(hash);
+            }
+
+            return (transactionList, hashList);
         }
     }
 }
