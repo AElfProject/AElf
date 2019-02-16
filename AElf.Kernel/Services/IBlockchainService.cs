@@ -77,6 +77,14 @@ namespace AElf.Kernel.Services
         public async Task AddBlockAsync(int chainId, Block block)
         {
             await _blockManager.AddBlockHeaderAsync(block.Header);
+            if (block.Body.TransactionList.Count > 0)
+            {
+                foreach (var transaction in block.Body.TransactionList)
+                {
+                    await _transactionManager.AddTransactionAsync(transaction);
+                }
+            }
+
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
@@ -129,8 +137,18 @@ namespace AElf.Kernel.Services
 
         private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
         {
-            await _blockExecutingService.ExecuteBlockAsync(chainId, blockLink.BlockHash);
-            await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            var block = await GetBlockByHashAsync(chainId, blockLink.BlockHash);
+            // TODO: Save transactions in block
+            var result =
+                await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
+            if (!result.GetHash().Equals(block.GetHash()))
+            {
+                // TODO: execution resulted a different hash, so the result is not correct
+            }
+            else
+            {
+                await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            }
         }
 
 
@@ -142,6 +160,45 @@ namespace AElf.Kernel.Services
         public async Task<Chain> GetChainAsync(int chainId)
         {
             return await _chainManager.GetAsync(chainId);
+        }
+
+        public async Task<Chain> CreateChainAsync(int chainId, Block block)
+        {
+            await AddBlockAsync(chainId, block);
+            return await _chainManager.CreateAsync(chainId, block.GetHash());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="height"></param>
+        /// <param name="currentBlockHash">the search beginning of block, if it is null, it will start at best chain block</param>
+        /// <returns></returns>
+        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null)
+        {
+            if (chain.LastIrreversibleBlockHeight <= height)
+            {
+                return (await _chainManager.GetChainBlockIndexAsync(chain.Id, chain.LastIrreversibleBlockHeight))
+                    .BlockHash;
+            }
+
+            if (currentBlockHash == null)
+                currentBlockHash = chain.BestChainHash;
+
+            //TODO: may introduce cache to improve the performance
+
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, currentBlockHash);
+            if (chainBlockLink.Height < height)
+                return null;
+
+            while (true)
+            {
+                if (chainBlockLink.Height == height)
+                    return chainBlockLink.BlockHash;
+                currentBlockHash = chainBlockLink.PreviousBlockHash;
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, currentBlockHash);
+            }
         }
     }
 }
