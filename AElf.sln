@@ -215,6 +215,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TxPool", "AElf.TxPool\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis2", "AElf.Contracts.Genesis2\AElf.Contracts.Genesis2.csproj", "{B1E39853-406A-4CC7-A273-E70CFEEE3968}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource2", "AElf.Contracts.Resource2\AElf.Contracts.Resource2.csproj", "{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -545,6 +547,10 @@ Global
 		{B1E39853-406A-4CC7-A273-E70CFEEE3968}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1E39853-406A-4CC7-A273-E70CFEEE3968}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1E39853-406A-4CC7-A273-E70CFEEE3968}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -601,5 +607,6 @@ Global
 		{6BD45371-ABC0-41C5-B718-A8359712F5AE} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{B1E39853-406A-4CC7-A273-E70CFEEE3968} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{75E35189-F4AE-48DF-8D70-14ADCC9C31EC} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
