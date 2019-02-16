@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using AElf.Kernel;
+using AElf.Kernel.Events;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
@@ -11,8 +12,6 @@ namespace AElf.Consensus.DPoS
     public class DPoSObserver : IConsensusObserver
     {
         public IEventBus EventBus { get; set; }
-
-        public List<Transaction> TransactionsForBroadcasting { get; set; } = new List<Transaction>();
 
         public DPoSObserver()
         {
@@ -37,7 +36,7 @@ namespace AElf.Consensus.DPoS
 
         public void OnNext(ConsensusPerformanceType value)
         {
-            EventBus.PublishAsync(new MineBlock());
+            EventBus.PublishAsync(new MineBlockEvent());
         }
     }
 }

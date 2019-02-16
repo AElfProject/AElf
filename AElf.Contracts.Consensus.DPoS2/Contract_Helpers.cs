@@ -324,13 +324,21 @@ namespace AElf.Contracts.Consensus.DPoS
                 return true;
             }
             
-            // If the miners are different, 
+            // TODO:
+            // If the miners are different, we need a further validation
+            // to prove the missing (replaced) one should be kicked out.
+            return false;
         }
 
         private bool OutInValueAreNull(Round round)
         {
             return round.RealTimeMinersInfo.Values.Any(minerInRound =>
                 minerInRound.OutValue != null || minerInRound.InValue != null);
+        }
+
+        private bool InValueIsNull(Round round)
+        {
+            return round.RealTimeMinersInfo.Values.All(m => m.InValue == null);
         }
 
         private bool ValidateVictories(Miners miners)

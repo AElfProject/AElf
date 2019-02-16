@@ -38,23 +38,22 @@ namespace AElf.Contracts.Consensus.DPoS
                     // Will go next round.
                     if (information.Forwarding != null)
                     {
+                        // Compare current round information from State Database and next round information from block header.
                         if (!ValidateMinersList(currentRound, information.Forwarding.NextRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                         }
 
-                        // Maybe it is acceptable to be null.
-//                        if (!OutInValueAreNull(dpoSInformation.Forwarding.NextRound))
-//                        {
-//                            return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
-//                        }
-
-                        // TODO: Validate time slots (distance == 4000 ms)
+                        // None of in values should be filled.
+                        if (InValueIsNull(information.Forwarding.CurrentRound))
+                        {
+                            return new ValidationResult {Success = false, Message = "Incorrect in values."};
+                        }
                     }
 
                     if (information.NewTerm != null)
                     {
-                        // Next Term
+                        // Will go next term.
                         if (!ValidateVictories(information.NewTerm.Miners))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect miners list."};
