@@ -22,14 +22,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractService _smartContractService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ISystemContractService _systemContractService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
         public TransactionExecutingService(ISmartContractService smartContractService,
-            ITransactionResultManager transactionTraceManager)
+            ITransactionResultManager transactionTraceManager,
+            ISmartContractExecutiveService smartContractExecutiveService, ISystemContractService systemContractService)
         {
             _smartContractService = smartContractService;
             _transactionResultManager = transactionTraceManager;
+            _smartContractExecutiveService = smartContractExecutiveService;
+            _systemContractService = systemContractService;
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
@@ -91,7 +96,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 CallDepth = depth,
             };
 
-            var executive = await _smartContractService.GetExecutiveAsync(transaction.To, chainId);
+            var reg = await _systemContractService.GetSmartContractRegistrationAsync(chainId, transaction.To);
+
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainId, transaction.To, reg);
 
             try
             {
@@ -121,7 +128,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                await _smartContractService.PutExecutiveAsync(chainId, transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(chainId, transaction.To, executive);
             }
 
             return trace;
