@@ -23,7 +23,7 @@ namespace AElf.Consensus.DPoS
             var command = DPoSCommand.Parser.ParseFrom(consensusCommand);
             
             return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
-                .Select(_ => ConsensusPerformanceType.MineBlock).Subscribe(this);
+                .Select(_ => command.ChainId).Subscribe(this);
         }
 
         public void OnCompleted()
@@ -34,9 +34,9 @@ namespace AElf.Consensus.DPoS
         {
         }
 
-        public void OnNext(ConsensusPerformanceType value)
+        public void OnNext(int value)
         {
-            EventBus.PublishAsync(new MineBlockEvent());
+            EventBus.PublishAsync(new BlockMiningEventData(value));
         }
     }
 }

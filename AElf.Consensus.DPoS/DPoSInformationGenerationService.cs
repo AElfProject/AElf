@@ -15,24 +15,22 @@ namespace AElf.Consensus.DPoS
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly ConsensusOptions _consensusOptions;
-        private readonly IMinersManager _minersManager;
         private DPoSCommand _command;
         private Hash _inValue;
 
-        public DPoSInformationGenerationService(IOptions<ConsensusOptions> options, IMinersManager minersManager)
+        public DPoSInformationGenerationService(IOptions<ConsensusOptions> options)
         {
             _consensusOptions = options.Value;
-            _minersManager = minersManager;
         }
         
-        public async Task<byte[]> GenerateExtraInformationAsync()
+        public byte[] GenerateExtraInformationAsync()
         {
             switch (_command.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     return new DPoSExtraInformation
                     {
-                        InitialMiners = {(await _minersManager.GetMiners(0)).PublicKeys},
+                        InitialMiners = {_consensusOptions.InitialMiners},
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
                     }.ToByteArray();
                 
@@ -77,7 +75,7 @@ namespace AElf.Consensus.DPoS
             }
         }
 
-        public async Task<byte[]> GenerateExtraInformationForTransactionAsync(byte[] consensusInformation, int chainId)
+        public byte[] GenerateExtraInformationForTransactionAsync(byte[] consensusInformation, int chainId)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 

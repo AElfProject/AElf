@@ -14,8 +14,24 @@ namespace AElf.Sdk.CSharp
 {
     public class Context : IContextInternal
     {
+        private IBlockChain BlockChain { get; set; }
+        private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
-        public ISmartContractContext SmartContractContext { get; set; }
+
+        public ISmartContractContext SmartContractContext
+        {
+            get => _smartContractContext;
+            set
+            {
+                _smartContractContext = value;
+                OnSmartContractContextSet();
+            }
+        }
+
+        private void OnSmartContractContextSet()
+        {
+            BlockChain = _smartContractContext.ChainService.GetBlockChain(_smartContractContext.ChainId);
+        }
 
         public void FireEvent(Event logEvent)
         {
@@ -51,6 +67,11 @@ namespace AElf.Sdk.CSharp
         {
             var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
             return !cabBeRecovered ? null : publicKey;
+        }
+        
+        public Block GetBlockByHeight(ulong height)
+        {
+            return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
         }
     }
 }

@@ -11,6 +11,9 @@ namespace AElf.Sdk.CSharp
         Address Sender { get; }
         Address Self { get; }
         byte[] RecoverPublicKey();
+        
+        Block GetBlockByHeight(ulong height);
+
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //

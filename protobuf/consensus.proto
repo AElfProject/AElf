@@ -206,6 +206,7 @@ message DPoSExtraInformation {
 message DPoSCommand {
     int32 CountingMilliseconds = 1;
     DPoSBehaviour Behaviour = 2;
+    int32 ChainId = 3;
 }
 
 enum DPoSBehaviour {
