@@ -213,6 +213,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain2"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization2", "AElf.Contracts.Authorization2\AElf.Contracts.Authorization2.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividends2", "AElf.Contracts.Dividends2\AElf.Contracts.Dividends2.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -543,6 +545,10 @@ Global
 		{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CF48590-2FAC-4773-82D2-D92A4C56815B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CF48590-2FAC-4773-82D2-D92A4C56815B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CF48590-2FAC-4773-82D2-D92A4C56815B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CF48590-2FAC-4773-82D2-D92A4C56815B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -599,5 +605,6 @@ Global
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{48D20E4A-51FA-4085-A31E-096A648EB9CF} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{5CF48590-2FAC-4773-82D2-D92A4C56815B} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
