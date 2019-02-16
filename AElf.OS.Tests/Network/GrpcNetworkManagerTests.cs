@@ -110,7 +110,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task Request_Block_With_Data_Test()
+        private async Task Request_Block_With_MoreData_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
             var header = new BlockHeader()

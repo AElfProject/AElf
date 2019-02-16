@@ -31,13 +31,16 @@ namespace AElf.Kernel.Tests.Managers
             hash.ShouldNotBeNull();
         }
 
+
         [Fact]
-        public async Task Get_Transaction_Test()
+        public async Task Insert_MultipleTx_Test()
         {
-            var t = BuildTransaction();
-            var key = await _transactionManager.AddTransactionAsync(t);
-            var td = await _transactionManager.GetTransaction(key);
-            Assert.Equal(t, td);
+            var address = Address.Generate();
+            var t1 = BuildTransaction(address, 1);
+            var t2 = BuildTransaction(address, 2);
+            var key1 = await _transactionManager.AddTransactionAsync(t1);
+            var key2 = await _transactionManager.AddTransactionAsync(t2);
+            Assert.NotEqual(key1, key2);
         }
 
         [Fact]
@@ -57,17 +60,6 @@ namespace AElf.Kernel.Tests.Managers
             Assert.Equal(td2, null);
         }
 
-        [Fact]
-        public async Task Insert_MultipleTx_Test()
-        {
-            var address = Address.Generate();
-            var t1 = BuildTransaction(address, 1);
-            var t2 = BuildTransaction(address, 2);
-            var key1 = await _transactionManager.AddTransactionAsync(t1);
-            var key2 = await _transactionManager.AddTransactionAsync(t2);
-            Assert.NotEqual(key1, key2);
-        }
-        
         public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();

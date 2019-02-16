@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetBlockHeader_Test()
+        public async Task GetBlock_Header_And_Body_Test()
         {
             var header = new BlockHeader()
             {
@@ -40,22 +40,9 @@ namespace AElf.Kernel.Tests.Managers
                 Height = 1
             };
             var hash = header.GetHash();
-            await _blockManager.AddBlockHeaderAsync(header);
-
             var h = await _blockManager.GetBlockHeaderAsync(hash);
             Assert.Equal(header, h);
-        }
 
-        [Fact]
-        public async Task GetBlockBody_Test()
-        {
-            var header = new BlockHeader()
-            {
-                ChainId = _chainId,
-                Height = 1
-            };
-            await _blockManager.AddBlockHeaderAsync(header);
-            var hash = header.GetHash();
             var body = new BlockBody()
             {
                 BlockHeader = hash
