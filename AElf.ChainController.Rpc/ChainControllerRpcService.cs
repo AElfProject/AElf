@@ -182,7 +182,7 @@ namespace AElf.ChainController.Rpc
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
             }
 
-            var response = new JObject {["Hash"] = transaction.GetHash().ToHex()};
+            var response = new JObject {["txId"] = transaction.GetHash().ToHex()};
 
             //TODO: Wait validation done
             transaction.GetTransactionInfo();
@@ -214,7 +214,7 @@ namespace AElf.ChainController.Rpc
                     break;
                 }
 
-                response.Add(result["Hash"].ToString());
+                response.Add(result["txId"].ToString());
             }
 
             return new JObject
