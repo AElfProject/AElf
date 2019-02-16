@@ -10,13 +10,13 @@
     <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
     <PackageReference Include="Grpc" Version="1.18.0" />
     <PackageReference Include="Grpc.Tools" Version="1.18.0" />
-    <PackageReference Include="Volo.Abp.Core" Version="0.13.0" />
+    <PackageReference Include="Volo.Abp.Core" Version="0.11.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.13.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.11.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Handlers" />
