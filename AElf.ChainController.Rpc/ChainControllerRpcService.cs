@@ -557,7 +557,7 @@ namespace AElf.ChainController.Rpc
                 ["ProposalName"] = proposal.Name,
                 ["MultiSig"] = proposal.MultiSigAccount.GetFormatted(),
                 ["ExpiredTime"] = origin.AddSeconds(proposal.ExpiredTime),
-                ["TxnData"] = proposal.TxnData.ToByteArray().ToHex(),
+                ["Transaction"] = proposal.TxnData.ToByteArray().ToHex(),
                 ["Status"] = proposal.Status.ToString(),
                 ["Proposer"] = proposal.Proposer.GetFormatted()
             };
