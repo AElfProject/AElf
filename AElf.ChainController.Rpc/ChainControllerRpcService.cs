@@ -222,7 +222,7 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("GetTransactionMerklePath", "TransactionId")]
+        [JsonRpcMethod("GetTransactionMerklePath", "transactionId")]
         public async Task<JObject> GetTransactionMerklePath(string transactionId)
         {
             Hash transactionHash;
