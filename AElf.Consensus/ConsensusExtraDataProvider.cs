@@ -7,6 +7,7 @@ namespace AElf.Consensus
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
+        // TODO: Use ChainOptions to get chain id.
 
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
