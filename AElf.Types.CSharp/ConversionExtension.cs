@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Text;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using Type = System.Type;
 
 namespace AElf.Types.CSharp
 {
@@ -16,16 +18,77 @@ namespace AElf.Types.CSharp
             // TODO: Maybe improve performance
             return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
         }
-        
+
+        #region generic
+
+        public static object DeserializeToType(this ByteString bs, Type type)
+        {
+            if (type == typeof(bool))
+            {
+                return bs.DeserializeToBool();
+            }
+
+            if (type == typeof(int))
+            {
+                return bs.DeserializeToInt32();
+            }
+
+            if (type == typeof(uint))
+            {
+                return bs.DeserializeToUInt32();
+            }
+
+            if (type == typeof(long))
+            {
+                return bs.DeserializeToInt64();
+            }
+
+            if (type == typeof(ulong))
+            {
+                return bs.DeserializeToUInt64();
+            }
+
+            if (type == typeof(string))
+            {
+                return bs.DeserializeToString();
+            }
+
+            if (type == typeof(byte[]))
+            {
+                return bs.DeserializeToBytes();
+            }
+
+            if (type.IsPbMessageType())
+            {
+                var obj = Activator.CreateInstance(type);
+                ((IMessage) obj).MergeFrom(bs);
+                return obj;
+            }
+
+            if (type.IsUserType())
+            {
+                var obj = (UserType) Activator.CreateInstance(type);
+                var msg = new UserTypeHolder();
+                msg.MergeFrom(bs);
+                obj.Unpack(msg);
+                return obj;
+            }
+
+            throw new Exception("Unable to deserialize for type {type}.");
+        }
+
+        #endregion
+
         #region bool
+
         public static bool DeserializeToBool(this ByteString bs)
         {
             return BoolValue.Parser.ParseFrom(bs).Value;
         }
-        
+
         public static IMessage ToPbMessage(this bool value)
         {
-            return new BoolValue() { Value = value };
+            return new BoolValue() {Value = value};
         }
 
         public static Any ToAny(this bool value)
@@ -37,8 +100,11 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<BoolValue>().Value;
         }
+
         #endregion bool
+
         #region int
+
         public static int DeserializeToInt32(this ByteString bs)
         {
             return SInt32Value.Parser.ParseFrom(bs).Value;
@@ -46,7 +112,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this int value)
         {
-            return new SInt32Value() { Value = value };
+            return new SInt32Value() {Value = value};
         }
 
         public static Any ToAny(this int value)
@@ -58,8 +124,11 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<SInt32Value>().Value;
         }
+
         #endregion int
+
         #region uint
+
         public static uint DeserializeToUInt32(this ByteString bs)
         {
             return UInt32Value.Parser.ParseFrom(bs).Value;
@@ -72,10 +141,10 @@ namespace AElf.Types.CSharp
                 Array.Reverse(bytes);
             return bytes.TrimLeadingZeros();
         }
-        
+
         public static IMessage ToPbMessage(this uint value)
         {
-            return new UInt32Value() { Value = value };
+            return new UInt32Value() {Value = value};
         }
 
         public static Any ToAny(this uint value)
@@ -87,8 +156,11 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<UInt32Value>().Value;
         }
+
         #endregion uint
+
         #region long
+
         public static long DeserializeToInt64(this ByteString bs)
         {
             return SInt64Value.Parser.ParseFrom(bs).Value;
@@ -101,10 +173,10 @@ namespace AElf.Types.CSharp
                 Array.Reverse(bytes);
             return bytes.TrimLeadingZeros();
         }
-        
+
         public static IMessage ToPbMessage(this long value)
         {
-            return new SInt64Value() { Value = value };
+            return new SInt64Value() {Value = value};
         }
 
         public static Any ToAny(this long value)
@@ -116,8 +188,11 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<SInt64Value>().Value;
         }
+
         #endregion long
+
         #region ulong
+
         public static ulong DeserializeToUInt64(this ByteString bs)
         {
             return UInt64Value.Parser.ParseFrom(bs).Value;
@@ -130,10 +205,10 @@ namespace AElf.Types.CSharp
                 Array.Reverse(bytes);
             return bytes.TrimLeadingZeros();
         }
-        
+
         public static IMessage ToPbMessage(this ulong value)
         {
-            return new UInt64Value() { Value = value };
+            return new UInt64Value() {Value = value};
         }
 
         public static Any ToAny(this ulong value)
@@ -145,22 +220,24 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<UInt64Value>().Value;
         }
+
         #endregion ulong
+
         #region string
 
         public static string DeserializeToString(this ByteString bs)
         {
             return StringValue.Parser.ParseFrom(bs).Value;
         }
-        
+
         public static byte[] ToFriendlyBytes(this string value)
         {
             return Encoding.UTF8.GetBytes(value);
         }
-        
+
         public static IMessage ToPbMessage(this string value)
         {
-            return new StringValue() { Value = value };
+            return new StringValue() {Value = value};
         }
 
         public static Any ToAny(this string value)
@@ -172,22 +249,24 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<StringValue>().Value;
         }
+
         #endregion string
+
         #region byte[]
 
         public static byte[] DeserializeToBytes(this ByteString bs)
         {
             return BytesValue.Parser.ParseFrom(bs).Value.ToByteArray();
         }
-       
+
         public static byte[] ToFriendlyBytes(this byte[] value)
         {
             return value;
         }
-        
+
         public static IMessage ToPbMessage(this byte[] value)
         {
-            return new BytesValue() { Value = ByteString.CopyFrom(value) };
+            return new BytesValue() {Value = ByteString.CopyFrom(value)};
         }
 
         public static Any ToAny(this byte[] value)
@@ -199,15 +278,18 @@ namespace AElf.Types.CSharp
         {
             return any.Unpack<BytesValue>().Value.ToByteArray();
         }
+
         #endregion byte[]
+
         #region IMessage
+
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
             var obj = new T();
-            ((IMessage)obj).MergeFrom(bytes);
+            ((IMessage) obj).MergeFrom(bytes);
             return obj;
         }
-        
+
         public static T DeserializeToPbMessage<T>(this ByteString bs) where T : IMessage, new()
         {
             return bs.ToByteArray().DeserializeToPbMessage<T>();
@@ -217,7 +299,7 @@ namespace AElf.Types.CSharp
         {
             return value.ToByteArray();
         }
-        
+
         public static IMessage ToPbMessage(this IMessage value)
         {
             return value;
@@ -239,18 +321,23 @@ namespace AElf.Types.CSharp
             {
                 throw new Exception("Type given is not an IMessage.");
             }
-            var target = (IMessage)Activator.CreateInstance(type);
+
+            var target = (IMessage) Activator.CreateInstance(type);
 
             if (Any.GetTypeName(any.TypeUrl) != target.Descriptor.FullName)
             {
                 throw new Exception(
                     $"Full type name for {target.Descriptor.Name} is {target.Descriptor.FullName}; Any message's type url is {any.TypeUrl}");
             }
+
             target.MergeFrom(any.Value);
             return target;
         }
+
         #endregion IMessage
+
         #region UserType
+
         public static T DeserializeToUserType<T>(this byte[] bytes) where T : UserType, new()
         {
             var obj = new T();
@@ -259,7 +346,7 @@ namespace AElf.Types.CSharp
             obj.Unpack(msg);
             return obj;
         }
-        
+
         public static T DeserializeToUserType<T>(this ByteString bs) where T : UserType, new()
         {
             return bs.ToByteArray().DeserializeToUserType<T>();
@@ -269,7 +356,7 @@ namespace AElf.Types.CSharp
         {
             return value.ToPbMessage().ToByteArray();
         }
-        
+
         public static IMessage ToPbMessage(this UserType value)
         {
             return value.Pack();
@@ -284,10 +371,11 @@ namespace AElf.Types.CSharp
         {
             if (!type.IsUserType())
                 throw new Exception("Type given is not a UserType.");
-            var obj = (UserType)Activator.CreateInstance(type);
+            var obj = (UserType) Activator.CreateInstance(type);
             obj.Unpack(any.Unpack<UserTypeHolder>());
             return obj;
         }
+
         #endregion UserType
     }
 }
