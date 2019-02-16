@@ -15,7 +15,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Network.Handler
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ISingletonDependency
+    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnoucementReceivedEventData>, ISingletonDependency
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
         
@@ -29,14 +29,23 @@ namespace AElf.OS.Network.Handler
         {
             get { return ChainOptions.Value.ChainId.ConvertBase58ToChainId(); }
         }
+        
+        public async Task HandleEventAsync(AnnoucementReceivedEventData eventData)
+        {
+            await ProcessNewBlock(eventData.Header, eventData.Peer);
+        }
             
         public async Task HandleEventAsync(PeerConnectedEventData eventData)
+        {
+            await ProcessNewBlock(eventData.Header, eventData.Peer);
+        }
+
+        private async Task ProcessNewBlock(BlockHeader header, string peer)
         {
             try
             {
                 // todo protect this logic with LIB
-                
-                var blockHash = eventData.Header.GetHash();
+                var blockHash = header.GetHash();
                 var hasBlock = await BlockchainService.HasBlockAsync(ChainId, blockHash);
 
                 // if we have the block, nothing to do.
@@ -46,12 +55,12 @@ namespace AElf.OS.Network.Handler
                     return;
                 }
 
-                var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, eventData.Header.PreviousBlockHash);
-            
+                var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, header.PreviousBlockHash);
+                
                 // we have previous, so we only have one block to get.
                 if (hasPrevious)
                 {
-                    Block block = (Block) await NetworkService.GetBlockByHash(blockHash, eventData.Peer);
+                    Block block = (Block) await NetworkService.GetBlockByHash(blockHash, peer);
                     await BlockchainService.AddBlockAsync(ChainId, block);
                 }
                 else
@@ -63,10 +72,10 @@ namespace AElf.OS.Network.Handler
                     
                     Hash topHash = blockHash;
             
-                    for (ulong i = 0; i < eventData.Header.Height; i -= NetworkConsts.DefaultBlockIdRequestCount)
+                    for (ulong i = 0; i < header.Height; i -= NetworkConsts.DefaultBlockIdRequestCount)
                     {
                         List<Hash> ids = await NetworkService
-                            .GetBlockIds(topHash, NetworkConsts.DefaultBlockIdRequestCount, eventData.Peer); // todo this has to be in order
+                            .GetBlockIds(topHash, NetworkConsts.DefaultBlockIdRequestCount, peer); // todo this has to be in order
 
                         var unlinkableIds = await FindUnlinkableBlocksAsync(ids);
 

@@ -1,12 +1,10 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Events;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Managers.Another;
-using AElf.Kernel.Storages;
-using Org.BouncyCastle.Utilities.Encoders;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
@@ -22,6 +20,7 @@ namespace AElf.Kernel.Services
         Task<Chain> GetChainAsync(int chainId);
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
         Task<List<BlockHeader>> GetBlockHeaders(int chainId, Hash firstHash, int count);
+        Task<BlockHeader> GetBestChainLastBlock(int chainId);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -177,6 +176,11 @@ namespace AElf.Kernel.Services
         public async Task<Chain> GetChainAsync(int chainId)
         {
             return await _chainManager.GetAsync(chainId);
+        }
+
+        public async Task<BlockHeader> GetBestChainLastBlock(int chainId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

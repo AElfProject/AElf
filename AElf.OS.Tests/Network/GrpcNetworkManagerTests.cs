@@ -59,8 +59,12 @@ namespace AElf.OS.Tests.Network
                 mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<int>(), It.IsAny<ulong>()))
                     .Returns<int, ulong>((chainId, h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
             }
+            
+            var mockBlockChainService = new Mock<IFullBlockchainService>();
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+                .Returns(Task.FromResult(new BlockHeader()));
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
             
@@ -146,13 +150,13 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
-            await servicem2.BroadcastAnnounce(genesis.GetHash());
+            await servicem2.BroadcastAnnounce(genesis.Header);
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
         }
         
         [Fact]
@@ -231,13 +235,13 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
-            await servicem2.BroadcastAnnounce(genesis.GetHash());
+            await servicem2.BroadcastAnnounce(genesis.Header);
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
         }
     }
 }

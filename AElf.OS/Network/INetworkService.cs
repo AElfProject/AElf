@@ -13,6 +13,6 @@ namespace AElf.OS.Network
         
         Task<IBlock> GetBlockByHash(Hash hash, string peer);
         Task<List<Hash>> GetBlockIds(Hash topHash, int count, string peer);
-        Task BroadcastAnnounce(Hash b);
+        Task BroadcastAnnounce(BlockHeader blockHeader);
     }
 }

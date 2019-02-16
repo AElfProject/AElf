@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;
@@ -44,7 +45,11 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
+            var mockBlockChainService = new Mock<IFullBlockchainService>();
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+                .Returns(Task.FromResult(new BlockHeader()));
+            
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
             
             GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, null);
             serverService.EventBus = mockLocalEventBus.Object;

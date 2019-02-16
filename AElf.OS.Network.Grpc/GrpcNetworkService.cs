@@ -39,13 +39,13 @@ namespace AElf.OS.Network.Grpc
             return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
-        public async Task BroadcastAnnounce(Hash b)
+        public async Task BroadcastAnnounce(BlockHeader blockHeader)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
-                    await peer.AnnounceAsync(new Announcement { Id = b.Value });
+                    await peer.AnnounceAsync(new Announcement { Header = blockHeader });
                 }
                 catch (Exception e)
                 {

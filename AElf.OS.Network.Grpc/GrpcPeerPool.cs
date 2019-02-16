@@ -4,7 +4,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Services;
 using AElf.OS.Network.Grpc.Events;
 using Google.Protobuf;
 using Grpc.Core;
@@ -21,14 +23,23 @@ namespace AElf.OS.Network.Grpc
         private readonly int _dialTimeout;
             
         private readonly NetworkOptions _networkOptions;
+        private readonly ChainOptions _chainOptions;
+        
         private readonly IAccountService _accountService;
+        private readonly IFullBlockchainService _blockchainService;
         
         private readonly List<GrpcPeer> _authenticatedPeers;
         
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
         
-        public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService)
+        private int ChainId
+        {
+            get { return _chainOptions.ChainId.ConvertBase58ToChainId(); }
+        }
+        
+        public GrpcPeerPool(IOptionsSnapshot<ChainOptions> chainOptions, IOptionsSnapshot<NetworkOptions> networkOptions, 
+            IAccountService accountService, IFullBlockchainService blockChainService)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
@@ -39,6 +50,10 @@ namespace AElf.OS.Network.Grpc
             EventBus = NullLocalEventBus.Instance;
 
             _dialTimeout = networkOptions.Value.PeerDialTimeout ?? NetworkConsts.DefaultPeerDialTimeout;
+
+            _chainOptions = chainOptions.Value;
+
+            _blockchainService = blockChainService;
         }
         
         public async Task<bool> AddPeerAsync(string address)
@@ -159,7 +174,8 @@ namespace AElf.OS.Network.Grpc
             var hsk = new Handshake
             {
                 HskData = nd,
-                Sig = ByteString.CopyFrom(sig)
+                Sig = ByteString.CopyFrom(sig),
+                Header = await _blockchainService.GetBestChainLastBlock(ChainId)
             };
 
             return hsk;

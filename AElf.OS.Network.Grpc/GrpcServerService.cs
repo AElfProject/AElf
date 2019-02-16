@@ -128,11 +128,16 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(Announcement an, ServerCallContext context)
         {
-            Logger.LogTrace($"Received announce {an.Id.ToByteArray().ToHex()} from {context.Peer}.");
-            
             try
             {
-                EventBus.PublishAsync(new AnnoucementReceivedEventData(Hash.LoadByteArray(an.Id.ToByteArray())));
+                // todo temp - use GrpcUrl everywhere
+                var peer = GrpcUrl.Parse(context.Peer);
+                var peerServer = peer.IpAddress + ":" + peer.Port; 
+                
+                var hash = an.Header.GetHash().ToByteArray();
+                Logger.LogTrace($"Received announce {hash.ToHex()} from {context.Peer}.");
+                
+                EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, context.Peer));
             }
             catch (Exception e)
             {
