@@ -22,6 +22,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             _contracts = new ContractsShim(GetRequiredService<MockSetup>(), GetRequiredService<IExecutingService>());
         }
+/*
 
         [Fact]
         public void Initial_Consensus_WaitingTime()
@@ -592,6 +593,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             // Assert
             Assert.NotNull(nextRoundTransactions);
             Assert.True(nextRoundTransactions.Transactions.Count == 4);
-        }
+        }*/
     }
 }

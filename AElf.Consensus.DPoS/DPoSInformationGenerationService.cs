@@ -17,14 +17,16 @@ namespace AElf.Consensus.DPoS
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly ConsensusOptions _consensusOptions;
+        private readonly ChainOptions _chainOptions;
         private DPoSCommand _command;
         private Hash _inValue;
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<ConsensusOptions> options)
+        public DPoSInformationGenerationService(IOptions<ConsensusOptions> consensusOptions, IOptions<ChainOptions> chainOptions)
         {
-            _consensusOptions = options.Value;
+            _consensusOptions = consensusOptions.Value;
+            _chainOptions = chainOptions.Value;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }

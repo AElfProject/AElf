@@ -2,7 +2,9 @@
 using AElf.Consensus.DPoS;
 using AElf.Crosschain;
 using AElf.Execution;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Services;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
@@ -12,6 +14,7 @@ using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.SideChain.Creation;
+using AElf.TxPool;
 using AElf.Wallet.Rpc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +25,7 @@ using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Data;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
@@ -43,7 +47,8 @@ namespace AElf.Launcher
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule),
         typeof(DPoSConsensusModule),
-        typeof(GrpcNetworkModule))]
+        typeof(GrpcNetworkModule),
+        typeof(TxPoolAElfModule))]
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;
@@ -67,7 +72,10 @@ namespace AElf.Launcher
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var connectionStrings = context.ServiceProvider.GetService<IOptions<DbConnectionOptions>>();
-            
+
+            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
+            var minerService = context.ServiceProvider.GetService<IMinerService>();
+            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.Mine(eventData.ChainId));
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

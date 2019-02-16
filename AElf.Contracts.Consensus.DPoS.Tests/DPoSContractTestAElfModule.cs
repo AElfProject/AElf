@@ -1,4 +1,6 @@
+using AElf.Contracts.TestBase;
 using AElf.Execution;
+using AElf.Kernel;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -6,8 +8,12 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBase.ContractTestAElfModule),
-        typeof(ExecutionAElfModule)
+        typeof(ChainController.ChainControllerAElfModule),
+        typeof(SmartContract.SmartContractAElfModule),
+        typeof(Runtime.CSharp.CSharpRuntimeAElfModule),
+        typeof(ContractTestAElfModule),
+        typeof(ExecutionAElfModule),
+        typeof(KernelAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class DPoSContractTestAElfModule : AElfModule

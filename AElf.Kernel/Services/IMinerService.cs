@@ -9,7 +9,5 @@ namespace AElf.Kernel.Services
         /// </summary>
         /// <returns>The block that has been produced</returns>
         Task<IBlock> Mine(int chainId);
-
-        Task Initialize();
     }
 }

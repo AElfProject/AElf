@@ -31,6 +31,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             GenerateConsensusTransactions,
             ValidateConsensus
         }
+/*
 
         [Fact]
         public void ConsensusInitializationTest()
@@ -180,7 +181,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var normalTransaction = normalTransactions.Transactions.First();
 
             Assert.True(normalTransaction.MethodName == "PackageOutValue");
-        }
+        }*/
 
         private ByteString GetReturnData()
         {

@@ -166,13 +166,6 @@ namespace AElf.Kernel.Services
             }
         }
 
-        public Task Initialize()
-        {
-            EventBus.Subscribe<BlockMiningEventData>(data => { return Task.CompletedTask; });
-            //EventBus.Subscribe<BlockMiningEventData>(async eventData => { await Mine(eventData.ChainId); });
-            return Task.CompletedTask;
-        }
-
         private async Task GenerateSystemTransactions(int chainId)
         {
             var prevHeight = await _blockChain.GetCurrentBlockHeightAsync();

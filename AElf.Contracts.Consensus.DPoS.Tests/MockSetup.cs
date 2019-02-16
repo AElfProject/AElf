@@ -45,7 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Task.Factory.StartNew(async () => { await Initialize(); }).Unwrap().Wait();
         }
 
-        public string ConsensusContractName => "AElf.Contracts.Consensus.DPoS";
+        public string ConsensusContractName => "AElf.Contracts.Consensus.DPoS2";
         public string DividendsContractName => "AElf.Contracts.Dividends";
         public string TokenContractName => "AElf.Contracts.Token";
         public string ZeroContractName => "AElf.Contracts.Genesis";
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             var consensusReg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 2,
                 ContractBytes = ByteString.CopyFrom(GetContractCode(ConsensusContractName)),
                 ContractHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
                 SerialNumber = GlobalConfig.DPoSContract

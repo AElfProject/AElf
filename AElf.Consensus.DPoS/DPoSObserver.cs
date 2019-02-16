@@ -11,7 +11,7 @@ namespace AElf.Consensus.DPoS
     // ReSharper disable once InconsistentNaming
     public class DPoSObserver : IConsensusObserver
     {
-        public IEventBus EventBus { get; set; }
+        public ILocalEventBus EventBus { get; set; }
 
         public ILogger<DPoSObserver> Logger { get; set; }
 

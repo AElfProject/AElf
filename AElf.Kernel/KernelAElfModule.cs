@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -59,14 +58,6 @@ namespace AElf.Kernel
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
-            {
-                GlobalConfig.BlockProducerNumber = 1;
-            }
-
-            var myService = context.ServiceProvider.GetService<IMinerService>();
-            AsyncHelper.RunSync(myService.Initialize);
-            
             //TODO! change log output 
             
             var loggerFactory = context.ServiceProvider.GetService<ILoggerFactory>();
