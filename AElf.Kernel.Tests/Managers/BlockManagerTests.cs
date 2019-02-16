@@ -40,6 +40,7 @@ namespace AElf.Kernel.Tests.Managers
                 Height = 1
             };
             var hash = header.GetHash();
+            await _blockManager.AddBlockHeaderAsync(header);
             var h = await _blockManager.GetBlockHeaderAsync(hash);
             Assert.Equal(header, h);
 
