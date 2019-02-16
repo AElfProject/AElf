@@ -138,13 +138,13 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("Call", "rawTx")]
-        public async Task<JObject> CallReadOnly(string rawTx)
+        [JsonRpcMethod("Call", "rawTransaction")]
+        public async Task<JObject> CallReadOnly(string rawTransaction)
         {
             byte[] response;
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTx);
+                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 response = await this.CallReadOnly(_chainId, transaction);
             }
@@ -160,19 +160,19 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("BroadcastTx", "rawTx")]
-        public async Task<JObject> BroadcastTx(string rawTx)
+        [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
+        public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
             if (!_canBroadcastTxs)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotSendTx,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotSendTx]);
+                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotBroadcastTransaction,
+                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotBroadcastTransaction]);
             }
 
             Transaction transaction;
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTx);
+                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 transaction = Transaction.Parser.ParseFrom(hexString);
             }
             catch
@@ -181,7 +181,7 @@ namespace AElf.ChainController.Rpc
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
             }
 
-            var response = new JObject {["txId"] = transaction.GetHash().ToHex()};
+            var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
 
             //TODO: Wait validation done
             transaction.GetTransactionInfo();
@@ -190,30 +190,30 @@ namespace AElf.ChainController.Rpc
             return response;
         }
 
-        [JsonRpcMethod("BroadcastTxs", "rawTxs")]
-        public async Task<JObject> BroadcastTxs(string rawTxs)
+        [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
+        public async Task<JObject> BroadcastTransactions(string rawTransactions)
         {
             if (!_canBroadcastTxs)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotSendTx,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotSendTx]);
+                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotBroadcastTransaction,
+                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotBroadcastTransaction]);
             }
 
             var response = new List<object>();
 
-            foreach (var rawTx in rawTxs.Split(','))
+            foreach (var rawTransaction in rawTransactions.Split(','))
             {
                 JObject result;
                 try
                 {
-                    result = await BroadcastTx(rawTx);
+                    result = await BroadcastTransaction(rawTransaction);
                 }
                 catch
                 {
                     break;
                 }
 
-                response.Add(result["txId"].ToString());
+                response.Add(result["TransactionId"].ToString());
             }
 
             return new JObject
@@ -222,29 +222,29 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("GetTxMerklePath", "txId")]
-        public async Task<JObject> GetTxMerklePath(string txId)
+        [JsonRpcMethod("GetTransactionMerklePath", "TransactionId")]
+        public async Task<JObject> GetTransactionMerklePath(string transactionId)
         {
-            Hash txHash;
+            Hash transactionHash;
             try
             {
-                txHash = Hash.LoadHex(txId);
+                transactionHash = Hash.LoadHex(transactionId);
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTxId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTxId]);
+                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
+                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
             }
 
-            var txResult = await this.GetTransactionResult(txHash);
-            if (txResult == null)
+            var transactionResult = await this.GetTransactionResult(transactionHash);
+            if (transactionResult == null)
             {
                 throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
             }
 
-            var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, txResult.BlockNumber);
-            var merklePath = binaryMerkleTree.GenerateMerklePath(txResult.Index);
+            var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, transactionResult.BlockNumber);
+            var merklePath = binaryMerkleTree.GenerateMerklePath(transactionResult.Index);
             if (merklePath == null)
             {
                 throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
@@ -255,8 +255,8 @@ namespace AElf.ChainController.Rpc
             ulong boundParentChainHeight = 0;
             try
             {
-                merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, txResult.BlockNumber);
-                boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, txResult.BlockNumber);
+                merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, transactionResult.BlockNumber);
+                boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, transactionResult.BlockNumber);
             }
             catch (Exception e)
             {
@@ -286,31 +286,31 @@ namespace AElf.ChainController.Rpc
             return new JObject
             {
                 ["ParentChainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
-                ["SideChainTxsRoot"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
+                ["SideChainTransactionsRoot"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
                 ["ParentHeight"] = merklePathInParentChain.Height
             };
         }
 
-        [JsonRpcMethod("GetTxResult", "txId")]
-        public async Task<JObject> GetTxResult(string txId)
+        [JsonRpcMethod("GetTransactionResult", "transactionId")]
+        public async Task<JObject> GetTransactionResult(string transactionId)
         {
-            Hash txHash;
+            Hash transactionHash;
             try
             {
-                txHash = Hash.LoadHex(txId);
+                transactionHash = Hash.LoadHex(transactionId);
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTxId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTxId]);
+                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
+                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
             }
 
-            var response = await GetTx(txHash);
+            var response = await GetTransaction(transactionHash);
             return response;
         }
 
-        [JsonRpcMethod("GetTxsResult", "blockHash", "offset", "num")]
-        public async Task<JObject> GetTxsResult(string blockHash, int offset = 0, int num = 10)
+        [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "num")]
+        public async Task<JObject> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
         {
             if (offset < 0)
             {
@@ -342,25 +342,25 @@ namespace AElf.ChainController.Rpc
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
             }
 
-            var txs = new JArray();
+            var transactions = new JArray();
 
             if (offset <= block.Body.Transactions.Count - 1)
             {
                 num = Math.Min(num, block.Body.Transactions.Count - offset);
 
-                var txHashs = block.Body.Transactions.ToList().GetRange(offset, num);
-                foreach (var hash in txHashs)
+                var transactionHashs = block.Body.Transactions.ToList().GetRange(offset, num);
+                foreach (var hash in transactionHashs)
                 {
-                    txs.Add(await GetTx(hash));
+                    transactions.Add(await GetTransaction(hash));
                 }
             }
 
-            return new JObject {txs};
+            return new JObject {transactions};
         }
 
-        private async Task<JObject> GetTx(Hash txHash)
+        private async Task<JObject> GetTransaction(Hash transactionHash)
         {
-            var receipt = await this.GetTransactionReceipt(txHash);
+            var receipt = await this.GetTransactionReceipt(transactionHash);
             if (receipt == null)
             {
                 throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
@@ -368,10 +368,10 @@ namespace AElf.ChainController.Rpc
             }
 
             var transaction = receipt.Transaction;
-            var txInfo = transaction.GetTransactionInfo();
+            var transactionInfo = transaction.GetTransactionInfo();
             try
             {
-                ((JObject) txInfo["Tx"]).Add("params",
+                ((JObject) transactionInfo["Transaction"]).Add("params",
                     (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(_chainId, transaction))
                 );
             }
@@ -381,48 +381,49 @@ namespace AElf.ChainController.Rpc
                 // Ignore for now
             }
 
-            ((JObject) txInfo["Tx"]).Add("SignatureState", receipt.SignatureStatus.ToString());
-            ((JObject) txInfo["Tx"]).Add("RefBlockState", receipt.RefBlockStatus.ToString());
-            ((JObject) txInfo["Tx"]).Add("ExecutionState", receipt.TransactionStatus.ToString());
-            ((JObject) txInfo["Tx"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
+            ((JObject) transactionInfo["Transaction"]).Add("SignatureState", receipt.SignatureStatus.ToString());
+            ((JObject) transactionInfo["Transaction"]).Add("RefBlockState", receipt.RefBlockStatus.ToString());
+            ((JObject) transactionInfo["Transaction"]).Add("ExecutionState", receipt.TransactionStatus.ToString());
+            ((JObject) transactionInfo["Transaction"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
 
-            var txResult = await this.GetTransactionResult(txHash);
+            var transactionResult = await this.GetTransactionResult(transactionHash);
             var response = new JObject
             {
-                ["TxStatus"] = txResult.Status.ToString(),
-                ["TxInfo"] = txInfo["Tx"]
+                ["TransactionStatus"] = transactionResult.Status.ToString(),
+                ["TransactionInfo"] = transactionInfo["Transaction"]
             };
-            var txtrc = await this.GetTransactionTrace(_chainId, txHash, txResult.BlockNumber);
+            var transactionTrace = await this.GetTransactionTrace(_chainId, transactionHash, transactionResult
+            .BlockNumber);
 
 #if DEBUG
-            response["TxTrc"] = txtrc?.ToString();
+            response["TransactionTrace"] = transactionTrace?.ToString();
 #endif
 
-            if (txResult.Status == TransactionResultStatus.Failed)
+            if (transactionResult.Status == TransactionResultStatus.Failed)
             {
-                response["TxError"] = txResult.RetVal.ToStringUtf8();
+                response["TransactionError"] = transactionResult.RetVal.ToStringUtf8();
             }
 
-            if (txResult.Status == TransactionResultStatus.Mined)
+            if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                response["Bloom"] = txResult.Bloom.ToByteArray().ToHex();
-                response["Logs"] = (JArray) JsonConvert.DeserializeObject(txResult.Logs.ToString());
-                response["BlockNumber"] = txResult.BlockNumber;
-                response["BlockHash"] = txResult.BlockHash.ToHex();
-                response["ReturnType"] = txtrc?.RetVal.Type.ToString();
+                response["Bloom"] = transactionResult.Bloom.ToByteArray().ToHex();
+                response["Logs"] = (JArray) JsonConvert.DeserializeObject(transactionResult.Logs.ToString());
+                response["BlockNumber"] = transactionResult.BlockNumber;
+                response["BlockHash"] = transactionResult.BlockHash.ToHex();
+                response["ReturnType"] = transactionTrace?.RetVal.Type.ToString();
                 try
                 {
-                    if (txtrc?.RetVal.Type == RetVal.Types.RetType.String)
+                    if (transactionTrace?.RetVal.Type == RetVal.Types.RetType.String)
                     {
-                        response["Return"] = txResult.RetVal.ToStringUtf8();
+                        response["Return"] = transactionResult.RetVal.ToStringUtf8();
                     }
                     else
-                        response["Return"] = Address.FromBytes(txResult.RetVal.ToByteArray()).GetFormatted();
+                        response["Return"] = Address.FromBytes(transactionResult.RetVal.ToByteArray()).GetFormatted();
                 }
                 catch (Exception)
                 {
-                    // not an error
-                    response["Return"] = txResult.RetVal.ToByteArray().ToHex();
+                    // not an error`
+                    response["Return"] = transactionResult.RetVal.ToByteArray().ToHex();
                 }
             }
             // Todo: it should be deserialized to obj ion cli, 
@@ -441,8 +442,8 @@ namespace AElf.ChainController.Rpc
             return response;
         }
 
-        [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTxs")]
-        public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTxs = false)
+        [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
+        public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
         {
             var blockInfo = await this.GetBlockAtHeight(_chainId, blockHeight);
             if (blockInfo == null)
@@ -474,7 +475,7 @@ namespace AElf.ChainController.Rpc
                 }
             };
 
-            if (includeTxs)
+            if (includeTransactions)
             {
                 var transactions = blockInfo.Body.Transactions;
                 var txs = new List<string>();
@@ -489,8 +490,8 @@ namespace AElf.ChainController.Rpc
             return response;
         }
 
-        [JsonRpcMethod("GetTxPoolSize")]
-        public async Task<JObject> GetTxPoolSize()
+        [JsonRpcMethod("GetTransactionPoolSize")]
+        public async Task<JObject> GetTransactionPoolSize()
         {
             var transactionPoolSize = await this.GetTransactionPoolSize();
             var response = new JObject
