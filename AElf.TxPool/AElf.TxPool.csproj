@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Core" Version="0.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="EventMessages" />
+    </ItemGroup>
+
+</Project>

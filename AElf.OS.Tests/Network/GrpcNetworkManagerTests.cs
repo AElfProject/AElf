@@ -22,15 +22,13 @@ namespace AElf.OS.Tests.Network
     public class GrpcNetworkManagerTests : OSTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly IAccountService _accountService;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            _accountService = GetRequiredService<IAccountService>();
         }
 
-        private GrpcNetworkServer BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
+        private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
@@ -55,11 +53,15 @@ namespace AElf.OS.Tests.Network
                 mockBlockService.Setup(bs => bs.GetBlockByHeight(It.IsAny<ulong>()))
                     .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == 1)));
             }
+
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object);
+            serverService.EventBus = mockLocalEventBus.Object;
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, _accountService, mockBlockService.Object);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
             netServer.EventBus = mockLocalEventBus.Object;
 
-            return netServer;
+            return (netServer, grpcPeerPool);
         }
 
         [Fact]
@@ -83,24 +85,24 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6802
             });
             
-            await m1.StartAsync();
-            await m2.StartAsync();
-            await m3.StartAsync();
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            await m3.Item1.StartAsync();
 
-            var service1 = new GrpcNetworkService(m1);
-            var service2 = new GrpcNetworkService(m2);
-            var service3 = new GrpcNetworkService(m3);
+            var service1 = new GrpcNetworkService(m1.Item2);
+            var service2 = new GrpcNetworkService(m2.Item2);
+            var service3 = new GrpcNetworkService(m3.Item2);
 
             IBlock b = await service2.GetBlockByHash(genesis.GetHash());
             IBlock bbh = await service3.GetBlockByHeight(genesis.Height);
 
-            await m1.StopAsync();
-            await m2.StopAsync();
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
             
             Assert.NotNull(b);
             Assert.NotNull(bbh);
 
-            await m3.StopAsync();
+            await m3.Item1.StopAsync();
         }
         
         [Fact]
@@ -132,16 +134,16 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.StartAsync();
-            await m2.StartAsync();
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2);
+            var servicem2 = new GrpcNetworkService(m2.Item2);
             await servicem2.BroadcastAnnounce(genesis.GetHash());
             
-            await m1.StopAsync();
-            await m2.StopAsync();
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
             Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
@@ -176,16 +178,16 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.StartAsync();
-            await m2.StartAsync();
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2);
+            var servicem2 = new GrpcNetworkService(m2.Item2);
             await servicem2.BroadcastTransaction(new Transaction());
             
-            await m1.StopAsync();
-            await m2.StopAsync();
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
         }
@@ -217,16 +219,16 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.StartAsync();
-            await m2.StartAsync();
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2);
+            var servicem2 = new GrpcNetworkService(m2.Item2);
             await servicem2.BroadcastAnnounce(genesis.GetHash());
             
-            await m1.StopAsync();
-            await m2.StopAsync();
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
             
             Assert.True(receivedEventDatas.Count == 1);
             Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());

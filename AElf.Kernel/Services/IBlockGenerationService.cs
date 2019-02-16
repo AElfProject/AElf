@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 
@@ -15,6 +16,7 @@ namespace AElf.Kernel.Services
     public interface IBlockGenerationService
     {
         Task<Block> GenerateBlockAsync(GenerateBlockDto generateBlockDto);
+        void FillBlockAsync(Block block, HashSet<TransactionResult> results);
         
     }
 }

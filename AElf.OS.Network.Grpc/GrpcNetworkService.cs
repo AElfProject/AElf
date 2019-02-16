@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -13,34 +12,35 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkService : INetworkService, ISingletonDependency
     {
-        private ILogger<GrpcNetworkServer> _logger;
+        private readonly IPeerPool _peerPool;
         
-        private IAElfNetworkServer _server;
+        public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcNetworkService(IAElfNetworkServer server)
+        public GrpcNetworkService(IPeerPool peerPool)
         {
-            _server = server;
-            _logger = NullLogger<GrpcNetworkServer>.Instance;
+            _peerPool = peerPool;
+            
+            Logger = NullLogger<GrpcServerService>.Instance;
         }
 
         public async Task AddPeerAsync(string address)
         {
-            await _server.AddPeerAsync(address);
+            await _peerPool.AddPeerAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _server.RemovePeerAsync(address);
+            return await _peerPool.RemovePeerAsync(address);
         }
 
         public List<string> GetPeers()
         {
-            return _server.GetPeers().Select(p => p.PeerAddress).ToList();
+            return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
         public async Task BroadcastAnnounce(Hash b)
         {
-            foreach (var peer in _server.GetPeers())
+            foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
@@ -48,14 +48,14 @@ namespace AElf.OS.Network.Grpc
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error while sending block."); // todo improve
+                    Logger.LogError(e, "Error while sending block."); // todo improve
                 }
             }
         }
 
         public async Task BroadcastTransaction(Transaction tx)
         {
-            foreach (var peer in _server.GetPeers())
+            foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
@@ -63,7 +63,7 @@ namespace AElf.OS.Network.Grpc
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error while sending transaction."); // todo improve
+                    Logger.LogError(e, "Error while sending transaction."); // todo improve
                 }
             }
         }
@@ -81,17 +81,17 @@ namespace AElf.OS.Network.Grpc
         private async Task<IBlock> GetBlock(BlockRequest request, string peer = null)
         {
             // todo use peer if specified
-            foreach (var p in _server.GetPeers())
+            foreach (var p in _peerPool.GetPeers())
             {
                 try
                 {
                     if (p == null)
                     {
-                        _logger.LogWarning("No peers left.");
+                        Logger.LogWarning("No peers left.");
                         return null;
                     }
             
-                    _logger.LogDebug($"Attempting get with {p}");
+                    Logger.LogDebug($"Attempting get with {p}");
 
                     BlockReply block = await p.RequestBlockAsync(request);
 
@@ -100,7 +100,7 @@ namespace AElf.OS.Network.Grpc
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error while requesting block.");
+                    Logger.LogError(e, "Error while requesting block.");
                 }
             }
 

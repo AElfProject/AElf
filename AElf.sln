@@ -158,9 +158,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
 ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
-	build.sh = build.sh
-	deploy.sh = deploy.sh
-	install_protobuf.sh = install_protobuf.sh
+	scripts\build.sh = scripts\build.sh
+	scripts\deploy.sh = scripts\deploy.sh
+	scripts\install_chakracore.sh = scripts\install_chakracore.sh
+	scripts\install_protobuf.sh = scripts\install_protobuf.sh
+	scripts\download_chakracore.sh = scripts\download_chakracore.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -208,6 +210,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\user_type_holder.proto = protobuf\user_type_holder.proto
 	protobuf\peer_service.proto = protobuf\peer_service.proto
 EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TxPool", "AElf.TxPool\AElf.TxPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -519,6 +523,10 @@ Global
 		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9FD95FA-909C-4396-9DE8-954A1373B351}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9FD95FA-909C-4396-9DE8-954A1373B351}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9FD95FA-909C-4396-9DE8-954A1373B351}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9FD95FA-909C-4396-9DE8-954A1373B351}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6875BAB1-307C-4BF7-A729-5C5F0BED838D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6875BAB1-307C-4BF7-A729-5C5F0BED838D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6875BAB1-307C-4BF7-A729-5C5F0BED838D}.Release|Any CPU.ActiveCfg = Release|Any CPU
