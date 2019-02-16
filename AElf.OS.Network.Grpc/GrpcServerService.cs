@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc.Events;
 using AElf.OS.Network.Temp;
@@ -21,20 +22,29 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase, IAElfServerService
     {
+        private readonly ChainOptions _chainOptions;
+        
         private readonly IPeerPool _peerPool;
-        private readonly IBlockService _blockService;
+        private readonly IFullBlockchainService _blockChainService;
         
         public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcServerService> Logger;
         
-        public GrpcServerService(IPeerPool peerPool, IBlockService blockService)
+        private int ChainId
+        {
+            get { return _chainOptions.ChainId.ConvertBase58ToChainId(); }
+        }
+        
+        public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IFullBlockchainService blockChainService)
         {
             _peerPool = peerPool;
-            _blockService = blockService;
+            _blockChainService = blockChainService;
             
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
+
+            _chainOptions = options.Value;
         }
 
         /// <summary>
@@ -146,11 +156,11 @@ namespace AElf.OS.Network.Grpc
                 Block block;
                 if (request.Id != null && request.Id.Length > 0)
                 {
-                    block = _blockService.GetBlockAsync(Hash.LoadByteArray(request.Id.ToByteArray())).Result;
+                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHashAsync(ChainId, Hash.LoadByteArray(request.Id.ToByteArray())));
                 }
                 else
                 {
-                    block = _blockService.GetBlockByHeight((ulong)request.BlockNumber).Result;
+                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.BlockNumber));
                 }
                 
                 return Task.FromResult(new BlockReply { Block = block });

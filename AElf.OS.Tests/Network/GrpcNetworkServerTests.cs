@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;
@@ -15,10 +17,15 @@ namespace AElf.OS.Tests.Network
     public class GrpcNetworkConnectionTests : OSTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
-            
+        private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            
+            var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
+            _optionsMock = optionsMock.Object;
         }
         
         private (GrpcNetworkServer, IPeerPool) BuildGrpcNetworkServer(NetworkOptions networkOptions, Action<object> eventCallBack = null)
@@ -39,7 +46,7 @@ namespace AElf.OS.Tests.Network
             
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
             
-            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, null);
+            GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, null);
             serverService.EventBus = mockLocalEventBus.Object;
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);

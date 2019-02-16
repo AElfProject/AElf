@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Services;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -22,10 +23,15 @@ namespace AElf.OS.Tests.Network
     public class GrpcNetworkManagerTests : OSTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            
+            var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
+            _optionsMock = optionsMock.Object;
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
@@ -44,18 +50,18 @@ namespace AElf.OS.Tests.Network
                     .Callback<object>(m => eventCallBack(m));
             }
 
-            var mockBlockService = new Mock<IBlockService>();
+            var mockBlockService = new Mock<IFullBlockchainService>();
             if (blockList != null)
             {
-                mockBlockService.Setup(bs => bs.GetBlockAsync(It.IsAny<Hash>()))
-                    .Returns<Hash>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
+                mockBlockService.Setup(bs => bs.GetBlockByHashAsync(It.IsAny<int>(), It.IsAny<Hash>()))
+                    .Returns<int, Hash>((chainId, h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
                 
-                mockBlockService.Setup(bs => bs.GetBlockByHeight(It.IsAny<ulong>()))
-                    .Returns<ulong>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == 1)));
+                mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<int>(), It.IsAny<ulong>()))
+                    .Returns<int, ulong>((chainId, h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
             }
 
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object);
-            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object);
+            GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
