@@ -12,7 +12,6 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Domain;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
@@ -26,7 +25,6 @@ namespace AElf.Kernel.Services
     {
         public ILogger<MinerService> Logger {get;set;}
         private readonly ITxHub _txHub;
-        private readonly IExecutingService _executingService;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
@@ -35,13 +33,11 @@ namespace AElf.Kernel.Services
 
         private const float RatioMine = 0.3f;
 
-        public MinerService(ITxHub txHub, 
-            IExecutingService executingService, IAccountService accountService, IBlockGenerationService blockGenerationService, 
+        public MinerService(ITxHub txHub,  IAccountService accountService, IBlockGenerationService blockGenerationService, 
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService)
         {
             _txHub = txHub;
-            _executingService = executingService;
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;

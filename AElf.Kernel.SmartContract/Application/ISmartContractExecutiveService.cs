@@ -23,7 +23,8 @@ namespace AElf.Kernel.SmartContract.Application
     
     public class SmartContractExecutiveService: ISmartContractExecutiveService
     {
-        
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+
         
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
@@ -62,7 +63,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             return pool;
         }
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, Hash contractHash)
+        public async Task<IExecutive> GetExecutiveAsync(int chainId, Hash contractHash,)
         {
             var pool = await GetPoolForAsync(contractHash);
             if (!pool.TryTake(out var executive))
