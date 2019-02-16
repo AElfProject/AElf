@@ -21,7 +21,7 @@ namespace AElf.Common
         public const ulong GenesisBlockHeight = 1;
         
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
-        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
+        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus.DPoS2";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";

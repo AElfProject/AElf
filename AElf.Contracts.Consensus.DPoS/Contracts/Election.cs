@@ -185,7 +185,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult ReceiveDividends(string transactionId)
+        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
             if (_dataStructures.VotingRecordsMap.TryGet(Hash.LoadHex(transactionId), out var votingRecord) &&
                 votingRecord.From == Api.RecoverPublicKey().ToHex())
@@ -197,7 +197,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
         }
 
-        public ActionResult ReceiveDividends()
+        public ActionResult ReceiveAllDividends()
         {
             if (_dataStructures.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
             {

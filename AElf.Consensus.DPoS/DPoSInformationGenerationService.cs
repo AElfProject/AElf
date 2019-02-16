@@ -7,6 +7,8 @@ using AElf.Kernel;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Consensus.DPoS
@@ -18,9 +20,13 @@ namespace AElf.Consensus.DPoS
         private DPoSCommand _command;
         private Hash _inValue;
 
+        public ILogger<DPoSInformationGenerationService> Logger { get; set; }
+
         public DPoSInformationGenerationService(IOptions<ConsensusOptions> options)
         {
             _consensusOptions = options.Value;
+
+            Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
         
         public byte[] GenerateExtraInformationAsync()
@@ -130,6 +136,8 @@ namespace AElf.Consensus.DPoS
         public void Tell(byte[] consensusCommand)
         {
             _command = DPoSCommand.Parser.ParseFrom(consensusCommand);
+
+            Logger.LogInformation(_command.ToString());
         }
     }
 }

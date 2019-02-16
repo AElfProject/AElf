@@ -1,4 +1,5 @@
 ﻿using AElf.ChainController.Rpc;
+using AElf.Consensus.DPoS;
 using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel.Consensus;
@@ -38,9 +39,10 @@ namespace AElf.Launcher
         typeof(CSharpRuntimeAElfModule2),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
-        typeof(CrossChainAElfModule),
+        //typeof(CrossChainAElfModule),
         typeof(NetworkAElfModule),
         typeof(ConsensusKernelAElfModule),
+        typeof(DPoSConsensusModule),
         typeof(GrpcNetworkModule))]
     public class LauncherAElfModule : AElfModule
     {

@@ -179,7 +179,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult ReceiveDividends(string transactionId)
+        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
             if (votingRecord.IsNotEmpty() &&
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
         }
 
-        public ActionResult ReceiveDividends()
+        public ActionResult ReceiveAllDividends()
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
             if (tickets.IsNotEmpty())
@@ -215,7 +215,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Withdraw(string transactionId, bool withoutLimitation)
+        public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
             if (votingRecord.IsNotEmpty())
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Withdraw(bool withoutLimitation = false)
+        public ActionResult WithdrawAll(bool withoutLimitation = false)
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;

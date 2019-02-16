@@ -967,12 +967,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
-            return Election.ReceiveDividends(transactionId);
+            return Election.ReceiveDividendsByTransactionId(transactionId);
         }
 
         public ActionResult ReceiveAllDividends()
         {
-            return Election.ReceiveDividends();
+            return Election.ReceiveAllDividends();
         }
 
         public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)

@@ -11,13 +11,14 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Consensus
 {
     public class ConsensusService : IConsensusService
     {
-        private readonly ConsensusOptions _consensusOptions;
         private readonly IConsensusObserver _consensusObserver;
         private readonly IExecutingService _executingService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
@@ -27,17 +28,36 @@ namespace AElf.Consensus
 
         private byte[] _latestGeneratedConsensusInformation;
 
-        public ConsensusService(IOptions<ConsensusOptions> options, IConsensusObserver consensusObserver,
-            IExecutingService executingService,
+        public ILogger<ConsensusService> Logger { get; set; }
+
+        public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
             IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService)
         {
-            _consensusOptions = options.Value;
-
             _consensusObserver = consensusObserver;
             _executingService = executingService;
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
+
+            Logger = NullLogger<ConsensusService>.Instance;
+        }
+
+        public async Task StartConsensus(int chainId)
+        {
+            var consensusCommand = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+                ConsensusMethod.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
+
+            // Initial or update the schedule.
+            _consensusObservables?.Dispose();
+            _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
+
+            _consensusInformationGenerationService.Tell(consensusCommand);
+        }
+
+        public Task StopConsensus()
+        {
+            _consensusObservables?.Dispose();
+            return Task.CompletedTask;
         }
 
         public async Task<bool> ValidateConsensus(int chainId, byte[] consensusInformation)
@@ -69,20 +89,6 @@ namespace AElf.Consensus
                 .ToList();
 
             return generatedTransactions;
-        }
-
-        public async Task<byte[]> GetConsensusCommand(int chainId)
-        {
-            var consensusCommand = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
-                ConsensusMethod.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
-
-            // Initial or update the schedule.
-            _consensusObservables?.Dispose();
-            _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
-
-            _consensusInformationGenerationService.Tell(consensusCommand);
-
-            return consensusCommand;
         }
 
         private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, ConsensusMethod consensusMethod,

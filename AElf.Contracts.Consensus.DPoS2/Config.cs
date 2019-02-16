@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
             "BB", "MM", "DZ", "JJ", "DD"
         };
 
-        public static int InitialWaitingMilliseconds = 8000;
+        public static int InitialWaitingMilliseconds = 4000;
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {

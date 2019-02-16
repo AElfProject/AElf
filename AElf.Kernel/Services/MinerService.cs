@@ -9,11 +9,12 @@ using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
+using Akka.IO;
 using Easy.MessageHub;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Services
 {
@@ -55,8 +56,6 @@ namespace AElf.Kernel.Services
             _accountService = accountService;
             
             EventBus = NullLocalEventBus.Instance;
-
-            EventBus.Subscribe<BlockMiningEventData>(async eventData => { await Mine(eventData.ChainId); });
         }
         
         /// <inheritdoc />
@@ -165,6 +164,13 @@ namespace AElf.Kernel.Services
                 Logger.LogError(e, "Mining failed with exception.");
                 return null;
             }
+        }
+
+        public Task Initialize()
+        {
+            EventBus.Subscribe<BlockMiningEventData>(data => { return Task.CompletedTask; });
+            //EventBus.Subscribe<BlockMiningEventData>(async eventData => { await Mine(eventData.ChainId); });
+            return Task.CompletedTask;
         }
 
         private async Task GenerateSystemTransactions(int chainId)

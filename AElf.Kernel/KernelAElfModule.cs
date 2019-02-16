@@ -5,6 +5,7 @@ using AElf.Common.Serializers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Database;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Modularity;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -40,6 +42,8 @@ namespace AElf.Kernel
             services.AddTransient(
                 typeof(IEqualityIndex<>), 
                 typeof(EqualityIndex<,>));
+
+            services.AddSingleton<IMinerService, MinerService>();
             
             services.AddTransient(
                 typeof(IComparisionIndex<>), 
@@ -60,6 +64,8 @@ namespace AElf.Kernel
                 GlobalConfig.BlockProducerNumber = 1;
             }
 
+            var myService = context.ServiceProvider.GetService<IMinerService>();
+            AsyncHelper.RunSync(myService.Initialize);
             
             //TODO! change log output 
             
