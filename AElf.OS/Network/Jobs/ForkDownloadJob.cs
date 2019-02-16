@@ -2,10 +2,10 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Services;
-using AElf.OS.Network;
+using AElf.OS.Jobs;
 using Microsoft.Extensions.Options;
 
-namespace AElf.OS.Jobs
+namespace AElf.OS.Network.Jobs
 {
     public class ForkDownloadJob : AsyncBackgroundJob<ForkDownloadJobArgs>
     {

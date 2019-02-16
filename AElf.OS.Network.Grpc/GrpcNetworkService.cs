@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -105,6 +106,17 @@ namespace AElf.OS.Network.Grpc
             }
 
             return null;
+        }
+
+        public async Task<List<Hash>> GetBlockIds(Hash topHash, int count, string peer)
+        {
+            GrpcPeer grpcPeer = _peerPool.FindPeer(peer);
+            var blockIds = await grpcPeer.GetBlockIds(new BlockIdsRequest { 
+                FirstBlockId = topHash.Value,  
+                Count = count
+            });
+
+            return blockIds.Ids.Select(id => Hash.FromRawBytes(id.ToByteArray())).ToList();
         }
     }
 }

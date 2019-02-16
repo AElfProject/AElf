@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using Grpc.Core;
 
@@ -32,6 +34,11 @@ namespace AElf.OS.Network.Grpc
         public async Task<BlockReply> RequestBlockAsync(BlockRequest blockHash)
         {
             return await _client.RequestBlockAsync(blockHash);
+        }
+
+        public async Task<BlockIdList> GetBlockIds(BlockIdsRequest idsRequest)
+        {
+            return await _client.RequestBlockIdsAsync(idsRequest);
         }
 
         public async Task AnnounceAsync(Announcement an)

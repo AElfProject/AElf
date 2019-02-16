@@ -19,6 +19,7 @@ namespace AElf.Kernel.Services
         Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
         Task<Chain> GetChainAsync(int chainId);
+        Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -123,7 +124,6 @@ namespace AElf.Kernel.Services
                 }
             }
 
-
             return blockLinks;
         }
 
@@ -133,10 +133,15 @@ namespace AElf.Kernel.Services
             await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
         }
 
-
         public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
         {
             return await _blockManager.GetBlockAsync(blockId);
+        }
+
+        public async Task<Block> GetBlockByHeightAsync(int chainId, ulong height)
+        {
+            var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
+            return await GetBlockByHashAsync(chainId, index.BlockHash);
         }
 
         public async Task<Chain> GetChainAsync(int chainId)
