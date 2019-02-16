@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -175,7 +176,22 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
         {
-            return base.RequestBlockIds(request, context); // todo 
+            try
+            {
+                var headers = AsyncHelper.RunSync(() => _blockChainService.GetBlockHeaders(ChainId, Hash.LoadByteArray(request.FirstBlockId.ToByteArray()),
+                    request.Count));
+                
+                BlockIdList list = new BlockIdList();
+                list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.GetHash().DumpByteArray())).ToList());
+
+                return Task.FromResult(list);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during RequestBlock handle.");
+            }
+            
+            return Task.FromResult(new BlockIdList());
         }
 
         /// <summary>

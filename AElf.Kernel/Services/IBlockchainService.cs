@@ -6,6 +6,7 @@ using AElf.Kernel.Events;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Managers.Another;
 using AElf.Kernel.Storages;
+using Org.BouncyCastle.Utilities.Encoders;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using IChainManager = AElf.Kernel.Managers.Another.IChainManager;
@@ -20,6 +21,7 @@ namespace AElf.Kernel.Services
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
         Task<Chain> GetChainAsync(int chainId);
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
+        Task<List<BlockHeader>> GetBlockHeaders(int chainId, Hash firstHash, int count);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -86,6 +88,28 @@ namespace AElf.Kernel.Services
             return (await _blockManager.GetBlockHeaderAsync(blockId)) != null;
         }
 
+        public async Task<List<BlockHeader>> GetBlockHeaders(int chainId, Hash firstHash, int count)
+        {
+            var first = await _blockManager.GetBlockHeaderAsync(firstHash);
+
+            if (first == null)
+                return null;
+
+            var headers = new List<BlockHeader>();
+                
+            for (ulong i = first.Height-1; i >= first.Height - (ulong)count && i > 0; i--)
+            {
+                var bHeader = await GetBlockHeaderByHeightAsync(chainId, i);
+
+                if (bHeader == null)
+                    return headers;
+                
+                headers.Add(bHeader);
+            }
+
+            return headers;
+        }
+
         public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
         {
             var chainBlockLink = new ChainBlockLink()
@@ -142,6 +166,12 @@ namespace AElf.Kernel.Services
         {
             var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
             return await GetBlockByHashAsync(chainId, index.BlockHash);
+        }
+
+        public async Task<BlockHeader> GetBlockHeaderByHeightAsync(int chainId, ulong height)
+        {
+            var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
+            return await _blockManager.GetBlockHeaderAsync(index.BlockHash); 
         }
 
         public async Task<Chain> GetChainAsync(int chainId)
