@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveService
     {
-        Task<IExecutive> GetExecutiveAsync(int chainId, Address address, SmartContractRegistration reg);
+        Task<IExecutive> GetExecutiveAsync(int chainId, Address address);
 
         Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
 
@@ -29,6 +29,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly ISmartContractService _smartContractService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ISystemContractService _systemContractService;
 
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
@@ -36,12 +37,13 @@ namespace AElf.Kernel.SmartContract.Application
 
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IBlockchainService blockchainService, ISmartContractService smartContractService)
+            IBlockchainService blockchainService, ISmartContractService smartContractService, ISystemContractService systemContractService)
         {
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _blockchainService = blockchainService;
             _smartContractService = smartContractService;
+            _systemContractService = systemContractService;
         }
 
 //        private async Task<Hash> GetContractHashAsync(int chainId, Address address)
@@ -79,8 +81,11 @@ namespace AElf.Kernel.SmartContract.Application
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, Address address, SmartContractRegistration reg)
+        public async Task<IExecutive> GetExecutiveAsync(int chainId, Address address)
         {
+
+            var reg = await _systemContractService.GetSmartContractRegistrationAsync(chainId, address);
+            
             var pool = await GetPoolForAsync(reg.ContractHash);
 
             if (!pool.TryTake(out var executive))
@@ -104,7 +109,8 @@ namespace AElf.Kernel.SmartContract.Application
                 ChainId = chainId,
                 ContractAddress = address,
                 ChainService = _blockchainService,
-                SmartContractService = _smartContractService
+                SmartContractService = _smartContractService,
+                SmartContractExecutiveService = this
             });
 
             return executive;

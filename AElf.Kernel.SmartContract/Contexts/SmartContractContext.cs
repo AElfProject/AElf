@@ -12,5 +12,7 @@ namespace AElf.Kernel.SmartContract
         public Address ContractAddress { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public IBlockchainService ChainService { get; set; }
+        public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
+        public ISystemContractService SystemContractService { get; set; }
     }
 }
