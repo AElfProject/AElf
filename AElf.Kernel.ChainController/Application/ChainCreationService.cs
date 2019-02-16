@@ -50,6 +50,8 @@ namespace AElf.Kernel.ChainController.Application
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
                 
+                
+                
                 var chain = await _blockchainService.CreateChainAsync(chainId, builder.Block);
                 return chain;
             }

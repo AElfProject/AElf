@@ -4,7 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Contracts.Consensus\AElf.Contracts.Consensus.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
     <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
   </ItemGroup>

@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types;
 using AElf.Node.Consensus;

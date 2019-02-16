@@ -4,7 +4,7 @@ namespace AElf.OS.Network.Grpc
     {
         public static GrpcUrl Parse(string address)
         {
-            var splitRes = address.Split(":");
+            var splitRes = address.Split(':');
 
             if (splitRes.Length != 3)
                 return null;
