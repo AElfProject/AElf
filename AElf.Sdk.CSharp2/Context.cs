@@ -95,5 +95,10 @@ namespace AElf.Sdk.CSharp
 
             return true;
         }
+
+        public void SendDeferredTransaction(Transaction deferredTxn)
+        {
+            TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
+        }
     }
 }

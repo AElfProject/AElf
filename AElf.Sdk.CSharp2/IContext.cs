@@ -32,6 +32,13 @@ namespace AElf.Sdk.CSharp
         Block GetBlockByHeight(ulong height);
 
         bool VerifySignature(Transaction tx);
+
+        /// <summary>
+        /// Generate txn not executed before next block. 
+        /// </summary>
+        /// <param name="deferredTxn"></param>
+        void SendDeferredTransaction(Transaction deferredTxn);
+
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //
