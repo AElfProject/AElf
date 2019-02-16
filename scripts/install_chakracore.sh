@@ -30,11 +30,17 @@ GET_OS()
 
 GET_OS
 
-rm -rf temp
-mkdir temp
-cd temp
-curl -SL https://aka.ms/chakracore/install | bash
+WORK_PATH=`pwd`
+SCRIPTS_PATH=$(cd "$(dirname "$0")";pwd)
+DOWNLOAD_PATH=${SCRIPTS_PATH}/.tmp/chakracore
 
-cd ..
-cp temp/ChakraCoreFiles/lib/${FROM_FILE} ${TO_FILE}
-rm -rf temp
+CHAKRACORE_FILE=${DOWNLOAD_PATH}/ChakraCoreFiles/lib/${FROM_FILE}
+
+if [[ ! -f "$CHAKRACORE_FILE" ]]; then
+    rm -rf ${DOWNLOAD_PATH} && mkdir -p ${DOWNLOAD_PATH}
+    cd ${DOWNLOAD_PATH}
+    bash ${SCRIPTS_PATH}/download_chakracore.sh 1_11_1
+fi
+
+cd ${WORK_PATH}
+cp ${CHAKRACORE_FILE} ${TO_FILE}
