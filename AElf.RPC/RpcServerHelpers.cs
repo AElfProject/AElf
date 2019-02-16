@@ -14,16 +14,15 @@ namespace AElf.RPC
         {
             return scope.Where(p => p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
                 .Select(p => p.ImplementationType).Distinct().ToList();
-            
-            //TODO! rewrite this project by aspnet core webapi
 
+            //TODO! rewrite this project by aspnet core webapi
         }
 
         private static object Resolve(IServiceProvider scope, Type type)
         {
             return scope.GetService(type);
         }
-        
+
         private static void AddJsonRpcService(IServiceCollection services, Type type)
         {
             var methodInfo = typeof(JsonRpcServicesExtensions).GetMethod("AddJsonRpcService");
@@ -32,10 +31,11 @@ namespace AElf.RPC
                 throw new InvalidOperationException(
                     "Cannot find extension method AddJsonRpcService for IServiceCollection.");
             }
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
-            methodInfoGeneric.Invoke(services, new object[] { services , null});
+
+            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] {type});
+            methodInfoGeneric.Invoke(services, new object[] {services, null});
         }
-        
+
         private static void UseJsonRpcService(IApplicationBuilder appBuilder, Type type, PathString path = default(PathString))
         {
             var methodInfo = typeof(JsonRpcBuilderExtensions).GetMethod("UseJsonRpcService");
@@ -44,12 +44,12 @@ namespace AElf.RPC
                 throw new InvalidOperationException(
                     "Cannot find extension method UseJsonRpcService for IApplicationBuilder.");
             }
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] { type });
-            methodInfoGeneric.Invoke(appBuilder, new object[] { appBuilder , path});
-            
+
+            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] {type});
+            methodInfoGeneric.Invoke(appBuilder, new object[] {appBuilder, path});
         }
-        
-        
+
+
         internal static void ConfigureServices(IServiceCollection services)
         {
             var types = GetServiceTypes(services);
@@ -65,13 +65,14 @@ namespace AElf.RPC
             var types = GetServiceTypes(scope);
             foreach (var serviceType in types)
             {
-                var attributes = serviceType.GetCustomAttributes(typeof(PathAttribute),false);
+                var attributes = serviceType.GetCustomAttributes(typeof(PathAttribute), false);
                 if (attributes.Length == 0)
                 {
                     throw new Exception($"Json rpc service {serviceType} doesn't have a Path attribute.");
                 }
-                UseJsonRpcService(appBuilder, serviceType, ((PathAttribute)attributes[0]).Path);
-            }   
+
+                UseJsonRpcService(appBuilder, serviceType, ((PathAttribute) attributes[0]).Path);
+            }
         }
     }
 }

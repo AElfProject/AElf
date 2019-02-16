@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
@@ -37,7 +35,7 @@ namespace AElf.ChainController.Rpc
                     Status = TransactionResultStatus.Pending
                 };
             }
-            
+
             // not existed
             return new TransactionResult
             {

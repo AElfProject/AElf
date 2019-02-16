@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -33,9 +32,9 @@ namespace AElf.Wallet.Rpc
                 return _ks;
             }
         }
-        
+
         private readonly ChainOptions _chainOptions;
-        
+
         public WalletRpcService(IOptionsSnapshot<ChainOptions> options)
         {
             _chainOptions = options.Value;
@@ -51,7 +50,7 @@ namespace AElf.Wallet.Rpc
             {
                 keypair = await KeyStore.CreateAsync(password, _chainOptions.ChainId);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw new JsonRpcServiceException(WalletRpcErrorConsts.CreateAccountFailed,
                     WalletRpcErrorConsts.RpcErrorMessage[WalletRpcErrorConsts.CreateAccountFailed], e);

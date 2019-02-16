@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.Kernel;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.ChainController.Rpc
 {
@@ -12,7 +12,7 @@ namespace AElf.ChainController.Rpc
             {
                 ["Transaction"] = new JObject
                 {
-                    {"TransactionId", tx.GetHash().ToHex()},
+                    {"Id", tx.GetHash().ToHex()},
                     {"From", tx.From.GetFormatted()},
                     {"To", tx.To.GetFormatted()},
                     {"RefBlockNumber", tx.RefBlockNumber},

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using AElf.Network.Data;
 using AElf.Network;
+using AElf.Network.Data;
 using AElf.Network.Peers;
 using AElf.RPC;
 using Anemonis.AspNetCore.JsonRpc;
@@ -12,7 +12,6 @@ namespace AElf.Net.Rpc
     public class NetRpcService : IJsonRpcService
     {
         public IPeerManager Manager { get; set; }
-        //public IBlockSynchronizer BlockSynchronizer { get; set; }
         public INetworkManager NetworkManager { get; set; }
 
         [JsonRpcMethod("GetPeers")]
@@ -22,15 +21,18 @@ namespace AElf.Net.Rpc
         }
 
         [JsonRpcMethod("AddPeer", "address")]
-        public async Task<JObject> AddPeer(string address)
+        public async Task<bool> AddPeer(string address)
         {
             NodeData nodeData = null;
-            
+
             try
             {
                 nodeData = NodeData.FromString(address);
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
 
             if (nodeData == null)
             {
@@ -39,20 +41,23 @@ namespace AElf.Net.Rpc
             }
 
             await Task.Run(() => Manager.AddPeer(nodeData));
-            
-            return new JObject { true };
+
+            return true;
         }
-        
+
         [JsonRpcMethod("RemovePeer", "address")]
-        public async Task<JObject> RemovePeer(string address)
+        public async Task<bool> RemovePeer(string address)
         {
             NodeData nodeData = null;
-            
+
             try
             {
                 nodeData = NodeData.FromString(address);
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
 
             if (nodeData == null)
             {
@@ -61,24 +66,8 @@ namespace AElf.Net.Rpc
             }
 
             await Task.Run(() => Manager.RemovePeer(nodeData));
-            
-            return new JObject { true };
+
+            return true;
         }
-
-        //TODO:
-/*        [JsonRpcMethod("get_pool_state")]
-        public async Task<JObject> GetPoolState()
-        {
-            var pendingRequestCount = NetworkManager.GetPendingRequestCount();
-            var jobQueueCount = BlockSynchronizer.GetJobQueueCount();
-            
-            var response = new JObject
-            {
-                ["RequestPoolSize"] = pendingRequestCount,
-                ["ReceivePoolSize"] = jobQueueCount
-            };
-
-            return JObject.FromObject(response);
-        }*/
     }
 }

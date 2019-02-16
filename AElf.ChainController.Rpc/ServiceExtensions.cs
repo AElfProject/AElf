@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.SmartContract;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
@@ -178,13 +178,13 @@ namespace AElf.ChainController.Rpc
             try
             {
                 executive = await s.SmartContractService.GetExecutiveAsync(address, chainId);
-                output =  executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
+                output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
             finally
             {
                 if (executive != null)
                 {
-                    await s.SmartContractService.PutExecutiveAsync(chainId, address, executive);    
+                    await s.SmartContractService.PutExecutiveAsync(chainId, address, executive);
                 }
             }
 
@@ -205,7 +205,7 @@ namespace AElf.ChainController.Rpc
 
         internal static async Task<ulong> GetTransactionPoolSize(this Svc s)
         {
-            return (ulong)(await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
+            return (ulong) (await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
         }
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this Svc s, int chainId, ulong height)
@@ -246,7 +246,7 @@ namespace AElf.ChainController.Rpc
                 await s.SmartContractService.PutExecutiveAsync(chainId, tx.To, executive);
             }
 
-            if(!string.IsNullOrEmpty(trace.StdErr))
+            if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
             return trace.RetVal.ToFriendlyBytes();
         }
@@ -279,6 +279,7 @@ namespace AElf.ChainController.Rpc
 
             return res;
         }
+
         internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
         {
             var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(chainId, height);
@@ -310,7 +311,7 @@ namespace AElf.ChainController.Rpc
         }
 
         #endregion
-        
+
         internal static async Task<Block> GetBlock(this Svc s, int chainId, Hash blockHash)
         {
             var blockchain = s.ChainService.GetBlockChain(chainId);
@@ -320,31 +321,31 @@ namespace AElf.ChainController.Rpc
         internal static async Task<int> GetInvalidBlockCountAsync(this Svc s)
         {
             // TODO: change hard code
-            return await Task.FromResult(999); 
+            return await Task.FromResult(999);
         }
-        
+
         #region Consensus
 
         internal static async Task<Tuple<ulong, ulong>> GetVotesGeneral(this Svc s, int chainId)
         {
             return await s.ElectionInfo.GetVotesGeneral(chainId);
         }
-        
+
         internal static async Task<Tickets> GetVotingInfo(this Svc s, int chainId, string pubKey)
         {
             return await s.ElectionInfo.GetVotingInfo(chainId, pubKey);
         }
-        
+
         #endregion
 
-        internal static IMessage GetInstance(this Svc s,string type)
+        internal static IMessage GetInstance(this Svc s, string type)
         {
             switch (type)
             {
                 case "MerklePath":
                     return new MerklePath();
                 case "BinaryMerkleTree":
-                    return new BinaryMerkleTree ();
+                    return new BinaryMerkleTree();
                 case "BlockHeader":
                     return new BlockHeader();
                 case "BlockBody":
@@ -363,7 +364,7 @@ namespace AElf.ChainController.Rpc
                     throw new ArgumentException($"[{type}] not found");
             }
         }
-        
+
         internal static async Task<int> GetRollBackTimesAsync(this Svc s)
         {
             return await Task.FromResult(s.BlockSynchronizer.RollBackTimes);

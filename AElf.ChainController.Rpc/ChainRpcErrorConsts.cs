@@ -13,7 +13,7 @@ namespace AElf.ChainController.Rpc
         public const long InvalidNum = 20007;
         public const long InvalidTransaction = 20008;
         public const long CannotBroadcastTransaction = 20009;
-        
+
         public static readonly Dictionary<long, string> RpcErrorMessage = new Dictionary<long, string>
         {
             {NotFound, "Not found"},

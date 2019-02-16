@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
-using AElf.Kernel;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
@@ -17,13 +17,12 @@ using AElf.SmartContract.Proposal;
 using AElf.Synchronization.BlockSynchronization;
 using Anemonis.AspNetCore.JsonRpc;
 using Easy.MessageHub;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Transaction = AElf.Kernel.Transaction;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.ChainController.Rpc
 {
@@ -56,6 +55,7 @@ namespace AElf.ChainController.Rpc
 
         private bool _canBroadcastTxs = true;
         private readonly int _chainId;
+
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
@@ -68,17 +68,14 @@ namespace AElf.ChainController.Rpc
         #region Methods
 
         [JsonRpcMethod("GetCommands")]
-        public async Task<JObject> GetCommands()
+        public async Task<JArray> GetCommands()
         {
             var methodContracts = this.GetRpcMethodContracts();
             var commands = methodContracts.Keys.OrderBy(x => x).ToList();
             var json = JsonConvert.SerializeObject(commands);
-            var arrCommands = JArray.Parse(json);
-            var response = new JObject
-            {
-                ["Commands"] = arrCommands
-            };
-            return await Task.FromResult(JObject.FromObject(response));
+            var commandArray = JArray.Parse(json);
+
+            return await Task.FromResult(commandArray);
         }
 
         [JsonRpcMethod("ConnectChain")]
@@ -123,6 +120,7 @@ namespace AElf.ChainController.Rpc
                 throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidAddress,
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidAddress]);
             }
+
             var abi = await this.GetContractAbi(_chainId, addressHash);
 
             if (abi == null)
@@ -139,7 +137,7 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("Call", "rawTransaction")]
-        public async Task<JObject> CallReadOnly(string rawTransaction)
+        public async Task<string> CallReadOnly(string rawTransaction)
         {
             byte[] response;
             try
@@ -154,10 +152,7 @@ namespace AElf.ChainController.Rpc
                     ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
             }
 
-            return new JObject
-            {
-                ["Return"] = response?.ToHex()
-            };
+            return response?.ToHex();
         }
 
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
@@ -392,8 +387,7 @@ namespace AElf.ChainController.Rpc
                 ["TransactionStatus"] = transactionResult.Status.ToString(),
                 ["TransactionInfo"] = transactionInfo["Transaction"]
             };
-            var transactionTrace = await this.GetTransactionTrace(_chainId, transactionHash, transactionResult
-            .BlockNumber);
+            var transactionTrace = await this.GetTransactionTrace(_chainId, transactionHash, transactionResult.BlockNumber);
 
 #if DEBUG
             response["TransactionTrace"] = transactionTrace?.ToString();
@@ -415,15 +409,15 @@ namespace AElf.ChainController.Rpc
                 {
                     if (transactionTrace?.RetVal.Type == RetVal.Types.RetType.String)
                     {
-                        response["Return"] = transactionResult.RetVal.ToStringUtf8();
+                        response["ReturnValue"] = transactionResult.RetVal.ToStringUtf8();
                     }
                     else
-                        response["Return"] = Address.FromBytes(transactionResult.RetVal.ToByteArray()).GetFormatted();
+                        response["ReturnValue"] = Address.FromBytes(transactionResult.RetVal.ToByteArray()).GetFormatted();
                 }
                 catch (Exception)
                 {
                     // not an error`
-                    response["Return"] = transactionResult.RetVal.ToByteArray().ToHex();
+                    response["ReturnValue"] = transactionResult.RetVal.ToByteArray().ToHex();
                 }
             }
             // Todo: it should be deserialized to obj ion cli, 
@@ -466,7 +460,6 @@ namespace AElf.ChainController.Rpc
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = blockInfo.Header.ChainId.DumpBase58(),
                     ["Bloom"] = blockInfo.Header.Bloom.ToByteArray().ToHex()
-                    //["IndexedInfo"] = blockinfo.Header.GetIndexedSideChainBlcokInfo()
                 },
                 ["Body"] = new JObject
                 {
@@ -491,19 +484,13 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("GetTransactionPoolSize")]
-        public async Task<JObject> GetTransactionPoolSize()
+        public async Task<ulong> GetTxPoolSize()
         {
-            var transactionPoolSize = await this.GetTransactionPoolSize();
-            var response = new JObject
-            {
-                ["CurrentTransactionPoolSize"] = transactionPoolSize
-            };
-
-            return response;
+            return await this.GetTransactionPoolSize();
         }
 
-        [JsonRpcMethod("GetDposStatus")]
-        public async Task<JObject> GetDposStatus()
+        [JsonRpcMethod("GetConsensusStatus")]
+        public async Task<JObject> GetConsensusStatus()
         {
             var isAlive = await MainchainNodeService.CheckDPoSAliveAsync();
             var response = new JObject
@@ -518,9 +505,14 @@ namespace AElf.ChainController.Rpc
         public async Task<JObject> GetNodeStatus()
         {
             var isForked = await MainchainNodeService.CheckForkedAsync();
+            var invalidBlockCount = await this.GetInvalidBlockCountAsync();
+            var rollBackTimes = await this.GetRollBackTimesAsync();
+
             var response = new JObject
             {
-                ["IsForked"] = isForked
+                ["IsForked"] = isForked,
+                ["InvalidBlockCount"] = invalidBlockCount,
+                ["RollBackTimes"] = rollBackTimes
             };
 
             return response;
@@ -566,32 +558,6 @@ namespace AElf.ChainController.Rpc
         #endregion
 
         #region Admin
-
-        [JsonRpcMethod("GetInvalidBlockCount")]
-        public async Task<JObject> GetInvalidBlockCount()
-        {
-            var invalidBlockCount = await this.GetInvalidBlockCountAsync();
-
-            var response = new JObject
-            {
-                ["InvalidBlockCount"] = invalidBlockCount
-            };
-
-            return response;
-        }
-
-        [JsonRpcMethod("GetRollBackTimes")]
-        public async Task<JObject> GetRollBackTimes()
-        {
-            var rollBackTimes = await this.GetRollBackTimesAsync();
-
-            var response = new JObject
-            {
-                ["RollBackTimes"] = rollBackTimes
-            };
-
-            return response;
-        }
 
         [JsonRpcMethod("GetBlockStateSet", "blockHash")]
         public async Task<JObject> GetBlockStateSet(string blockHash)
