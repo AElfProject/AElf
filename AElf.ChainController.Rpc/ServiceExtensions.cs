@@ -280,7 +280,7 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static async Task<SideChainBlockData> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
+        internal static async Task<ParentChainBlockData> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
         {
             var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(chainId, height);
             if (parentChainBlockInfo != null)
