@@ -7,7 +7,7 @@ namespace AElf.Management.Interfaces
 {
     public interface INetworkService
     {
-        Task<PoolStateResult> GetPoolState(string chainId);
+        //Task<PoolStateResult> GetPoolState(string chainId);
 
         Task<PeerResult> GetPeers(string chainId);
 

@@ -169,11 +169,11 @@ namespace AElf.Network.Peers
         {
             var peers = new JObject
             {
-                ["auth"] = _authentifyingPeer.Count
+                ["Auth"] = _authentifyingPeer.Count
             };
             if (_peers.Count > 0)
             {
-                peers["peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
+                peers["Peers"] = JArray.Parse(JsonConvert.SerializeObject(_peers));
             }
 
             return Task.FromResult(peers);
