@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using AElf.Modularity;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;

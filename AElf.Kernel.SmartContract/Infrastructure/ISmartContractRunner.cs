@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
 using Google.Protobuf;
-using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public interface ISmartContractRunner
     {

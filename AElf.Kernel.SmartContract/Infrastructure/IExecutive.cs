@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.SmartContract.Contexts;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public interface IExecutive
     {

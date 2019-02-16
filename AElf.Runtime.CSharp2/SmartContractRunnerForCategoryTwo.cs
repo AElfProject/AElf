@@ -9,6 +9,7 @@ using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;

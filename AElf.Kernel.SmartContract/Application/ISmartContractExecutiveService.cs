@@ -3,32 +3,47 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveService
     {
-        
-        Task<IExecutive> GetExecutiveAsync(int chainId, Hash contractHash);
-        Task PutExecutiveAsync(int chainId, Address account, IExecutive executive);
-//
-//
-//
-//        Task<IMessage> GetAbiAsync(int chainId, Address account);
+        Task<IExecutive> GetExecutiveAsync(int chainId, Address address, SmartContractRegistration reg);
+
+        Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
+
+        Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg);
 //
 //        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
     }
-    
-    
-    public class SmartContractExecutiveService: ISmartContractExecutiveService
+
+
+    public class SmartContractExecutiveService : ISmartContractExecutiveService
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+        private readonly IStateProviderFactory _stateProviderFactory;
+        private readonly ISmartContractService _smartContractService;
+        private readonly IBlockchainService _blockchainService;
 
-        
+
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
-        
+
+        public SmartContractExecutiveService(
+            ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
+            IBlockchainService blockchainService, ISmartContractService smartContractService)
+        {
+            _smartContractRunnerContainer = smartContractRunnerContainer;
+            _stateProviderFactory = stateProviderFactory;
+            _blockchainService = blockchainService;
+            _smartContractService = smartContractService;
+        }
+
 //        private async Task<Hash> GetContractHashAsync(int chainId, Address address)
 //        {
 //            Hash contractHash;
@@ -47,7 +62,7 @@ namespace AElf.Kernel.SmartContract.Application
 //
 //            return contractHash;
 //        }
-        
+
 //        public async Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address)
 //        {
 //            var contractHash = await GetContractHashAsync(chainId, address);
@@ -63,49 +78,57 @@ namespace AElf.Kernel.SmartContract.Application
 
             return pool;
         }
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, Hash contractHash,)
+
+        public async Task<IExecutive> GetExecutiveAsync(int chainId, Address address, SmartContractRegistration reg)
         {
-            var pool = await GetPoolForAsync(contractHash);
+            var pool = await GetPoolForAsync(reg.ContractHash);
+
             if (!pool.TryTake(out var executive))
             {
-                // get registration
-                var reg = await GetContractByAddressAsync(chainId, contractAddress);
                 // get runner
                 var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
                 if (runner == null)
                 {
                     throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
                 }
+
                 // run smartcontract executive info and return executive
                 executive = await runner.RunAsync(reg);
                 executive.ContractHash = reg.ContractHash;
             }
+
             executive.SetStateProviderFactory(_stateProviderFactory);
 
             executive.SetSmartContractContext(new SmartContractContext()
             {
                 ChainId = chainId,
-                ContractAddress = contractAddress,
-                SmartContractService = this,
-                ChainService = _chainService
+                ContractAddress = address,
+                ChainService = _blockchainService,
+                SmartContractService = _smartContractService
             });
 
             return executive;
         }
 
-        public async Task PutExecutiveAsync(int chainId, Address account, IExecutive executive)
+        public async Task PutExecutiveAsync(int chainId, Address address, IExecutive executive)
         {
             executive.SetTransactionContext(new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
-                    To = account // This is to ensure that the contract has same address
+                    To = address // This is to ensure that the contract has same address
                 }
             });
             executive.SetDataCache(new Dictionary<StatePath, StateCache>());
-            (await GetPoolForAsync(chainId, account)).Add(executive);
+            (await GetPoolForAsync(executive.ContractHash)).Add(executive);
 
             await Task.CompletedTask;
+        }
+
+        public async Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg)
+        {
+            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+            return runner.GetAbi(reg);
         }
     }
 }

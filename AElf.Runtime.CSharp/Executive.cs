@@ -12,6 +12,7 @@ using Module = AElf.Kernel.ABI.Module;
 using Method = AElf.Kernel.ABI.Method;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp
