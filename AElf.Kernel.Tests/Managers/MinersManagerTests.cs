@@ -25,14 +25,14 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetMinersTest()
+        public async Task GetMiners_Test()
         {
             var miners = await _minersManager.GetMiners(1);
             miners.PublicKeys.Count.ShouldBe(3);
         }
 
         [Fact]
-        public async Task SetMinersTest()
+        public async Task SetMiners_Test()
         {
             var address = Address.Generate();
             var pubKey = address.GetPublicKeyHash();
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task IsMinerInDatabaseTest()
+        public async Task IsMinerInDatabase_Test()
         {
             var result = await _minersManager.IsMinersInDatabase();
             result.ShouldBe(false);

@@ -20,7 +20,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task TestInsert()
+        public async Task Insert_Transaction_Test()
         {
             var hash = await _transactionManager.AddTransactionAsync(new Transaction
             {
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetTest()
+        public async Task Get_Transaction_Test()
         {
             var t = BuildTransaction();
             var key = await _transactionManager.AddTransactionAsync(t);
@@ -41,7 +41,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task RemoveTest()
+        public async Task Remove_Transaction_Test()
         {
             var t1 = BuildTransaction();
             var t2 = BuildTransaction();
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task TestInsertMultipleTx()
+        public async Task Insert_MultipleTx_Test()
         {
             var address = Address.Generate();
             var t1 = BuildTransaction(address, 1);

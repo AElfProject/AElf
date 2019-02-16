@@ -67,7 +67,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void Transfer_WithEnough_Token()
+        public void Transfer_With_Enough_Token()
         {
             Init_Test();
             Contract.Transfer(AddressList[2], 100UL);
@@ -77,7 +77,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void Transfer_WithoutEnough_Token()
+        public void Transfer_Without_Enough_Token()
         {
             Init_Test();
             Contract.Transfer(AddressList[2], 100UL);
@@ -87,7 +87,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void Transfer_To_NullUser_Test()
+        public void Transfer_To_Null_User_Test()
         {
             Init_Test();
             Should.Throw<Exception>(() =>
@@ -116,7 +116,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void UnApprove_AvailableToken_Test()
+        public void UnApprove_Available_Token_Test()
         {
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
@@ -126,7 +126,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void TransferFrom_AvailableToken_Test()
+        public void TransferFrom_Available_Token_Test()
         {
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
@@ -139,7 +139,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void TransferFrom_OverToken_Test()
+        public void TransferFrom_Over_Token_Test()
         {
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
@@ -148,7 +148,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void TransferFrom_MultipleTimes_AvailableToken()
+        public void TransferFrom_MultipleTimes_Available_Token_Test()
         {
             Init_Test();
             Contract.Approve(AddressList[2], 1000UL);
@@ -171,7 +171,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public void Burn_OverToken_Test()
+        public void Burn_Over_Token_Test()
         {
             Init_Test();
             Should.Throw<AssertionError>(() => { Contract.Burn(100000000UL); });

@@ -67,7 +67,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task RequestBlockTest()
+        private async Task Request_Block_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
@@ -110,7 +110,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task Request_Block_Test()
+        private async Task Request_Block_With_Data_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
             var header = new BlockHeader()
@@ -161,7 +161,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task Announcement_EventTest()
+        private async Task Announcement_Event_Test()
         {
             List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
 
@@ -205,7 +205,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        private async Task Transaction_EventTest()
+        private async Task Transaction_Event_Test()
         {
             List<TxReceivedEventData> receivedEventDatas = new List<TxReceivedEventData>();
 

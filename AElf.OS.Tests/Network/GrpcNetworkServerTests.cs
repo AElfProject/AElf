@@ -50,7 +50,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        public async Task SelfConnectionTest()
+        public async Task SelfConnection_Test()
         {
             var server = BuildGrpcNetworkServer(new NetworkOptions
             {
@@ -72,7 +72,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        public async Task Basic_Net_Formation()
+        public async Task Basic_Net_Formation_Test()
         {
             var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800 });
             var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801 });
@@ -172,7 +172,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        public async Task Basic_AddRemovePeer_Test()
+        public async Task Basic_Add_Remove_Peer_Test()
         {
             // setup 2 peers
 
@@ -199,7 +199,7 @@ namespace AElf.OS.Tests.Network
         }
 
         [Fact]
-        public async Task Basic_Remove_NotExistPeer_Test()
+        public async Task Basic_Remove_NotExist_Peer_Test()
         {
             var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800 });
             var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801, BootNodes = new List<string> {"127.0.0.1:6800"}});

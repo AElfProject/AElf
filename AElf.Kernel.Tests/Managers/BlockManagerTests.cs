@@ -24,7 +24,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task AddBlockBodyTest()
+        public async Task AddBlockBody_Test()
         {
             var hash = Hash.Generate();
             var body = new BlockBody();
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetBlockHeaderTest()
+        public async Task GetBlockHeader_Test()
         {
             var header = new BlockHeader()
             {
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetBlockBodyTest()
+        public async Task GetBlockBody_Test()
         {
             var header = new BlockHeader()
             {

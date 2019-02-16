@@ -17,7 +17,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task AddOrUpdateReceiptTest()
+        public async Task AddOrUpdateReceipt_Test()
         {
 
             var transactionReceipt = GenerateTransactionReceipts(1)[0];
@@ -36,7 +36,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task AddOrUpdateReceiptsTest()
+        public async Task AddOrUpdateReceipts_Test()
         {
             var transactionReceipts = GenerateTransactionReceipts(3);
             await _transactionReceiptManager.AddOrUpdateReceiptsAsync(transactionReceipts);
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Tests.Managers
         }
 
         [Fact]
-        public async Task GetReceiptTest()
+        public async Task GetReceipt_Test()
         {
             var randomHash = Hash.Generate();
             var transactionRecepit = await _transactionReceiptManager.GetReceiptAsync(randomHash);
