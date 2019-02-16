@@ -28,7 +28,7 @@ namespace AElf.Kernel.Tests.Managers
         public async Task GetMinersTest()
         {
             var miners = await _minersManager.GetMiners(1);
-            Assert.Equal(miners.PublicKeys.Count, 3);
+            miners.PublicKeys.Count.ShouldBe(3);
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.TxPool;
+using Shouldly;
 
 namespace AElf.Kernel.Tests.Managers
 {
@@ -21,11 +22,13 @@ namespace AElf.Kernel.Tests.Managers
         [Fact]
         public async Task TestInsert()
         {
-            await _transactionManager.AddTransactionAsync(new Transaction
+            var hash = await _transactionManager.AddTransactionAsync(new Transaction
             {
                 From = Address.Generate(),
                 To = Address.Generate()
             });
+
+            hash.ShouldNotBeNull();
         }
 
         [Fact]
