@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core", "AElf.Ke
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS", "AElf.OS\AElf.OS.csproj", "{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core", "AElf.OS.Core\AElf.OS.Core.csproj", "{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Tests", "AElf.OS.Tests\AElf.OS.Tests.csproj", "{65480B60-CE71-4486-85F4-EBEF8BEEFD98}"
 EndProject

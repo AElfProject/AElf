@@ -30,7 +30,7 @@ namespace AElf.Launcher
         typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
-        typeof(OSAElfModule),
+        typeof(CoreOSAElfModule),
         typeof(RpcChainControllerAElfModule),
         typeof(SmartContractExecutionAElfModule),
         typeof(MinerAElfModule),
