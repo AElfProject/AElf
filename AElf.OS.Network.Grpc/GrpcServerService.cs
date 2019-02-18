@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
         private readonly ChainOptions _chainOptions;
         
         private readonly IPeerPool _peerPool;
-        private readonly IFullBlockchainService _blockChainService;
+        private readonly IBlockchainService _blockChainService;
         
         public ILocalEventBus EventBus { get; set; }
 
@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Grpc
             get { return _chainOptions.ChainId.ConvertBase58ToChainId(); }
         }
         
-        public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IFullBlockchainService blockChainService)
+        public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IBlockchainService blockChainService)
         {
             _peerPool = peerPool;
             _blockChainService = blockChainService;
@@ -55,14 +55,14 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
-            Logger?.LogTrace($"{context.Peer} has initiated a connection request.");
+            Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
             try
             {                
                 var peer = GrpcUrl.Parse(context.Peer);
                 var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
-                Logger?.LogDebug($"Attempting to create channel to {peerServer}");
+                Logger.LogDebug($"Attempting to create channel to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);
@@ -189,41 +189,41 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new BlockReply());
         }
 
-        public override Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
+        public override async Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
         {
             if (request == null)
-                return Task.FromResult(new BlockIdList());
+                return new BlockIdList();
 
             if (request.FirstBlockId != ByteString.Empty)
             {
                 Logger.LogError($"Request ids first block hash is null from {context.Peer}.");
-                return Task.FromResult(new BlockIdList());
+                return new BlockIdList();
             }
             
             if (request.Count <= 0)
             {
                 Logger.LogError($"Request ids count is invalid from {context.Peer}.");
-                return Task.FromResult(new BlockIdList());
+                return new BlockIdList();
             }
             
             try
             {
                 Logger.LogDebug($"Peer {context.Peer} requested block ids: from {request.FirstBlockId}, count : {request.Count}.");
                 
-                var headers = AsyncHelper.RunSync(() => _blockChainService.GetBlockHeaders(ChainId, Hash.LoadByteArray(request.FirstBlockId.ToByteArray()),
-                    request.Count));
+                var headers = await _blockChainService.GetBlockHeaders(ChainId, 
+                    Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();
                 list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.GetHash().DumpByteArray())).ToList());
 
-                return Task.FromResult(list);
+                return list;
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during RequestBlock handle.");
             }
             
-            return Task.FromResult(new BlockIdList());
+            return new BlockIdList();
         }
 
         /// <summary>

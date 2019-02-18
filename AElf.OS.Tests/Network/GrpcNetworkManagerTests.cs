@@ -105,9 +105,9 @@ namespace AElf.OS.Tests.Network
             var service2 = new GrpcNetworkService(m2.Item2);
             var service3 = new GrpcNetworkService(m3.Item2);
 
-            IBlock b = await service2.GetBlockByHash(genesis.GetHash());
-            IBlock bbh = await service3.GetBlockByHeight(genesis.Height);
-            IBlock bbh2 = await service3.GetBlockByHeight((ulong)2);
+            IBlock b = await service2.GetBlockByHashAsync(genesis.GetHash());
+            IBlock bbh = await service3.GetBlockByHeightAsync(genesis.Height);
+            IBlock bbh2 = await service3.GetBlockByHeightAsync((ulong)2);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -158,8 +158,8 @@ namespace AElf.OS.Tests.Network
             var service1 = new GrpcNetworkService(m1.Item2);
             var service2 = new GrpcNetworkService(m2.Item2);
 
-            var block21 = await service2.GetBlockByHeight(2);
-            var block22 = await service2.GetBlockByHash(block.GetHash());
+            var block21 = await service2.GetBlockByHeightAsync(2);
+            var block22 = await service2.GetBlockByHashAsync(block.GetHash());
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -205,7 +205,7 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
-            await servicem2.BroadcastAnnounce(genesis.Header);
+            await servicem2.BroadcastAnnounceAsync(genesis.Header);
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -249,7 +249,7 @@ namespace AElf.OS.Tests.Network
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
-            await servicem2.BroadcastTransaction(new Transaction());
+            await servicem2.BroadcastTransactionAsync(new Transaction());
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -291,7 +291,7 @@ namespace AElf.OS.Tests.Network
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new GrpcNetworkService(m2.Item2);
-            await servicem2.BroadcastAnnounce(genesis.Header);
+            await servicem2.BroadcastAnnounceAsync(genesis.Header);
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();

@@ -40,7 +40,7 @@ namespace AElf.OS.Network.Grpc
             return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
-        public async Task BroadcastAnnounce(BlockHeader blockHeader)
+        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task BroadcastTransactionAsync(Transaction tx)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
@@ -70,16 +70,16 @@ namespace AElf.OS.Network.Grpc
             }
         }
         
-        public async Task<IBlock> GetBlockByHeight(ulong height, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by height, height: {height} from {peer}.");
-            return await GetBlock(new BlockRequest { Height = (long)height }, peer, tryOthersIfSpecifiedFails);
+            return await GetBlockAsync(new BlockRequest { Height = (long)height }, peer, tryOthersIfSpecifiedFails);
         }
 
-        public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        public async Task<IBlock> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
-            return await GetBlock(new BlockRequest { Id = hash.Value }, peer, tryOthersIfSpecifiedFails);
+            return await GetBlockAsync(new BlockRequest { Id = hash.Value }, peer, tryOthersIfSpecifiedFails);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace AElf.OS.Network.Grpc
         /// (request, peer, false) : request from 'peer' only.
         /// (request, peer, true) : request first from 'peer' and if fails try others.
         /// </summary>
-        private async Task<IBlock> GetBlock(BlockRequest request, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        private async Task<IBlock> GetBlockAsync(BlockRequest request, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
                 throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
@@ -107,7 +107,7 @@ namespace AElf.OS.Network.Grpc
                     return null; 
                 }
                 
-                var blck = await RequestBlockTo(request, p);
+                var blck = await RequestBlockToAsync(request, p);
 
                 if (blck != null)
                     return blck;
@@ -121,7 +121,7 @@ namespace AElf.OS.Network.Grpc
             
             foreach (var p in _peerPool.GetPeers())
             {
-                Block block = await RequestBlockTo(request, p);
+                Block block = await RequestBlockToAsync(request, p);
 
                 if (block != null)
                     return block;
@@ -130,7 +130,7 @@ namespace AElf.OS.Network.Grpc
             return null;
         }
 
-        private async Task<Block> RequestBlockTo(BlockRequest request, GrpcPeer peer)
+        private async Task<Block> RequestBlockToAsync(BlockRequest request, GrpcPeer peer)
         {
             try
             {
@@ -144,11 +144,11 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task<List<Hash>> GetBlockIds(Hash topHash, int count, string peer)
+        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count, string peer)
         {
             GrpcPeer grpcPeer = _peerPool.FindPeer(peer);
-            var blockIds = await grpcPeer.GetBlockIds(new BlockIdsRequest { 
-                FirstBlockId = topHash.Value,  
+            var blockIds = await grpcPeer.GetBlockIdsAsync(new BlockIdsRequest { 
+                FirstBlockId = topHash.Value,
                 Count = count
             });
 

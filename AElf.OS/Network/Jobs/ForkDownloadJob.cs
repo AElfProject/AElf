@@ -31,7 +31,7 @@ namespace AElf.OS.Network.Jobs
         {
             try
             {
-                Logger?.LogDebug($"Starting download of {args.BlockHashes.Count} blocks from {args.Peer}.");
+                Logger.LogDebug($"Starting download of {args.BlockHashes.Count} blocks from {args.Peer}.");
                 
                 var chain = await BlockchainService.GetChainAsync(ChainId);
 
@@ -49,7 +49,7 @@ namespace AElf.OS.Network.Jobs
                         continue; // todo review maybe no need to go further.
 
                     // Query the peer
-                    Block block = (Block)await NetworkService.GetBlockByHash(hash, args.Peer);
+                    Block block = (Block)await NetworkService.GetBlockByHashAsync(hash, args.Peer);
 
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);

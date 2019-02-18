@@ -22,7 +22,7 @@ namespace AElf.OS.Network.Handler
         
         public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
-        public IFullBlockchainService BlockchainService { get; set; }
+        public IBlockchainService BlockchainService { get; set; }
         
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
@@ -66,7 +66,7 @@ namespace AElf.OS.Network.Handler
                 // if we have the block, nothing to do.
                 if (hasBlock)
                 {
-                    Logger?.LogDebug($"Block {blockHash} already know.");
+                    Logger.LogDebug($"Block {blockHash} already know.");
                     return;
                 }
 
@@ -77,7 +77,7 @@ namespace AElf.OS.Network.Handler
                 {
                     Logger.LogWarning($"Previous block found {{ hash: {header.PreviousBlockHash}, height: {header.Height} }}.");
                     
-                    Block block = (Block) await NetworkService.GetBlockByHash(blockHash, peer);
+                    Block block = (Block) await NetworkService.GetBlockByHashAsync(blockHash, peer);
 
                     if (block == null)
                     {
@@ -105,7 +105,7 @@ namespace AElf.OS.Network.Handler
                     {
                         // Ask the peer for the ids of the blocks
                         List<Hash> ids = await NetworkService
-                            .GetBlockIds(topHash, NetworkConsts.DefaultBlockIdRequestCount, peer); // todo this has to be in order, maybe add Height
+                            .GetBlockIdsAsync(topHash, NetworkConsts.DefaultBlockIdRequestCount, peer); // todo this has to be in order, maybe add Height
 
                         // Find the ids that we're missing
                         var unlinkableIds = await FindUnlinkableBlocksAsync(ids);

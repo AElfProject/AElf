@@ -43,18 +43,18 @@ namespace AElf.OS.Tests.Network.Sync
             Mock<INetworkService> mockNetService = new Mock<INetworkService>();
 
             mockNetService
-                .Setup(ns => ns.GetBlockIds(It.IsAny<Hash>(), It.IsAny<int>(), It.IsAny<string>()))
+                .Setup(ns => ns.GetBlockIdsAsync(It.IsAny<Hash>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(peerChain.Select(bl => bl.GetHash()).ToList()));
             
             mockNetService
-                .Setup(ns => ns.GetBlockByHash(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Setup(ns => ns.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<Hash, string, bool>((hash, peer, tryOther) => Task.FromResult<IBlock>(peerChain.FirstOrDefault(b => b.GetHash() == hash)));
 
             return mockNetService;
         }
 
         private PeerConnectedEventHandler BuildEventHandler(IOptionsSnapshot<ChainOptions> optionsMock,
-            IBackgroundJobManager jobManager, INetworkService netService, IFullBlockchainService blockChainService)
+            IBackgroundJobManager jobManager, INetworkService netService, IBlockchainService blockChainService)
         {
             return new PeerConnectedEventHandler
             {
@@ -82,7 +82,7 @@ namespace AElf.OS.Tests.Network.Sync
             
             // Should not call net or queue job
             backgroundMng.Verify(mock => mock.EnqueueAsync(It.IsAny<object>(), It.IsAny<BackgroundJobPriority>(), It.IsAny<TimeSpan>()), Times.Never);
-            netMock.Verify(mock => mock.GetBlockIds(It.IsAny<Hash>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never());
+            netMock.Verify(mock => mock.GetBlockIdsAsync(It.IsAny<Hash>(), It.IsAny<int>(), It.IsAny<string>()), Times.Never());
         }
         
         [Fact]
@@ -106,7 +106,7 @@ namespace AElf.OS.Tests.Network.Sync
             
             // Should not call net or queue job
             backgroundMng.Verify(mock => mock.EnqueueAsync(It.IsAny<object>(), It.IsAny<BackgroundJobPriority>(), It.IsAny<TimeSpan>()), Times.Never);
-            netMock.Verify(mock => mock.GetBlockByHash(It.Is<Hash>(h => h == block1.GetHash()), It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
+            netMock.Verify(mock => mock.GetBlockByHashAsync(It.Is<Hash>(h => h == block1.GetHash()), It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
         private readonly ChainOptions _chainOptions;
         
         private readonly IAccountService _accountService;
-        private readonly IFullBlockchainService _blockchainService;
+        private readonly IBlockchainService _blockchainService;
         
         private readonly List<GrpcPeer> _authenticatedPeers;
         
@@ -39,7 +39,7 @@ namespace AElf.OS.Network.Grpc
         }
         
         public GrpcPeerPool(IOptionsSnapshot<ChainOptions> chainOptions, IOptionsSnapshot<NetworkOptions> networkOptions, 
-            IAccountService accountService, IFullBlockchainService blockChainService)
+            IAccountService accountService, IBlockchainService blockChainService)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
@@ -72,7 +72,7 @@ namespace AElf.OS.Network.Grpc
             
                 if (peer == null)
                 {
-                    Logger?.LogWarning($"Could not find peer {address}.");
+                    Logger.LogWarning($"Could not find peer {address}.");
                     return false;
                 }
 
@@ -83,7 +83,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Logger.LogError(e, $"Error while removing peer {address}.");
                 return false;
             }
         }
