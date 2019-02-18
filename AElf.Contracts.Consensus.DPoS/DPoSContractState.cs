@@ -6,47 +6,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class RoundsMapState : MappedState<UInt64Value, Round>
-    {
-    }
-
-    public class MinersMapState : MappedState<UInt64Value, Miners>
-    {
-    }
-
-    public class TicketsMapState : MappedState<StringValue, Tickets>
-    {
-    }
-
-    public class SnapshotMapState : MappedState<UInt64Value, TermSnapshot>
-    {
-    }
-
-    public class AliasesMapState : MappedState<StringValue, StringValue>
-    {
-    }
-
-    public class AliasesLookupMapState : MappedState<StringValue, StringValue>
-    {
-    }
-
-    public class HistoryMapState : MappedState<StringValue, CandidateInHistory>
-    {
-    }
-
-    public class AgeToRoundNumberMapState : MappedState<UInt64Value, UInt64Value>
-    {
-    }
-
-    public class VotingRecordsMapState : MappedState<Hash, VotingRecord>
-    {
-    }
-
-    public class TermToFirstRoundMapState : MappedState<UInt64Value, UInt64Value>
-    {
-    }
-
     // ReSharper disable InconsistentNaming
+    // ReSharper disable ClassNeverInstantiated.Global
     public class DividendContractReferenceState : ContractReferenceState
     {
         public Action<ulong> KeepWeights { get; set; }
@@ -107,7 +68,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// DPoS information of each round.
         /// round number -> round information
         /// </summary>
-        public RoundsMapState RoundsMap { get; set; }
+        public MappedState<UInt64Value, Round> RoundsMap { get; set; }
 
         /// <summary>
         /// DPoS mining interval.
@@ -118,42 +79,42 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Miners of each term.
         /// term number -> miners
         /// </summary>
-        public MinersMapState MinersMap;
+        public MappedState<UInt64Value, Miners> MinersMap;
 
         /// <summary>
         /// Tickets of each address (public key).
         /// public key hex value -> tickets information
         /// </summary>
-        public TicketsMapState TicketsMap;
+        public MappedState<StringValue, Tickets> TicketsMap;
 
         /// <summary>
         /// Snapshots of all terms.
         /// term number -> snapshot
         /// </summary>
-        public SnapshotMapState SnapshotMap;
+        public MappedState<UInt64Value, TermSnapshot> SnapshotMap;
 
         /// <summary>
         /// Aliases of candidates.
         /// candidate public key hex value -> alias
         /// </summary>
-        public AliasesMapState AliasesMap;
+        public MappedState<StringValue, StringValue> AliasesMap;
 
         /// <summary>
         /// Aliases of candidates.
         /// alias -> candidate public key hex value
         /// </summary>
-        public AliasesLookupMapState AliasesLookupMap;
+        public MappedState<StringValue, StringValue> AliasesLookupMap;
 
         /// <summary>
         /// Histories of all candidates
         /// candidate public key hex value -> history information
         /// </summary>
-        public HistoryMapState HistoryMap;
+        public MappedState<StringValue, CandidateInHistory> HistoryMap;
 
         /// <summary>
         /// blockchain age -> first round number.
         /// </summary>
-        public AgeToRoundNumberMapState AgeToRoundNumberMap;
+        public MappedState<UInt64Value, UInt64Value> AgeToRoundNumberMap;
 
         /// <summary>
         /// Keep tracking of the count of votes.
@@ -173,12 +134,12 @@ namespace AElf.Contracts.Consensus.DPoS
         /// <summary>
         /// Transaction Id -> Voting Record.
         /// </summary>
-        public VotingRecordsMapState VotingRecordsMap;
+        public MappedState<Hash, VotingRecord> VotingRecordsMap;
 
         /// <summary>
         /// Term Number -> First Round Number of this term.
         /// </summary>
-        public TermToFirstRoundMapState TermToFirstRoundMap;
+        public MappedState<UInt64Value, UInt64Value> TermToFirstRoundMap;
 
         public Int32State ChainIdField;
     }
