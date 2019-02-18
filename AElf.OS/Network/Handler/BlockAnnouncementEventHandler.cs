@@ -15,7 +15,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Network.Handler
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnoucementReceivedEventData>, ISingletonDependency
+    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnoucementReceivedEventData>
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
         
