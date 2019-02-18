@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Execution.Execution;
 using AElf.Kernel;
 using Xunit;
-
 
 namespace AElf.Contracts.Consensus.Tests
 {
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.RoundNumberNotFound, _contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.RoundNumberNotFound, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.RoundIdNotMatched, _contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.RoundIdNotMatched, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -190,7 +190,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.OutValueIsNull, _contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.OutValueIsNull, _contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -215,7 +215,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.InValueNotMatchToOutValue,
+                Assert.Equal(DPoSContractConsts.InValueNotMatchToOutValue,
                     _contracts.TransactionContext.Trace.StdErr);
             }
         }

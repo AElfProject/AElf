@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography.ECDSA;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
@@ -134,7 +135,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.TicketsNotFound, contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.TicketsNotFound, contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -155,7 +156,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.TargetNotAnnounceElection,
+                Assert.Equal(DPoSContractConsts.TargetNotAnnounceElection,
                     contracts.TransactionContext.Trace.StdErr);
             }
         }
@@ -179,7 +180,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.CandidateCannotVote, contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.CandidateCannotVote, contracts.TransactionContext.Trace.StdErr);
             }
 
             // Voter vote to himself.
@@ -189,7 +190,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.CandidateCannotVote, contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.CandidateCannotVote, contracts.TransactionContext.Trace.StdErr);
             }
         }
 
@@ -212,7 +213,7 @@ namespace AElf.Contracts.Consensus.Tests
             }
             catch (Exception)
             {
-                Assert.Equal(GlobalConfig.LockDayIllegal, contracts.TransactionContext.Trace.StdErr);
+                Assert.Equal(DPoSContractConsts.LockDayIllegal, contracts.TransactionContext.Trace.StdErr);
             }
         }
 

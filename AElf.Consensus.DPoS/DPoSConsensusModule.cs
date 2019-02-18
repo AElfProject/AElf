@@ -23,7 +23,7 @@ namespace AElf.Consensus.DPoS
         {
             var chainOptions = context.ServiceProvider.GetService<IOptions<ChainOptions>>().Value;
             var myService = context.ServiceProvider.GetService<IConsensusService>();
-            AsyncHelper.RunSync(() => myService.StartConsensus(chainOptions.ChainId.ConvertBase58ToChainId()));
+            AsyncHelper.RunSync(() => myService.TriggerConsensus(chainOptions.ChainId.ConvertBase58ToChainId()));
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

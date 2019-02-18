@@ -42,7 +42,7 @@ namespace AElf.Consensus
             Logger = NullLogger<ConsensusService>.Instance;
         }
 
-        public async Task StartConsensus(int chainId)
+        public async Task TriggerConsensus(int chainId)
         {
             var consensusCommand = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
                 ConsensusMethod.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AElf.Common;
 
@@ -5,7 +6,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public static class Config
     {
-        public static List<string> Aliases => new List<string>
+        public static List<string> InitialMinersAliases => new List<string>
         {
             "YQ", "SM", "WK", "CP", "PG", 
             "SC", "ZX", "ZY", "YS", "MH", 
@@ -17,35 +18,38 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForEveryMinerRatio /
-                            GlobalConfig.BlockProducerNumber);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
+                            GetProducerNumber());
         }
 
         public static ulong GetDividendsForTicketsCount(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForTicketsCountRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
         }
         
         public static ulong GetDividendsForReappointment(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForReappointmentRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersReappointmentRatio);
         }
         
         public static ulong GetDividendsForBackupNodes(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForBackupNodesRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
         }
 
         public static ulong GetDividendsForVoters(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * GlobalConfig.ElfTokenPerBlock * GlobalConfig.DividendsForVotersRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
         
         public static ulong GetDividendsForAll(ulong minedBlocks)
         {
-            return minedBlocks * GlobalConfig.ElfTokenPerBlock;
+            return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
 
-        public const int DaysEachTerm = 7;
+        public static int GetProducerNumber()
+        {
+            return 17 + (DateTime.UtcNow.Year - 2019) * 2;
+        }
     }
 }

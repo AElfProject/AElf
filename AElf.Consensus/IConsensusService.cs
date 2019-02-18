@@ -7,7 +7,7 @@ namespace AElf.Consensus
 {
     public interface IConsensusService
     {
-        Task StartConsensus(int chainId);
+        Task TriggerConsensus(int chainId);
         Task StopConsensus();
         Task<bool> ValidateConsensus(int chainId, byte[] consensusInformation);
         Task<byte[]> GetNewConsensusInformation(int chainId);

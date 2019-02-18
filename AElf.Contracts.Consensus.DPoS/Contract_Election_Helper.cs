@@ -5,65 +5,57 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using Api = AElf.Sdk.CSharp.Api;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class Election
+    public partial class Contract
     {
-        private ulong CurrentAge => _dataStructures.AgeField.GetValue();
-
-        private readonly DataStructures _dataStructures;
-
-        private readonly IDPoSDataHelper _dataHelper;
-
-        public Election(DataStructures dataStructures, IDPoSDataHelper dataHelper)
-        {
-            _dataStructures = dataStructures;
-            _dataHelper = dataHelper;
-        }
+        private ulong CurrentAge => State.AgeField.Value;
 
         public ActionResult AnnounceElection(string alias = "")
         {
-            var publicKey = Api.RecoverPublicKey().ToHex();
+            var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
-            if (_dataStructures.TicketsMap.TryGet(publicKey.ToStringValue(), out var tickets))
+            var tickets = State.TicketsMap[publicKey.ToStringValue()];
+            if (tickets.IsNotEmpty())
             {
                 foreach (var voteToTransaction in tickets.VoteToTransactions)
                 {
-                    if (_dataStructures.VotingRecordsMap.TryGet(voteToTransaction, out var votingRecord))
+                    var votingRecord = State.VotingRecordsMap[voteToTransaction];
+                    if (votingRecord.IsNotEmpty())
                     {
-                        Api.Assert(votingRecord.IsWithdrawn, GlobalConfig.VoterCannotAnnounceElection);
+                        Assert(votingRecord.IsWithdrawn, DPoSContractConsts.VoterCannotAnnounceElection);
                     }
                 }
             }
 
-            Api.LockToken(GlobalConfig.LockTokenForElection);
-            var candidates = _dataStructures.CandidatesField.GetValue();
+            State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            var candidates = State.CandidatesField.Value;
             if (!candidates.PublicKeys.Contains(publicKey))
             {
                 candidates.PublicKeys.Add(publicKey);
             }
 
-            _dataStructures.CandidatesField.SetValue(candidates);
+            State.CandidatesField.Value = candidates;
 
-            if (alias == "" || alias.Length > GlobalConfig.AliasLimit)
+            if (alias == "" || alias.Length > DPoSContractConsts.AliasLimit)
             {
-                alias = publicKey.Substring(0, GlobalConfig.AliasLimit);
+                alias = publicKey.Substring(0, DPoSContractConsts.AliasLimit);
             }
 
-            if (_dataStructures.AliasesLookupMap.TryGet(alias.ToStringValue(), out var publicKeyOfThisAlias) &&
+            var publicKeyOfThisAlias = State.AliasesLookupMap[alias.ToStringValue()];
+            if (publicKeyOfThisAlias.IsNotEmpty() &&
                 publicKey == publicKeyOfThisAlias.Value)
             {
                 return new ActionResult {Success = true};
             }
 
-            _dataStructures.AliasesLookupMap.SetValue(alias.ToStringValue(), publicKey.ToStringValue());
-            _dataStructures.AliasesMap.SetValue(publicKey.ToStringValue(), alias.ToStringValue());
+            State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
+            State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
 
             // Add this alias to history information of this candidate.
-            if (_dataStructures.HistoryMap.TryGet(publicKey.ToStringValue(), out var candidateHistoryInformation))
+            var candidateHistoryInformation = State.HistoryMap[publicKey.ToStringValue()];
+            if (candidateHistoryInformation.IsNotEmpty())
             {
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
@@ -71,14 +63,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidateHistoryInformation.CurrentAlias = alias;
                 }
 
-                _dataStructures.HistoryMap.SetValue(publicKey.ToStringValue(), candidateHistoryInformation);
+                State.HistoryMap[publicKey.ToStringValue()] = candidateHistoryInformation;
             }
             else
             {
-                _dataStructures.HistoryMap.SetValue(publicKey.ToStringValue(), new CandidateInHistory
+                State.HistoryMap[publicKey.ToStringValue()] = new CandidateInHistory
                 {
                     CurrentAlias = alias
-                });
+                };
             }
 
             return new ActionResult {Success = true};
@@ -86,10 +78,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult QuitElection()
         {
-            Api.UnlockToken(Api.GetFromAddress(), GlobalConfig.LockTokenForElection);
-            var candidates = _dataStructures.CandidatesField.GetValue();
-            candidates.PublicKeys.Remove(Api.RecoverPublicKey().ToHex());
-            _dataStructures.CandidatesField.SetValue(candidates);
+            State.TokenContract.Unlock(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            var candidates = State.CandidatesField.Value;
+            candidates.PublicKeys.Remove(Context.RecoverPublicKey().ToHex());
+            State.CandidatesField.Value = candidates;
 
             return new ActionResult {Success = true};
         }
@@ -99,32 +91,32 @@ namespace AElf.Contracts.Consensus.DPoS
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             //TODO: Recover after testing.
-//            Api.Assert(lockTime.InRange(90, 1095), GlobalConfig.LockDayIllegal);
+//            Api.Assert(lockTime.InRange(90, 1095), DPoSContractConsts.LockDayIllegal);
 
             // Cannot vote to non-candidate.
-            var candidates = _dataStructures.CandidatesField.GetValue();
-            Api.Assert(candidates.PublicKeys.Contains(candidatePublicKey),
-                GlobalConfig.TargetNotAnnounceElection);
+            var candidates = State.CandidatesField.Value;
+            Assert(candidates.PublicKeys.Contains(candidatePublicKey),
+                DPoSContractConsts.TargetNotAnnounceElection);
 
             // A candidate cannot vote to anybody.
-            Api.Assert(!candidates.PublicKeys.Contains(Api.RecoverPublicKey().ToHex()),
-                GlobalConfig.CandidateCannotVote);
+            Assert(!candidates.PublicKeys.Contains(Context.RecoverPublicKey().ToHex()),
+                DPoSContractConsts.CandidateCannotVote);
 
             // Transfer the tokens to Consensus Contract address.
-            Api.LockToken(amount);
+            State.TokenContract.Lock(Context.Sender, amount);
 
-            var currentTermNumber = _dataStructures.CurrentTermNumberField.GetValue();
-            var currentRoundNumber = _dataStructures.CurrentRoundNumberField.GetValue();
+            var currentTermNumber = State.CurrentTermNumberField.Value;
+            var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp = _dataStructures.BlockchainStartTimestamp.GetValue();
+            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
             var votingRecord = new VotingRecord
             {
                 Count = amount,
-                From = Api.RecoverPublicKey().ToHex(),
+                From = Context.RecoverPublicKey().ToHex(),
                 To = candidatePublicKey,
                 RoundNumber = currentRoundNumber,
-                TransactionId = Api.GetTxnHash(),
+                TransactionId = Context.TransactionId,
                 VoteAge = CurrentAge,
                 UnlockAge = CurrentAge + (ulong) lockTime,
                 TermNumber = currentTermNumber,
@@ -135,7 +127,8 @@ namespace AElf.Contracts.Consensus.DPoS
             votingRecord.LockDaysList.Add(lockTime);
 
             // Add the transaction id of this voting record to the tickets information of the voter.
-            if (_dataStructures.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
+            if (tickets.IsNotEmpty())
             {
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
@@ -147,10 +140,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             tickets.VotedTickets += votingRecord.Count;
             tickets.HistoryVotedTickets += votingRecord.Count;
-            _dataStructures.TicketsMap.SetValue(Api.RecoverPublicKey().ToHex().ToStringValue(), tickets);
+            State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()] = tickets;
 
             // Add the transaction id of this voting record to the tickets information of the candidate.
-            if (_dataStructures.TicketsMap.TryGet(candidatePublicKey.ToStringValue(), out var candidateTickets))
+            var candidateTickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
+            if (candidateTickets.IsNotEmpty())
             {
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
@@ -162,23 +156,23 @@ namespace AElf.Contracts.Consensus.DPoS
 
             candidateTickets.ObtainedTickets += votingRecord.Count;
             candidateTickets.HistoryObtainedTickets += votingRecord.Count;
-            _dataStructures.TicketsMap.SetValue(candidatePublicKey.ToStringValue(), candidateTickets);
+            State.TicketsMap[candidatePublicKey.ToStringValue()] = candidateTickets;
 
             // Update the amount of votes (voting records of whole system).
-            var currentCount = _dataStructures.VotesCountField.GetValue();
+            var currentCount = State.VotesCountField.Value;
             currentCount += 1;
-            _dataStructures.VotesCountField.SetValue(currentCount);
+            State.VotesCountField.Value = currentCount;
 
             // Update the amount of tickets.
-            var ticketsCount = _dataStructures.TicketsCountField.GetValue();
+            var ticketsCount = State.TicketsCountField.Value;
             ticketsCount += votingRecord.Count;
-            _dataStructures.TicketsCountField.SetValue(ticketsCount);
+            State.TicketsCountField.Value = ticketsCount;
 
             // Add this voting record to voting records map.
-            _dataStructures.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
+            State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            Api.SendInline(Api.DividendsContractAddress, "AddWeights", votingRecord.Weight, currentTermNumber + 1);
+            State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
 
             Console.WriteLine($"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
             Console.WriteLine($"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
@@ -187,10 +181,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
-            if (_dataStructures.VotingRecordsMap.TryGet(Hash.LoadHex(transactionId), out var votingRecord) &&
-                votingRecord.From == Api.RecoverPublicKey().ToHex())
+            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            if (votingRecord.IsNotEmpty() &&
+                votingRecord.From == Context.RecoverPublicKey().ToHex())
             {
-                Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
+                State.DividendContract.TransferDividends(votingRecord);
                 return new ActionResult {Success = true};
             }
 
@@ -199,7 +194,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult ReceiveAllDividends()
         {
-            if (_dataStructures.TicketsMap.TryGet(Api.RecoverPublicKey().ToHex().ToStringValue(), out var tickets))
+            var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
+            if (tickets.IsNotEmpty())
             {
                 if (!tickets.VoteToTransactions.Any())
                 {
@@ -208,9 +204,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 foreach (var transactionId in tickets.VoteToTransactions)
                 {
-                    if (_dataStructures.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    var votingRecord = State.VotingRecordsMap[transactionId];
+                    if (votingRecord.IsNotEmpty())
                     {
-                        Api.SendInline(Api.DividendsContractAddress, "TransferDividends", votingRecord);
+                        State.DividendContract.TransferDividends(votingRecord);
                     }
                 }
             }
@@ -218,9 +215,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Withdraw(string transactionId, bool withoutLimitation)
+        public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
         {
-            if (_dataStructures.VotingRecordsMap.TryGet(Hash.LoadHex(transactionId), out var votingRecord))
+            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            if (votingRecord.IsNotEmpty())
             {
                 if (votingRecord.IsWithdrawn)
                 {
@@ -230,31 +228,32 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if ((votingRecord.UnlockAge <= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
                 {
-                    Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
-                    Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
-                        _dataStructures.CurrentTermNumberField.GetValue());
+                    State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
+                    State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
 
-                    var blockchainStartTimestamp = _dataStructures.BlockchainStartTimestamp.GetValue();
+                    var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
                     votingRecord.WithdrawTimestamp =
                         blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
                     votingRecord.IsWithdrawn = true;
 
-                    _dataStructures.VotingRecordsMap.SetValue(Hash.LoadHex(transactionId), votingRecord);
+                    State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
 
-                    var ticketsCount = _dataStructures.TicketsCountField.GetValue();
+                    var ticketsCount = State.TicketsCountField.Value;
                     ticketsCount -= votingRecord.Count;
-                    _dataStructures.TicketsCountField.SetValue(ticketsCount);
+                    State.TicketsCountField.Value = ticketsCount;
 
-                    if (_dataStructures.TicketsMap.TryGet(votingRecord.From.ToStringValue(), out var ticketsOfVoter))
+                    var ticketsOfVoter = State.TicketsMap[votingRecord.From.ToStringValue()];
+                    if (ticketsOfVoter.IsNotEmpty())
                     {
                         ticketsOfVoter.VotedTickets -= votingRecord.Count;
-                        _dataStructures.TicketsMap.SetValue(votingRecord.From.ToStringValue(), ticketsOfVoter);
+                        State.TicketsMap[votingRecord.From.ToStringValue()] = ticketsOfVoter;
                     }
 
-                    if (_dataStructures.TicketsMap.TryGet(votingRecord.To.ToStringValue(), out var ticketsOfCandidate))
+                    var ticketsOfCandidate = State.TicketsMap[votingRecord.To.ToStringValue()];
+                    if (ticketsOfCandidate.IsNotEmpty())
                     {
                         ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
-                        _dataStructures.TicketsMap.SetValue(votingRecord.To.ToStringValue(), ticketsOfCandidate);
+                        State.TicketsMap[votingRecord.To.ToStringValue()] = ticketsOfCandidate;
                     }
                 }
             }
@@ -266,29 +265,30 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Withdraw(bool withoutLimitation = false)
+        public ActionResult WithdrawAll(bool withoutLimitation = false)
         {
-            var voterPublicKey = Api.RecoverPublicKey().ToHex();
-            var ticketsCount = _dataStructures.TicketsCountField.GetValue();
+            var voterPublicKey = Context.RecoverPublicKey().ToHex();
+            var ticketsCount = State.TicketsCountField.Value;
             var withdrawnAmount = 0UL;
             var candidatesVotesDict = new Dictionary<string, ulong>();
 
-            if (_dataStructures.TicketsMap.TryGet(voterPublicKey.ToStringValue(), out var tickets))
+            var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
+            if (tickets.IsNotEmpty())
             {
                 foreach (var transactionId in tickets.VoteToTransactions)
                 {
-                    if (_dataStructures.VotingRecordsMap.TryGet(transactionId, out var votingRecord))
+                    var votingRecord = State.VotingRecordsMap[transactionId];
+                    if (votingRecord.IsNotEmpty())
                     {
                         if (votingRecord.UnlockAge > CurrentAge && !withoutLimitation)
                         {
                             continue;
                         }
-                        
-                        Api.SendInline(Api.TokenContractAddress, "Transfer", Api.GetFromAddress(), votingRecord.Count);
-                        Api.SendInline(Api.DividendsContractAddress, "SubWeights", votingRecord.Weight,
-                            _dataStructures.CurrentTermNumberField.GetValue());
 
-                        var blockchainStartTimestamp = _dataStructures.BlockchainStartTimestamp.GetValue();
+                        State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
+                        State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+
+                        var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
                         votingRecord.WithdrawTimestamp =
                             blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
                         votingRecord.IsWithdrawn = true;
@@ -303,22 +303,23 @@ namespace AElf.Contracts.Consensus.DPoS
                             candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
                         }
 
-                        _dataStructures.VotingRecordsMap.SetValue(votingRecord.TransactionId, votingRecord);
+                        State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
                     }
                 }
 
                 ticketsCount -= withdrawnAmount;
-                _dataStructures.TicketsCountField.SetValue(ticketsCount);
+                State.TicketsCountField.Value = ticketsCount;
 
                 tickets.VotedTickets -= withdrawnAmount;
-                _dataStructures.TicketsMap.SetValue(voterPublicKey.ToStringValue(), tickets);
+                State.TicketsMap[voterPublicKey.ToStringValue()] = tickets;
 
                 foreach (var candidateVote in candidatesVotesDict)
                 {
-                    if (_dataStructures.TicketsMap.TryGet(candidateVote.Key.ToStringValue(), out var ticketsOfCandidate))
+                    var ticketsOfCandidate = State.TicketsMap[candidateVote.Key.ToStringValue()];
+                    if (ticketsOfCandidate.IsNotEmpty())
                     {
                         ticketsOfCandidate.ObtainedTickets -= candidateVote.Value;
-                        _dataStructures.TicketsMap.SetValue(candidateVote.Key.ToStringValue(), ticketsOfCandidate);
+                        State.TicketsMap[candidateVote.Key.ToStringValue()] = ticketsOfCandidate;
                     }
                 }
             }
