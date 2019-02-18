@@ -136,15 +136,15 @@ namespace AElf.OS.Network.Grpc
             if (string.IsNullOrWhiteSpace(peerEndpoint) && publicKey == null)
                 throw new InvalidOperationException("address and public cannot be both null.");
 
-            IEnumerable<GrpcPeer> _toFind = _authenticatedPeers;
+            IEnumerable<GrpcPeer> toFind = _authenticatedPeers;
 
             if (!string.IsNullOrWhiteSpace(peerEndpoint))
-                _toFind = _toFind.Where(p => p.PeerAddress == peerEndpoint);
+                toFind = toFind.Where(p => p.PeerAddress == peerEndpoint);
 
             if (publicKey != null)
-                _toFind = _toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
+                toFind = toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
             
-            return _toFind.FirstOrDefault();
+            return toFind.FirstOrDefault();
         }
 
         public bool AuthenticatePeer(string peerEndpoint, byte[] pubkey, Handshake handshake)

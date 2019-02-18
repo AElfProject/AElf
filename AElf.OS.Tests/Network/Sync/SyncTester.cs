@@ -53,8 +53,8 @@ namespace AElf.OS.Tests.Network.Sync
                 .Returns(Task.FromResult(initBlocks.Select(bl => bl.GetHash()).ToList()));
             
             _mockNetService
-                .Setup(ns => ns.GetBlockByHash(It.IsAny<Hash>(), It.IsAny<string>()))
-                .Returns<Hash, string>((hash, peer) => Task.FromResult(initBlocks.FirstOrDefault(b => b.GetHash() == hash)));
+                .Setup(ns => ns.GetBlockByHash(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns<Hash, string, bool>((hash, peer, tryOthers) => Task.FromResult(initBlocks.FirstOrDefault(b => b.GetHash() == hash)));
             
             Mock<IFullBlockchainService> blockchainService = new Mock<IFullBlockchainService>();
             blockchainService

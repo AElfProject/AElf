@@ -63,7 +63,7 @@ message HandshakeData {
 }
 
 message BlockRequest {
-    int64 BlockNumber = 1;
+    int64 Height = 1;
     bytes Id = 2;
 }
 

@@ -47,8 +47,8 @@ namespace AElf.OS.Tests.Network.Sync
                 .Returns(Task.FromResult(peerChain.Select(bl => bl.GetHash()).ToList()));
             
             mockNetService
-                .Setup(ns => ns.GetBlockByHash(It.IsAny<Hash>(), It.IsAny<string>()))
-                .Returns<Hash, string>((hash, peer) => Task.FromResult<IBlock>(peerChain.FirstOrDefault(b => b.GetHash() == hash)));
+                .Setup(ns => ns.GetBlockByHash(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns<Hash, string, bool>((hash, peer, tryOther) => Task.FromResult<IBlock>(peerChain.FirstOrDefault(b => b.GetHash() == hash)));
 
             return mockNetService;
         }
@@ -106,7 +106,7 @@ namespace AElf.OS.Tests.Network.Sync
             
             // Should not call net or queue job
             backgroundMng.Verify(mock => mock.EnqueueAsync(It.IsAny<object>(), It.IsAny<BackgroundJobPriority>(), It.IsAny<TimeSpan>()), Times.Never);
-            netMock.Verify(mock => mock.GetBlockByHash(It.Is<Hash>(h => h == block1.GetHash()), It.IsAny<string>()), Times.Once);
+            netMock.Verify(mock => mock.GetBlockByHash(It.Is<Hash>(h => h == block1.GetHash()), It.IsAny<string>(), It.IsAny<bool>()), Times.Once);
         }
     }
 }

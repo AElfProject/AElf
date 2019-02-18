@@ -173,8 +173,8 @@ namespace AElf.OS.Network.Grpc
                 }
                 else
                 {
-                    Logger.LogDebug($"Peer {context.Peer} requested block at height {request.BlockNumber}.");
-                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.BlockNumber));
+                    Logger.LogDebug($"Peer {context.Peer} requested block at height {request.Height}.");
+                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.Height));
                 }
                 
                 Logger.LogDebug($"Sending {block} to {context.Peer}.");
