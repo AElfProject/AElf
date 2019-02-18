@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.ChainController.CrossChain;
 using AElf.ChainController.EventMessages;
 using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using Easy.MessageHub;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -15,26 +17,20 @@ namespace AElf.Crosschain.Grpc.Server
 {
     public class ParentChainBlockInfoRpcServer : ParentChainRpc.ParentChainRpcBase
     {
-        private readonly IChainService _chainService;
+        
         public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
-        private IBlockChain BlockChain { get; set; }
-        private ulong LibHeight { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ParentChainBlockInfoRpcServer(IChainService chainService)
+        private readonly IBlockchainService _blockchainService;
+
+        public ParentChainBlockInfoRpcServer(IBlockchainService blockchainService)
         {
-            _chainService = chainService;
+            _blockchainService = blockchainService;
             Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public void Init(int chainId)
-        {
-            BlockChain = _chainService.GetBlockChain(chainId);
-            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
-        }
-        
         /// <summary>
         /// Response to recording request from side chain node.
         /// Many requests to many responses.
@@ -55,7 +51,8 @@ namespace AElf.Crosschain.Grpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var sideChainId = requestInfo.ChainId;
-                    if (requestedHeight > LibHeight)
+                    var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestInfo.ChainId, requestedHeight);
+                    if (block == null)
                     {
                         await responseStream.WriteAsync(new ResponseParentChainBlockData
                         {
@@ -63,51 +60,45 @@ namespace AElf.Crosschain.Grpc.Server
                         });
                         continue;
                     }
-                    IBlock block = await BlockChain.GetBlockByHeightAsync(requestedHeight);
-                    
-                    var res = new ResponseParentChainBlockData
-                    { 
-                        Success = block != null
-                    };
 
-                    if (block != null)
+                    var res = new ResponseParentChainBlockData
                     {
-                        BlockHeader header = block.Header;
-                        res.BlockData = new ParentChainBlockData
+                        Success = true,
+                        BlockData = new ParentChainBlockData
                         {
                             Root = new ParentChainBlockRootInfo
                             {
                                 Height = requestedHeight,
-                                SideChainTransactionsRoot = header.BlockExtraData.SideChainTransactionsRoot,
-                                ChainId = header.ChainId
-                            }
-                        };
-                        IndexedSideChainBlockDataResult indexedSideChainBlockDataResult = 
-                            await GetIndexedSideChainBlockInfoResult(requestedHeight);
-                        
-                        if (indexedSideChainBlockDataResult != null)
-                        {
-                            var binaryMerkleTree = new BinaryMerkleTree();
-                            foreach (var blockInfo in indexedSideChainBlockDataResult.SideChainBlockData)
-                            {
-                                binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
-                            }
-
-                            binaryMerkleTree.ComputeRootHash();
-                            // This is to tell side chain the merkle path for one side chain block,
-                            // which could be removed with subsequent improvement.
-                            // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
-                            for (int i = 0; i < indexedSideChainBlockDataResult.SideChainBlockData.Count; i++)
-                            {
-                                var info = indexedSideChainBlockDataResult.SideChainBlockData[i];
-                                if (!info.ChainId.Equals(sideChainId))
-                                    continue;
-                                var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                                res.BlockData.IndexedMerklePath.Add(info.Height, merklePath);
+                                SideChainTransactionsRoot =
+                                    block.Header.BlockExtraData.SideChainTransactionsRoot,
+                                ChainId = block.Header.ChainId
                             }
                         }
-                    }
+                    };
 
+                    var indexedSideChainBlockDataResult = GetIndexedSideChainBlockInfoResult(block);
+                    
+                    if (indexedSideChainBlockDataResult.Count != 0)
+                    {
+                        var binaryMerkleTree = new BinaryMerkleTree();
+                        foreach (var blockInfo in indexedSideChainBlockDataResult)
+                        {
+                            binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
+                        }
+
+                        binaryMerkleTree.ComputeRootHash();
+                        // This is to tell side chain the merkle path for one side chain block,
+                        // which could be removed with subsequent improvement.
+                        // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
+                        for (int i = 0; i < indexedSideChainBlockDataResult.Count; i++)
+                        {
+                            var info = indexedSideChainBlockDataResult[i];
+                            if (!info.ChainId.Equals(sideChainId))
+                                continue;
+                            var merklePath = binaryMerkleTree.GenerateMerklePath(i);
+                            res.BlockData.IndexedMerklePath.Add(info.Height, merklePath);
+                        }
+                    }
                     await responseStream.WriteAsync(res);
                 }
             }
@@ -117,10 +108,10 @@ namespace AElf.Crosschain.Grpc.Server
             }
         }
 
-        private async Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(ulong requestedHeight)
+        private IList<SideChainBlockData> GetIndexedSideChainBlockInfoResult(Block block)
         {
-            // todo: extract side chain block info from blocks.
-            throw new NotImplementedException();
+            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(block.Body.TransactionList.Last().Params);
+            return crossChainBlockData.SideChainBlockData;
         }
 
         public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)

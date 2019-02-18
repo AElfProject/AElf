@@ -118,7 +118,6 @@ public class HeaderInfoTest
 
             var headerInfoServer = new SideChainBlockInfoRpcServer(MockChainService().Object);
             var chainId = ChainHelpers.GetChainId(123);
-            headerInfoServer.Init(chainId);
             await headerInfoServer.RequestSideChainDuplexStreaming(MockRequestStream(_requestIndexedInfoList.Count).Object,
                 MockResponseStream().Object, null);
             Assert.Equal(_requestIndexedInfoList.Count, _requestIndexedInfoList.Count);

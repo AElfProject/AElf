@@ -4,30 +4,26 @@ using System.Threading.Tasks;
 using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using Easy.MessageHub;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain.Grpc.Server
 {
     public class SideChainBlockInfoRpcServer : SideChainRpc.SideChainRpcBase
     {
-        private readonly IChainService _chainService;
         public ILogger<SideChainBlockInfoRpcServer> Logger {get;set;}
-        private ILightChain LightChain { get; set; }
-        private ulong LibHeight { get; set; }
+        public ILocalEventBus LocalEventBus { get; }
+        private readonly IBlockchainService _blockchainService;
 
-        public SideChainBlockInfoRpcServer(IChainService chainService)
+        public SideChainBlockInfoRpcServer(IBlockchainService blockchainService)
         {
-            _chainService = chainService;
+            _blockchainService = blockchainService;
             Logger = NullLogger<SideChainBlockInfoRpcServer>.Instance;
-        }
-
-        public void Init(int chainId)
-        {
-            LightChain = _chainService.GetLightChain(chainId);
-            MessageHub.Instance.Subscribe<NewLibFound>(newFoundLib => { LibHeight = newFoundLib.Height; });
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         /// <summary>
@@ -51,8 +47,11 @@ namespace AElf.Crosschain.Grpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     
+                    
                     // Todo: Wait until 10 rounds for most peers to be ready.
-                    if (requestedHeight > LibHeight || LibHeight < (ulong) (GlobalConfig.BlockNumberOfEachRound * 10))
+                    var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestInfo.ChainId,
+                        requestedHeight);
+                    if (block == null)
                     {
                         await responseStream.WriteAsync(new ResponseSideChainBlockData
                         {
@@ -60,7 +59,8 @@ namespace AElf.Crosschain.Grpc.Server
                         });
                         continue;
                     }
-                    var blockHeader = await LightChain.GetHeaderByHeightAsync(requestedHeight);
+                    
+                    var blockHeader = block.Header;
                     var res = new ResponseSideChainBlockData
                     {
                         Success = blockHeader != null,

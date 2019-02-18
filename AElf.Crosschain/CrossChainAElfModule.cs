@@ -25,6 +25,7 @@ namespace AElf.Crosschain
              services.AddSingleton<IClientService, GrpcClientService>();
              services.AddSingleton<ICrossChainDataProvider, GrpcCrossChainDataProvider>();
              services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+             services.AddSingleton<ICrossChainService, CrossChainService>();
          }
          
          public override void OnApplicationInitialization(ApplicationInitializationContext context)
