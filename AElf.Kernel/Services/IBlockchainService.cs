@@ -111,12 +111,6 @@ namespace AElf.Kernel.Services
 
         public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
         {
-            var chainBlockLink = new ChainBlockLink()
-            {
-                Height = block.Header.Height,
-                BlockHash = block.Header.GetHash(),
-                PreviousBlockHash = block.Header.PreviousBlockHash
-            };
             var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
                 Height = block.Header.Height,

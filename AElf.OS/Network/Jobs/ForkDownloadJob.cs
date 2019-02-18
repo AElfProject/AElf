@@ -3,6 +3,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Services;
 using AElf.OS.Jobs;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Network.Jobs
@@ -17,6 +18,11 @@ namespace AElf.OS.Network.Jobs
         private int ChainId
         {
             get { return ChainOptions.Value.ChainId.ConvertBase58ToChainId(); }
+        }
+        
+        public ForkDownloadJob()
+        {
+            Logger = NullLogger<ForkDownloadJob>.Instance;
         }
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
