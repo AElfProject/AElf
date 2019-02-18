@@ -1,6 +1,5 @@
 using System;
-
-using AElf.Common;
+using AElf.Crosschain;
 using Grpc.Core;
 namespace AElf.Miner.Rpc.Client
 {

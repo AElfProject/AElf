@@ -38,12 +38,12 @@ namespace AElf.Types.CSharp
                 {typeof(Address), Address.Parse},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {
-                    typeof(ParentChainBlockInfo),
-                    (s) => ParentChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
+                    typeof(ParentChainBlockData),
+                    (s) => ParentChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
                 },
                 {
-                    typeof(SideChainBlockInfo),
-                    (s) => SideChainBlockInfo.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
+                    typeof(SideChainBlockData),
+                    (s) => SideChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
                 },
                 {typeof(Authorization), (s) => Authorization.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
@@ -68,25 +68,25 @@ namespace AElf.Types.CSharp
                 {typeof(Hash), obj => ((Hash) obj).ToHex()},
                 {typeof(Address), obj => ((Address) obj).GetFormatted()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
-                {typeof(ParentChainBlockInfo), obj => ((ParentChainBlockInfo) obj).ToByteArray().ToHex()},
-                {typeof(SideChainBlockInfo), obj => ((SideChainBlockInfo) obj).ToByteArray().ToHex()},
+                {typeof(ParentChainBlockData), obj => ((ParentChainBlockData) obj).ToByteArray().ToHex()},
+                {typeof(SideChainBlockData), obj => ((SideChainBlockData) obj).ToByteArray().ToHex()},
                 {typeof(Authorization), obj => ((Authorization) obj).ToByteArray().ToHex()},
                 {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
                 {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
                 {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
                 {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()},
                 {
-                    typeof(SideChainBlockInfo[]), objs =>
+                    typeof(SideChainBlockData[]), objs =>
                     {
-                        string[] res = ((SideChainBlockInfo[]) objs).Select(obj => obj.ToByteArray().ToHex())
+                        string[] res = ((SideChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
                             .ToArray();
                         return "[" + string.Join(", ", res) + "]";
                     }
                 },
                 {
-                    typeof(ParentChainBlockInfo[]), objs =>
+                    typeof(ParentChainBlockData[]), objs =>
                     {
-                        string[] res = ((ParentChainBlockInfo[]) objs).Select(obj => obj.ToByteArray().ToHex())
+                        string[] res = ((ParentChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
                             .ToArray();
                         return "[" + string.Join(", ", res) + "]";
                     }

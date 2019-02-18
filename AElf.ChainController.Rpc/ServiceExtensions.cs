@@ -267,7 +267,7 @@ namespace AElf.ChainController.Rpc
             var indexedSideChainBlockInfoResult = await s.CrossChainInfoReader.GetIndexedSideChainBlockInfoResult(chainId, height);
             if (indexedSideChainBlockInfoResult == null)
                 return res;
-            foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockInfos)
+            foreach (var sideChainIndexedInfo in indexedSideChainBlockInfoResult.SideChainBlockData)
             {
                 res.Add(sideChainIndexedInfo.ChainId.DumpBase58(), new JObject
                 {
@@ -280,7 +280,7 @@ namespace AElf.ChainController.Rpc
             return res;
         }
 
-        internal static async Task<ParentChainBlockInfo> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
+        internal static async Task<ParentChainBlockData> GetParentChainBlockInfo(this Svc s, int chainId, ulong height)
         {
             var parentChainBlockInfo = await s.CrossChainInfoReader.GetBoundParentChainBlockInfoAsync(chainId, height);
             if (parentChainBlockInfo != null)

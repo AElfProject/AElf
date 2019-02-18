@@ -3,6 +3,7 @@ using AElf.Common;
 using AElf.Kernel;
 using System.Linq;
 using System.Reflection;
+using AElf.Cryptography;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Types;
@@ -76,7 +77,7 @@ namespace AElf.Sdk.CSharp
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
         }
-
+        
         public Block GetBlockByHeight(ulong height)
         {
             return (Block) BlockChain.GetBlockByHeightAsync(height, true).Result;
