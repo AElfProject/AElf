@@ -6,8 +6,9 @@ using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.TxPool;
+using Shouldly;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel.Tests.Managers
 {
     public sealed class TransactionManagerTests:AElfKernelTestBase
     {
@@ -19,24 +20,46 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public async Task TestInsert()
+        public async Task Insert_Transaction_Test()
         {
-            await _transactionManager.AddTransactionAsync(new Transaction
+            var hash = await _transactionManager.AddTransactionAsync(new Transaction
             {
                 From = Address.Generate(),
                 To = Address.Generate()
             });
+
+            hash.ShouldNotBeNull();
+        }
+
+
+        [Fact]
+        public async Task Insert_MultipleTx_Test()
+        {
+            var address = Address.Generate();
+            var t1 = BuildTransaction(address, 1);
+            var t2 = BuildTransaction(address, 2);
+            var key1 = await _transactionManager.AddTransactionAsync(t1);
+            var key2 = await _transactionManager.AddTransactionAsync(t2);
+            Assert.NotEqual(key1, key2);
         }
 
         [Fact]
-        public async Task GetTest()
+        public async Task Remove_Transaction_Test()
         {
-            var t = BuildTransaction();
-            var key = await _transactionManager.AddTransactionAsync(t);
-            var td = await _transactionManager.GetTransaction(key);
-            Assert.Equal(t, td);
+            var t1 = BuildTransaction();
+            var t2 = BuildTransaction();
+
+            var key1 = await _transactionManager.AddTransactionAsync(t1);
+            var key2 = await _transactionManager.AddTransactionAsync(t2);
+
+            var td1 = await _transactionManager.GetTransaction(key1);
+            Assert.Equal(t1, td1);
+
+            await _transactionManager.RemoveTransaction(key2);
+            var td2 = await _transactionManager.GetTransaction(key2);
+            Assert.Equal(td2, null);
         }
-        
+
         public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
         {
             keyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
