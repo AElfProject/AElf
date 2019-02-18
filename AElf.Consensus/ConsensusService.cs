@@ -28,6 +28,7 @@ namespace AElf.Consensus
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
+        private readonly IConsensusCommand _consensusCommand;
 
         private IDisposable _consensusObservables;
 
@@ -38,13 +39,14 @@ namespace AElf.Consensus
         public ConsensusService(IConsensusObserver consensusObserver,
             IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionExecutingService transactionExecutingService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, IConsensusCommand consensusCommand)
         {
             _consensusObserver = consensusObserver;
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
             _transactionExecutingService = transactionExecutingService;
             _blockchainService = blockchainService;
+            _consensusCommand = consensusCommand;
 
             Logger = NullLogger<ConsensusService>.Instance;
         }
@@ -59,13 +61,11 @@ namespace AElf.Consensus
                 BlockHeight = chain.BestChainHeight
             };
             
-            var consensusCommand = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
+            _consensusCommand.Command = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                 chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow))).ToByteArray();
 
             // Initial or update the schedule.
-            _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
-
-            _consensusInformationGenerationService.UpdateConsensusCommand(consensusCommand);
+            _consensusObservables = _consensusObserver.Subscribe(_consensusCommand.Command);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,

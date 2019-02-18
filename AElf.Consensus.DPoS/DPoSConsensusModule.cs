@@ -17,13 +17,7 @@ namespace AElf.Consensus.DPoS
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
             context.Services.AddSingleton<IConsensusObserver, DPoSObserver>();
-        }
-
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var chainOptions = context.ServiceProvider.GetService<IOptions<ChainOptions>>().Value;
-            var myService = context.ServiceProvider.GetService<IConsensusService>();
-            AsyncHelper.RunSync(() => myService.TriggerConsensusAsync(chainOptions.ChainId.ConvertBase58ToChainId()));
+            context.Services.AddSingleton<IConsensusCommand, ConsensusCommand>();
         }
     }
 }
