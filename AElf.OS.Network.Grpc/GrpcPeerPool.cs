@@ -66,18 +66,26 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            GrpcPeer peer = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
-            
-            if (peer == null)
+            try
             {
-                Logger?.LogWarning($"Could not find peer {address}.");
+                GrpcPeer peer = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
+            
+                if (peer == null)
+                {
+                    Logger?.LogWarning($"Could not find peer {address}.");
+                    return false;
+                }
+
+                await peer.SendDisconnectAsync();
+                await peer.StopAsync();
+                
+                return _authenticatedPeers.Remove(peer);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 return false;
             }
-
-            await peer.SendDisconnectAsync();
-            await peer.StopAsync();
-            
-            return _authenticatedPeers.Remove(peer);
         }
         
         private async Task<bool> Dial(string address)
@@ -91,7 +99,12 @@ namespace AElf.OS.Network.Grpc
                         
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = await BuildHandshakeAsync();
-                        
+                
+                if (channel.State != ChannelState.Connecting)
+                {
+                    await channel.TryWaitForStateChangedAsync(channel.State, DateTime.UtcNow.AddSeconds(_dialTimeout));
+                }
+                
                 var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_dialTimeout)));
                 
                 // todo refactor so that connect returns the handshake and we'll check here 

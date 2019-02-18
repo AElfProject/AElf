@@ -56,7 +56,7 @@ namespace AElf.OS.Network.Grpc
         public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
-            
+
             try
             {                
                 var peer = GrpcUrl.Parse(context.Peer);
@@ -91,6 +91,9 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
+//                if (channel != null)
+//                    AsyncHelper.RunSync(channel.ShutdownAsync);
+                
                 Logger.LogError(e, "Error during connect.");
                 return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError });
             }

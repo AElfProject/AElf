@@ -169,7 +169,7 @@ namespace AElf.OS.Tests.Network
         [Fact]
         public async Task GetPeers_NotExist_Test()
         {
-            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6802"}});
+            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:4801", "127.0.0.1:6802"}});
             var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801 });
 
             await m1.Item1.StartAsync();
@@ -214,7 +214,8 @@ namespace AElf.OS.Tests.Network
         public async Task Basic_Remove_NotExist_Peer_Test()
         {
             var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800 });
-            var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801, BootNodes = new List<string> {"127.0.0.1:6800"}});
+            var m2 = BuildGrpcNetworkServer(new NetworkOptions 
+                { ListeningPort = 6801, BootNodes = new List<string> {"127.0.0.1:6800"}});
 
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
