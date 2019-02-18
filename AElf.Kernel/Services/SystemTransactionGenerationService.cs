@@ -11,12 +11,12 @@ namespace AElf.Kernel.Services
             _systemTransactionGenerators = systemTransactionGenerators;
         }
         public List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight, ulong refBlockNumber, 
-            byte[] refBlockPrefix)
+            byte[] refBlockPrefix, int chainId)
         {
             var generatedTxns = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)
             {
-                generator.GenerateTransactions(from, preBlockHeight, refBlockNumber, refBlockPrefix, ref generatedTxns);
+                generator.GenerateTransactions(from, preBlockHeight, refBlockNumber, refBlockPrefix, chainId, ref generatedTxns);
             }
 
             return generatedTxns;

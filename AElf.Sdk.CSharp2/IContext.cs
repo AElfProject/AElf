@@ -8,12 +8,12 @@ namespace AElf.Sdk.CSharp
     public interface IContext
     {
         void FireEvent(Event logEvent);
+        Hash TransactionId { get; }
 
         int ChainId { get; }
 
         // TODO: Remove Transaction
         Transaction Transaction { get; }
-        Hash TransactionId { get; }
         Address Sender { get; }
 
         Address Self { get; }

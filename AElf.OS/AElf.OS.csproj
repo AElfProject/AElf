@@ -3,6 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Consensus.DPoS\AElf.Consensus.DPoS.csproj" />
+    <ProjectReference Include="..\AElf.Consensus\AElf.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />

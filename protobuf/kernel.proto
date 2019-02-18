@@ -140,6 +140,7 @@ message ExecutionReturnSet {
     map<string, bytes> StateChanges = 3;
     bytes Bloom = 4;
     repeated Transaction DeferredTransactions = 5;
+    bytes ReturnValue = 6;
 }
 
 message LogEvent {
@@ -169,6 +170,11 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
+message BlockExtraData{
+    Hash SideChainTransactionsRoot = 1;
+    bytes ConsensusInformation = 2;
+}
+
 message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;
@@ -181,6 +187,7 @@ message BlockHeader {
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
     Hash SideChainTransactionsRoot = 11;
+    BlockExtraData BlockExtraData = 12;
 }
 
 message BlockBody {
@@ -200,6 +207,27 @@ message SmartContractRegistration {
     bytes ContractBytes = 3;
     uint64 SerialNumber=4;
 }
+
+message SmartContractDeployment {
+    Hash ContractHash = 1;
+    Hash Caller = 2;
+    bytes ConstructParams = 3;
+    uint64 IncrementId = 4;
+}
+
+message SmartContractInvokeContext {
+    Hash Caller = 1;
+    uint64 IncrementId = 2;
+    string MethodName = 3;
+    bytes Params = 4;
+}
+
+message DataItem {
+    Hash ResourcePath = 1;
+    Hash ResourcePointer = 2;
+    Hash StateMerkleTreeLeaf = 3;
+}
+
 
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;

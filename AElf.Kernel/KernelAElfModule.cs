@@ -5,6 +5,7 @@ using AElf.Common.Serializers;
 using AElf.Configuration;
 using AElf.Configuration.Config.Consensus;
 using AElf.Database;
+using AElf.Kernel.Services;
 using AElf.Kernel.Storages;
 using AElf.Kernel.Types;
 using AElf.Modularity;
@@ -40,6 +41,8 @@ namespace AElf.Kernel
             services.AddTransient(
                 typeof(IEqualityIndex<>), 
                 typeof(EqualityIndex<,>));
+
+            services.AddSingleton<IMinerService, MinerService>();
             
             services.AddTransient(
                 typeof(IComparisionIndex<>), 
@@ -55,12 +58,6 @@ namespace AElf.Kernel
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            if (ConsensusConfig.Instance.ConsensusType == ConsensusType.SingleNode)
-            {
-                GlobalConfig.BlockProducerNumber = 1;
-            }
-
-            
             //TODO! change log output 
             
             var loggerFactory = context.ServiceProvider.GetService<ILoggerFactory>();
