@@ -10,6 +10,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.Resource2\AElf.Contracts.Resource2.csproj" />
     <ProjectReference Include="..\AElf.Sdk.CSharp2.Tests.TestContract\AElf.Sdk.CSharp2.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.Sdk.CSharp2\AElf.Sdk.CSharp2.csproj" />
   </ItemGroup>
