@@ -35,7 +35,7 @@ namespace AElf.Consensus
 
         public ILogger<ConsensusService> Logger { get; set; }
 
-        public ConsensusService(IConsensusObserver consensusObserver, IExecutingService executingService,
+        public ConsensusService(IConsensusObserver consensusObserver,
             IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionExecutingService transactionExecutingService,
             IBlockchainService blockchainService)
@@ -55,8 +55,8 @@ namespace AElf.Consensus
             var chainContext = new ChainContext
             {
                 ChainId = chainId,
-                BlockHash = chain?.BestChainHash ?? Hash.Genesis,
-                BlockHeight = chain?.BestChainHeight ?? 1
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
             };
             
             var consensusCommand = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
