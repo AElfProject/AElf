@@ -6,6 +6,6 @@ namespace AElf.Consensus
     {
         byte[] GenerateExtraInformationAsync();
         byte[] GenerateExtraInformationForTransactionAsync(byte[] consensusInformation, int chainId);
-        void Tell(byte[] consensusCommand);
+        void UpdateConsensusCommand(byte[] consensusCommand);
     }
 }

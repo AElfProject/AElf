@@ -16,16 +16,16 @@ namespace AElf.Consensus.DPoS
     // ReSharper disable once InconsistentNaming
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
-        private readonly ConsensusOptions _consensusOptions;
+        private readonly DPoSOptions _dpoSOptions;
         private readonly ChainOptions _chainOptions;
         private DPoSCommand _command;
         private Hash _inValue;
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<ConsensusOptions> consensusOptions, IOptions<ChainOptions> chainOptions)
+        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IOptions<ChainOptions> chainOptions)
         {
-            _consensusOptions = consensusOptions.Value;
+            _dpoSOptions = consensusOptions.Value;
             _chainOptions = chainOptions.Value;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
@@ -38,7 +38,7 @@ namespace AElf.Consensus.DPoS
                 case DPoSBehaviour.InitialTerm:
                     return new DPoSExtraInformation
                     {
-                        InitialMiners = {_consensusOptions.InitialMiners},
+                        InitialMiners = {_dpoSOptions.InitialMiners},
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
                     }.ToByteArray();
                 
@@ -91,7 +91,7 @@ namespace AElf.Consensus.DPoS
             {
                 case DPoSBehaviour.InitialTerm:
                     information.NewTerm.ChainId = chainId;
-                    information.NewTerm.FirstRound.MiningInterval = _consensusOptions.MiningInterval;
+                    information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
                     return new DPoSExtraInformation
                     {
                         NewTerm = information.NewTerm
@@ -135,7 +135,7 @@ namespace AElf.Consensus.DPoS
             }
         }
 
-        public void Tell(byte[] consensusCommand)
+        public void UpdateConsensusCommand(byte[] consensusCommand)
         {
             _command = DPoSCommand.Parser.ParseFrom(consensusCommand);
 

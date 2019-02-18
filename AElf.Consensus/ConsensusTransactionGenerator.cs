@@ -17,7 +17,7 @@ namespace AElf.Consensus
             int chainId, ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
-                _consensusService.GenerateConsensusTransactions(chainId, refBlockHeight, refBlockPrefix).Result);
+                _consensusService.GenerateConsensusTransactionsAsync(chainId, refBlockHeight, refBlockPrefix).Result);
         }
     }
 }

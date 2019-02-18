@@ -141,7 +141,7 @@ namespace AElf.Execution.Execution
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
                         RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                        StateHash = trace.GetSummarizedStateHash(),
+                        //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
                     };
                     txRes.UpdateBloom();
@@ -218,6 +218,8 @@ namespace AElf.Execution.Execution
             {
                 returnSet.StateChanges.Add(s.Key, s.Value);
             }
+
+            returnSet.ReturnValue = trace.RetVal?.Data;
 
             return returnSet;
         }

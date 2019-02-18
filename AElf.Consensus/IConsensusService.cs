@@ -7,10 +7,11 @@ namespace AElf.Consensus
 {
     public interface IConsensusService
     {
-        Task TriggerConsensus(int chainId);
-        Task StopConsensus();
-        Task<bool> ValidateConsensus(int chainId, byte[] consensusInformation);
-        Task<byte[]> GetNewConsensusInformation(int chainId);
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactions(int chainId, ulong refBlockHeight, byte[] refBlockPrefix);
+        Task TriggerConsensusAsync(int chainId);
+
+        Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
+            byte[] consensusInformation);
+        Task<byte[]> GetNewConsensusInformationAsync(int chainId);
+        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId, ulong refBlockHeight, byte[] refBlockPrefix);
     }
 }

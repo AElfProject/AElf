@@ -140,6 +140,7 @@ message ExecutionReturnSet {
     map<string, bytes> StateChanges = 3;
     bytes Bloom = 4;
     repeated Transaction DeferredTransactions = 5;
+    bytes ReturnValue = 6;
 }
 
 message LogEvent {
