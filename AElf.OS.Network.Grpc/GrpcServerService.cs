@@ -9,6 +9,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -20,11 +21,6 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase, IAElfServerService
     {
-        /// <summary>
-        /// Event launched when a peer disconnects explicitly.
-        /// </summary>
-        public event EventHandler PeerSentDisconnection;
-        
         private readonly IPeerPool _peerPool;
         private readonly IBlockService _blockService;
         
@@ -42,20 +38,20 @@ namespace AElf.OS.Network.Grpc
         }
 
         /// <summary>
-        /// First step of the connect/auth process.Used to initiate a connection. The provided payload should be the
+        /// First step of the connect/auth process. Used to initiate a connection. The provided payload should be the
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        public override Task<AuthResponse> Connect(Handshake request, ServerCallContext context)
+        public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
             
             try
-            {
+            {                
                 var peer = GrpcUrl.Parse(context.Peer);
-                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
+                var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
-                Logger?.LogDebug($"Attempting connect to {peerServer}");
+                Logger?.LogDebug($"Attempting to create channel to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);
@@ -65,21 +61,27 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
-                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
+                var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerServer, peer.Port.ToString());
+                
+                // Verify auth
+                bool valid = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
+
+                if (!valid)
+                    return Task.FromResult(new AuthResponse { Err = AuthError.WrongAuth });
                 
                 // send our credentials
                 var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
                 var resp = client.Authentify(hsk);
                 
-                // If auth ok -> finalize
-                _peerPool.FinalizeAuth(new GrpcPeer(channel, client, peerServer, peer.Port.ToString()));
+                // If auth ok -> add it to our peers
+                _peerPool.AddPeer(grpcPeer);
                 
                 return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during connect.");
-                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
+                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError });
             }
         }
 
@@ -89,24 +91,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
-            Logger.LogTrace($"[{context.Peer}] Is calling back with his auth.");
-            
             var peer = GrpcUrl.Parse(context.Peer);
-            
-            try
-            {
-                var peerServer = peer.IpAddress + ":" + request.HskData.ListeningPort;
-                
-                bool isAuth = _peerPool.AuthenticatePeer(peerServer, request);
-                
-                // todo verify auth
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error during connect.");
-                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError});
-            }
-            
             return Task.FromResult(new AuthResponse { Success = true, Port = peer.Port.ToString() });
         }
 

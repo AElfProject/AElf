@@ -3,8 +3,8 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <Target Name="DownloadChakraCore" AfterTargets="AfterBuild">
-    <Exec Command="bash DownloadChakraCore.sh $(OutDir)" />
+  <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
+    <Exec Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
   </Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
