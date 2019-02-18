@@ -14,12 +14,9 @@ namespace AElf.Sdk.CSharp
 
         // TODO: Remove Transaction
         Transaction Transaction { get; }
-        Hash TransactionId { get; }
         Address Sender { get; }
 
         Address Self { get; }
-        byte[] RecoverPublicKey();
-        
 
         // TODO: Remove genesis
         Address Genesis { get; }
@@ -35,7 +32,6 @@ namespace AElf.Sdk.CSharp
 
         // TODO: Remove GetBlockByHeight
         Block GetBlockByHeight(ulong height);
-
 
         bool VerifySignature(Transaction tx);
 
