@@ -180,7 +180,8 @@ namespace AElf.Kernel.Services
 
         public async Task<BlockHeader> GetBestChainLastBlock(int chainId)
         {
-            throw new NotImplementedException();
+            var chain = await GetChainAsync(chainId);
+            return await _blockManager.GetBlockHeaderAsync(chain.BestChainHash);
         }
     }
 }

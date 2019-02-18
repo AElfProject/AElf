@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Jobs
                 var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);
                 
                 if (hasBlock)
-                    continue; // todo review
+                    continue; // todo review myabe no need to go further.
 
                 Block block = (Block)await NetworkService.GetBlockByHash(hash, args.Peer);
 
