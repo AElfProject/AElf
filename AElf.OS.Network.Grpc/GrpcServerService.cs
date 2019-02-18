@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
-            Logger?.LogTrace($"[{context.Peer}] has initiated a connection request.");
+            Logger?.LogTrace($"{context.Peer} has initiated a connection request.");
 
             try
             {                
@@ -91,10 +91,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-//                if (channel != null)
-//                    AsyncHelper.RunSync(channel.ShutdownAsync);
-                
-                Logger.LogError(e, "Error during connect.");
+                Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
                 return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError });
             }
         }
@@ -120,7 +117,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Error during connect.");
+                Logger.LogError(e, "Error during connect, peer: {context.Peer}.");
             }
             
             return Task.FromResult(new VoidReply());
@@ -131,20 +128,26 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(Announcement an, ServerCallContext context)
         {
+            if (an?.Header == null)
+            {
+                Logger.LogError($"Received null announcement or header from {context.Peer}.");
+                return Task.FromResult(new VoidReply());
+            }
+
+            if (an.Header.PreviousBlockHash == null)
+            {
+                Logger.LogError($"Received announcement with null previous hash from {context.Peer}.");
+                return Task.FromResult(new VoidReply());
+            }
+                
             try
             {
-                // todo temp - use GrpcUrl everywhere
-                var peer = GrpcUrl.Parse(context.Peer);
-                var peerServer = peer.IpAddress + ":" + peer.Port; 
-                
-                var hash = an.Header.GetHash().ToByteArray();
-                Logger.LogTrace($"Received announce {hash.ToHex()} from {context.Peer}.");
-                
+                Logger.LogDebug($"Received announce {an.Header.GetHash().ToHex()} from {context.Peer}.");
                 EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, context.Peer));
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Error during announcement handle.");
+                Logger.LogError(e, $"Error during announcement processing, peer: {context.Peer}.");
             }
             
             return Task.FromResult(new VoidReply());
@@ -165,18 +168,22 @@ namespace AElf.OS.Network.Grpc
                 Block block;
                 if (request.Id != null && request.Id.Length > 0)
                 {
+                    Logger.LogDebug($"Peer {context.Peer} requested block with id {request.Id.ToByteArray().ToHex()}.");
                     block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHashAsync(ChainId, Hash.LoadByteArray(request.Id.ToByteArray())));
                 }
                 else
                 {
+                    Logger.LogDebug($"Peer {context.Peer} requested block at height {request.BlockNumber}.");
                     block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.BlockNumber));
                 }
+                
+                Logger.LogDebug($"Sending {block} to {context.Peer}.");
                 
                 return Task.FromResult(new BlockReply { Block = block });
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Error during RequestBlock handle.");
+                Logger.LogError(e, $"Error during block request handle, peer: {context.Peer}.");
             }
             
             return Task.FromResult(new BlockReply());
@@ -184,8 +191,25 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
         {
+            if (request == null)
+                return Task.FromResult(new BlockIdList());
+
+            if (request.FirstBlockId != ByteString.Empty)
+            {
+                Logger.LogError($"Request ids first block hash is null from {context.Peer}.");
+                return Task.FromResult(new BlockIdList());
+            }
+            
+            if (request.Count <= 0)
+            {
+                Logger.LogError($"Request ids count is invalid from {context.Peer}.");
+                return Task.FromResult(new BlockIdList());
+            }
+            
             try
             {
+                Logger.LogDebug($"Peer {context.Peer} requested block ids: from {request.FirstBlockId}, count : {request.Count}.");
+                
                 var headers = AsyncHelper.RunSync(() => _blockChainService.GetBlockHeaders(ChainId, Hash.LoadByteArray(request.FirstBlockId.ToByteArray()),
                     request.Count));
                 
