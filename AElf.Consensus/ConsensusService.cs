@@ -15,6 +15,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Threading;
 
 namespace AElf.Consensus
 {
@@ -58,8 +59,8 @@ namespace AElf.Consensus
                 BlockHeight = chain?.BestChainHeight ?? 1
             };
             
-            var consensusCommand = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
-                chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow)).ToByteArray();
+            var consensusCommand = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
+                chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow))).ToByteArray();
 
             // Initial or update the schedule.
             _consensusObservables = _consensusObserver.Subscribe(consensusCommand);
@@ -77,8 +78,8 @@ namespace AElf.Consensus
                 BlockHeight = preBlockHeight
             };
             
-            return ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusInformation)
+            return (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
+                    chainContext, ConsensusConsts.ValidateConsensus, consensusInformation))
                 .DeserializeToPbMessage<ValidationResult>().Success;
         }
 
@@ -92,9 +93,9 @@ namespace AElf.Consensus
                 BlockHeight = chain.BestChainHeight
             };
 
-            var newConsensusInformation = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+            var newConsensusInformation = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                 chainContext, ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GenerateExtraInformationAsync()).DeserializeToBytes();
+                _consensusInformationGenerationService.GenerateExtraInformation())).DeserializeToBytes();
 
             _latestGeneratedConsensusInformation = newConsensusInformation;
 
@@ -112,17 +113,17 @@ namespace AElf.Consensus
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions = ExecuteConsensusContract(chainId, await _accountService.GetAccountAsync(),
+            var generatedTransactions = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                     chainContext, ConsensusConsts.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
-                    _consensusInformationGenerationService.GenerateExtraInformationForTransactionAsync(
-                        _latestGeneratedConsensusInformation, chainId)).DeserializeToPbMessage<TransactionList>()
+                    _consensusInformationGenerationService.GenerateExtraInformationForTransaction(
+                        _latestGeneratedConsensusInformation, chainId))).DeserializeToPbMessage<TransactionList>()
                 .Transactions
                 .ToList();
 
             return generatedTransactions;
         }
 
-        private ByteString ExecuteConsensusContract(int chainId, Address fromAddress, IChainContext chainContext,
+        private async Task<ByteString> ExecuteContractAsync(int chainId, Address fromAddress, IChainContext chainContext,
             string consensusMethodName, params object[] objects)
         {
             var tx = new Transaction
@@ -133,9 +134,9 @@ namespace AElf.Consensus
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var executionReturnSets = _transactionExecutingService.ExecuteAsync(chainId, chainContext,
+            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(chainId, chainContext,
                 new List<Transaction> {tx},
-                DateTime.UtcNow, new CancellationToken()).Result;
+                DateTime.UtcNow, new CancellationToken());
             return executionReturnSets.Last().ReturnValue;
         }
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
+using Volo.Abp.Threading;
 
 namespace AElf.Consensus
 {
@@ -17,7 +18,8 @@ namespace AElf.Consensus
             int chainId, ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
-                _consensusService.GenerateConsensusTransactionsAsync(chainId, refBlockHeight, refBlockPrefix).Result);
+                AsyncHelper.RunSync(() =>
+                    _consensusService.GenerateConsensusTransactionsAsync(chainId, refBlockHeight, refBlockPrefix)));
         }
     }
 }

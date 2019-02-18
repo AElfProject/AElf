@@ -31,7 +31,7 @@ namespace AElf.Consensus.DPoS
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
         
-        public byte[] GenerateExtraInformationAsync()
+        public byte[] GenerateExtraInformation()
         {
             switch (_command.Behaviour)
             {
@@ -83,7 +83,7 @@ namespace AElf.Consensus.DPoS
             }
         }
 
-        public byte[] GenerateExtraInformationForTransactionAsync(byte[] consensusInformation, int chainId)
+        public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation, int chainId)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 

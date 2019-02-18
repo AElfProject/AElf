@@ -219,7 +219,12 @@ namespace AElf.Execution.Execution
                 returnSet.StateChanges.Add(s.Key, s.Value);
             }
 
-            returnSet.ReturnValue = trace.RetVal?.Data;
+            if (trace.RetVal == null)
+            {
+                throw new NullReferenceException();
+            }
+            
+            returnSet.ReturnValue = trace.RetVal.Data;
 
             return returnSet;
         }
