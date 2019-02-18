@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using AElf.Common;
 
 namespace AElf.Kernel.Services
 {
@@ -7,7 +9,7 @@ namespace AElf.Kernel.Services
         /// <summary>
         /// This method mines a block.
         /// </summary>
-        /// <returns>The block that has been produced</returns>
-        Task<IBlock> Mine(int chainId);
+        /// <returns>The block that has been produced.</returns>
+        Task<IBlock> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight, DateTime time);
     }
 }

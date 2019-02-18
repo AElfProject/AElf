@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account;
-using AElf.Kernel.EventMessages;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
-using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,43 +13,57 @@ namespace AElf.Kernel.Services
 {
     public class MinerService : IMinerService
     {
-        public ILogger<MinerService> Logger {get;set;}
+        public ILogger<MinerService> Logger { get; set; }
         private readonly ITxHub _txHub;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
 
         private readonly IBlockchainService _blockchainService;
+        private readonly IBlockExecutingService _blockExecutingService;
 
         private const float RatioMine = 0.3f;
 
-        public MinerService(ITxHub txHub,  IAccountService accountService, IBlockGenerationService blockGenerationService, 
+        public MinerService(ITxHub txHub, IAccountService accountService,
+            IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService, IBlockExecutingService blockExecutingService)
         {
             _txHub = txHub;
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
+            _blockExecutingService = blockExecutingService;
             _blockchainService = blockchainService;
             _accountService = accountService;
         }
-        
+
         /// <inheritdoc />
         /// <summary>
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<IBlock> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight)
+        public async Task<IBlock> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight,
+            DateTime time)
         {
             try
             {
                 // generate block without txns
                 var block = await GenerateBlock(chainId, previousBlockHash, previousBlockHeight);
-                
-                var transactions  = await GenerateSystemTransactions(chainId, previousBlockHash, previousBlockHeight);
-                                
-                var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p=>p.Transaction).ToList();
+
+                var transactions = await GenerateSystemTransactions(chainId, previousBlockHash, previousBlockHeight);
+
+                var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p => p.Transaction).ToList();
+
+
+                using (var cts = new CancellationTokenSource())
+                {
+                    // Give 400 ms for packing
+                    cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
+                    block =
+                        await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
+                            cts.Token);
+                }
 
                 /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
@@ -111,15 +120,17 @@ namespace AElf.Kernel.Services
                 FillBlockStateSet(blockStateSet, traces); 
                 await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);*/
 
+                await SignBlockAsync(block);
                 await _blockchainService.AddBlockAsync(chainId, block);
-                
-                
+                var chain = await _blockchainService.GetChainAsync(chainId);
+                await _blockchainService.AttachBlockToChainAsync(chain, block);
+
+                await SignBlockAsync(block);
+                // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
                 await _txHub.OnNewBlock(block);
-                
-                
-                
+
                 Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
-                              $"with {block.Body.TransactionsCount} txs.");
+                                      $"with {block.Body.TransactionsCount} txs.");
 
                 return block;
             }
@@ -130,14 +141,16 @@ namespace AElf.Kernel.Services
             }
         }
 
-        private async Task<List<Transaction>> GenerateSystemTransactions(int chainId, Hash previousBlockHash, ulong previousBlockHeight)
+        private async Task<List<Transaction>> GenerateSystemTransactions(int chainId, Hash previousBlockHash,
+            ulong previousBlockHeight)
         {
-            var refBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    refBlockPrefix);
+                    previousBlockHeight,
+                    previousBlockPrefix);
             foreach (var txn in generatedTxns)
             {
                 await SignAsync(txn);
@@ -170,12 +183,10 @@ namespace AElf.Kernel.Services
             return block;
         }
 
-        private async Task CompleteBlock(Block block, List<TransactionResult> results)
+        private async Task SignBlockAsync(Block block)
         {
-            _blockGenerationService.FillBlockAsync(block, results);
             var publicKey = await _accountService.GetPublicKeyAsync();
             block.Sign(publicKey, data => _accountService.SignAsync(data));
         }
-        
     }
 }

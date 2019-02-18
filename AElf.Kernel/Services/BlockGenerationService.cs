@@ -41,23 +41,5 @@ namespace AElf.Kernel.Services
             //block.Complete(currentBlockTime, results);
             return block;
         }
-
-        public void FillBlockAsync(Block block, HashSet<TransactionResult> results)
-        {
-            block.Header.Bloom = ByteString.CopyFrom(
-                Bloom.AndMultipleBloomBytes(
-                    results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
-                )
-            );
-            
-            // add tx hash
-            block.AddTransactions(results.Select(x => x.TransactionId));
-            // set ws merkle tree root
-            block.Header.MerkleTreeRootOfWorldState =
-                new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
-            
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            block.Body.Complete(block.Header.GetHash());
-        }
     }
 }
