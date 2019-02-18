@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -8,11 +9,45 @@ namespace AElf.Sdk.CSharp
     {
         void FireEvent(Event logEvent);
         Hash TransactionId { get; }
+
+        int ChainId { get; }
+
+        // TODO: Remove Transaction
+        Transaction Transaction { get; }
+        Hash TransactionId { get; }
         Address Sender { get; }
+
         Address Self { get; }
         byte[] RecoverPublicKey();
         
+
+        // TODO: Remove genesis
+        Address Genesis { get; }
+        ulong CurrentHeight { get; }
+
+        DateTime CurrentBlockTime { get; }
+        Hash PreviousBlockHash { get; }
+
+        // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
+        byte[] RecoverPublicKey(byte[] signature, byte[] hash);
+
+        byte[] RecoverPublicKey();
+
+        // TODO: Remove GetBlockByHeight
         Block GetBlockByHeight(ulong height);
+
+
+        bool VerifySignature(Transaction tx);
+
+        /// <summary>
+        /// Generate txn not executed before next block. 
+        /// </summary>
+        /// <param name="deferredTxn"></param>
+        void SendDeferredTransaction(Transaction deferredTxn);
+        
+        Task DeployContractAsync(Address address, SmartContractRegistration registration);
+        
+        Task UpdateContractAsync(Address address, SmartContractRegistration registration);
 
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
