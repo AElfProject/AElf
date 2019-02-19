@@ -25,7 +25,7 @@ namespace AElf.Kernel.Services
             {
                 Header = new BlockHeader
                 {
-                    Height = generateBlockDto.PreviousBlockHeight,
+                    Height = generateBlockDto.PreviousBlockHeight + 1,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
                     ChainId = generateBlockDto.ChainId,
                     Time = Timestamp.FromDateTime(currentBlockTime)
