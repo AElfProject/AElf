@@ -49,6 +49,10 @@ namespace AElf.OS.Tests.Network
             return (netServer, grpcPeerPool);
         }
 
+        /// <summary>
+        /// Test: Verify New GrpcNetwork Server and add peer of himself should return 0 peer.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task SelfConnection_Test()
         {
@@ -71,6 +75,10 @@ namespace AElf.OS.Tests.Network
             await server.Item1.StopAsync();
         }
 
+        /// <summary>
+        /// Test: Verify two Servers AddPeer api and veriy peer information.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Basic_Net_Formation_Test()
         {
@@ -92,6 +100,10 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
                 
+        /// <summary>
+        /// Verify create Peer with bootnodes setting and verify peer information.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Basic_Connection_Test()
         {
@@ -118,6 +130,10 @@ namespace AElf.OS.Tests.Network
             Assert.NotNull(p);
         }
 
+        /// <summary>
+        /// Test: Verify get peers interface.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task GetPeers_Test()
         {
@@ -154,6 +170,10 @@ namespace AElf.OS.Tests.Network
             await m3.Item1.StopAsync();
         }
 
+        /// <summary>
+        /// Test: Verify Add and Remove peer logic case.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task GetPeers_NotExist_Test()
         {
@@ -198,6 +218,10 @@ namespace AElf.OS.Tests.Network
             //Assert.True(!string.IsNullOrWhiteSpace(p));
         }
 
+        /// <summary>
+        /// Test: Verify Remove peer that not exist scenario case.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Basic_Remove_NotExist_Peer_Test()
         {
@@ -222,6 +246,10 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
 
+        /// <summary>
+        /// Test: Verify Remove peer interface case.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task RemovePeer_Test()
         {
@@ -254,6 +282,10 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
         
+        /// <summary>
+        /// Test: Verify Disconnection Of Dialer and verify find peer case.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task GetPeers_DisconnectionOfDialer_Test()
         {
@@ -286,6 +318,10 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
         
+        /// <summary>
+        /// Test: Verify Disconnection Of Dialee and verify find peer case.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task GetPeers_DisconnectionOfDialee_Test()
         {

@@ -66,6 +66,10 @@ namespace AElf.OS.Tests.Network
             return (netServer, grpcPeerPool);
         }
 
+        /// <summary>
+        /// Test: Verify network service request block by hash and hash.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         private async Task Request_Block_Test()
         {
@@ -109,6 +113,10 @@ namespace AElf.OS.Tests.Network
             await m3.Item1.StopAsync();
         }
 
+        /// <summary>
+        /// Test: Verify other height or hash of blocks with more information.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         private async Task Request_Block_With_MoreData_Test()
         {
@@ -160,6 +168,10 @@ namespace AElf.OS.Tests.Network
             block21.ShouldBe(block22);
         }
 
+        /// <summary>
+        /// Test: Verify network service of new announcement event.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         private async Task Announcement_Event_Test()
         {
@@ -204,6 +216,10 @@ namespace AElf.OS.Tests.Network
             Assert.True(receivedEventDatas.First().BlockId == genesis.GetHash());
         }
 
+        /// <summary>
+        /// Test: Verify network service of broadcast transaction event.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         private async Task Transaction_Event_Test()
         {
@@ -247,6 +263,10 @@ namespace AElf.OS.Tests.Network
             Assert.True(receivedEventDatas.Count == 1);
         }
 
+        /// <summary>
+        /// Test: Verify network service of event receive without handling.x
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         private async Task Announcement_Request_Test()
         {
