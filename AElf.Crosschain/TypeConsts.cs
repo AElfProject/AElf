@@ -9,5 +9,6 @@ namespace AElf.Crosschain
         public static string IndexingParentChainMethodName = "IndexParentChainBlockInfo";
         public static string IndexingSideChainMethodName = "IndexSideChainBlockInfo";
         public static string CrossChainIndexingMethodName = "RecordCrossChainInfo";
+        public static string CrossChainIndexingEvent = "CrossChainIndexingEvent";
     }
 }
