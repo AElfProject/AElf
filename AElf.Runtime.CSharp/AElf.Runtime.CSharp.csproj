@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
+    <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
   </ItemGroup>
   <ItemGroup>
