@@ -9,6 +9,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
 {
+    /*
     public class GrouperTest
     {
         public List<Address> _accountList = new List<Address>();
@@ -221,4 +222,5 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
             return res;
         }
     }
+    */
 }

@@ -1,10 +1,11 @@
-﻿using AElf.Sdk.CSharp.Types;
+﻿//using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
-using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
+//using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {
+    /*
     public class TestTokenContract: CSharpSmartContract
     {
         [SmartContractFieldData("${this}.Balances", DataAccessMode.AccountSpecific)]
@@ -50,4 +51,5 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             return bal;
         }
     }
+    */
 }

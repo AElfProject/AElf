@@ -5,9 +5,9 @@ using AElf.Common;
 using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.SmartContract;
+//using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
-using AElf.Sdk.CSharp;
+//using AElf.Sdk.CSharp;
 using AElf.TestBase;
 using AElf.Types.CSharp.MetadataAttribute;
 using Akka.Routing;
@@ -15,6 +15,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
+    /*
     public sealed class FunctionMetadataServiceTest : AElfKernelTestBase
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
@@ -841,4 +842,5 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
         {
         }
     }
+    */
 }

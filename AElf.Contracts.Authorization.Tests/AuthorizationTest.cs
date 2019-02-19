@@ -1,18 +1,19 @@
-using System;
-using System.IO;
-using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
+//using System;
+//using System.IO;
+//using AElf.Common;
+//using AElf.Cryptography;
+//using AElf.Cryptography.ECDSA;
+//using AElf.Kernel;
+//using AElf.Kernel.Types;
+//using AElf.Types.CSharp;
+//using Google.Protobuf;
+//using Google.Protobuf.WellKnownTypes;
+//using Microsoft.Extensions.Logging;
+//using Microsoft.Extensions.Logging.Abstractions;
+//using Xunit;
 
 
+/*
 namespace AElf.Contracts.Authorization.Tests
 {
 public class AuthorizationTest : AuthroizationContractTestBase
@@ -418,3 +419,4 @@ public class AuthorizationTest : AuthroizationContractTestBase
         }
     }
 }
+*/

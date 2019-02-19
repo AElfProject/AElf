@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Common.Collections;
+//using AElf.Common.Collections;
 using Xunit;
 
 namespace AElf.Kernel.Tests.BlockSyncTests
@@ -29,6 +29,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
         [Fact(Skip = "todo")]
         public void Test2()
         {
+            /*
             BoundedByteArrayQueue bq = new BoundedByteArrayQueue(2);
             
             byte[] byte01 = ByteArrayHelpers.RandomFill(10);
@@ -38,6 +39,7 @@ namespace AElf.Kernel.Tests.BlockSyncTests
             bq.Enqueue(byte02);
             
             Assert.True(bq.Contains(byte01));
+            */
         }
         
         [Fact(Skip = "todo")]

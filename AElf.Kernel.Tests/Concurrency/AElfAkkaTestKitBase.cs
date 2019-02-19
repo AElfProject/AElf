@@ -1,10 +1,11 @@
 using Akka.Actor;
 using Akka.Configuration;
-using Akka.Remote;
+//using Akka.Remote;
 using Akka.TestKit;
 
 namespace AElf.Kernel.Tests.Concurrency
 {
+    /*
     public abstract class AElfAkkaTestKitBase : TestKitBase
     {
         protected AElfKernelTestBase _aelfKernelIntegratedTest=new AElfKernelTestBase();
@@ -16,7 +17,6 @@ namespace AElf.Kernel.Tests.Concurrency
         protected AElfAkkaTestKitBase(ITestKitAssertions assertions, Config config, string actorSystemName = null, string testActorName = null) : base(assertions, config, actorSystemName, testActorName)
         {
         }
-        
-        
     }
+    */
 }

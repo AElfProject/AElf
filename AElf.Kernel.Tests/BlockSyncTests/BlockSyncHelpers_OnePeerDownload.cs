@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
+//using AElf.ChainController;
 using AElf.Kernel.Node;
-using AElf.Kernel.Node.Protocol;
-using AElf.Network.Data;
-using AElf.Network.Peers;
+//using AElf.Kernel.Node.Protocol;
+//using AElf.Network.Data;
+//using AElf.Network.Peers;
 using Moq;
 using Xunit;
 

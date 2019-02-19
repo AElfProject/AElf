@@ -5,6 +5,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests
 {
+    /*
     public class BlockchainServiceTests : AElfKernelTestBase
     {
         private IBlockchainService _blockchainService;
@@ -20,4 +21,5 @@ namespace AElf.Kernel.Tests
             
         }
     }
+    */
 }

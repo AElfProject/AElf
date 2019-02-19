@@ -5,21 +5,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
-using AElf.ChainController;
-using AElf.SmartContract;
+//using AElf.ChainController;
+//using AElf.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
-using Mono.Cecil.Cil;
+//using Mono.Cecil.Cil;
 using AElf.Common;
-using AElf.Kernel.SmartContractExecution.Execution;
+//using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.SmartContract.Contexts;
+//using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -27,6 +27,7 @@ using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.Tests.Concurrency.Execution
 {
+    /*
     public class MockSetup : ISingletonDependency
     {
         // IncrementId is used to differentiate txn
@@ -339,4 +340,5 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return DateTime.ParseExact(dtStr, "yyyy-MM-dd HH:mm:ss.ffffff", null);
         }
     }
+    */
 }

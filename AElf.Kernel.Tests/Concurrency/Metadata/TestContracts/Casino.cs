@@ -1,11 +1,12 @@
-﻿using AElf.SmartContract;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.Types;
+﻿//using AElf.SmartContract;
+//using AElf.Sdk.CSharp;
+//using AElf.Sdk.CSharp.Types;
 using AElf.Types.CSharp.MetadataAttribute;
 using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {
+    /*
     /// <summary>
     /// Smart Contract early example for using another contract
     /// </summary>
@@ -96,4 +97,5 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
             _tokenContractB = tokenContractB;
         }
     }
+     */
 }

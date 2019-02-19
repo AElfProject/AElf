@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.SmartContract;
+//using AElf.SmartContract;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -14,6 +14,7 @@ using FunctionMetadata = AElf.Kernel.SmartContract.FunctionMetadata;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata
 {
+    /*
     public sealed class ChainFunctionMetadataTest : AElfKernelTestBase
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
@@ -242,4 +243,5 @@ namespace AElf.Kernel.Tests.Concurrency.Metadata
             Assert.Equal(callGraph, await _functionMetadataManager.GetCallGraphAsync(chainId));
         }
     }
+    */
 }

@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContractExecution.Domain;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class MockStateManager : IStateManager
     {
         public Dictionary<StatePath, byte[]> Cache = new Dictionary<StatePath, byte[]>();
@@ -35,4 +36,5 @@ namespace AElf.Sdk.CSharp2.Tests
             }
         }
     }
+    */
 }

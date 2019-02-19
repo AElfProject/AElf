@@ -10,6 +10,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests
 {
+    /*
     public class BlockchainStateManagerTests : AElfKernelTestBase
     {
         private BlockchainStateManager _blockchainStateManager;
@@ -188,4 +189,5 @@ namespace AElf.Kernel.Tests
 
         }
     }
+    */
 }

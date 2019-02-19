@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 using AElf.Types.CSharp;
 using AElf.Common;
@@ -11,6 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
+    /*
     public class TestContractShim : ITransientDependency
     {
         private readonly MockSetup _mock;
@@ -199,4 +200,5 @@ namespace AElf.Runtime.CSharp2.Tests
             return tc.Trace.RetVal.Data.DeserializeToUInt64();
         }
     }
+    */
 }

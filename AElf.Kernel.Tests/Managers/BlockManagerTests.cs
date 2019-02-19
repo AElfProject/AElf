@@ -6,6 +6,7 @@ using Xunit;
 
 namespace AElf.Kernel.Tests.Managers
 {
+    /*
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
         private IBlockManager _blockManager;
@@ -56,4 +57,5 @@ namespace AElf.Kernel.Tests.Managers
         }
 
     }
+    */
 }

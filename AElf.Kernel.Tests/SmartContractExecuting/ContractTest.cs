@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.SmartContract;
+//using AElf.ChainController;
+//using AElf.SmartContract;
 using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
@@ -16,6 +16,7 @@ using AElf.TestBase;
 
 namespace AElf.Kernel.Tests.SmartContractExecuting
 {
+    /*
     public sealed class ContractTest : AElfKernelTestBase
     {
         // todo warning this test obviously uses bad  
@@ -217,4 +218,5 @@ namespace AElf.Kernel.Tests.SmartContractExecuting
             #endregion
         }
     }
+    */
 }

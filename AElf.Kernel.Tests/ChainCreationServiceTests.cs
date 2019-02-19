@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
+//using AElf.ChainController;
 using Google.Protobuf;
 using Xunit;
 using AElf.Common;
@@ -9,6 +9,7 @@ using Shouldly;
 
 namespace AElf.Kernel.Tests
 {
+    /*
     public class ChainCreationServiceTests : AElfKernelTestBase
     {
         private readonly IChainCreationService _service;
@@ -34,4 +35,5 @@ namespace AElf.Kernel.Tests
             Assert.Equal(ChainHelpers.GetChainId(123), chain.Id);
         }
     }
+    */
 }
