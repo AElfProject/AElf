@@ -71,10 +71,10 @@ namespace AElf.Kernel.Managers.Another
             await SetChainBlockLinkAsync(chainId, new ChainBlockLink()
             {
                 BlockHash = genesisBlock,
-                Height = 0,
+                Height = GlobalConfig.GenesisBlockHeight,
                 IsLinked = true
             });
-            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+            await _chains.SetAsync(chainId.ToStorageKey(), chain);
 
             return chain;
         }
