@@ -33,7 +33,7 @@ namespace AElf.Consensus
         private IDisposable _consensusObservables;
 
         private byte[] _latestGeneratedConsensusInformation;
-
+        
         public ILogger<ConsensusService> Logger { get; set; }
 
         public ConsensusService(IConsensusObserver consensusObserver,

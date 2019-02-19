@@ -6,7 +6,7 @@ namespace AElf.Kernel.Managers
     public interface IMinersManager
     {
         Task<Miners> GetMiners(ulong termNumber);
-        Task SetMiners(Miners miners, int chainId);
+        Task SetMiners(Miners miners);
         Task<bool> IsMinersInDatabase();
     }
 }

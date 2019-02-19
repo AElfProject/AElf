@@ -9,7 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Types;
-using AElf.Node.Consensus;
 using AElf.Node.EventMessages;
 using AElf.Synchronization.BlockSynchronization;
 using AElf.Synchronization.EventMessages;
@@ -33,8 +32,6 @@ namespace AElf.Node.AElfChain
 
         private IBlockChain _blockChain;
         
-        private IConsensus _consensus;
-
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
 
@@ -45,14 +42,12 @@ namespace AElf.Node.AElfChain
             IChainCreationService chainCreationService,
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
-            IConsensus consensus,
             IAccountService accountService)
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
             _txHub = hub;
             Logger = NullLogger<MainchainNodeService>.Instance;
-            _consensus = consensus;
             _blockSynchronizer = blockSynchronizer;
             _accountService = accountService;
         }
@@ -148,11 +143,6 @@ namespace AElf.Node.AElfChain
         {
             //todo
             return true;
-        }
-
-        public async Task<bool> CheckDPoSAliveAsync()
-        {
-            return await Task.FromResult(_consensus.IsAlive());
         }
 
         public async Task<bool> CheckForkedAsync()

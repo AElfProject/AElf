@@ -1,9 +1,5 @@
-﻿using AElf.Common;
-using AElf.Common.Enums;
-using AElf.Common.MultiIndexDictionary;
+﻿using AElf.Common.MultiIndexDictionary;
 using AElf.Common.Serializers;
-using AElf.Configuration;
-using AElf.Configuration.Config.Consensus;
 using AElf.Database;
 using AElf.Kernel.Services;
 using AElf.Kernel.Storages;

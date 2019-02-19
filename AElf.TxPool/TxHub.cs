@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
@@ -166,11 +165,6 @@ namespace AElf.TxPool
 
         private static void MaybePublishTransaction(TransactionReceipt tr)
         {
-            if (tr.Transaction.ShouldNotBroadcast())
-            {
-                return;
-            }
-            
             if (tr.IsExecutable && tr.ToBeBroadCasted)
             {
                 MessageHub.Instance.Publish(new TransactionAddedToPool(tr.Transaction));

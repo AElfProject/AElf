@@ -9,8 +9,6 @@ using ByteString = Google.Protobuf.ByteString;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Execution.Execution;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Services;
 using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
@@ -251,7 +249,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         public ActionResult SnapshotForTerm(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForTerm), minerKeyPair,
+            ExecuteAction(ConsensusContractAddress, "SnapshotForTerm", minerKeyPair,
                 targetTermNumber, roundNumber);
 
             return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();
@@ -259,7 +257,7 @@ namespace AElf.Contracts.Consensus.Tests
         
         public ActionResult SnapshotForMiners(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SnapshotForMiners), minerKeyPair,
+            ExecuteAction(ConsensusContractAddress, "SnapshotForMiners", minerKeyPair,
                 targetTermNumber, roundNumber);
 
             return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();
@@ -267,7 +265,7 @@ namespace AElf.Contracts.Consensus.Tests
         
         public ActionResult SendDividends(ECKeyPair minerKeyPair, ulong targetTermNumber, ulong roundNumber)
         {
-            ExecuteAction(ConsensusContractAddress, nameof(ConsensusBehavior.SendDividends), minerKeyPair,
+            ExecuteAction(ConsensusContractAddress, "SendDividends", minerKeyPair,
                 targetTermNumber, roundNumber);
 
             return TransactionContext.Trace.RetVal.Data.DeserializeToPbMessage<ActionResult>();

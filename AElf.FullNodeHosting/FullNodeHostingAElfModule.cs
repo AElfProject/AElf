@@ -1,6 +1,5 @@
 ﻿using AElf.ChainController.Rpc;
 using AElf.Execution;
-using AElf.Kernel.Consensus;
 using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
@@ -31,8 +30,7 @@ namespace AElf.FullNodeHosting
         typeof(CSharpRuntimeAElfModule),
         typeof(SideChainAElfModule),
         typeof(RpcWalletAElfModule),
-        typeof(NetworkAElfModule),
-        typeof(ConsensusKernelAElfModule))]
+        typeof(NetworkAElfModule))]
     public class FullNodeHostingAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;

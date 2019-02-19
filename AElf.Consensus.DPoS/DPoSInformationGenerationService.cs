@@ -24,11 +24,19 @@ namespace AElf.Consensus.DPoS
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IConsensusCommand command)
+        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IConsensusCommand command,
+            IMinersManager minersManager)
         {
             _dpoSOptions = consensusOptions.Value;
             _command = command;
 
+            minersManager.SetMiners(new Miners
+            {
+                PublicKeys = {_dpoSOptions.InitialMiners},
+                TermNumber = 1,
+                MainchainLatestTermNumber = 1
+            });
+            
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 

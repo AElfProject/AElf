@@ -4,15 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Common.FSM;
-using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Services;
-using AElf.Types.CSharp;
 using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -29,14 +25,13 @@ namespace AElf.Synchronization.BlockExecution
         private readonly IBinaryMerkleTreeManager _binaryMerkleTreeManager;
         private readonly ITxHub _txHub;
         private readonly IStateManager _stateManager;
-        private readonly ConsensusDataProvider _consensusDataProvider;
         private static bool _isLimitExecutionTime;
 
         private const float RatioSynchronize = 0.5f;
 
         public BlockExecutor(IChainService chainService, IExecutingService executingService,
             ITransactionResultManager transactionResultManager, IBinaryMerkleTreeManager binaryMerkleTreeManager, 
-            ITxHub txHub, IStateManager stateManager, ConsensusDataProvider consensusDataProvider)
+            ITxHub txHub, IStateManager stateManager)
         {
             _chainService = chainService;
             _executingService = executingService;
@@ -44,11 +39,8 @@ namespace AElf.Synchronization.BlockExecution
             _binaryMerkleTreeManager = binaryMerkleTreeManager;
             _txHub = txHub;
             _stateManager = stateManager;
-            _consensusDataProvider = consensusDataProvider;
 
             Logger= NullLogger<BlockExecutor>.Instance;
-
-            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState => _isMining = inState.IsMining);
 
             MessageHub.Instance.Subscribe<StateEvent>(inState =>
             {
@@ -96,7 +88,7 @@ namespace AElf.Synchronization.BlockExecution
                 double timeout = 0;
                 if (_isLimitExecutionTime)
                 {
-                    var distanceToTimeSlot = await _consensusDataProvider.GetDistanceToTimeSlotEnd(block.Header.ChainId);
+                    var distanceToTimeSlot = 4000;
                     timeout = distanceToTimeSlot * RatioSynchronize;
                     cts.CancelAfter(TimeSpan.FromMilliseconds(timeout));
                 }

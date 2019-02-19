@@ -126,11 +126,6 @@ namespace AElf.Synchronization.BlockSynchronization
                 MessageHub.Instance.Publish(new UnlinkableHeader(headers.Last()));
             });
 
-            MessageHub.Instance.Subscribe<DPoSStateChanged>(inState =>
-            {
-                MessageHub.Instance.Publish(inState.IsMining ? StateEvent.MiningStart : StateEvent.MiningEnd);
-            });
-
             MessageHub.Instance.Subscribe<BlockMined>(inBlock =>
             {
                 AddMinedBlock(inBlock.Block);

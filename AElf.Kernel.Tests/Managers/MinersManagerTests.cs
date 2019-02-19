@@ -3,32 +3,28 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Configuration;
+using AElf.Consensus.DPoS;
 using AElf.Kernel.Managers;
+using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Managers
 {
-    public sealed class MinersManagerTests:AElfKernelTestBase
+    public sealed class MinersManagerTests : AElfKernelTestBase
     {
         private IMinersManager _minersManager;
-        private int _chainId;
+
+        private readonly DPoSOptions _options;
 
         public MinersManagerTests()
         {
-            _minersManager = GetRequiredService<MinersManager>();
-            MinersConfig.Instance = new MinersConfig()
+            _options = new DPoSOptions
             {
-                Producers = InitMiners(3)
+                InitialMiners = CreateMiners(3)
             };
-            _chainId = "AELF".ConvertBase58ToChainId();
-        }
 
-        [Fact]
-        public async Task GetMiners_Test()
-        {
-            var miners = await _minersManager.GetMiners(1);
-            miners.PublicKeys.Count.ShouldBe(3);
+            _minersManager = GetRequiredService<MinersManager>();
         }
 
         [Fact]
@@ -38,12 +34,35 @@ namespace AElf.Kernel.Tests.Managers
             var pubKey = address.GetPublicKeyHash();
             var miner = new Miners()
             {
-                TermNumber = 2,
-                PublicKeys = { pubKey }
+                TermNumber = 1,
+                PublicKeys = {pubKey}
             };
-            await _minersManager.SetMiners(miner, _chainId);
-            var miner1 = await _minersManager.GetMiners(2);
+            await _minersManager.SetMiners(miner);
+            var miner1 = await _minersManager.GetMiners(1);
             miner1.PublicKeys.Count.ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task SetMiners_UpdateMinersVersion_Test()
+        {
+            await _minersManager.SetMiners(new Miners
+            {
+                TermNumber = 1,
+                PublicKeys = {Address.Generate().GetPublicKeyHash()},
+                MainchainLatestTermNumber = 1
+            });
+
+            var miner11 = await _minersManager.GetMiners(1);
+            miner11.MainchainLatestTermNumber.ShouldBe<ulong>(1);
+
+            await _minersManager.SetMiners(new Miners
+            {
+                TermNumber = 2,
+                PublicKeys = {Address.Generate().GetPublicKeyHash()}
+            });
+
+            var miner12 = await _minersManager.GetMiners(1);
+            miner12.MainchainLatestTermNumber.ShouldBe<ulong>(2);
         }
 
         [Fact]
@@ -53,24 +72,16 @@ namespace AElf.Kernel.Tests.Managers
             result.ShouldBe(false);
         }
 
-        private Dictionary<string, Dictionary<string, string>> InitMiners(int count)
+        private List<string> CreateMiners(int count)
         {
-            var miners = new Dictionary<string, Dictionary<string, string>>();
+            var publicKeys = new List<string>();
 
-            for (int i = 1; i <= count; i++)
+            for (var i = 0; i < count; i++)
             {
-                var address = Address.Generate();
-                var miner = new Dictionary<string, string>
-                {
-                    {"public_key", address.GetPublicKeyHash()},
-                    {"address", address.GetFormatted()}
-                };
-
-                miners.Add(i.ToString(), miner);
+                publicKeys.Add(Address.Generate().GetPublicKeyHash());
             }
 
-            return miners;
+            return publicKeys;
         }
-
     }
 }

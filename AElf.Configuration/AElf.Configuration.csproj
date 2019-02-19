@@ -20,8 +20,5 @@
     <None Update="Config\GRPC\grpc-remote.json" Link="config\grpc-remote.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Config\Consensus\consensus.json" Link="config\consensus.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

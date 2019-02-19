@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using AElf.ChainController;
+using AElf.Consensus.DPoS;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
@@ -14,14 +15,14 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Tests
 {
-    
+
     [DependsOn(typeof(KernelAElfModule),
-        
+
         //TODO: only test kernel aelf module here
-        typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
+        typeof(ChainControllerAElfModule), typeof(ExecutionAElfModule),
         typeof(SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        
+
         typeof(TestBaseAElfModule))]
     public class KernelTestAElfModule : AElfModule
     {
@@ -34,9 +35,9 @@ namespace AElf.Kernel.Tests
                 o.ConcurrencyLevel = 8;
             });
             Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
-            
+
             var services = context.Services;
-            
+
             //should move out of this project
             services.AddSingleton<IActorEnvironment, ActorEnvironment>();
             services.AddSingleton<ServicePack>();

@@ -1,7 +1,7 @@
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Configuration;
 using AElf.Kernel.Storages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,25 +22,11 @@ namespace AElf.Kernel.Managers
 
         public async Task<Miners> GetMiners(ulong termNumber)
         {
-            Miners miners;
-            if (termNumber != 0)
-            {
-                miners = await GetMiners(CalculateKey(termNumber));
-                if (miners != null && miners.PublicKeys.Any())
-                    return miners;
-            }
+            var miners = await GetMiners(CalculateKey(termNumber));
+            if (miners != null && miners.PublicKeys.Any())
+                return miners;
 
-            var dict = MinersConfig.Instance.Producers;
-            miners = new Miners();
-
-            foreach (var bp in dict.Values)
-            {
-                miners.PublicKeys.Add(bp["public_key"]);
-            }
-
-            miners.MainchainLatestTermNumber = 0;
-
-            return miners;
+            throw new InvalidDataException();
         }
 
         public async Task<bool> IsMinersInDatabase()
@@ -49,21 +35,14 @@ namespace AElf.Kernel.Managers
             return miners != null && !miners.IsEmpty();
         }
 
-        public async Task SetMiners(Miners miners, int chainId)
+        public async Task SetMiners(Miners miners)
         {
-            if (chainId.DumpBase58() != GlobalConfig.DefaultChainId)
-            {
-                return;
-            }
-
-            foreach (var publicKey in miners.PublicKeys)
-            {
-                Logger.LogTrace($"Set miner {publicKey} to data store.");
-            }
-
+            // TODO: Only mainchain has the privilege to set miners. 
+            
+            // Update MainchainLatestTermNumber of first term information
+            // to inform sidechain latest version of miners list of mainchain.
             if (miners.TermNumber > 1)
             {
-                // To inform sidechain latest version of miners list of mainchain.
                 Logger.LogTrace($"BP-term for sidechain: {miners.TermNumber}");
                 var minersOfTerm1 = await GetMiners(1);
                 minersOfTerm1.MainchainLatestTermNumber = miners.TermNumber;
@@ -85,7 +64,7 @@ namespace AElf.Kernel.Managers
 
         private string CalculateKey(ulong termNumber)
         {
-            return Hash.FromTwoHashes(Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash()),
+            return Hash.FromTwoHashes(Hash.FromRawBytes("DPoSMiners".CalculateHash()),
                 Hash.FromMessage(termNumber.ToUInt64Value())).ToHex();
         }
     }

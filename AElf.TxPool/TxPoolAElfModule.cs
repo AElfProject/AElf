@@ -12,8 +12,6 @@ namespace AElf.TxPool
         {
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
-            services.AddSingleton<ITransactionFilter, TransactionFilter>();
-            services.AddTransient<TransactionFilter>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

@@ -492,13 +492,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("GetConsensusStatus")]
         public async Task<JObject> GetConsensusStatus()
         {
-            var isAlive = await MainchainNodeService.CheckDPoSAliveAsync();
-            var response = new JObject
-            {
-                ["IsAlive"] = isAlive
-            };
-
-            return response;
+            throw new NotImplementedException();
         }
 
         [JsonRpcMethod("GetNodeStatus")]

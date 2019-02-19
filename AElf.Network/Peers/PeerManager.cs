@@ -108,22 +108,6 @@ namespace AElf.Network.Peers
 
         private void SetBpConfig()
         {
-            var producers = MinersConfig.Instance.Producers;
-
-            // Set the list of block producers
-            try
-            {
-                foreach (var bp in producers.Values)
-                {
-                    string key = bp["address"];
-                    _bpAddresses.Add(key);
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error while reading mining info.");
-            }
-
             var account = _accountService.GetAccountAsync().Result;
 
             // This nodes key

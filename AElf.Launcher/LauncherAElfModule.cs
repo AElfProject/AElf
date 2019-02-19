@@ -3,7 +3,6 @@ using AElf.Consensus.DPoS;
 //using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Services;
 using AElf.Modularity;
 using AElf.Net.Rpc;
@@ -45,7 +44,6 @@ namespace AElf.Launcher
         typeof(RpcWalletAElfModule),
         //typeof(CrossChainAElfModule),
         typeof(NetworkAElfModule),
-        typeof(ConsensusKernelAElfModule),
         typeof(DPoSConsensusModule),
         typeof(GrpcNetworkModule),
         typeof(TxPoolAElfModule))]
