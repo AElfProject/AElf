@@ -363,12 +363,10 @@ namespace AElf.Node.Consensus
                     
                     //TODO! should not pass any parameters about logging system
                     //var logLevel = new Int32Value {Value = LogManager.GlobalThreshold.Ordinal};
-var logLevel = new Int32Value {Value = 0};
                     
                     var parameters = new List<object>
                     {
                         firstTerm,
-                        logLevel
                     };
                     var txToInitialTerm = await GenerateDPoSTransactionAsync(behavior.ToString(), parameters);
                     await BroadcastTransaction(txToInitialTerm);
@@ -622,8 +620,8 @@ var logLevel = new Int32Value {Value = 0};
                     {
                         new Forwarding
                         {
-                            CurrentRoundInfo = roundInfo,
-                            NextRoundInfo = nextRoundInfo,
+                            CurrentRound = roundInfo,
+                            NextRound = nextRoundInfo,
                             CurrentAge = calculatedAge
                         }
                     };

@@ -133,7 +133,7 @@ namespace AElf.Runtime.CSharp
                 {
                     var retVal = await handler(tx.Params.ToByteArray());
                     _currentTransactionContext.Trace.RetVal = retVal;
-                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted;
+                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -147,7 +147,7 @@ namespace AElf.Runtime.CSharp
                 }
 
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
-                    _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted)
+                    _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted)
                 {
                     var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
                     {
