@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
