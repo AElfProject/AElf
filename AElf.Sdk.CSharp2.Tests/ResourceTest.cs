@@ -79,6 +79,9 @@ namespace AElf.Sdk.CSharp2.Tests
             TokenContract.Initialize("ELF", "elf test token", 1000000, 9);
         }
 
+        /// <summary>
+        /// Test: Verify token contact init case.
+        /// </summary>
         [Fact]
         public void Init_TokenContract()
         {
@@ -97,6 +100,9 @@ namespace AElf.Sdk.CSharp2.Tests
             ResourceContract.Initialize(ContractAddresses[0], UserAddresses[1], UserAddresses[0]);
         }
 
+        /// <summary>
+        /// Test: Verify resource contract init case.
+        /// </summary>
         [Fact]
         public void Init_ResourceContract()
         {
@@ -121,6 +127,10 @@ namespace AElf.Sdk.CSharp2.Tests
 
         }
 
+        /// <summary>
+        /// Test: Verify Issue Cpu resource with valid User and other parameters.
+        ///       Verify Issud Cpu resource with user that not resouorce controller.
+        /// </summary>
         [Fact]
         public void Issue_Cpu_Resource()
         {

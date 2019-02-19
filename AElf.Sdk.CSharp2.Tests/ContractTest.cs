@@ -37,6 +37,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Contract.SetContractAddress(AddressList[0]);
         }
 
+        /// <summary>
+        /// Test: Verify contract Initialize method
+        /// </summary>
         [Fact]
         public void Init_Test()
         {
@@ -49,6 +52,9 @@ namespace AElf.Sdk.CSharp2.Tests
             balance.ShouldBe(1000000UL);
         }
 
+        /// <summary>
+        /// Test: Verify token symbol parameter format
+        /// </summary>
         [Fact(Skip = "Symbol name format should be checked.")]
         public void Init_Invalid_Symbol_Test()
         {
@@ -59,6 +65,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Contract.Decimals().ShouldBe(9U);
         }
 
+        /// <summary>
+        /// Test: Verify contract cannot Initize duplicate
+        /// </summary>
         [Fact]
         public void Init_Again_Test()
         {
@@ -66,6 +75,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Should.Throw<AssertionError>(() => { Contract.Initialize("ELF", "elf test token again", 1000000, 0); });
         }
 
+        /// <summary>
+        /// Test: Verify contract Transfer normal case.
+        /// </summary>
         [Fact]
         public void Transfer_With_Enough_Token()
         {
@@ -76,6 +88,9 @@ namespace AElf.Sdk.CSharp2.Tests
             balance.ShouldBe(100UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Transfer unormal case.
+        /// </summary>
         [Fact]
         public void Transfer_Without_Enough_Token()
         {
@@ -86,6 +101,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Should.Throw<AssertionError>(() => { Contract.Transfer(AddressList[3], 200UL); });
         }
 
+        /// <summary>
+        /// Test: Verify contract Transfer with invalid parameter.
+        /// </summary>
         [Fact]
         public void Transfer_To_Null_User_Test()
         {
@@ -96,6 +114,9 @@ namespace AElf.Sdk.CSharp2.Tests
             });
         }
 
+        /// <summary>
+        /// Test: Verify contract Approve method normal case.
+        /// </summary>
         [Fact]
         public void Approve_Test()
         {
@@ -105,6 +126,9 @@ namespace AElf.Sdk.CSharp2.Tests
             allownce.ShouldBe(1000UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract UnApprove method normal case.
+        /// </summary>
         [Fact]
         public void UnApprove_Test()
         {
@@ -115,6 +139,9 @@ namespace AElf.Sdk.CSharp2.Tests
             allowance.ShouldBe(500UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Approve and UnApprove logic case.
+        /// </summary>
         [Fact]
         public void UnApprove_Available_Token_Test()
         {
@@ -125,6 +152,9 @@ namespace AElf.Sdk.CSharp2.Tests
             allowance.ShouldBe(0UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Approve and TransferFrom logic case.
+        /// </summary>
         [Fact]
         public void TransferFrom_Available_Token_Test()
         {
@@ -138,6 +168,9 @@ namespace AElf.Sdk.CSharp2.Tests
             balance2.ShouldBe(500UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Approve and TransferFrom unormal logic case.
+        /// </summary>
         [Fact]
         public void TransferFrom_Over_Token_Test()
         {
@@ -147,6 +180,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Should.Throw<AssertionError>(() => {Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL);});
         }
 
+        /// <summary>
+        /// Test: Verify contract TransferFrom multple times call case.
+        /// </summary>
         [Fact]
         public void TransferFrom_MultipleTimes_Available_Token_Test()
         {
@@ -159,6 +195,9 @@ namespace AElf.Sdk.CSharp2.Tests
             balance2.ShouldBe(800UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Burn case.
+        /// </summary>
         [Fact]
         public void Burn_Test()
         {
@@ -170,6 +209,9 @@ namespace AElf.Sdk.CSharp2.Tests
             balance.ShouldBe(999000UL);
         }
 
+        /// <summary>
+        /// Test: Verify contract Burn case unormal case.
+        /// </summary>
         [Fact]
         public void Burn_Over_Token_Test()
         {
@@ -177,6 +219,9 @@ namespace AElf.Sdk.CSharp2.Tests
             Should.Throw<AssertionError>(() => { Contract.Burn(100000000UL); });
         }
 
+        /// <summary>
+        /// Test: Verify contract GetMethodFee and SetMethodFee case.
+        /// </summary>
         [Fact]
         public void SetMethodFee_Test()
         {
