@@ -148,7 +148,7 @@ namespace AElf.Contracts.CrossChain2
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
-            State.IndexingBalance[chainIdHash] = State.IndexingBalance[chainIdHash] + amount
+            State.IndexingBalance[chainIdHash] = State.IndexingBalance[chainIdHash] + amount;
             if (State.IndexingBalance[chainIdHash] > sideChainInfo.IndexingPrice)
             {
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
@@ -229,33 +229,23 @@ namespace AElf.Contracts.CrossChain2
         #region Cross chain actions
 
         [Fee(0)]
-        public void RecordCrossChainData()
+        public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             Assert(IsMiner(), "Not authorized to do this.");
-            int i = 0;
-            while (i++ < 32)
+            var sideChainBlockData = crossChainBlockData.SideChainBlockData;
+            if (crossChainBlockData.ParentChainBlockData.Count > 0)
+                IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
+            Hash calculatedRoot = null; 
+            if (sideChainBlockData.Count > 0)
             {
-                var targetHeight = State.RecordedBlockHeight.Value;
-                var blk = Context.GetBlockByHeight(targetHeight);
-                if (blk == null)
-                    return;
-                var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(blk.Body.TransactionList.Last().Params);
-                if (blk.Header.BlockExtraData.SideChainTransactionsRoot != null)
-                {
-                    var sideChainBlockData = crossChainBlockData.SideChainBlockData;
-                    if (sideChainBlockData.Count > 0)
-                    {
-                        var calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray(),
-                            Address.FromPublicKey(blk.Header.P.ToByteArray()));
-                        Assert(calculatedRoot.Equals(blk.Header.BlockExtraData.SideChainTransactionsRoot),
-                            "Incorrect side chain transaction root."); // this should not happen.
-                    }
-                }
-
-                if (crossChainBlockData.ParentChainBlockData.Count > 0)
-                    IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
-                State.RecordedBlockHeight.Value = targetHeight + 1;
+                calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
+                
             }
+            Context.FireEvent(new CrossChainIndexingEvent
+            {
+                SideChainTransactionsMerkleTreeRoot = calculatedRoot,
+                CrossChainBlockData = crossChainBlockData
+            });
         }
 
         /// <summary>
@@ -301,7 +291,7 @@ namespace AElf.Contracts.CrossChain2
         /// <param name="sideChainBlockData"></param>
         /// <param name="miner">Miner indexing cross chain data.</param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
-        private Hash IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData, Address miner)
+        private Hash IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData)
         {
             // only miner can do this.
 //            Api.IsMiner("Not authorized to do this.");
@@ -315,7 +305,7 @@ namespace AElf.Contracts.CrossChain2
             var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
             {
                 Height = height,
-                Miner = miner
+                Miner = Context.Self
             };
             foreach (var blockInfo in sideChainBlockData)
             {
@@ -342,7 +332,7 @@ namespace AElf.Contracts.CrossChain2
                 }
 
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
-                State.TokenContract.Unlock(miner, indexingPrice);
+                State.TokenContract.Unlock(Context.Self, indexingPrice);
 
                 State.SideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);

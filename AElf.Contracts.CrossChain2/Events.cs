@@ -19,4 +19,10 @@ namespace AElf.Contracts.CrossChain2
     {
         public Hash chainId;
     }
+    
+    public class CrossChainIndexingEvent : Event
+    {
+        public Hash SideChainTransactionsMerkleTreeRoot;
+        public CrossChainBlockData CrossChainBlockData;
+    }
 }
