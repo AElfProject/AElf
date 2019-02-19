@@ -33,7 +33,7 @@ namespace AElf.Runtime.CSharp
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.RemoveAll(sd => sd.ImplementationType == typeof(CachedStateManager));
+            //context.Services.RemoveAll(sd => sd.ImplementationType == typeof(CachedStateManager));
         }
     }
 }
