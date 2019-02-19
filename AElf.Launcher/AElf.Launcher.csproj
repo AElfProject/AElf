@@ -8,13 +8,12 @@
     <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
     <ProjectReference Include="..\AElf.Consensus.DPoS\AElf.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS2\AElf.Contracts.Consensus.DPoS2.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj" />
-    <ProjectReference Include="..\AElf.Crosschain\AElf.Crosschain.csproj" />
     <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
