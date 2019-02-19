@@ -60,6 +60,7 @@ namespace AElf.Kernel.Managers.Another
 
             chain = new Chain()
             {
+                Id = chainId,
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
