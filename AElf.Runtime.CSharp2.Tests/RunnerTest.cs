@@ -17,7 +17,7 @@ namespace AElf.Runtime.CSharp2.Tests
             _contract1 = new TestContractShim(_mock);
         }
 
-        [Fact]
+        [Fact(Skip = "Out of date.")]
         public void Test()
         {
             Address account0 = Address.Generate();

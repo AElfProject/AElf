@@ -76,12 +76,12 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="height">Self(Parent) chain height.</param>
         /// <returns></returns>
-        public async Task<IndexedSideChainBlockInfoResult> GetIndexedSideChainBlockInfoResult(int chainId, ulong height)
+        public async Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(int chainId, ulong height)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<IndexedSideChainBlockInfoResult>(chainId,
+            var bytes = await _contractInfoReader.GetBytesAsync<IndexedSideChainBlockDataResult>(chainId,
                 ContractHelpers.GetCrossChainContractAddress(chainId),
                 Hash.FromMessage(new UInt64Value {Value = height}), GlobalConfig.IndexedSideChainBlockInfoResult);
-            return bytes == null ? null : IndexedSideChainBlockInfoResult.Parser.ParseFrom(bytes);
+            return bytes == null ? null : IndexedSideChainBlockDataResult.Parser.ParseFrom(bytes);
         }
 
         /// <summary>
@@ -89,13 +89,13 @@ namespace AElf.ChainController.CrossChain
         /// </summary>
         /// <param name="localChainHeight">Self(Side) chain height</param>
         /// <returns></returns>
-        public async Task<ParentChainBlockInfo> GetBoundParentChainBlockInfoAsync(int chainId, ulong localChainHeight)
+        public async Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(int chainId, ulong localChainHeight)
         {
-            var bytes = await _contractInfoReader.GetBytesAsync<ParentChainBlockInfo>(chainId,
+            var bytes = await _contractInfoReader.GetBytesAsync<ParentChainBlockData>(chainId,
                 ContractHelpers.GetCrossChainContractAddress(chainId),
                 Hash.FromMessage(new UInt64Value {Value = localChainHeight}),
                 GlobalConfig.AElfParentChainBlockInfo);
-            return bytes == null ? null : ParentChainBlockInfo.Parser.ParseFrom(bytes);
+            return bytes == null ? null : ParentChainBlockData.Parser.ParseFrom(bytes);
         }
     }
 }

@@ -8,9 +8,8 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.Kernel.Types;
+using AElf.Kernel.Services;
 using AElf.SmartContract.Consensus;
 using AElf.SmartContract.Proposal;
 using AElf.TxPool.RefBlockExceptions;
@@ -35,25 +34,20 @@ namespace AElf.TxPool
         
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
-        
+        private readonly ITransactionTypeIdentificationService _transactionTypeIdentificationService;
+
         private IBlockChain _blockChain;
         
         private ulong _curHeight;
-        private Address _dPosContractAddress;
-        private Address _crossChainContractAddress;
         
-        private List<Address> SystemAddresses => new List<Address>
-        {
-            _dPosContractAddress, 
-            _crossChainContractAddress
-        };
-
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             IChainService chainService, IAuthorizationInfoReader authorizationInfoReader,
-            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo)
+            ITxRefBlockValidator refBlockValidator, IElectionInfo electionInfo, 
+            ITransactionTypeIdentificationService transactionTypeIdentificationService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _electionInfo = electionInfo;
+            _transactionTypeIdentificationService = transactionTypeIdentificationService;
             _transactionManager = transactionManager;
             _receiptManager = receiptManager;
             _chainService = chainService;
@@ -64,8 +58,6 @@ namespace AElf.TxPool
 
         public void Initialize(int chainId)
         {
-            _dPosContractAddress = ContractHelpers.GetConsensusContractAddress(chainId);
-            _crossChainContractAddress =   ContractHelpers.GetCrossChainContractAddress(chainId);
             _blockChain = _chainService.GetBlockChain(chainId);
 
             if (_blockChain == null)
@@ -319,7 +311,7 @@ namespace AElf.TxPool
 
         private void IdentifyTransactionType(int chainId, TransactionReceipt tr)
         {
-            if (SystemAddresses.Contains(tr.Transaction.To))
+            if (_transactionTypeIdentificationService.IsSystemTransaction(chainId, tr.Transaction))
             {
                 tr.IsSystemTxn = true;
             }
@@ -329,8 +321,7 @@ namespace AElf.TxPool
                 tr.IsSystemTxn = true;
             }
 
-            // cross chain txn should not be  broadcasted
-            if (tr.Transaction.IsCrossChainIndexingTransaction(chainId))
+            if (!_transactionTypeIdentificationService.CanBeBroadCast(chainId, tr.Transaction))
                 tr.ToBeBroadCasted = false;
         }
 
@@ -448,11 +439,8 @@ namespace AElf.TxPool
                     if(tr.Transaction == null)
                         continue;
                     
-                    // cross chain transactions should not be reverted.
-                    if (tr.Transaction.IsCrossChainIndexingTransaction(chainId))
-                        continue;
-
-                    if (tr.Transaction.IsClaimFeesTransaction(chainId))
+                    if (_transactionTypeIdentificationService.IsSystemTransaction(chainId, tr.Transaction) 
+                        || tr.Transaction.IsClaimFeesTransaction(chainId))
                     {
                         continue;
                     }

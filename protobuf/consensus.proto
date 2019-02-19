@@ -13,12 +13,13 @@ message Term {
     int32 MiningInterval = 4;
     uint64 TermNumber = 5;
     google.protobuf.Timestamp Timestamp = 6;
+    int32 ChainId = 7;
 }
 
 // Just used as parameter of consensus contract method.
 message Forwarding {
-    Round CurrentRoundInfo = 1;
-    Round NextRoundInfo = 2;
+    Round CurrentRound = 1;
+    Round NextRound = 2;
     uint64 CurrentAge = 3;
 }
 
@@ -41,6 +42,7 @@ message Miners {
     repeated string PublicKeys = 2;
     uint64 MainchainLatestTermNumber = 3;// Shouldn't be updated if TermNumber > 1
     string Remark = 4;
+    repeated Address Addresses = 5;
 }
 
 // To query to first round number of each term.
@@ -51,7 +53,8 @@ message TermNumberLookUp {
 // All the candidates.
 message Candidates {
     repeated string PublicKeys = 1;
-    bool IsInitialMiners = 2;
+    repeated Address Addresses = 2;
+    bool IsInitialMiners = 3;
 }
 
 // The ticket / voting information for one user.
@@ -65,6 +68,7 @@ message Tickets {
     string Remark = 7;
     repeated Hash VoteToTransactions = 8;
     repeated Hash VoteFromTransactions = 9;
+    string PublicKey = 10;
 }
 
 // A voting record.
@@ -96,7 +100,8 @@ message TermSnapshot {
 // The information of a candidate of a specific term.
 message CandidateInTerm {
     string PublicKey = 1;
-    uint64 Votes = 2;
+    Address Address = 2;
+    uint64 Votes = 3;
 }
 
 // The information of a round.
@@ -125,6 +130,7 @@ message MinerInRound {
     uint64 PackagedTxsCount = 12;
     uint64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
+    Address Address = 15;
 }
 
 // The information of a candidate.
@@ -139,6 +145,7 @@ message CandidateInHistory {
     string CurrentAlias = 8;
     uint64 CurrentVotesNumber = 9;
     string Remark = 10;
+    Address Address = 11;
 }
 
 message TicketsDictionary {
@@ -170,4 +177,46 @@ enum TicketsHistoryType {
     None = 0;
     Redeem = 1;
     Vote = 2;
+}
+
+message DPoSInformation {
+    Address Sender = 1;
+    Round CurrentRound = 2;
+    Forwarding Forwarding = 3;
+    Term NewTerm = 4;
+    bool WillUpdateConsensus = 5;
+    repeated Address MinersList = 6;
+    bool TimeToChangeTerm = 7;
+    DPoSBehaviour Behaviour = 8;
+}
+
+message DPoSExtraInformation {
+    bool ChangeTerm = 1;
+    Hash HashValue = 2;
+    int32 MiningInterval = 3;
+    Term NewTerm = 4;
+    Forwarding Forwarding = 5;
+    ToPackage ToPackage = 6;
+    ToBroadcast ToBroadcast = 7;
+    google.protobuf.Timestamp Timestamp = 8;
+    repeated string InitialMiners = 9;
+    Hash InValue = 10;
+}
+
+message DPoSCommand {
+    int32 CountingMilliseconds = 1;
+    DPoSBehaviour Behaviour = 2;
+    int32 ChainId = 3;
+}
+
+enum DPoSBehaviour {
+    InitialTerm = 0;
+    PackageOutValue = 1;
+    NextRound = 2;
+    NextTerm = 3;
+}
+
+message ValidationResult {
+    bool Success = 1;
+    string Message = 2;
 }

@@ -1,14 +1,9 @@
 using System.Runtime.CompilerServices;
 using AElf.ChainController;
-using AElf.Common;
 using AElf.Database;
 using AElf.Execution;
 using AElf.Execution.Execution;
-using AElf.Execution.Scheduling;
 using AElf.Kernel.Storages;
-using AElf.Kernel.Tests.Concurrency.Execution;
-using AElf.Miner;
-using AElf.Miner.Rpc;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.SmartContract;
@@ -25,7 +20,6 @@ namespace AElf.Kernel.Tests
         //TODO: only test kernel aelf module here
         typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
         typeof(SmartContractAElfModule),
-        typeof(MinerRpcAElfModule),
         typeof(CSharpRuntimeAElfModule),
         
         typeof(TestBaseAElfModule))]

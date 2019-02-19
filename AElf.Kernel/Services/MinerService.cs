@@ -5,9 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Services
 {
@@ -21,6 +22,8 @@ namespace AElf.Kernel.Services
 
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
+
+        public ILocalEventBus EventBus { get; set; }
 
         private const float RatioMine = 0.3f;
 
@@ -36,6 +39,8 @@ namespace AElf.Kernel.Services
             _blockExecutingService = blockExecutingService;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            
+            EventBus = NullLocalEventBus.Instance;
         }
 
         /// <inheritdoc />
@@ -150,7 +155,8 @@ namespace AElf.Kernel.Services
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
                     previousBlockHeight,
-                    previousBlockPrefix);
+                    previousBlockPrefix, chainId);
+
             foreach (var txn in generatedTxns)
             {
                 await SignAsync(txn);

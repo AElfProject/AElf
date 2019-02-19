@@ -191,7 +191,7 @@ namespace AElf.Contracts.SideChain.Tests
             await CommitChangesAsync(TransactionContext.Trace);
         }
 
-        public async Task WriteParentChainBLockInfo(ParentChainBlockInfo[] parentChainBlockInfo)
+        public async Task WriteParentChainBLockInfo(ParentChainBlockData[] parentChainBlockData)
         {
             var tx = new Transaction
             {
@@ -199,7 +199,7 @@ namespace AElf.Contracts.SideChain.Tests
                 To = SideChainContractAddress,
                 IncrementId = _mock.NewIncrementId(),
                 MethodName = ContractHelpers.IndexingParentChainMethodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(new object[]{parentChainBlockInfo}))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(new object[]{parentChainBlockData}))
             };
             TransactionContext = new TransactionContext()
             {
