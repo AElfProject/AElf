@@ -4,18 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Execution.Execution;
 using AElf.Kernel;
-using AElf.Kernel.Account;
-using AElf.Kernel.Services;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Volo.Abp.Threading;
 
 namespace AElf.Consensus
 {
