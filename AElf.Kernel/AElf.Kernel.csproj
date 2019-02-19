@@ -58,9 +58,4 @@
       <Name>AElf.Kernel.Types</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AElf.Consensus.DPoS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\AElf.OS\bin\Debug\netstandard2.0\AElf.Consensus.DPoS.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>
