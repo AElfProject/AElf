@@ -1,5 +1,5 @@
 ﻿using AElf.ChainController.Rpc;
-using AElf.Consensus.DPoS;
+using AElf.Kernel.Consensus.DPoS;
 //using AElf.Crosschain;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel;

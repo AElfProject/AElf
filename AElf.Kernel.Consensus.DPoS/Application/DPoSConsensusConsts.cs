@@ -1,4 +1,4 @@
-namespace AElf.Consensus.DPoS
+namespace AElf.Kernel.Consensus.DPoS.Application
 {
     // ReSharper disable once InconsistentNaming
     public static class DPoSConsensusConsts

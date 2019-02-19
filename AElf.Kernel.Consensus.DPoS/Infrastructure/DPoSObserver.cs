@@ -1,13 +1,11 @@
 using System;
 using System.Reactive.Linq;
-using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Consensus.DPoS
+namespace AElf.Kernel.Consensus.DPoS.Infrastructure
 {
     // ReSharper disable once InconsistentNaming
     public class DPoSObserver : IConsensusObserver

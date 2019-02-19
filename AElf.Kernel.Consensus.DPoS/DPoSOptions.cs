@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Consensus.DPoS
+namespace AElf.Kernel.Consensus.DPoS
 {
     // ReSharper disable once InconsistentNaming
     public class DPoSOptions

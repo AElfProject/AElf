@@ -1,15 +1,12 @@
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.DPoS.Application;
+using AElf.Kernel.Consensus.DPoS.Infrastructure;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
-namespace AElf.Consensus.DPoS
+namespace AElf.Kernel.Consensus.DPoS
 {
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusModule : AElfModule
