@@ -21,7 +21,7 @@ namespace AElf.Common
         public const ulong GenesisBlockHeight = 1;
         
         public static readonly string GenesisSmartContractZeroAssemblyName = "AElf.Contracts.Genesis";
-        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus";
+        public static readonly string GenesisConsensusContractAssemblyName = "AElf.Contracts.Consensus.DPoS";
         public static readonly string GenesisTokenContractAssemblyName = "AElf.Contracts.Token";
         public static readonly string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public static readonly string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
@@ -37,6 +37,7 @@ namespace AElf.Common
         public static readonly ulong AuthorizationContract = 4;
         public static readonly ulong ResourceContract = 5;
         public static readonly ulong DividendsContract = 6;
+        public static readonly ulong DPoSContract = 7;
         public static int BlockProducerNumber = 17;
         public static int BlockNumberOfEachRound = 18;
 
@@ -49,7 +50,6 @@ namespace AElf.Common
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
-        public const int ProducerRepetitions = 8;
         public const int AElfWaitFirstRoundTime = 4000;
         public const string AElfDPoSCurrentRoundNumber = "__AElfCurrentRoundNumber__";
         public const string AElfDPoSMinersString = "__AElfBlockProducer__";
@@ -59,16 +59,8 @@ namespace AElf.Common
         public const string AElfDPoSMiningIntervalString = "__AElfDPoSMiningInterval__";
         public const string AElfDPoSTicketsMapString = "__AElfDPoSTicketsMapString__";
         public const string AElfDPoSCandidatesString = "__AElfDPoSCandidatesString__";
-        public const string AElfDPoSTermNumberLookupString = "__AElfDPoSTermNumberLookUpString__";
         public const string AElfDPoSSnapshotMapString = "__AElfDPoSSnapshotFieldString__";
         public const string AElfDPoSAliasesMapString = "__AElfDPoSAliasesMapString__";
-        public const string AElfDPoSAliasesLookupMapString = "__AElfDPoSAliasesLookupMapString__";
-        public const string AElfVotesCountString = "__AElfVotesCountString__";
-        public const string AElfTicketsCountString = "__AElfTicketsCountString__";
-        public const string AElfTwoThirdsMinerMinedString = "__AElfTwoThirdsMinerMinedString__";
-        public const string AElfDPoSHistoryMapString = "__AElfDPoSHistoryMapString__";
-        public const string AElfDPoSAgeToRoundNumberMapString = "__AElfDPoSAgeToRoundNumberMapString__";
-        public const string AElfDPoSVotingRecordsMapString = "__AElfDPoSVotingRecordsMapString__";
         public const string AElfDPoSCurrentTermNumber = "__AElfDPoSCurrentTermNumber__";
         public const string AElfDPoSBlockchainStartTimestamp = "__AElfDPoSBlockchainStartTimestamp__";
 
@@ -96,7 +88,6 @@ namespace AElf.Common
 
         #region Dividends
 
-        public static ulong ElfTokenPerBlock = 100;
         public const double DividendsForEveryMinerRatio = 0.4;
         public const double DividendsForTicketsCountRatio = 0.1;
         public const double DividendsForReappointmentRatio = 0.1;
@@ -136,20 +127,7 @@ namespace AElf.Common
 
         #region Consensus Error String
         
-        public const string TicketsNotFound = "Tickets not found.";
-        public const string CandidateNotFound = "Candidate not found.";
-        public const string TermNumberNotFound = "Term number not found.";
-        public const string TermSnapshotNotFound = "Term snapshot not found.";
-        public const string TermNumberLookupNotFound = "Term number lookup not found.";
-        public const string RoundNumberNotFound = "Round information not found.";
-        public const string TargetNotAnnounceElection = "Target didn't announce election.";
-        public const string CandidateCannotVote = "Candidate can't vote.";
-        public const string LockDayIllegal = "Lock days is illegal.";
-        public const string RoundIdNotMatched = "Round Id not matched.";
-        public const string InValueNotMatchToOutValue = "In Value not match to Out Value.";
-        public const string OutValueIsNull = "Out Value is null.";
-        public const string SignatureIsNull = "Signature is null.";
-        public const string VoterCannotAnnounceElection = "Voter can't announce election.";
+
 
         #endregion
     }

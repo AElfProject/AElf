@@ -3,6 +3,7 @@ using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Common.Serializers;
 using AElf.Database;
+using AElf.Kernel.Services;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Infrastructure;

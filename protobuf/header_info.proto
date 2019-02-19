@@ -1,34 +1,44 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Miner.Rpc";
+option csharp_namespace = "AElf.Crosschain.Grpc";
 import "common.proto";
 import "crosschain.proto";
 
-message RequestBlockInfo {
+message RequestCrossChainBlockData {
     int32 ChainId = 1; // parent(own) chain id
     uint64 NextHeight = 2;
 }
 
-message ResponseSideChainBlockInfo {
-    SideChainBlockInfo BlockInfo = 1;
+message ResponseSideChainBlockData {
+    SideChainBlockData BlockData = 1;
     bool Success = 2;
 }
 
-message ResponseParentChainBlockInfo {
-    ParentChainBlockInfo BlockInfo = 1;
+message ResponseParentChainBlockData {
+    ParentChainBlockData BlockData = 1;
     bool Success = 2;
 }
 
-service SideChainBlockInfoRpc {
-    rpc IndexDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
-    rpc IndexServerStreaming (RequestBlockInfo) returns (stream ResponseSideChainBlockInfo) {}
+message IndexingRequestMessage {
+    uint32 Port = 1;
+    string Ip = 2;
+    int32 ChainId = 3;
+}
+
+message IndexingRequestResult {
+    bool Result = 1;
+}
+
+service SideChainRpc {
+    rpc RequestSideChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
+    rpc RequestSideChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
 
 }
 
-service ParentChainBlockInfoRpc{
-    rpc RecordDuplexStreaming (stream RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
-    rpc RecordServerStreaming (RequestBlockInfo) returns (stream ResponseParentChainBlockInfo) {}
-
+service ParentChainRpc {
+    rpc RequestParentChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestParentChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestIndexing (IndexingRequestMessage) returns (IndexingRequestResult) {}
 }
 
 message MerkleProofMessage {
@@ -38,7 +48,7 @@ message MerkleProofMessage {
 
 message VerificationNeededMessage {
     int32 ChainId = 1;
-    uint64 BlockHeight = 2; 
+    uint64 BlockHeight = 2;
 }
 
 service MerkleProofInfoRpc {

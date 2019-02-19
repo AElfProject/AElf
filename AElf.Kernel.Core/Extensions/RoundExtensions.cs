@@ -6,7 +6,7 @@ namespace AElf.Kernel
 {
     public static class RoundExtensions
     {
-        public static MinerInRound GetEBPInfo(this Round round)
+        public static MinerInRound GetExtraBlockProducerInformation(this Round round)
         {
             return round.RealTimeMinersInfo.First(bp => bp.Value.IsExtraBlockProducer).Value;
         }
@@ -84,9 +84,10 @@ namespace AElf.Kernel
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
-        public static Hash MinersHash(this Round round)
+        public static Hash GetMinersHash(this Round round)
         {
-            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).ToMiners());
+            return Hash.FromMessage(round.RealTimeMinersInfo.Values.Select(m => m.PublicKey).OrderBy(p => p)
+                .ToMiners());
         }
 
         public static ulong GetMinedBlocks(this Round round)

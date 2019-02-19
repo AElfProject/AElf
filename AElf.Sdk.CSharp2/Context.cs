@@ -2,6 +2,8 @@ using System;
 using AElf.Common;
 using AElf.Kernel;
 using System.Linq;
+using System.Reflection;
+using AElf.Cryptography;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Types;

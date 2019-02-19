@@ -13,12 +13,12 @@ namespace AElf.Kernel.Miner.Application
         }
 
         public List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight,
-            byte[] refBlockPrefix)
+            byte[] refBlockPrefix, int chainId)
         {
             var generatedTxns = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)
             {
-                generator.GenerateTransactions(from, preBlockHeight, preBlockHeight, refBlockPrefix, ref generatedTxns);
+                generator.GenerateTransactions(from, preBlockHeight, preBlockHeight, refBlockPrefix, chainId, ref generatedTxns);
             }
 
             return generatedTxns;

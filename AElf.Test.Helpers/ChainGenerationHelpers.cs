@@ -64,7 +64,6 @@ namespace AElf.Synchronization.Tests
                 {
                     Height = previous.Header.Height + 1,
                     MerkleTreeRootOfTransactions = Hash.Generate(),
-                    SideChainTransactionsRoot = Hash.Generate(),
                     ChainId = ChainHelpers.GetChainId(123),
                     PreviousBlockHash = previous.GetHash(),
                     MerkleTreeRootOfWorldState = Hash.Generate(),

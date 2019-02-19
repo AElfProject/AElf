@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.SmartContractExecution.Execution;
@@ -39,12 +40,9 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.True(_contracts.BalanceOf(_contracts.DividendsContractAddress) > 0);
         }
 
-        [Fact]
-        //[Fact(Skip = "Time consuming.")]
+        [Fact(Skip = "Time consuming.")]
         public void ReceiveDividendsTest()
         {
-            GlobalConfig.ElfTokenPerBlock = 1000;
-
             DividendsInitializationTest();
 
             InitializeCandidates();
@@ -159,7 +157,7 @@ namespace AElf.Contracts.Consensus.Tests
             Assert.Equal(18.ToString(), snapshotOfSecondTerm.TotalBlocks.ToString());
 
             var dividendsOfSecondTerm = _contracts.GetTermDividends(2);
-            var shouldBe = (ulong) (18 * GlobalConfig.ElfTokenPerBlock * 0.2);
+            var shouldBe = (ulong) (18 * DPoSContractConsts.ElfTokenPerBlock * 0.2);
             Assert.True(dividendsOfSecondTerm == shouldBe);
             var availableDividends = _contracts.GetAllAvailableDividends(mustVotedVoter.PublicKey.ToHex());
             var balanceBefore = _contracts.BalanceOf(GetAddress(mustVotedVoter));

@@ -143,7 +143,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
                         RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
-                        StateHash = trace.GetSummarizedStateHash(),
+                        //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
                     };
                     txRes.UpdateBloom();
@@ -220,6 +220,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 returnSet.StateChanges.Add(s.Key, s.Value);
             }
+
+            if (trace.RetVal == null)
+            {
+                throw new NullReferenceException();
+            }
+            
+            returnSet.ReturnValue = trace.RetVal.Data;
 
             return returnSet;
         }

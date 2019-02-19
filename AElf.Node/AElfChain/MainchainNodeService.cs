@@ -116,11 +116,7 @@ namespace AElf.Node.AElfChain
 
             #region start
             
-            _blockSynchronizer.Init(chainId);
-
             _txHub.Start();
-            
-            _consensus?.Start(true, chainId);
 
             MessageHub.Instance.Subscribe<BranchedBlockReceived>(inBranchedBlock => { _forkFlag = true; });
             MessageHub.Instance.Subscribe<RollBackStateChanged>(inRollbackState => { _forkFlag = false; });
@@ -188,7 +184,7 @@ namespace AElf.Node.AElfChain
 
             var consensusCReg = new SmartContractRegistration
             {
-                Category = 0,
+                Category = 2,
                 ContractBytes = ByteString.CopyFrom(consensusContractCode),
                 ContractHash = Hash.FromRawBytes(consensusContractCode),
                 SerialNumber = GlobalConfig.ConsensusContract

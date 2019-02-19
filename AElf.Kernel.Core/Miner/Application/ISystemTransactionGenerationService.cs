@@ -6,6 +6,6 @@ namespace AElf.Kernel.Miner.Application
     public interface ISystemTransactionGenerationService
     {
         List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight,
-            byte[] refBlockPrefix);
+            byte[] refBlockPrefix, int chainId);
     }
 }

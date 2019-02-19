@@ -38,7 +38,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var block = new Block
             {
-                Header =
+                Header = new BlockHeader
                 {
                     Height = generateBlockDto.PreviousBlockHeight,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
@@ -48,7 +48,6 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = new BlockBody()
             };
             
-
             // todo: get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
             await _blockExtraDataService.FillBlockExtraData(block);
 
