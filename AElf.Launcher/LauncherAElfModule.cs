@@ -1,6 +1,7 @@
 ﻿using AElf.ChainController.Rpc;
+using AElf.Common;
+using AElf.Consensus;
 using AElf.Consensus.DPoS;
-//using AElf.Crosschain;
 using AElf.Execution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -52,7 +53,7 @@ namespace AElf.Launcher
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;
-        
+
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
         public LauncherAElfModule()
@@ -75,12 +76,20 @@ namespace AElf.Launcher
 
             var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
             var minerService = context.ServiceProvider.GetService<IMinerService>();
-            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.Mine(eventData.ChainId));
+            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
+                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
+            ));
+        }
+
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var chain = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var consensus = context.ServiceProvider.GetService<IConsensusService>();
+            consensus.TriggerConsensusAsync(chain.ChainId.ConvertBase58ToChainId());
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
         }
-
     }
 }

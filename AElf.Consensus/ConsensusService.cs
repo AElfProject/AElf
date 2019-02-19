@@ -54,18 +54,27 @@ namespace AElf.Consensus
         public async Task TriggerConsensusAsync(int chainId)
         {            
             var chain = await _blockchainService.GetChainAsync(chainId);
-            var chainContext = new ChainContext
-            {
-                ChainId = chainId,
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
+
+            var chainContext = chain == null
+                ? new ChainContext
+                {
+                    ChainId = chainId,
+                    BlockHash = Hash.Genesis,
+                    BlockHeight = 1
+                }
+                : new ChainContext
+                {
+                    ChainId = chainId,
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                };
             
             _consensusCommand.Command = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                 chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow))).ToByteArray();
 
             // Initial or update the schedule.
-            _consensusObservables = _consensusObserver.Subscribe(_consensusCommand.Command);
+            _consensusObservables =
+                _consensusObserver.Subscribe(_consensusCommand.Command, chainId, chainContext.BlockHash, chainContext.BlockHeight);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
