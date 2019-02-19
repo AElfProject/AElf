@@ -13,6 +13,7 @@ using Xunit;
 using AElf.Runtime.CSharp;
 using Xunit.Frameworks.Autofac;
 using AElf.Common;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 

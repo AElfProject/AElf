@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using Xunit;
 using Shouldly;
 using AElf.Sdk.CSharp;

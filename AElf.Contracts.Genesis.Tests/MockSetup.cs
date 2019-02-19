@@ -3,12 +3,15 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.ChainController;
+using AElf.Kernel.ChainController;
 using AElf.SmartContract;
-using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.Common;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Kernel.ChainController.Application;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Volo.Abp.DependencyInjection;
 

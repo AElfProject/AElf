@@ -4,7 +4,7 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,7 @@
 using AElf.Database;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -9,11 +9,11 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.TestBase
 {
     [DependsOn(
-        typeof(AElf.ChainController.ChainControllerAElfModule),
-        typeof(AElf.SmartContract.SmartContractAElfModule),
+        typeof(Kernel.ChainController.ChainControllerAElfModule),
+        typeof(Kernel.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(ExecutionAElfModule),
-        typeof(KernelAElfModule),
+        typeof(SmartContractExecutionAElfModule),
+        typeof(CoreKernelAElfModule),
         typeof(DatabaseAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule

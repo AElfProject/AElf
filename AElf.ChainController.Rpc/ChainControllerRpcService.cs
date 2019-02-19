@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController.CrossChain;
-using AElf.ChainController.EventMessages;
+using AElf.Kernel.ChainController.CrossChain;
+using AElf.Kernel.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.Node.AElfChain;
 using AElf.RPC;

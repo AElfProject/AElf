@@ -5,13 +5,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Runtime.CSharp.Core.ABI;
 using Type = System.Type;
 using Module = AElf.Kernel.ABI.Module;
 using Method = AElf.Kernel.ABI.Method;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp

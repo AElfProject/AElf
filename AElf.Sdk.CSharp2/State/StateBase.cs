@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp.State
 {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;

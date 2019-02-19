@@ -6,8 +6,9 @@ using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography.ECDSA;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution.Execution;
 using AElf.Kernel;
+using AElf.Kernel.SmartContractExecution.Application;
 using Xunit;
 
 

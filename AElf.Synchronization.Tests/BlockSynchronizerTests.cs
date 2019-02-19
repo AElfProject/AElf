@@ -7,7 +7,6 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Synchronization.BlockExecution;
 using AElf.Synchronization.BlockSynchronization;
 using Easy.MessageHub;

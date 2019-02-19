@@ -7,14 +7,18 @@ using AElf.Kernel.Managers;
 using Google.Protobuf;
 using AElf.ChainController;
 using AElf.SmartContract;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Tests.Concurrency.Scheduling;
 using AElf.Types.CSharp;
 using Akka.Actor;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil.Cil;
 using AElf.Common;
-using AElf.Execution.Execution;
+using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract.Contexts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -102,7 +106,7 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             Router = Sys.ActorOf(Props.Empty.WithRouter(new TrackedGroup(workers)), "router");
             Worker1.Tell(new LocalSerivcePack(ServicePack));
             Worker2.Tell(new LocalSerivcePack(ServicePack));
-            Requestor = Sys.ActorOf(AElf.Execution.Execution.Requestor.Props(Router));
+            Requestor = Sys.ActorOf(SmartContractExecution.Execution.Requestor.Props(Router));
         }
 
         public byte[] SmartContractZeroCode => ContractCodes.TestContractZeroCode;

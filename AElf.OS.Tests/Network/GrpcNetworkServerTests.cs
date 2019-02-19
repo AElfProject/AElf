@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Options;

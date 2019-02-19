@@ -1,7 +1,7 @@
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -13,7 +13,7 @@ namespace AElf.Runtime.CSharp.Tests
         typeof(AElf.ChainController.ChainControllerAElfModule),
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class TestCSharpRuntimeAElfModule : AElfModule
     {

@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.SmartContract;
 using AElf.ChainController;
-using AElf.Kernel.Storages;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;

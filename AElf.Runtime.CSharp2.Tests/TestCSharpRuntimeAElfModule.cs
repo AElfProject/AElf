@@ -2,7 +2,7 @@ using System;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using AElf.Sdk.CSharp2.Tests;
@@ -19,7 +19,7 @@ namespace AElf.Runtime.CSharp2.Tests
         typeof(AElf.SmartContract.SmartContractAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule2),
-        typeof(KernelAElfModule)
+        typeof(CoreKernelAElfModule)
     )]
     public class TestCSharpRuntimeAElfModule : AElfModule
     {

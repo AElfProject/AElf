@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Google.Protobuf.Collections;

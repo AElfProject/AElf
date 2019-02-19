@@ -1,5 +1,4 @@
 using AElf.Database;
-using AElf.Kernel.Storages;
 using Volo.Abp;
 
 namespace AElf.Runtime.CSharp2.Tests

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Core" Version="0.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application" />
+      <Folder Include="Domain" />
+    </ItemGroup>
+
+</Project>

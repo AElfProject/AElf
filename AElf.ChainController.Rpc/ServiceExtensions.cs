@@ -11,7 +11,7 @@ using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
-using Svc = AElf.ChainController.Rpc.ChainControllerRpcService;
+using Svc = AElf.Kernel.ChainController.Rpc.ChainControllerRpcService;
 
 namespace AElf.ChainController.Rpc
 {

@@ -7,7 +7,7 @@ using AElf.ChainController;
 using AElf.SmartContract;
 using Google.Protobuf;
 using AElf.Common;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.Tests

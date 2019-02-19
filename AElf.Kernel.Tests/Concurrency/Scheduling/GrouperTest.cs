@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Execution.Scheduling;
+using AElf.Kernel.SmartContractExecution.Scheduling;
 using Xunit;
 using AElf.Common;
 using Google.Protobuf;

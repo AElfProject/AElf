@@ -3,8 +3,8 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Managers;
-using AElf.ChainController;
-using AElf.ChainController.Rpc;
+using AElf.Kernel.ChainController;
+using AElf.Kernel.ChainController.Rpc;
 using Xunit;
 using AElf.Common;
 using AElf.Configuration;

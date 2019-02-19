@@ -1,4 +1,4 @@
-﻿using AElf.Execution.Scheduling;
+﻿using AElf.Kernel.SmartContractExecution.Scheduling;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using AElf.Modularity;
-using AElf.SmartContract;
-using Akka.Actor;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
