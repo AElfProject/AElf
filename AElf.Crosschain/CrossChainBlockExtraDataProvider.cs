@@ -20,7 +20,7 @@ namespace AElf.Crosschain
             _accountService = accountService;
         }
 
-        public async Task FillExtraData(Block block)
+        public async Task FillExtraDataAsync(Block block)
         {
             var crossChainBlockData = new CrossChainBlockData();
             if(block.Header.BlockExtraData == null)
@@ -34,20 +34,20 @@ namespace AElf.Crosschain
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             
             // append transaction in block for cross chain data sync, it won't be executed.
-            var txn = new Transaction
-            {
-                From = await _accountService.GetAccountAsync(),
-                To = Address.Zero,
-                MethodName = "RecordCrossChainData",
-                Params = crossChainBlockData.ToByteString(),
-                Time = Timestamp.FromDateTime(DateTime.UtcNow)
-            };
-            var rawSig = await _accountService.SignAsync(txn.ToByteArray());
-            txn.Sigs.Add(ByteString.CopyFrom(rawSig));
-            block.AddTransaction(txn);
+//            var txn = new Transaction
+//            {
+//                From = await _accountService.GetAccountAsync(),
+//                To = Address.Zero,
+//                MethodName = "RecordCrossChainData",
+//                Params = crossChainBlockData.ToByteString(),
+//                Time = Timestamp.FromDateTime(DateTime.UtcNow)
+//            };
+//            var rawSig = await _accountService.SignAsync(txn.ToByteArray());
+//            txn.Sigs.Add(ByteString.CopyFrom(rawSig));
+//            block.AddTransaction(txn);
         }
 
-        public async Task<bool> ValidateExtraData(Block block)
+        public async Task<bool> ValidateExtraDataAsync(Block block)
         {
             try
             {

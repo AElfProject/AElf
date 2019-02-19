@@ -16,7 +16,7 @@ namespace AElf.Kernel.Services
         {
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                await blockExtraDataProvider.FillExtraData(block);
+                await blockExtraDataProvider.FillExtraDataAsync(block);
             }
         }
     }

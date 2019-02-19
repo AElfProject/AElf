@@ -4,7 +4,7 @@ namespace AElf.Kernel
 {
     public interface IBlockExtraDataProvider
     {
-        Task FillExtraData(Block block);
-        Task<bool> ValidateExtraData(Block block);
+        Task FillExtraDataAsync(Block block);
+        Task<bool> ValidateExtraDataAsync(Block block);
     }
 }
