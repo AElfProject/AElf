@@ -35,19 +35,19 @@ namespace AElf.Crosschain
              var clientService = context.ServiceProvider.GetService<GrpcClientService>();
              // Init client connected to parent chain if it exists.
              clientService.Init(opt.CertificateDir);
-             if (!string.IsNullOrEmpty(opt.ParentChainId) && !string.IsNullOrEmpty(opt.ParentChainNodeIp) &&
-                 !string.IsNullOrEmpty(opt.ParentChainPort)) return;
-             var blockInfoCache = new BlockInfoCache(opt.ParentChainId.ConvertBase58ToChainId());
-             clientService.CreateClient(new GrpcClientBase
-             {
-                 TargetIp = opt.ParentChainNodeIp,
-                 TargetPort = uint.Parse(opt.ParentChainPort),
-                 TargetChainId = opt.ParentChainId.ConvertBase58ToChainId(),
-                 TargetIsSideChain = false,
-                 BlockInfoCache = blockInfoCache
-             });
-             context.ServiceProvider.GetService<GrpcCrossChainDataProvider>().ParentChainBlockInfoCache =
-                 blockInfoCache;
+//             if (!string.IsNullOrEmpty(opt.ParentChainId) && !string.IsNullOrEmpty(opt.ParentChainNodeIp) &&
+//                 !string.IsNullOrEmpty(opt.ParentChainPort)) return;
+//             var blockInfoCache = new BlockInfoCache(opt.ParentChainId.ConvertBase58ToChainId());
+//             clientService.CreateClient(new GrpcClientBase
+//             {
+//                 TargetIp = opt.ParentChainNodeIp,
+//                 TargetPort = uint.Parse(opt.ParentChainPort),
+//                 TargetChainId = opt.ParentChainId.ConvertBase58ToChainId(),
+//                 TargetIsSideChain = false,
+//                 BlockInfoCache = blockInfoCache
+//             });
+//             context.ServiceProvider.GetService<GrpcCrossChainDataProvider>().ParentChainBlockInfoCache =
+//                 blockInfoCache;
          }
      }
  }

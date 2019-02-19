@@ -15,6 +15,11 @@ namespace AElf.Kernel
             return !miners.PublicKeys.Any();
         }
 
+        public static Hash GetMinersHash(this Miners miners)
+        {
+            return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
+        }
+
         public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong roundNumber = 0, ulong termNumber = 0)
         {
             var dict = new Dictionary<string, int>();
@@ -125,7 +130,7 @@ namespace AElf.Kernel
             var round = new Round {RoundNumber = previousRound.RoundNumber + 1};
 
             // EBP will be the first miner of next round.
-            var extraBlockProducer = previousRound.GetEBPInfo().PublicKey;
+            var extraBlockProducer = previousRound.GetExtraBlockProducerInformation().PublicKey;
 
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
@@ -237,7 +242,7 @@ namespace AElf.Kernel
 
             return order;
         }
-
+        
         /// <summary>
         /// Get local time
         /// </summary>

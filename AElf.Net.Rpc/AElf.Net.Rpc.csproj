@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.0" />
+    <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
   </ItemGroup>
 </Project>

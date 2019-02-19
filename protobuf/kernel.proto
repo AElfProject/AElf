@@ -140,6 +140,7 @@ message ExecutionReturnSet {
     map<string, bytes> StateChanges = 3;
     bytes Bloom = 4;
     repeated Transaction DeferredTransactions = 5;
+    bytes ReturnValue = 6;
 }
 
 message LogEvent {
@@ -171,7 +172,7 @@ message BlockHeaderList {
 
 message BlockExtraData{
     Hash SideChainTransactionsRoot = 1;
-    // consensus information
+    bytes ConsensusInformation = 2;
 }
 
 message BlockHeader {

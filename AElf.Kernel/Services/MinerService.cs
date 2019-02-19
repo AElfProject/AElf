@@ -9,10 +9,12 @@ using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
+using Akka.IO;
 using Easy.MessageHub;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
+using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Services
 {
@@ -30,6 +32,8 @@ namespace AElf.Kernel.Services
         private ITransactionFilter _txFilter;
         private readonly IAccountService _accountService;
         private readonly IBlockchainStateManager _blockchainStateManager;
+
+        public ILocalEventBus EventBus { get; set; }
 
         private const float RatioMine = 0.3f;
 
@@ -50,6 +54,8 @@ namespace AElf.Kernel.Services
             _blockchainStateManager = blockchainStateManager;
             _txFilter = transactionFilter;
             _accountService = accountService;
+            
+            EventBus = NullLocalEventBus.Instance;
         }
         
         /// <inheritdoc />
