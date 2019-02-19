@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using AElf.Kernel;
 
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusObserver : IObserver<int>
     {

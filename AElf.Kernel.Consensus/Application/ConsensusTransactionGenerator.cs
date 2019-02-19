@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using Volo.Abp.Threading;
 
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusTransactionGenerator : ISystemTransactionGenerator
     {

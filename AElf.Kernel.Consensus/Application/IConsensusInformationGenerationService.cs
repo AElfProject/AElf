@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusInformationGenerationService
     {

@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusService
     {

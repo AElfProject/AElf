@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {

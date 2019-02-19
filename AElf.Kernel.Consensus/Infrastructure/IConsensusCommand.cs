@@ -1,4 +1,4 @@
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Infrastructure
 {
     public interface IConsensusCommand
     {

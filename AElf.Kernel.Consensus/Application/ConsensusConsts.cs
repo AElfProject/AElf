@@ -1,4 +1,4 @@
-namespace AElf.Consensus
+namespace AElf.Kernel.Consensus.Application
 {
     public static class ConsensusConsts
     {
