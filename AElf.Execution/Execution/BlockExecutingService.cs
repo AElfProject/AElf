@@ -152,8 +152,8 @@ namespace AElf.Execution.Execution
                 {
                     hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
                 }
-
-                return Hash.LoadByteArray(hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0));
+                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);                
+                return Hash.LoadByteArray(hashAlgorithm.Hash);
             }
         }
     }
