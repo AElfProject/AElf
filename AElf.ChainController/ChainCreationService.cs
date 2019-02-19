@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.SmartContract;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -14,13 +15,13 @@ namespace AElf.ChainController
 {
     public class ChainCreationService : IChainCreationService
     {
-        private readonly IChainService _chainService;
+        private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractService _smartContractService;
         public ILogger<ChainCreationService> Logger {get;set;}
 
-        public ChainCreationService(IChainService chainService, ISmartContractService smartContractService)
+        public ChainCreationService(IBlockchainService blockchainService, ISmartContractService smartContractService)
         {
-            _chainService = chainService;
+            _blockchainService = blockchainService;
             _smartContractService = smartContractService;
             Logger = NullLogger<ChainCreationService>.Instance;
         }
@@ -52,15 +53,9 @@ namespace AElf.ChainController
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
 
-                // add block to storage
-                var blockchain = _chainService.GetBlockChain(chainId);
-                await blockchain.AddBlocksAsync(new List<IBlock> {builder.Block});
-                var chain = new Chain
-                {
-                    GenesisBlockHash = await blockchain.GetCurrentBlockHashAsync(),
-                    Id = chainId
-                };
-                return chain;
+                await _blockchainService.CreateChainAsync(chainId, builder.Block);
+                return await _blockchainService.GetChainAsync(chainId);
+
             }
             catch (Exception e)
             {

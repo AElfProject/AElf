@@ -14,6 +14,7 @@ namespace AElf.Kernel.Services
 {
     public interface IBlockchainService
     {
+        Task<Chain> CreateChainAsync(int chainId, Block block);
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
         Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
