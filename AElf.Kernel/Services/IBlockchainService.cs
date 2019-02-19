@@ -81,7 +81,7 @@ namespace AElf.Kernel.Services
             {
                 foreach (var transaction in block.Body.TransactionList)
                 {
-                    await _transactionManager.AddTransactionAsync(transaction);
+//                    await _transactionManager.AddTransactionAsync(transaction);
                 }
             }
 
