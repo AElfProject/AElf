@@ -6,11 +6,11 @@ namespace AElf.Crosschain.Grpc.Client
 {
     public class GrpcParentChainBlockInfoRpcClient : GrpcCrossChainClient<ResponseParentChainBlockData>
     {
-        private readonly ParentChainRpc.ParentChainRpcClient _client;
+        private readonly CrossChainRpc.CrossChainRpcClient _client;
 
         public GrpcParentChainBlockInfoRpcClient(Channel channel, GrpcClientBase grpcClientBase) : base(channel, grpcClientBase)
         {
-            _client = new ParentChainRpc.ParentChainRpcClient(channel);
+            _client = new CrossChainRpc.CrossChainRpcClient(channel);
         }
 
         protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> Call(int milliSeconds = 0)

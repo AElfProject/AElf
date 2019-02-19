@@ -18,7 +18,7 @@ namespace AElf.Crosschain
          {
              var services = context.Services;
              services.AddSingleton<SideChainBlockInfoRpcServer>();
-             services.AddSingleton<ParentChainBlockInfoRpcServer>();
+             services.AddSingleton<CrossChainBlockDataRpcServer>();
              
              var configuration = context.Services.GetConfiguration();
              Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));

@@ -16,19 +16,19 @@ namespace AElf.Crosschain.Grpc.Server
         private global::Grpc.Core.Server _parentChainServer;
         private CertificateStore _certificateStore;
         private SslServerCredentials _sslServerCredentials;
-        private readonly ParentChainBlockInfoRpcServer _parentChainBlockInfoRpcServer;
+        private readonly CrossChainBlockDataRpcServer _crossChainBlockDataRpcServer;
         private readonly SideChainBlockInfoRpcServer _sideChainBlockInfoRpcServer;
         public ILogger<ServerManager> Logger {get;set;}
 
-        public ServerManager(ParentChainBlockInfoRpcServer parentChainBlockInfoRpcServer, 
+        public ServerManager(CrossChainBlockDataRpcServer crossChainBlockDataRpcServer, 
             SideChainBlockInfoRpcServer sideChainBlockInfoRpcServer)
         {
-            _parentChainBlockInfoRpcServer = parentChainBlockInfoRpcServer;
+            _crossChainBlockDataRpcServer = crossChainBlockDataRpcServer;
             _sideChainBlockInfoRpcServer = sideChainBlockInfoRpcServer;
             Logger = NullLogger<ServerManager>.Instance;
         }
 
-        
+         
         /// <summary>
         /// generate key-certificate pair from pem file 
         /// </summary>
@@ -54,12 +54,12 @@ namespace AElf.Crosschain.Grpc.Server
         {
             var server = new global::Grpc.Core.Server
             {
-                Services = {SideChainRpc.BindService(_sideChainBlockInfoRpcServer)},
-                Ports =
-                {
-                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
-                        GrpcLocalConfig.Instance.LocalSideChainServerPort, _sslServerCredentials)
-                }
+                //Services = {SideChainRpc.BindService(_sideChainBlockInfoRpcServer)},
+//                Ports =
+//                {
+//                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
+//                        GrpcLocalConfig.Instance.LocalSideChainServerPort, _sslServerCredentials)
+//                }
             };
 
             return server;
@@ -73,12 +73,12 @@ namespace AElf.Crosschain.Grpc.Server
         {
             var server = new global::Grpc.Core.Server
             {
-                Services = {ParentChainRpc.BindService(_parentChainBlockInfoRpcServer)},
-                Ports =
-                {
-                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
-                        GrpcLocalConfig.Instance.LocalParentChainServerPort, _sslServerCredentials)
-                }
+                //Services = {ParentChainRpc.BindService(_crossChainBlockDataRpcServer)},
+//                Ports =
+//                {
+//                    new ServerPort(GrpcLocalConfig.Instance.LocalServerIP, 
+//                        GrpcLocalConfig.Instance.LocalParentChainServerPort, _sslServerCredentials)
+//                }
             };
             return server;
         }
@@ -90,8 +90,8 @@ namespace AElf.Crosschain.Grpc.Server
         /// <returns></returns>
         private async Task StartSideChainServer()
         {
-            if(!GrpcLocalConfig.Instance.SideChainServer)
-                return;
+//            if(!GrpcLocalConfig.Instance.SideChainServer)
+//                return;
 
             try
             {
@@ -99,7 +99,7 @@ namespace AElf.Crosschain.Grpc.Server
                 await StopSideChainServer();
                 _sideChainServer = CreateNewSideChainServer();
                 _sideChainServer.Start();
-                Logger.LogDebug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
+                //Logger.LogDebug("Started Side chain server at {0}", GrpcLocalConfig.Instance.LocalSideChainServerPort);
             }
             catch (Exception e)
             {
@@ -128,8 +128,8 @@ namespace AElf.Crosschain.Grpc.Server
         /// <returns></returns>
         private async Task StartParentChainServer()
         {
-            if(!GrpcLocalConfig.Instance.ParentChainServer)
-                return;
+//            if(!GrpcLocalConfig.Instance.ParentChainServer)
+//                return;
             
             try
             {
@@ -137,7 +137,7 @@ namespace AElf.Crosschain.Grpc.Server
                 await StopParentChainServer();
                 _parentChainServer = CreateNewParentChainServer();
                 _parentChainServer.Start();
-                Logger.LogDebug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
+                //Logger.LogDebug("Started Parent chain server at {0}", GrpcLocalConfig.Instance.LocalParentChainServerPort);
             }
             catch (Exception e)
             {
@@ -167,8 +167,8 @@ namespace AElf.Crosschain.Grpc.Server
         /// <param name="dir"></param>
         public void Init(int chainId, string dir = "")
         {
-            if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
-                return;
+//            if (!GrpcLocalConfig.Instance.ParentChainServer && !GrpcLocalConfig.Instance.SideChainServer)
+//                return;
             try
             {
                 _certificateStore = dir == "" ? _certificateStore : new CertificateStore(dir);

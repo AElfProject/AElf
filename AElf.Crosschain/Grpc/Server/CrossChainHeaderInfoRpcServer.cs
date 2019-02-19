@@ -15,22 +15,38 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain.Grpc.Server
 {
-    public class ParentChainBlockInfoRpcServer : ParentChainRpc.ParentChainRpcBase
+    public class CrossChainBlockDataRpcServer : CrossChainRpc.CrossChainRpcBase
     {
-        
-        public ILogger<ParentChainBlockInfoRpcServer> Logger {get;set;}
+        public ILogger<CrossChainBlockDataRpcServer> Logger {get;set;}
         
         public ILocalEventBus LocalEventBus { get; set; }
 
         private readonly IBlockchainService _blockchainService;
+        private readonly GrpcConfigOption _grpcConfigOption;
+        private global::Grpc.Core.Server _grpcServer;
 
-        public ParentChainBlockInfoRpcServer(IBlockchainService blockchainService)
+        public CrossChainBlockDataRpcServer(IBlockchainService blockchainService, GrpcConfigOption grpcConfigOption)
         {
             _blockchainService = blockchainService;
-            Logger = NullLogger<ParentChainBlockInfoRpcServer>.Instance;
+            _grpcConfigOption = grpcConfigOption;
+            Logger = NullLogger<CrossChainBlockDataRpcServer>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        public void Start(int chainId, string dir = "")
+        {
+            _grpcServer = CrossChainGrpcServerHelper.CreateServer(this, _grpcConfigOption, chainId, dir);
+            _grpcServer.Start();
+        }
+        
+        public void Close()
+        {
+            if (_grpcServer == null)
+                return;
+            _grpcServer.ShutdownAsync();
+            _grpcServer = null;
+        }
+        
         /// <summary>
         /// Response to recording request from side chain node.
         /// Many requests to many responses.
@@ -105,6 +121,62 @@ namespace AElf.Crosschain.Grpc.Server
             catch (Exception e)
             {
                 Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
+            }
+        }
+        
+        /// <summary>
+        /// Response to indexing request from main chain node.
+        /// Many requests to many responses.
+        /// </summary>
+        /// <param name="requestStream"></param>
+        /// <param name="responseStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public override async Task RequestSideChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
+            IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
+        {
+            // TODO: verify the from address and the chain 
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
+
+            try
+            {
+                while (await requestStream.MoveNext())
+                {
+                    var requestInfo = requestStream.Current;
+                    var requestedHeight = requestInfo.NextHeight;
+                    
+                    
+                    // Todo: Wait until 10 rounds for most peers to be ready.
+                    var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestInfo.ChainId,
+                        requestedHeight);
+                    if (block == null)
+                    {
+                        await responseStream.WriteAsync(new ResponseSideChainBlockData
+                        {
+                            Success = false
+                        });
+                        continue;
+                    }
+                    
+                    var blockHeader = block.Header;
+                    var res = new ResponseSideChainBlockData
+                    {
+                        Success = blockHeader != null,
+                        BlockData = blockHeader == null ? null : new SideChainBlockData
+                        {
+                            Height = requestedHeight,
+                            BlockHeaderHash = blockHeader.GetHash(),
+                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
+                            ChainId = blockHeader.ChainId
+                        }
+                    };
+                    
+                    await responseStream.WriteAsync(res);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Side chain server out of service with exception.");
             }
         }
 

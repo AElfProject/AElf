@@ -5,7 +5,7 @@ namespace AElf.Crosschain.Grpc
         #region Local
         public bool LocalParentChainServer { get; set; }
         public string LocalParentChainNodeIp { get; set; }
-        public string LocalParentChainPort { get; set; }
+        public int LocalParentChainPort { get; set; }
         public bool LocalSideChainServer { get; set; }
         public string LocalSideChainNodeIp { get; set; }
         public string LocalSideChainNodePort { get; set; }
@@ -14,7 +14,7 @@ namespace AElf.Crosschain.Grpc
         #region Remote
         public string ParentChainId { get; set; }
         public string RemoteParentChainNodeIp { get; set; }
-        public string RemoteParentChainNodePort { get; set; }
+        public int RemoteParentChainNodePort { get; set; }
         #endregion
         
         public string CertificateDir { get; set; }

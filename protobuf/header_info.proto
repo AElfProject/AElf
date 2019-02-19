@@ -29,13 +29,9 @@ message IndexingRequestResult {
     bool Result = 1;
 }
 
-service SideChainRpc {
+service CrossChainRpc {
     rpc RequestSideChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
     rpc RequestSideChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
-
-}
-
-service ParentChainRpc {
     rpc RequestParentChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
     rpc RequestParentChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
     rpc RequestIndexing (IndexingRequestMessage) returns (IndexingRequestResult) {}
