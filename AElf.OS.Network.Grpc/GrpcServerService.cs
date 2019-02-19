@@ -53,7 +53,7 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        public override Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
+        public override async Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
@@ -78,21 +78,21 @@ namespace AElf.OS.Network.Grpc
                 bool valid = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
 
                 if (!valid)
-                    return Task.FromResult(new AuthResponse { Err = AuthError.WrongAuth });
+                    return new AuthResponse { Err = AuthError.WrongAuth };
                 
                 // send our credentials
-                var hsk = AsyncHelper.RunSync(_peerPool.GetHandshakeAsync);
+                var hsk = await _peerPool.GetHandshakeAsync();
                 var resp = client.Authentify(hsk);
                 
                 // If auth ok -> add it to our peers
                 _peerPool.AddPeer(grpcPeer);
                 
-                return Task.FromResult(new AuthResponse { Success = true, Port = resp.Port });
+                return new AuthResponse { Success = true, Port = resp.Port };
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
-                return Task.FromResult(new AuthResponse { Err = AuthError.UnknownError });
+                return new AuthResponse { Err = AuthError.UnknownError };
             }
         }
 
@@ -109,48 +109,48 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
             try
             {
-                EventBus.PublishAsync(new TxReceivedEventData(tx));
+                await EventBus.PublishAsync(new TxReceivedEventData(tx));
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during connect, peer: {context.Peer}.");
             }
             
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
 
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override Task<VoidReply> Announce(Announcement an, ServerCallContext context)
+        public override async Task<VoidReply> Announce(Announcement an, ServerCallContext context)
         {
             if (an?.Header == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
-                return Task.FromResult(new VoidReply());
+                return new VoidReply();
             }
 
             if (an.Header.PreviousBlockHash == null)
             {
                 Logger.LogError($"Received announcement with null previous hash from {context.Peer}.");
-                return Task.FromResult(new VoidReply());
+                return new VoidReply();
             }
                 
             try
             {
                 Logger.LogDebug($"Received announce {an.Header.GetHash().ToHex()} from {context.Peer}.");
-                EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, context.Peer));
+                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, context.Peer));
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during announcement processing, peer: {context.Peer}.");
             }
             
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
 
         /// <summary>
@@ -158,10 +158,10 @@ namespace AElf.OS.Network.Grpc
         /// of <see cref="BlockRequest.Id"/> is not null, the request is by ID, otherwise it will be
         /// by height.
         /// </summary>
-        public override Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
+        public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
             if (request == null)
-                return Task.FromResult(new BlockReply());
+                return new BlockReply();
             
             try
             {
@@ -169,24 +169,24 @@ namespace AElf.OS.Network.Grpc
                 if (request.Id != null && request.Id.Length > 0)
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block with id {request.Id.ToByteArray().ToHex()}.");
-                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHashAsync(ChainId, Hash.LoadByteArray(request.Id.ToByteArray())));
+                    block = await _blockChainService.GetBlockByHashAsync(ChainId, Hash.LoadByteArray(request.Id.ToByteArray()));
                 }
                 else
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block at height {request.Height}.");
-                    block = AsyncHelper.RunSync(() => _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.Height));
+                    block = await _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.Height);
                 }
                 
                 Logger.LogDebug($"Sending {block} to {context.Peer}.");
                 
-                return Task.FromResult(new BlockReply { Block = block });
+                return new BlockReply { Block = block };
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during block request handle, peer: {context.Peer}.");
             }
             
-            return Task.FromResult(new BlockReply());
+            return new BlockReply();
         }
 
         public override async Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
