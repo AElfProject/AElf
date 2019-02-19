@@ -6,7 +6,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public static class Config
     {
-        public static List<string> InitialMinersAliases => new List<string>
+        public static List<string> InitialMinersAliases = new List<string>
         {
             "YQ", "SM", "WK", "CP", "PG", 
             "SC", "ZX", "ZY", "YS", "MH", 
