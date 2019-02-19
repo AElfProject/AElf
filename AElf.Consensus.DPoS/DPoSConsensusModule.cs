@@ -1,6 +1,7 @@
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

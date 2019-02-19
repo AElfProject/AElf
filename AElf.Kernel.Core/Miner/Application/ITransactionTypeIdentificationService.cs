@@ -1,4 +1,4 @@
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.Miner.Application
 {
     public interface ITransactionTypeIdentificationService
     {

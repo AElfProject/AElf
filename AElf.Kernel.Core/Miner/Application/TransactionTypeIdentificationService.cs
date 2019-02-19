@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Miner.Application;
 
 namespace AElf.Kernel.Services
 {
