@@ -142,7 +142,7 @@ namespace AElf.Kernel.Services
 
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    refBlockPrefix);
+                    refBlockPrefix, chainId);
             foreach (var txn in generatedTxns)
             {
                 await SignAsync(txn);

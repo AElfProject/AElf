@@ -5,10 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-      <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
-      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     </ItemGroup>
 
 </Project>
