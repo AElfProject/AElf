@@ -519,16 +519,18 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToGetCurrentRoundInformation(out var roundInformation),
                 "Round information not found.");
 
+            var publicKey = Context.RecoverPublicKey().ToHex();
+
             if (roundInformation.RoundNumber != 1)
             {
-                roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].Signature = toPackage.Signature;
+                roundInformation.RealTimeMinersInfo[publicKey].Signature = toPackage.Signature;
             }
 
-            roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue = toPackage.OutValue;
+            roundInformation.RealTimeMinersInfo[publicKey].OutValue = toPackage.OutValue;
 
-            roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].ProducedBlocks += 1;
+            roundInformation.RealTimeMinersInfo[publicKey].ProducedBlocks += 1;
 
-            TryToAddRoundInformation(roundInformation);
+            TryToUpdateRoundInformation(roundInformation);
         }
 
         public void Process_BroadcastInValue(ToBroadcast toBroadcast)
@@ -541,14 +543,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Assert(TryToGetCurrentRoundInformation(out var roundInformation),
                 "Round information not found.");
-            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue != null,
-                DPoSContractConsts.OutValueIsNull);
-            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].Signature != null,
-                DPoSContractConsts.SignatureIsNull);
-            Assert(
-                roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue ==
-                Hash.FromMessage(toBroadcast.InValue),
-                DPoSContractConsts.InValueNotMatchToOutValue);
+//            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue != null,
+//                DPoSContractConsts.OutValueIsNull);
+//            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].Signature != null,
+//                DPoSContractConsts.SignatureIsNull);
+//            Assert(
+//                roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue ==
+//                Hash.FromMessage(toBroadcast.InValue),
+//                DPoSContractConsts.InValueNotMatchToOutValue);
 
             roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 
@@ -559,7 +561,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private void InitialBlockchain(Term firstTerm)
         {
-            SetChainId(firstTerm.ChainId);
+//            SetChainId(firstTerm.ChainId);
             SetTermNumber(1);
             SetRoundNumber(1);
             SetBlockAge(1);
@@ -571,7 +573,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private void InitialMainchainToken()
         {
-            State.TokenContract.Initialize("ELF", "AElf Token", DPoSContractConsts.TotalSupply, 2);
+//            State.TokenContract.Initialize("ELF", "AElf Token", DPoSContractConsts.TotalSupply, 2);
         }
 
         private void SetAliases(Term term)

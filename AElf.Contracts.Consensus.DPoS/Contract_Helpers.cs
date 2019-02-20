@@ -372,12 +372,11 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private bool AllOutValueFilled(out MinerInRound minerInformation)
+        private bool AllOutValueFilled(string publicKey, out MinerInRound minerInformation)
         {
             minerInformation = null;
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                var publicKey = Context.RecoverPublicKey().ToHex();
                 if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
                 {
                     minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
@@ -385,6 +384,21 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 return currentRoundInStateDB.RealTimeMinersInfo.Values.Count(info => info.OutValue != null) ==
                        Config.GetProducerNumber();
+            }
+
+            return false;
+        }
+
+        private bool OwnOutValueFilled(string publicKey, out MinerInRound minerInformation)
+        {
+            minerInformation = null;
+            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
+            {
+                if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
+                {
+                    minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
+                }
+                return currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue != null;
             }
 
             return false;
@@ -455,11 +469,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Term();
         }
 
-        private Round FillOutValue(Hash outValue)
+        private Round FillOutValue(Hash outValue, string publicKey)
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                var publicKey = Context.RecoverPublicKey().ToHex();
                 if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
                 {
                     currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue = outValue;

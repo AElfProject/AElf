@@ -79,68 +79,68 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Miners of each term.
         /// term number -> miners
         /// </summary>
-        public MappedState<UInt64Value, Miners> MinersMap;
+        public MappedState<UInt64Value, Miners> MinersMap { get; set; }
 
         /// <summary>
         /// Tickets of each address (public key).
         /// public key hex value -> tickets information
         /// </summary>
-        public MappedState<StringValue, Tickets> TicketsMap;
+        public MappedState<StringValue, Tickets> TicketsMap { get; set; }
 
         /// <summary>
         /// Snapshots of all terms.
         /// term number -> snapshot
         /// </summary>
-        public MappedState<UInt64Value, TermSnapshot> SnapshotMap;
+        public MappedState<UInt64Value, TermSnapshot> SnapshotMap { get; set; }
 
         /// <summary>
         /// Aliases of candidates.
         /// candidate public key hex value -> alias
         /// </summary>
-        public MappedState<StringValue, StringValue> AliasesMap;
+        public MappedState<StringValue, StringValue> AliasesMap { get; set; }
 
         /// <summary>
         /// Aliases of candidates.
         /// alias -> candidate public key hex value
         /// </summary>
-        public MappedState<StringValue, StringValue> AliasesLookupMap;
+        public MappedState<StringValue, StringValue> AliasesLookupMap { get; set; }
 
         /// <summary>
         /// Histories of all candidates
         /// candidate public key hex value -> history information
         /// </summary>
-        public MappedState<StringValue, CandidateInHistory> HistoryMap;
+        public MappedState<StringValue, CandidateInHistory> HistoryMap { get; set; }
 
         /// <summary>
         /// blockchain age -> first round number.
         /// </summary>
-        public MappedState<UInt64Value, UInt64Value> AgeToRoundNumberMap;
+        public MappedState<UInt64Value, UInt64Value> AgeToRoundNumberMap { get; set; }
 
         /// <summary>
         /// Keep tracking of the count of votes.
         /// </summary>
-        public UInt64State VotesCountField;
+        public UInt64State VotesCountField { get; set; }
 
         /// <summary>
         /// Keep tracking of the count of tickets.
         /// </summary>
-        public UInt64State TicketsCountField;
+        public UInt64State TicketsCountField { get; set; }
 
         /// <summary>
         /// Whether 2/3 of miners mined in current term.
         /// </summary>
-        public BoolState TwoThirdsMinersMinedCurrentTermField;
+        public BoolState TwoThirdsMinersMinedCurrentTermField { get; set; }
 
         /// <summary>
         /// Transaction Id -> Voting Record.
         /// </summary>
-        public MappedState<Hash, VotingRecord> VotingRecordsMap;
+        public MappedState<Hash, VotingRecord> VotingRecordsMap { get; set; }
 
         /// <summary>
         /// Term Number -> First Round Number of this term.
         /// </summary>
-        public MappedState<UInt64Value, UInt64Value> TermToFirstRoundMap;
+        public MappedState<UInt64Value, UInt64Value> TermToFirstRoundMap { get; set; }
 
-        public Int32State ChainIdField;
+        public Int32State ChainIdField { get; set; }
     }
 }
