@@ -2,13 +2,10 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using AElf.Common.Application;
-using AElf.Configuration;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
 using AElf.OS.Account;
 using AElf.OS.Network;
@@ -21,7 +18,7 @@ using Volo.Abp.Modularity;
 namespace AElf.OS
 {
     [DependsOn(typeof(CoreKernelAElfModule))]
-    public class CoreOSAElfModule: AElfModule
+    public class CoreOSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -29,27 +26,30 @@ namespace AElf.OS
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
-            
+
             var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
-            
+
             //todo temp remove after peer service is wired up with the correct service 
-             context.Services.AddSingleton<IBlockService, BlockService>();
+            context.Services.AddSingleton<IBlockService, BlockService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var accountOptions = context.ServiceProvider.GetService<IOptions<AccountOptions>>().Value;
             var keyStore = context.ServiceProvider.GetService<IKeyStore>();
-            
+
             if (string.IsNullOrWhiteSpace(accountOptions.NodeAccount))
             {
                 throw new Exception("NodeAccount is needed");
             }
+
             try
             {
-                var password = string.IsNullOrWhiteSpace(accountOptions.NodeAccountPassword) ? AskInvisible() : accountOptions.NodeAccountPassword;
+                var password = string.IsNullOrWhiteSpace(accountOptions.NodeAccountPassword)
+                    ? AskInvisible()
+                    : accountOptions.NodeAccountPassword;
                 keyStore.OpenAsync(accountOptions.NodeAccount, password, false).Wait();
                 var nodeKey = keyStore.GetAccountKeyPair(accountOptions.NodeAccount);
                 if (nodeKey == null)
@@ -63,7 +63,7 @@ namespace AElf.OS
                 throw new Exception("Load keystore failed.", e);
             }
         }
-        
+
         private static string AskInvisible()
         {
             Console.Write("Node account password: ");
