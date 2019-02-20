@@ -34,6 +34,11 @@ namespace AElf.OS.Network.Grpc
             return await _client.RequestBlockAsync(blockHash);
         }
 
+        public async Task<BlockIdList> GetBlockIdsAsync(BlockIdsRequest idsRequest)
+        {
+            return await _client.RequestBlockIdsAsync(idsRequest);
+        }
+
         public async Task AnnounceAsync(Announcement an)
         {
             await _client.AnnounceAsync(an);
