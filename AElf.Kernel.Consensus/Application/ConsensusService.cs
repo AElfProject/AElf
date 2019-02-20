@@ -49,6 +49,7 @@ namespace AElf.Kernel.Consensus.Application
         public async Task TriggerConsensusAsync(int chainId)
         {
             var chain = await _blockchainService.GetChainAsync(chainId);
+
             var chainContext = new ChainContext
             {
                 ChainId = chainId,
@@ -93,7 +94,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var newConsensusInformation = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                 chainContext, ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GenerateExtraInformation())).DeserializeToBytes();
+                _consensusInformationGenerationService.GenerateExtraInformation())).ToByteArray();
 
             _latestGeneratedConsensusInformation = newConsensusInformation;
 
@@ -122,8 +123,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         private async Task<ByteString> ExecuteContractAsync(int chainId, Address fromAddress,
-            IChainContext chainContext,
-            string consensusMethodName, params object[] objects)
+            IChainContext chainContext, string consensusMethodName, params object[] objects)
         {
             var tx = new Transaction
             {

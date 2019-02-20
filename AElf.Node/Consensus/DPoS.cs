@@ -262,9 +262,10 @@ namespace AElf.Node.Consensus
         {
             try
             {
-                var block = await _minerService.Mine(_chainId);
+//                var block = await _minerService.Mine(_chainId);
 
-                return block;
+//                return block;
+                return null;
             }
             catch (Exception e)
             {

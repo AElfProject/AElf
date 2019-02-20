@@ -12,6 +12,7 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockchainService
     {
+        Task<Chain> CreateChainAsync(int chainId, Block block);
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
         Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
@@ -20,9 +21,6 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
         Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count);
         Task<BlockHeader> GetBestChainLastBlock(int chainId);
-
-        Task<Chain> CreateChainAsync(int chainId, Block block);
-
         Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null);
     }
 
@@ -94,10 +92,10 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 foreach (var transaction in block.Body.TransactionList)
                 {
-                    await _transactionManager.AddTransactionAsync(transaction);
+//                    await _transactionManager.AddTransactionAsync(transaction);
                 }
             }
-            
+
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
@@ -143,8 +141,18 @@ namespace AElf.Kernel.Blockchain.Application
 
         private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
         {
-            await _blockExecutingService.ExecuteBlockAsync(chainId, blockLink.BlockHash);
-            await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            var block = await GetBlockByHashAsync(chainId, blockLink.BlockHash);
+            // TODO: Save transactions in block
+            var result =
+                await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
+            if (!result.GetHash().Equals(block.GetHash()))
+            {
+                // TODO: execution resulted a different hash, so the result is not correct
+            }
+            else
+            {
+                await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            }
         }
         
         /// <summary>
@@ -171,7 +179,6 @@ namespace AElf.Kernel.Blockchain.Application
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, startBlockHash);
             if (chainBlockLink.Height < height)
                 return null;
-            
             while (true)
             {
                 if (chainBlockLink.Height == height)

@@ -7,7 +7,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
     </ItemGroup>
 
     <ItemGroup>

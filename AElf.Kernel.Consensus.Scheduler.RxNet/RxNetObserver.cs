@@ -1,6 +1,4 @@
 using System;
-using System.Reactive.Linq;
-using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
