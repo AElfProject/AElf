@@ -1,13 +1,16 @@
-using AElf.Common;
+using AElf.Kernel;
 
 namespace AElf.OS.Network.Events
 {
     public class AnnoucementReceivedEventData
     {
-        public Hash BlockId { get; private set; }
-        public AnnoucementReceivedEventData(Hash blockId)
+        public BlockHeader Header { get; private set; }
+        public string Peer { get; private set; }
+        
+        public AnnoucementReceivedEventData(BlockHeader header, string peer)
         {
-            BlockId = blockId;
+            Peer = peer;
+            Header = header;
         }
     }
 }
