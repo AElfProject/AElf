@@ -28,6 +28,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 
         private ulong _curHeight;
         
+        public int ChainId { get; private set; }
 
         public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
             ITxRefBlockValidator refBlockValidator)
@@ -260,5 +261,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
 
         #endregion
+
+        public void Dispose()
+        {
+            
+        }
+
+        public async Task<IDisposable> StartAsync(int chainId)
+        {
+            ChainId = chainId;
+            return this;
+        }
+
+        public async Task StopAsync()
+        {
+            
+        }
     }
 }
