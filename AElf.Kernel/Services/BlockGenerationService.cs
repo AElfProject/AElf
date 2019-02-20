@@ -17,7 +17,7 @@ namespace AElf.Kernel.Services
             _blockExtraDataService = blockExtraDataService;
         }
 
-        public async Task<Block> GenerateBlockAsync(GenerateBlockDto generateBlockDto)
+        public Block GenerateBlockAsync(GenerateBlockDto generateBlockDto)
         {
             DateTime currentBlockTime = DateTime.UtcNow;
 
@@ -32,22 +32,18 @@ namespace AElf.Kernel.Services
                 },
                 Body = new BlockBody()
             };
-            
-            // todo: get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
-            await _blockExtraDataService.FillBlockExtraData(block);
-
-            // calculate and set tx merkle tree root 
-            //block.Complete(currentBlockTime, results);
             return block;
         }
 
-        public void FillBlockAsync(Block block, HashSet<TransactionResult> results)
+        public async Task FillBlockAsync(Block block, HashSet<TransactionResult> results)
         {
             block.Header.Bloom = ByteString.CopyFrom(
                 Bloom.AndMultipleBloomBytes(
                     results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
                 )
             );
+            // todo: get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
+            await _blockExtraDataService.FillBlockExtraData(block);
             
             // add tx hash
             block.AddTransactions(results.Select(x => x.TransactionId));

@@ -15,8 +15,8 @@ namespace AElf.Kernel.Services
     
     public interface IBlockGenerationService
     {
-        Task<Block> GenerateBlockAsync(GenerateBlockDto generateBlockDto);
-        void FillBlockAsync(Block block, HashSet<TransactionResult> results);
+        Block GenerateBlockAsync(GenerateBlockDto generateBlockDto);
+        Task FillBlockAsync(Block block, HashSet<TransactionResult> results);
         
     }
 }
