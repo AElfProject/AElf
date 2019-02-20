@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.RPC;
 using Anemonis.AspNetCore.JsonRpc;
@@ -18,46 +16,14 @@ namespace AElf.Wallet.Rpc
     {
         private AElfKeyStore _ks;
 
-        private AElfKeyStore KeyStore
-        {
-            get
-            {
-                if (_ks == null)
-                {
-                    _ks = new AElfKeyStore(
-                        Path.Combine(ApplicationHelpers.ConfigPath, "rpc-managed-wallet")
-                    );
-                }
-
-                return _ks;
-            }
-        }
+        private AElfKeyStore KeyStore =>
+            _ks ?? (_ks = new AElfKeyStore(Path.Combine(ApplicationHelpers.ConfigPath, "rpc-managed-wallet")));
 
         private readonly ChainOptions _chainOptions;
 
         public WalletRpcService(IOptionsSnapshot<ChainOptions> options)
         {
             _chainOptions = options.Value;
-        }
-
-        #region Methods
-
-        [JsonRpcMethod("CreateAccount", "password")]
-        public async Task<JObject> CreateAccount(string password)
-        {
-            ECKeyPair keypair;
-            try
-            {
-                keypair = await KeyStore.CreateAsync(password, _chainOptions.ChainId);
-            }
-            catch (Exception e)
-            {
-                throw new JsonRpcServiceException(WalletRpcErrorConsts.CreateAccountFailed,
-                    WalletRpcErrorConsts.RpcErrorMessage[WalletRpcErrorConsts.CreateAccountFailed], e);
-            }
-
-            var createResult = keypair != null;
-            return new JObject(createResult);
         }
 
         [JsonRpcMethod("ListAccounts")]
@@ -95,7 +61,5 @@ namespace AElf.Wallet.Rpc
                 ["Signature"] = signature
             };
         }
-
-        #endregion
     }
 }

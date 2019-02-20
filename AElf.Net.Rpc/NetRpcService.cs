@@ -1,73 +1,34 @@
-﻿using System.Threading.Tasks;
-using AElf.Network;
-using AElf.Network.Data;
-using AElf.Network.Peers;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.OS.Network;
 using AElf.RPC;
 using Anemonis.AspNetCore.JsonRpc;
-using Newtonsoft.Json.Linq;
+
+#pragma warning disable 1998
 
 namespace AElf.Net.Rpc
 {
     [Path("/net")]
     public class NetRpcService : IJsonRpcService
     {
-        public IPeerManager Manager { get; set; }
-        public INetworkManager NetworkManager { get; set; }
-
-        [JsonRpcMethod("GetPeers")]
-        public async Task<JObject> GetPeers()
-        {
-            return await Manager.GetPeers();
-        }
+        public INetworkService NetworkService { get; set; }
 
         [JsonRpcMethod("AddPeer", "address")]
         public async Task<bool> AddPeer(string address)
         {
-            NodeData nodeData = null;
-
-            try
-            {
-                nodeData = NodeData.FromString(address);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            if (nodeData == null)
-            {
-                throw new JsonRpcServiceException(NetRpcErrorConsts.InvalidNetworkAddress,
-                    NetRpcErrorConsts.RpcErrorMessage[NetRpcErrorConsts.InvalidNetworkAddress]);
-            }
-
-            await Task.Run(() => Manager.AddPeer(nodeData));
-
-            return true;
+            return await NetworkService.AddPeerAsync(address);
         }
 
         [JsonRpcMethod("RemovePeer", "address")]
         public async Task<bool> RemovePeer(string address)
         {
-            NodeData nodeData = null;
+            return await NetworkService.RemovePeerAsync(address);
+        }
 
-            try
-            {
-                nodeData = NodeData.FromString(address);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            if (nodeData == null)
-            {
-                throw new JsonRpcServiceException(NetRpcErrorConsts.InvalidNetworkAddress,
-                    NetRpcErrorConsts.RpcErrorMessage[NetRpcErrorConsts.InvalidNetworkAddress]);
-            }
-
-            await Task.Run(() => Manager.RemovePeer(nodeData));
-
-            return true;
+        [JsonRpcMethod("GetPeers")]
+        public async Task<List<string>> GetPeers(string address)
+        {
+            return NetworkService.GetPeers();
         }
     }
 }
