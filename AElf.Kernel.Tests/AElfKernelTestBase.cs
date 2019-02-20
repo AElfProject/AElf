@@ -1,10 +1,7 @@
-using AElf.Database;
 using AElf.TestBase;
-using Volo.Abp;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel
 {
-    /*
     public class AElfKernelTestBase : AElfIntegratedTest<KernelTestAElfModule>
     {
         public new T GetRequiredService<T>()
@@ -12,5 +9,4 @@ namespace AElf.Kernel.Tests
             return base.GetRequiredService<T>();
         }
     }
-    */
 }
