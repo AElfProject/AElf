@@ -3,6 +3,7 @@ using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Common.Serializers;
 using AElf.Database;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
@@ -51,6 +52,7 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
+            services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

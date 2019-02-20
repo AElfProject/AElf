@@ -13,14 +13,27 @@ namespace AElf.Kernel.Blockchain.Application
     {
         public async Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
         {
-            throw new System.NotImplementedException();
+            if (block?.Header == null || block.Body == null)
+            {
+                return false;
+            }
+
+            if (block.Body.TransactionsCount == 0)
+            {
+                return false;
+            }
+
+            if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)
         {
-            // TODO: validate state merkel tree
-            
-            throw new System.NotImplementedException();
+            return true;
         }
     }
 }

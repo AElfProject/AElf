@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -13,10 +14,10 @@ namespace AElf.Kernel.Blockchain.Application
         Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block);
     }
 
-    public class BlockValidationService : IBlockValidationService
+    public class BlockValidationService : IBlockValidationService, ITransientDependency
     {
         public ILogger<BlockValidationService> Logger { get; set; }
-        
+
         private readonly IEnumerable<IBlockValidationProvider> _blockValidationProviders;
 
         public BlockValidationService(IEnumerable<IBlockValidationProvider> blockValidationProviders)
@@ -36,9 +37,9 @@ namespace AElf.Kernel.Blockchain.Application
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e,$"Block validate fails before execution. Block hash : {block.BlockHashToHex}");
+                    Logger.LogError(e, $"Block validate fails before execution. Block hash : {block.BlockHashToHex}");
                 }
-                
+
                 if (!validateResult)
                 {
                     return false;
@@ -59,9 +60,9 @@ namespace AElf.Kernel.Blockchain.Application
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e,$"Block validate fails after execution. Block hash : {block.BlockHashToHex}");
+                    Logger.LogError(e, $"Block validate fails after execution. Block hash : {block.BlockHashToHex}");
                 }
-                
+
                 if (!validateResult)
                 {
                     return false;
