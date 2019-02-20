@@ -64,7 +64,8 @@ namespace AElf.Kernel.Consensus.Application
 
             // Initial or reload consensus scheduler.
             _consensusScheduler.TryToStop();
-            _consensusScheduler.Launch(_consensusCommand);
+            _consensusScheduler.Launch(_consensusCommand.CountingMilliseconds, chainId, chain.BestChainHash,
+                chain.BestChainHeight);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
