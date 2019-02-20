@@ -171,6 +171,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController.Tests", "AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj", "{9E848C22-3975-4898-ABA4-F1B6FEE5335E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "AElf.Launcher\AElf.Launcher.csproj", "{2A5C7854-9B98-4798-A9AE-8DC464093B90}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -413,6 +415,10 @@ Global
 		{9E848C22-3975-4898-ABA4-F1B6FEE5335E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E848C22-3975-4898-ABA4-F1B6FEE5335E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E848C22-3975-4898-ABA4-F1B6FEE5335E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
