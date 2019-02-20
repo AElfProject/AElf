@@ -31,13 +31,13 @@ namespace AElf.Types.Tests
             //Generate from public key
             var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
-            address4.ShouldNotBe(null);
+            address5.ShouldNotBe(null);
 
             //Build Contract address
             var chainId = 1234;
             var serialNumber = (ulong) 10;
             var address6 = Address.BuildContractAddress(chainId, serialNumber);
-            address5.ShouldNotBe(null);
+            address6.ShouldNotBe(null);
         }
 
         [Fact]
@@ -48,6 +48,7 @@ namespace AElf.Types.Tests
             var addressString = address.GetFormatted();
             var pubkeyHash = address.GetPublicKeyHash();
             addressString.ShouldNotBe(string.Empty);
+            addressString.StartsWith("ELF").ShouldBe(true);
             pubkeyHash.ShouldNotBe(string.Empty);
         }
 
