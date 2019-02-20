@@ -8,13 +8,13 @@ namespace AElf.Crosschain
         private static bool IsIndexingSideChainTransaction(int chainId, Transaction transaction)
         {
             return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
-                   transaction.MethodName.Equals(TypeConsts.IndexingSideChainMethodName);
+                   transaction.MethodName.Equals(CrossChainConsts.IndexingSideChainMethodName);
         }
 
         private bool IsIndexingParentChainTransaction(int chainId, Transaction transaction)
         {
             return transaction.To.Equals(ContractHelpers.GetCrossChainContractAddress(chainId)) &&
-                   transaction.MethodName.Equals(TypeConsts.IndexingParentChainMethodName);
+                   transaction.MethodName.Equals(CrossChainConsts.IndexingParentChainMethodName);
         }
         
         private bool IsCrossChainIndexingTransaction(int chainId, Transaction transaction)

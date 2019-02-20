@@ -1,18 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using AElf.ChainController.CrossChain;
-using AElf.Configuration.Config.Consensus;
-using AElf.Configuration.Config.GRPC;
 using AElf.Crosschain.Exceptions;
 using AElf.Cryptography.Certificate;
-using AElf.Kernel;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Crosschain.Grpc.Client
 {

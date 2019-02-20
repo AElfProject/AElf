@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.ChainController.CrossChain;
-using AElf.ChainController.EventMessages;
 using AElf.Crosschain.Grpc.Client;
 using AElf.Kernel;
-using AElf.Kernel.Services;
-using Easy.MessageHub;
+using AElf.Kernel.Blockchain.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -67,7 +64,8 @@ namespace AElf.Crosschain.Grpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     var sideChainId = requestInfo.ChainId;
-                    var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestInfo.ChainId, requestedHeight);
+                    
+                    var block = await GetIrreversibleBlockByHeightAsync(requestInfo.ChainId, requestedHeight);
                     if (block == null)
                     {
                         await responseStream.WriteAsync(new ResponseParentChainBlockData
@@ -105,7 +103,7 @@ namespace AElf.Crosschain.Grpc.Server
                         binaryMerkleTree.ComputeRootHash();
                         // This is to tell side chain the merkle path for one side chain block,
                         // which could be removed with subsequent improvement.
-                        // This assumes indexing multi blocks from one chain at once, actually only one every time right now.
+                        // This assumes indexing multi blocks from one chain at once, actually only one block every time right now.
                         for (int i = 0; i < indexedSideChainBlockDataResult.Count; i++)
                         {
                             var info = indexedSideChainBlockDataResult[i];
@@ -147,7 +145,7 @@ namespace AElf.Crosschain.Grpc.Server
                     
                     
                     // Todo: Wait until 10 rounds for most peers to be ready.
-                    var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestInfo.ChainId,
+                    var block = await GetIrreversibleBlockByHeightAsync(requestInfo.ChainId,
                         requestedHeight);
                     if (block == null)
                     {
@@ -199,6 +197,15 @@ namespace AElf.Crosschain.Grpc.Server
                 }
             });
             return Task.FromResult(new IndexingRequestResult{Result = true});
+        }
+
+        private async Task<Block> GetIrreversibleBlockByHeightAsync(int chainId, ulong height)
+        {
+            var chain = await _blockchainService.GetChainAsync(chainId);
+            if (chain.LastIrreversibleBlockHeight < height)
+                return null;
+            var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height);
+            return await _blockchainService.GetBlockByHashAsync(chainId, blockHash);
         }
 
         /// <summary>

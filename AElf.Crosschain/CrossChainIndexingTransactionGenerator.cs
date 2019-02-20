@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -37,7 +38,7 @@ namespace AElf.Crosschain
 //            var sideChainBlockInfos = await CollectSideChainIndexedInfo();
 //            if (sideChainBlockInfos.Length == 0)
 //                return;
-            generatedTransactions.Append(GenerateNotSignedTransaction(from, TypeConsts.IndexingSideChainMethodName,
+            generatedTransactions.Append(GenerateNotSignedTransaction(from, CrossChainConsts.IndexingSideChainMethodName,
                 refBlockNumber, refBlockPrefix, new object[0], chainId));
         }
         
@@ -51,7 +52,7 @@ namespace AElf.Crosschain
             //var parentChainBlockData = await CollectParentChainBlockInfo();
             //if (parentChainBlockData != null && parentChainBlockData.Length != 0)
             generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                TypeConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0], chainId));
+                CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0], chainId));
         }
 
         private async Task GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber, 
@@ -64,7 +65,7 @@ namespace AElf.Crosschain
             var parentChainBlockData = await _crossChainService.GetParentChainBlockData();
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                TypeConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix, new object[]{crossChainBlockData}, chainId));
+                CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix, new object[]{crossChainBlockData}, chainId));
         }
 
         public void GenerateTransactions(Address @from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix, int chainId,

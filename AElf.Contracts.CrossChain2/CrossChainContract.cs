@@ -33,8 +33,8 @@ namespace AElf.Contracts.CrossChain2
 
         public ulong LockedToken(string chainId)
         {
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var info = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
@@ -42,8 +42,8 @@ namespace AElf.Contracts.CrossChain2
 
         public byte[] LockedAddress(string chainId)
         {
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var info = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
@@ -90,9 +90,9 @@ namespace AElf.Contracts.CrossChain2
         public void WithdrawRequest(string chainId)
         {
             // no need to check authority since invoked in transaction from normal address
-            var chainIdHash = Hash.LoadBase58(chainId);
+            var id = chainId.ConvertBase58ToChainId();
 
-            var sideChainInfo = State.SideChainInfos[chainIdHash];
+            var sideChainInfo = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
             Assert(sideChainInfo.IsNotEmpty() &&
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
@@ -101,7 +101,7 @@ namespace AElf.Contracts.CrossChain2
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
             UnlockTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[chainIdHash] = sideChainInfo;
+            State.SideChainInfos[id] = sideChainInfo;
         }
 
         /// <summary>
@@ -113,22 +113,21 @@ namespace AElf.Contracts.CrossChain2
         public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
-            var chainIdHash = Hash.LoadBase58(chainId);
             CheckAuthority(Context.Genesis);
-
-            var request = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var request = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
             Assert(
                 request.IsNotEmpty() &&
                 request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;
-            State.SideChainInfos[chainIdHash] = request;
+            State.SideChainInfos[id] = request;
 
             // fire event
             Context.FireEvent(new SideChainCreationRequested
             {
-                ChainId = chainIdHash,
+                ChainId = id,
                 Creator = Context.Sender
             });
             return chainId;
@@ -141,18 +140,18 @@ namespace AElf.Contracts.CrossChain2
         /// <param name="amount"></param>
         public void Recharge(string chainId, ulong amount)
         {
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var sideChainInfo = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var sideChainInfo = State.SideChainInfos[id];
             Assert(
                 sideChainInfo.IsNotEmpty() &&
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
-            State.IndexingBalance[chainIdHash] = State.IndexingBalance[chainIdHash] + amount;
-            if (State.IndexingBalance[chainIdHash] > sideChainInfo.IndexingPrice)
+            State.IndexingBalance[id] = State.IndexingBalance[id] + amount;
+            if (State.IndexingBalance[id] > sideChainInfo.IndexingPrice)
             {
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
-                State.SideChainInfos[chainIdHash] = sideChainInfo;
+                State.SideChainInfos[id] = sideChainInfo;
             }
 
             State.TokenContract.Lock(Context.Sender, amount);
@@ -166,8 +165,8 @@ namespace AElf.Contracts.CrossChain2
         public byte[] RequestChainDisposal(string chainId)
         {
             // no need to check authority since invoked in transaction from normal address
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var request = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var request = State.SideChainInfos[id];
             Assert(
                 request.IsNotEmpty() &&
                 request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
@@ -188,9 +187,9 @@ namespace AElf.Contracts.CrossChain2
         public void DisposeSideChain(string chainId)
         {
             // side chain disposal should be triggered by multi sig txn from system address.
-            var chainIdHash = Hash.LoadBase58(chainId);
+            var id = chainId.ConvertBase58ToChainId();
             CheckAuthority(Context.Genesis);
-            var info = State.SideChainInfos[chainIdHash];
+            var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
 
             // TODO: Only privileged account can trigger this method
@@ -198,30 +197,43 @@ namespace AElf.Contracts.CrossChain2
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[chainIdHash] = info;
+            State.SideChainInfos[id] = info;
             Context.FireEvent(new SideChainDisposal
             {
-                chainId = chainIdHash
+                chainId = id
             });
         }
 
         [View]
         public int GetChainStatus(string chainId)
         {
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var info = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
 
         [View]
+        public ulong GetSideChainHeight(string chainId)
+        {
+            var id = chainId.ConvertBase58ToChainId();
+            return State.CurrentSideChainHeight[id];
+        }
+        
+        [View]
+        public ulong GetParentChainHeight()
+        {
+            return State.CurrentParentChainHeight.Value;
+        }
+        
+        [View]
         public ulong LockedBalance(string chainId)
         {
-            var chainIdHash = Hash.LoadBase58(chainId);
-            var sideChainInfo = State.SideChainInfos[chainIdHash];
+            var id = chainId.ConvertBase58ToChainId();
+            var sideChainInfo = State.SideChainInfos[id];
             Assert(sideChainInfo.IsNotEmpty(), "Not existed side chain.");
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
-            return State.IndexingBalance[chainIdHash];
+            return State.IndexingBalance[id];
         }
 
         #endregion Side chain lifetime actions
@@ -311,11 +323,11 @@ namespace AElf.Contracts.CrossChain2
             {
                 //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.Height;
-                Hash chainId = Hash.LoadByteArray(blockInfo.ChainId.DumpByteArray());
+                var chainId = blockInfo.ChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
                     continue;
-                var currentSideChainHeight = State.SideChainHeight[chainId];
+                var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : GlobalConfig.GenesisBlockHeight;
                 if (target != sideChainHeight)
                     continue;
@@ -334,7 +346,7 @@ namespace AElf.Contracts.CrossChain2
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
                 State.TokenContract.Unlock(Context.Self, indexingPrice);
 
-                State.SideChainHeight[chainId] = target;
+                State.CurrentSideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
                 // Todo: only for debug

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
-using QuickGraph.Collections;
 
 namespace AElf.Crosschain
 {
@@ -18,9 +18,9 @@ namespace AElf.Crosschain
         public BlockInfoCache(int chainId)
         {
             ChainId = chainId;
-            _irreversible = TypeConsts.MinimalBlockInfoCacheThreshold;
-            _cachedBoundedCapacity = Math.Max(TypeConsts.MaximalCountForIndexingSideChainBlock,
-                                         TypeConsts.MaximalCountForIndexingParentChainBlock) * _irreversible;
+            _irreversible = CrossChainConsts.MinimalBlockInfoCacheThreshold;
+            _cachedBoundedCapacity = Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
+                                         CrossChainConsts.MaximalCountForIndexingParentChainBlock) * _irreversible;
         }
 
         public bool TryAdd(IBlockInfo blockInfo)
@@ -43,7 +43,7 @@ namespace AElf.Crosschain
                 && first.Height == height && 
                 !(isCacheSizeLimited && ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height < height + (ulong) _irreversible))
             {
-                var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, TypeConsts.WaitingIntervalInMillisecond);
+                var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, CrossChainConsts.WaitingIntervalInMillisecond);
                 if(res)
                     CacheBlockInfo(blockInfo);
                 

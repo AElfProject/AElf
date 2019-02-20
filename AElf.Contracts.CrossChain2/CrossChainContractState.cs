@@ -33,10 +33,10 @@ namespace AElf.Contracts.CrossChain2
 
         #region side chain
 
-        public MappedState<Hash, SideChainInfo> SideChainInfos { get; set; }
-        public MappedState<Hash, ulong> SideChainHeight { get; set; }
+        public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
+        public MappedState<int, ulong> CurrentSideChainHeight { get; set; }
         public MappedState<ulong, IndexedSideChainBlockDataResult> IndexedSideChainBlockInfoResult { get; set; }
-        public MappedState<Hash, ulong> IndexingBalance { get; set; }
+        public MappedState<int, ulong> IndexingBalance { get; set; }
 
         #endregion
 

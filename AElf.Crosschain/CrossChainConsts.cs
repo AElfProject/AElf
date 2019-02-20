@@ -1,6 +1,6 @@
 namespace AElf.Crosschain
 {
-    public class TypeConsts
+    public class CrossChainConsts
     {
         public const int WaitingIntervalInMillisecond = 10;
         public const int MaximalCountForIndexingParentChainBlock = 256; // Index maximal 256 blocks from parent chain.
@@ -10,5 +10,7 @@ namespace AElf.Crosschain
         public static string IndexingSideChainMethodName = "IndexSideChainBlockInfo";
         public static string CrossChainIndexingMethodName = "RecordCrossChainInfo";
         public static string CrossChainIndexingEvent = "CrossChainIndexingEvent";
+        public static string GetSideChainHeightMthodName = "GetSideChainHeight";
+        public static string GetParentChainHeightMethodName = "GetParentChainHeight";
     }
 }

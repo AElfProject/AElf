@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
-using AElf.Kernel.Managers;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -114,7 +115,7 @@ namespace AElf.Crosschain
                 Address = ContractHelpers.GetGenesisBasicContractAddress(block.Header.ChainId),
                 Topics =
                 {
-                    ByteString.CopyFrom(TypeConsts.CrossChainIndexingEvent.CalculateHash())
+                    ByteString.CopyFrom(CrossChainConsts.CrossChainIndexingEvent.CalculateHash())
                 }
             };
             return logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));

@@ -12,10 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-        <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>

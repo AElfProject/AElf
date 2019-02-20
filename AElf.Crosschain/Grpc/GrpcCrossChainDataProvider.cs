@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Storages;
-using Akka.Util.Internal;
-using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.EventBus;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Types;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain.Grpc
@@ -17,14 +18,16 @@ namespace AElf.Crosschain.Grpc
             new Dictionary<int, BlockInfoCache>();
 
         internal BlockInfoCache ParentChainBlockInfoCache {get; set;}
-        private readonly IChainHeightStore _chainHeightStore;
+
         private delegate void NewSideChainHandler(IClientBase clientBase);
 
         private readonly NewSideChainHandler _newSideChainHandler;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILocalEventBus LocalEventBus { get; set; }
-        public GrpcCrossChainDataProvider(IChainHeightStore chainHeightStore, IClientService clientService)
+        public GrpcCrossChainDataProvider(IClientService clientService, 
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _chainHeightStore = chainHeightStore;
+            _smartContractExecutiveService = smartContractExecutiveService;
             LocalEventBus = NullLocalEventBus.Instance;
             _newSideChainHandler += clientService.CreateClient;
             _newSideChainHandler += AddNewSideChainCache;
@@ -40,7 +43,7 @@ namespace AElf.Crosschain.Grpc
                     // take side chain info
                     // index only one block from one side chain.
                     // this could be changed later.
-                    var targetHeight = await GetChainTargetHeight(_.Key);
+                    var targetHeight = await GetSideChainTargetHeight(_.Key);
                     if (!_.Value.TryTake(targetHeight, out var blockInfo, true))
                         continue;
 
@@ -54,7 +57,7 @@ namespace AElf.Crosschain.Grpc
                     if (!_grpcSideChainClients.TryGetValue(blockInfo.ChainId, out var cache))
                         // TODO: this could be changed.
                         return true;
-                    var targetHeight = await GetChainTargetHeight(blockInfo.ChainId);
+                    var targetHeight = await GetSideChainTargetHeight(blockInfo.ChainId);
 
                     sideChainBlockData.Append(blockInfo);
                     if (!cache.TryTake(targetHeight, out var cachedBlockInfo) || !blockInfo.Equals(cachedBlockInfo))
@@ -71,7 +74,7 @@ namespace AElf.Crosschain.Grpc
                 // no configured parent chain
                 return false;
             
-            ulong targetHeight = await GetChainTargetHeight(chainId);
+            ulong targetHeight = await GetParentChainTargetHeight(chainId);
             if (parentChainBlockData.Count == 0)
             {
                 if (ParentChainBlockInfoCache == null)
@@ -105,13 +108,45 @@ namespace AElf.Crosschain.Grpc
 
         public void AddNewSideChainCache(IClientBase clientBase)
         {
-            _grpcSideChainClients.TryAdd(clientBase.BlockInfoCache.ChainId, clientBase.BlockInfoCache);
+            _grpcSideChainClients.Add(clientBase.BlockInfoCache.ChainId, clientBase.BlockInfoCache);
         }
 
-        private async Task<ulong> GetChainTargetHeight(int chainId)
+        private async Task<ulong> GetSideChainTargetHeight(int chainId)
         {
-            var height = await _chainHeightStore.GetAsync<UInt64Value>(chainId.ToStorageKey());
-            return height?.Value + 1 ??  GlobalConfig.GenesisBlockHeight;
+            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
+            return await GenerateReadOnlyTransactionForChainHeight(chainId, crossChainContractMethodAddress, 
+                CrossChainConsts.GetSideChainHeightMthodName, chainId.DumpBase58());
+        }
+
+        private async Task<ulong> GetParentChainTargetHeight(int chainId)
+        {
+            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
+            return await GenerateReadOnlyTransactionForChainHeight(chainId, crossChainContractMethodAddress, 
+                CrossChainConsts.GetParentChainHeightMethodName);
+        }
+
+        private async Task<ulong> GenerateReadOnlyTransactionForChainHeight(int chainId, Address toAddress, string methodName, params object[] @params)
+        {
+            var transaction =  new Transaction
+            {
+                To = toAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(@params)),
+            };
+            var trace = new TransactionTrace()
+            {
+                TransactionId = transaction.GetHash()
+            };
+            var txCtxt = new TransactionContext
+            {
+                Transaction = transaction,
+                Trace = trace
+            };
+            var executive =
+                await _smartContractExecutiveService.GetExecutiveAsync(chainId, transaction.To);
+            await executive.SetTransactionContext(txCtxt).Apply();
+            ulong height = (ulong) trace.RetVal.Data.DeserializeToType(typeof(ulong));
+            return height == 0 ? height + 1 : GlobalConfig.GenesisBlockHeight;
         }
 
         private Task OnNewSideChainConnectionReceivedEvent(NewSideChainConnectionReceivedEvent @event)

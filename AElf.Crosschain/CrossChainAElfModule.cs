@@ -3,6 +3,7 @@ using AElf.Crosschain.Grpc;
 using AElf.Crosschain.Grpc.Client;
 using AElf.Crosschain.Grpc.Server;
 using AElf.Kernel;
+using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -17,7 +18,6 @@ namespace AElf.Crosschain
          public override void ConfigureServices(ServiceConfigurationContext context)
          {
              var services = context.Services;
-             services.AddSingleton<SideChainBlockInfoRpcServer>();
              services.AddSingleton<CrossChainBlockDataRpcServer>();
              
              var configuration = context.Services.GetConfiguration();
