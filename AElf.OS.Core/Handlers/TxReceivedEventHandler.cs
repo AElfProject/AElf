@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ namespace AElf.OS.Handlers
         {
             public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
 
-            public ITxHub TxHub { get; set; }
+            public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
 
             private int ChainId
             {
@@ -23,7 +24,7 @@ namespace AElf.OS.Handlers
 
             public async Task HandleEventAsync(TxReceivedEventData eventData)
             {
-                await TxHub.AddTransactionAsync(ChainId, eventData.Transaction);
+                await TxHubs.Get(ChainId).AddTransactionAsync(ChainId, eventData.Transaction);
             }
         }
     }
