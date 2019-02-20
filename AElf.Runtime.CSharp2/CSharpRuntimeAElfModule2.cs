@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Modularity;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -32,7 +33,7 @@ namespace AElf.Runtime.CSharp
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.RemoveAll(sd => sd.ImplementationType == typeof(CachedStateManager));
+            //context.Services.RemoveAll(sd => sd.ImplementationType == typeof(CachedStateManager));
         }
     }
 }

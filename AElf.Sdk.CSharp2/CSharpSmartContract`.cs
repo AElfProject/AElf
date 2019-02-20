@@ -1,7 +1,6 @@
 using System;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
 

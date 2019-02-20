@@ -7,8 +7,11 @@ using AElf.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.Services;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.Node.Consensus;
 using AElf.Node.EventMessages;
@@ -27,15 +30,10 @@ namespace AElf.Node.AElfChain
     {
         public ILogger<MainchainNodeService> Logger {get;set;}
         private readonly ITxHub _txHub;
-        private readonly IChainService _chainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly IAccountService _accountService;
         private readonly IConsensusService _consensusService;
 
-        private IBlockChain _blockChain;
-        
-        private IConsensus _consensus;
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
         private string _assemblyDir;
@@ -52,11 +50,8 @@ namespace AElf.Node.AElfChain
             IConsensusService consensusService)
         {
             _chainCreationService = chainCreationService;
-            _chainService = chainService;
             _txHub = hub;
             Logger = NullLogger<MainchainNodeService>.Instance;
-            _consensus = consensus;
-            _blockSynchronizer = blockSynchronizer;
             _accountService = accountService;
             _consensusService = consensusService;
         }
@@ -96,14 +91,6 @@ namespace AElf.Node.AElfChain
         public void Initialize(int chainId, NodeConfiguration conf)
         {
             _assemblyDir = conf.LauncherAssemblyLocation;
-            _blockChain = _chainService.GetBlockChain(chainId);
-                        
-            MessageHub.Instance.Subscribe<TxReceived>(async inTx =>
-            {
-                await _txHub.AddTransactionAsync(chainId, inTx.Transaction);
-            });
-
-            _txHub.Initialize(chainId);
         }
 
         public bool Start(int chainId)

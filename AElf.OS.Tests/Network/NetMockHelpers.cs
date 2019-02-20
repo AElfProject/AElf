@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Cryptography;
-using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using Moq;
 
 namespace AElf.OS.Tests.Network

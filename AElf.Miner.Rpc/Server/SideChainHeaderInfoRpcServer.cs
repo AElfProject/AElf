@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.ChainController;
-using AElf.ChainController.EventMessages;
+using AElf.Kernel.ChainController;
+using AElf.Kernel.ChainController.EventMessages;
 using AElf.Kernel;
 using Grpc.Core;
 using AElf.Common;

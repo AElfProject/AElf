@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Configuration;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.EventMessages;
 using Easy.MessageHub;

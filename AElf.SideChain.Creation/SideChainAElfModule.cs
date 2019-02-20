@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.SideChain.Creation
 {
-    [DependsOn(typeof(KernelAElfModule))]
+    [DependsOn(typeof(CoreKernelAElfModule))]
     public class SideChainAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

@@ -5,15 +5,15 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Kernel.Types;
 using AElf.Kernel.Types.SmartContract;
 using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Module = AElf.Kernel.ABI.Module;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Infrastructure;
 
 namespace AElf.Runtime.CSharp
 {

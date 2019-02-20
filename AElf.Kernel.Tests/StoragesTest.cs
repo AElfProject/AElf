@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using AElf.SmartContract;
-using AElf.ChainController;
-using AElf.Kernel.Storages;
-using Google.Protobuf.WellKnownTypes;
-using Xunit;
-using AElf.Common;
-using AElf.Kernel;
-using AElf.TestBase;
-using Microsoft.Extensions.Logging;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using AElf.SmartContract;
+//using AElf.ChainController;
+//using Google.Protobuf.WellKnownTypes;
+//using Xunit;
+//using AElf.Common;
+//using AElf.Kernel;
+//using AElf.TestBase;
+//using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Tests
 {
+    /*
     public sealed class StoragesTest : AElfKernelTestBase
     {
         private readonly BlockTest _blockTest;
@@ -48,4 +48,5 @@ namespace AElf.Kernel.Tests
             return block;
         }
     }
+    */
 }
