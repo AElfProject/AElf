@@ -1,5 +1,6 @@
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,8 @@ namespace AElf.Consensus.DPoS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
+            context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
             context.Services.AddSingleton<IConsensusObserver, DPoSObserver>();
             context.Services.AddSingleton<IConsensusCommand, ConsensusCommand>();

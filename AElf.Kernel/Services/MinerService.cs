@@ -22,6 +22,7 @@ namespace AElf.Kernel.Services
 
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IConsensusService _consensusService;
 
         public ILocalEventBus EventBus { get; set; }
 
@@ -30,13 +31,15 @@ namespace AElf.Kernel.Services
         public MinerService(ITxHub txHub, IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
-            IBlockchainService blockchainService, IBlockExecutingService blockExecutingService)
+            IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
+            IConsensusService consensusService)
         {
             _txHub = txHub;
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
+            _consensusService = consensusService;
             _blockchainService = blockchainService;
             _accountService = accountService;
             
@@ -137,6 +140,7 @@ namespace AElf.Kernel.Services
                 Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
                                       $"with {block.Body.TransactionsCount} txs.");
 
+                await _consensusService.TriggerConsensusAsync(chainId);
                 return block;
             }
             catch (Exception e)

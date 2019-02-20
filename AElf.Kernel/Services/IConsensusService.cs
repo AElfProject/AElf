@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 
-namespace AElf.Consensus
+namespace AElf.Kernel.Services
 {
     public interface IConsensusService
     {

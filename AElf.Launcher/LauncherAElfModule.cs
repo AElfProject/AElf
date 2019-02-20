@@ -1,4 +1,5 @@
-﻿using AElf.ChainController.Rpc;
+﻿using System.IO;
+using AElf.ChainController.Rpc;
 using AElf.Common;
 using AElf.Consensus;
 using AElf.Consensus.DPoS;
@@ -10,6 +11,7 @@ using AElf.Modularity;
 using AElf.Net.Rpc;
 using AElf.Network;
 using AElf.Node;
+using AElf.Node.AElfChain;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
@@ -83,9 +85,14 @@ namespace AElf.Launcher
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            var chain = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var consensus = context.ServiceProvider.GetService<IConsensusService>();
-            consensus.TriggerConsensusAsync(chain.ChainId.ConvertBase58ToChainId());
+            NodeConfiguration confContext = new NodeConfiguration();
+            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location);
+
+            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
+            var node = context.ServiceProvider.GetRequiredService<INode>();
+            node.Register(mainChainNodeService);
+            node.Initialize(confContext);
+            node.Start();
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

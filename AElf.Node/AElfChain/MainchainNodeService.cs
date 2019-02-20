@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Services;
 using AElf.Kernel.Types;
 using AElf.Node.Consensus;
 using AElf.Node.EventMessages;
@@ -30,6 +31,7 @@ namespace AElf.Node.AElfChain
         private readonly IChainCreationService _chainCreationService;
         private readonly IBlockSynchronizer _blockSynchronizer;
         private readonly IAccountService _accountService;
+        private readonly IConsensusService _consensusService;
 
         private IBlockChain _blockChain;
         
@@ -46,7 +48,8 @@ namespace AElf.Node.AElfChain
             IBlockSynchronizer blockSynchronizer,
             IChainService chainService,
             IConsensus consensus,
-            IAccountService accountService)
+            IAccountService accountService,
+            IConsensusService consensusService)
         {
             _chainCreationService = chainCreationService;
             _chainService = chainService;
@@ -55,6 +58,7 @@ namespace AElf.Node.AElfChain
             _consensus = consensus;
             _blockSynchronizer = blockSynchronizer;
             _accountService = accountService;
+            _consensusService = consensusService;
         }
 
         #region Genesis Contracts
@@ -251,6 +255,8 @@ namespace AElf.Node.AElfChain
                 {
                     basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg, dividendsCReg
                 }).Result;
+
+            _consensusService.TriggerConsensusAsync(chainId);
             Logger.LogDebug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 

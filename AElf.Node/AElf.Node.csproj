@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Consensus\AElf.Consensus.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
     <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
