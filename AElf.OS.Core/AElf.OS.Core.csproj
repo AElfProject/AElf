@@ -7,9 +7,8 @@
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
