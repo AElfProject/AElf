@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Crosschain.EventMessage;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -10,9 +11,9 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Crosschain.Grpc
+namespace AElf.Crosschain
 {
-    public class GrpcCrossChainDataProvider : ICrossChainDataProvider
+    public class CrossChainDataProvider : ICrossChainDataProvider
     {
         private readonly Dictionary<int, BlockInfoCache> _grpcSideChainClients =
             new Dictionary<int, BlockInfoCache>();
@@ -24,7 +25,7 @@ namespace AElf.Crosschain.Grpc
         private readonly NewSideChainHandler _newSideChainHandler;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILocalEventBus LocalEventBus { get; set; }
-        public GrpcCrossChainDataProvider(IClientService clientService, 
+        public CrossChainDataProvider(IClientService clientService, 
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;

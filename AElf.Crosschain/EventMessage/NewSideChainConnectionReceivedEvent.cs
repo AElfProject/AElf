@@ -1,4 +1,4 @@
-namespace AElf.Crosschain.Grpc
+namespace AElf.Crosschain.EventMessage
 {
     public sealed class NewSideChainConnectionReceivedEvent
     {

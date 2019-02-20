@@ -23,7 +23,7 @@ namespace AElf.Crosschain
              var configuration = context.Services.GetConfiguration();
              Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));
              services.AddSingleton<IClientService, GrpcClientService>();
-             services.AddSingleton<ICrossChainDataProvider, GrpcCrossChainDataProvider>();
+             services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
              services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
          }
@@ -46,7 +46,7 @@ namespace AElf.Crosschain
 //                 TargetIsSideChain = false,
 //                 BlockInfoCache = blockInfoCache
 //             });
-//             context.ServiceProvider.GetService<GrpcCrossChainDataProvider>().ParentChainBlockInfoCache =
+//             context.ServiceProvider.GetService<CrossChainDataProvider>().ParentChainBlockInfoCache =
 //                 blockInfoCache;
          }
      }
