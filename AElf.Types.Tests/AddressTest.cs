@@ -15,7 +15,7 @@ namespace AElf.Types.Tests
             var address1 = Address.Generate();
             var address2 = Address.Generate();
             var result = address1.CompareTo(address2);
-            result.ShouldBe(-1);
+            result.ShouldNotBe(0);
             address1.ShouldNotBeSameAs(address2);
 
             //Generate from String
@@ -23,7 +23,7 @@ namespace AElf.Types.Tests
             address3.ShouldNotBe(null);
 
             //Generate from byte
-            var bytes = new byte[32];
+            var bytes = new byte[30];
             new Random().NextBytes(bytes);
             var address4 = Address.FromBytes(bytes);
             address4.ShouldNotBe(null);
