@@ -14,7 +14,7 @@ namespace AElf.Kernel
         {
             ChainId = chainId;
             PreviousBlockHash = previousBlockHash;
-            PreviousBlockHeight = PreviousBlockHeight;
+            PreviousBlockHeight = previousBlockHeight;
             DueTime = dueTime;
         }
     }
