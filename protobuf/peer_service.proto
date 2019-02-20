@@ -6,6 +6,7 @@ import "kernel.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
+    rpc RequestBlockIds (BlockIdsRequest) returns (BlockIdList) {}
 
     rpc Announce (Announcement) returns (VoidReply) {}
     rpc SendTransaction (Transaction) returns (VoidReply) {}
@@ -16,6 +17,15 @@ service PeerService {
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }
 
+message BlockIdsRequest {
+    bytes FirstBlockId = 1;
+    int32 Count = 2;
+}
+
+message BlockIdList {
+    repeated bytes Ids = 1;
+}
+
 message DisconnectReason {
     Reason Why = 1;
     enum Reason {
@@ -24,17 +34,17 @@ message DisconnectReason {
 }
 
 message Announcement {
-    int32 Height = 1;
-    bytes Id = 2;
+    BlockHeader Header = 1;
 }
 
 message Handshake {
     HandshakeData HskData = 1;
     bytes Sig = 2;
     bool Success = 3;
+    BlockHeader Header = 4;
 }
 
-message AuthResponse{
+message AuthResponse {
     bool Success = 1;
     AuthError Err = 2;
     string Port = 3;
@@ -49,12 +59,11 @@ enum AuthError {
 message HandshakeData {
     int64 ListeningPort = 1;
     bytes PublicKey = 2;
-    int32 Height = 3;
-    int32 Version = 4;
+    int32 Version = 3;
 }
 
 message BlockRequest {
-    int64 BlockNumber = 1;
+    int64 Height = 1;
     bytes Id = 2;
 }
 
