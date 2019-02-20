@@ -14,12 +14,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-        <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
+        <!--<ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />-->
+        <!--<ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />-->
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-        <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
-        <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
     </ItemGroup>
 
 </Project>

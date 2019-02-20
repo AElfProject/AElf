@@ -3,17 +3,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Services;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Events;
-using AElf.OS.Network.Grpc.Events;
-using AElf.OS.Network.Temp;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
-using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {

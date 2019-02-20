@@ -1,5 +1,5 @@
 ﻿using AElf.ChainController.Rpc;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Consensus;
 using AElf.Modularity;
 using AElf.Net.Rpc;
@@ -25,7 +25,7 @@ namespace AElf.FullNodeHosting
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
         typeof(RpcChainControllerAElfModule),
-        typeof(ExecutionAElfModule),
+        typeof(SmartContractExecutionAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),

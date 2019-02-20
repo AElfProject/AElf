@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
+using AElf.Kernel.SmartContractExecution.Domain;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class MockStateManager : IStateManager
     {
         public Dictionary<StatePath, byte[]> Cache = new Dictionary<StatePath, byte[]>();
@@ -35,4 +36,5 @@ namespace AElf.Sdk.CSharp2.Tests
             }
         }
     }
+    */
 }

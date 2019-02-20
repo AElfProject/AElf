@@ -31,7 +31,7 @@ namespace AElf.Sdk.CSharp
         byte[] RecoverPublicKey();
 
         // TODO: Remove GetBlockByHeight
-        Block GetBlockByHeight(ulong height);
+        Block GetPreviousBlock();
 
         bool VerifySignature(Transaction tx);
 
@@ -44,7 +44,6 @@ namespace AElf.Sdk.CSharp
         Task DeployContractAsync(Address address, SmartContractRegistration registration);
         
         Task UpdateContractAsync(Address address, SmartContractRegistration registration);
-
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //

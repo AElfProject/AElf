@@ -3,9 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-    <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
-    <ProjectReference Include="..\AElf.Synchronization\AElf.Synchronization.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
@@ -21,9 +20,6 @@
     <Compile Remove="SyncService.cs" />
     <Compile Remove="PendingBlockExtensions.cs" />
     <Compile Remove="ISyncService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Protocol\Protobuf" />
   </ItemGroup>
   <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
     <!--<Exec Command="pwd" />-->

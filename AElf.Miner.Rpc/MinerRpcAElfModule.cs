@@ -9,7 +9,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Miner.Rpc
 {
-    [DependsOn(typeof(KernelAElfModule))]
+    [DependsOn(typeof(CoreKernelAElfModule))]
     public class MinerRpcAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

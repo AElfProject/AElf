@@ -3,6 +3,8 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
 using AElf.Kernel.Services;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Google.Protobuf;

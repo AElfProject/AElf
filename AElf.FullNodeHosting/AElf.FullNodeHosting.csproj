@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
-      <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
       <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />

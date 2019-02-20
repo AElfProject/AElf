@@ -15,7 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
   </ItemGroup>
   <ItemGroup>

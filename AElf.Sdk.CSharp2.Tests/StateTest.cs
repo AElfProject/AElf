@@ -5,10 +5,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
-using AElf.SmartContract;
+using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -16,6 +15,7 @@ using Xunit;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class StateTest
     {
         internal T GetValue<T>()
@@ -179,4 +179,5 @@ namespace AElf.Sdk.CSharp2.Tests
             });
         }
     }
+    */
 }

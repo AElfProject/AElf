@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using Address = AElf.Common.Address;
+﻿using Address = AElf.Common.Address;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Sdk.CSharp2.Tests.TestContract

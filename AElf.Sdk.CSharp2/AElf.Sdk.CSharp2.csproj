@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 

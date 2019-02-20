@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Account;
-using AElf.Kernel.Services;
-using AElf.OS.Network.Grpc.Events;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;

@@ -5,12 +5,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
       <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
-      <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
-      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
-      <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-      <ProjectReference Include="..\AElf.SmartContract\AElf.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 

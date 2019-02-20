@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.SmartContract;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class MockStateProvider : IStateProvider
     {
         private IStateManager _stateManager;
@@ -28,4 +29,5 @@ namespace AElf.Sdk.CSharp2.Tests
             return output;
         }
     }
+    */
 }
