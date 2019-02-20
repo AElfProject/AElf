@@ -39,9 +39,4 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AElf.Node, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\AElf.Node\bin\Debug\netstandard2.0\AElf.Node.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 </Project>

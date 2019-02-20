@@ -1,8 +1,5 @@
-﻿using System.IO;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Modularity;
-using AElf.Node;
-using AElf.Node.AElfChain;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution;
@@ -64,14 +61,14 @@ namespace AElf.Launcher
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-            NodeConfiguration confContext = new NodeConfiguration();
-            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location);
-
-            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
-            var node = context.ServiceProvider.GetRequiredService<INode>();
-            node.Register(mainChainNodeService);
-            node.Initialize(confContext);
-            node.Start();
+//            NodeConfiguration confContext = new NodeConfiguration();
+//            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location);
+//
+//            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
+//            var node = context.ServiceProvider.GetRequiredService<INode>();
+//            node.Register(mainChainNodeService);
+//            node.Initialize(confContext);
+//            node.Start();
         }
     }
 }
