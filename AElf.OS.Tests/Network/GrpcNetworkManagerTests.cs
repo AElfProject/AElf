@@ -78,7 +78,7 @@ namespace AElf.OS.Tests.Network
             return (netServer, grpcPeerPool);
         }
 
-        [Fact(Skip = "Random failed, create issue #896")]
+        [Fact]
         private async Task Request_Block_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
