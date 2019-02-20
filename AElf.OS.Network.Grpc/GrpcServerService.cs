@@ -214,7 +214,7 @@ namespace AElf.OS.Network.Grpc
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();
-                list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.GetHash().DumpByteArray())).ToList());
+                list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.DumpByteArray())).ToList());
 
                 return list;
             }
