@@ -38,13 +38,13 @@ namespace AElf.OS.Network.Grpc
             return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
         }
 
-        public async Task BroadcastAnnounce(Hash b)
+        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
-                    await peer.AnnounceAsync(new Announcement { Id = b.Value });
+                    await peer.AnnounceAsync(new Announcement { Header = blockHeader });
                 }
                 catch (Exception e)
                 {
@@ -53,7 +53,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task BroadcastTransaction(Transaction tx)
+        public async Task BroadcastTransactionAsync(Transaction tx)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
@@ -68,43 +68,89 @@ namespace AElf.OS.Network.Grpc
             }
         }
         
-        public async Task<IBlock> GetBlockByHeight(ulong height, string peer = null)
+        public async Task<IBlock> GetBlockByHeightAsync(ulong height, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
-            return await GetBlock(new BlockRequest { BlockNumber = (long)height });
+            Logger.LogDebug($"Getting block by height, height: {height} from {peer}.");
+            return await GetBlockAsync(new BlockRequest { Height = (long)height }, peer, tryOthersIfSpecifiedFails);
         }
 
-        public async Task<IBlock> GetBlockByHash(Hash hash, string peer = null)
+        public async Task<IBlock> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
-            return await GetBlock(new BlockRequest { Id = hash.Value });
+            Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
+            return await GetBlockAsync(new BlockRequest { Id = hash.Value }, peer, tryOthersIfSpecifiedFails);
         }
 
-        private async Task<IBlock> GetBlock(BlockRequest request, string peer = null)
+        /// <summary>
+        /// Requests a block from a peer/peers. The parameter permit the following scenarios:
+        /// (request, null, _ ) :  request from every peer until found (try others ignored).
+        /// (request, peer, false) : request from 'peer' only.
+        /// (request, peer, true) : request first from 'peer' and if fails try others.
+        /// </summary>
+        private async Task<IBlock> GetBlockAsync(BlockRequest request, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
-            // todo use peer if specified
+            if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
+                throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
+                                                    $"if no fallback peer is specified.");
+            
+            // try get the block from the specified peer. 
+            if (!string.IsNullOrWhiteSpace(peer))
+            {
+                GrpcPeer p = _peerPool.FindPeer(peer);
+                
+                if (p == null)
+                {
+                    // if the peer was specified but we can't find it 
+                    // we don't try any further.
+                    Logger.LogWarning($"Specified peer was not found.");
+                    return null; 
+                }
+                
+                var blck = await RequestBlockToAsync(request, p);
+
+                if (blck != null)
+                    return blck;
+                
+                if (!tryOthersIfSpecifiedFails)
+                {
+                    Logger.LogWarning($"{peer} does not have block {nameof(tryOthersIfSpecifiedFails)} is false.");
+                    return null;
+                }
+            }
+            
             foreach (var p in _peerPool.GetPeers())
             {
-                try
-                {
-                    if (p == null)
-                    {
-                        Logger.LogWarning("No peers left.");
-                        return null;
-                    }
-            
-                    Logger.LogDebug($"Attempting get with {p}");
+                Block block = await RequestBlockToAsync(request, p);
 
-                    BlockReply block = await p.RequestBlockAsync(request);
-
-                    if (block.Block != null)
-                        return block.Block;
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, "Error while requesting block.");
-                }
+                if (block != null)
+                    return block;
             }
 
             return null;
+        }
+
+        private async Task<Block> RequestBlockToAsync(BlockRequest request, GrpcPeer peer)
+        {
+            try
+            {
+                BlockReply block = await peer.RequestBlockAsync(request);
+                return block?.Block;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Error while requesting block from {peer.PeerAddress}.");
+                return null;
+            }
+        }
+
+        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count, string peer)
+        {
+            GrpcPeer grpcPeer = _peerPool.FindPeer(peer);
+            var blockIds = await grpcPeer.GetBlockIdsAsync(new BlockIdsRequest { 
+                FirstBlockId = topHash.Value,
+                Count = count
+            });
+
+            return blockIds.Ids.Select(id => Hash.FromRawBytes(id.ToByteArray())).ToList();
         }
     }
 }

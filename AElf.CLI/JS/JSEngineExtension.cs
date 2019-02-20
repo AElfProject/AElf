@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using AElf.Common.FSM;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 

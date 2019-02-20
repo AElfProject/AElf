@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class MockStateProvider : IStateProvider
     {
         private IStateManager _stateManager;
@@ -28,4 +29,5 @@ namespace AElf.Sdk.CSharp2.Tests
             return output;
         }
     }
+    */
 }

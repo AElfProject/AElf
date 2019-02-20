@@ -9,11 +9,13 @@ using AElf.OS.Account;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp.BackgroundJobs;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS.Tests
 {
-    [DependsOn(typeof(TestBaseAElfModule))]
+    [DependsOn(typeof(TestBaseAElfModule)), DependsOn(typeof(AbpEventBusModule)), DependsOn(typeof(AbpBackgroundJobsModule))]
     public class TestsOSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

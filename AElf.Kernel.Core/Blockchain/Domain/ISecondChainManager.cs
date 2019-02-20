@@ -59,21 +59,24 @@ namespace AElf.Kernel.Blockchain.Domain
 
             chain = new Chain()
             {
+                Id = chainId,
+                LongestChainHeight = GlobalConfig.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
-                    {genesisBlock.ToStorageKey(), 0}
+                    {genesisBlock.ToStorageKey(), GlobalConfig.GenesisBlockHeight}
                 }
             };
 
             await SetChainBlockLinkAsync(chainId, new ChainBlockLink()
             {
                 BlockHash = genesisBlock,
-                Height = 0,
+                Height = GlobalConfig.GenesisBlockHeight,
+                PreviousBlockHash = Hash.Genesis,
                 IsLinked = true
             });
-            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+            await _chains.SetAsync(chainId.ToStorageKey(), chain);
 
             return chain;
         }
@@ -96,7 +99,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task SetChainBlockLinkAsync(int chainId, ChainBlockLink chainBlockLink)
         {
-            await _chainBlockLinks.SetAsync(chainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
+            await _chainBlockLinks.SetAsync(chainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(),
+                chainBlockLink);
         }
 
         private async Task SetChainBlockIndexAsync(int chainId, ulong blockHeight, Hash blockHash)
@@ -162,7 +166,8 @@ namespace AElf.Kernel.Blockchain.Domain
                             await this.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
                         if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                         {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
+                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] =
+                                previousChainBlockLink.Height;
                             continue;
                         }
                     }
@@ -192,9 +197,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 if (irreversibleBlockHash == null)
                     break;
                 var chainBlockLink = await GetChainBlockLinkAsync(chain.Id, irreversibleBlockHash);
-                if (chainBlockLink==null || chainBlockLink.IsIrreversibleBlock)
+                if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
                     break;
-                if(!chainBlockLink.IsLinked)
+                if (!chainBlockLink.IsLinked)
                     throw new InvalidOperationException("should not set an unlinked block as irreversible block");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Push(chainBlockLink);
@@ -209,18 +214,46 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
                 chain.LastIrreversibleBlockHeight = chainBlockLink.Height;
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
-                
             }
         }
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash)
         {
-            throw new NotImplementedException();
+            var chain = await GetAsync(chainId);
+
+            var output = new List<ChainBlockLink>();
+            foreach (var bh in chain.Branches.Keys)
+            {
+                var isRightBranch = false;
+                var hash = bh;
+                var cbl = await GetChainBlockLinkAsync(chain.Id, hash);
+                while(!cbl.IsExecuted)
+                {
+                    output.Add(cbl);
+                    isRightBranch |= blockHash == cbl.BlockHash;
+                    var prevCbl = await GetChainBlockLinkAsync(chain.Id, cbl.PreviousBlockHash);
+                    if (prevCbl == null && cbl.PreviousBlockHash == Hash.Genesis)
+                    {
+                        break;
+                    }
+                    cbl = prevCbl;
+                }
+
+                if (isRightBranch)
+                {
+                    break;
+                }
+
+                output = new List<ChainBlockLink>();
+            }
+
+            output.Reverse();
+            return output;
         }
 
         public async Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink)
         {
-            if(blockLink.IsExecuted)
+            if (blockLink.IsExecuted)
                 throw new InvalidOperationException();
             blockLink.IsExecuted = true;
             await SetChainBlockLinkAsync(chainId, blockLink);

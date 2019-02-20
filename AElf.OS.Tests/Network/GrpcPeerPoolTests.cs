@@ -1,5 +1,10 @@
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Services;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using Google.Protobuf;
@@ -14,18 +19,28 @@ namespace AElf.OS.Tests.Network
     {
         private readonly IAccountService _accountService;
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
             
         public GrpcPeerPoolTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
             _accountService = GetRequiredService<IAccountService>();
+            
+            var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
+            _optionsMock = optionsMock.Object;
         }
         
         private GrpcPeerPool BuildPeerPool()
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(new NetworkOptions());
-            return new GrpcPeerPool(optionsMock.Object, _accountService);
+            
+            var mockBlockChainService = new Mock<IFullBlockchainService>();
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+                .Returns(Task.FromResult(new BlockHeader()));
+            
+            return new GrpcPeerPool(_optionsMock, optionsMock.Object, _accountService, mockBlockChainService.Object);
         }
             
         [Fact]

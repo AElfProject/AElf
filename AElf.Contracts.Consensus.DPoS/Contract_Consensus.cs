@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -91,7 +92,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public IMessage GetNewConsensusInformation(byte[] extraInformation)
+        public IMessage GetNewConsensusInformation(byte[] extraInformation, string publicKey)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
@@ -110,7 +111,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
             {
                 return extra.ChangeTerm
                     ? new DPoSInformation
@@ -132,14 +133,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // To publish Out Value.
             return new DPoSInformation
             {
-                CurrentRound = FillOutValue(extra.HashValue),
+                CurrentRound = FillOutValue(extra.HashValue, publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue
             };
         }
 
         [View]
         public TransactionList GenerateConsensusTransactions(ulong refBlockHeight, byte[] refBlockPrefix,
-            byte[] extraInformation)
+            byte[] extraInformation, string publicKey)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
 
@@ -157,7 +158,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
             {
                 if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
                     TryToGetTermNumber(out var termNumber))
@@ -177,18 +178,9 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
                     };
                 }
-
-                return new TransactionList
-                {
-                    Transactions =
-                    {
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "BroadcastInValue",
-                            new List<object> {extra.ToBroadcast}),
-                    }
-                };
             }
 
-            if (extra.InValue != null && extra.ToPackage != null)
+            if (extra.ToBroadcast != null && extra.ToPackage != null)
             {
                 return new TransactionList
                 {
@@ -196,8 +188,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         GenerateTransaction(refBlockHeight, refBlockPrefix, "PackageOutValue",
                             new List<object> {extra.ToPackage}),
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "PublishInValue",
-                            new List<object> {extra.InValue}),
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "BroadcastInValue",
+                            new List<object> {extra.ToBroadcast}),
                     }
                 };
             }
@@ -206,7 +198,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public IMessage GetConsensusCommand(Timestamp timestamp)
+        public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
         {
             // To initial this chain.
             if (!TryToGetCurrentRoundInformation(out var roundInformation))
@@ -219,12 +211,11 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if ((AllOutValueFilled(out var minerInformation) || TimeOverflow(timestamp)) &&
+            if ((OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp)) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
                 var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey ==
-                    Context.RecoverPublicKey().ToHex() &&
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new DPoSCommand
