@@ -135,7 +135,7 @@ namespace AElf.Kernel.Blockchain.Application
                 
                 // TODO: set best chain and valid
 
-                if (status.HasFlag(BlockAttachOperationStatus.BestChainFound))
+                if (status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
                 {
                     await LocalEventBus.PublishAsync(
                         new BestChainFoundEvent()

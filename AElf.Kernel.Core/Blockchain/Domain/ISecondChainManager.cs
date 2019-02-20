@@ -14,7 +14,7 @@ namespace AElf.Kernel.Blockchain.Domain
         None = 0,
         NewBlockNotLinked = 1 << 1,
         NewBlockLinked = 1 << 2,
-        BestChainFound = 1 << 3 | NewBlockLinked,
+        LongestChainFound = 1 << 3 | NewBlockLinked,
         NewBlocksLinked = 1 << 4 | NewBlockLinked
     }
 
@@ -123,11 +123,11 @@ namespace AElf.Kernel.Blockchain.Domain
                     chain.Branches[blockHash] = chainBlockLink.Height;
                     chain.Branches.Remove(previousHash);
 
-                    if (chainBlockLink.Height > chain.BestChainHeight)
+                    if (chainBlockLink.Height > chain.LongestChainHeight)
                     {
-                        chain.BestChainHeight = chainBlockLink.Height;
-                        chain.BestChainHash = chainBlockLink.BlockHash;
-                        status |= BlockAttachOperationStatus.BestChainFound;
+                        chain.LongestChainHeight = chainBlockLink.Height;
+                        chain.LongestChainHash = chainBlockLink.BlockHash;
+                        status |= BlockAttachOperationStatus.LongestChainFound;
                     }
 
 
@@ -153,7 +153,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
                 else
                 {
-                    if (chainBlockLink.Height <= chain.BestChainHeight)
+                    if (chainBlockLink.Height <= chain.LongestChainHeight)
                     {
                         //check database to ensure whether it can be a branch
                         var previousChainBlockLink =
