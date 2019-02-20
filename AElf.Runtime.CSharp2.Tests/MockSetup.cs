@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.ChainController;
-using AElf.SmartContract;
-using AElf.Kernel.Tests;
-using Google.Protobuf;
-using AElf.Common;
-using Volo.Abp.DependencyInjection;
+﻿//using System.Collections.Generic;
+//using System.IO;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using AElf.Kernel;
+//using AElf.Kernel.Managers;
+//using AElf.Kernel.Tests;
+//using Google.Protobuf;
+//using AElf.Common;
+//using AElf.Kernel.SmartContract.Domain;
+//using AElf.Kernel.SmartContractExecution.Domain;
+//using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
+    /*
     public class MockSetup : ITransientDependency
     {
         private static int _incrementId = 0;
@@ -109,4 +110,5 @@ namespace AElf.Runtime.CSharp2.Tests
         public byte[] ContractCode =>
             File.ReadAllBytes(Path.GetFullPath($"{SdkDir}/AElf.Sdk.CSharp2.Tests.TestContract.dll"));
     }
+    */
 }

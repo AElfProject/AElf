@@ -6,6 +6,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.ChainController\AElf.ChainController.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
   </ItemGroup>
 </Project>

@@ -15,7 +15,4 @@
   <ItemGroup>
     <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Protobuf\Generated" />
-  </ItemGroup>
 </Project>

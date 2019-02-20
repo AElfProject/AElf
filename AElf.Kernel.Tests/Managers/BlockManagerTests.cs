@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel;
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Managers
 {
+    /*
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
         private IBlockManager _blockManager;
@@ -56,4 +57,5 @@ namespace AElf.Kernel.Tests.Managers
         }
 
     }
+    */
 }

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
+    <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Contexts\TentativeDataProvider.cs" />
+  </ItemGroup>
+</Project>

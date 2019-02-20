@@ -6,6 +6,7 @@ using AElf.Types.CSharp;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
+    /*
     public class RunnerTest : CSharpRuntimeTestBase
     {
         private MockSetup _mock;
@@ -38,4 +39,5 @@ namespace AElf.Runtime.CSharp2.Tests
             Assert.Equal(100UL, feeAmount);
         }
     }
+    */
 }

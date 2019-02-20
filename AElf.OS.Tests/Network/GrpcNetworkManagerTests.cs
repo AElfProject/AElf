@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account;
+using AElf.Kernel.Account.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;

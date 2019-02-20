@@ -2,11 +2,14 @@
 using AElf.Common.Enums;
 using AElf.Common.MultiIndexDictionary;
 using AElf.Common.Serializers;
-using AElf.Configuration;
-using AElf.Configuration.Config.Consensus;
 using AElf.Database;
 using AElf.Kernel.Services;
-using AElf.Kernel.Storages;
+using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.ChainController;
+using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContractExecution.Infrastructure;
+using AElf.Kernel.TransactionPool;
 using AElf.Kernel.Types;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,54 +19,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
 {
-    [DependsOn(typeof(TypesAElfModule),typeof(DatabaseAElfModule),typeof(CoreAElfModule))]
-    public class KernelAElfModule: AElfModule
+    [DependsOn(typeof(CoreKernelAElfModule), typeof(ChainControllerAElfModule), typeof(SmartContractAElfModule),
+        typeof(TransactionPoolAElfModule))]
+    public class KernelAElfModule : AElfModule<KernelAElfModule>
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddConventionalRegistrar(new AElfKernelConventionalRegistrar());
-        }
-
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var configuration = context.Services.GetConfiguration();
-            // TODO : Maybe it shouldn't be set here
-            Configure<ChainOptions>(configuration);
-
-            //Configure<DbConnectionOptions>(configuration);
-            
-            var services = context.Services;
-
-            services.AddAssemblyOf<KernelAElfModule>();
-
-            services.AddTransient<IByteSerializer, AElf.Common.Serializers.ProtobufSerializer>();
-            
-            services.AddTransient(
-                typeof(IEqualityIndex<>), 
-                typeof(EqualityIndex<,>));
-
-            services.AddSingleton<IMinerService, MinerService>();
-            
-            services.AddTransient(
-                typeof(IComparisionIndex<>), 
-                typeof(ComparisionIndex<,>));
-            
-            services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
-            services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
-
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            //TODO! change log output 
-            
-            var loggerFactory = context.ServiceProvider.GetService<ILoggerFactory>();
-            //loggerFactory.AddNLog();
-
-            //builder.RegisterModule(new LoggerAutofacModule("aelf-node-" + NetworkConfig.Instance.ListeningPort));
-        }
     }
 }

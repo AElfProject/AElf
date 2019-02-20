@@ -1,24 +1,32 @@
-using System.Runtime.CompilerServices;
-using AElf.ChainController;
-using AElf.Database;
-using AElf.Execution;
-using AElf.Execution.Execution;
-using AElf.Kernel.Storages;
-using AElf.Modularity;
-using AElf.Runtime.CSharp;
-using AElf.SmartContract;
-using AElf.TestBase;
-using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
-using Volo.Abp.Modularity;
+//using System.Runtime.CompilerServices;
+//using AElf.ChainController;
+//using AElf.Database;
+//using AElf.Kernel.SmartContractExecution;
+//using AElf.Kernel.SmartContractExecution.Execution;
+//using AElf.Kernel.SmartContractExecution.Scheduling;
+//using AElf.Kernel.Infrastructure;
+//using AElf.Kernel.SmartContractExecution.Application;
+//using AElf.Kernel.Tests.Concurrency.Execution;
+//using AElf.Miner;
+//using AElf.Miner.Rpc;
+//using AElf.Execution;
+//using AElf.Execution.Execution;
+//using AElf.Kernel.Storages;
+//using AElf.Modularity;
+//using AElf.Runtime.CSharp;
+//using AElf.SmartContract;
+//using AElf.TestBase;
+//using Microsoft.Extensions.DependencyInjection;
+//using Volo.Abp;
+//using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Tests
 {
-    
-    [DependsOn(typeof(KernelAElfModule),
+    /*
+    [DependsOn(typeof(CoreKernelAElfModule),
         
         //TODO: only test kernel aelf module here
-        typeof(ChainControllerAElfModule),typeof(ExecutionAElfModule), 
+        typeof(ChainControllerAElfModule),typeof(SmartContractExecutionAElfModule), 
         typeof(SmartContractAElfModule),
         typeof(CSharpRuntimeAElfModule),
         
@@ -51,4 +59,5 @@ namespace AElf.Kernel.Tests
             //init test data here
         }
     }
+    */
 }

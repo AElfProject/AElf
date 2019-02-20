@@ -13,9 +13,6 @@
       <Project>{D86E3450-B65D-4999-8C1D-4B1D4403DB51}</Project>
       <Name>AElf.Cryptography</Name>
     </ProjectReference>
-    <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj">
-      <Project>{C7A26DA1-70D3-4D73-B5DB-A83241AB6F79}</Project>
-      <Name>AElf.Kernel</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
   </ItemGroup>
 </Project>

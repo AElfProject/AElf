@@ -1,7 +1,7 @@
 ﻿using AElf.ChainController.Rpc;
-using AElf.Consensus.DPoS;
+using AElf.Kernel.Consensus.DPoS;
 //using AElf.Crosschain;
-using AElf.Execution;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Services;
@@ -34,9 +34,9 @@ namespace AElf.Launcher
         typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
-        typeof(OSAElfModule),
+        typeof(CoreOSAElfModule),
         typeof(RpcChainControllerAElfModule),
-        typeof(ExecutionAElfModule),
+        typeof(SmartContractExecutionAElfModule),
         typeof(NetRpcAElfModule),
         typeof(NodeAElfModule),
         typeof(CSharpRuntimeAElfModule),

@@ -2,6 +2,7 @@ using AElf.Kernel;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
+    /*
     public class MockChainService:IChainService
     {
         public IBlockChain GetBlockChain(int chainId)
@@ -14,4 +15,5 @@ namespace AElf.Sdk.CSharp2.Tests
             throw new System.NotImplementedException();
         }
     }
+    */
 }
