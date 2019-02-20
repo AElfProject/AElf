@@ -7,16 +7,20 @@
     <ItemGroup>
       <!--<ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />-->
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
+      <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
       <!--<ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />-->
       <!--<ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />-->
       <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
       <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+      <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
       <!--<ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />-->
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
+      <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
       <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
       <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="0.11.0" />
       <PackageReference Include="xunit" Version="2.4.1" />
