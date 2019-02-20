@@ -15,13 +15,13 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+      <!--<ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />-->
       <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-      <ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />
-      <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+      <!--<ProjectReference Include="..\AElf.Node\AElf.Node.csproj" />-->
+      <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
     </ItemGroup>
 
 </Project>

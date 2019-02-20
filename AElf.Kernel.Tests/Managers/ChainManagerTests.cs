@@ -10,6 +10,7 @@ using Xunit;
 
 namespace AElf.Kernel.Managers.Another.Tests
 {
+    /*
     public class ChainManagerTests : AElfKernelTestBase
     {
         private readonly ChainManager _chainManager;
@@ -569,4 +570,5 @@ namespace AElf.Kernel.Managers.Another.Tests
             }
         }
     }
+    */
 }

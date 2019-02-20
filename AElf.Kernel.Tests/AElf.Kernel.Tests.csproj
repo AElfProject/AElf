@@ -36,11 +36,6 @@
     <Compile Remove="AccountContextTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Concurrency\" />
-    <Folder Include="Concurrency\Execution\" />
-    <Folder Include="Concurrency\Scheduling\" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Remove="Concurrency\ResourceUsageDetectionServiceTest.cs" />
   </ItemGroup>
   <ItemGroup>
