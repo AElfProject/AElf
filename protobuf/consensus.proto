@@ -201,12 +201,16 @@ message DPoSExtraInformation {
     google.protobuf.Timestamp Timestamp = 8;
     repeated string InitialMiners = 9;
     Hash InValue = 10;
+    string PublicKey = 11;
 }
 
-message DPoSCommand {
+message ConsensusCommand {
     int32 CountingMilliseconds = 1;
-    DPoSBehaviour Behaviour = 2;
-    int32 ChainId = 3;
+    bytes Hint = 2;
+}
+
+message DPoSHint {
+    DPoSBehaviour Behaviour = 1;
 }
 
 enum DPoSBehaviour {

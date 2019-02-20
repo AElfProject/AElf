@@ -7,7 +7,7 @@ using AElf.Common;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class Chain : IChain
+    public partial class Chain 
     {
         public Chain(int chainId, Hash genesisBlockHash)
         {
