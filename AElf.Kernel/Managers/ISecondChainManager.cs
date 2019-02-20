@@ -61,11 +61,12 @@ namespace AElf.Kernel.Managers.Another
             chain = new Chain()
             {
                 Id = chainId,
+                BestChainHeight = GlobalConfig.GenesisBlockHeight,
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
-                    {genesisBlock.ToStorageKey(), 0}
+                    {genesisBlock.ToStorageKey(), GlobalConfig.GenesisBlockHeight}
                 }
             };
 
