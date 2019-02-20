@@ -10,7 +10,6 @@
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.0" />
