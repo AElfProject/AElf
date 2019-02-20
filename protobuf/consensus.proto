@@ -203,10 +203,13 @@ message DPoSExtraInformation {
     Hash InValue = 10;
 }
 
-message DPoSCommand {
+message ConsensusCommand {
     int32 CountingMilliseconds = 1;
-    DPoSBehaviour Behaviour = 2;
-    int32 ChainId = 3;
+    bytes Hint = 2;
+}
+
+message DPoSHint {
+    DPoSBehaviour Behaviour = 1;
 }
 
 enum DPoSBehaviour {

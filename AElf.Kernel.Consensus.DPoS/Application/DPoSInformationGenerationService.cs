@@ -15,14 +15,14 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly DPoSOptions _dpoSOptions;
-        private readonly IConsensusCommand _command;
+        private readonly ConsensusCommand _command;
         private Hash _inValue;
 
-        public DPoSCommand Command => DPoSCommand.Parser.ParseFrom(_command.Command);
+        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_command.Hint);
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IConsensusCommand command)
+        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, ConsensusCommand command)
         {
             _dpoSOptions = consensusOptions.Value;
             _command = command;
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public byte[] GenerateExtraInformation()
         {
-            switch (Command.Behaviour)
+            switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     return new DPoSExtraInformation
@@ -86,7 +86,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
-            switch (Command.Behaviour)
+            switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     information.NewTerm.ChainId = chainId;

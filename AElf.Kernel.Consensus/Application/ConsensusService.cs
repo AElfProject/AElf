@@ -19,32 +19,29 @@ namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusService : IConsensusService
     {
-        private readonly IConsensusObserver _consensusObserver;
-
         private readonly ITransactionExecutingService _transactionExecutingService;
 
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IConsensusCommand _consensusCommand;
-
-        private IDisposable _consensusObservables;
+        private ConsensusCommand _consensusCommand;
+        private readonly IConsensusScheduler _consensusScheduler;
 
         private byte[] _latestGeneratedConsensusInformation;
 
         public ILogger<ConsensusService> Logger { get; set; }
 
-        public ConsensusService(IConsensusObserver consensusObserver,
-            IConsensusInformationGenerationService consensusInformationGenerationService,
+        public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionExecutingService transactionExecutingService,
-            IBlockchainService blockchainService, IConsensusCommand consensusCommand)
+            IBlockchainService blockchainService, ConsensusCommand consensusCommand,
+            IConsensusScheduler consensusScheduler)
         {
-            _consensusObserver = consensusObserver;
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
             _transactionExecutingService = transactionExecutingService;
             _blockchainService = blockchainService;
             _consensusCommand = consensusCommand;
+            _consensusScheduler = consensusScheduler;
 
             Logger = NullLogger<ConsensusService>.Instance;
         }
@@ -58,12 +55,15 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            
-            _consensusCommand.Command = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
-                chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow))).ToByteArray();
 
-            // Initial or update the schedule.
-            _consensusObservables = _consensusObserver.Subscribe(_consensusCommand.Command);
+            _consensusCommand = ConsensusCommand.Parser.ParseFrom((await ExecuteContractAsync(chainId,
+                    await _accountService.GetAccountAsync(), chainContext, ConsensusConsts.GetConsensusCommand,
+                    Timestamp.FromDateTime(DateTime.UtcNow)))
+                .ToByteArray());
+
+            // Initial or reload the schedule.
+            
+            _consensusScheduler.ScheduleWithCommand(_consensusCommand);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,

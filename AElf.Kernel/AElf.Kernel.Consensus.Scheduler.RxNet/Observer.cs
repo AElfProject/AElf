@@ -5,31 +5,30 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Consensus.DPoS.Infrastructure
+namespace AElf.Kernel.Consensus.Scheduler.RxNet
 {
     // ReSharper disable once InconsistentNaming
-    public class DPoSObserver : IConsensusObserver
+    public class Observer
     {
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<DPoSObserver> Logger { get; set; }
+        public ILogger<Observer> Logger { get; set; }
 
-        public DPoSObserver()
+        public Observer()
         {
             EventBus = NullLocalEventBus.Instance;
 
-            Logger = NullLogger<DPoSObserver>.Instance;
+            Logger = NullLogger<Observer>.Instance;
         }
 
-        public IDisposable Subscribe(byte[] consensusCommand)
-        {
-            var command = DPoSCommand.Parser.ParseFrom(consensusCommand);
-
-            Logger.LogInformation($"Will produce block after {command.CountingMilliseconds} ms.");
-
-            return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
-                .Select(_ => command.ChainId).Subscribe(this);
-        }
+//        public IDisposable Subscribe(int countingMilliseconds, DPoSHint hint)
+//        {
+//            Logger.LogInformation($"Will produce block after {countingMilliseconds} ms.");
+//
+//            return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
+//                .Select(_ => command.ChainId).Subscribe(this);
+//
+//        }
 
         public void OnCompleted()
         {

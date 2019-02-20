@@ -211,10 +211,13 @@ namespace AElf.Contracts.Consensus.DPoS
             // To initial this chain.
             if (!TryToGetCurrentRoundInformation(out var roundInformation))
             {
-                return new DPoSCommand
+                return new ConsensusCommand
                 {
                     CountingMilliseconds = Config.InitialWaitingMilliseconds,
-                    Behaviour = DPoSBehaviour.InitialTerm
+                    Hint = new DPoSHint
+                    {
+                        Behaviour = DPoSBehaviour.InitialTerm
+                    }.ToByteString()
                 };
             }
 
@@ -227,10 +230,13 @@ namespace AElf.Contracts.Consensus.DPoS
                     Context.RecoverPublicKey().ToHex() &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
-                    return new DPoSCommand
+                    return new ConsensusCommand
                     {
                         CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
-                        Behaviour = DPoSBehaviour.NextRound
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString()
                     };
                 }
 
@@ -239,28 +245,37 @@ namespace AElf.Contracts.Consensus.DPoS
                 var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
                 if (passedTime > minerInformation.Order * miningInterval)
                 {
-                    return new DPoSCommand
+                    return new ConsensusCommand
                     {
                         CountingMilliseconds =
                             (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
-                        Behaviour = DPoSBehaviour.NextRound
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString()
                     };
                 }
 
-                return new DPoSCommand
+                return new ConsensusCommand
                 {
                     CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
-                    Behaviour = DPoSBehaviour.NextRound
+                    Hint = new DPoSHint
+                    {
+                        Behaviour = DPoSBehaviour.NextRound
+                    }.ToByteString()
                 };
             }
 
             // To produce a normal block.
             var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
                 .TotalMilliseconds;
-            return new DPoSCommand
+            return new ConsensusCommand()
             {
                 CountingMilliseconds = expect >= 0 ? expect : int.MaxValue,
-                Behaviour = DPoSBehaviour.PackageOutValue
+                Hint = new DPoSHint
+                {
+                    Behaviour = DPoSBehaviour.PackageOutValue
+                }.ToByteString()
             };
         }
     }

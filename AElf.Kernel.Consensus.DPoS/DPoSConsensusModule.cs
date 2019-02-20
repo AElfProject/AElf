@@ -1,7 +1,6 @@
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
-using AElf.Kernel.Consensus.DPoS.Infrastructure;
-using AElf.Kernel.Consensus.Infrastructure;
+using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -15,8 +14,9 @@ namespace AElf.Kernel.Consensus.DPoS
         {
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-            context.Services.AddSingleton<IConsensusObserver, DPoSObserver>();
-            context.Services.AddSingleton<IConsensusCommand, ConsensusCommand>();
+            
+            context.Services.AddSingleton<IConsensusScheduler, RxNetScheduler>();
+            context.Services.AddSingleton<ConsensusCommand>();
         }
     }
 }
