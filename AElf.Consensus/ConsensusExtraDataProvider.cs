@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 

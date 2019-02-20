@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Services;
 using Volo.Abp.Threading;
 
 namespace AElf.Consensus

@@ -27,7 +27,7 @@ namespace AElf.Consensus.DPoS
         {
             var command = DPoSCommand.Parser.ParseFrom(consensusCommand);
 
-            Logger.LogInformation($"Will produce block after {command.CountingMilliseconds} ms.");
+            Logger.LogInformation($"Will produce block after {command.CountingMilliseconds} ms: {command.Behaviour.ToString()}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
                 .Select(_ => new BlockMiningEventData(chainId, preBlockHash, preBlockHeight,

@@ -55,22 +55,16 @@ namespace AElf.Consensus
         {            
             var chain = await _blockchainService.GetChainAsync(chainId);
 
-            var chainContext = chain == null
-                ? new ChainContext
-                {
-                    ChainId = chainId,
-                    BlockHash = Hash.Genesis,
-                    BlockHeight = 1
-                }
-                : new ChainContext
-                {
-                    ChainId = chainId,
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                };
-            
+            var chainContext = new ChainContext
+            {
+                ChainId = chainId,
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
             _consensusCommand.Command = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
-                chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow))).ToByteArray();
+                chainContext, ConsensusConsts.GetConsensusCommand, Timestamp.FromDateTime(DateTime.UtcNow),
+                (await _accountService.GetPublicKeyAsync()).ToHex())).ToByteArray();
 
             // Initial or update the schedule.
             _consensusObservables =
@@ -104,7 +98,8 @@ namespace AElf.Consensus
 
             var newConsensusInformation = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                 chainContext, ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GenerateExtraInformation())).DeserializeToBytes();
+                _consensusInformationGenerationService.GenerateExtraInformation(),
+                (await _accountService.GetPublicKeyAsync()).ToHex())).ToByteArray();
 
             _latestGeneratedConsensusInformation = newConsensusInformation;
 
@@ -125,7 +120,8 @@ namespace AElf.Consensus
             var generatedTransactions = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                     chainContext, ConsensusConsts.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
                     _consensusInformationGenerationService.GenerateExtraInformationForTransaction(
-                        _latestGeneratedConsensusInformation, chainId))).DeserializeToPbMessage<TransactionList>()
+                        _latestGeneratedConsensusInformation, chainId),
+                    (await _accountService.GetPublicKeyAsync()).ToHex())).DeserializeToPbMessage<TransactionList>()
                 .Transactions
                 .ToList();
 
