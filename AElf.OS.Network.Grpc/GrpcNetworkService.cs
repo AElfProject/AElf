@@ -23,9 +23,9 @@ namespace AElf.OS.Network.Grpc
             Logger = NullLogger<GrpcServerService>.Instance;
         }
 
-        public async Task AddPeerAsync(string address)
+        public async Task<bool> AddPeerAsync(string address)
         {
-            await _peerPool.AddPeerAsync(address);
+            return await _peerPool.AddPeerAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
