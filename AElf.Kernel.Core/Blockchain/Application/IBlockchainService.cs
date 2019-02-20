@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using IChainManager = AElf.Kernel.Blockchain.Domain.IChainManager;
@@ -69,11 +71,13 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockValidationService _blockValidationService;
         public ILocalEventBus LocalEventBus { get; set; }
+        public ILogger<FullBlockchainService> Logger { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
             IBlockExecutingService blockExecutingService, ITransactionManager transactionManager, 
             IBlockValidationService blockValidationService)
         {
+            Logger = NullLogger<FullBlockchainService>.Instance;
             _chainManager = chainManager;
             _blockManager = blockManager;
             _blockExecutingService = blockExecutingService;
@@ -120,6 +124,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, block))
                     {
+                        Logger.LogWarning($"Block validate fails before execution. BlockLink hash : {blockLink.BlockHash}");
                         break;
                     }
 
@@ -127,26 +132,32 @@ namespace AElf.Kernel.Blockchain.Application
 
                     if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, block))
                     {
+                        Logger.LogWarning($"Block validate fails after execution. BlockLink hash : {blockLink.BlockHash}");
                         break;
                     }
                     
-                    // TODO: Set valid block
+                    _chainManager.SetChainBlockLinkAsValidated(chain.Id, blockLink);
                 }
                 
-                // TODO: set best chain and valid
-
-                if (status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
+                var lastBlockLink = blockLinks.LastOrDefault();
+                if (lastBlockLink != null && lastBlockLink.IsExecuted && lastBlockLink.IsValidated)
                 {
-                    await LocalEventBus.PublishAsync(
-                        new BestChainFoundEvent()
-                        {
-                            ChainId = chain.Id,
-                            BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
-                        });
+                    if (lastBlockLink.Height > chain.BestChainHeight)
+                    {
+                        chain.BestChainHeight = lastBlockLink.Height;
+                        chain.BestChainHash = lastBlockLink.BlockHash;
+                        _chainManager.SetAsync(chain.Id, chain);
+                        
+                        await LocalEventBus.PublishAsync(
+                            new BestChainFoundEvent()
+                            {
+                                ChainId = chain.Id,
+                                BlockHash = chain.BestChainHash,
+                                BlockHeight = chain.BestChainHeight
+                            });
+                    }
                 }
             }
-
 
             return blockLinks;
         }

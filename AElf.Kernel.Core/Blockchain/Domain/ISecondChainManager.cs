@@ -22,6 +22,7 @@ namespace AElf.Kernel.Blockchain.Domain
     {
         Task<Chain> CreateAsync(int chainId, Hash genesisBlock);
         Task<Chain> GetAsync(int chainId);
+        Task SetAsync(int chainId, Chain chain);
         Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight);
 
@@ -32,6 +33,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
         Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
+        Task SetChainBlockLinkAsValidated(int chainId, ChainBlockLink blockLink);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -57,7 +59,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             chain = new Chain()
             {
-                BestChainHash = genesisBlock,
+                LongestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
@@ -222,6 +224,19 @@ namespace AElf.Kernel.Blockchain.Domain
                 throw new InvalidOperationException();
             blockLink.IsExecuted = true;
             await SetChainBlockLinkAsync(chainId, blockLink);
+        }
+        
+        public async Task SetChainBlockLinkAsValidated(int chainId, ChainBlockLink blockLink)
+        {
+            if(blockLink.IsValidated)
+                throw new InvalidOperationException();
+            blockLink.IsValidated = true;
+            await SetChainBlockLinkAsync(chainId, blockLink);
+        }
+
+        public async Task SetAsync(int chainId, Chain chain)
+        {
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
     }
 }
