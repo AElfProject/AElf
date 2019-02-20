@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface ITransactionExecutingService
     {
-        Task<List<ExecutionReturnSet>> ExecuteAsync(int chainId, IChainContext chainContext,
+        Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
             List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken);
     }
 
@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
-        public async Task<List<ExecutionReturnSet>> ExecuteAsync(int chainId, IChainContext chainContext,
+        public async Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
             List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken)
         {
             var stateCache = new Dictionary<StatePath, StateCache>();
@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     break;
                 }
 
-                var trace = await ExecuteOneAsync(0, chainId, chainContext, transaction, currentBlockTime,
+                var trace = await ExecuteOneAsync(0, chainContext, transaction, currentBlockTime,
                     cancellationToken, stateCache);
                 if (!trace.IsSuccessful())
                 {
@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return returnSets;
         }
 
-        private async Task<TransactionTrace> ExecuteOneAsync(int depth, int chainId, IChainContext chainContext,
+        private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
             Transaction transaction, DateTime currentBlockTime, CancellationToken cancellationToken,
             Dictionary<StatePath, StateCache> stateCache)
         {
@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
 
 
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainId, transaction.To);
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, transaction.To);
 
             try
             {
@@ -111,7 +111,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
-                    var inlineTrace = await ExecuteOneAsync(depth + 1, chainId, chainContext, inlineTx,
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, chainContext, inlineTx,
                         currentBlockTime, cancellationToken, stateCache);
                     trace.InlineTraces.Add(inlineTrace);
                 }
@@ -123,7 +123,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(chainId, transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(chainContext.ChainId, transaction.To, executive);
             }
 
             return trace;
