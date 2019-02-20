@@ -10,6 +10,7 @@ using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.Services;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.Node.Consensus;
@@ -31,6 +32,7 @@ namespace AElf.Node.AElfChain
         private readonly ITxHub _txHub;
         private readonly IChainCreationService _chainCreationService;
         private readonly IAccountService _accountService;
+        private readonly IConsensusService _consensusService;
 
 
         // todo temp solution because to get the dlls we need the launchers directory (?)
@@ -41,12 +43,17 @@ namespace AElf.Node.AElfChain
         public MainchainNodeService(
             ITxHub hub,
             IChainCreationService chainCreationService,
-            IAccountService accountService)
+            IBlockSynchronizer blockSynchronizer,
+            IChainService chainService,
+            IConsensus consensus,
+            IAccountService accountService,
+            IConsensusService consensusService)
         {
             _chainCreationService = chainCreationService;
             _txHub = hub;
             Logger = NullLogger<MainchainNodeService>.Instance;
             _accountService = accountService;
+            _consensusService = consensusService;
         }
 
         #region Genesis Contracts
@@ -235,6 +242,8 @@ namespace AElf.Node.AElfChain
                 {
                     basicReg, tokenCReg, consensusCReg, crossChainCReg, authorizationCReg, resourceCReg, dividendsCReg
                 }).Result;
+
+            _consensusService.TriggerConsensusAsync(chainId);
             Logger.LogDebug($"Genesis block hash = {res.GenesisBlockHash.ToHex()}");
         }
 
