@@ -16,6 +16,7 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
             
             context.Services.AddSingleton<IConsensusScheduler, RxNetScheduler>();
+            context.Services.AddSingleton<RxNetObserver>();
             context.Services.AddSingleton<ConsensusCommand>();
         }
     }

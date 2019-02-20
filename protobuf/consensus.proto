@@ -201,6 +201,7 @@ message DPoSExtraInformation {
     google.protobuf.Timestamp Timestamp = 8;
     repeated string InitialMiners = 9;
     Hash InValue = 10;
+    string PublicKey = 11;
 }
 
 message ConsensusCommand {

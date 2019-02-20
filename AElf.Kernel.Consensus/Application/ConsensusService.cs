@@ -47,7 +47,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         public async Task TriggerConsensusAsync(int chainId)
-        {            
+        {
             var chain = await _blockchainService.GetChainAsync(chainId);
             var chainContext = new ChainContext
             {
@@ -61,9 +61,9 @@ namespace AElf.Kernel.Consensus.Application
                     Timestamp.FromDateTime(DateTime.UtcNow)))
                 .ToByteArray());
 
-            // Initial or reload the schedule.
-            
-            _consensusScheduler.ScheduleWithCommand(_consensusCommand);
+            // Initial or reload consensus scheduler.
+            _consensusScheduler.TryToStop();
+            _consensusScheduler.Launch(_consensusCommand);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
@@ -75,7 +75,7 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
             };
-            
+
             return (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                     chainContext, ConsensusConsts.ValidateConsensus, consensusInformation))
                 .DeserializeToPbMessage<ValidationResult>().Success;
@@ -100,8 +100,8 @@ namespace AElf.Kernel.Consensus.Application
             return newConsensusInformation;
         }
 
-        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId, ulong refBlockHeight,
-            byte[] refBlockPrefix)
+        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId,
+            ulong refBlockHeight, byte[] refBlockPrefix)
         {
             var chain = await _blockchainService.GetChainAsync(chainId);
             var chainContext = new ChainContext
@@ -121,7 +121,8 @@ namespace AElf.Kernel.Consensus.Application
             return generatedTransactions;
         }
 
-        private async Task<ByteString> ExecuteContractAsync(int chainId, Address fromAddress, IChainContext chainContext,
+        private async Task<ByteString> ExecuteContractAsync(int chainId, Address fromAddress,
+            IChainContext chainContext,
             string consensusMethodName, params object[] objects)
         {
             var tx = new Transaction

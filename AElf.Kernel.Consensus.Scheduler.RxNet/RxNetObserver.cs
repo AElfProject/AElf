@@ -8,17 +8,17 @@ using Volo.Abp.EventBus.Local;
 namespace AElf.Kernel.Consensus.Scheduler.RxNet
 {
     // ReSharper disable once InconsistentNaming
-    public class Observer
+    public class RxNetObserver : IObserver<BlockMiningEventData>
     {
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<Observer> Logger { get; set; }
+        public ILogger<RxNetObserver> Logger { get; set; }
 
-        public Observer()
+        public RxNetObserver()
         {
             EventBus = NullLocalEventBus.Instance;
 
-            Logger = NullLogger<Observer>.Instance;
+            Logger = NullLogger<RxNetObserver>.Instance;
         }
 
 //        public IDisposable Subscribe(int countingMilliseconds, DPoSHint hint)
@@ -38,10 +38,10 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         {
         }
 
-        public void OnNext(int value)
+        public void OnNext(BlockMiningEventData value)
         {
-            Logger.LogInformation($"Published block mining event, chain id: {value}");
-            EventBus.PublishAsync(new BlockMiningEventData(value));
+            Logger.LogInformation($"Published block mining event: {value}");
+            EventBus.PublishAsync(value);
         }
     }
 }

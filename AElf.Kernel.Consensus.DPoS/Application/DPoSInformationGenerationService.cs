@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
@@ -8,6 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
 {
@@ -15,6 +17,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly DPoSOptions _dpoSOptions;
+        private readonly IAccountService _accountService;
         private readonly ConsensusCommand _command;
         private Hash _inValue;
 
@@ -22,9 +25,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, ConsensusCommand command)
+        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
+            ConsensusCommand command)
         {
             _dpoSOptions = consensusOptions.Value;
+            _accountService = accountService;
             _command = command;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
@@ -39,6 +44,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     {
                         InitialMiners = {_dpoSOptions.InitialMiners},
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
+                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                     }.ToByteArray();
 
                 case DPoSBehaviour.PackageOutValue:
@@ -49,7 +55,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         return new DPoSExtraInformation
                         {
                             HashValue = Hash.FromMessage(_inValue),
-                            InValue = Hash.Zero
+                            InValue = Hash.Zero,
+                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                         }.ToByteArray();
                     }
                     else
@@ -60,21 +67,24 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         return new DPoSExtraInformation
                         {
                             HashValue = outValue,
-                            InValue = previousInValue
+                            InValue = previousInValue,
+                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                         }.ToByteArray();
                     }
 
                 case DPoSBehaviour.NextRound:
                     return new DPoSExtraInformation
                     {
-                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow)
+                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                     }.ToByteArray();
 
                 case DPoSBehaviour.NextTerm:
                     return new DPoSExtraInformation
                     {
                         Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ChangeTerm = true
+                        ChangeTerm = true,
+                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                     }.ToByteArray();
 
                 default:
