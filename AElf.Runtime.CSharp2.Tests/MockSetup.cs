@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using AElf.Kernel;
+﻿//using System.Collections.Generic;
+//using System.IO;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using AElf.Kernel;
 //using AElf.Kernel.Managers;
-using AElf.Kernel.Tests;
-using Google.Protobuf;
-using AElf.Common;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
-using Volo.Abp.DependencyInjection;
+//using AElf.Kernel.Tests;
+//using Google.Protobuf;
+//using AElf.Common;
+//using AElf.Kernel.SmartContract.Domain;
+//using AElf.Kernel.SmartContractExecution.Domain;
+//using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp2.Tests
 {

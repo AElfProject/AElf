@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Managers;
-using AElf.Kernel.SmartContractExecution.Domain;
-using Google.Protobuf;
-using Shouldly;
-using Xunit;
+//using System;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
+//using AElf.Common;
+//using AElf.Kernel.Managers;
+//using AElf.Kernel.SmartContractExecution.Domain;
+//using Google.Protobuf;
+//using Shouldly;
+//using Xunit;
 
 namespace AElf.Kernel.Tests
 {

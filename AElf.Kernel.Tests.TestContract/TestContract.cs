@@ -1,11 +1,11 @@
-﻿using System;
+﻿//using System;
 //using AElf.Sdk.CSharp.Types;
-using AElf.Types.CSharp.MetadataAttribute;
-using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
+//using AElf.Types.CSharp.MetadataAttribute;
+//using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
 //using Api = AElf.Sdk.CSharp.Api;
-using AElf.Common;
-using AElf.Sdk.CSharp;
-using Google.Protobuf.WellKnownTypes;
+//using AElf.Common;
+//using AElf.Sdk.CSharp;
+//using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Tests.TestContract
 {

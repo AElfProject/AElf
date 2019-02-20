@@ -1,18 +1,18 @@
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using AElf.Common;
-using AElf.Database;
-using AElf.Kernel;
-using AElf.Kernel.Managers;
-using AElf.Kernel.SmartContractExecution.Domain;
+//using System;
+//using System.Threading.Tasks;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using AElf.Common;
+//using AElf.Database;
+//using AElf.Kernel;
+//using AElf.Kernel.Managers;
+//using AElf.Kernel.SmartContractExecution.Domain;
 //using AElf.SmartContract;
-using Google.Protobuf;
-using Google.Protobuf.Collections;
-using Google.Protobuf.WellKnownTypes;
-using Xunit;
+//using Google.Protobuf;
+//using Google.Protobuf.Collections;
+//using Google.Protobuf.WellKnownTypes;
+//using Xunit;
 
 namespace AElf.Kernel.Tests
 {

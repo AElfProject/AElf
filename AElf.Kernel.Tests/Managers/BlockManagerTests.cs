@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
 using Xunit;
