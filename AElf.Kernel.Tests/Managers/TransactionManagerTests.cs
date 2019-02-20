@@ -11,6 +11,7 @@ using Shouldly;
 
 namespace AElf.Kernel.Tests.Managers
 {
+    /*
     public sealed class TransactionManagerTests:AElfKernelTestBase
     {
         private ITransactionManager _transactionManager;
@@ -93,4 +94,5 @@ namespace AElf.Kernel.Tests.Managers
             return tx;
         }
     }
+    */
 }

@@ -1,9 +1,10 @@
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Runtime.CSharp2.Tests
 {
+    /*
     public class MockStateProviderFactory : IStateProviderFactory
     {
         private readonly IStateManager _stateManager;
@@ -23,4 +24,5 @@ namespace AElf.Runtime.CSharp2.Tests
             return _stateManager;
         }
     }
+    */
 }
