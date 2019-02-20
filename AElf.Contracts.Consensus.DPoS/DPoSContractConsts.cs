@@ -5,6 +5,8 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region Consensus Settings
 
+        public const int BlockNumberPerSlot = 1;
+
         public const ulong TotalSupply = 100_000_000_000;
         public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;

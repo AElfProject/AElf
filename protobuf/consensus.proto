@@ -206,7 +206,8 @@ message DPoSExtraInformation {
 
 message ConsensusCommand {
     int32 CountingMilliseconds = 1;
-    bytes Hint = 2;
+    int32 TimeoutMilliseconds = 2;
+    bytes Hint = 3;
 }
 
 message DPoSHint {

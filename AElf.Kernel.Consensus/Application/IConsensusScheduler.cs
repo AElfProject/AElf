@@ -1,10 +1,9 @@
-using AElf.Common;
+using AElf.Kernel.Node.Infrastructure;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public interface IConsensusScheduler
+    public interface IConsensusScheduler : IChainRelatedComponent
     {
-        void Launch(int countingMilliseconds, int chainId, Hash preBlockHash, ulong preBlockHeight);
-        void TryToStop();
+        void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData);
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System;
-using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
+using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Scheduler.RxNet
 {
-    public class RxNetScheduler : IConsensusScheduler
+    public class RxNetScheduler : IConsensusScheduler, ISingletonDependency
     {
         private IDisposable _observables;
 
@@ -16,14 +16,25 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             _observer = observer;
         }
         
-        public void Launch(int countingMilliseconds, int chainId, Hash preBlockHash, ulong preBlockHeight)
+        public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
-            _observables = _observer.Subscribe(countingMilliseconds, chainId, preBlockHash, preBlockHeight);
+            _observables = _observer.Subscribe(countingMilliseconds, blockMiningEventData);
         }
-
-        public void TryToStop()
+        
+        public void Dispose()
         {
             _observables?.Dispose();
+        }
+
+        public async Task<IDisposable> StartAsync(int chainId)
+        {
+            return this;
+        }
+
+        public Task StopAsync()
+        {
+            _observables?.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

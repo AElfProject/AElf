@@ -11,6 +11,7 @@
 
     <ItemGroup>
       <Folder Include="Domain" />
+      <Folder Include="Infrastructure" />
     </ItemGroup>
 
 </Project>

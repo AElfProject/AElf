@@ -1,6 +1,5 @@
 using System;
 using System.Reactive.Linq;
-using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -21,14 +20,12 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger = NullLogger<RxNetObserver>.Instance;
         }
 
-        public IDisposable Subscribe(int countingMilliseconds, int chainId, Hash preBlockHash, ulong preBlockHeight)
+        public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
             Logger.LogInformation($"Will produce block after {countingMilliseconds} ms.");
 
-            // TODO: Due time should generated from contract if miner can produce tiny blocks.
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
-                .Select(_ => new BlockMiningEventData(chainId, preBlockHash, preBlockHeight,
-                    DateTime.UtcNow + TimeSpan.FromSeconds(4))).Subscribe(this);
+                .Select(_ => blockMiningEventData).Subscribe(this);
         }
 
         public void OnCompleted()
@@ -39,6 +36,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         {
         }
 
+        // This is the callback.
         public void OnNext(BlockMiningEventData value)
         {
             Logger.LogInformation($"Published block mining event: {value}");

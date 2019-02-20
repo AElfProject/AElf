@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
@@ -62,10 +61,11 @@ namespace AElf.Kernel.Consensus.Application
                     Timestamp.FromDateTime(DateTime.UtcNow)))
                 .ToByteArray());
 
+            var blockMiningEventData = new BlockMiningEventData(chainId, chain.BestChainHash, chain.BestChainHeight,
+                DateTime.UtcNow.AddMilliseconds(_consensusCommand.TimeoutMilliseconds));
+            
             // Initial or reload consensus scheduler.
-            _consensusScheduler.TryToStop();
-            _consensusScheduler.Launch(_consensusCommand.CountingMilliseconds, chainId, chain.BestChainHash,
-                chain.BestChainHeight);
+            _consensusScheduler.NewEvent(chainId, blockMiningEventData);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
