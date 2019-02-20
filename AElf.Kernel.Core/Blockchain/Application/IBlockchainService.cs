@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
@@ -66,15 +67,18 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IBlockManager _blockManager;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly ITransactionManager _transactionManager;
+        private readonly IBlockValidationService _blockValidationService;
         public ILocalEventBus LocalEventBus { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
-            IBlockExecutingService blockExecutingService, ITransactionManager transactionManager)
+            IBlockExecutingService blockExecutingService, ITransactionManager transactionManager, 
+            IBlockValidationService blockValidationService)
         {
             _chainManager = chainManager;
             _blockManager = blockManager;
             _blockExecutingService = blockExecutingService;
             _transactionManager = transactionManager;
+            _blockValidationService = blockValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -99,19 +103,13 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
         {
-            var chainBlockLink = new ChainBlockLink()
-            {
-                Height = block.Header.Height,
-                BlockHash = block.Header.GetHash(),
-                PreviousBlockHash = block.Header.PreviousBlockHash
-            };
             var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
                 Height = block.Header.Height,
                 BlockHash = block.Header.GetHash(),
                 PreviousBlockHash = block.Header.PreviousBlockHash
             });
-
+            
             List<ChainBlockLink> blockLinks = null;
 
             if (status.HasFlag(BlockAttachOperationStatus.NewBlockLinked))
@@ -120,8 +118,22 @@ namespace AElf.Kernel.Blockchain.Application
 
                 foreach (var blockLink in blockLinks)
                 {
+                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, block))
+                    {
+                        break;
+                    }
+
                     await ExecuteBlock(chain.Id, blockLink);
+
+                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, block))
+                    {
+                        break;
+                    }
+                    
+                    // TODO: Set valid block
                 }
+                
+                // TODO: set best chain and valid
 
                 if (status.HasFlag(BlockAttachOperationStatus.BestChainFound))
                 {
