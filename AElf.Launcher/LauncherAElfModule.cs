@@ -1,6 +1,8 @@
-﻿using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContractExecution;
+﻿using AElf.Kernel;
 using AElf.Modularity;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContractExecution;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
@@ -12,6 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
@@ -48,14 +51,24 @@ namespace AElf.Launcher
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             // TODO: start node
+
+            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
+            var minerService = context.ServiceProvider.GetService<IMinerService>();
+            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
+                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
+            ));
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
+//            NodeConfiguration confContext = new NodeConfiguration();
+//            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location);
+//
+//            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
+//            var node = context.ServiceProvider.GetRequiredService<INode>();
+//            node.Register(mainChainNodeService);
+//            node.Initialize(confContext);
+//            node.Start();
         }
     }
 }
