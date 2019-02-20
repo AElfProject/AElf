@@ -1,5 +1,7 @@
 using System;
 using System.Reactive.Linq;
+using AElf.Common;
+using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,14 +23,15 @@ namespace AElf.Kernel.Consensus.DPoS.Infrastructure
             Logger = NullLogger<DPoSObserver>.Instance;
         }
 
-        public IDisposable Subscribe(byte[] consensusCommand)
+        public IDisposable Subscribe(byte[] consensusCommand, int chainId, Hash preBlockHash, ulong preBlockHeight)
         {
             var command = DPoSCommand.Parser.ParseFrom(consensusCommand);
 
-            Logger.LogInformation($"Will produce block after {command.CountingMilliseconds} ms.");
+            Logger.LogInformation($"Will produce block after {command.CountingMilliseconds} ms: {command.Behaviour.ToString()}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(command.CountingMilliseconds))
-                .Select(_ => command.ChainId).Subscribe(this);
+                .Select(_ => new BlockMiningEventData(chainId, preBlockHash, preBlockHeight,
+                    DateTime.UtcNow + TimeSpan.FromSeconds(4))).Subscribe(this);
         }
 
         public void OnCompleted()
@@ -39,10 +42,10 @@ namespace AElf.Kernel.Consensus.DPoS.Infrastructure
         {
         }
 
-        public void OnNext(int value)
+        public void OnNext(BlockMiningEventData value)
         {
             Logger.LogInformation($"Published block mining event, chain id: {value}");
-            EventBus.PublishAsync(new BlockMiningEventData(value));
+            EventBus.PublishAsync(value);
         }
     }
 }

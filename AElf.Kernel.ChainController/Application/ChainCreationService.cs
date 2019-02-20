@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Helpers;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -55,27 +51,9 @@ namespace AElf.Kernel.ChainController.Application
                 var builder = new GenesisBlockBuilder();
                 builder.Build(chainId);
 
-                var genesisAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
+                await _blockchainService.CreateChainAsync(chainId, builder.Block);
+                return await _blockchainService.GetChainAsync(chainId);
 
-
-                foreach (var smartContractRegistration in smartContractRegistrationList)
-                {
-                    builder.Block.Body.AddTransaction(new Transaction()
-                    {
-                        From = Address.Genesis,
-                        To = genesisAddress,
-                        MethodName = "InitSmartContract",
-                        Params = ByteString.CopyFrom(
-                            ParamsPacker.Pack(
-                                smartContractRegistration.SerialNumber,
-                                smartContractRegistration.Category,
-                                smartContractRegistration.ContractBytes.ToByteArray()))
-                    });
-                }
-
-
-                var chain = await _blockchainService.CreateChainAsync(chainId, builder.Block);
-                return chain;
             }
             catch (Exception e)
             {
