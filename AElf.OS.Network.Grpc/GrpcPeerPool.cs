@@ -26,10 +26,11 @@ namespace AElf.OS.Network.Grpc
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         
+        private readonly object _peersLock = new object(); 
         private readonly List<GrpcPeer> _authenticatedPeers;
         
         public ILocalEventBus EventBus { get; set; }
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
+        public ILogger<GrpcPeerPool> Logger { get; set; }
         
         private int ChainId
         {
@@ -44,7 +45,7 @@ namespace AElf.OS.Network.Grpc
             
             _authenticatedPeers = new List<GrpcPeer>();
             
-            Logger = NullLogger<GrpcNetworkServer>.Instance;
+            Logger = NullLogger<GrpcPeerPool>.Instance;
             EventBus = NullLocalEventBus.Instance;
 
             _dialTimeout = networkOptions.Value.PeerDialTimeout ?? NetworkConsts.DefaultPeerDialTimeout;
@@ -101,6 +102,7 @@ namespace AElf.OS.Network.Grpc
                 if (channel.State != ChannelState.Connecting)
                 {
                     await channel.TryWaitForStateChangedAsync(channel.State, DateTime.UtcNow.AddSeconds(_dialTimeout));
+                    Logger.LogDebug($"[{_networkOptions.ListeningPort}] Waited for Connected, current is {channel.State}");
                 }
                 
                 var resp = await client.ConnectAsync(hsk, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_dialTimeout)));
@@ -109,9 +111,15 @@ namespace AElf.OS.Network.Grpc
                 // todo if not correct we kill the channel. 
 
                 if (resp.Success != true)
+                {
+                    Logger.LogDebug($"[{_networkOptions.ListeningPort}] Could not connect to {address}.");
                     return false;
+                }
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); 
+                lock (_peersLock)
+                {
+                    _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); 
+                }
                         
                 Logger.LogTrace($"Connected to {address}.");
 

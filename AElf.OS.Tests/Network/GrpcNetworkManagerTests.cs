@@ -122,6 +122,7 @@ namespace AElf.OS.Tests.Network
                 .Returns(Task.FromResult(new BlockHeader()));
 
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
+            grpcPeerPool.Logger = _loggerFactory.CreateLogger<GrpcPeerPool>();
             GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
             serverService.Logger = _loggerFactory.CreateLogger<GrpcServerService>();
@@ -138,20 +139,20 @@ namespace AElf.OS.Tests.Network
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 8800 },
+            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 9800 },
             null,
             new List<Block> { (Block) genesis });
 
             var m2 = BuildNetManager(new NetworkOptions
             {
-                BootNodes = new List<string> {"127.0.0.1:8800"},
-                ListeningPort = 8801
+                BootNodes = new List<string> {"127.0.0.1:9800"},
+                ListeningPort = 9801
             });
 
             var m3 = BuildNetManager(new NetworkOptions
             {
-                BootNodes = new List<string> {"127.0.0.1:8801", "127.0.0.1:8800"},
-                ListeningPort = 8802
+                BootNodes = new List<string> {"127.0.0.1:9801", "127.0.0.1:9800"},
+                ListeningPort = 9802
             });
 
             await m1.Item1.StartAsync();

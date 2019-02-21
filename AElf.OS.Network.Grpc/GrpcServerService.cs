@@ -59,7 +59,7 @@ namespace AElf.OS.Network.Grpc
                 var peer = GrpcUrl.Parse(context.Peer);
                 var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
-                Logger.LogDebug($"[${context.Host}]Attempting to create channel to {peerServer}");
+                Logger.LogDebug($"[${context.Host}] Attempting to create channel to {peerServer}");
                 
                 Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);

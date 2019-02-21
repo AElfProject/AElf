@@ -116,8 +116,11 @@ namespace AElf.OS.Network.Grpc
                     return null;
                 }
             }
+
+            var peers = _peerPool.GetPeers();
+            Logger.LogDebug($"Trying {peers.Count} peers.");
             
-            foreach (var p in _peerPool.GetPeers())
+            foreach (var p in peers)
             {
                 Block block = await RequestBlockToAsync(request, p);
 
