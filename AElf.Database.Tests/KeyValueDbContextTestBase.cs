@@ -15,6 +15,7 @@ namespace AElf.Database.Tests
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             _context = GetRequiredService<TKeyValueDbContext>();
+            
             _database = _context.Database;
         }
 
