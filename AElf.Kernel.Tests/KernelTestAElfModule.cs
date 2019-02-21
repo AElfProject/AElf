@@ -5,7 +5,7 @@ using AElf.TestBase;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Tests
 {
     [DependsOn(typeof(CoreKernelAElfModule),
         typeof(TestBaseAElfModule))]

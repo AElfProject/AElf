@@ -1,10 +1,11 @@
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.Tests
 {
     public class BlockValidationProviderTests : AElfKernelTestBase
     {

@@ -2,11 +2,12 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
 
-namespace AElf.Kernel.Blockchain.Domain
+namespace AElf.Kernel.Tests
 {
     public static class BlockNumberExtensions
     {
