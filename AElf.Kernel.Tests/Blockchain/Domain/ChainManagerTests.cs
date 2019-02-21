@@ -575,5 +575,69 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToHex()).ShouldBeFalse();
             }
         }
+        
+        [Fact]
+        public async Task Test_Set_Block_Executed()
+        {
+            var firstBlockLink = new ChainBlockLink
+            {
+                Height = 1ul.BlockHeight(),
+                BlockHash = _blocks[1],
+                IsExecuted = false
+            };
+
+            await _chainManager.SetChainBlockLinkAsExecuted(0, firstBlockLink);
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
+            currentBlockLink.IsExecuted.ShouldBeTrue();
+            
+            var secondBlockLink = new ChainBlockLink
+            {
+                Height = 2ul.BlockHeight(),
+                BlockHash = _blocks[2],
+                IsExecuted = true
+            };
+
+            _chainManager.SetChainBlockLinkAsExecuted(0, secondBlockLink)
+                .ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Test_Set_Block_Validated()
+        {
+            var firstBlockLink = new ChainBlockLink
+            {
+                Height = 1ul.BlockHeight(),
+                BlockHash = _blocks[1],
+                IsValidated = false
+            };
+
+            await _chainManager.SetChainBlockLinkAsValidated(0, firstBlockLink);
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
+            currentBlockLink.IsValidated.ShouldBeTrue();
+            
+            var secondBlockLink = new ChainBlockLink
+            {
+                Height = 2ul.BlockHeight(),
+                BlockHash = _blocks[2],
+                IsValidated = true
+            };
+
+            _chainManager.SetChainBlockLinkAsValidated(0, secondBlockLink)
+                .ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Test_Set_Best_Chain()
+        {
+            var chain = await _chainManager.CreateAsync(0, _genesis);
+
+            await _chainManager.SetBestChain(chain.Id, 1ul.BlockHeight(), _blocks[1]);
+            var currentChain = await _chainManager.GetAsync(chain.Id);
+            currentChain.BestChainHeight.ShouldBe(1ul.BlockHeight());
+            currentChain.BestChainHash.ShouldBe(_blocks[1]);
+
+            _chainManager.SetBestChain(chain.Id, 1ul.BlockHeight(), _blocks[1])
+                .ShouldThrow<InvalidOperationException>();
+        }
     }
 }

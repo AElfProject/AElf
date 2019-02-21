@@ -62,6 +62,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 Id = chainId,
                 LongestChainHeight = GlobalConfig.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
+                BestChainHeight =  GlobalConfig.GenesisBlockHeight,
+                BestChainHash =  genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
