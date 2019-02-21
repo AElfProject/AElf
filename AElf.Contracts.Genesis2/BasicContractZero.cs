@@ -7,7 +7,7 @@ using Google.Protobuf;
 
 namespace AElf.Contracts.Genesis
 {
-    public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
+    public class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
 
         #region Views
@@ -81,7 +81,9 @@ namespace AElf.Contracts.Genesis
 
         public byte[] DeploySmartContract(int category, byte[] code)
         {
-            var serialNumber = GetNexSerialNumber();
+            var serialNumber = State.ContractSerialNumber.Value;
+            // Increment
+            State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
