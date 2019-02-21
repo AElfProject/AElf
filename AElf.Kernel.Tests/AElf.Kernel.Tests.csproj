@@ -1,45 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <RootNamespace>AElf.Kernel</RootNamespace>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-    <PackageReference Include="Google.Protobuf" Version="3.6.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="Volo.Abp.TestBase" Version="0.11.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="ZeroFormatter" Version="1.6.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-    <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="TransactionTests.cs" />
-    <Compile Remove="Concurrency\Execution\ChainExecutorTest.cs" />
-    <Compile Remove="Concurrency\Execution\ChainRequestorTest.cs" />
-    <Compile Remove="Concurrency\Execution\GeneralExecutorTest.cs" />
-    <Compile Remove="Concurrency\Execution\GeneralRequestorTest.cs" />
-    <Compile Remove="Concurrency\Execution\JobExecutorTest.cs" />
-    <Compile Remove="Concurrency\Execution\GroupExecutorTest.cs" />
-    <Compile Remove="Concurrency\Execution\BatchExecutorTest.cs" />
-    <Compile Remove="TxMemPool\IntegrationTest.cs" />
-    <Compile Remove="TxMemPool\TxPoolServiceTest.cs" />
-    <Compile Remove="TxMemPool\TxPoolTest.cs" />
-    <Compile Remove="AccountContextTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Concurrency\ResourceUsageDetectionServiceTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+    </ItemGroup>
+
 </Project>
