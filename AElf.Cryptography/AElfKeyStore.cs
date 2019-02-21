@@ -37,7 +37,8 @@ namespace AElf.Cryptography
             None = 0,
             AccountAlreadyUnlocked = 1,
             WrongPassword = 2,
-            WrongAccountFormat = 3
+            WrongAccountFormat = 3,
+            AccountFileNotFound = 4
         }
 
         public AElfKeyStore(string dataDirectory)
@@ -81,6 +82,10 @@ namespace AElf.Cryptography
             catch (InvalidPasswordException)
             {
                 return Errors.WrongPassword;
+            }
+            catch (KeyStoreNotFoundException)
+            {
+                return Errors.AccountFileNotFound;
             }
 
             return Errors.None;
