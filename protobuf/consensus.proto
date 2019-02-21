@@ -131,6 +131,7 @@ message MinerInRound {
     uint64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
     Address Address = 15;
+    int32 PromisedTinyBlocks = 16;
 }
 
 // The information of a candidate.
@@ -188,6 +189,7 @@ message DPoSInformation {
     repeated Address MinersList = 6;
     bool TimeToChangeTerm = 7;
     DPoSBehaviour Behaviour = 8;
+    int32 PromisedTinyBlocks = 9;
 }
 
 message DPoSExtraInformation {

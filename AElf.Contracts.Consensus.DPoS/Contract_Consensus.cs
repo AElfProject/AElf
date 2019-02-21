@@ -202,6 +202,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
         {
+            
             TryToGetMiningInterval(out var miningInterval);
             
             // To initial this chain.
@@ -210,7 +211,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new ConsensusCommand
                 {
                     CountingMilliseconds = Config.InitialWaitingMilliseconds,
-                    TimeoutMilliseconds = miningInterval / DPoSContractConsts.BlockNumberPerSlot,
+                    TimeoutMilliseconds = miningInterval,
                     Hint = new DPoSHint
                     {
                         Behaviour = DPoSBehaviour.InitialTerm
