@@ -112,6 +112,12 @@ namespace AElf.Contracts.Genesis
 
             Context.DeployContract(contractAddress, reg);
 
+            Context.FireEvent(new ContractHasBeenDeployed()
+            {
+                CodeHash = codeHash,
+                Address = contractAddress,
+            });
+            
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();

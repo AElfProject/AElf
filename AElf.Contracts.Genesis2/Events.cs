@@ -6,14 +6,14 @@ namespace AElf.Contracts.Genesis
     public class ContractHasBeenDeployed : Event
     {
         [Indexed] public Address Creator;
-        [Indexed] public Address Address;
         [Indexed] public Hash CodeHash;
+        public Address Address;
     }
 
     public class OwnerHasBeenChanged : Event
     {
         [Indexed] public Address Address;
-        [Indexed] public Address OldOwner;
-        [Indexed] public Address NewOwner;
+        public Address OldOwner;
+        public Address NewOwner;
     }
 }
