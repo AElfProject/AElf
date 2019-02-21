@@ -99,9 +99,9 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
             result.AddRange(grouped.Values);
 
             Logger.LogInformation(string.Format(
-                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", chainId.DumpBase58(),
+                "Grouper on chainId \"{0}\" group [{1}] transactions into [{2}] groups with sizes [{3}], There are also {4} transactions failed retriving resource", ChainHelpers.ConvertChainIdToBase58(chainId),
                 transactions.Count, result.Count, string.Join(", ", result.Select(a=>a.Count)), failedTxs.Count));
-            
+
             return new Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>(result, failedTxs);
         }
 

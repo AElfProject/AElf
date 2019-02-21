@@ -7,7 +7,7 @@ namespace AElf.OS.Network
 {
     public interface INetworkService
     {
-        Task AddPeerAsync(string address);
+        Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<string> GetPeers();
         

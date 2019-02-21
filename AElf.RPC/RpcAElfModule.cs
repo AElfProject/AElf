@@ -1,6 +1,5 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
-using AElf.Network;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
@@ -11,9 +10,8 @@ namespace AElf.RPC
 {
     [DependsOn(
         typeof(AbpAspNetCoreModule),
-        typeof(CoreKernelAElfModule),
-        //TODO: remove it
-        typeof(NetworkAElfModule))]
+        typeof(KernelAElfModule)
+        )]
     public class RpcAElfModule : AElfModule
     {
         private IServiceCollection _serviceCollection = null;
@@ -34,7 +32,6 @@ namespace AElf.RPC
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
-
             RpcServerHelpers.Configure(app, _serviceCollection);
         }
 

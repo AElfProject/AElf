@@ -3,7 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Configuration\AElf.Configuration.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
   </ItemGroup>

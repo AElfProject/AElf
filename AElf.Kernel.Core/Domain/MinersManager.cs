@@ -52,7 +52,7 @@ namespace AElf.Kernel.Domain
 
         public async Task SetMiners(Miners miners, int chainId)
         {
-            if (chainId.DumpBase58() != GlobalConfig.DefaultChainId)
+            if (ChainHelpers.ConvertChainIdToBase58(chainId) != GlobalConfig.DefaultChainId)
             {
                 return;
             }
