@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 using Xunit;
 using Shouldly;
 using Moq;
@@ -16,12 +17,12 @@ namespace AElf.Sdk.CSharp2.Tests
     public class ContractTest
     {
         private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
-        private IStateManager StateManager { get; } = new MockStateManager();
+        private IStateProvider StateProvider { get; } = new Mock<IStateProvider>().Object;
         private TokenContract Contract { get; } = new TokenContract();
 
         public ContractTest()
         {
-            Contract.SetStateProvider(new MockStateProviderFactory(StateManager).CreateStateProvider());
+            Contract.SetStateProvider(StateProvider);
             Contract.SetSmartContractContext(new SmartContractContext()
             {
                 ContractAddress = AddressList[0],
