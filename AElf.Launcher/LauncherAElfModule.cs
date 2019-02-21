@@ -6,6 +6,7 @@ using AElf.Modularity;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.Node;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
@@ -38,7 +39,8 @@ namespace AElf.Launcher
         typeof(SmartContractExecutionAElfModule),
         typeof(CSharpRuntimeAElfModule2),
         typeof(DPoSConsensusModule),
-        typeof(GrpcNetworkModule))]
+        typeof(GrpcNetworkModule),
+        typeof(NodeAElfModule))]
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;
@@ -67,7 +69,7 @@ namespace AElf.Launcher
             var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
             provider.DefaultContractZeroRegistration = new SmartContractRegistration()
             {
-                Category = 0,
+                Category = 2,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
