@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -48,8 +49,11 @@ namespace AElf.OS.Network.Grpc
             // Add the provided boot nodes
             if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
+                Stopwatch s = Stopwatch.StartNew();
                 List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
+                s.Stop();
+                Logger.LogDebug($"ELAPSED: {s.ElapsedMilliseconds} ms");
             }
             else
             {
