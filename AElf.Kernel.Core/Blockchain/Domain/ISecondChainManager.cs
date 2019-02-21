@@ -22,7 +22,6 @@ namespace AElf.Kernel.Blockchain.Domain
     {
         Task<Chain> CreateAsync(int chainId, Hash genesisBlock);
         Task<Chain> GetAsync(int chainId);
-        Task SetAsync(int chainId, Chain chain);
         Task<ChainBlockLink> GetChainBlockLinkAsync(int chainId, Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(int chainId, ulong blockHeight);
 
@@ -34,6 +33,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
         Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
         Task SetChainBlockLinkAsValidated(int chainId, ChainBlockLink blockLink);
+        Task SetBestChain(int chainId, ulong bestChainHeight, Hash bestChainHash);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -267,9 +267,18 @@ namespace AElf.Kernel.Blockchain.Domain
             await SetChainBlockLinkAsync(chainId, blockLink);
         }
 
-        public async Task SetAsync(int chainId, Chain chain)
+        public async Task SetBestChain(int chainId, ulong bestChainHeight, Hash bestChainHash)
         {
-            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+            var chain = await GetAsync(chainId);
+            if (chain.BestChainHeight >= bestChainHeight)
+            {
+                throw new InvalidOperationException();
+            }
+
+            chain.BestChainHeight = bestChainHeight;
+            chain.BestChainHash = bestChainHash;
+
+            await _chains.SetAsync(chainId.ToStorageKey(), chain);
         }
     }
 }

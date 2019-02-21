@@ -129,15 +129,16 @@ namespace AElf.Kernel.Blockchain.Application
 
                 foreach (var blockLink in blockLinks)
                 {
-                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, block))
+                    var linkedBlock = await GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
+                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
                     {
                         Logger.LogWarning($"Block validate fails before execution. BlockLink hash : {blockLink.BlockHash}");
                         break;
                     }
 
-                    await ExecuteBlock(chain.Id, blockLink);
+                    await ExecuteBlock(chain.Id, blockLink, linkedBlock);
 
-                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, block))
+                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
                     {
                         Logger.LogWarning($"Block validate fails after execution. BlockLink hash : {blockLink.BlockHash}");
                         break;
@@ -151,9 +152,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     if (lastBlockLink.Height > chain.BestChainHeight)
                     {
-                        chain.BestChainHeight = lastBlockLink.Height;
-                        chain.BestChainHash = lastBlockLink.BlockHash;
-                        _chainManager.SetAsync(chain.Id, chain);
+                        _chainManager.SetBestChain(chain.Id, lastBlockLink.Height,lastBlockLink.BlockHash);
                         
                         await LocalEventBus.PublishAsync(
                             new BestChainFoundEvent()
@@ -169,9 +168,8 @@ namespace AElf.Kernel.Blockchain.Application
             return blockLinks;
         }
 
-        private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
+        private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink, Block block)
         {
-            var block = await GetBlockByHashAsync(chainId, blockLink.BlockHash);
             // TODO: Save transactions in block
             var result =
                 await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
