@@ -29,7 +29,7 @@ namespace AElf.RPC.Tests
         {
             //TODO: here to generate basic chain data
 
-            Configure<ChainOptions>(o => { o.ChainId = "AELF"; });
+            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
