@@ -10,15 +10,15 @@ namespace AElf.Contracts.Genesis
     public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
         private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
-        
+
         #region Views
-        
+
         [View]
         public ulong CurrentContractSerialNumber()
         {
             return State.ContractSerialNumber.Value;
         }
-        
+
         [View]
         public string GetContractInfo(Address contractAddress)
         {
@@ -30,25 +30,25 @@ namespace AElf.Contracts.Genesis
 
             return info.ToString();
         }
-        
+
         [View]
         public Address GetContractOwner(Address contractAddress)
         {
             var info = State.ContractInfos[contractAddress];
             return info?.Owner;
         }
-        
+
         [View]
         public Hash GetContractHash(Address contractAddress)
         {
             var info = State.ContractInfos[contractAddress];
-            return info?.ContractHash;
+            return info?.CodeHash;
         }
-        
+
         #endregion Views
-        
+
         #region Actions
-        
+
         public void Initialize(Address authorizationContractAddress)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -60,9 +60,9 @@ namespace AElf.Contracts.Genesis
         {
             Assert(Context.CurrentHeight < 1, "The current height should be less than 1.");
             Assert(Context.Sender.Equals(Context.Genesis));
-            
+
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
-            
+
             var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
@@ -70,17 +70,17 @@ namespace AElf.Contracts.Genesis
                 SerialNumber = serialNumber,
                 Category = category,
                 Owner = Address.Genesis,
-                ContractHash = contractHash
+                CodeHash = contractHash
             };
             State.ContractInfos[contractAddress] = info;
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = category,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = contractHash
             };
-            
+
             Context.DeployContract(contractAddress, reg);
 
             Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
@@ -91,15 +91,15 @@ namespace AElf.Contracts.Genesis
         {
             var serialNumber = GetNexSerialNumber();
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
-            
+
             var codeHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
                 SerialNumber = serialNumber,
-                Category = category,
                 Owner = Context.Sender,
-                ContractHash = codeHash
+                Category = category,
+                CodeHash = codeHash
             };
             State.ContractInfos[contractAddress] = info;
 
@@ -116,8 +116,9 @@ namespace AElf.Contracts.Genesis
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
+                Creator = Context.Sender
             });
-            
+
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
@@ -143,21 +144,28 @@ namespace AElf.Contracts.Genesis
                 CheckAuthority(Context.Sender);
             }
 
-            var contractHash = Hash.FromRawBytes(code);
-            Assert(!existContract.ContractHash.Equals(contractHash), "Contract is not changed.");
+            var oldCodeHash = existContract.CodeHash;
+            var newCodeHash = Hash.FromRawBytes(code);
+            Assert(!oldCodeHash.Equals(newCodeHash), "Contract is not changed.");
 
-            existContract.ContractHash = contractHash;
+            existContract.CodeHash = newCodeHash;
             State.ContractInfos[contractAddress] = existContract;
 
             var reg = new SmartContractRegistration
             {
                 Category = existContract.Category,
                 Code = ByteString.CopyFrom(code),
-                CodeHash = contractHash
+                CodeHash = newCodeHash
             };
 
             Context.UpdateContract(contractAddress, reg);
-            
+            Context.FireEvent(new ContractCodeHasBeenUpdated()
+            {
+                Address = contractAddress,
+                OldCodeHash = oldCodeHash,
+                NewCodeHash = newCodeHash
+            });
+
             Console.WriteLine("BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
@@ -166,7 +174,7 @@ namespace AElf.Contracts.Genesis
         {
             var info = State.ContractInfos[contractAddress];
             Assert(info != null && info.Owner.Equals(Context.Sender), "no permission.");
-            
+
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             State.ContractInfos[contractAddress] = info;

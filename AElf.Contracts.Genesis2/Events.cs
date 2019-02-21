@@ -10,6 +10,13 @@ namespace AElf.Contracts.Genesis
         public Address Address;
     }
 
+    public class ContractCodeHasBeenUpdated : Event
+    {
+        [Indexed] public Address Address;
+        public Hash OldCodeHash;
+        public Hash NewCodeHash;
+    }
+
     public class OwnerHasBeenChanged : Event
     {
         [Indexed] public Address Address;
