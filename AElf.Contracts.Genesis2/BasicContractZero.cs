@@ -1,15 +1,13 @@
 using System;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis
 {
-    public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>
+    public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
         private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
         
@@ -58,7 +56,7 @@ namespace AElf.Contracts.Genesis
             State.Initialized.Value = true;
         }
 
-        public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
+        public byte[] InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
             Assert(Context.CurrentHeight < 1, "The current height should be less than 1.");
             Assert(Context.Sender.Equals(Context.Genesis));
@@ -83,13 +81,13 @@ namespace AElf.Contracts.Genesis
                 ContractHash = contractHash
             };
             
-            await Context.DeployContractAsync(contractAddress, reg);
+            Context.DeployContract(contractAddress, reg);
 
             Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
-        public async Task<byte[]> DeploySmartContract(int category, byte[] code)
+        public byte[] DeploySmartContract(int category, byte[] code)
         {
             var serialNumber = GetNexSerialNumber();
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
@@ -112,14 +110,14 @@ namespace AElf.Contracts.Genesis
                 ContractHash = contractHash
             };
 
-            await Context.DeployContractAsync(contractAddress, reg);
+            Context.DeployContract(contractAddress, reg);
 
             Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
-        public async Task<byte[]> UpdateSmartContract(Address contractAddress, byte[] code)
+        public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
         {
             var existContract = State.ContractInfos[contractAddress];
 
@@ -152,7 +150,7 @@ namespace AElf.Contracts.Genesis
                 ContractHash = contractHash
             };
 
-            await Context.UpdateContractAsync(contractAddress, reg);
+            Context.UpdateContract(contractAddress, reg);
             
             Console.WriteLine("BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
