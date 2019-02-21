@@ -11,6 +11,7 @@ namespace AElf.Kernel.Types.Tests
 {
     public class ChainHelpersTests
     {
+        //TODO: the Create_Random_ChainId sometimes fails
         /*
         [Fact]
         public void Create_Random_ChainId()
