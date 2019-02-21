@@ -15,12 +15,7 @@ namespace AElf.Kernel.Node.Application
     {
         public int ChainId { get; set; }
 
-        public string[] SystemContractAssemblyPaths { get; set; }
-
-        /// <summary>
-        /// default for csharp
-        /// </summary>
-        public int SmartContractCategory { get; set; } = 0; 
+        public Transaction[] Transactions { get; set; }
     }
 
     public interface IBlockchainNodeContextService
@@ -59,19 +54,7 @@ namespace AElf.Kernel.Node.Application
 
             if (chain == null)
             {
-                var registers = dto.SystemContractAssemblyPaths.Select((p, i) =>
-                {
-                    var codes = ReadContractCode(p);
-                    var reg = new SmartContractRegistration()
-                    {
-                        Category = dto.SmartContractCategory,
-                        Code = ByteString.CopyFrom(codes)
-                    };
-
-                    reg.CodeHash = Hash.FromRawBytes(codes);
-                    return reg;
-                }).ToList();
-                await _chainCreationService.CreateNewChainAsync(dto.ChainId, registers);
+                await _chainCreationService.CreateNewChainAsync(dto.ChainId, dto.Transactions);
             }
 
             return context;

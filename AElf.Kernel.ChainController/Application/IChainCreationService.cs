@@ -8,6 +8,6 @@ namespace AElf.Kernel.ChainController.Application
     /// </summary>
     public interface IChainCreationService
     {
-        Task<Chain> CreateNewChainAsync(int chainId, List<SmartContractRegistration> smartContractZeros);
+        Task<Chain> CreateNewChainAsync(int chainId, IEnumerable<Transaction> genesisTransactions);
     }
 }

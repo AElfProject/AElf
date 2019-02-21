@@ -18,19 +18,13 @@ namespace AElf.Kernel.ChainController.Application
 {
     public class ChainCreationService : IChainCreationService
     {
-        private readonly ISystemContractService _systemContractService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly IBlockExecutingService _blockExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
-        public ChainCreationService(ISystemContractService systemContractService, IBlockchainService blockchainService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
-            IBlockExecutingService blockExecutingService)
+        public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService)
         {
-            _systemContractService = systemContractService;
             _blockchainService = blockchainService;
-            _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _blockExecutingService = blockExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
         }
@@ -40,21 +34,11 @@ namespace AElf.Kernel.ChainController.Application
         /// </summary>
         /// <returns>The new chain async.</returns>
         /// <param name="chainId">The new chain id which will be derived from the creator address.</param>
-        /// <param name="smartContractRegistrationList">The smart contract registration containing the code of the SmartContractZero.</param>
-        public async Task<Chain> CreateNewChainAsync(int chainId,
-            List<SmartContractRegistration> smartContractRegistrationList)
+        /// <param name="genesisTransactions">The transactions to be executed in the genesis block.</param>
+        public async Task<Chain> CreateNewChainAsync(int chainId, IEnumerable<Transaction> genesisTransactions)
         {
             try
             {
-                var contractZero = Address.BuildContractAddress(chainId, 0);
-                var contractDeployments = smartContractRegistrationList.Select(x => new Transaction()
-                {
-                    From = contractZero,
-                    To = contractZero,
-                    MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(x.Category, x.Code))
-                });
-
                 var blockHeader = new BlockHeader
                 {
                     Height = GlobalConfig.GenesisBlockHeight,
@@ -63,7 +47,7 @@ namespace AElf.Kernel.ChainController.Application
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
 
-                var block = await _blockExecutingService.ExecuteBlockAsync(chainId, blockHeader, contractDeployments);
+                var block = await _blockExecutingService.ExecuteBlockAsync(chainId, blockHeader, genesisTransactions);
 
                 await _blockchainService.CreateChainAsync(chainId, block);
                 return await _blockchainService.GetChainAsync(chainId);
