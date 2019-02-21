@@ -19,7 +19,6 @@ namespace AElf.Database.Tests
         }
 
 
-        
         [Fact]
         public void IsConnectedTest()
         {
