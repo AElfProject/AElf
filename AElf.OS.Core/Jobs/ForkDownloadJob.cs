@@ -19,7 +19,7 @@ namespace AElf.OS.Jobs
 
         private int ChainId
         {
-            get { return ChainOptions.Value.ChainId.ConvertBase58ToChainId(); }
+            get { return ChainHelpers.ConvertBase58ToChainId(ChainOptions.Value.ChainId); }
         }
 
         public ForkDownloadJob()
