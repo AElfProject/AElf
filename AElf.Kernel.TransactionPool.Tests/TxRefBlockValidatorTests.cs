@@ -23,7 +23,6 @@ namespace AElf.Kernel.TransactionPool.Tests
         {
             _mock = new Mock<IBlockchainService>();
 
-
             _chainService = _mock.Object;
             _validator = new TxRefBlockValidator(_chainService);
         }
@@ -52,7 +51,6 @@ namespace AElf.Kernel.TransactionPool.Tests
             _returnsResult = _mock.Setup(x => x.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<ulong>(), null))
                 .Returns(Task.FromResult<Hash>(Hash.FromString("test")));
             _validator.ValidateAsync(ChainId, transaction).ShouldNotThrow();
-
         }
     }
 }

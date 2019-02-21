@@ -145,7 +145,7 @@ namespace AElf.Sdk.CSharp2.Tests
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
             SwitchOwner(AddressList[2]);
-            Should.Throw<AssertionError>(() => {Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL);});
+            Should.Throw<AssertionError>(() => { Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL); });
         }
 
         [Fact]

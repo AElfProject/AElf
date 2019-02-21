@@ -22,6 +22,5 @@ namespace AElf.Sdk.CSharp2.Tests
             10.Add(5).ShouldBe(15);
             Should.Throw<OverflowException>(() => { int.MaxValue.Add(8); });
         }
-
     }
 }
