@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace AElf.Kernel.Node.Application
                 ChainId = dto.ChainId,
                 TxHub = await _txHubs.CreateAsync(dto.ChainId)
             };
-            var chain = _blockchainService.GetChainAsync(dto.ChainId);
+            var chain = await _blockchainService.GetChainAsync(dto.ChainId);
 
             if (chain == null)
             {
