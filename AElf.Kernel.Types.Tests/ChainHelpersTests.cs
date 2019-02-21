@@ -24,9 +24,11 @@ namespace AElf.Kernel.Types.Tests
         {
             var base58HashSet = new HashSet<string>();
             var intHashSet = new HashSet<int>();
-            for (var i = 195112UL; i < 11316496UL; i++)
+            // Have tested all the conditions (195112UL ~ 11316496UL), To save time, just do some random test
+            // for (var i = ; i < 11316496UL; i++)
+            for (var i = 0; i < 1000; i++)
             {
-                var chainId = ChainHelpers.GetChainId(i);
+                var chainId = ChainHelpers.GetRandomChainId();
                 var base58String = ChainHelpers.ConvertChainIdToBase58(chainId);
                 base58String.Length.ShouldBe(4);
                 var newChainId = ChainHelpers.ConvertBase58ToChainId(base58String);
