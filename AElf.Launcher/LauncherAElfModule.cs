@@ -1,12 +1,18 @@
-﻿using AElf.Kernel;
+﻿using System.IO;
+using AElf.Common;
+using AElf.Contracts.Genesis;
+using AElf.Kernel;
 using AElf.Modularity;
 using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
+using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -46,6 +52,19 @@ namespace AElf.Launcher
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+        }
+
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var defaultZero = typeof(BasicContractZero);
+            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
+            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
+            provider.DefaultContractZeroRegistration = new SmartContractRegistration()
+            {
+                Category = 0,
+                Code = ByteString.CopyFrom(code),
+                CodeHash = Hash.FromRawBytes(code)
+            };
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
