@@ -15,7 +15,6 @@ using Xunit;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
-    /*
     public class StateTest
     {
         internal T GetValue<T>()
@@ -63,7 +62,6 @@ namespace AElf.Sdk.CSharp2.Tests
             throw new Exception("Not supported type.");
         }
 
-
         private void SetValues(MockContractState state)
         {
             state.BoolState.Value = GetValue<bool>();
@@ -104,7 +102,7 @@ namespace AElf.Sdk.CSharp2.Tests
         }
 
         [Fact]
-        public async Task Test1()
+        public async Task State_Test()
         {
             var stateManager = new MockStateManager();
             var path = new StatePath();
@@ -179,5 +177,4 @@ namespace AElf.Sdk.CSharp2.Tests
             });
         }
     }
-    */
 }
