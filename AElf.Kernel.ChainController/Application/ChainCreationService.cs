@@ -36,8 +36,8 @@ namespace AElf.Kernel.ChainController.Application
                 // TODO: Centralize this function in Hash class
                 // SmartContractZero address can be derived from ChainId
 
-                var zeroRegistration = smartContractRegistrationList.Find(s => s.SerialNumber == 0);
-                await _smartContractService.DeployZeroContractAsync(chainId, zeroRegistration);
+//                var zeroRegistration = smartContractRegistrationList.Find(s => s.SerialNumber == 0);
+//                await _smartContractService.DeployZeroContractAsync(chainId, zeroRegistration);
 
                 /*
                 foreach (var reg in smartContractRegistration)

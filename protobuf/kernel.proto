@@ -205,7 +205,6 @@ message SmartContractRegistration {
     int32 Category = 1;
     Hash ContractHash = 2;
     bytes ContractBytes = 3;
-    uint64 SerialNumber=4;
 }
 
 message SmartContractDeployment {

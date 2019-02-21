@@ -65,7 +65,6 @@ namespace AElf.Kernel.Node.Application
                     var reg = new SmartContractRegistration()
                     {
                         Category = dto.SmartContractCategory,
-                        SerialNumber = (ulong) i,
                         ContractBytes = ByteString.CopyFrom(codes)
                     };
 
