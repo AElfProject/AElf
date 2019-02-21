@@ -14,13 +14,13 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly IPeerPool _peerPool;
         
-        public ILogger<GrpcServerService> Logger { get; set; }
+        public ILogger<GrpcNetworkService> Logger { get; set; }
 
         public GrpcNetworkService(IPeerPool peerPool)
         {
             _peerPool = peerPool;
             
-            Logger = NullLogger<GrpcServerService>.Instance;
+            Logger = NullLogger<GrpcNetworkService>.Instance;
         }
 
         public async Task<bool> AddPeerAsync(string address)
