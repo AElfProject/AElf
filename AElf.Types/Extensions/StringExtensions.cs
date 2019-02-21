@@ -30,10 +30,5 @@ namespace AElf.Common
         {
             return Base58CheckEncoding.DecodePlain(value);
         }
-
-        public static bool IsNullOrEmpty(this string value)
-        {
-            return string.IsNullOrEmpty(value);
-        }
     }
 }

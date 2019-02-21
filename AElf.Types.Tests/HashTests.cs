@@ -1,50 +1,74 @@
 using System.Collections.Generic;
 using Xunit;
-//using AElf.Common;
+using AElf.Common;
+using Shouldly;
 
 namespace AElf.Types.Tests
 {
     public class HashTests
     {
-//        [Fact]
-//        public void EqualTest()
-//        {
-//            var hash1 = new Hash(new byte[] {10, 14, 1, 15});
-//            var hash2 = new Hash(new byte[] {10, 14, 1, 15});
-//            var hash3 = new Hash(new byte[] {15, 1, 14, 10});
-//            Assert.True(hash1 == hash2);
-//            Assert.False(hash1 == hash3);
-//        }
-//
-//        [Fact]
-//        public void CompareTest()
-//        {
-//            var hash1 = new Hash(new byte[] {10, 14, 1, 15});
-//            var hash2 = new Hash(new byte[] {15, 1, 14, 10});
-//            
-//            Assert.True(new Hash().Compare(hash1, hash2) == -1);
-//        }
-//
-//        [Fact]
-//        public void DictionaryTest()
-//        {
-//            var dict = new Dictionary<Hash, string>();
-//            var hash = new Hash(new byte[] {10, 14, 1, 15});
-//            dict[hash] = "test";
-//            
-//            var anotherHash = new Hash(new byte[] {10, 14, 1, 15});
-//            
-//            Assert.True(dict.TryGetValue(anotherHash, out var test));
-//            Assert.Equal("test", test);
-//        }
 
         [Fact]
-        public void RandomHashTest()
+        public void Generate_Hash()
         {
-//            var hash1 = Hash.Generate();
-//            var hash2 = Hash.Generate();
-//            
-//            Assert.False(hash1 == hash2);
+            //Generate randomly
+            var hash1 = Hash.Generate();
+            var hash2 = Hash.Generate();
+            hash1.ShouldNotBe(hash2);
+
+            //Generate from string
+            var hash3 = Hash.FromString("Test");
+            hash3.ShouldNotBe(null);
+
+            //Generate from byte
+            var bytes = new byte[]{00, 12, 14, 16};
+            var hash4 = Hash.FromRawBytes(bytes);
+            hash4.ShouldNotBe(null);
+
+            //Generate from teo hash
+            var hash5 = Hash.FromTwoHashes(hash1, hash2);
+            hash5.ShouldNotBe(null);
+        }
+
+        [Fact]
+        public void Get_Hash_Info()
+        {
+            var hash = Hash.Generate();
+            var byteArray = hash.DumpByteArray();
+            var hexString = hash.ToHex();
+            byteArray.Length.ShouldBe(32);
+            hexString.ShouldNotBe(string.Empty);
+        }
+
+        [Fact]
+        public void EqualTest()
+        {
+            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash3 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
+            hash1.ShouldBe(hash2);
+            hash1.ShouldNotBe(hash3);
+        }
+
+        [Fact]
+        public void CompareTest()
+        {
+            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
+            hash1.CompareTo(hash2).ShouldBe(-1);
+        }
+
+        [Fact]
+        public void DictionaryTest()
+        {
+            var dict = new Dictionary<Hash, string>();
+            var hash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            dict[hash] = "test";
+
+            var anotherHash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+
+            Assert.True(dict.TryGetValue(anotherHash, out var test));
+            test.ShouldBe("test");
         }
     }
 }
