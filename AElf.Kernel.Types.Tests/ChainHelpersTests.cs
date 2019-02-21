@@ -28,13 +28,13 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void Base58_Dump_And_Convert()
+        public void Convert_ChainId_To_Base58()
         {
             var chainId = ChainHelpers.GetRandomChainId();
-            var dumpStr = chainId.DumpBase58();
+            var dumpStr = ChainHelpers.ConvertChainIdToBase58(chainId);
             dumpStr.ShouldNotBe(string.Empty);
 
-            var chainId1 = dumpStr.ConvertBase58ToChainId();
+            var chainId1 = ChainHelpers.ConvertBase58ToChainId(dumpStr);
             chainId1.ShouldBe(chainId);
         }
     }

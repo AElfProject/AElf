@@ -290,7 +290,7 @@ namespace AElf.Kernel.SmartContract
                         var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement, referenceAddress.GetFormatted());
                         if (!callingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + chainId.DumpBase58() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
+                            throw new FunctionMetadataException("ChainId [" + ChainHelpers.ConvertChainIdToBase58(chainId) + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
                         }
                         outEdgesToAdd.Add(new Edge<string>(sourceFunc, globalCalledFunc));
                     }
@@ -329,7 +329,7 @@ namespace AElf.Kernel.SmartContract
                         var globalCalledFunc = Replacement.ReplaceValueIntoReplacement(calledFunc, memberReplacement, referenceAddress.GetFormatted());
                         if (!callingGraph.ContainsVertex(globalCalledFunc))
                         {
-                            throw new FunctionMetadataException("ChainId [" + chainId.DumpBase58() + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
+                            throw new FunctionMetadataException("ChainId [" + ChainHelpers.ConvertChainIdToBase58(chainId) + "] Unknow reference of the foreign target in edge <" + sourceFunc + ","+calledFunc+"> when trying to add contract " + contractMetadataTemplate.FullName + " into calling graph, consider the target function does not exist in the metadata");
                         }
                         callingGraph.RemoveEdge(new Edge<string>(sourceFunc, globalCalledFunc));
                     }

@@ -69,8 +69,8 @@ namespace AElf.OS.Tests.Network.Sync
                 .Returns(Task.FromResult(false)); // this service never has the block
             
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
-            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
-            
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetRandomChainId()) });
+
             // Network layer and service is mocked
 //            _eventBus.Subscribe<PeerConnectedEventData>(args =>
 //            {
