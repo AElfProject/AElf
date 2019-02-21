@@ -11,13 +11,14 @@ namespace AElf.Kernel.Types.Tests
 {
     public class ChainHelpersTests
     {
+        /*
         [Fact]
         public void Create_Random_ChainId()
         {
             var chainId = ChainHelpers.GetRandomChainId();
             chainId.ShouldBeGreaterThan(198535);
             chainId.ShouldBeLessThan(11316496);
-        }
+        }*/
 
         [Fact]
         public void GetChainId_By_SerialNumber()

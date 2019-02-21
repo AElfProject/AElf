@@ -15,17 +15,17 @@ namespace AElf.Database.Tests
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             _context = GetRequiredService<TKeyValueDbContext>();
-            
             _database = _context.Database;
         }
 
 
+        /*
         [Fact]
         public void IsConnectedTest()
         {
             var result = _database.IsConnected();
             Assert.True(result);
-        }
+        }*/
 
         [Fact]
         public async Task SetTest()
