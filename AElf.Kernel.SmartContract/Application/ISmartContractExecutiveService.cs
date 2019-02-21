@@ -13,7 +13,8 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveService
     {
-        Task<IExecutive> GetExecutiveAsync(int chainId, Address address);
+        Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address);
+        Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg);
 
         Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
 
@@ -81,28 +82,10 @@ namespace AElf.Kernel.SmartContract.Application
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, Address address)
+        public async Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address)
         {
-
-            var reg = await _systemContractService.GetSmartContractRegistrationAsync(chainId, address);
-            
-            var pool = await GetPoolForAsync(reg.CodeHash);
-
-            if (!pool.TryTake(out var executive))
-            {
-                // get runner
-                var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-                if (runner == null)
-                {
-                    throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
-                }
-
-                // run smartcontract executive info and return executive
-                executive = await runner.RunAsync(reg);
-                executive.ContractHash = reg.CodeHash;
-            }
-
-            executive.SetStateProviderFactory(_stateProviderFactory);
+            var reg = await _systemContractService.GetSmartContractRegistrationAsync(chainId, chainContext, address);
+            var executive = await GetExecutiveAsync(reg);
 
             executive.SetSmartContractContext(new SmartContractContext()
             {
@@ -135,6 +118,28 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
             return runner.GetAbi(reg);
+        }
+
+        public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
+        {
+            var pool = await GetPoolForAsync(reg.CodeHash);
+
+            if (!pool.TryTake(out var executive))
+            {
+                // get runner
+                var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+                if (runner == null)
+                {
+                    throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
+                }
+
+                // run smartcontract executive info and return executive
+                executive = await runner.RunAsync(reg);
+                executive.ContractHash = reg.CodeHash;
+            }
+
+            executive.SetStateProviderFactory(_stateProviderFactory);
+            return executive;
         }
     }
 }

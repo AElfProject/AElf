@@ -15,7 +15,7 @@ namespace AElf.Kernel.Node.Application
     {
         public int ChainId { get; set; }
 
-        public string[] SystemSmartContractAssemblyNames { get; set; }
+        public string[] SystemContractAssemblyPaths { get; set; }
 
         /// <summary>
         /// default for csharp
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Node.Application
 
             if (chain == null)
             {
-                var registers = dto.SystemSmartContractAssemblyNames.Select((p, i) =>
+                var registers = dto.SystemContractAssemblyPaths.Select((p, i) =>
                 {
                     var codes = ReadContractCode(p);
                     var reg = new SmartContractRegistration()
@@ -82,9 +82,8 @@ namespace AElf.Kernel.Node.Application
             await _txHubs.RemoveAsync(blockchainNodeContext.ChainId);
         }
 
-        private byte[] ReadContractCode(string assemblyName)
+        private byte[] ReadContractCode(string path)
         {
-            var path = Path.Combine(_assemblyPath, $"{assemblyName}.dll");
             return File.ReadAllBytes(Path.GetFullPath(path));
         }
         

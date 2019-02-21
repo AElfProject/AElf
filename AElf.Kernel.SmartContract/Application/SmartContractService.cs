@@ -34,15 +34,6 @@ namespace AElf.Kernel.SmartContract.Application
             _chainService = chainService;
         }
 
-        public async Task DeployZeroContractAsync(int chainId, SmartContractRegistration registration)
-        {
-            registration.CodeHash = Hash.FromMessage(ContractHelpers.GetGenesisBasicContractAddress(chainId));
-
-            await _smartContractManager.InsertAsync(registration);
-        }
-
-
-
         /// <inheritdoc/>
         public async Task DeployContractAsync(int chainId, Address contractAddress,
             SmartContractRegistration registration, bool isPrivileged)

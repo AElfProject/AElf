@@ -1,18 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.SmartContract.Domain;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISystemContractService
     {
-        Task<SmartContractRegistration> GetSmartContractRegistrationAsync(int chainId, Address address);
-    }
-    
-    public class SystemContractService : ISystemContractService
-    {
-        public async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(int chainId, Address address)
-        {
-            throw new System.NotImplementedException();
-        }
+        Task<SmartContractRegistration> GetSmartContractRegistrationAsync(int chainId, IChainContext chainContext,
+            Address address);
     }
 }
