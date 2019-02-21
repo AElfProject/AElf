@@ -31,7 +31,7 @@ namespace AElf.OS.Network.Grpc
         
         private int ChainId
         {
-            get { return _chainOptions.ChainId.ConvertBase58ToChainId(); }
+            get { return ChainHelpers.ConvertBase58ToChainId(_chainOptions.ChainId); }
         }
         
         public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IBlockchainService blockChainService)
