@@ -131,7 +131,6 @@ namespace AElf.OS.Tests.Network
             netServer.Logger = _loggerFactory.CreateLogger<GrpcNetworkServer>();
 
             return (netServer, grpcPeerPool);
-
         }
 
         [Fact]
