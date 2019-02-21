@@ -9,7 +9,6 @@ namespace AElf.Contracts.Genesis
 {
     public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
-        private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
 
         #region Views
 
@@ -48,13 +47,6 @@ namespace AElf.Contracts.Genesis
         #endregion Views
 
         #region Actions
-
-        public void Initialize(Address authorizationContractAddress)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.AuthorizationContract.Value = authorizationContractAddress;
-            State.Initialized.Value = true;
-        }
 
         public byte[] InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
@@ -126,34 +118,21 @@ namespace AElf.Contracts.Genesis
 
         public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
         {
-            var existContract = State.ContractInfos[contractAddress];
+            var info = State.ContractInfos[contractAddress];
 
-            Assert(existContract != null, "Contract is not exist.");
+            Assert(info != null, "Contract does not exist.");
+            Assert(info.Owner.Equals(Context.Sender), "Only owner is allowed to update code.");
 
-            var isMultiSigAccount = IsMultiSigAccount(existContract.Owner);
-            if (!existContract.Owner.Equals(Context.Sender))
-            {
-                Assert(isMultiSigAccount, "no permission.");
-                var proposeHash = Propose("UpdateSmartContract", DeployWaitingPeriod, existContract.Owner,
-                    Context.Self, "UpdateSmartContract", contractAddress, code);
-                return proposeHash.DumpByteArray();
-            }
-
-            if (isMultiSigAccount)
-            {
-                CheckAuthority(Context.Sender);
-            }
-
-            var oldCodeHash = existContract.CodeHash;
+            var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
-            Assert(!oldCodeHash.Equals(newCodeHash), "Contract is not changed.");
+            Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
 
-            existContract.CodeHash = newCodeHash;
-            State.ContractInfos[contractAddress] = existContract;
+            info.CodeHash = newCodeHash;
+            State.ContractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
             {
-                Category = existContract.Category,
+                Category = info.Category,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = newCodeHash
             };
