@@ -12,6 +12,8 @@ namespace AElf.Kernel.Node.Domain
     {
         T Get(int chainId);
         Task<T> CreateAsync(int chainId);
+
+        Task RemoveAsync(int chainId);
     }
 
     public class ChainRelatedComponentManager<T> : IChainRelatedComponentManager<T>, ISingletonDependency
@@ -38,6 +40,15 @@ namespace AElf.Kernel.Node.Domain
             await obj.StartAsync(chainId);
 
             return !_components.TryAdd(chainId, obj) ? _components[chainId] : obj;
+        }
+
+        public async Task RemoveAsync(int chainId)
+        {
+            _components.TryRemove(chainId, out var obj);
+            if (obj != null)
+            {
+                await obj.StopAsync();
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using AElf.Common;
-//using Google.Protobuf;
-//using Google.Protobuf.WellKnownTypes;
-//using Xunit;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AElf.Common;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Xunit;
 
-/*
+
 namespace AElf.Kernel.Types.Tests
 {
     public class BloomTests
@@ -158,4 +158,3 @@ namespace AElf.Kernel.Types.Tests
         }
     }
 }
-*/

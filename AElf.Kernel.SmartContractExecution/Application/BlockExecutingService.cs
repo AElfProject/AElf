@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHash = block.Header.PreviousBlockHash,
                 BlockHeight = block.Header.Height - 1
             };
-            var returnSets = await _executingService.ExecuteAsync(chainId, chainContext, readyTxs,
+            var returnSets = await _executingService.ExecuteAsync(chainContext, readyTxs,
                 block.Header.Time.ToDateTime(), CancellationToken.None);
             foreach (var returnSet in returnSets)
             {
@@ -89,9 +89,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHeight = blockHeader.Height,
                 PreviousHash = blockHeader.PreviousBlockHash
             };
-            var nonCancellableReturnSets = await _executingService.ExecuteAsync(chainId, chainContext, nonCancellable,
+            var nonCancellableReturnSets = await _executingService.ExecuteAsync( chainContext, nonCancellable,
                 blockHeader.Time.ToDateTime(), CancellationToken.None);
-            var cancellableReturnSets = await _executingService.ExecuteAsync(chainId, chainContext, cancellable,
+            var cancellableReturnSets = await _executingService.ExecuteAsync( chainContext, cancellable,
                 blockHeader.Time.ToDateTime(), cancellationToken);
 
             foreach (var returnSet in nonCancellableReturnSets)

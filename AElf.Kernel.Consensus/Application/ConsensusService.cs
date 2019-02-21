@@ -134,7 +134,7 @@ namespace AElf.Kernel.Consensus.Application
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(chainId, chainContext,
+            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(chainContext,
                 new List<Transaction> {tx},
                 DateTime.UtcNow, new CancellationToken());
             return executionReturnSets.Last().ReturnValue;
