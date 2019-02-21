@@ -33,8 +33,6 @@ namespace AElf.Kernel.Node.Application
         private IBlockchainService _blockchainService;
         private IChainCreationService _chainCreationService;
 
-        private string _assemblyPath = Path.GetDirectoryName(typeof(BlockchainNodeContextService).Assembly.Location);
-
         public BlockchainNodeContextService(IChainRelatedComponentManager<ITxHub> txHubs,
             IBlockchainService blockchainService, IChainCreationService chainCreationService)
         {
