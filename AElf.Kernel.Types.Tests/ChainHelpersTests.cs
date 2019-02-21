@@ -15,27 +15,25 @@ namespace AElf.Kernel.Types.Tests
         public void Create_Random_ChainId()
         {
             var chainId = ChainHelpers.GetRandomChainId();
-            chainId.ShouldBeGreaterThan(198535);
-            chainId.ShouldBeLessThan(11316496);
+            var base58String = ChainHelpers.ConvertChainIdToBase58(chainId);
+            base58String.Length.ShouldBe(4);
         }
 
         [Fact]
         public void GetChainId_By_SerialNumber()
         {
-            var chainId = ChainHelpers.GetChainId(ContractConsts.AuthorizationContract);
-            chainId.ShouldBeGreaterThan(198535);
-            chainId.ShouldBeLessThan(11316496);
-        }
-
-        [Fact]
-        public void Convert_ChainId_To_Base58()
-        {
-            var chainId = ChainHelpers.GetRandomChainId();
-            var dumpStr = ChainHelpers.ConvertChainIdToBase58(chainId);
-            dumpStr.ShouldNotBe(string.Empty);
-
-            var chainId1 = ChainHelpers.ConvertBase58ToChainId(dumpStr);
-            chainId1.ShouldBe(chainId);
+            var base58HashSet = new HashSet<string>();
+            var intHashSet = new HashSet<int>();
+            for (var i = 195112UL; i < 11316496UL; i++)
+            {
+                var chainId = ChainHelpers.GetChainId(i);
+                var base58String = ChainHelpers.ConvertChainIdToBase58(chainId);
+                base58String.Length.ShouldBe(4);
+                var newChainId = ChainHelpers.ConvertBase58ToChainId(base58String);
+                newChainId.ShouldBe(chainId);
+                base58HashSet.Add(base58String).ShouldBe(true);
+                intHashSet.Add(newChainId).ShouldBe(true);
+            }
         }
     }
 }
