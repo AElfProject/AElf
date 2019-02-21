@@ -54,6 +54,7 @@ namespace AElf.Kernel
                 minerInRound.ExpectedMiningTime =
                     GetTimestampOfUtcNow(i * miningInterval + GlobalConfig.AElfWaitFirstRoundTime);
                 minerInRound.PublicKey = enumerable[i];
+                minerInRound.PromisedTinyBlocks = 1;
 
                 infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
@@ -92,6 +93,7 @@ namespace AElf.Kernel
                                          GlobalConfig.AElfWaitFirstRoundTime);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
+                minerInRound.PromisedTinyBlocks = 1;
 
                 infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
@@ -180,7 +182,7 @@ namespace AElf.Kernel
                 }
             }
 
-            var extraBlockMiningTime = previousRound.GetEBPMiningTime(miningInterval).ToTimestamp();
+            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime(miningInterval).ToTimestamp();
 
             // Maybe because something happened with setting extra block time slot.
             if (extraBlockMiningTime.ToDateTime().AddMilliseconds(miningInterval * 1.5) <
@@ -197,7 +199,8 @@ namespace AElf.Kernel
                     ExpectedMiningTime =
                         GetTimestampWithOffset(extraBlockMiningTime, i * miningInterval + miningInterval),
                     Order = i + 1,
-                    PublicKey = minerPublicKey
+                    PublicKey = minerPublicKey,
+                    PromisedTinyBlocks = 1
                 };
 
                 round.RealTimeMinersInfo[minerPublicKey] = minerInRound;

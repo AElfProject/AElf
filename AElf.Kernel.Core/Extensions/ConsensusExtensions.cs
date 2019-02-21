@@ -39,50 +39,6 @@ namespace AElf.Kernel
             return new Miners {PublicKeys = {minerPublicKeys}};
         }
 
-        /// <summary>
-        /// For calculating hash.
-        /// </summary>
-        /// <param name="votingRecord"></param>
-        /// <returns></returns>
-        public static VotingRecord ToSimpleRecord(this VotingRecord votingRecord)
-        {
-            return new VotingRecord
-            {
-                Count = votingRecord.Count,
-                From = votingRecord.From,
-                To = votingRecord.To,
-                TermNumber = votingRecord.TermNumber,
-                
-            };
-        }
-
-        public static StringList ToStringList(this IEnumerable<string> list)
-        {
-            return new StringList {Values = {list}};
-        }
-
-        public static TicketsDictionary ToTicketsDictionary(this Dictionary<string, Tickets> dictionary)
-        {
-            var ticketsDictionary = new TicketsDictionary();
-            foreach (var keyPair in dictionary)
-            {
-                ticketsDictionary.Maps.Add(keyPair.Key, keyPair.Value);
-            }
-
-            return ticketsDictionary;
-        }
-        
-        public static TicketsDictionary ToTicketsDictionary(this IEnumerable<KeyValuePair<string, Tickets>> dictionary)
-        {
-            var ticketsDictionary = new TicketsDictionary();
-            foreach (var keyPair in dictionary)
-            {
-                ticketsDictionary.Maps.Add(keyPair.Key, keyPair.Value);
-            }
-
-            return ticketsDictionary;
-        }
-
         public static BlockAbstract GetAbstract(this IBlock block)
         {
             return new BlockAbstract
@@ -90,11 +46,6 @@ namespace AElf.Kernel
                 MinerPublicKey = block.Header.P.ToByteArray().ToHex(),
                 Time = block.Header.Time
             };
-        }
-        
-        public static bool IsSuccess(this BlockValidationResult result)
-        {
-            return (int) result < 11;
         }
     }
 }

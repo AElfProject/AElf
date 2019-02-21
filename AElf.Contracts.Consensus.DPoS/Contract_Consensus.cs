@@ -222,14 +222,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // To terminate current round.
             if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
             {
-                var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
+                var extraBlockMiningTime = roundInformation.GetExtraBlockMiningTime(miningInterval);
                 if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new ConsensusCommand
                     {
                         CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / DPoSContractConsts.BlockNumberPerSlot,
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                         Hint = new DPoSHint
                         {
                             Behaviour = DPoSBehaviour.NextRound
@@ -246,7 +246,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         CountingMilliseconds =
                             (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
-                        TimeoutMilliseconds = miningInterval / DPoSContractConsts.BlockNumberPerSlot,
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                         Hint = new DPoSHint
                         {
                             Behaviour = DPoSBehaviour.NextRound
@@ -257,7 +257,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new ConsensusCommand
                 {
                     CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
-                    TimeoutMilliseconds = miningInterval / DPoSContractConsts.BlockNumberPerSlot,
+                    TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                     Hint = new DPoSHint
                     {
                         Behaviour = DPoSBehaviour.NextRound
@@ -271,7 +271,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ConsensusCommand
             {
                 CountingMilliseconds = expect >= 0 ? expect : int.MaxValue,
-                TimeoutMilliseconds = miningInterval / DPoSContractConsts.BlockNumberPerSlot,
+                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                 Hint = new DPoSHint
                 {
                     Behaviour = DPoSBehaviour.PackageOutValue

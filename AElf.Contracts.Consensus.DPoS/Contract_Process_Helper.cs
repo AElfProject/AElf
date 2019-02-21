@@ -530,6 +530,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             roundInformation.RealTimeMinersInfo[publicKey].ProducedBlocks += 1;
 
+            roundInformation.RealTimeMinersInfo[publicKey].PromisedTinyBlocks = toPackage.PromiseTinyBlocks;
+
             TryToUpdateRoundInformation(roundInformation);
         }
 
@@ -543,14 +545,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Assert(TryToGetCurrentRoundInformation(out var roundInformation),
                 "Round information not found.");
-//            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue != null,
-//                DPoSContractConsts.OutValueIsNull);
-//            Assert(roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].Signature != null,
-//                DPoSContractConsts.SignatureIsNull);
-//            Assert(
-//                roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].OutValue ==
-//                Hash.FromMessage(toBroadcast.InValue),
-//                DPoSContractConsts.InValueNotMatchToOutValue);
 
             roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 

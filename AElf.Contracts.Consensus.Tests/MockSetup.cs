@@ -35,8 +35,8 @@ namespace AElf.Contracts.Consensus.Tests
 
         public string ConsensusContractName => "AElf.Contracts.Consensus.DPoS";
         public string DividendsContractName => "AElf.Contracts.Dividends";
-        public string TokenContractName => "AElf.Contracts.Token";
-        public string ZeroContractName => "AElf.Contracts.Genesis";
+        public string TokenContractName => "AElf.Contracts.Token2";
+        public string ZeroContractName => "AElf.Contracts.Genesis2";
 
         public static byte[] GetContractCode(string contractName)
         {
@@ -52,13 +52,13 @@ namespace AElf.Contracts.Consensus.Tests
                 ContractHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
                 SerialNumber = GlobalConfig.ConsensusContract
             };
-            var dividendsReg = new SmartContractRegistration
-            {
-                Category = 0,
-                ContractBytes = ByteString.CopyFrom(GetContractCode(DividendsContractName)),
-                ContractHash = Hash.FromRawBytes(GetContractCode(DividendsContractName)),
-                SerialNumber = GlobalConfig.DividendsContract
-            };
+//            var dividendsReg = new SmartContractRegistration
+//            {
+//                Category = 0,
+//                ContractBytes = ByteString.CopyFrom(GetContractCode(DividendsContractName)),
+//                ContractHash = Hash.FromRawBytes(GetContractCode(DividendsContractName)),
+//                SerialNumber = GlobalConfig.DividendsContract
+//            };
             var tokenReg = new SmartContractRegistration
             {
                 Category = 0,
@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.Tests
             };
 
             await _chainCreationService.CreateNewChainAsync(ChainId,
-                new List<SmartContractRegistration> {basicReg, consensusReg, dividendsReg, tokenReg});
+                new List<SmartContractRegistration> {basicReg, consensusReg, tokenReg});
         }
     }
 }

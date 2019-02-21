@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Types;
@@ -27,8 +26,6 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
-        private readonly ISmartContractService _smartContractService;
-        private readonly IBlockchainService _blockchainService;
         private readonly ISystemContractService _systemContractService;
 
 
@@ -36,13 +33,10 @@ namespace AElf.Kernel.SmartContract.Application
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
 
         public SmartContractExecutiveService(
-            ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IBlockchainService blockchainService, ISmartContractService smartContractService, ISystemContractService systemContractService)
+            ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory, ISystemContractService systemContractService)
         {
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
-            _blockchainService = blockchainService;
-            _smartContractService = smartContractService;
             _systemContractService = systemContractService;
         }
 
@@ -108,8 +102,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 ChainId = chainId,
                 ContractAddress = address,
-                ChainService = _blockchainService,
-                SmartContractService = _smartContractService,
+                //ChainService = _blockchainService,
+                //SmartContractService = _smartContractService,
                 SmartContractExecutiveService = this
             });
 

@@ -11,7 +11,7 @@ namespace AElf.Kernel
             return round.RealTimeMinersInfo.First(bp => bp.Value.IsExtraBlockProducer).Value;
         }
 
-        public static DateTime GetEBPMiningTime(this Round round, int miningInterval)
+        public static DateTime GetExtraBlockMiningTime(this Round round, int miningInterval)
         {
             return round.RealTimeMinersInfo.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
                 .ExpectedMiningTime.ToDateTime()

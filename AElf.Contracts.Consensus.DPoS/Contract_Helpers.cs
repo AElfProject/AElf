@@ -409,7 +409,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval).AddMilliseconds(-4000) <
+                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval).AddMilliseconds(-4000) <
                        timestamp.ToDateTime();
             }
 
@@ -488,7 +488,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval);
+                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval);
             }
 
             return DateTime.MaxValue;

@@ -43,7 +43,6 @@ namespace AElf.Contracts.Consensus.DPoS
             Process_PackageOutValue(toPackage);
         }
 
-
         public void BroadcastInValue(ToBroadcast toBroadcast)
         {
             Process_BroadcastInValue(toBroadcast);

@@ -28,6 +28,7 @@ message ToPackage {
     Hash OutValue = 1;
     Hash Signature = 2;
     int64 RoundId = 3;
+    int32 PromiseTinyBlocks = 4;
 }
 
 // Just used as parameter of consensus contract method.

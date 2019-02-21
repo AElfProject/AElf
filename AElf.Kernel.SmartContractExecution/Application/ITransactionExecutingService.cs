@@ -25,9 +25,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionResultManager _transactionResultManager;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
-        public TransactionExecutingService(ISmartContractService smartContractService,
-            ITransactionResultManager transactionTraceManager,
-            ISmartContractExecutiveService smartContractExecutiveService, ISystemContractService systemContractService)
+        public TransactionExecutingService(ITransactionResultManager transactionTraceManager,
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _transactionResultManager = transactionTraceManager;
             _smartContractExecutiveService = smartContractExecutiveService;
