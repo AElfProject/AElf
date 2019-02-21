@@ -19,13 +19,13 @@ namespace AElf.Database.Tests
         }
 
 
-        /*
+        
         [Fact]
         public void IsConnectedTest()
         {
             var result = _database.IsConnected();
             Assert.True(result);
-        }*/
+        }
 
         [Fact]
         public async Task SetTest()
