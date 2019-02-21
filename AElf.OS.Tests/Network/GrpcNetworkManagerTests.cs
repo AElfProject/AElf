@@ -137,7 +137,6 @@ namespace AElf.OS.Tests.Network
         [Fact]
         private async Task Multi_Connect()
         {
-
             var r = new List<(GrpcNetworkServer, IPeerPool)>();
             
             for (int i = 1; i <= 3; i++)
