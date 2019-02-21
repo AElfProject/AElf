@@ -8,10 +8,12 @@ using AElf.Modularity;
 using AElf.OS.Account;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
+using Xunit.Abstractions;
 
 namespace AElf.OS.Tests
 {
@@ -36,6 +38,8 @@ namespace AElf.OS.Tests
                          Task.FromResult(AElfKeyStore.Errors.None) &&
                          c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
             );
+            
+            //context.Services.AddLogging(b => b.AddXUnit());
 
             context.Services.AddTransient<IAccountService, AccountService>();
         }

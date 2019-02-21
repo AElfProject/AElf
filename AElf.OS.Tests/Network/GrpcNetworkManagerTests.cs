@@ -14,6 +14,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Temp;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -28,6 +29,7 @@ namespace AElf.OS.Tests.Network
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+        private LoggerFactory _loggerFactory;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
@@ -36,6 +38,57 @@ namespace AElf.OS.Tests.Network
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
             optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
             _optionsMock = optionsMock.Object;
+            
+            _loggerFactory = new LoggerFactory();
+            _loggerFactory.AddProvider(new XunitLoggerProvider(testOutputHelper));
+        }
+        
+        public class XunitLoggerProvider : ILoggerProvider
+        {
+            private readonly ITestOutputHelper _testOutputHelper;
+
+            public XunitLoggerProvider(ITestOutputHelper testOutputHelper)
+            {
+                _testOutputHelper = testOutputHelper;
+            }
+
+            public ILogger CreateLogger(string categoryName)
+                => new XunitLogger(_testOutputHelper, categoryName);
+
+            public void Dispose()
+            { }
+        }
+
+        public class XunitLogger : ILogger
+        {
+            private readonly ITestOutputHelper _testOutputHelper;
+            private readonly string _categoryName;
+
+            public XunitLogger(ITestOutputHelper testOutputHelper, string categoryName)
+            {
+                _testOutputHelper = testOutputHelper;
+                _categoryName = categoryName;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+                => NoopDisposable.Instance;
+
+            public bool IsEnabled(LogLevel logLevel)
+                => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
+                if (exception != null)
+                    _testOutputHelper.WriteLine(exception.ToString());
+            }
+
+            private class NoopDisposable : IDisposable
+            {
+                public static NoopDisposable Instance = new NoopDisposable();
+                public void Dispose()
+                { }
+            }
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions, Action<object> eventCallBack = null, List<Block> blockList = null)
@@ -71,11 +124,14 @@ namespace AElf.OS.Tests.Network
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
+            serverService.Logger = _loggerFactory.CreateLogger<GrpcServerService>();
 
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
             netServer.EventBus = mockLocalEventBus.Object;
+            netServer.Logger = _loggerFactory.CreateLogger<GrpcNetworkServer>();
 
             return (netServer, grpcPeerPool);
+
         }
 
         [Fact]
@@ -83,20 +139,20 @@ namespace AElf.OS.Tests.Network
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 6800 },
+            var m1 = BuildNetManager(new NetworkOptions { ListeningPort = 8800 },
             null,
             new List<Block> { (Block) genesis });
 
             var m2 = BuildNetManager(new NetworkOptions
             {
-                BootNodes = new List<string> {"127.0.0.1:6800"},
-                ListeningPort = 6801
+                BootNodes = new List<string> {"127.0.0.1:8800"},
+                ListeningPort = 8801
             });
 
             var m3 = BuildNetManager(new NetworkOptions
             {
-                BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6800"},
-                ListeningPort = 6802
+                BootNodes = new List<string> {"127.0.0.1:8801", "127.0.0.1:8800"},
+                ListeningPort = 8802
             });
 
             await m1.Item1.StartAsync();
@@ -104,8 +160,13 @@ namespace AElf.OS.Tests.Network
             await m3.Item1.StartAsync();
 
             var service1 = new GrpcNetworkService(m1.Item2);
+            service1.Logger = _loggerFactory.CreateLogger<GrpcNetworkService>();
+            
             var service2 = new GrpcNetworkService(m2.Item2);
+            service2.Logger = _loggerFactory.CreateLogger<GrpcNetworkService>();
+            
             var service3 = new GrpcNetworkService(m3.Item2);
+            service3.Logger = _loggerFactory.CreateLogger<GrpcNetworkService>();
 
             IBlock b = await service2.GetBlockByHashAsync(genesis.GetHash());
             IBlock bbh = await service3.GetBlockByHeightAsync(genesis.Height);
