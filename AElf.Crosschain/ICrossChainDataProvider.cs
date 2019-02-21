@@ -6,8 +6,9 @@ namespace AElf.Crosschain
 {
     public interface ICrossChainDataProvider
     {
-        Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData);
-        Task<bool> GetParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData);
+        Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData, bool isValidation = false);
+        Task<bool> GetParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData, bool isValidation = false);
         void AddNewSideChainCache(IClientBase clientBase);
+        int GetCachedChainCount();
     }
 }

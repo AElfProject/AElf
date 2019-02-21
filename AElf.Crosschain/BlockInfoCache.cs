@@ -35,10 +35,10 @@ namespace AElf.Crosschain
         /// <param name="blockInfo"></param>
         /// <param name="isCacheSizeLimited">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(ulong height, out IBlockInfo blockInfo, bool isCacheSizeLimited = false)
+        public bool TryTake(ulong height, out IBlockInfo blockInfo, bool isCacheSizeLimited)
         {
             var first = First();
-            // only mining process needs isCacheSizeLimited, for most nodes have this block.
+            // isCacheSizeLimited means minimal caching size , for most nodes have this block.
             if (first != null 
                 && first.Height == height && 
                 !(isCacheSizeLimited && ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height < height + (ulong) _irreversible))
@@ -51,11 +51,12 @@ namespace AElf.Crosschain
             }
             
             // this is because of rollback 
+            blockInfo = null;
             blockInfo = CachedIndexedBlockInfoQueue.FirstOrDefault(c => c.Height == height);
             if (blockInfo != null)
                 return !isCacheSizeLimited ||
-                       ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) >=
-                       _cachedBoundedCapacity;
+                       ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) 
+                       >= _irreversible;
             
             return false;
         }

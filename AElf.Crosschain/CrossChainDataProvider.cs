@@ -4,42 +4,48 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Crosschain.EventMessage;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Crosschain
 {
-    public class CrossChainDataProvider : ICrossChainDataProvider
+    public class CrossChainDataProvider : ICrossChainDataProvider, 
+        ILocalEventHandler<NewSideChainConnectionReceivedEvent>, ILocalEventHandler<NewParentChainConnectionEvent>
     {
-        private readonly Dictionary<int, BlockInfoCache> _grpcSideChainClients =
+        private readonly Dictionary<int, BlockInfoCache> _sideChainClients =
             new Dictionary<int, BlockInfoCache>();
 
         internal BlockInfoCache ParentChainBlockInfoCache {get; set;}
 
         private delegate void NewSideChainHandler(IClientBase clientBase);
-
         private readonly NewSideChainHandler _newSideChainHandler;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        public ILocalEventBus LocalEventBus { get; set; }
+        private readonly IAccountService _accountService;
+        //public ILocalEventBus LocalEventBus { get; set; }
         public CrossChainDataProvider(IClientService clientService, 
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ISmartContractExecutiveService smartContractExecutiveService, IAccountService accountService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
-            LocalEventBus = NullLocalEventBus.Instance;
+            //LocalEventBus = NullLocalEventBus.Instance;
             _newSideChainHandler += clientService.CreateClient;
             _newSideChainHandler += AddNewSideChainCache;
-            LocalEventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
+            _accountService = accountService;
+            //LocalEventBus.Subscribe<NewSideChainConnectionReceivedEvent>(OnNewSideChainConnectionReceivedEvent);
         }
 
-        public async Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
+        public async Task<bool> GetSideChainBlockData(IList<SideChainBlockData> sideChainBlockData, bool isValidation = false)
         {
-            if (sideChainBlockData.Count == 0)
+            if (!isValidation )
             {
-                foreach (var _ in _grpcSideChainClients)
+                if (sideChainBlockData.Count > 0)
+                    return false;
+                foreach (var _ in _sideChainClients)
                 {
                     // take side chain info
                     // index only one block from one side chain.
@@ -48,68 +54,67 @@ namespace AElf.Crosschain
                     if (!_.Value.TryTake(targetHeight, out var blockInfo, true))
                         continue;
 
-                    sideChainBlockData.Append((SideChainBlockData) blockInfo);
+                    sideChainBlockData.Add((SideChainBlockData) blockInfo);
                 }
+                return sideChainBlockData.Count > 0;
             }
-            else
+            foreach (var blockInfo in sideChainBlockData)
             {
-                foreach (var blockInfo in sideChainBlockData)
-                {
-                    if (!_grpcSideChainClients.TryGetValue(blockInfo.ChainId, out var cache))
-                        // TODO: this could be changed.
-                        return true;
-                    var targetHeight = await GetSideChainTargetHeight(blockInfo.ChainId);
+                if (!_sideChainClients.TryGetValue(blockInfo.ChainId, out var cache))
+                    // TODO: this could be changed.
+                    return false;
+                var targetHeight = await GetSideChainTargetHeight(blockInfo.ChainId);
 
-                    sideChainBlockData.Append(blockInfo);
-                    if (!cache.TryTake(targetHeight, out var cachedBlockInfo) || !blockInfo.Equals(cachedBlockInfo))
-                        return false;
-                }
+                if (targetHeight != blockInfo.Height 
+                    || !cache.TryTake(targetHeight, out var cachedBlockInfo, false) 
+                    || !blockInfo.Equals(cachedBlockInfo))
+                    return false;
             }
-            return sideChainBlockData.Count > 0;
+            return true;
         }
 
-        public async Task<bool> GetParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
+        public async Task<bool> GetParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData, bool isValidation = false)
         {
+            if (!isValidation && parentChainBlockData.Count > 0)
+                return false;
             var chainId = ParentChainBlockInfoCache?.ChainId ?? 0;
             if (chainId == 0)
                 // no configured parent chain
                 return false;
             
-            ulong targetHeight = await GetParentChainTargetHeight(chainId);
-            if (parentChainBlockData.Count == 0)
-            {
-                if (ParentChainBlockInfoCache == null)
-                    return false;
-            }
-            var isMining = parentChainBlockData.Count == 0;
             // Size of result is GlobalConfig.MaximalCountForIndexingParentChainBlock if it is mining process.
-            if (!isMining && parentChainBlockData.Count > GlobalConfig.MaximalCountForIndexingParentChainBlock)
+            if (isValidation && parentChainBlockData.Count > CrossChainConsts.MaximalCountForIndexingParentChainBlock)
                 return false;
-            int length = isMining ? GlobalConfig.MaximalCountForIndexingParentChainBlock : parentChainBlockData.Count;
+            
+            int length = isValidation ? parentChainBlockData.Count : CrossChainConsts.MaximalCountForIndexingParentChainBlock ;
             
             int i = 0;
-            while (i++ < length)
+            ulong targetHeight = await GetParentChainTargetHeight(chainId);
+            var res = true;
+            while (i < length)
             {
-                if (!ParentChainBlockInfoCache.TryTake(targetHeight, out var blockInfo, isMining))
+                if (!ParentChainBlockInfoCache.TryTake(targetHeight, out var blockInfo, !isValidation))
                 {
                     // no more available parent chain block info
-                    return isMining;
+                    res = !isValidation;
+                    break;
                 }
                 
-                if(isMining)
+                if(!isValidation)
                     parentChainBlockData.Add((ParentChainBlockData) blockInfo);
                 else if (!parentChainBlockData[i].Equals(blockInfo))
                     // cached parent chain block info is not compatible with provided.
                     return false;
                 targetHeight++;
+                i++;
             }
             
-            return parentChainBlockData.Count > 0;
+            return res;
         }
 
         public void AddNewSideChainCache(IClientBase clientBase)
         {
-            _grpcSideChainClients.Add(clientBase.BlockInfoCache.ChainId, clientBase.BlockInfoCache);
+            _sideChainClients.Add(clientBase.BlockInfoCache.ChainId, clientBase.BlockInfoCache);
         }
 
         private async Task<ulong> GetSideChainTargetHeight(int chainId)
@@ -130,13 +135,15 @@ namespace AElf.Crosschain
         {
             var transaction =  new Transaction
             {
+                From = await _accountService.GetAccountAsync(),
                 To = toAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(@params)),
             };
             var trace = new TransactionTrace()
             {
-                TransactionId = transaction.GetHash()
+                TransactionId = transaction.GetHash(),
+                RetVal = new RetVal()
             };
             var txCtxt = new TransactionContext
             {
@@ -153,6 +160,29 @@ namespace AElf.Crosschain
         private Task OnNewSideChainConnectionReceivedEvent(NewSideChainConnectionReceivedEvent @event)
         {
             _newSideChainHandler(@event.ClientBase);
+            return Task.CompletedTask;
+        }
+
+//        public int GetCachedBlockDataCount(int chainId)
+//        {
+//            if(_sideChainClients.TryGetValue(chainId, out var blockInfoCache))
+//                return blockInfoCache;
+//        }
+
+        public int GetCachedChainCount()
+        {
+            return _sideChainClients.Count;
+        }
+
+        public Task HandleEventAsync(NewSideChainConnectionReceivedEvent eventData)
+        {
+            _newSideChainHandler(eventData.ClientBase);
+            return Task.CompletedTask;
+        }
+
+        public Task HandleEventAsync(NewParentChainConnectionEvent eventData)
+        {
+            ParentChainBlockInfoCache = eventData.ClientBase.BlockInfoCache;
             return Task.CompletedTask;
         }
     }
