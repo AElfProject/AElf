@@ -1,16 +1,13 @@
-//using System;
-//using System.Collections.Generic;
-//using System.Threading.Tasks;
-//using AElf.Common;
-//using AElf.Kernel.Managers;
-//using AElf.Kernel.SmartContractExecution.Domain;
-//using Google.Protobuf;
-//using Shouldly;
-//using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Common;
+using Google.Protobuf;
+using Shouldly;
+using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel.SmartContractExecution.Domain
 {
-    /*
     public class BlockchainStateManagerTests : AElfKernelTestBase
     {
         private BlockchainStateManager _blockchainStateManager;
@@ -189,5 +186,4 @@ namespace AElf.Kernel.Tests
 
         }
     }
-    */
 }

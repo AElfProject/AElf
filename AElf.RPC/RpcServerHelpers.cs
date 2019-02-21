@@ -12,10 +12,9 @@ namespace AElf.RPC
     {
         private static List<Type> GetServiceTypes(IServiceCollection scope)
         {
-            return scope.Where(p => p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
+            return scope.Where(p =>
+                    p.ImplementationType != null && typeof(IJsonRpcService).IsAssignableFrom(p.ServiceType))
                 .Select(p => p.ImplementationType).Distinct().ToList();
-
-            //TODO! rewrite this project by aspnet core webapi
         }
 
         private static object Resolve(IServiceProvider scope, Type type)
@@ -36,7 +35,8 @@ namespace AElf.RPC
             methodInfoGeneric.Invoke(services, new object[] {services, null});
         }
 
-        private static void UseJsonRpcService(IApplicationBuilder appBuilder, Type type, PathString path = default(PathString))
+        private static void UseJsonRpcService(IApplicationBuilder appBuilder, Type type,
+            PathString path = default(PathString))
         {
             var methodInfo = typeof(JsonRpcBuilderExtensions).GetMethod("UseJsonRpcService");
             if (methodInfo == null)
@@ -48,7 +48,6 @@ namespace AElf.RPC
             var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] {type});
             methodInfoGeneric.Invoke(appBuilder, new object[] {appBuilder, path});
         }
-
 
         internal static void ConfigureServices(IServiceCollection services)
         {

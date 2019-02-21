@@ -137,7 +137,7 @@ namespace AElf.Kernel
 
             var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
 
-            if (chainId.DumpBase58() == GlobalConfig.DefaultChainId ||
+            if (ChainHelpers.ConvertChainIdToBase58(chainId) == GlobalConfig.DefaultChainId ||
                 previousRound.RealTimeMinersInfo.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
             {
                 foreach (var miner in previousRound.RealTimeMinersInfo.Values)

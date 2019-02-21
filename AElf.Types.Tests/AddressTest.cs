@@ -1,8 +1,7 @@
-﻿/*
-using System;
-//using AElf.Common;
-//using AElf.Cryptography;
-//using AElf.Cryptography.ECDSA;
+﻿using System;
+using AElf.Common;
+using AElf.Cryptography;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Types.Tests
@@ -10,49 +9,60 @@ namespace AElf.Types.Tests
     public class AddressTest
     {
         [Fact]
-        public void UsageBuild()
+        public void Generate_And_Compare_Address()
         {
-            Random rnd = new Random();
-            
-            // sha sha of pub key
-            byte[] kp = CryptoHelpers.GenerateKeyPair().PublicKey;
-            
-            byte[] hash = new byte[3];
-            rnd.NextBytes(hash);
-            
-            Address adr = Address.FromPublicKey(kp);
-            string adr_formatted = adr.GetFormatted();
-            ;
-            
-            Assert.True(true);
+            //Generate default
+            var address1 = Address.Generate();
+            var address2 = Address.Generate();
+            var result = address1.CompareTo(address2);
+            result.ShouldNotBe(0);
+            address1.ShouldNotBeSameAs(address2);
+
+            //Generate from String
+            var address3 = Address.FromString("Test");
+            address3.ShouldNotBe(null);
+
+            //Generate from byte
+            var bytes = new byte[30];
+            new Random().NextBytes(bytes);
+            var address4 = Address.FromBytes(bytes);
+            address4.ShouldNotBe(null);
+
+            //Generate from public key
+            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var address5 = Address.FromPublicKey(pk);
+            address5.ShouldNotBe(null);
+
+            //Build Contract address
+            var chainId = 1234;
+            var serialNumber = (ulong) 10;
+            var address6 = Address.BuildContractAddress(chainId, serialNumber);
+            address6.ShouldNotBe(null);
         }
-        
+
         [Fact]
-        public void Usage()
+        public void Get_Address_Info()
         {
-            // Chain id prefix
-            
-            // ------ User side 
-            
-//            byte[] chainId = Hash.Generate().DumpByteArray();
-//            string b58ChainId = Base58CheckEncoding.Encode(chainId);
-//            string chainPrefix = b58ChainId.Substring(0, 4);
-//            
-//            // sha sha of pub key
-//            KeyPairGenerator kpg = new KeyPairGenerator();
-//            byte[] kp = kpg.Generate().GetEncodedPublicKey();
-//            
-//            // ------ chain side
-//            
-//            Address a = new Address();
-//            var s = a.ToByteArray();
-//            var ds = Address.Parser.ParseFrom(s);
-//            
-//            Assert.Equal(ds.ChainId, chainPrefix);
-//            Assert.Equal(kp, ds.Value);
+            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var address = Address.FromPublicKey(pk);
+            var addressString = address.GetFormatted();
+            var pubkeyHash = address.GetPublicKeyHash();
+            addressString.ShouldNotBe(string.Empty);
+            addressString.StartsWith("ELF").ShouldBe(true);
+            pubkeyHash.ShouldNotBe(string.Empty);
         }
 
+        [Fact]
+        public void Parse_Address_FromString()
+        {
+            string addStr = "ELF_5rYq3rGiULxGS51xAYF6Una1RH2bhm3REEZdda6o5NJwvRF";
+            var address = Address.Parse(addStr);
+            address.ShouldNotBe(null);
+            var addStr1 = address.GetFormatted();
+            addStr1.ShouldBe(addStr);
 
+            addStr = "ELF_345678icdfvbghnjmkdfvgbhtn";
+            Should.Throw<System.FormatException>(() => { address = Address.Parse(addStr); });
+        }
     }
 }
-*/

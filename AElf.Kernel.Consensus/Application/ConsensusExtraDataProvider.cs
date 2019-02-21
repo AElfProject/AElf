@@ -27,7 +27,7 @@ namespace AElf.Kernel.Consensus.Application
             }
 
             var consensusInformation =
-                await _consensusService.GetNewConsensusInformationAsync(_chainOptions.ChainId.ConvertBase58ToChainId());
+                await _consensusService.GetNewConsensusInformationAsync(ChainHelpers.ConvertBase58ToChainId(_chainOptions.ChainId));
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }

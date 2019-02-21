@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using AElf.Common;
 using Xunit;
+using Shouldly;
 
 namespace AElf.Cryptography.Tests
 {
@@ -12,6 +13,14 @@ namespace AElf.Cryptography.Tests
         public void Test_Generate_Key()
         {
             CryptoHelpers.GenerateKeyPair();
+        }
+
+        [Fact]
+        public void Test_Generate_KeyPair_Not_Same()
+        {
+            var keyPair1 = CryptoHelpers.GenerateKeyPair();
+            var keyPair2 = CryptoHelpers.GenerateKeyPair();
+            keyPair1.ShouldNotBe(keyPair2);
         }
         
         [Fact]
