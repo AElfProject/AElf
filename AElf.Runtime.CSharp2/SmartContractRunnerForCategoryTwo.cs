@@ -54,7 +54,7 @@ namespace AElf.Runtime.CSharp
         {
             // TODO: Maybe input arguments can be simplified
 
-            var code = reg.ContractBytes.ToByteArray();
+            var code = reg.Code.ToByteArray();
 
             var loadContext = GetLoadContext();
 
@@ -95,7 +95,7 @@ namespace AElf.Runtime.CSharp
 
         private Module GetAbiModule(SmartContractRegistration reg)
         {
-            var code = reg.ContractBytes.ToByteArray();
+            var code = reg.Code.ToByteArray();
             var abiModule = Generator.GetABIModule(code);
             return abiModule;
         }
@@ -112,7 +112,7 @@ namespace AElf.Runtime.CSharp
             // TODO (Cont'd): This implementation is not good as currently AssemblyLoadContext doesn't support unloading.
             // TODO (Cont'd): So the type cannot be unloaded even if we don't need it. There is a huge memory concern.
 
-            var code = reg.ContractBytes.ToByteArray();
+            var code = reg.Code.ToByteArray();
 
             var codeHash = Hash.FromRawBytes(code);
             if (_cachedContractTypeByHash.TryGetValue(codeHash, out var t))

@@ -65,10 +65,10 @@ namespace AElf.Kernel.Node.Application
                     var reg = new SmartContractRegistration()
                     {
                         Category = dto.SmartContractCategory,
-                        ContractBytes = ByteString.CopyFrom(codes)
+                        Code = ByteString.CopyFrom(codes)
                     };
 
-                    reg.ContractHash = Hash.FromRawBytes(codes);
+                    reg.CodeHash = Hash.FromRawBytes(codes);
                     return reg;
                 }).ToList();
                 await _chainCreationService.CreateNewChainAsync(dto.ChainId, registers);

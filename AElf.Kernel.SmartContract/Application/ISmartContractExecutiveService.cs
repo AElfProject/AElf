@@ -86,7 +86,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             var reg = await _systemContractService.GetSmartContractRegistrationAsync(chainId, address);
             
-            var pool = await GetPoolForAsync(reg.ContractHash);
+            var pool = await GetPoolForAsync(reg.CodeHash);
 
             if (!pool.TryTake(out var executive))
             {
@@ -99,7 +99,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 // run smartcontract executive info and return executive
                 executive = await runner.RunAsync(reg);
-                executive.ContractHash = reg.ContractHash;
+                executive.ContractHash = reg.CodeHash;
             }
 
             executive.SetStateProviderFactory(_stateProviderFactory);

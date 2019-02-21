@@ -77,8 +77,8 @@ namespace AElf.Contracts.Genesis
             var reg = new SmartContractRegistration
             {
                 Category = category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                Code = ByteString.CopyFrom(code),
+                CodeHash = contractHash
             };
             
             Context.DeployContract(contractAddress, reg);
@@ -92,27 +92,27 @@ namespace AElf.Contracts.Genesis
             var serialNumber = GetNexSerialNumber();
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
             
-            var contractHash = Hash.FromRawBytes(code);
+            var codeHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
                 SerialNumber = serialNumber,
                 Category = category,
                 Owner = Context.Sender,
-                ContractHash = contractHash
+                ContractHash = codeHash
             };
             State.ContractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
             {
                 Category = category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                Code = ByteString.CopyFrom(code),
+                CodeHash = codeHash
             };
 
             Context.DeployContract(contractAddress, reg);
 
-            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.ToHex());
+            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
@@ -146,8 +146,8 @@ namespace AElf.Contracts.Genesis
             var reg = new SmartContractRegistration
             {
                 Category = existContract.Category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash
+                Code = ByteString.CopyFrom(code),
+                CodeHash = contractHash
             };
 
             Context.UpdateContract(contractAddress, reg);
