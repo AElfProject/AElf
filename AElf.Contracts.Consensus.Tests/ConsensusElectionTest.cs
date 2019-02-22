@@ -241,7 +241,6 @@ namespace AElf.Contracts.Consensus.Tests
 
             contracts = new ContractsShim(_mock, _transactionExecutingService, _blockchainService);
 
-
             // Initial balances.
             for (var i = 0; i < 17; i++)
             {

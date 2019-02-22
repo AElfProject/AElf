@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if ((AllOutValueFilled(publicKey, out _) || extra.Timestamp != null) && TimeOverflow(extra.Timestamp))
             {
                 return extra.ChangeTerm
                     ? new DPoSInformation
@@ -162,7 +162,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if ((AllOutValueFilled(publicKey, out _) || extra.Timestamp != null) && TimeOverflow(extra.Timestamp))
             {
                 if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
                     TryToGetTermNumber(out var termNumber))
@@ -258,8 +258,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return new ConsensusCommand
                     {
-                        CountingMilliseconds =
-                            (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
+                        CountingMilliseconds = roundTime - ((int) passedTime - minerInformation.Order * miningInterval),
                         TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                         Hint = new DPoSHint
                         {
@@ -267,10 +266,10 @@ namespace AElf.Contracts.Consensus.DPoS
                         }.ToByteString()
                     };
                 }
-                
+
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
+                    CountingMilliseconds =  minerInformation.Order * miningInterval - (int)passedTime,
                     TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                     Hint = new DPoSHint
                     {

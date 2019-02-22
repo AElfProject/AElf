@@ -28,9 +28,5 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
 
             return lockExpiredAge <= currentAge;
         }
-        public static ulong GetExpireTermNumber(this VotingRecord votingRecord, ulong currentAge)
-        {
-            return votingRecord.TermNumber + votingRecord.GetDurationDays(currentAge) / DPoSContractConsts.DaysEachTerm;
-        }
     }
 }

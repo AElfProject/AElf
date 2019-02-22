@@ -53,7 +53,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 minerInRound.Order = i + 1;
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + DPoSContractConsts.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow((i * miningInterval) + DPoSContractConsts.AElfWaitFirstRoundTime);
                 minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;
 
@@ -90,7 +90,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 }
 
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + totalSecondsOfFirstRound +
+                    GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound +
                                          DPoSContractConsts.AElfWaitFirstRoundTime);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
@@ -197,7 +197,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 var minerInRound = new MinerInRound
                 {
                     ExpectedMiningTime =
-                        GetTimestampWithOffset(extraBlockMiningTime, i * miningInterval + miningInterval),
+                        GetTimestampWithOffset(extraBlockMiningTime, (i * miningInterval) + miningInterval),
                     Order = i + 1,
                     PublicKey = minerPublicKey,
                     PromisedTinyBlocks = 1

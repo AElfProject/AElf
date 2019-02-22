@@ -7,26 +7,6 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
-    // ReSharper disable ClassNeverInstantiated.Global
-    public class DividendContractReferenceState : ContractReferenceState
-    {
-        public Action<ulong> KeepWeights { get; set; }
-        public Action<ulong, ulong> SubWeights { get; set; }
-        public Action<ulong, ulong> AddWeights { get; set; }
-        public Action<ulong, ulong> AddDividends { get; set; }
-        public Action<VotingRecord> TransferDividends { get; set; }
-        public Action<Address, ulong> SendDividends { get; set; }
-    }
-
-    public class TokenContractReferenceState : ContractReferenceState
-    {
-        public Action<string, string, ulong, uint> Initialize { get; set; }
-        public Action<Address, ulong> Transfer { get; set; }
-        public Action<Address, ulong> Lock { get; set; }
-        public Action<Address, ulong> Unlock { get; set; }
-    }
-
-    // ReSharper disable once InconsistentNaming
     public class DPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }
@@ -142,6 +122,5 @@ namespace AElf.Contracts.Consensus.DPoS
         public MappedState<UInt64Value, UInt64Value> TermToFirstRoundMap { get; set; }
 
         public Int32State ChainIdField { get; set; }
-        
     }
 }

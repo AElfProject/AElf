@@ -94,7 +94,6 @@ namespace AElf.Launcher
         {
             // TODO: start node
 
-
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
             var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);

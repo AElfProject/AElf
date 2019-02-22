@@ -341,9 +341,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            Assert(
-                forwarding.NextRound.RoundNumber == 0 || TryToGetRoundNumber(out var roundNumber) &&
-                roundNumber < forwarding.NextRound.RoundNumber, "Incorrect round number for next round.");
+            Assert(forwarding.NextRound.RoundNumber == 0 || TryToGetRoundNumber(out var roundNumber) &&
+                   roundNumber < forwarding.NextRound.RoundNumber, "Incorrect round number for next round.");
 
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
