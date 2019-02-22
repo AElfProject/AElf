@@ -28,7 +28,7 @@ namespace AElf.Sdk.CSharp2.Tests
             Contract.SetSmartContractContext(new SmartContractContext()
             {
                 ContractAddress = AddressList[0],
-                ChainService = new Mock<IBlockchainService>().Object,a
+                ChainService = new Mock<IBlockchainService>().Object,
             });
             Contract.SetTransactionContext(new TransactionContext()
             {
