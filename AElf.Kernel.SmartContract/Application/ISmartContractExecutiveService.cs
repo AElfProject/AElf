@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
 
-        Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg);
+        Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address);
 //
 //        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
     }
@@ -118,10 +118,11 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        public async Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg)
+        public async Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address)
         {
-            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-            return runner.GetAbi(reg);
+            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
+            var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
+            return runner.GetAbi(smartContractRegistration);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
