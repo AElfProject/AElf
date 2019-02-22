@@ -17,10 +17,7 @@ namespace AElf.OS.Handlers
 
             public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
 
-            private int ChainId
-            {
-                get { return ChainHelpers.ConvertBase58ToChainId(ChainOptions.Value.ChainId); }
-            }
+            private int ChainId => ChainOptions.Value.ChainId;
 
             public async Task HandleEventAsync(TxReceivedEventData eventData)
             {

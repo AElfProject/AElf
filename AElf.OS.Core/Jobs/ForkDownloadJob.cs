@@ -17,10 +17,7 @@ namespace AElf.OS.Jobs
         public IFullBlockchainService BlockchainService { get; set; }
         public INetworkService NetworkService { get; set; }
 
-        private int ChainId
-        {
-            get { return ChainHelpers.ConvertBase58ToChainId(ChainOptions.Value.ChainId); }
-        }
+        private int ChainId => ChainOptions.Value.ChainId;
 
         public ForkDownloadJob()
         {
