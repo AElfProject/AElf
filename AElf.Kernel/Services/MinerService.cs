@@ -72,7 +72,7 @@ namespace AElf.Kernel.Services
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing
-                    cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
+                    //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
                     block =
                         await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
                             cts.Token);

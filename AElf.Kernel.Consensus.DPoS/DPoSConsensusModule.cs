@@ -3,7 +3,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
-using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Types;
 using AElf.Modularity;
