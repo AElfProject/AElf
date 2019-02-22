@@ -6,8 +6,6 @@ namespace AElf.Common
         // current release version
         public static int ProtocolVersion = 1;
 
-        public static string DefaultChainId = "AELF";
-
         public const ulong GenesisBlockHeight = 1;
 
         public static readonly ulong ReferenceBlockValidPeriod = 64;

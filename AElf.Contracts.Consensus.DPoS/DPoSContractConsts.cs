@@ -12,6 +12,8 @@ namespace AElf.Contracts.Consensus.DPoS
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
+        public const int AElfWaitFirstRoundTime = 4000;
+        
         #endregion
         
         #region Dividends Settings

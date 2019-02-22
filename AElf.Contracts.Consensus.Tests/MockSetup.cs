@@ -42,36 +42,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private async Task Initialize()
         {
-            /*var consensusReg = new SmartContractRegistration
-            {
-                Category = 0,
-                Code = ByteString.CopyFrom(GetContractCode(ConsensusContractName)),
-                CodeHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
-            };
-//            var dividendsReg = new SmartContractRegistration
-//            {
-//                Category = 0,
-//                ContractBytes = ByteString.CopyFrom(GetContractCode(DividendsContractName)),
-//                ContractHash = Hash.FromRawBytes(GetContractCode(DividendsContractName)),
-//                SerialNumber = GlobalConfig.DividendsContract
-//            };
-            var tokenReg = new SmartContractRegistration
-            {
-                Category = 0,
-                Code = ByteString.CopyFrom(GetContractCode(TokenContractName)),
-                CodeHash = Hash.FromRawBytes(GetContractCode(TokenContractName)),
-            };
-            var basicReg = new SmartContractRegistration
-            {
-                Category = 0,
-                Code = ByteString.CopyFrom(GetContractCode(ZeroContractName)),
-                CodeHash = Hash.FromRawBytes(GetContractCode(ZeroContractName)),
-            };
-
-            await _chainCreationService.CreateNewChainAsync(ChainId,
-                new List<SmartContractRegistration> {basicReg, consensusReg, tokenReg});*/
-
-            throw new NotImplementedException();
+            
         }
     }
 }

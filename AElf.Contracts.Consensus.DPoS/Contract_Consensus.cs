@@ -220,7 +220,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = Config.InitialWaitingMilliseconds,
+                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
                     TimeoutMilliseconds = miningInterval,
                     Hint = new DPoSHint
                     {
@@ -285,7 +285,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 .TotalMilliseconds;
             return new ConsensusCommand
             {
-                CountingMilliseconds = expect >= 0 ? expect : int.MaxValue,
+                CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
                 TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                 Hint = new DPoSHint
                 {
