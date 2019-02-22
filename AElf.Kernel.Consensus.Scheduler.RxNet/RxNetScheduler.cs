@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.Scheduler.RxNet
 {
     public class RxNetScheduler : IConsensusScheduler, IObserver<BlockMiningEventData>, ISingletonDependency
     {
@@ -28,6 +28,11 @@ namespace AElf.Kernel.Consensus.DPoS
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
             _observables = Subscribe(countingMilliseconds, blockMiningEventData);
+        }
+
+        public void CancelCurrentEvent()
+        {
+            _observables?.Dispose();
         }
 
         public void Dispose()

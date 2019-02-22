@@ -46,5 +46,10 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
             JobManager.AddJob(() => EventBus.PublishAsync(blockMiningEventData),
                 s => s.ToRunOnceIn(countingMilliseconds).Milliseconds());
         }
+
+        public void CancelCurrentEvent()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

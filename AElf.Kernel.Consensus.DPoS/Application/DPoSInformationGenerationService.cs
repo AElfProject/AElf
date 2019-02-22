@@ -115,7 +115,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         {
                             OutValue = currentMinerInformation.OutValue,
                             RoundId = information.CurrentRound.RoundId,
-                            Signature = currentMinerInformation.Signature
+                            Signature = currentMinerInformation.Signature,
+                                
+                            PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
                         },
                         ToBroadcast = new ToBroadcast
                         {

@@ -67,6 +67,7 @@ namespace AElf.Kernel.Consensus.Application
                 DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.TimeoutMilliseconds));
             
             // Initial or reload consensus scheduler.
+            _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.CountingMilliseconds, blockMiningEventData);
         }
 

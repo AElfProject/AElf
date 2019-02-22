@@ -140,7 +140,7 @@ namespace AElf.Kernel.Services
 
                 await SignBlockAsync(block);
                 // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-                await _txHub.OnNewBlock(block);
+                //await _txHub.OnNewBlock(block);
 
                 Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
                                       $"with {block.Body.TransactionsCount} txs.");

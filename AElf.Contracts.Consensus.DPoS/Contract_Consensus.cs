@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -202,7 +203,6 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
         {
-            
             TryToGetMiningInterval(out var miningInterval);
             
             // To initial this chain.
@@ -222,6 +222,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // To terminate current round.
             if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
             {
+                // This node is Extra Block Producer of current round.
                 var extraBlockMiningTime = roundInformation.GetExtraBlockMiningTime(miningInterval);
                 if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
                     extraBlockMiningTime > timestamp.ToDateTime())
@@ -237,6 +238,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 }
 
+                // This node isn't EBP of current round.
+                
                 var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
                 var roundTime = blockProducerNumber * miningInterval;
                 var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
@@ -253,7 +256,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         }.ToByteString()
                     };
                 }
-
+                
                 return new ConsensusCommand
                 {
                     CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),

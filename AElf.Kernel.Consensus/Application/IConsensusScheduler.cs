@@ -7,5 +7,6 @@ namespace AElf.Kernel.Consensus.Application
     public interface IConsensusScheduler : IChainRelatedComponent
     {
         void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData);
+        void CancelCurrentEvent();
     }
 }
