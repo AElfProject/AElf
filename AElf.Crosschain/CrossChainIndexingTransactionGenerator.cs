@@ -59,10 +59,10 @@ namespace AElf.Crosschain
             byte[] refBlockPrefix, int chainId, IEnumerable<Transaction> generatedTransactions)
         {
             var crossChainBlockData = new CrossChainBlockData();
-            var sideChainBlockData = await _crossChainService.GetSideChainBlockData();
+            var sideChainBlockData = await _crossChainService.GetSideChainBlockData(chainId);
             
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            var parentChainBlockData = await _crossChainService.GetParentChainBlockData();
+            var parentChainBlockData = await _crossChainService.GetParentChainBlockData(chainId);
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             generatedTransactions.Append(GenerateNotSignedTransaction(from,
                 CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix, new object[]{crossChainBlockData}, chainId));

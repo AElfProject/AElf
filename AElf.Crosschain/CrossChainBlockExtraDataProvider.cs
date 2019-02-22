@@ -90,8 +90,8 @@ namespace AElf.Crosschain
                         if (!sideChainTransactionsRoot.Equals(block.Header.BlockExtraData
                                 .SideChainTransactionsRoot))
                             return false;
-                        return await _crossChainService.ValidateSideChainBlockData(crossChainBlockData.SideChainBlockData) &&
-                               await _crossChainService.ValidateParentChainBlockData(crossChainBlockData.ParentChainBlockData);
+                        return await _crossChainService.ValidateSideChainBlockData(block.Header.ChainId, crossChainBlockData.SideChainBlockData) &&
+                               await _crossChainService.ValidateParentChainBlockData(block.Header.ChainId, crossChainBlockData.ParentChainBlockData);
                     }
                 }
 

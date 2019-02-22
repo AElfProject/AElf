@@ -44,7 +44,7 @@ namespace AElf.Crosschain
                 CrossChainConsts.GetSideChainHeightMthodName, ChainHelpers.ConvertChainIdToBase58(sideChainId));
         }
 
-        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(ulong height)
+        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(ulong height)
         {
             throw new System.NotImplementedException();
         }
