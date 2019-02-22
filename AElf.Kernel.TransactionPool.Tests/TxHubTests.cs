@@ -3,7 +3,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.TransactionPool.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using Google.Protobuf;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -12,20 +11,18 @@ namespace AElf.Kernel.TransactionPool.Tests
 {
     public class TxHubTests:TransactionPoolTestBase
     {
+        private const int ChainId = 1234;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionReceiptManager _receiptManager;
         private readonly IBlockchainService _chainService;
-
-        private const int ChainId = 1234;
-
         private TxHub _txHub;
 
         public TxHubTests()
         {
-            _transactionManager = new Mock<ITransactionManager>().Object;
-            _receiptManager = new Mock<ITransactionReceiptManager>().Object;
-            _chainService = new Mock<IBlockchainService>().Object;
+            _transactionManager = GetRequiredService<ITransactionManager>();
+            _receiptManager = GetRequiredService<ITransactionReceiptManager>();
 
+            _chainService = new Mock<IBlockchainService>().Object;
             var blockValidator = new TxRefBlockValidator(_chainService);
             _txHub = new TxHub(_transactionManager, _receiptManager, blockValidator);
         }
