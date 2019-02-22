@@ -1,6 +1,6 @@
 namespace AElf.Kernel.Consensus.Infrastructure
 {
-    public class ConsensusController
+    public class ConsensusControlInformation
     {
         public ConsensusCommand ConsensusCommand { get; set; }
     }

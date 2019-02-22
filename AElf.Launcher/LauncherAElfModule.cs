@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;

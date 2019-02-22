@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
-        private readonly ConsensusController _consensusController;
+        private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
 
         private byte[] _latestGeneratedConsensusInformation;
@@ -34,14 +34,14 @@ namespace AElf.Kernel.Consensus.Application
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionExecutingService transactionExecutingService,
-            IBlockchainService blockchainService, ConsensusController consensusController,
-            IConsensusScheduler consensusScheduler)
+            IConsensusScheduler consensusScheduler, IBlockchainService blockchainService,
+            ConsensusControlInformation consensusControlInformation)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
             _transactionExecutingService = transactionExecutingService;
             _blockchainService = blockchainService;
-            _consensusController = consensusController;
+            _consensusControlInformation = consensusControlInformation;
             _consensusScheduler = consensusScheduler;
 
             Logger = NullLogger<ConsensusService>.Instance;
@@ -58,16 +58,16 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            _consensusController.ConsensusCommand = ConsensusCommand.Parser.ParseFrom((await ExecuteContractAsync(chainId,
+            _consensusControlInformation.ConsensusCommand = ConsensusCommand.Parser.ParseFrom((await ExecuteContractAsync(chainId,
                     await _accountService.GetAccountAsync(), chainContext, ConsensusConsts.GetConsensusCommand,
-                    Timestamp.FromDateTime(DateTime.UtcNow)))
+                    Timestamp.FromDateTime(DateTime.UtcNow), (await _accountService.GetPublicKeyAsync()).ToHex()))
                 .ToByteArray());
 
             var blockMiningEventData = new BlockMiningEventData(chainId, chain.BestChainHash, chain.BestChainHeight,
-                DateTime.UtcNow.AddMilliseconds(_consensusController.ConsensusCommand.TimeoutMilliseconds));
+                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.TimeoutMilliseconds));
             
             // Initial or reload consensus scheduler.
-            _consensusScheduler.NewEvent(chainId, blockMiningEventData);
+            _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.CountingMilliseconds, blockMiningEventData);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Consensus.Application
             var tx = new Transaction
             {
                 From = fromAddress,
-                To = ContractHelpers.GetConsensusContractAddress(chainId),
+                To = Address.BuildContractAddress(chainId, 1),
                 MethodName = consensusMethodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };

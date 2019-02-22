@@ -18,19 +18,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     {
         private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
-        private readonly ConsensusController _controller;
+        private readonly ConsensusControlInformation _controlInformation;
         private Hash _inValue;
 
-        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controller.ConsensusCommand.Hint);
+        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
         public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
-            ConsensusController controller)
+            ConsensusControlInformation controlInformation)
         {
             _dpoSOptions = consensusOptions.Value;
             _accountService = accountService;
-            _controller = controller;
+            _controlInformation = controlInformation;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }

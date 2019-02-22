@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.Tests
             context.Services.AddAssemblyOf<ConsensusContractTestAElfModule>();
 
             context.Services.AddSingleton<ITransactionExecutingService, TransactionExecutingService>();
-            context.Services.AddSingleton<IBlockchainService, FullBlockchainService>();
+            //context.Services.AddSingleton<IBlockchainService, FullBlockchainService>();
             context.Services.AddSingleton<IBlockchainStateManager, BlockchainStateManager>();
             context.Services.AddSingleton<ISmartContractService, SmartContractService>();
             context.Services.AddSingleton<IChainCreationService, ChainCreationService>();
