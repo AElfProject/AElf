@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.TransactionPool.Domain;
