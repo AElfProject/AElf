@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if ((AllOutValueFilled(publicKey, out _) || extra.Timestamp != null) && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
             {
                 return extra.ChangeTerm
                     ? new DPoSInformation
@@ -162,7 +162,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if ((AllOutValueFilled(publicKey, out _) || extra.Timestamp != null) && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
             {
                 if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
                     TryToGetTermNumber(out var termNumber))
