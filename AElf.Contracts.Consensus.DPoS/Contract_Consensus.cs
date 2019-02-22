@@ -269,7 +269,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds =  minerInformation.Order * miningInterval - (int)passedTime,
+                    CountingMilliseconds = minerInformation.Order * miningInterval - (int) passedTime,
                     TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                     Hint = new DPoSHint
                     {
