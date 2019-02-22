@@ -2,11 +2,11 @@
 //using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using Xunit;
 
 namespace AElf.Kernel.Tests.Managers
 {
-    /*
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
         private IBlockManager _blockManager;
@@ -57,5 +57,4 @@ namespace AElf.Kernel.Tests.Managers
         }
 
     }
-    */
 }

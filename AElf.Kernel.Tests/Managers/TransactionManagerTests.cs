@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
-using Google.Protobuf;
 using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
@@ -11,7 +9,6 @@ using Shouldly;
 
 namespace AElf.Kernel.Tests.Managers
 {
-    /*
     public sealed class TransactionManagerTests:AElfKernelTestBase
     {
         private ITransactionManager _transactionManager;
@@ -94,5 +91,4 @@ namespace AElf.Kernel.Tests.Managers
             return tx;
         }
     }
-    */
 }
