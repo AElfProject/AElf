@@ -9,6 +9,7 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <ProjectReference Include="..\AElf.Contracts.Genesis2\AElf.Contracts.Genesis2.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
