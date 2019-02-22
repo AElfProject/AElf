@@ -11,6 +11,8 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -187,8 +189,9 @@ namespace AElf.Kernel.SmartContract.Application
                 .DefaultContractZeroRegistration.CodeHash);
             var executiveZero = await GetExecutiveAsync(registration);
             await executiveZero.SetTransactionContext(txCtxt).Apply();
-            trace.RetVal.Data.DeserializeToString();
-            return null;
+            return Hash.LoadHex(
+                ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"]
+                .ToString());
         }
 
         #endregion

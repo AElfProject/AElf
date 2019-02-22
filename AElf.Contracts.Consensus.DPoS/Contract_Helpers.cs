@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -409,7 +410,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval).AddMilliseconds(-4000) <
+                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval).AddMilliseconds(-4000) <
                        timestamp.ToDateTime();
             }
 
@@ -488,7 +489,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                return currentRoundInStateDB.GetEBPMiningTime(miningInterval);
+                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval);
             }
 
             return DateTime.MaxValue;

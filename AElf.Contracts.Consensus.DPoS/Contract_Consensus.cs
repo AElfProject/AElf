@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -112,7 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
             {
                 return extra.ChangeTerm
                     ? new DPoSInformation
@@ -160,7 +162,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || extra.Timestamp != null && TimeOverflow(extra.Timestamp))
+            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
             {
                 if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
                     TryToGetTermNumber(out var termNumber))
@@ -180,6 +182,15 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
                     };
                 }
+
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction(refBlockHeight, refBlockPrefix, "NextRound",
+                            new List<object> {extra.Forwarding})
+                    }
+                };
             }
 
             if (extra.ToBroadcast != null && extra.ToPackage != null)
@@ -202,12 +213,15 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
         {
+            TryToGetMiningInterval(out var miningInterval);
+            
             // To initial this chain.
             if (!TryToGetCurrentRoundInformation(out var roundInformation))
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = Config.InitialWaitingMilliseconds,
+                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
+                    TimeoutMilliseconds = miningInterval,
                     Hint = new DPoSHint
                     {
                         Behaviour = DPoSBehaviour.InitialTerm
@@ -215,17 +229,19 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
+            Console.WriteLine("Current round number: " + roundInformation.RoundNumber);
             // To terminate current round.
-            if ((OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp)) &&
-                TryToGetMiningInterval(out var miningInterval))
+            if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
             {
-                var extraBlockMiningTime = roundInformation.GetEBPMiningTime(miningInterval);
+                // This node is Extra Block Producer of current round.
+                var extraBlockMiningTime = roundInformation.GetExtraBlockMiningTime(miningInterval);
                 if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
                     extraBlockMiningTime > timestamp.ToDateTime())
                 {
                     return new ConsensusCommand
                     {
                         CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                         Hint = new DPoSHint
                         {
                             Behaviour = DPoSBehaviour.NextRound
@@ -233,6 +249,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 }
 
+                // This node isn't EBP of current round.
+                
                 var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
                 var roundTime = blockProducerNumber * miningInterval;
                 var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
@@ -240,8 +258,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return new ConsensusCommand
                     {
-                        CountingMilliseconds =
-                            (int) (roundTime - (passedTime - minerInformation.Order * miningInterval)),
+                        CountingMilliseconds = roundTime - ((int) passedTime - (minerInformation.Order * miningInterval)),
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                         Hint = new DPoSHint
                         {
                             Behaviour = DPoSBehaviour.NextRound
@@ -251,7 +269,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = (int) (minerInformation.Order * miningInterval - passedTime),
+                    CountingMilliseconds = (minerInformation.Order * miningInterval) - (int) passedTime,
+                    TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                     Hint = new DPoSHint
                     {
                         Behaviour = DPoSBehaviour.NextRound
@@ -259,12 +278,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
+            Console.WriteLine($"Expected mining time: {minerInformation.ExpectedMiningTime}");
             // To produce a normal block.
             var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
                 .TotalMilliseconds;
-            return new ConsensusCommand()
+            return new ConsensusCommand
             {
-                CountingMilliseconds = expect >= 0 ? expect : int.MaxValue,
+                CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
+                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
                 Hint = new DPoSHint
                 {
                     Behaviour = DPoSBehaviour.PackageOutValue
