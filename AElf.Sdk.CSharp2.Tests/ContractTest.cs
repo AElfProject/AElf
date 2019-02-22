@@ -14,19 +14,21 @@ using AElf.Sdk.CSharp2.Tests.TestContract;
 
 namespace AElf.Sdk.CSharp2.Tests
 {
-    public class ContractTest
+    public class ContractTest:SdkCSharpTestBase
     {
         private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
-        private IStateProvider StateProvider { get; } = new Mock<IStateProvider>().Object;
         private TokenContract Contract { get; } = new TokenContract();
+        private IStateProvider StateProvider { get; }
+
 
         public ContractTest()
         {
+            StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
             Contract.SetStateProvider(StateProvider);
             Contract.SetSmartContractContext(new SmartContractContext()
             {
                 ContractAddress = AddressList[0],
-                ChainService = new Mock<IBlockchainService>().Object,
+                ChainService = new Mock<IBlockchainService>().Object,a
             });
             Contract.SetTransactionContext(new TransactionContext()
             {
