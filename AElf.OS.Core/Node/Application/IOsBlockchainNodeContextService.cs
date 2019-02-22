@@ -28,7 +28,8 @@ namespace AElf.OS.Node.Application
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
         {
             await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
-            throw new System.NotImplementedException();
+            // TODO: what is it used for
+            return null;
         }
 
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)

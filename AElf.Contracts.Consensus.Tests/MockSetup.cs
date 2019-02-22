@@ -1,9 +1,6 @@
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -45,12 +42,11 @@ namespace AElf.Contracts.Consensus.Tests
 
         private async Task Initialize()
         {
-            var consensusReg = new SmartContractRegistration
+            /*var consensusReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(GetContractCode(ConsensusContractName)),
-                ContractHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
-                SerialNumber = GlobalConfig.ConsensusContract
+                Code = ByteString.CopyFrom(GetContractCode(ConsensusContractName)),
+                CodeHash = Hash.FromRawBytes(GetContractCode(ConsensusContractName)),
             };
 //            var dividendsReg = new SmartContractRegistration
 //            {
@@ -62,20 +58,20 @@ namespace AElf.Contracts.Consensus.Tests
             var tokenReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(GetContractCode(TokenContractName)),
-                ContractHash = Hash.FromRawBytes(GetContractCode(TokenContractName)),
-                SerialNumber = GlobalConfig.TokenContract
+                Code = ByteString.CopyFrom(GetContractCode(TokenContractName)),
+                CodeHash = Hash.FromRawBytes(GetContractCode(TokenContractName)),
             };
             var basicReg = new SmartContractRegistration
             {
                 Category = 0,
-                ContractBytes = ByteString.CopyFrom(GetContractCode(ZeroContractName)),
-                ContractHash = Hash.FromRawBytes(GetContractCode(ZeroContractName)),
-                SerialNumber = GlobalConfig.GenesisBasicContract
+                Code = ByteString.CopyFrom(GetContractCode(ZeroContractName)),
+                CodeHash = Hash.FromRawBytes(GetContractCode(ZeroContractName)),
             };
 
             await _chainCreationService.CreateNewChainAsync(ChainId,
-                new List<SmartContractRegistration> {basicReg, consensusReg, tokenReg});
+                new List<SmartContractRegistration> {basicReg, consensusReg, tokenReg});*/
+
+            throw new NotImplementedException();
         }
     }
 }

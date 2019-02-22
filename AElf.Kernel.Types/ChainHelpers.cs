@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 
 namespace AElf.Common
 {
@@ -7,8 +6,8 @@ namespace AElf.Common
     {
         public static int GetRandomChainId()
         {
-            Random r = new Random();
-            return r.Next(198535, 11316496);
+            var random = new Random();
+            return GetChainId((ulong) random.Next(195112, 11316496));
         }
 
         public static int GetChainId(ulong serialNumber)
@@ -16,7 +15,7 @@ namespace AElf.Common
             // For 4 base58 chars use following range (2111 ~ zzzz):
             // Max: 57*58*58*58+57*58*58+57*58+57 = 11316496 (zzzz)
             // Min: 1*58*58*58+0*58*58+0*58+0 = 195112 (2111)
-            var validNUmber = (uint)serialNumber.GetHashCode() % 11316496;
+            var validNUmber = (uint) serialNumber.GetHashCode() % 11316496;
             if (validNUmber < 195112)
                 validNUmber += 195112;
 
@@ -30,17 +29,15 @@ namespace AElf.Common
             return BitConverter.ToInt32(integerBytes, 0);
         }
 
-        // TODO: helper method maybe better
-        public static string DumpBase58(this int n)
+        public static string ConvertChainIdToBase58(int chainId)
         {
             // Default chain id is 4 base58 chars, bytes size is 3
-            var bytes = BitConverter.GetBytes(n);
+            var bytes = BitConverter.GetBytes(chainId);
             Array.Resize(ref bytes, 3);
             return bytes.ToPlainBase58();
         }
 
-        // TODO: helper method maybe better
-        public static int ConvertBase58ToChainId(this string base58String)
+        public static int ConvertBase58ToChainId(string base58String)
         {
             // Use int type to save chain id (4 base58 chars, default is 3 bytes)
             var bytes = base58String.DecodeBase58();

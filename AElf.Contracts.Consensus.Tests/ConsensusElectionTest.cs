@@ -7,6 +7,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Consensus.Tests
             InitializeTesting(out _, out var candidates, out _, out var contracts);
 
             var balance = contracts.BalanceOf(GetAddress(candidates[0]));
-            Assert.True(balance >= GlobalConfig.LockTokenForElection);
+            Assert.True(balance >= DPoSContractConsts.LockTokenForElection);
 
             contracts.AnnounceElection(candidates[0]);
             var res = contracts.IsCandidate(candidates[0].PublicKey.ToHex());
@@ -248,7 +249,7 @@ namespace AElf.Contracts.Consensus.Tests
             for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
             {
                 contracts.InitialBalance(initialMiners[0], GetAddress(candidates[i]),
-                    GlobalConfig.LockTokenForElection + PinMoney);
+                    DPoSContractConsts.LockTokenForElection + PinMoney);
                 contracts.InitialBalance(initialMiners[0], GetAddress(voters[i]), 100_000);
             }
         }

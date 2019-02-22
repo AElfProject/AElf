@@ -497,7 +497,7 @@ namespace AElf.Contracts.Consensus.Tests
         {
             AsyncHelper.RunSync(() => _transactionExecutingService.ExecuteAsync(new ChainContext
                 {
-                    ChainId = "AELF".ConvertBase58ToChainId(),
+                    ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
                     BlockHash = Hash.Genesis,
                     BlockHeight = 1
                 },
@@ -521,7 +521,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
                 {
-                    ChainId = "AElf".ConvertBase58ToChainId(),
+                    ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
                     BlockHash = Hash.Genesis,
                     BlockHeight = 1
                 }, 

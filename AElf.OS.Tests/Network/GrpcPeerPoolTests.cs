@@ -27,7 +27,7 @@ namespace AElf.OS.Tests.Network
             _accountService = GetRequiredService<IAccountService>();
             
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
-            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.DumpBase58(ChainHelpers.GetRandomChainId()) });
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetRandomChainId()) });
             _optionsMock = optionsMock.Object;
         }
         

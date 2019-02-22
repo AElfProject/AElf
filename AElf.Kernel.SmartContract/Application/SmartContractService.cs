@@ -34,22 +34,13 @@ namespace AElf.Kernel.SmartContract.Application
             _chainService = chainService;
         }
 
-        public async Task DeployZeroContractAsync(int chainId, SmartContractRegistration registration)
-        {
-            registration.ContractHash = Hash.FromMessage(ContractHelpers.GetGenesisBasicContractAddress(chainId));
-
-            await _smartContractManager.InsertAsync(registration);
-        }
-
-
-
         /// <inheritdoc/>
         public async Task DeployContractAsync(int chainId, Address contractAddress,
             SmartContractRegistration registration, bool isPrivileged)
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
-            runner.CodeCheck(registration.ContractBytes.ToByteArray(), isPrivileged);
+            runner.CodeCheck(registration.Code.ToByteArray(), isPrivileged);
 
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);
@@ -64,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
-            runner.CodeCheck(newRegistration.ContractBytes.ToByteArray(), isPrivileged);
+            runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(chainId, contractAddress);
