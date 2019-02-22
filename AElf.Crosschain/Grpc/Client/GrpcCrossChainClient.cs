@@ -57,7 +57,7 @@ namespace AElf.Crosschain.Grpc.Client
                     
                     _adjustedInterval = _initInterval;
                     Logger.LogTrace(
-                        $"Received response from chain {response.BlockInfoResult.ChainId.DumpBase58()} at height {response.Height}");
+                        $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
             });
 

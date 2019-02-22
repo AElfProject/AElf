@@ -14,10 +14,8 @@ namespace AElf.Crosschain
         private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get;} = new Queue<IBlockInfo>();
         private readonly int _irreversible;
         private readonly int _cachedBoundedCapacity;
-        public int ChainId { get; }
-        public BlockInfoCache(int chainId)
+        public BlockInfoCache()
         {
-            ChainId = chainId;
             _irreversible = CrossChainConsts.MinimalBlockInfoCacheThreshold;
             _cachedBoundedCapacity = Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
                                          CrossChainConsts.MaximalCountForIndexingParentChainBlock) * _irreversible;

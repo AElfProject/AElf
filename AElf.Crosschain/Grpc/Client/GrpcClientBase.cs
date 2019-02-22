@@ -4,7 +4,7 @@ using AElf.Kernel;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcClientBase : IClientBase
+    public class GrpcClientBase : ICrossChainDataProducer
     {
         public string TargetIp { get; set; }
         public uint TargetPort { get; set; }
@@ -12,6 +12,7 @@ namespace AElf.Crosschain.Grpc.Client
         public ulong TargetChainHeight { get; set; }
         public bool TargetIsSideChain { get; set; }
         public BlockInfoCache BlockInfoCache { get; set; }
+        public int ChainId { get; set; }
 
         public string ToUriStr()
         {
