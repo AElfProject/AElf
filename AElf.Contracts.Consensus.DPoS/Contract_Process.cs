@@ -509,8 +509,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToAddRoundInformation(forwarding.NextRound);
                 TryToUpdateRoundNumber(forwarding.NextRound.RoundNumber);
             }
-
-            Console.WriteLine($"Round changing duration: {stopwatch.ElapsedMilliseconds} ms.");
         }
 
         public void PackageOutValue(ToPackage toPackage)

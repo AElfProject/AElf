@@ -96,6 +96,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
+            Logger.LogDebug($"Current behaviour: {Hint.Behaviour.ToString()}");
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
@@ -116,7 +117,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             OutValue = currentMinerInformation.OutValue,
                             RoundId = information.CurrentRound.RoundId,
                             Signature = currentMinerInformation.Signature,
-                                
                             PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
                         },
                         ToBroadcast = new ToBroadcast

@@ -145,7 +145,6 @@ namespace AElf.Kernel.Services
                 Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
                                       $"with {block.Body.TransactionsCount} txs.");
 
-                await _consensusService.TriggerConsensusAsync(chainId);
                 return block;
             }
             catch (Exception e)
