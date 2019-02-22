@@ -2,8 +2,11 @@
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
@@ -40,6 +43,7 @@ namespace AElf.Launcher
         typeof(CSharpRuntimeAElfModule2),
         typeof(DPoSConsensusModule),
         typeof(GrpcNetworkModule),
+        typeof(KernelAElfModule),
         typeof(NodeAElfModule))]
     public class LauncherAElfModule : AElfModule
     {
@@ -73,17 +77,23 @@ namespace AElf.Launcher
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
+            
+            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
+            
+            var minerService = context.ServiceProvider.GetService<IMinerService>();
+            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
+                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
+            ));
+            
+            var consensusService = context.ServiceProvider.GetService<IConsensusService>();
+            eventBus.Subscribe<BestChainFoundEvent>(eventData =>
+                consensusService.TriggerConsensusAsync(eventData.ChainId));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             // TODO: start node
 
-            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
-            var minerService = context.ServiceProvider.GetService<IMinerService>();
-            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
-                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
-            ));
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
             var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);

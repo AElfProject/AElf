@@ -5,12 +5,15 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region Consensus Settings
 
+        public const ulong DaysEachTerm = 3;
         public const ulong TotalSupply = 100_000_000_000;
         public const int ForkDetectionRoundNumber = 3;
         public const ulong LockTokenForElection = 100_000;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AElfDPoSLogRoundCount = 1;
         public const int AliasLimit = 20;
+        public const int AElfWaitFirstRoundTime = 4000;
+        
         #endregion
         
         #region Dividends Settings
