@@ -34,7 +34,7 @@ namespace AElf.OS.Tests.Network.Sync
             _eventBus = GetRequiredService<ILocalEventBus>();
             
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
-            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetRandomChainId()) });
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.GetRandomChainId() });
             _optionsMock = optionsMock.Object;
         }
 
