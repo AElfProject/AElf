@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
@@ -157,21 +156,18 @@ namespace AElf.Kernel.Blockchain.Application
                     }
                 }
 
-                var lastBlockLink = blockLinks.LastOrDefault();
-                if (lastBlockLink != null && lastBlockLink.IsExecuted && !lastBlockLink.IsBadBlock)
+                var lastGoodBlockLink = blockLinks.FindLast(x => !x.IsBadBlock && x.IsExecuted);
+                if (lastGoodBlockLink != null && lastGoodBlockLink.Height > chain.BestChainHeight)
                 {
-                    if (lastBlockLink.Height > chain.BestChainHeight)
-                    {
-                        await _chainManager.SetBestChainAsync(chain, lastBlockLink.Height, lastBlockLink.BlockHash);
+                    await _chainManager.SetBestChainAsync(chain, lastGoodBlockLink.Height, lastGoodBlockLink.BlockHash);
 
-                        await LocalEventBus.PublishAsync(
-                            new BestChainFoundEvent()
-                            {
-                                ChainId = chain.Id,
-                                BlockHash = chain.BestChainHash,
-                                BlockHeight = chain.BestChainHeight
-                            });
-                    }
+                    await LocalEventBus.PublishAsync(
+                        new BestChainFoundEvent()
+                        {
+                            ChainId = chain.Id,
+                            BlockHash = chain.BestChainHash,
+                            BlockHeight = chain.BestChainHeight
+                        });
                 }
             }
 
