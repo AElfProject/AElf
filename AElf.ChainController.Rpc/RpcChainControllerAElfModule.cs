@@ -1,6 +1,6 @@
 ﻿using AElf.Kernel.ChainController;
 using AElf.Modularity;
-using AElf.RPC;
+using AElf.Rpc;
 using AElf.Kernel.TransactionPool;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

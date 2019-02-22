@@ -11,7 +11,7 @@ using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
-using AElf.RPC;
+using AElf.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
