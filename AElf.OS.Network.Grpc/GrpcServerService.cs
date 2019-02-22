@@ -29,11 +29,8 @@ namespace AElf.OS.Network.Grpc
 
         public ILogger<GrpcServerService> Logger;
         
-        private int ChainId
-        {
-            get { return ChainHelpers.ConvertBase58ToChainId(_chainOptions.ChainId); }
-        }
-        
+        private int ChainId => _chainOptions.ChainId;
+
         public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IBlockchainService blockChainService)
         {
             _peerPool = peerPool;

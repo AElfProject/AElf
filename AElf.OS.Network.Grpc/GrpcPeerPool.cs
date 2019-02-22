@@ -32,11 +32,8 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcPeerPool> Logger { get; set; }
         
-        private int ChainId
-        {
-            get { return ChainHelpers.ConvertBase58ToChainId(_chainOptions.ChainId); }
-        }
-        
+        private int ChainId => _chainOptions.ChainId;
+
         public GrpcPeerPool(IOptionsSnapshot<ChainOptions> chainOptions, IOptionsSnapshot<NetworkOptions> networkOptions, 
             IAccountService accountService, IBlockchainService blockChainService)
         {

@@ -31,10 +31,7 @@ namespace AElf.OS.Handlers
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
-         private int ChainId
-         {
-             get { return ChainHelpers.ConvertBase58ToChainId(ChainOptions.Value.ChainId); }
-         }
+         private int ChainId => ChainOptions.Value.ChainId;
 
          public async Task HandleEventAsync(AnnoucementReceivedEventData eventData)
         {
