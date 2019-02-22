@@ -2,6 +2,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
+using AElf.Kernel.Consensus.Scheduler.FluentScheduler;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
@@ -10,7 +11,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
-    [DependsOn(typeof(RxNetSchedulerAElfModule))]
+    [DependsOn(typeof(FluentSchedulerAElfModule))]
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusModule : AElfModule
     {
