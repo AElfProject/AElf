@@ -30,7 +30,6 @@ namespace AElf.Kernel.Tests.Managers
             hash.ShouldNotBeNull();
         }
 
-
         [Fact]
         public async Task Insert_MultipleTx_Test()
         {

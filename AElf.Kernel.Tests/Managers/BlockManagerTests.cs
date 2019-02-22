@@ -55,6 +55,5 @@ namespace AElf.Kernel.Tests.Managers
             Assert.Equal(block.Header, header);
             Assert.Equal(block.Body, body);
         }
-
     }
 }
