@@ -35,9 +35,15 @@ namespace AElf.Sdk.CSharp2.State
                 }
             };
             int chainId = _owner.Context.SmartContractContext.ChainId;
+            var chainContext = new ChainContext()
+            {
+                ChainId = chainId,
+                BlockHash = _owner.Context.TransactionContext.PreviousBlockHash,
+                BlockHeight = _owner.Context.TransactionContext.BlockHeight - 1
+            };
             AsyncHelper.RunSync(async () =>
             {
-                var executive = await svc.GetExecutiveAsync(chainId, _owner.Value);
+                var executive = await svc.GetExecutiveAsync(chainId, chainContext, _owner.Value);
                 executive.SetDataCache(_owner.Provider.Cache);
                 try
                 {

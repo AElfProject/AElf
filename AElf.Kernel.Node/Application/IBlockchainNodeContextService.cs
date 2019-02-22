@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,12 +16,7 @@ namespace AElf.Kernel.Node.Application
     {
         public int ChainId { get; set; }
 
-        public string[] SystemSmartContractAssemblyNames { get; set; }
-
-        /// <summary>
-        /// default for csharp
-        /// </summary>
-        public int SmartContractCategory { get; set; } = 0; 
+        public Transaction[] Transactions { get; set; }
     }
 
     public interface IBlockchainNodeContextService
@@ -38,8 +34,6 @@ namespace AElf.Kernel.Node.Application
         private IBlockchainService _blockchainService;
         private IChainCreationService _chainCreationService;
 
-        private string _assemblyPath = Path.GetDirectoryName(typeof(BlockchainNodeContextService).Assembly.Location);
-
         public BlockchainNodeContextService(IChainRelatedComponentManager<ITxHub> txHubs,
             IBlockchainService blockchainService, IChainCreationService chainCreationService)
         {
@@ -55,24 +49,11 @@ namespace AElf.Kernel.Node.Application
                 ChainId = dto.ChainId,
                 TxHub = await _txHubs.CreateAsync(dto.ChainId)
             };
-            var chain = _blockchainService.GetChainAsync(dto.ChainId);
+            var chain = await _blockchainService.GetChainAsync(dto.ChainId);
 
             if (chain == null)
             {
-                var registers = dto.SystemSmartContractAssemblyNames.Select((p, i) =>
-                {
-                    var codes = ReadContractCode(p);
-                    var reg = new SmartContractRegistration()
-                    {
-                        Category = dto.SmartContractCategory,
-                        SerialNumber = (ulong) i,
-                        ContractBytes = ByteString.CopyFrom(codes)
-                    };
-
-                    reg.ContractHash = Hash.FromRawBytes(codes);
-                    return reg;
-                }).ToList();
-                await _chainCreationService.CreateNewChainAsync(dto.ChainId, registers);
+                await _chainCreationService.CreateNewChainAsync(dto.ChainId, dto.Transactions);
             }
 
             return context;
@@ -83,9 +64,8 @@ namespace AElf.Kernel.Node.Application
             await _txHubs.RemoveAsync(blockchainNodeContext.ChainId);
         }
 
-        private byte[] ReadContractCode(string assemblyName)
+        private byte[] ReadContractCode(string path)
         {
-            var path = Path.Combine(_assemblyPath, $"{assemblyName}.dll");
             return File.ReadAllBytes(Path.GetFullPath(path));
         }
         

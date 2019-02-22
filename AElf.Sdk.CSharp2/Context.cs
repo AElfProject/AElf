@@ -109,24 +109,28 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
         }
 
-        public async Task DeployContractAsync(Address address, SmartContractRegistration registration)
+        public void DeployContract(Address address, SmartContractRegistration registration)
         {
             if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
             {
                 throw new AssertionError("no permission.");
             }
 
-            await SmartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration, false);
+            AsyncHelper.RunSync(async () =>
+                await SmartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
+                    false));
         }
 
-        public async Task UpdateContractAsync(Address address, SmartContractRegistration registration)
+        public void UpdateContract(Address address, SmartContractRegistration registration)
         {
             if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
             {
                 throw new AssertionError("no permission.");
             }
 
-            await SmartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration, false);
+            AsyncHelper.RunSync(async () =>
+                await SmartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration,
+                    false));
         }
     }
 }
