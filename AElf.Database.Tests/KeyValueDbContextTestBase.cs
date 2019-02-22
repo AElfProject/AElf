@@ -46,5 +46,16 @@ namespace AElf.Database.Tests
 
             Assert.Equal(value, Helper.BytesToString(getResult));
         }
+
+        [Fact]
+        public void ExceptionTest()
+        {
+            var key = string.Empty;
+            var value = Guid.NewGuid().ToString();
+
+            Assert.Throws<ArgumentException>(() => { _database.GetAsync(key); });
+            Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, Helper.StringToBytes(value)); });
+            Assert.Throws<ArgumentException>(() => { _database.RemoveAsync(key); });
+        }
     }
 }
