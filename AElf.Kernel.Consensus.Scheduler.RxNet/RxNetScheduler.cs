@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.EventMessages;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Scheduler.RxNet

@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Linq;
+using AElf.Kernel.EventMessages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;

@@ -1,6 +1,7 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
+using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
@@ -21,7 +22,7 @@ namespace AElf.Kernel.Consensus.DPoS
             
             context.Services.AddSingleton<IConsensusScheduler, RxNetScheduler>();
             context.Services.AddSingleton<RxNetObserver>();
-            context.Services.AddSingleton<ConsensusCommand>();
+            context.Services.AddSingleton<ConsensusController>();
         }
     }
 }

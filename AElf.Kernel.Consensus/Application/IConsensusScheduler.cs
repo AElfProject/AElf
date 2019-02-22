@@ -1,3 +1,4 @@
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.Node.Infrastructure;
 
 namespace AElf.Kernel.Consensus.Application

@@ -86,7 +86,7 @@ namespace AElf.Kernel.Domain
 
         private string CalculateKey(ulong termNumber)
         {
-            return Hash.FromTwoHashes(Hash.FromRawBytes(GlobalConfig.AElfDPoSMinersString.CalculateHash()),
+            return Hash.FromTwoHashes(Hash.FromRawBytes("AElfMainchainMiners".CalculateHash()),
                 Hash.FromMessage(termNumber.ToUInt64Value())).ToHex();
         }
     }

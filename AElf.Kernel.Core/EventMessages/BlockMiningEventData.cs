@@ -1,7 +1,7 @@
 using System;
 using AElf.Common;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.EventMessages
 {
     public class BlockMiningEventData
     {

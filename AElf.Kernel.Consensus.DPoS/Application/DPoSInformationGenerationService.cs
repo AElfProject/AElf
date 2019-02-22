@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -17,19 +18,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     {
         private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
-        private readonly ConsensusCommand _command;
+        private readonly ConsensusController _controller;
         private Hash _inValue;
 
-        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_command.Hint);
+        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controller.ConsensusCommand.Hint);
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
         public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
-            ConsensusCommand command)
+            ConsensusController controller)
         {
             _dpoSOptions = consensusOptions.Value;
             _accountService = accountService;
-            _command = command;
+            _controller = controller;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }

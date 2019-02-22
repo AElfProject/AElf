@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;

@@ -20,11 +20,8 @@ namespace AElf.Common
 
         public const int ForkDetectionRoundNumber = 3;
         public const int AElfWaitFirstRoundTime = 4000;
-        public const string AElfDPoSMinersString = "__AElfBlockProducer__";
 
         #endregion
-
-        public const ulong BasicContractZeroSerialNumber = 100;
 
         #region data key prefixes
 
