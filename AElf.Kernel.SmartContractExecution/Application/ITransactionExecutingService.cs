@@ -25,11 +25,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionResultManager _transactionResultManager;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
-        public TransactionExecutingService(ISmartContractService smartContractService,
-            ITransactionResultManager transactionTraceManager,
-            ISmartContractExecutiveService smartContractExecutiveService, ISystemContractService systemContractService)
+        public TransactionExecutingService(ITransactionResultManager transactionResultManager,
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _transactionResultManager = transactionTraceManager;
+            _transactionResultManager = transactionResultManager;
             _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
@@ -93,7 +92,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
 
 
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, transaction.To);
+            var executive =
+                await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
+                    transaction.To);
 
             try
             {
@@ -225,7 +226,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 throw new NullReferenceException();
             }
-            
+
             returnSet.ReturnValue = trace.RetVal.Data;
 
             return returnSet;

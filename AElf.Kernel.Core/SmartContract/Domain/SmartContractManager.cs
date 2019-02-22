@@ -19,7 +19,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
         public async Task InsertAsync(SmartContractRegistration registration)
         {
-            await _smartContractStore.SetAsync(registration.ContractHash.ToHex(), registration);
+            await _smartContractStore.SetAsync(registration.CodeHash.ToHex(), registration);
         }
     }
 }

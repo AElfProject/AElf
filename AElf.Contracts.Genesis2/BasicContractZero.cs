@@ -1,26 +1,23 @@
 using System;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis
 {
-    public partial class BasicContractZero : CSharpSmartContract<BasicContractZeroState>
+    public class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
-        private const double DeployWaitingPeriod = 3 * 24 * 60 * 60;
-        
+
         #region Views
-        
+
         [View]
         public ulong CurrentContractSerialNumber()
         {
             return State.ContractSerialNumber.Value;
         }
-        
+
         [View]
         public string GetContractInfo(Address contractAddress)
         {
@@ -32,39 +29,32 @@ namespace AElf.Contracts.Genesis
 
             return info.ToString();
         }
-        
+
         [View]
         public Address GetContractOwner(Address contractAddress)
         {
             var info = State.ContractInfos[contractAddress];
             return info?.Owner;
         }
-        
+
         [View]
         public Hash GetContractHash(Address contractAddress)
         {
             var info = State.ContractInfos[contractAddress];
-            return info?.ContractHash;
-        }
-        
-        #endregion Views
-        
-        #region Actions
-        
-        public void Initialize(Address authorizationContractAddress)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.AuthorizationContract.Value = authorizationContractAddress;
-            State.Initialized.Value = true;
+            return info?.CodeHash;
         }
 
-        public async Task<byte[]> InitSmartContract(ulong serialNumber, int category, byte[] code)
+        #endregion Views
+
+        #region Actions
+
+        public byte[] InitSmartContract(ulong serialNumber, int category, byte[] code)
         {
             Assert(Context.CurrentHeight < 1, "The current height should be less than 1.");
             Assert(Context.Sender.Equals(Context.Genesis));
-            
+
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
-            
+
             var contractHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
@@ -72,91 +62,91 @@ namespace AElf.Contracts.Genesis
                 SerialNumber = serialNumber,
                 Category = category,
                 Owner = Address.Genesis,
-                ContractHash = contractHash
+                CodeHash = contractHash
             };
             State.ContractInfos[contractAddress] = info;
-            
+
             var reg = new SmartContractRegistration
             {
                 Category = category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash,
-                SerialNumber = serialNumber
+                Code = ByteString.CopyFrom(code),
+                CodeHash = contractHash
             };
-            
-            await Context.DeployContractAsync(contractAddress, reg);
+
+            Context.DeployContract(contractAddress, reg);
 
             Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
-        public async Task<byte[]> DeploySmartContract(int category, byte[] code)
+        public byte[] DeploySmartContract(int category, byte[] code)
         {
-            var serialNumber = GetNexSerialNumber();
+            var serialNumber = State.ContractSerialNumber.Value;
+            // Increment
+            State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
-            
-            var contractHash = Hash.FromRawBytes(code);
+
+            var codeHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
             {
                 SerialNumber = serialNumber,
-                Category = category,
                 Owner = Context.Sender,
-                ContractHash = contractHash
+                Category = category,
+                CodeHash = codeHash
             };
             State.ContractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
             {
                 Category = category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash,
-                SerialNumber = serialNumber
+                Code = ByteString.CopyFrom(code),
+                CodeHash = codeHash
             };
 
-            await Context.DeployContractAsync(contractAddress, reg);
+            Context.DeployContract(contractAddress, reg);
 
-            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + contractHash.ToHex());
+            Context.FireEvent(new ContractHasBeenDeployed()
+            {
+                CodeHash = codeHash,
+                Address = contractAddress,
+                Creator = Context.Sender
+            });
+
+            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
-        public async Task<byte[]> UpdateSmartContract(Address contractAddress, byte[] code)
+        public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
         {
-            var existContract = State.ContractInfos[contractAddress];
+            var info = State.ContractInfos[contractAddress];
 
-            Assert(existContract != null, "Contract is not exist.");
+            Assert(info != null, "Contract does not exist.");
+            Assert(info.Owner.Equals(Context.Sender), "Only owner is allowed to update code.");
 
-            var isMultiSigAccount = IsMultiSigAccount(existContract.Owner);
-            if (!existContract.Owner.Equals(Context.Sender))
-            {
-                Assert(isMultiSigAccount, "no permission.");
-                var proposeHash = Propose("UpdateSmartContract", DeployWaitingPeriod, existContract.Owner,
-                    Context.Self, "UpdateSmartContract", contractAddress, code);
-                return proposeHash.DumpByteArray();
-            }
+            var oldCodeHash = info.CodeHash;
+            var newCodeHash = Hash.FromRawBytes(code);
+            Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
 
-            if (isMultiSigAccount)
-            {
-                CheckAuthority(Context.Sender);
-            }
-
-            var contractHash = Hash.FromRawBytes(code);
-            Assert(!existContract.ContractHash.Equals(contractHash), "Contract is not changed.");
-
-            existContract.ContractHash = contractHash;
-            State.ContractInfos[contractAddress] = existContract;
+            info.CodeHash = newCodeHash;
+            State.ContractInfos[contractAddress] = info;
 
             var reg = new SmartContractRegistration
             {
-                Category = existContract.Category,
-                ContractBytes = ByteString.CopyFrom(code),
-                ContractHash = contractHash,
-                SerialNumber = existContract.SerialNumber
+                Category = info.Category,
+                Code = ByteString.CopyFrom(code),
+                CodeHash = newCodeHash
             };
 
-            await Context.UpdateContractAsync(contractAddress, reg);
-            
+            Context.UpdateContract(contractAddress, reg);
+            Context.FireEvent(new ContractCodeHasBeenUpdated()
+            {
+                Address = contractAddress,
+                OldCodeHash = oldCodeHash,
+                NewCodeHash = newCodeHash
+            });
+
             Console.WriteLine("BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
@@ -165,7 +155,7 @@ namespace AElf.Contracts.Genesis
         {
             var info = State.ContractInfos[contractAddress];
             Assert(info != null && info.Owner.Equals(Context.Sender), "no permission.");
-            
+
             var oldOwner = info.Owner;
             info.Owner = newOwner;
             State.ContractInfos[contractAddress] = info;

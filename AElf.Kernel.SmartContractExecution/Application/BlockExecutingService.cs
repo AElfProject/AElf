@@ -8,10 +8,11 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class BlockExecutingService : IBlockExecutingService
+    public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
@@ -98,7 +99,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 foreach (var change in returnSet.StateChanges)
                 {
-                    blockStateSet.Changes.Add(change.Key, change.Value);
+                    blockStateSet.Changes[change.Key] = change.Value;
                 }
             }
 
@@ -106,7 +107,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 foreach (var change in returnSet.StateChanges)
                 {
-                    blockStateSet.Changes.Add(change.Key, change.Value);
+                    blockStateSet.Changes[change.Key] = change.Value;
                 }
             }
 
