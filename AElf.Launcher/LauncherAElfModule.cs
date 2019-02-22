@@ -85,14 +85,13 @@ namespace AElf.Launcher
                 eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
             ));
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var chainId = ChainHelpers.ConvertBase58ToChainId(chainOptions.ChainId);
             var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
-            var transactions = generator.GetGenesisTransactions(chainId);
+            var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
             var dto = new OsBlockchainNodeContextStartDto()
             {
                 BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
                 {
-                    ChainId = chainId,
+                    ChainId = chainOptions.ChainId,
                     Transactions = transactions
                 }
             };
