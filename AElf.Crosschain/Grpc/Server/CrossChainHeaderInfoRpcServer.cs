@@ -188,11 +188,11 @@ namespace AElf.Crosschain.Grpc.Server
         public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
         {
             // todo: publish event for indexing new side chain
-            LocalEventBus.PublishAsync(new NewSideChainConnectionReceivedEvent
+            LocalEventBus.PublishAsync(new NewSideChainEvent
             {
-                ClientBase = new GrpcClientBase
+                CrossChainDataProducer = new CrossChainDataProducer
                 {
-                    BlockInfoCache = new BlockInfoCache(request.ChainId),
+                    BlockInfoCache = new BlockInfoCache(),
                     TargetIp = request.Ip,
                     TargetPort = request.Port
                 }

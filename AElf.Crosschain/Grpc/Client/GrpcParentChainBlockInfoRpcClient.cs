@@ -8,7 +8,7 @@ namespace AElf.Crosschain.Grpc.Client
     {
         private readonly CrossChainRpc.CrossChainRpcClient _client;
 
-        public GrpcParentChainBlockInfoRpcClient(Channel channel, GrpcClientBase grpcClientBase) : base(channel, grpcClientBase)
+        public GrpcParentChainBlockInfoRpcClient(Channel channel, CrossChainDataProducer crossChainDataProducer) : base(channel, crossChainDataProducer)
         {
             _client = new CrossChainRpc.CrossChainRpcClient(channel);
         }

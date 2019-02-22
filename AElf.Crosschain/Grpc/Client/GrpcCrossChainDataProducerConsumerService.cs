@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Crosschain.Exceptions;
 using AElf.Cryptography.Certificate;
 using Grpc.Core;
 
 namespace AElf.Crosschain.Grpc.Client
 {
-    public class GrpcClientService : IClientService
+    public class GrpcCrossChainDataProducerConsumerService : ICrossChainDataProducerConsumerService
     {
         private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
             new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();
@@ -39,13 +40,26 @@ namespace AElf.Crosschain.Grpc.Client
 
         #region Create client
 
-        public void CreateClient(IClientBase grpcClientBase)
+        public (ICrossChainDataConsumer, ICrossChainDataProducer) CreateConsumerProducer(CommunicationContextDto communicationContextDto)
         {
-            var client = CreateGrpcClient((GrpcClientBase) grpcClientBase);
+            var producer = new CrossChainDataProducer
+            {
+                BlockInfoCache = communicationContextDto.BlockInfoCache,
+                ChainId = communicationContextDto.CrossChainCommunicationContext.ChainId,
+                TargetChainHeight = communicationContextDto.TargetHeight
+            };
+            
+            var consumer = new CrossChainDataConsumer
+            {
+                BlockInfoCache = communicationContextDto.BlockInfoCache,
+                ChainId = communicationContextDto.CrossChainCommunicationContext.ChainId
+            };
+            var client =
+                CreateGrpcClientAsync(
+                    (GrpcCrossChainCommunicationContext) communicationContextDto.CrossChainCommunicationContext,
+                    producer, communicationContextDto.IsSideChain);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
-            client.StartDuplexStreamingCall(((GrpcClientBase)grpcClientBase).TargetChainId, ((GrpcClientBase) grpcClientBase).TargetIsSideChain
-                ? _tokenSourceToSideChain.Token
-                : _tokenSourceToParentChain.Token);
+            return (consumer, producer);
         }
 
         /// <summary>
@@ -53,18 +67,21 @@ namespace AElf.Crosschain.Grpc.Client
         /// </summary>
         /// <returns>
         /// </returns>    
-        private IGrpcCrossChainClient CreateGrpcClient(GrpcClientBase grpcClientBase)
+        private async Task<IGrpcCrossChainClient> CreateGrpcClientAsync(GrpcCrossChainCommunicationContext crossChainCommunicationContext, 
+            CrossChainDataProducer producer, bool isSideChain)
         {
-            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.TargetChainId);
+            var channel = CreateChannel(crossChainCommunicationContext.ToUriStr(), crossChainCommunicationContext.TargetChainId);
 
-            if (grpcClientBase.TargetIsSideChain)
+            if (isSideChain)
             {
-                var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, grpcClientBase);
-                _clientsToSideChains.Add(grpcClientBase.TargetChainId, clientToSideChain);
+                var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, producer);
+                _clientsToSideChains.Add(crossChainCommunicationContext.TargetChainId, clientToSideChain);
+                await clientToSideChain.StartDuplexStreamingCall(crossChainCommunicationContext.ChainId, _tokenSourceToSideChain.Token);
                 return clientToSideChain;
             }
 
-            _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, grpcClientBase);
+            _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, producer);
+            await _grpcParentChainBlockInfoRpcClient.StartDuplexStreamingCall(crossChainCommunicationContext.ChainId, _tokenSourceToParentChain.Token);
             return _grpcParentChainBlockInfoRpcClient;
         }
 

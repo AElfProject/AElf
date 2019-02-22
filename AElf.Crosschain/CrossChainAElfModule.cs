@@ -22,7 +22,7 @@ namespace AElf.Crosschain
              
              var configuration = context.Services.GetConfiguration();
              Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));
-             services.AddSingleton<IClientService, GrpcClientService>();
+             services.AddSingleton<ICrossChainDataProducerConsumerService, GrpcCrossChainDataProducerConsumerService>();
              services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
              services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
@@ -32,13 +32,13 @@ namespace AElf.Crosschain
          {
              var opt = context.ServiceProvider.GetService<IOptionsSnapshot<GrpcConfigOption>>().Value;
 
-             var clientService = context.ServiceProvider.GetService<GrpcClientService>();
+             var clientService = context.ServiceProvider.GetService<GrpcCrossChainDataProducerConsumerService>();
              // Init client connected to parent chain if it exists.
              clientService.Init(opt.CertificateDir);
 //             if (!string.IsNullOrEmpty(opt.ParentChainId) && !string.IsNullOrEmpty(opt.ParentChainNodeIp) &&
 //                 !string.IsNullOrEmpty(opt.ParentChainPort)) return;
 //             var blockInfoCache = new BlockInfoCache(opt.ParentChainId.ConvertBase58ToChainId());
-//             clientService.CreateClient(new GrpcClientBase
+//             clientService.CreateConsumerProducer(new CrossChainDataProducer
 //             {
 //                 TargetIp = opt.ParentChainNodeIp,
 //                 TargetPort = uint.Parse(opt.ParentChainPort),

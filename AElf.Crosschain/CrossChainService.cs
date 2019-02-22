@@ -15,28 +15,28 @@ namespace AElf.Crosschain
             _crossChainDataProvider = crossChainDataProvider;
         }
 
-        public async Task<List<SideChainBlockData>> GetSideChainBlockData()  
+        public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(int chainId)  
         {
             var res = new List<SideChainBlockData>();
-            await _crossChainDataProvider.GetSideChainBlockData(res);
+            await _crossChainDataProvider.GetSideChainBlockDataAsync(chainId, res);
             return res;
         }
 
-        public async Task<List<ParentChainBlockData>> GetParentChainBlockData()
+        public async Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(int chainId)
         {
             var res = new List<ParentChainBlockData>();
-            await _crossChainDataProvider.GetParentChainBlockData(res);
+            await _crossChainDataProvider.GetParentChainBlockDataAsync(chainId, res);
             return res;
         }
 
-        public async Task<bool> ValidateSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
+        public async Task<bool> ValidateSideChainBlockDataAsync(int chainId, IList<SideChainBlockData> sideChainBlockData)
         {
-            return await _crossChainDataProvider.GetSideChainBlockData(sideChainBlockData, true);
+            return await _crossChainDataProvider.GetSideChainBlockDataAsync(chainId, sideChainBlockData, true);
         }
         
-        public async Task<bool> ValidateParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
+        public async Task<bool> ValidateParentChainBlockDataAsync(int chainId, IList<ParentChainBlockData> parentChainBlockData)
         {
-            return await _crossChainDataProvider.GetParentChainBlockData(parentChainBlockData, true);
+            return await _crossChainDataProvider.GetParentChainBlockDataAsync(chainId, parentChainBlockData, true);
         }
     }
 }
