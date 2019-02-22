@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
-using IChainManager = AElf.Kernel.Blockchain.Domain.IChainManager;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -75,7 +73,7 @@ namespace AElf.Kernel.Blockchain.Application
         public ILogger<FullBlockchainService> Logger { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
-            IBlockExecutingService blockExecutingService, ITransactionManager transactionManager, 
+            IBlockExecutingService blockExecutingService, ITransactionManager transactionManager,
             IBlockValidationService blockValidationService)
         {
             Logger = NullLogger<FullBlockchainService>.Instance;
@@ -86,7 +84,7 @@ namespace AElf.Kernel.Blockchain.Application
             _blockValidationService = blockValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
-        
+
         public async Task<Chain> CreateChainAsync(int chainId, Block block)
         {
             await AddBlockAsync(chainId, block);
@@ -120,40 +118,44 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block.Header.GetHash(),
                 PreviousBlockHash = block.Header.PreviousBlockHash
             });
-            
+
             List<ChainBlockLink> blockLinks = null;
 
             if (status.HasFlag(BlockAttachOperationStatus.NewBlockLinked))
             {
                 blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, block.Header.GetHash());
+                var badBlockFound = false;
 
                 foreach (var blockLink in blockLinks)
                 {
                     var linkedBlock = await GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
-                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
+
+                    // Set the other blocks as bad block if found the first bad block
+                    if (badBlockFound || !await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
                     {
+                        await _chainManager.SetChainBlockLinkAsBadAsync(chain.Id, blockLink);
+                        badBlockFound = true;
                         Logger.LogWarning($"Block validate fails before execution. BlockLink hash : {blockLink.BlockHash}");
-                        break;
+                        continue;
                     }
 
                     await ExecuteBlock(chain.Id, blockLink, linkedBlock);
 
                     if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
                     {
+                        await _chainManager.SetChainBlockLinkAsBadAsync(chain.Id, blockLink);
+                        badBlockFound = true;
                         Logger.LogWarning($"Block validate fails after execution. BlockLink hash : {blockLink.BlockHash}");
-                        break;
                     }
-                    
-                    _chainManager.SetChainBlockLinkAsValidated(chain.Id, blockLink);
                 }
-                
+
                 var lastBlockLink = blockLinks.LastOrDefault();
-                if (lastBlockLink != null && lastBlockLink.IsExecuted && lastBlockLink.IsValidated)
+                if (lastBlockLink != null && lastBlockLink.IsExecuted && !lastBlockLink.IsBadBlock)
                 {
                     if (lastBlockLink.Height > chain.BestChainHeight)
                     {
-                        _chainManager.SetBestChain(chain.Id, lastBlockLink.Height,lastBlockLink.BlockHash);
-                        
+                        await _chainManager.SetBestChainAsync(chain, lastBlockLink.Height, lastBlockLink.BlockHash);
+
                         await LocalEventBus.PublishAsync(
                             new BestChainFoundEvent()
                             {
@@ -182,7 +184,7 @@ namespace AElf.Kernel.Blockchain.Application
                 await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
             }
         }
-        
+
         /// <summary>
         /// Returns the block with the specified height, searching from <see cref="startBlockHash"/>. If the height
         /// is in the irreversible section of the chain, it will get the block from the indexed blocks.
@@ -199,9 +201,9 @@ namespace AElf.Kernel.Blockchain.Application
                 return (await _chainManager.GetChainBlockIndexAsync(chain.Id, height)).BlockHash;
             }
 
-            if (startBlockHash == null)    
+            if (startBlockHash == null)
                 startBlockHash = chain.BestChainHash;
-            
+
             // TODO: may introduce cache to improve the performance
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, startBlockHash);
@@ -211,12 +213,12 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 if (chainBlockLink.Height == height)
                     return chainBlockLink.BlockHash;
-                
+
                 startBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, startBlockHash);
             }
         }
-        
+
         public async Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count)
         {
             var chain = await GetChainAsync(chainId);
@@ -226,25 +228,25 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
 
             var hashes = new List<Hash>();
-                
-            for (ulong i = first.Height-1; i >= first.Height - (ulong)count && i > 0; i--)
+
+            for (ulong i = first.Height - 1; i >= first.Height - (ulong) count && i > 0; i--)
             {
                 var bHash = await GetBlockHashByHeightAsync(chain, i);
 
                 if (bHash == null)
                     return hashes;
-                
+
                 hashes.Add(bHash);
             }
 
             return hashes;
         }
-        
+
         public async Task<Block> GetBlockByHeightAsync(int chainId, ulong height)
         {
             var chain = await GetChainAsync(chainId);
             var hash = await GetBlockHashByHeightAsync(chain, height);
-            
+
             return await GetBlockByHashAsync(chainId, hash);
         }
 
@@ -256,7 +258,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(int chainId, ulong height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(chainId, height);
-            return await _blockManager.GetBlockHeaderAsync(index.BlockHash); 
+            return await _blockManager.GetBlockHeaderAsync(index.BlockHash);
         }
 
         public async Task<Chain> GetChainAsync(int chainId)

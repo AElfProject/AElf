@@ -53,7 +53,7 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public async Task Test_LIB_Blocks()
+        public async Task LIB_Blocks_Test()
         {
             //0 -> 1 linked
             //0 -> 1 -> 5 equals to 0[0] -> 1[1] -> 5[2]
@@ -576,7 +576,7 @@ namespace AElf.Kernel.Tests
                 chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToHex()).ShouldBeFalse();
             }
         }
-        
+
         [Fact]
         public async Task Test_Set_Block_Executed()
         {
@@ -590,7 +590,7 @@ namespace AElf.Kernel.Tests
             await _chainManager.SetChainBlockLinkAsExecuted(0, firstBlockLink);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
             currentBlockLink.IsExecuted.ShouldBeTrue();
-            
+
             var secondBlockLink = new ChainBlockLink
             {
                 Height = 2ul.BlockHeight(),
@@ -603,42 +603,97 @@ namespace AElf.Kernel.Tests
         }
 
         [Fact]
-        public async Task Test_Set_Block_Validated()
+        public async Task Set_Block_Validated_Test()
         {
             var firstBlockLink = new ChainBlockLink
             {
                 Height = 1ul.BlockHeight(),
                 BlockHash = _blocks[1],
-                IsValidated = false
+                IsBadBlock = false
             };
 
-            await _chainManager.SetChainBlockLinkAsValidated(0, firstBlockLink);
+            await _chainManager.SetChainBlockLinkAsBadAsync(0, firstBlockLink);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
-            currentBlockLink.IsValidated.ShouldBeTrue();
-            
+            currentBlockLink.IsBadBlock.ShouldBeTrue();
+
             var secondBlockLink = new ChainBlockLink
             {
                 Height = 2ul.BlockHeight(),
                 BlockHash = _blocks[2],
-                IsValidated = true
+                IsBadBlock = true
             };
 
-            _chainManager.SetChainBlockLinkAsValidated(0, secondBlockLink)
+            _chainManager.SetChainBlockLinkAsBadAsync(0, secondBlockLink)
                 .ShouldThrow<InvalidOperationException>();
         }
 
         [Fact]
-        public async Task Test_Set_Best_Chain()
+        public async Task Set_Best_Chain_Test()
         {
             var chain = await _chainManager.CreateAsync(0, _genesis);
 
-            await _chainManager.SetBestChain(chain.Id, 1ul.BlockHeight(), _blocks[1]);
+            await _chainManager.SetBestChainAsync(chain, 1ul.BlockHeight(), _blocks[1]);
             var currentChain = await _chainManager.GetAsync(chain.Id);
             currentChain.BestChainHeight.ShouldBe(1ul.BlockHeight());
             currentChain.BestChainHash.ShouldBe(_blocks[1]);
 
-            _chainManager.SetBestChain(chain.Id, 1ul.BlockHeight(), _blocks[1])
+            _chainManager.SetBestChainAsync(chain, 1ul.BlockHeight(), _blocks[1])
                 .ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Get_Not_ExecutedBlocks_Test()
+        {
+            // No bad block
+            var chain = await _chainManager.CreateAsync(0, _genesis);
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+            {
+                Height = 1ul.BlockHeight(),
+                BlockHash = _blocks[1],
+                PreviousBlockHash = _genesis
+            });
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+            {
+                Height = 2ul.BlockHeight(),
+                BlockHash = _blocks[2],
+                PreviousBlockHash = _blocks[1]
+            });
+
+            var chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[2]);
+            chainBlockLinks.Count.ShouldBe(3);
+            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
+            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
+            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
+
+            // Bad block
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+            {
+                Height = 3ul.BlockHeight(),
+                BlockHash = _blocks[3],
+                PreviousBlockHash = _blocks[2],
+            });
+
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+            {
+                Height = 4ul.BlockHeight(),
+                BlockHash = _blocks[4],
+                PreviousBlockHash = _blocks[3],
+                IsBadBlock = true
+            });
+
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+            {
+                Height = 5ul.BlockHeight(),
+                BlockHash = _blocks[5],
+                PreviousBlockHash = _blocks[4]
+            });
+
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[5]);
+            chainBlockLinks.Count.ShouldBe(4);
+            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
+            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
+            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
+            chainBlockLinks[3].BlockHash.ShouldBe(_blocks[3]);
         }
     }
 }

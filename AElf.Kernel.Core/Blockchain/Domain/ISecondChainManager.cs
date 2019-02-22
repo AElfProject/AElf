@@ -32,8 +32,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
         Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
-        Task SetChainBlockLinkAsValidated(int chainId, ChainBlockLink blockLink);
-        Task SetBestChain(int chainId, ulong bestChainHeight, Hash bestChainHash);
+        Task SetChainBlockLinkAsBadAsync(int chainId, ChainBlockLink blockLink);
+        Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -138,7 +138,6 @@ namespace AElf.Kernel.Blockchain.Domain
                         status |= BlockAttachOperationStatus.LongestChainFound;
                     }
 
-
                     if (chainBlockLink.IsLinked)
                         throw new Exception("chain block link should not be linked");
 
@@ -152,8 +151,7 @@ namespace AElf.Kernel.Blockchain.Domain
                         break;
                     }
 
-                    chainBlockLink = await GetChainBlockLinkAsync(
-                        chain.Id, chain.NotLinkedBlocks[blockHash]);
+                    chainBlockLink = await GetChainBlockLinkAsync(chain.Id, chain.NotLinkedBlocks[blockHash]);
 
                     chain.NotLinkedBlocks.Remove(blockHash);
 
@@ -231,8 +229,17 @@ namespace AElf.Kernel.Blockchain.Domain
                 var cbl = await GetChainBlockLinkAsync(chain.Id, hash);
                 while(!cbl.IsExecuted)
                 {
-                    output.Add(cbl);
                     isRightBranch |= blockHash == cbl.BlockHash;
+
+                    if (!cbl.IsBadBlock)
+                    {
+                        output.Add(cbl);
+                    }
+                    else
+                    {
+                        output = new List<ChainBlockLink>();
+                    }
+
                     var prevCbl = await GetChainBlockLinkAsync(chain.Id, cbl.PreviousBlockHash);
                     if (prevCbl == null && cbl.PreviousBlockHash == Hash.Genesis)
                     {
@@ -261,17 +268,16 @@ namespace AElf.Kernel.Blockchain.Domain
             await SetChainBlockLinkAsync(chainId, blockLink);
         }
         
-        public async Task SetChainBlockLinkAsValidated(int chainId, ChainBlockLink blockLink)
+        public async Task SetChainBlockLinkAsBadAsync(int chainId, ChainBlockLink blockLink)
         {
-            if(blockLink.IsValidated)
+            if(blockLink.IsBadBlock)
                 throw new InvalidOperationException();
-            blockLink.IsValidated = true;
+            blockLink.IsBadBlock = true;
             await SetChainBlockLinkAsync(chainId, blockLink);
         }
 
-        public async Task SetBestChain(int chainId, ulong bestChainHeight, Hash bestChainHash)
+        public async Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash)
         {
-            var chain = await GetAsync(chainId);
             if (chain.BestChainHeight >= bestChainHeight)
             {
                 throw new InvalidOperationException();
@@ -280,7 +286,7 @@ namespace AElf.Kernel.Blockchain.Domain
             chain.BestChainHeight = bestChainHeight;
             chain.BestChainHash = bestChainHash;
 
-            await _chains.SetAsync(chainId.ToStorageKey(), chain);
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
     }
 }
