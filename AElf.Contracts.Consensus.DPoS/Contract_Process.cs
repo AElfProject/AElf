@@ -10,8 +10,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class Contract
     {
-        private int LogLevel { get; set; } = 0;
-
         public void InitialTerm(Term firstTerm)
         {
             Assert(firstTerm.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
@@ -645,32 +643,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 TryToUpdateRoundInformation(currentRound);
-            }
-        }
-
-        /// <summary>
-        /// Debug level:
-        /// 6 = Off
-        /// 5 = Fatal
-        /// 4 = Error
-        /// 3 = Warn
-        /// 2 = Info
-        /// 1 = Debug
-        /// 0 = Trace
-        /// </summary>
-        /// <param name="prefix"></param>
-        /// <param name="log"></param>
-        /// <param name="ex"></param>
-        private void ConsoleWriteLine(string prefix, string log, Exception ex = null)
-        {
-            if (LogLevel == 6)
-                return;
-
-            Console.WriteLine(
-                $"[{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} - Consensus]{prefix} - {log}.");
-            if (ex != null)
-            {
-                Console.WriteLine(ex);
             }
         }
     }
