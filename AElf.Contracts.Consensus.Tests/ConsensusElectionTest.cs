@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -231,7 +232,7 @@ namespace AElf.Contracts.Consensus.Tests
             initialMiners = new List<ECKeyPair>();
             candidates = new List<ECKeyPair>();
             voters = new List<ECKeyPair>();
-            for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
+            for (var i = 0; i < 17; i++)
             {
                 initialMiners.Add(CryptoHelpers.GenerateKeyPair());
                 candidates.Add(CryptoHelpers.GenerateKeyPair());
@@ -240,13 +241,9 @@ namespace AElf.Contracts.Consensus.Tests
 
             contracts = new ContractsShim(_mock, _transactionExecutingService, _blockchainService);
 
-            // Initial term.
-            var initialTerm =
-                new Miners {PublicKeys = {initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(1);
-            contracts.InitialTerm(initialMiners[0], initialTerm);
 
             // Initial balances.
-            for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
+            for (var i = 0; i < 17; i++)
             {
                 contracts.InitialBalance(initialMiners[0], GetAddress(candidates[i]),
                     DPoSContractConsts.LockTokenForElection + PinMoney);

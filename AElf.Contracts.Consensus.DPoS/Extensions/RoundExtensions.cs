@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel;
 
-namespace AElf.Kernel
+namespace AElf.Contracts.Consensus.DPoS.Extensions
 {
     public static class RoundExtensions
     {
@@ -98,7 +99,7 @@ namespace AElf.Kernel
 
         public static bool CheckWhetherMostMinersMissedTimeSlots(this Round round)
         {
-            if (GlobalConfig.BlockProducerNumber == 1)
+            if (Config.GetProducerNumber() == 1)
             {
                 return false;
             }
@@ -106,13 +107,13 @@ namespace AElf.Kernel
             var missedMinersCount = 0;
             foreach (var minerInRound in round.RealTimeMinersInfo)
             {
-                if (minerInRound.Value.LatestMissedTimeSlots == GlobalConfig.ForkDetectionRoundNumber)
+                if (minerInRound.Value.LatestMissedTimeSlots == DPoSContractConsts.ForkDetectionRoundNumber)
                 {
                     missedMinersCount++;
                 }
             }
 
-            return missedMinersCount >= (GlobalConfig.BlockProducerNumber - 1) * GlobalConfig.ForkDetectionRoundNumber;
+            return missedMinersCount >= (Config.GetProducerNumber() - 1) * DPoSContractConsts.ForkDetectionRoundNumber;
         }
     }
 }

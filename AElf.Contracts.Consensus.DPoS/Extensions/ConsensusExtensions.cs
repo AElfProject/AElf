@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using AElf.Common;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+namespace AElf.Contracts.Consensus.DPoS.Extensions
 {
     public static class ConsensusExtensions
     {
