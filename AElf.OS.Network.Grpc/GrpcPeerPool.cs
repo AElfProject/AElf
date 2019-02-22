@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,8 +27,7 @@ namespace AElf.OS.Network.Grpc
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         
-        private readonly object _peersLock = new object();
-        private readonly List<GrpcPeer> _authenticatedPeers;
+        private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
         
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcPeerPool> Logger { get; set; }
@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Grpc
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
             
-            _authenticatedPeers = new List<GrpcPeer>();
+            _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             
             Logger = NullLogger<GrpcPeerPool>.Instance;
             EventBus = NullLocalEventBus.Instance;
@@ -67,12 +67,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                GrpcPeer peer;
-
-                lock (_peersLock)
-                {
-                    peer = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
-                }
+                var peer = _authenticatedPeers.FirstOrDefault(p => p.Key == address).Value;
             
                 if (peer == null)
                 {
@@ -82,11 +77,8 @@ namespace AElf.OS.Network.Grpc
 
                 await peer.SendDisconnectAsync();
                 await peer.StopAsync();
-                
-                lock (_peersLock)
-                {
-                    return _authenticatedPeers.Remove(peer);
-                }
+
+                return _authenticatedPeers.TryRemove(peer.PeerAddress, out _);
             }
             catch (Exception e)
             {
@@ -121,11 +113,8 @@ namespace AElf.OS.Network.Grpc
                 if (resp.Success != true)
                     return false;
 
-                lock (_peersLock)
-                {
-                    _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); 
-                }
-                        
+                _authenticatedPeers[address] = new GrpcPeer(channel, client, null, address, resp.Port); 
+                                        
                 Logger.LogTrace($"Connected to {address}.");
 
                 return true;
@@ -139,54 +128,41 @@ namespace AElf.OS.Network.Grpc
 
         public List<GrpcPeer> GetPeers()
         {
-            lock (_peersLock)
-            {
-                return _authenticatedPeers.ToList();
-            }
+            return _authenticatedPeers.Values.ToList();
         }
 
-        public GrpcPeer FindPeer(string peerEndpoint, byte[] publicKey = null)
+        public GrpcPeer FindPeer(string peerAddress, byte[] publicKey = null)
         {
-            if (string.IsNullOrWhiteSpace(peerEndpoint) && publicKey == null)
+            if (string.IsNullOrWhiteSpace(peerAddress) && publicKey == null)
                 throw new InvalidOperationException("address and public cannot be both null.");
+            
+            IEnumerable<KeyValuePair<string, GrpcPeer>> toFind = _authenticatedPeers;
 
-            lock (_peersLock)
-            {
-                IEnumerable<GrpcPeer> toFind = _authenticatedPeers;
+            if (!string.IsNullOrWhiteSpace(peerAddress))
+                toFind = toFind.Where(p => p.Value.PeerAddress == peerAddress);
 
-                if (!string.IsNullOrWhiteSpace(peerEndpoint))
-                    toFind = toFind.Where(p => p.PeerAddress == peerEndpoint);
+            if (publicKey != null)
+                toFind = toFind.Where(p => publicKey.BytesEqual(p.Value.PublicKey));
 
-                if (publicKey != null)
-                    toFind = toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
-
-                return toFind.FirstOrDefault();
-            }
+            return toFind.FirstOrDefault().Value;
         }
 
-        public bool AuthenticatePeer(string peerEndpoint, byte[] pubkey, Handshake handshake)
+        public bool AuthenticatePeer(string peerAddress, byte[] pubkey, Handshake handshake)
         {
             if (pubkey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
                 return false;
+            
+            var alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerAddress == peerAddress || pubkey.BytesEqual(p.Value.PublicKey));
 
-            lock (_peersLock)
-            {
-                bool alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == peerEndpoint || pubkey.BytesEqual(p.PublicKey)) != null;
-
-                if (alreadyConnected)
-                    return false;
-            }
+            if (!alreadyConnected.Equals(default(KeyValuePair<string, GrpcPeer>)))
+                return false;
              
             return true;
         }
 
         public bool AddPeer(GrpcPeer peer)
         {
-            lock (_peersLock)
-            {
-                _authenticatedPeers.Add(peer);
-            }
-
+            _authenticatedPeers[peer.PeerAddress] = peer;
             return true;
         }
 
@@ -216,12 +192,9 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
         
-        public void ProcessDisconnection(string peer)
+        public void ProcessDisconnection(string peerEndpoint)
         {
-            lock (_peersLock)
-            {
-                _authenticatedPeers.RemoveAll(p => p.RemoteListenPort == peer);
-            }
+            _authenticatedPeers.RemoveAll(p => p.Value.RemoteEndpoint == peerEndpoint);
         }
     }
 }
