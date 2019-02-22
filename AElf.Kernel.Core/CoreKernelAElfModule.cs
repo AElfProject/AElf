@@ -3,6 +3,7 @@ using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.Modularity;
@@ -34,6 +35,7 @@ namespace AElf.Kernel
 
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddTransient(typeof(IBlockchainStore<>), typeof(BlockchainStore<>));
+            services.AddSingleton(typeof(IChainRelatedComponentManager<>), typeof(ChainRelatedComponentManager<>));
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());

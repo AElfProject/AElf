@@ -18,8 +18,6 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task UpdateContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
 
-        Task DeployZeroContractAsync(int chainId, SmartContractRegistration registration);
-
         
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, int chainId);
 //        Task PutExecutiveAsync(int chainId, Address account, IExecutive executive);
