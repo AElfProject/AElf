@@ -44,12 +44,12 @@ namespace AElf.Crosschain
 //            var crossChainBlockData = new CrossChainBlockData();
 //            if(block.Header.BlockExtraData == null)
 //                block.Header.BlockExtraData = new BlockExtraData();
-//            var sideChainBlockData = await _crossChainService.GetSideChainBlockData();
+//            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync();
 //            var sideChainTransactionsRoot = new BinaryMerkleTree()
 //                .AddNodes(sideChainBlockData.Select(scb => scb.TransactionMKRoot).ToArray()).ComputeRootHash();
 //            block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
 //            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-//            var parentChainBlockData = await _crossChainService.GetParentChainBlockData();
+//            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync();
 //            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             
             // append transaction in block for cross chain data sync, it won't be executed.
@@ -90,8 +90,8 @@ namespace AElf.Crosschain
                         if (!sideChainTransactionsRoot.Equals(block.Header.BlockExtraData
                                 .SideChainTransactionsRoot))
                             return false;
-                        return await _crossChainService.ValidateSideChainBlockData(block.Header.ChainId, crossChainBlockData.SideChainBlockData) &&
-                               await _crossChainService.ValidateParentChainBlockData(block.Header.ChainId, crossChainBlockData.ParentChainBlockData);
+                        return await _crossChainService.ValidateSideChainBlockDataAsync(block.Header.ChainId, crossChainBlockData.SideChainBlockData) &&
+                               await _crossChainService.ValidateParentChainBlockDataAsync(block.Header.ChainId, crossChainBlockData.ParentChainBlockData);
                     }
                 }
 

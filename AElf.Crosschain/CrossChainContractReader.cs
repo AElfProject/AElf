@@ -33,14 +33,14 @@ namespace AElf.Crosschain
         public async Task<ulong> GetParentChainCurrentHeightAsync(int chainId, int parentChainId)
         {
             var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-            return await _crossChainReadOnlyTransactionExecutor.ReadByTransaction<ulong>(chainId, crossChainContractMethodAddress, 
+            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(chainId, crossChainContractMethodAddress, 
                 CrossChainConsts.GetParentChainHeightMethodName);
         }
 
         public async Task<ulong> GetSideChainCurrentHeightAsync(int chainId, int sideChainId)
         {
             var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-            return await _crossChainReadOnlyTransactionExecutor.ReadByTransaction<ulong>(chainId, crossChainContractMethodAddress, 
+            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(chainId, crossChainContractMethodAddress, 
                 CrossChainConsts.GetSideChainHeightMthodName, ChainHelpers.ConvertChainIdToBase58(sideChainId));
         }
 

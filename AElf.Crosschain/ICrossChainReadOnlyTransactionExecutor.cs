@@ -5,7 +5,7 @@ namespace AElf.Crosschain
 {
     public interface ICrossChainReadOnlyTransactionExecutor
     {
-        Task<T> ReadByTransaction<T>(int chainId, Address toAddress, string methodName,
+        Task<T> ReadByTransactionAsync<T>(int chainId, Address toAddress, string methodName,
             params object[] @params);
     }
 }

@@ -27,7 +27,7 @@ namespace AElf.Crosschain
             throw new System.NotImplementedException();
         }
 
-        public async Task<T> ReadByTransaction<T>(int chainId, Address toAddress, string methodName,
+        public async Task<T> ReadByTransactionAsync<T>(int chainId, Address toAddress, string methodName,
             params object[] @params)
         {
             var transaction = await GenerateReadOnlyTransaction(toAddress, methodName, @params);
