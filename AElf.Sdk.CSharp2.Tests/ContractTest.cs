@@ -20,7 +20,6 @@ namespace AElf.Sdk.CSharp2.Tests
         private TokenContract Contract { get; } = new TokenContract();
         private IStateProvider StateProvider { get; }
 
-
         public ContractTest()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
