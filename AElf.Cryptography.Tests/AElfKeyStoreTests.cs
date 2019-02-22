@@ -1,5 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography.ECDSA.Exceptions;
 using Xunit;
 using Shouldly;
 
@@ -39,11 +43,17 @@ namespace AElf.Cryptography.Tests
             var errResult = _keyStore.OpenAsync(addString, "12", true).Result;
             errResult.ShouldBe(AElfKeyStore.Errors.WrongPassword);
 
-            errResult = _keyStore.OpenAsync(addString, "123", true).Result;
+            errResult = _keyStore.OpenAsync(addString, "123").Result;
             errResult.ShouldBe(AElfKeyStore.Errors.None);
 
-            errResult = _keyStore.OpenAsync(addString, "123", true).Result;
+            errResult = _keyStore.OpenAsync(addString, "123").Result;
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
+
+            errResult = _keyStore.OpenAsync(addString, "123", false).Result;
+            errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
+
+            Directory.Delete("/tmp/keys", true);
+            Should.ThrowAsync<KeyStoreNotFoundException>(() => { return _keyStore.ReadKeyPairAsync(addString + "_fake", "123"); });
         }
 
         [Fact]
