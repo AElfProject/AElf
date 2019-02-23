@@ -5,7 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Tests
 {
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
