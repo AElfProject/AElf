@@ -31,6 +31,7 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var provider in _blockValidationProviders)
             {
                 var validateResult = false;
+                // TODO: Should we catch exceptions?If there is an unhandled exception, whether to stop the node?
                 try
                 {
                     validateResult = await provider.ValidateBlockBeforeExecuteAsync(chainId, block);
@@ -54,6 +55,7 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var provider in _blockValidationProviders)
             {
                 var validateResult = false;
+                // TODO: Should we catch exceptions?If there is an unhandled exception, whether to stop the node?
                 try
                 {
                     validateResult = await provider.ValidateBlockAfterExecuteAsync(chainId, block);
