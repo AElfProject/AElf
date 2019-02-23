@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Crosschain.Grpc";
+option csharp_namespace = "AElf.CrossChain";
 import "common.proto";
 import "crosschain.proto";
 
 message RequestCrossChainBlockData {
-    int32 ChainId = 1; // parent(own) chain id
+    int32 SideChainId = 1; // parent(own) chain id
     uint64 NextHeight = 2;
 }
 
@@ -22,7 +22,7 @@ message ResponseParentChainBlockData {
 message IndexingRequestMessage {
     uint32 Port = 1;
     string Ip = 2;
-    int32 ChainId = 3;
+    int32 SideChainId = 3;
 }
 
 message IndexingRequestResult {
@@ -43,7 +43,7 @@ message MerkleProofMessage {
 }
 
 message VerificationNeededMessage {
-    int32 ChainId = 1;
+    int32 SideChainId = 1;
     uint64 BlockHeight = 2;
 }
 
