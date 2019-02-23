@@ -7,7 +7,7 @@ using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
 
-namespace AElf.Kernel.Managers.Another.Tests
+namespace AElf.Kernel.Tests
 {
     /*
     public class ChainManagerTests : AElfKernelTestBase

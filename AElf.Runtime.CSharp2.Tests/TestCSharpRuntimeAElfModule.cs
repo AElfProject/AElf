@@ -5,7 +5,6 @@ using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
-using AElf.Sdk.CSharp2.Tests;
 using AElf.Kernel.SmartContract.Contexts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 //using AElf.Configuration;
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Tests
 {
     /*
     public sealed class MinersManagerTests:AElfKernelTestBase
