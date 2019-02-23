@@ -45,7 +45,7 @@ namespace AElf.Contracts.CrossChain2
         {
             var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
             var round = State.ConsensusContract.GetRoundInfo(roundNumber);
-            var miners = round.RealTimeMinersInfo.Keys.ToMiners();
+            var miners = new Miners {PublicKeys = {round.RealTimeMinersInfo.Keys}};
             miners.TermNumber = round.MinersTermNumber;
             return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
         }

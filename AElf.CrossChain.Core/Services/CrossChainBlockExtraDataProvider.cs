@@ -21,7 +21,7 @@ namespace AElf.CrossChain
             _transactionResultManager = transactionResultManager;
         }
 
-        public async Task FillExtraDataAsync(Block block)
+        public async Task FillExtraDataAsync(int chainId, Block block)
         {
             if (!TryGetLogEventInBlock(block, out var logEvent))
                 return;
@@ -61,7 +61,7 @@ namespace AElf.CrossChain
 //            txn.Sigs.Add(ByteString.CopyFrom(rawSig));
 //            block.AddTransaction(txn);
         }
-        public async Task<bool> ValidateExtraDataAsync(Block block)
+        public async Task<bool> ValidateExtraDataAsync(int chainId, Block block)
         {
             try
             {
