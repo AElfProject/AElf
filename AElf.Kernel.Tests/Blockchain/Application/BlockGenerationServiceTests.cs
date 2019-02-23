@@ -18,7 +18,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task GenerateBlock_Success()
+        public async Task Should_Generate_Block_Success()
         {
             var generateBlockDto = new GenerateBlockDto
             {
