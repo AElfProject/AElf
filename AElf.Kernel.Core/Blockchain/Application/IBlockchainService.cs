@@ -154,6 +154,14 @@ namespace AElf.Kernel.Blockchain.Application
                         badBlockFound = true;
                         Logger.LogWarning($"Block validate fails after execution. BlockLink hash : {blockLink.BlockHash}");
                     }
+                    else
+                    {
+                        await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
+                        {
+                            ChainId = chain.Id,
+                            BlockHeader = linkedBlock.Header
+                        });
+                    }
                 }
 
                 var lastGoodBlockLink = blockLinks.FindLast(x => !x.IsBadBlock && x.IsExecuted);
