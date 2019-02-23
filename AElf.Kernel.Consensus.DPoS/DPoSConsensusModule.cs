@@ -19,6 +19,7 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddAssemblyOf<DPoSConsensusModule>();
 
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
+            context.Services.AddSingleton<BestChainFoundEventHandler>();
 
             context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();

@@ -77,17 +77,6 @@ namespace AElf.Launcher
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
-            
-            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
-            
-            var minerService = context.ServiceProvider.GetService<IMinerService>();
-            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
-                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
-            ));
-            
-            var consensusService = context.ServiceProvider.GetService<IConsensusService>();
-            eventBus.Subscribe<BestChainFoundEvent>(eventData =>
-                consensusService.TriggerConsensusAsync(eventData.ChainId));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
