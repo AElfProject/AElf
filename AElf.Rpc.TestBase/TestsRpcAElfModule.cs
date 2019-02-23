@@ -16,7 +16,7 @@ using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
-namespace AElf.Rpc.Tests
+namespace AElf.Rpc.TestBase
 {
     [DependsOn(
         typeof(AbpAutofacModule),
