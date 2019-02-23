@@ -7,7 +7,7 @@ using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel
 {
     public static class BlockNumberExtensions
     {

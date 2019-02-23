@@ -1,6 +1,6 @@
 using AElf.TestBase;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel
 {
     public class AElfKernelTestBase : AElfIntegratedTest<KernelTestAElfModule>
     {

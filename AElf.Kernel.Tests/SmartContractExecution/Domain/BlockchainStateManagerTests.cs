@@ -7,7 +7,7 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel
 {
     public class BlockchainStateManagerTests : AElfKernelTestBase
     {

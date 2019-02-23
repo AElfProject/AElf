@@ -5,7 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel
 {
     public class BlockValidationProviderTests : AElfKernelTestBase
     {
