@@ -158,9 +158,9 @@ namespace AElf.OS.Tests.Network
 
             Assert.True(peers.Count == 2);
             
-            Assert.True(peers.Select(p => p.PeerAddress).Contains("127.0.0.1:6800"));
-            Assert.True(peers.Select(p => p.PeerAddress).Contains("127.0.0.1:6801"));
-            
+            Assert.Equal(peers.Select(p => p.PeerAddress).ToString(), "127.0.0.1:6800");
+            Assert.Equal(peers.Select(p => p.PeerAddress).ToString(), "127.0.0.1:6801");
+
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
             await m3.Item1.StopAsync();

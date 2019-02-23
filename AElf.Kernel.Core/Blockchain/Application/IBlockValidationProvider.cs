@@ -15,25 +15,25 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (block?.Header == null || block.Body == null)
             {
-                return false;
+                return await Task.FromResult(false);
             }
 
             if (block.Body.TransactionsCount == 0)
             {
-                return false;
+                return await Task.FromResult(false);
             }
 
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
             {
-                return false;
+                return await Task.FromResult(false);
             }
 
-            return true;
+            return await Task.FromResult(true);
         }
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)
         {
-            return true;
+            return await Task.FromResult(true);
         }
     }
 }

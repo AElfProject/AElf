@@ -85,7 +85,7 @@ namespace AElf.Kernel.SmartContract.Application
                 _executivePools[contractHash] = pool;
             }
 
-            return pool;
+            return await Task.FromResult(pool);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address)
@@ -123,7 +123,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg)
         {
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-            return runner.GetAbi(reg);
+            return await Task.FromResult(runner.GetAbi(reg));
         }
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)

@@ -49,7 +49,7 @@ namespace AElf.Contracts.Resource
             State.UserBalances[toKey] = toBal;
         }
         
-        private static readonly decimal MaxWeight = 1000000m;
+        //private static readonly decimal MaxWeight = 1000000m;
 
         public ulong BuyResourceFromExchange(string resourceType, ulong paidElf)
         {
