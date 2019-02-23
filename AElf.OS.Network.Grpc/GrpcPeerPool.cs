@@ -123,12 +123,12 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public List<GrpcPeer> GetPeers()
+        public List<IPeer> GetPeers()
         {
-            return _authenticatedPeers.Values.ToList();
+            return _authenticatedPeers.Values.Select(p => p as IPeer).ToList();
         }
 
-        public GrpcPeer FindPeer(string peerAddress, byte[] publicKey = null)
+        public IPeer FindPeer(string peerAddress, byte[] publicKey = null)
         {
             if (string.IsNullOrWhiteSpace(peerAddress) && publicKey == null)
                 throw new InvalidOperationException("address and public cannot be both null.");
@@ -144,12 +144,13 @@ namespace AElf.OS.Network.Grpc
             return toFind.FirstOrDefault().Value;
         }
 
-        public bool AuthenticatePeer(string peerAddress, byte[] pubkey, Handshake handshake)
+        public bool AuthenticatePeer(string peerAddress, Handshake handshake)
         {
-            if (pubkey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
+            var pubKey = handshake.HskData.PublicKey.ToByteArray();
+            if (pubKey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
                 return false;
             
-            var alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerAddress == peerAddress || pubkey.BytesEqual(p.Value.PublicKey));
+            var alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey));
 
             if (!alreadyConnected.Equals(default(KeyValuePair<string, GrpcPeer>)))
                 return false;
@@ -157,9 +158,9 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        public bool AddPeer(GrpcPeer peer)
+        public bool AddPeer(IPeer peer)
         {
-            _authenticatedPeers[peer.PeerAddress] = peer;
+            _authenticatedPeers[peer.PeerAddress] = peer as GrpcPeer;
             return true;
         }
 

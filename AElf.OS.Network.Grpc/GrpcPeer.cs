@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
+using Google.Protobuf;
 using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcPeer
+    public class GrpcPeer : IPeer
     {
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
@@ -29,19 +33,22 @@ namespace AElf.OS.Network.Grpc
             PeerAddress = peerAddress;
         }
 
-        public async Task<BlockReply> RequestBlockAsync(BlockRequest blockHash)
+        public async Task<Block> RequestBlockAsync(Hash hash, ulong height)
         {
-            return await _client.RequestBlockAsync(blockHash);
+            BlockRequest request = new BlockRequest { Height = height, Id = hash?.Value ?? ByteString.Empty};
+            var blockReply = await _client.RequestBlockAsync(request);
+            return blockReply?.Block;
         }
 
-        public async Task<BlockIdList> GetBlockIdsAsync(BlockIdsRequest idsRequest)
+        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count)
         {
-            return await _client.RequestBlockIdsAsync(idsRequest);
+            var idList = await _client.RequestBlockIdsAsync(new BlockIdsRequest { FirstBlockId = topHash.Value, Count = count});
+            return idList.Ids.Select(id => Hash.LoadByteArray(id.ToByteArray())).ToList();
         }
 
-        public async Task AnnounceAsync(Announcement an)
+        public async Task AnnounceAsync(BlockHeader header)
         {
-            await _client.AnnounceAsync(an);
+            await _client.AnnounceAsync(new Announcement { Header = header});
         }
 
         public async Task SendTransactionAsync(Transaction tx)

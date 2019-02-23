@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Events;
 using Google.Protobuf;
@@ -69,7 +70,7 @@ namespace AElf.OS.Network.Grpc
                 var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
                 
                 // Verify auth
-                bool valid = _peerPool.AuthenticatePeer(peerAddress, grpcPeer.PublicKey, handshake);
+                bool valid = _peerPool.AuthenticatePeer(peerAddress, handshake);
 
                 if (!valid)
                     return new AuthResponse { Err = AuthError.WrongAuth };

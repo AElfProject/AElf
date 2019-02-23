@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network
 {
     public interface IPeerPool
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
-        List<GrpcPeer> GetPeers();
-        GrpcPeer FindPeer(string peerAddress, byte[] pubKey = null);
+        List<IPeer> GetPeers();
+        IPeer FindPeer(string peerAddress, byte[] pubKey = null);
         
-        bool AuthenticatePeer(string peerAddress, byte[] pubKey, Handshake handshake);
-        bool AddPeer(GrpcPeer peer);
+        bool AuthenticatePeer(string peerAddress, Handshake handshake);
+        bool AddPeer(IPeer peer);
         void ProcessDisconnection(string peerEndpoint);
+
         Task<Handshake> GetHandshakeAsync();
     }
 }
