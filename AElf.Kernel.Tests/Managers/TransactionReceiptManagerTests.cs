@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Tests
 {
     /*
     public sealed class TransactionReceiptManagerTests:AElfKernelTestBase
