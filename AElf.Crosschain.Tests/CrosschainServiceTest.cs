@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.CrossChain;
 using AElf.Kernel;
 using Moq;
 using Xunit;
@@ -12,7 +13,7 @@ namespace AElf.Crosschain
             List<ParentChainBlockData> parentChainBlockData)
         {
             Mock<ICrossChainDataProvider> mockObject = new Mock<ICrossChainDataProvider>();
-            mockObject.Setup(m => m.GetSideChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<SideChainBlockData>>(), false))
+            mockObject.Setup(m => m.GetSideChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<SideChainBlockData>>(), TODO, TODO, false))
                 .Returns<int, IList<SideChainBlockData>, bool>(
                     (chainId, input, isValidation) =>
                     {
@@ -22,11 +23,11 @@ namespace AElf.Crosschain
                         }
                         return Task.FromResult(true);
                     });
-            mockObject.Setup(m => m.GetSideChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<SideChainBlockData>>(), true))
+            mockObject.Setup(m => m.GetSideChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<SideChainBlockData>>(), TODO, TODO, true))
                 .Returns<int, IList<SideChainBlockData>, bool>(
                     (chainId, input, isValidation) => Task.FromResult(input.Equals(sideChainBlockData)));
             
-            mockObject.Setup(m => m.GetParentChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<ParentChainBlockData>>(), false))
+            mockObject.Setup(m => m.GetParentChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<ParentChainBlockData>>(), TODO, TODO, false))
                 .Returns<int, IList<ParentChainBlockData>, bool>(
                     (chainId, input, isValidation) =>
                     {
@@ -37,7 +38,7 @@ namespace AElf.Crosschain
                         return Task.FromResult(true);
                     });
             
-            mockObject.Setup(m => m.GetParentChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<ParentChainBlockData>>(), true))
+            mockObject.Setup(m => m.GetParentChainBlockDataAsync(It.IsAny<int>(), It.IsAny<IList<ParentChainBlockData>>(), TODO, TODO, true))
                 .Returns<int, IList<ParentChainBlockData>, bool>(
                     (chainId, input, isValidation) => Task.FromResult(input.Equals(parentChainBlockData)));
 
@@ -52,7 +53,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(mockSideChainBlockData, null);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId);
+            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId, TODO, TODO);
             Assert.Equal(mockSideChainBlockData, actual);
         }
         
@@ -70,7 +71,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(mockSideChainBlockData, null);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId);
+            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId, TODO, TODO);
             Assert.Equal(mockSideChainBlockData, actual);
         }
         
@@ -82,7 +83,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(null, mockParentChainBlockData);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.GetParentChainBlockDataAsync(stubChainId);
+            var actual = await crossChainService.GetParentChainBlockDataAsync(stubChainId, TODO, TODO);
             Assert.Equal(mockParentChainBlockData, actual);
         }
         
@@ -104,7 +105,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(null, mockParentChainBlockData);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.GetParentChainBlockDataAsync(stubChainId);
+            var actual = await crossChainService.GetParentChainBlockDataAsync(stubChainId, TODO, TODO);
             Assert.Equal(mockParentChainBlockData, actual);
         }
         
@@ -122,7 +123,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(mockSideChainBlockData, null);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId, mockSideChainBlockData);
+            var actual = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId, mockSideChainBlockData, TODO, TODO);
             Assert.True(actual);
         }
         
@@ -149,7 +150,7 @@ namespace AElf.Crosschain
                 }
             }; 
             
-            var actual = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId, mockSideChainBlockData_new);
+            var actual = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId, mockSideChainBlockData_new, TODO, TODO);
             Assert.False(actual);
         }
         
@@ -171,7 +172,7 @@ namespace AElf.Crosschain
             var stubCrossChainCrossChainDataProvider =
                 CreateFakeCrossChainDataProvider(null, mockParentChainBlockData);
             var crossChainService = new CrossChainService(stubCrossChainCrossChainDataProvider);
-            var actual = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId, mockParentChainBlockData);
+            var actual = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId, mockParentChainBlockData, TODO, TODO);
             Assert.True(actual);
         }
         
@@ -204,7 +205,7 @@ namespace AElf.Crosschain
                     }
                 }
             };
-            var actual = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId, mockParentChainBlockData_new);
+            var actual = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId, mockParentChainBlockData_new, TODO, TODO);
             Assert.False(actual);
         }
     }

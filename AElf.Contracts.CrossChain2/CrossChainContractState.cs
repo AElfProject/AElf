@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
