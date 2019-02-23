@@ -1,24 +1,25 @@
 ﻿using System.IO;
+using AElf.ChainController.Rpc;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus.Application;
-using AElf.Modularity;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.EventMessages;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Modularity;
+using AElf.Net.Rpc;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
-using AElf.Sdk.CSharp.State;
+using AElf.Wallet.Rpc;
 using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,16 +36,20 @@ using Volo.Abp.Threading;
 namespace AElf.Launcher
 {
     [DependsOn(
-        typeof(RuntimeSetupAElfModule),
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
+        typeof(RuntimeSetupAElfModule),
+        typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(SmartContractExecutionAElfModule),
         typeof(CSharpRuntimeAElfModule2),
+        typeof(SmartContractExecutionAElfModule),
         typeof(DPoSConsensusModule),
         typeof(GrpcNetworkModule),
-        typeof(KernelAElfModule),
-        typeof(NodeAElfModule))]
+        typeof(NodeAElfModule),
+        typeof(ChainControllerRpcModule),
+        typeof(WalletRpcModule),
+        typeof(NetRpcAElfModule)
+    )]
     public class LauncherAElfModule : AElfModule
     {
         public static IConfigurationRoot Configuration;
@@ -77,14 +82,13 @@ namespace AElf.Launcher
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
-            
+
             var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
-            
             var minerService = context.ServiceProvider.GetService<IMinerService>();
             eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
                 eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
             ));
-            
+
             var consensusService = context.ServiceProvider.GetService<IConsensusService>();
             eventBus.Subscribe<BestChainFoundEvent>(eventData =>
                 consensusService.TriggerConsensusAsync(eventData.ChainId));
@@ -92,8 +96,6 @@ namespace AElf.Launcher
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            // TODO: start node
-
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
             var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
@@ -106,19 +108,11 @@ namespace AElf.Launcher
                 }
             };
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async ()=> await osService.StartAsync(dto));
+            AsyncHelper.RunSync(async () => await osService.StartAsync(dto));
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
-//            NodeConfiguration confContext = new NodeConfiguration();
-//            confContext.LauncherAssemblyLocation = Path.GetDirectoryName(typeof(Node.Node).Assembly.Location);
-//
-//            var mainChainNodeService = context.ServiceProvider.GetRequiredService<INodeService>();
-//            var node = context.ServiceProvider.GetRequiredService<INode>();
-//            node.Register(mainChainNodeService);
-//            node.Initialize(confContext);
-//            node.Start();
         }
     }
 }
