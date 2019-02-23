@@ -33,13 +33,12 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
             var registry = new Registry();
             registry.Schedule(() => Logger.LogInformation("Starting FluentScheduler Scheduler."));
             JobManager.InitializeWithoutStarting(registry);
-            return await Task.FromResult(this);
+            return this;
         }
 
         public async Task StopAsync()
         {
             JobManager.Stop();
-            await Task.CompletedTask;
         }
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)

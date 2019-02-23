@@ -112,7 +112,7 @@ namespace AElf.OS.Tests.Network
 
             Assert.NotNull(b);
             Assert.NotNull(bbh);
-            Assert.Null(bbh2);
+            Assert.Equal(bbh2, null);
 
             await m3.Item1.StopAsync();
         }

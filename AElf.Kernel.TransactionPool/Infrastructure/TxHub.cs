@@ -136,9 +136,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             tr.SignatureStatus = validSig
                 ? SignatureStatus.SignatureValid
                 : SignatureStatus.SignatureInvalid;
-            await Task.CompletedTask;
         }
 
+
+
+        
+        
         private async Task ValidateRefBlock(int chainId, TransactionReceipt tr)
         {
             if (tr.RefBlockStatus != RefBlockStatus.UnknownRefBlockStatus &&
@@ -165,6 +168,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 tr.RefBlockStatus = RefBlockStatus.RefBlockExpired;
             }
         }
+
 
         #endregion Private Methods
 
@@ -266,12 +270,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task<IDisposable> StartAsync(int chainId)
         {
             ChainId = chainId;
-            return await Task.FromResult(this);
+            return this;
         }
 
         public async Task StopAsync()
         {
-            await Task.CompletedTask;
+            
         }
     }
 }

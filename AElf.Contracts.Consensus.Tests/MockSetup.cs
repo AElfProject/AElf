@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.Tests
 
         private async Task Initialize()
         {
-            await Task.FromException(new NotImplementedException());
+            throw new NotImplementedException();
         }
     }
 }
