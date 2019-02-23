@@ -171,8 +171,9 @@ namespace AElf.Contracts.Consensus.Tests
         private Transaction GetTransactionForDeployment(int chainId, Type contractType)
         {
             var zeroAddress = Address.BuildContractAddress(chainId, 0);
+
             var code = File.ReadAllBytes(contractType.Assembly.Location);
-            return new Transaction()
+            return new Transaction
             {
                 From = zeroAddress,
                 To = zeroAddress,

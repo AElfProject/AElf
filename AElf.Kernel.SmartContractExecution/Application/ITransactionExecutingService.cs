@@ -223,7 +223,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (trace.RetVal == null)
             {
-                throw new NullReferenceException("RetVal of trace is null.");
+                throw new NullReferenceException("RetVal of trace is null." + trace.StdErr);
             }
 
             returnSet.ReturnValue = trace.RetVal.Data;
