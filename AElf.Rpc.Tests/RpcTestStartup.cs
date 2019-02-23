@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 
-namespace AElf.RPC.Tests
+namespace AElf.Rpc.Tests
 {
     public class RpcTestStartup
     {

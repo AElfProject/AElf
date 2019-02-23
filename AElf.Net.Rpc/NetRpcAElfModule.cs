@@ -7,9 +7,9 @@ using Volo.Abp.Modularity;
 namespace AElf.Net.Rpc
 {
     [DependsOn(
-        typeof(RpcAElfModule),
-        typeof(CoreOSAElfModule)
-        )]
+        typeof(CoreOSAElfModule),
+        typeof(RpcAElfModule)
+    )]
     public class NetRpcAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

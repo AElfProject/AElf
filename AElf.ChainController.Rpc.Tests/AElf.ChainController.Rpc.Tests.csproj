@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.RPC.Tests\AElf.RPC.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Rpc.Tests\AElf.Rpc.Tests.csproj" />
     </ItemGroup>
 
     <ItemGroup>

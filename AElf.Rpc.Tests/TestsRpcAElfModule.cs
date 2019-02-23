@@ -6,6 +6,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.Net.Rpc;
+using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.Wallet.Rpc;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,13 +15,14 @@ using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
-namespace AElf.RPC.Tests
+namespace AElf.Rpc.Tests
 {
     [DependsOn(
         typeof(NetRpcAElfModule),
-        typeof(RpcWalletAElfModule),
+        typeof(WalletRpcModule),
         typeof(CSharpRuntimeAElfModule2),
         typeof(AbpAutofacModule),
+        typeof(KernelAElfModule),
         typeof(AbpAspNetCoreTestBaseModule)
     )]
     public class TestsRpcAElfModule : AElfModule
@@ -30,6 +32,7 @@ namespace AElf.RPC.Tests
             //TODO: here to generate basic chain data
 
             Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+            Configure<AccountOptions>(o => { o.NodeAccount = "AElf"; });
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());

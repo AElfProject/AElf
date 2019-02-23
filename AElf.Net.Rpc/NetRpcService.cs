@@ -26,7 +26,7 @@ namespace AElf.Net.Rpc
         }
 
         [JsonRpcMethod("GetPeers")]
-        public async Task<List<string>> GetPeers(string address)
+        public async Task<List<string>> GetPeers()
         {
             return NetworkService.GetPeers();
         }

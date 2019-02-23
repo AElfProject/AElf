@@ -44,22 +44,22 @@ namespace AElf.ChainController.Rpc
 
                 JsonRpcParametersType ParametersType() =>
                     // ReSharper disable once PossibleNullReferenceException
-                    (JsonRpcParametersType) typeof(JsonRpcMethodAttribute).GetProperty("ParametersType", 
+                    (JsonRpcParametersType) typeof(JsonRpcMethodAttribute).GetProperty("ParametersType",
                             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                         ?.GetValue(attribute, null);
 
                 int[] ParameterPositions() =>
-                    (int[]) typeof(JsonRpcMethodAttribute).GetProperty("ParameterPositions", 
+                    (int[]) typeof(JsonRpcMethodAttribute).GetProperty("ParameterPositions",
                             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                         ?.GetValue(attribute, null);
 
                 string[] ParameterNames() =>
-                    (string[]) typeof(JsonRpcMethodAttribute).GetProperty("ParameterNames", 
+                    (string[]) typeof(JsonRpcMethodAttribute).GetProperty("ParameterNames",
                             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                         ?.GetValue(attribute, null);
 
                 string MethodName() =>
-                    (string) typeof(JsonRpcMethodAttribute).GetProperty("MethodName", 
+                    (string) typeof(JsonRpcMethodAttribute).GetProperty("MethodName",
                             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                         ?.GetValue(attribute, null);
 

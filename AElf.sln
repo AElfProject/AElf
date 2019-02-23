@@ -149,11 +149,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Node", "AElf.Ke
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.OS", "AElf.OS", "{BC510DE7-274F-4C8B-BCBB-A9E18627ED05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RPC.Tests", "AElf.RPC.Tests\AElf.RPC.Tests.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Rpc.Tests", "AElf.Rpc.Tests\AElf.Rpc.Tests.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc.Tests", "AElf.ChainController.Rpc.Tests\AElf.ChainController.Rpc.Tests.csproj", "{1CADEB6E-B454-4559-8254-E9E72B234D09}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.RPC", "AElf.Test.RPC", "{E4D6568F-622A-4685-B95B-0F2FF1315ECE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Rpc", "AElf.Test.Rpc", "{E4D6568F-622A-4685-B95B-0F2FF1315ECE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types.Tests", "AElf.Kernel.Types.Tests\AElf.Kernel.Types.Tests.csproj", "{50659C6B-FDAC-4FA4-97C1-04187499F68D}"
 EndProject

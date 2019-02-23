@@ -1,7 +1,7 @@
 ﻿using AElf.Kernel.ChainController;
+using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using AElf.Rpc;
-using AElf.Kernel.TransactionPool;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -11,12 +11,12 @@ namespace AElf.ChainController.Rpc
         typeof(RpcAElfModule),
         typeof(ChainControllerAElfModule),
         typeof(TransactionPoolAElfModule)
-        )]
-    public class RpcChainControllerAElfModule : AElfModule
+    )]
+    public class ChainControllerRpcModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<RpcChainControllerAElfModule>();
+            context.Services.AddAssemblyOf<ChainControllerRpcModule>();
 
             context.Services.AddSingleton<ChainControllerRpcService>();
         }

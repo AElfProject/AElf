@@ -71,12 +71,12 @@ namespace AElf.ChainController.Rpc
 
             var response = new JObject
             {
-                [ChainControllerConsts.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
-                [ChainControllerConsts.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
-                [ChainControllerConsts.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
-                [ChainControllerConsts.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
-                [ChainControllerConsts.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
-                [ChainControllerConsts.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
+                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                [SmartContract.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
+                [SmartContract.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
                 ["ChainId"] = _chainOptions.ChainId
             };
 
@@ -93,16 +93,14 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidAddress,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidAddress]);
+                throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
             var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
 
             if (abi == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             return new JObject
@@ -124,8 +122,7 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
+                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
             return response?.ToHex();
@@ -142,8 +139,7 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
+                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
             var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
@@ -191,8 +187,7 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
+                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
             var response = await GetTransaction(transactionHash);
@@ -204,14 +199,13 @@ namespace AElf.ChainController.Rpc
         {
             if (offset < 0)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidOffset,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidOffset]);
+                throw new JsonRpcServiceException(Error.InvalidOffset,
+                    Error.Message[Error.InvalidOffset]);
             }
 
             if (num <= 0 || num > 100)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidNum,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidNum]);
+                throw new JsonRpcServiceException(Error.InvalidNum, Error.Message[Error.InvalidNum]);
             }
 
             Hash realBlockHash;
@@ -221,15 +215,13 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidBlockHash,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidBlockHash]);
+                throw new JsonRpcServiceException(Error.InvalidBlockHash, Error.Message[Error.InvalidBlockHash]);
             }
 
             var block = await this.GetBlock(_chainOptions.ChainId, realBlockHash);
             if (block == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var transactions = new JArray();
@@ -253,8 +245,7 @@ namespace AElf.ChainController.Rpc
             var receipt = await this.GetTransactionReceipt(transactionHash);
             if (receipt == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var transaction = receipt.Transaction;
@@ -321,14 +312,9 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("GetBlockHeight")]
-        public async Task<JObject> GetBlockHeight()
+        public async Task<ulong> GetBlockHeight()
         {
-            var height = await this.GetCurrentChainHeight(_chainOptions.ChainId);
-            var response = new JObject
-            {
-                ["BlockHeight"] = height.ToString()
-            };
-            return response;
+            return await this.GetCurrentChainHeight(_chainOptions.ChainId);;
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
@@ -337,8 +323,7 @@ namespace AElf.ChainController.Rpc
             var blockInfo = await this.GetBlockAtHeight(_chainOptions.ChainId, blockHeight);
             if (blockInfo == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             // TODO: Create DTO Exntension for Block
@@ -433,15 +418,13 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidProposalId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidProposalId]);
+                throw new JsonRpcServiceException(Error.InvalidProposalId, Error.Message[Error.InvalidProposalId]);
             }
 
             var proposal = await this.GetProposal(_chainId, proposalHash);
             if (proposal == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -468,23 +451,20 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
+                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
             var transactionResult = await this.GetTransactionResult(transactionHash);
             if (transactionResult == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, transactionResult.BlockNumber);
             var merklePath = binaryMerkleTree.GenerateMerklePath(transactionResult.Index);
             if (merklePath == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             MerklePath merklePathInParentChain = null;
@@ -496,8 +476,7 @@ namespace AElf.ChainController.Rpc
             }
             catch (Exception e)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound], e);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             if (merklePathInParentChain != null)
@@ -517,8 +496,7 @@ namespace AElf.ChainController.Rpc
             var merklePathInParentChain = await this.GetParentChainBlockInfo(_chainId, height);
             if (merklePathInParentChain == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             return new JObject
