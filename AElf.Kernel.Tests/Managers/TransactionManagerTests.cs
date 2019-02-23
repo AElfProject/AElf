@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Managers;
+//using AElf.Kernel.Managers;
 using Google.Protobuf;
 using Xunit;
 using AElf.Common;
@@ -9,7 +9,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.TransactionPool;
 using Shouldly;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Tests
 {
     /*
     public sealed class TransactionManagerTests:AElfKernelTestBase
