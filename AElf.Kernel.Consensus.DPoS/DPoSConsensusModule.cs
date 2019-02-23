@@ -11,7 +11,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
-    [DependsOn(typeof(FluentSchedulerAElfModule))]
+    [DependsOn(typeof(RxNetSchedulerAElfModule))]
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusModule : AElfModule
     {

@@ -68,7 +68,6 @@ namespace AElf.Kernel.Services
 
                 var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p => p.Transaction).ToList();
 
-
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing

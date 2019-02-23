@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.EventMessages;
 using FluentScheduler;
@@ -42,8 +41,6 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
-            Console.WriteLine($"Will produce block after {countingMilliseconds} ms.");
-
             JobManager.UseUtcTime();
 
             var registry = new Registry();

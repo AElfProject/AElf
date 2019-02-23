@@ -91,7 +91,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 CallDepth = depth,
             };
 
-
             var executive =
                 await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
                     transaction.To);
