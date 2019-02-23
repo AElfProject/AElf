@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network;
-using AElf.RPC;
+using AElf.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 
 #pragma warning disable 1998
@@ -26,7 +26,7 @@ namespace AElf.Net.Rpc
         }
 
         [JsonRpcMethod("GetPeers")]
-        public async Task<List<string>> GetPeers(string address)
+        public async Task<List<string>> GetPeers()
         {
             return NetworkService.GetPeers();
         }

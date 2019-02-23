@@ -1,6 +1,5 @@
-namespace AElf.Kernel
+namespace AElf.OS
 {
-    // TODO : Maybe it shouldn't be here
     public class ChainOptions
     {
         public int ChainId { get; set; }
