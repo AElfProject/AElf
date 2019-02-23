@@ -7,7 +7,6 @@ using Volo.Abp.Modularity;
 namespace AElf.Net.Rpc
 {
     [DependsOn(
-        typeof(CoreOSAElfModule),
         typeof(RpcAElfModule)
     )]
     public class NetRpcAElfModule : AElfModule

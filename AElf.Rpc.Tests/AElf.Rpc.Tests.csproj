@@ -5,18 +5,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Rpc\AElf.Rpc.csproj" />
-      <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
-      <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
+      <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
-      <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
-      <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.0" />
       <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
       <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
       <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />

@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
+using AElf.OS;
 using AElf.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -314,7 +315,7 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("GetBlockHeight")]
         public async Task<ulong> GetBlockHeight()
         {
-            return await this.GetCurrentChainHeight(_chainOptions.ChainId);;
+            return await this.GetCurrentChainHeight(_chainOptions.ChainId);
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]

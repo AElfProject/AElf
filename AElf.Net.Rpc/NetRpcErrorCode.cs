@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.Net.Rpc
 {
-    public class Error
+    public static class Error
     {
         public const long InvalidNetworkAddress = 30001;
 

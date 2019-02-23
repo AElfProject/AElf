@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Rpc.Tests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -8,27 +10,6 @@ using Xunit.Abstractions;
 
 namespace AElf.ChainController.Rpc.Tests
 {
-    //Application Service Test should move out of this project
-    public class ChainControllerRpcServiceTest : RpcTestBase
-    {
-        private ChainControllerRpcService _chainControllerRpcService;
-
-        public ILogger<ChainControllerRpcServiceTest> Logger { get; set; }
-
-        [Fact(Skip = "Dependence issue")]
-        public async Task TestGetBlockHeight()
-        {
-            var height = await _chainControllerRpcService.GetBlockHeight();
-        }
-
-        public ChainControllerRpcServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
-        {
-            _chainControllerRpcService = GetRequiredService<ChainControllerRpcService>();
-            Logger = GetService<ILogger<ChainControllerRpcServiceTest>>() ??
-                     NullLogger<ChainControllerRpcServiceTest>.Instance;
-        }
-    }
-
     public class ChainControllerRpcServiceServerTest : RpcTestBase
     {
         public ILogger<ChainControllerRpcServiceServerTest> Logger { get; set; }
@@ -39,27 +20,17 @@ namespace AElf.ChainController.Rpc.Tests
                      NullLogger<ChainControllerRpcServiceServerTest>.Instance;
         }
 
-        [Fact(Skip = "Dependence issue")]
+        [Fact]
         public async Task TestGetBlockHeight()
         {
+            // Prepare chain data
+            var chainManager = GetRequiredService<ChainManager>();
+            await chainManager.CreateAsync(ChainHelpers.ConvertBase58ToChainId("AELF"), Hash.Genesis);
+
+            // Verify
             var response = await JsonCallAsJObject("/chain", "GetBlockHeight");
-
             Logger.LogInformation(response.ToString());
-
-            var height = (int) response["result"]["BlockHeight"];
-
-            height.ShouldBeGreaterThanOrEqualTo(0);
-        }
-
-        [Fact(Skip = "Dependence issue")]
-        public async Task TestGetBlockHeight2()
-        {
-            var response = await JsonCallAsJObject("/chain", "GetBlockHeight");
-
-            Logger.LogInformation(response.ToString());
-
-            var height = (int) response["result"]["BlockHeight"];
-
+            var height = (int) response["result"];
             height.ShouldBeGreaterThanOrEqualTo(0);
         }
     }

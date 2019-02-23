@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.Wallet.Rpc
 {
-    public class Error
+    public static class Error
     {
         public const long CreateAccountFailed = 10001;
         public const long WrongPassword = 10002;

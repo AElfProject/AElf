@@ -16,12 +16,13 @@ namespace AElf.Rpc
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var services = context.Services;
+            services.AddCors();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
             RpcServerHelpers.ConfigureServices(context.Services);
-
             _serviceCollection = context.Services;
         }
 
