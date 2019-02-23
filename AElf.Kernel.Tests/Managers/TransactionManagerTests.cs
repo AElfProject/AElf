@@ -55,7 +55,7 @@ namespace AElf.Kernel.Tests.Managers
 
             await _transactionManager.RemoveTransaction(key2);
             var td2 = await _transactionManager.GetTransaction(key2);
-            Assert.Equal(td2, null);
+            Assert.Null(td2);
         }
 
         public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Tests.Managers
             //            };
             //            tx.Sigs.Add(sig);
             
-            tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
+            tx.Fee = 1;
             tx.MethodName = "hello world";
 
             // Serialize and hash the transaction
