@@ -41,38 +41,39 @@ namespace AElf.Contracts.Dividends2
         [View]
         public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
-            ulong dividends = 0;
-
-            var start = votingRecord.TermNumber + 1;
-            var lastRequestTermNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
-            if (lastRequestTermNumber > 0)
-            {
-                start = lastRequestTermNumber + 1;
-            }
-
-            var end = Math.Min(votingRecord.GetExpireTermNumber(State.ConsensusContract.GetBlockchainAge()),
-                State.ConsensusContract.GetCurrentTermNumber() - 1);
-
-            for (var i = start; i <= end; i++)
-            {
-                var totalWeights = State.TotalWeightsMap[i];
-                if (totalWeights > 0)
-                {
-                    var totalDividends = State.DividendsMap[i];
-                    if (totalDividends > 0)
-                    {
-                        // TODO: No console write in contract
-                        Console.WriteLine($"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
-                        Console.WriteLine($"Total weights of term {i}: {totalWeights}");
-                        Console.WriteLine($"Total dividends of term {i}: {totalDividends}");
-                        Console.WriteLine($"Weights of this vote: {votingRecord.Weight}");
-                        dividends += totalDividends * votingRecord.Weight / totalWeights;
-                        Console.WriteLine($"Result: {dividends}");
-                    }
-                }
-            }
-
-            return dividends;
+            // todo: Disable temporarily
+//            ulong dividends = 0;
+//
+//            var start = votingRecord.TermNumber + 1;
+//            var lastRequestTermNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
+//            if (lastRequestTermNumber > 0)
+//            {
+//                start = lastRequestTermNumber + 1;
+//            }
+//
+//            var end = Math.Min(votingRecord.GetExpireTermNumber(State.ConsensusContract.GetBlockchainAge()),
+//                State.ConsensusContract.GetCurrentTermNumber() - 1);
+//
+//            for (var i = start; i <= end; i++)
+//            {
+//                var totalWeights = State.TotalWeightsMap[i];
+//                if (totalWeights > 0)
+//                {
+//                    var totalDividends = State.DividendsMap[i];
+//                    if (totalDividends > 0)
+//                    {
+//                        // TODO: No console write in contract
+//                        Console.WriteLine($"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
+//                        Console.WriteLine($"Total weights of term {i}: {totalWeights}");
+//                        Console.WriteLine($"Total dividends of term {i}: {totalDividends}");
+//                        Console.WriteLine($"Weights of this vote: {votingRecord.Weight}");
+//                        dividends += totalDividends * votingRecord.Weight / totalWeights;
+//                        Console.WriteLine($"Result: {dividends}");
+//                    }
+//                }
+//            }
+//
+//            return dividends;
         }
 
         [View]
@@ -132,51 +133,52 @@ namespace AElf.Contracts.Dividends2
 
         public ActionResult TransferDividends(VotingRecord votingRecord)
         {
-            var owner = votingRecord.From;
-            var ownerAddress =
-                Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
-
-            var start = votingRecord.TermNumber + 1;
-            var history = State.LastRequestDividendsMap[votingRecord.TransactionId];
-            if (history > 0)
-            {
-                start = history + 1;
-            }
-
-            var end = Math.Min(votingRecord.GetExpireTermNumber(State.ConsensusContract.GetBlockchainAge()),
-                State.ConsensusContract.GetCurrentTermNumber() - 1);
-
-            var actualTermNumber = start;
-            ulong dividendsAmount = 0;
-            for (var i = start; i <= end; i++)
-            {
-                var totalWeights = State.TotalWeightsMap[i];
-                if (totalWeights > 0)
-                {
-                    var dividends = State.DividendsMap[i];
-                    if (dividends > 0)
-                    {
-                        dividendsAmount += dividends * votingRecord.Weight / totalWeights;
-                        actualTermNumber = i;
-                    }
-                    else
-                    {
-                        return new ActionResult {Success = false, ErrorMessage = $"Dividends of term {i} not found."};
-                    }
-                }
-                else
-                {
-                    return new ActionResult {Success = false, ErrorMessage = $"Total weights of term {i} not found."};
-                }
-            }
-
-            State.TokenContract.Transfer(ownerAddress, dividendsAmount);
-
-            Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
-
-            State.LastRequestDividendsMap[votingRecord.TransactionId] = actualTermNumber;
-
-            return new ActionResult {Success = true};
+            // todo: Disable temporarily
+//            var owner = votingRecord.From;
+//            var ownerAddress =
+//                Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
+//
+//            var start = votingRecord.TermNumber + 1;
+//            var history = State.LastRequestDividendsMap[votingRecord.TransactionId];
+//            if (history > 0)
+//            {
+//                start = history + 1;
+//            }
+//
+//            var end = Math.Min(votingRecord.GetExpireTermNumber(State.ConsensusContract.GetBlockchainAge()),
+//                State.ConsensusContract.GetCurrentTermNumber() - 1);
+//
+//            var actualTermNumber = start;
+//            ulong dividendsAmount = 0;
+//            for (var i = start; i <= end; i++)
+//            {
+//                var totalWeights = State.TotalWeightsMap[i];
+//                if (totalWeights > 0)
+//                {
+//                    var dividends = State.DividendsMap[i];
+//                    if (dividends > 0)
+//                    {
+//                        dividendsAmount += dividends * votingRecord.Weight / totalWeights;
+//                        actualTermNumber = i;
+//                    }
+//                    else
+//                    {
+//                        return new ActionResult {Success = false, ErrorMessage = $"Dividends of term {i} not found."};
+//                    }
+//                }
+//                else
+//                {
+//                    return new ActionResult {Success = false, ErrorMessage = $"Total weights of term {i} not found."};
+//                }
+//            }
+//
+//            State.TokenContract.Transfer(ownerAddress, dividendsAmount);
+//
+//            Console.WriteLine($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
+//
+//            State.LastRequestDividendsMap[votingRecord.TransactionId] = actualTermNumber;
+//
+//            return new ActionResult {Success = true};
         }
 
         public ActionResult AddDividends(ulong termNumber, ulong dividendsAmount)

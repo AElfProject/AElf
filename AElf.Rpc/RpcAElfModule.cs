@@ -1,17 +1,15 @@
-﻿using AElf.Kernel;
-using AElf.Modularity;
+﻿using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
 using Volo.Abp.AspNetCore.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.RPC
+namespace AElf.Rpc
 {
     [DependsOn(
-        typeof(AbpAspNetCoreModule),
-        typeof(KernelAElfModule)
-        )]
+        typeof(AbpAspNetCoreModule)
+    )]
     public class RpcAElfModule : AElfModule
     {
         private IServiceCollection _serviceCollection = null;
@@ -25,7 +23,6 @@ namespace AElf.RPC
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
             RpcServerHelpers.ConfigureServices(context.Services);
-
             _serviceCollection = context.Services;
         }
 

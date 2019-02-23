@@ -24,10 +24,6 @@ namespace AElf.Kernel
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var configuration = context.Services.GetConfiguration();
-            // TODO : Maybe it shouldn't be set here
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
-
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();

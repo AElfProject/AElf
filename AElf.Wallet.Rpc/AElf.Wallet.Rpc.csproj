@@ -4,7 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-    <ProjectReference Include="..\AElf.RPC\AElf.RPC.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    <ProjectReference Include="..\AElf.Rpc\AElf.Rpc.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.0" />
