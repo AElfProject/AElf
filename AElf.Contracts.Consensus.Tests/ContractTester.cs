@@ -31,7 +31,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.Tests
 {
-    public class ContractTestHelper : ITransientDependency
+    public class ContractTester : ITransientDependency
     {
         private readonly int _chainId;
 
@@ -43,7 +43,7 @@ namespace AElf.Contracts.Consensus.Tests
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
 
-        public ContractTestHelper(int chainId)
+        public ContractTester(int chainId)
         {
             _chainId = chainId;
 

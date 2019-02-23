@@ -13,11 +13,11 @@ namespace AElf.Kernel.Consensus.DPoS
 {
     [DependsOn(typeof(RxNetSchedulerAElfModule))]
     // ReSharper disable once InconsistentNaming
-    public class DPoSConsensusModule : AElfModule
+    public class DPoSConsensusAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<DPoSConsensusModule>();
+            context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
 
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
 

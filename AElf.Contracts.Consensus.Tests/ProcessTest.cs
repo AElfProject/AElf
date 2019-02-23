@@ -25,8 +25,8 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public async Task InitialTermTest()
         {
-            var helper = new ContractTestHelper(ChainId);
-            await helper.InitialChainAsync();
+            var tester = new ContractTester(ChainId);
+            await tester.InitialChainAsync();
             
             var miners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             var initialTerm =
                 new Miners {PublicKeys = {miners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(4000);
-            var bytes = await helper.ExecuteContractAsync(ConsensusContractAddress, "InitialTerm", miners[0],
+            var bytes = await tester.ExecuteContractAsync(ConsensusContractAddress, "InitialTerm", miners[0],
                 initialTerm);
 
             var result = ActionResult.Parser.ParseFrom(bytes);
@@ -47,22 +47,22 @@ namespace AElf.Contracts.Consensus.Tests
         [Fact]
         public async Task DeployContractTest()
         {
-            var helper = new ContractTestHelper(ChainId);
-            await helper.InitialChainAsync();
+            var tester = new ContractTester(ChainId);
+            await tester.InitialChainAsync();
 
-            var tx = helper.GenerateTransaction(BasicContractZero, "DeploySmartContract",
+            var tx = tester.GenerateTransaction(BasicContractZero, "DeploySmartContract",
                 CryptoHelpers.GenerateKeyPair(), 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
-            await helper.MineABlockAsync(new List<Transaction> {tx});
+            await tester.MineABlockAsync(new List<Transaction> {tx});
 
-            var chain = await helper.GetChainAsync();
+            var chain = await tester.GetChainAsync();
 
             Assert.Equal(2UL, chain.BestChainHeight);
             
             var tokenContractAddress = Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), 2);
 
-            await helper.ExecuteContractAsync(tokenContractAddress, "Initialize",
+            await tester.ExecuteContractAsync(tokenContractAddress, "Initialize",
                 CryptoHelpers.GenerateKeyPair(), "ELF", "AElf Token", 1000000000, 2);
         }
     }

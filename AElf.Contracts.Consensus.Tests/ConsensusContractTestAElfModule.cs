@@ -20,13 +20,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.Consensus.Tests
 {
     [DependsOn(
-        typeof(RuntimeSetupAElfModule),
-        typeof(AbpAutofacModule),
-        typeof(SmartContractExecutionAElfModule),
-        typeof(CSharpRuntimeAElfModule2),
         typeof(KernelAElfModule),
-        typeof(ContractTestAElfModule),
-        typeof(NodeAElfModule))]
+        typeof(ContractTestAElfModule))]
     public class ConsensusContractTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
