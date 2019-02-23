@@ -2,6 +2,7 @@
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.TransactionPool.Infrastructure;
 
 namespace AElf.ChainController.Rpc
 {
