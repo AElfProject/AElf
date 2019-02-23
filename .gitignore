@@ -273,4 +273,6 @@ slnx.sqlite
 *.g.cs
 *plugin
 *Grpc.cs
-ChainInfo.json
+
+launchSettings.json
+

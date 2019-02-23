@@ -1,13 +1,13 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.RPC;
+using AElf.OS;
+using AElf.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 
 namespace AElf.Wallet.Rpc
 {
@@ -27,39 +27,29 @@ namespace AElf.Wallet.Rpc
         }
 
         [JsonRpcMethod("ListAccounts")]
-        public async Task<JObject> ListAccounts()
+        public async Task<List<string>> ListAccounts()
         {
-            var accounts = await KeyStore.ListAccountsAsync();
-            return JObject.FromObject(accounts);
+            return await KeyStore.ListAccountsAsync();
         }
 
         [JsonRpcMethod("SignHash", "address", "password", "hash")]
-        public async Task<JObject> SignHash(string address, string password, string hash)
+        public async Task<string> SignHash(string address, string password, string hash)
         {
             var tryOpen = await KeyStore.OpenAsync(address, password);
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
             {
-                throw new JsonRpcServiceException(WalletRpcErrorConsts.WrongPassword,
-                    WalletRpcErrorConsts.RpcErrorMessage[WalletRpcErrorConsts.WrongPassword]);
+                throw new JsonRpcServiceException(Error.WrongPassword, Error.Message[Error.WrongPassword]);
             }
 
             var kp = KeyStore.GetAccountKeyPair(address);
             if (kp == null)
             {
-                throw new JsonRpcServiceException(WalletRpcErrorConsts.AccountNotExist,
-                    WalletRpcErrorConsts.RpcErrorMessage[WalletRpcErrorConsts.AccountNotExist]);
+                throw new JsonRpcServiceException(Error.AccountNotExist, Error.Message[Error.AccountNotExist]);
             }
 
             var toSig = ByteArrayHelpers.FromHexString(hash);
-            // Sign the hash
             var signature = CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, toSig);
-
-            // TODO: Standardize encoding
-            // todo test
-            return new JObject
-            {
-                ["Signature"] = signature
-            };
+            return signature.ToHex();
         }
     }
 }
