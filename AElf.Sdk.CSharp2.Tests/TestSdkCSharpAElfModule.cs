@@ -1,13 +1,10 @@
 ﻿using AElf.Database;
-using AElf.Database.Tests;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Modularity;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using Volo.Abp.Data;
 using Volo.Abp.Modularity;
 
 namespace AElf.Sdk.CSharp2.Tests
