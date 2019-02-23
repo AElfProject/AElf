@@ -1,7 +1,8 @@
 using System;
 using AElf.Common;
+using AElf.Kernel;
 
-namespace AElf.Kernel
+namespace AElf.Contracts.Consensus.DPoS.Extensions
 {
     public static class VotingRecordExtensions
     {
@@ -26,10 +27,6 @@ namespace AElf.Kernel
             }
 
             return lockExpiredAge <= currentAge;
-        }
-        public static ulong GetExpireTermNumber(this VotingRecord votingRecord, ulong currentAge)
-        {
-            return votingRecord.TermNumber + votingRecord.GetDurationDays(currentAge) / GlobalConfig.DaysEachTerm;
         }
     }
 }

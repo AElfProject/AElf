@@ -10,16 +10,12 @@ namespace AElf.Kernel.Consensus.Application
     {
         private readonly IConsensusService _consensusService;
 
-        private readonly ChainOptions _chainOptions;
-
-        public ConsensusExtraDataProvider(IOptions<ChainOptions> options,IConsensusService consensusService)
+        public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
             _consensusService = consensusService;
-
-            _chainOptions = options.Value;
         }
         
-        public async Task FillExtraDataAsync(Block block)
+        public async Task FillExtraData(int chainId, Block block)
         {
             if (block.Header.BlockExtraData == null)
             {
@@ -27,16 +23,16 @@ namespace AElf.Kernel.Consensus.Application
             }
 
             var consensusInformation =
-                await _consensusService.GetNewConsensusInformationAsync(_chainOptions.ChainId);
+                await _consensusService.GetNewConsensusInformationAsync(chainId);
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }
 
-        public async Task<bool> ValidateExtraDataAsync(Block block)
+        public async Task<bool> ValidateExtraData(int chainId, Block block)
         {
             var consensusInformation = block.Header.BlockExtraData.ConsensusInformation;
 
-            return await _consensusService.ValidateConsensusAsync(block.Header.ChainId, block.GetHash(), block.Height,
+            return await _consensusService.ValidateConsensusAsync(chainId, block.GetHash(), block.Height,
                 consensusInformation.ToByteArray());
         }
     }

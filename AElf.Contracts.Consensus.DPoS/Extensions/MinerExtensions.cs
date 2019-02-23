@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+namespace AElf.Contracts.Consensus.DPoS.Extensions
 {
     // ReSharper disable InconsistentNaming
     public static class MinersExtensions
@@ -52,8 +53,9 @@ namespace AElf.Kernel
                 minerInRound.Order = i + 1;
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + GlobalConfig.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow((i * miningInterval) + DPoSContractConsts.AElfWaitFirstRoundTime);
                 minerInRound.PublicKey = enumerable[i];
+                minerInRound.PromisedTinyBlocks = 1;
 
                 infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
@@ -88,10 +90,11 @@ namespace AElf.Kernel
                 }
 
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow(i * miningInterval + totalSecondsOfFirstRound +
-                                         GlobalConfig.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound +
+                                         DPoSContractConsts.AElfWaitFirstRoundTime);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
+                minerInRound.PromisedTinyBlocks = 1;
 
                 infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
             }
@@ -137,8 +140,7 @@ namespace AElf.Kernel
 
             var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
 
-            if (ChainHelpers.ConvertChainIdToBase58(chainId) == GlobalConfig.DefaultChainId ||
-                previousRound.RealTimeMinersInfo.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
+            if (previousRound.RealTimeMinersInfo.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
             {
                 foreach (var miner in previousRound.RealTimeMinersInfo.Values)
                 {
@@ -180,7 +182,7 @@ namespace AElf.Kernel
                 }
             }
 
-            var extraBlockMiningTime = previousRound.GetEBPMiningTime(miningInterval).ToTimestamp();
+            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime(miningInterval).ToTimestamp();
 
             // Maybe because something happened with setting extra block time slot.
             if (extraBlockMiningTime.ToDateTime().AddMilliseconds(miningInterval * 1.5) <
@@ -195,9 +197,10 @@ namespace AElf.Kernel
                 var minerInRound = new MinerInRound
                 {
                     ExpectedMiningTime =
-                        GetTimestampWithOffset(extraBlockMiningTime, i * miningInterval + miningInterval),
+                        GetTimestampWithOffset(extraBlockMiningTime, (i * miningInterval) + miningInterval),
                     Order = i + 1,
-                    PublicKey = minerPublicKey
+                    PublicKey = minerPublicKey,
+                    PromisedTinyBlocks = 1
                 };
 
                 round.RealTimeMinersInfo[minerPublicKey] = minerInRound;
@@ -207,7 +210,7 @@ namespace AElf.Kernel
             var newEBP = round.RealTimeMinersInfo.Keys.ToList()[newEBPOrder];
             round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
 
-            if (GlobalConfig.BlockProducerNumber != 1)
+            if (Config.GetProducerNumber() != 1)
             {
                 // Exchange
                 var orderOfEBP = round.RealTimeMinersInfo[extraBlockProducer].Order;
