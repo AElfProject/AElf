@@ -326,18 +326,20 @@ message ChainBlockLink{
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
     bool IsLightBlock = 7;//no block body
+    bool IsBadBlock = 8;
 }
 
 message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
-    Hash BestChainHash = 3;
-    uint64 BestChainHeight = 4;
-
+    Hash LongestChainHash = 3;
+    uint64 LongestChainHeight = 4;
     map<string, uint64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
-    Hash LastIrreversibleBlockHash = 8;
-    uint64 LastIrreversibleBlockHeight = 9;
+    Hash LastIrreversibleBlockHash = 7;
+    uint64 LastIrreversibleBlockHeight = 8;
+    Hash BestChainHash = 9;
+    uint64 BestChainHeight = 10;
 }
 
 message ChainBlockIndex{

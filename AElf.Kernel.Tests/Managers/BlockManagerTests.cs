@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Tests
 {
     /*
     public sealed class BlockManagerTests:AElfKernelTestBase

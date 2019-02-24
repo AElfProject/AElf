@@ -3,37 +3,39 @@
 //using System.Linq;
 //using AElf.Common;
 //using AElf.Contracts.Consensus.DPoS;
+//using AElf.Contracts.Consensus.DPoS.Extensions;
 //using AElf.Cryptography.ECDSA;
-//using AElf.Contracts.TestBase;
 //using AElf.Cryptography;
-//using AElf.Kernel.SmartContractExecution.Execution;
 //using AElf.Kernel;
+//using AElf.Kernel.Blockchain.Application;
+//using AElf.Kernel.Consensus.DPoS.Application;
 //using AElf.Kernel.SmartContractExecution.Application;
 //using Xunit;
-//
 //
 //namespace AElf.Contracts.Consensus.Tests
 //{
 //    public sealed class ConsensusElectionTest : ConsensusContractTestBase
 //    {
 //        private readonly MockSetup _mock;
-//        private readonly SimpleExecutingService _simpleExecutingService;
+//        private readonly ITransactionExecutingService _transactionExecutingService;
+//        private readonly IBlockchainService _blockchainService;
 //
 //        private const ulong PinMoney = 100;
 //
 //        public ConsensusElectionTest()
 //        {
-//            _simpleExecutingService = GetRequiredService<SimpleExecutingService>() ;
+//            _transactionExecutingService = GetService<ITransactionExecutingService>();
+//            _blockchainService = GetService<IBlockchainService>();
 //            _mock = GetRequiredService<MockSetup>();
 //        }
 //
-//        [Fact(Skip = "Skip for now.")]
+//        [Fact]
 //        public void AnnounceElectionTest()
 //        {
-//            InitializeTesting(out _, out var candidates, out _, out ContractsShim contracts);
+//            InitializeTesting(out _, out var candidates, out _, out var contracts);
 //
 //            var balance = contracts.BalanceOf(GetAddress(candidates[0]));
-//            Assert.True(balance >= GlobalConfig.LockTokenForElection);
+//            Assert.True(balance >= DPoSContractConsts.LockTokenForElection);
 //
 //            contracts.AnnounceElection(candidates[0]);
 //            var res = contracts.IsCandidate(candidates[0].PublicKey.ToHex());
@@ -230,25 +232,20 @@
 //            initialMiners = new List<ECKeyPair>();
 //            candidates = new List<ECKeyPair>();
 //            voters = new List<ECKeyPair>();
-//            for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
+//            for (var i = 0; i < 17; i++)
 //            {
 //                initialMiners.Add(CryptoHelpers.GenerateKeyPair());
 //                candidates.Add(CryptoHelpers.GenerateKeyPair());
 //                voters.Add(CryptoHelpers.GenerateKeyPair());
 //            }
 //
-//            contracts = new ContractsShim(_mock, _simpleExecutingService);
-//
-//            // Initial term.
-//            var initialTerm =
-//                new Miners {PublicKeys = {initialMiners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(1);
-//            contracts.InitialTerm(initialMiners[0], initialTerm);
+//            contracts = new ContractsShim(_mock, _transactionExecutingService, _blockchainService);
 //
 //            // Initial balances.
-//            for (var i = 0; i < GlobalConfig.BlockProducerNumber; i++)
+//            for (var i = 0; i < 17; i++)
 //            {
 //                contracts.InitialBalance(initialMiners[0], GetAddress(candidates[i]),
-//                    GlobalConfig.LockTokenForElection + PinMoney);
+//                    DPoSContractConsts.LockTokenForElection + PinMoney);
 //                contracts.InitialBalance(initialMiners[0], GetAddress(voters[i]), 100_000);
 //            }
 //        }

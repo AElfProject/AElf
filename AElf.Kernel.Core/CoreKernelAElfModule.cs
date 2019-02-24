@@ -1,6 +1,7 @@
 ﻿using AElf.Common;
 using AElf.Common.Serializers;
 using AElf.Database;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node.Domain;
@@ -23,10 +24,6 @@ namespace AElf.Kernel
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var configuration = context.Services.GetConfiguration();
-            // TODO : Maybe it shouldn't be set here
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
-
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();
@@ -39,6 +36,8 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
+
+            services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
