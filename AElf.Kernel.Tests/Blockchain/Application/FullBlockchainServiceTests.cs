@@ -67,7 +67,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Attach_Block_To_Chain_Return_Null()
+        public async Task Attach_Block_To_Chain_ReturnNull()
         {
             var eventMessage = new BestChainFoundEvent();
             _localEventBus.Subscribe<BestChainFoundEvent>(message =>
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
         
         [Fact]
-        public async Task Attach_Block_To_Chain_Found_Best_Chain()
+        public async Task Attach_Block_To_Chain_FoundBestChain()
         {
             var eventMessage = new BestChainFoundEvent();
             _localEventBus.Subscribe<BestChainFoundEvent>(message =>
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
         
         [Fact]
-        public async Task Attach_Block_To_Chain_Not_Found_Best_Chain()
+        public async Task Attach_Block_To_Chain_NotFoundBestChain()
         {
             var eventMessage = new BestChainFoundEvent();
             _localEventBus.Subscribe<BestChainFoundEvent>(message =>
@@ -151,7 +151,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Get_Block_Hash_By_Height_Return_Null()
+        public async Task Get_BlockHash_ByHeight_ReturnNull()
         {
             var chain = await CreateNewChain();
             var result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 2ul);
@@ -159,7 +159,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
         
         [Fact]
-        public async Task Get_Block_Hash_By_Height_Return_Hash()
+        public async Task Get_BlockHash_ByHeight_ReturnHash()
         {
             var chain = await CreateNewChain();
             var result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, chain.BestChainHeight);
@@ -167,14 +167,14 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Get_Block_Headers_Return_Null()
+        public async Task Get_BlockHeaders_ReturnNull()
         {
             var result = await _fullBlockchainService.GetBlockHeaders(_chainId, Hash.FromString("not exist"), 1);
             result.ShouldBeNull();
         }
         
         [Fact]
-        public async Task Get_Block_Headers_Return_Headers()
+        public async Task Get_BlockHeaders_ReturnHeaders()
         {
             var chain = await CreateNewChain();
             var newBlock1 = new Block
