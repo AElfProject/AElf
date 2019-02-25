@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using AElf.ChainController.Rpc;
 using AElf.Common;
 using AElf.Contracts.Genesis;
@@ -17,6 +18,7 @@ using AElf.Net.Rpc;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
+using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.Wallet.Rpc;
@@ -56,6 +58,8 @@ namespace AElf.Launcher
 
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
+        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+        
         public LauncherAElfModule()
         {
             Logger = NullLogger<LauncherAElfModule>.Instance;
@@ -98,11 +102,22 @@ namespace AElf.Launcher
                 }
             };
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async () => await osService.StartAsync(dto));
+            var that = this;
+            AsyncHelper.RunSync(async () =>
+            {
+                that.OsBlockchainNodeContext = await osService.StartAsync(dto);
+            });
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
+        }
+
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        {
+            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+            var that = this;
+            AsyncHelper.RunSync(async () => { await osService.StopAsync(that.OsBlockchainNodeContext); });
         }
     }
 }
