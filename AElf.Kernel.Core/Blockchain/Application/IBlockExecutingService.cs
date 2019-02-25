@@ -141,7 +141,6 @@ namespace AElf.Kernel.Blockchain.Application
 
         private async Task<bool> ExecuteBlock(int chainId, ChainBlockLink blockLink, Block block)
         {
-            // TODO: Save transactions in block
             var result =
                 await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
             if (!result.GetHash().Equals(block.GetHash()))
