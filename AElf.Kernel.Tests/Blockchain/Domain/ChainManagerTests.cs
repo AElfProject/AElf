@@ -107,8 +107,10 @@ namespace AElf.Kernel
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
                 //test repeat set
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(_blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(_blocks[1]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[0]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(1ul.BlockHeight());
             }
@@ -136,8 +138,10 @@ namespace AElf.Kernel
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4])
                     .ShouldThrowAsync<InvalidOperationException>();
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(_blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(_blocks[1]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[0]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(1ul.BlockHeight());
             }
@@ -183,11 +187,16 @@ namespace AElf.Kernel
 
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(_blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(_blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(_blocks[2]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(_blocks[3]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(_blocks[4]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[0]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[1]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[2]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[3]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[4]);
 
 
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[4]);
@@ -325,12 +334,18 @@ namespace AElf.Kernel
 
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[12]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(_blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(_blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(_blocks[2]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(_blocks[3]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(_blocks[4]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 8ul.BlockHeight())).BlockHash.ShouldBe(_blocks[12]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[0]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[1]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[2]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[3]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[4]);
+                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 8ul.BlockHeight())).BlockHash.ShouldBe(
+                    _blocks[12]);
 
 
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[12]);
@@ -584,21 +599,23 @@ namespace AElf.Kernel
             {
                 Height = 1ul.BlockHeight(),
                 BlockHash = _blocks[1],
-                IsExecuted = false
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkAsExecuted(0, firstBlockLink);
+            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink,
+                ChainBlockLinkExecutionStatus.ExecutionSuccess);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
-            currentBlockLink.IsExecuted.ShouldBeTrue();
+            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             var secondBlockLink = new ChainBlockLink
             {
                 Height = 2ul.BlockHeight(),
                 BlockHash = _blocks[2],
-                IsExecuted = true
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionSuccess
             };
 
-            _chainManager.SetChainBlockLinkAsExecuted(0, secondBlockLink)
+            _chainManager
+                .SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
                 .ShouldThrow<InvalidOperationException>();
         }
 
@@ -609,21 +626,21 @@ namespace AElf.Kernel
             {
                 Height = 1ul.BlockHeight(),
                 BlockHash = _blocks[1],
-                IsBadBlock = false
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkAsBadAsync(0, firstBlockLink);
+            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
-            currentBlockLink.IsBadBlock.ShouldBeTrue();
+            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
 
             var secondBlockLink = new ChainBlockLink
             {
                 Height = 2ul.BlockHeight(),
                 BlockHash = _blocks[2],
-                IsBadBlock = true
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
             };
 
-            _chainManager.SetChainBlockLinkAsBadAsync(0, secondBlockLink)
+            _chainManager.SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
                 .ShouldThrow<InvalidOperationException>();
         }
 
@@ -644,7 +661,7 @@ namespace AElf.Kernel
         [Fact]
         public async Task Get_Not_ExecutedBlocks_Test()
         {
-            // No bad block
+            // execution success blocks
             var chain = await _chainManager.CreateAsync(0, _genesis);
             await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
@@ -665,7 +682,7 @@ namespace AElf.Kernel
             chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
             chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
 
-            // Bad block
+            // execution failed block
             await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
                 Height = 3ul.BlockHeight(),
@@ -678,7 +695,7 @@ namespace AElf.Kernel
                 Height = 4ul.BlockHeight(),
                 BlockHash = _blocks[4],
                 PreviousBlockHash = _blocks[3],
-                IsBadBlock = true
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
             });
 
             await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
@@ -688,12 +705,20 @@ namespace AElf.Kernel
                 PreviousBlockHash = _blocks[4]
             });
 
-            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[5]);
+            
+            //when block 3 is the last one, all blocks status is execution none
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[3]);
             chainBlockLinks.Count.ShouldBe(4);
             chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
             chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
             chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
-            chainBlockLinks[3].BlockHash.ShouldBe(_blocks[3]);
+            
+            
+            
+            //when block 5 is the last one, as block 4 is executed failed, mean all block 4's previous blocks have been
+            //executed, and as block 4 is failed, so all block after block 4 is failed. so Count = 0
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[5]);
+            chainBlockLinks.Count.ShouldBe(0);
         }
     }
 }
