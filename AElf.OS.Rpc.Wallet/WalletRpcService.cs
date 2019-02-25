@@ -9,7 +9,7 @@ using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Wallet.Rpc
+namespace AElf.OS.Rpc.Wallet
 {
     [Path("/wallet")]
     public class WalletRpcService : IJsonRpcService

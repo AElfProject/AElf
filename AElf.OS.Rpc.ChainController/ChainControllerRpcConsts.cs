@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     public static class SmartContract
     {

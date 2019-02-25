@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Wallet.Rpc
+namespace AElf.OS.Rpc.Wallet
 {
     public static class Error
     {

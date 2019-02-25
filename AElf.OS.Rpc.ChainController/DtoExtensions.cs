@@ -2,7 +2,7 @@
 using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     internal static class DtoExtensions
     {

@@ -11,17 +11,14 @@ using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
-using AElf.OS;
-using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     [Path("/chain")]
     public class ChainControllerRpcService : IJsonRpcService
@@ -97,7 +94,7 @@ namespace AElf.ChainController.Rpc
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            var abi = await GetContractAbi(_chainOptions.ChainId, addressHash);
 
             if (abi == null)
             {
@@ -119,7 +116,7 @@ namespace AElf.ChainController.Rpc
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
+                response = await CallReadOnly(_chainOptions.ChainId, transaction);
             }
             catch
             {
@@ -268,7 +265,7 @@ namespace AElf.ChainController.Rpc
             ((JObject) transactionInfo["Transaction"]).Add("ExecutionState", receipt.TransactionStatus.ToString());
             ((JObject) transactionInfo["Transaction"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
 
-            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transactionResult = await GetTransactionResult((string) transactionHash);
             var response = new JObject
             {
                 ["TransactionStatus"] = transactionResult.Status.ToString(),

@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.ChainController.Rpc;
+using AElf.OS.Rpc.ChainController;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
@@ -7,9 +7,9 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
-using AElf.Net.Rpc;
+using AElf.OS.Rpc.Net;
 using AElf.OS;
-using AElf.Wallet.Rpc;
+using AElf.OS.Rpc.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.AspNetCore.TestBase;

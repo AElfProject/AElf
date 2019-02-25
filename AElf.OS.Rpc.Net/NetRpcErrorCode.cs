@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Net.Rpc
+namespace AElf.OS.Rpc.Net
 {
     public static class Error
     {

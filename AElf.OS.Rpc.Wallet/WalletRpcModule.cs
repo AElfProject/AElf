@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Wallet.Rpc
+namespace AElf.OS.Rpc.Wallet
 {
     public class WalletRpcModule : AElfModule
     {

@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     public class TransactionResultService : ITransactionResultService
     {

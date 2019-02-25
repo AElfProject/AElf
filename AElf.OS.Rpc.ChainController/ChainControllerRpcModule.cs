@@ -1,11 +1,10 @@
 ﻿using AElf.Kernel.ChainController;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
-using AElf.OS.Rpc;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     [DependsOn(
         typeof(RpcAElfModule),

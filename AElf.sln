@@ -179,11 +179,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Sched
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Core", "AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj", "{8EA0B3B2-A6E1-43F5-8F0D-1B271C3B72CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Net.Rpc", "AElf.Net.Rpc\AElf.Net.Rpc.csproj", "{1494530D-5C66-48F8-8BCB-2DCC30BE3B4F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Net", "AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj", "{1494530D-5C66-48F8-8BCB-2DCC30BE3B4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Wallet.Rpc", "AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj", "{256FDDCF-D63C-4B7D-AA83-15070CF857ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Wallet", "AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj", "{256FDDCF-D63C-4B7D-AA83-15070CF857ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc", "AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj", "{34455FE3-711A-4EB6-AECB-945B4180CDF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController", "AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj", "{34455FE3-711A-4EB6-AECB-945B4180CDF5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.OS.Rpc", "AElf.OS.Rpc", "{DC79786E-61FC-4C9C-BF37-19613EB5A6AA}"
 EndProject

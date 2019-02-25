@@ -6,7 +6,7 @@ using Anemonis.AspNetCore.JsonRpc;
 
 #pragma warning disable 1998
 
-namespace AElf.Net.Rpc
+namespace AElf.OS.Rpc.Net
 {
     [Path("/net")]
     public class NetRpcService : IJsonRpcService

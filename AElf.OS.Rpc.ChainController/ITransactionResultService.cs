@@ -2,7 +2,7 @@
 using AElf.Common;
 using AElf.Kernel;
 
-namespace AElf.ChainController.Rpc
+namespace AElf.OS.Rpc.ChainController
 {
     public interface ITransactionResultService
     {
