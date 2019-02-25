@@ -1,17 +1,23 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using Anemonis.AspNetCore.JsonRpc;
+using Anemonis.JsonRpc;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -58,7 +64,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("ConnectChain")]
-        public async Task<JObject> GetChainInfo()
+        public Task<JObject> GetChainInfo()
         {
             var basicContractZero = ContractHelpers.GetGenesisBasicContractAddress(_chainOptions.ChainId);
             var crosschainContract = ContractHelpers.GetCrossChainContractAddress(_chainOptions.ChainId);
@@ -78,7 +84,7 @@ namespace AElf.OS.Rpc.ChainController
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
-            return response;
+            return Task.FromResult(response);
         }
 
         [JsonRpcMethod("GetContractAbi", "address")]
@@ -94,7 +100,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await GetContractAbi(_chainOptions.ChainId, addressHash);
+            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
 
             if (abi == null)
             {
@@ -116,7 +122,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await CallReadOnly(_chainOptions.ChainId, transaction);
+                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
             }
             catch
             {
@@ -185,7 +191,8 @@ namespace AElf.OS.Rpc.ChainController
             }
             catch
             {
-                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
+                throw new JsonRpcServiceException(Error.InvalidTransactionId,
+                    Error.Message[Error.InvalidTransactionId]);
             }
 
             var response = await GetTransaction(transactionHash);
@@ -251,7 +258,8 @@ namespace AElf.OS.Rpc.ChainController
             try
             {
                 ((JObject) transactionInfo["Transaction"]).Add("params",
-                    (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(_chainOptions.ChainId, transaction))
+                    (JObject) JsonConvert.DeserializeObject(
+                        await this.GetTransactionParameters(_chainOptions.ChainId, transaction))
                 );
             }
             catch (Exception)
@@ -265,13 +273,14 @@ namespace AElf.OS.Rpc.ChainController
             ((JObject) transactionInfo["Transaction"]).Add("ExecutionState", receipt.TransactionStatus.ToString());
             ((JObject) transactionInfo["Transaction"]).Add("ExecutedInBlock", receipt.ExecutedBlockNumber);
 
-            var transactionResult = await GetTransactionResult((string) transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionHash);
             var response = new JObject
             {
                 ["TransactionStatus"] = transactionResult.Status.ToString(),
                 ["TransactionInfo"] = transactionInfo["Transaction"]
             };
-            var transactionTrace = await this.GetTransactionTrace(_chainOptions.ChainId, transactionHash, transactionResult.BlockNumber);
+            var transactionTrace =
+                await this.GetTransactionTrace(_chainOptions.ChainId, transactionHash, transactionResult.BlockNumber);
 
 #if DEBUG
             response["TransactionTrace"] = transactionTrace?.ToString();
@@ -296,7 +305,8 @@ namespace AElf.OS.Rpc.ChainController
                         response["ReturnValue"] = transactionResult.RetVal.ToStringUtf8();
                     }
                     else
-                        response["ReturnValue"] = Address.FromBytes(transactionResult.RetVal.ToByteArray()).GetFormatted();
+                        response["ReturnValue"] =
+                            Address.FromBytes(transactionResult.RetVal.ToByteArray()).GetFormatted();
                 }
                 catch (Exception)
                 {

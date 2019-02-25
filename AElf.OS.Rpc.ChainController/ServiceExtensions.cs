@@ -11,7 +11,6 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Google.Protobuf;
-using Svc = AElf.OS.Rpc.ChainController.ChainControllerRpcService;
 
 namespace AElf.OS.Rpc.ChainController
 {
