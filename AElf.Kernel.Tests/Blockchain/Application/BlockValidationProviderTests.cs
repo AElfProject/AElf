@@ -8,11 +8,11 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockValidationProviderTests : AElfKernelTestBase
     {
-        private readonly IBlockValidationProvider _blockValidationProvider;
+        private readonly BlockValidationProvider _blockValidationProvider;
         
         public BlockValidationProviderTests()
         {
-            _blockValidationProvider = GetRequiredService<IBlockValidationProvider>();
+            _blockValidationProvider = GetRequiredService<BlockValidationProvider>();
         }
 
         [Fact]

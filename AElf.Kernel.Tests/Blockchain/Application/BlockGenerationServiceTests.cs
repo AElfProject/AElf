@@ -17,7 +17,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Should_Generate_Block_Success()
+        public async Task Generate_Block_Success()
         {
             var generateBlockDto = new GenerateBlockDto
             {
