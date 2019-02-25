@@ -189,7 +189,6 @@ namespace AElf.Contracts.Authorization
 
         #endregion
 
-
         public bool IsMultiSigAccount(Address address)
         {
             var authorization = State.MultiSig[address];

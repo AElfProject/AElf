@@ -18,6 +18,5 @@ namespace AElf.CrossChain.Grpc
         #endregion
         
         public string CertificateDir { get; set; }
-
     }
 }

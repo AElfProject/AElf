@@ -14,10 +14,8 @@ namespace AElf.CrossChain.Grpc.Server
 {
     public class CrossChainBlockDataRpcServer : CrossChainRpc.CrossChainRpcBase
     {
-        public ILogger<CrossChainBlockDataRpcServer> Logger {get;set;}
-        
-        public ILocalEventBus LocalEventBus { get; set; }
-
+        public ILogger<CrossChainBlockDataRpcServer> Logger { get; }
+        public ILocalEventBus LocalEventBus { get; }
         private readonly IBlockchainService _blockchainService;
         private readonly GrpcConfigOption _grpcConfigOption;
         private global::Grpc.Core.Server _grpcServer;

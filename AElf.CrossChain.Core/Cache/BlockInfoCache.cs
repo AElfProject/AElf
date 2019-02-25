@@ -7,10 +7,10 @@ namespace AElf.CrossChain
 {
     public class BlockInfoCache
     {
-        private BlockingCollection<IBlockInfo> ToBeIndexedBlockInfoQueue { get;} =
+        private BlockingCollection<IBlockInfo> ToBeIndexedBlockInfoQueue { get; } =
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
 
-        private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get;} = new Queue<IBlockInfo>();
+        private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get; } = new Queue<IBlockInfo>();
         private readonly int _irreversible;
         private readonly int _cachedBoundedCapacity;
         public ulong TargetChainHeight { get; set; }

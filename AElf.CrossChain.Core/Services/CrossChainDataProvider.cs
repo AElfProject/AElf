@@ -69,7 +69,7 @@ namespace AElf.CrossChain
             if (isValidation && parentChainBlockData.Count > CrossChainConsts.MaximalCountForIndexingParentChainBlock)
                 return false;
             
-            int length = isValidation ? parentChainBlockData.Count : CrossChainConsts.MaximalCountForIndexingParentChainBlock ;
+            int length = isValidation ? parentChainBlockData.Count : CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             
             int i = 0;
             ulong targetHeight = await _crossChainContractReader.GetParentChainCurrentHeightAsync(chainId, previousBlockHash, preBlockHeight);
@@ -106,7 +106,6 @@ namespace AElf.CrossChain
             {
                 _crossChainDataConsumer.RegisterNewChainCache(idHeight.Key, idHeight.Value);
             }
-            
         }
 
         public void RegisterNewChain(int chainId)

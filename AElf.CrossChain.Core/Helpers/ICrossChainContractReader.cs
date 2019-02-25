@@ -32,8 +32,7 @@ namespace AElf.CrossChain
         {
             _crossChainReadOnlyTransactionExecutor = crossChainReadOnlyTransactionExecutor;
         }
-
-
+        
         public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight)
         {
             throw new System.NotImplementedException();

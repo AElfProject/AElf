@@ -79,7 +79,6 @@ namespace AElf.CrossChain
                 await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To);
             await executive.SetTransactionContext(txCtxt).Apply();
             return trace;
-        }      
-        
+        }
     }
 }

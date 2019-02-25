@@ -3,7 +3,7 @@ namespace AElf.CrossChain
     public interface IResponseIndexingMessage
     {
         bool Success { get; }
-        ulong Height { get;}
+        ulong Height { get; }
         IBlockInfo BlockInfoResult { get; }
     }
     

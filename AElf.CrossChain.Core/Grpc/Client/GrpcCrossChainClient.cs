@@ -11,7 +11,7 @@ namespace AElf.CrossChain.Grpc.Client
 {
     public abstract class GrpcCrossChainClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
-        public ILogger<GrpcCrossChainClient<TResponse>> Logger {get; set;}
+        public ILogger<GrpcCrossChainClient<TResponse>> Logger { get; }
         private int _initInterval;
         private int _adjustedInterval;
         private const int UnavailableConnectionInterval = 1_000;
@@ -130,10 +130,8 @@ namespace AElf.CrossChain.Grpc.Client
                     {
                         await call.RequestStream.CompleteAsync();
                     }
-                
                 } 
             }
-            
         }
 
         protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> Call(int milliSeconds = 0);
@@ -144,6 +142,4 @@ namespace AElf.CrossChain.Grpc.Client
     {
         Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
     }
-
-    
 }
