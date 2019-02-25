@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.ChainController.Rpc
 {
-    public static class ChainRpcErrorConsts
+    public static class Error
     {
         public const long NotFound = 20001;
         public const long InvalidAddress = 20002;
@@ -14,7 +14,7 @@ namespace AElf.ChainController.Rpc
         public const long InvalidTransaction = 20008;
         public const long CannotBroadcastTransaction = 20009;
 
-        public static readonly Dictionary<long, string> RpcErrorMessage = new Dictionary<long, string>
+        public static readonly Dictionary<long, string> Message = new Dictionary<long, string>
         {
             {NotFound, "Not found"},
             {InvalidAddress, "Invalid address format"},

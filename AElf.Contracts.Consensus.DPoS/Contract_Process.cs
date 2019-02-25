@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class Contract
     {
-        public void InitialTerm(Term firstTerm)
+        public ActionResult InitialTerm(Term firstTerm)
         {
             Assert(firstTerm.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
             Assert(firstTerm.SecondRound.RoundNumber == 2,
@@ -55,6 +55,8 @@ namespace AElf.Contracts.Consensus.DPoS
             firstTerm.SecondRound.BlockchainAge = 1;
             TryToAddRoundInformation(firstTerm.FirstRound);
             TryToAddRoundInformation(firstTerm.SecondRound);
+
+            return new ActionResult {Success = true};
         }
 
         public ActionResult NextTerm(Term term)

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
+using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -23,6 +24,8 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
+
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
