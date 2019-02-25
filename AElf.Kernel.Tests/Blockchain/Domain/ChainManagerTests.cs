@@ -629,7 +629,8 @@ namespace AElf.Kernel
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink,
+                ChainBlockLinkExecutionStatus.ExecutionFailed);
             var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
 
@@ -640,7 +641,8 @@ namespace AElf.Kernel
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
             };
 
-            _chainManager.SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
+            _chainManager
+                .SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
                 .ShouldThrow<InvalidOperationException>();
         }
 
@@ -705,16 +707,15 @@ namespace AElf.Kernel
                 PreviousBlockHash = _blocks[4]
             });
 
-            
+
             //when block 3 is the last one, all blocks status is execution none
             chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[3]);
             chainBlockLinks.Count.ShouldBe(4);
             chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
             chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
             chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
-            
-            
-            
+
+
             //when block 5 is the last one, as block 4 is executed failed, mean all block 4's previous blocks have been
             //executed, and as block 4 is failed, so all block after block 4 is failed. so Count = 0
             chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[5]);

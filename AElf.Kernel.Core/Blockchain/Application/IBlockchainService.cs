@@ -135,7 +135,6 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, chain.LongestChainHash);
 
-
                 try
                 {
                     foreach (var blockLink in blockLinks)

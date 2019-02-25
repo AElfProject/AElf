@@ -64,7 +64,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
         }
 
-        public ValidateNextTimeBlockValidationException(Hash blockhash):this($"validate next time, block hash = {blockhash.ToHex()}")
+        public ValidateNextTimeBlockValidationException(Hash blockhash) : this(
+            $"validate next time, block hash = {blockhash.ToHex()}")
         {
             BlockHash = blockhash;
         }
@@ -77,7 +78,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public Hash BlockHash { get; private set; }
     }
-    
+
     public class BlockValidationProvider : IBlockValidationProvider
     {
         public async Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
