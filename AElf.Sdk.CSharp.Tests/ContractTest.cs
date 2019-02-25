@@ -9,7 +9,6 @@ using AElf.Kernel.SmartContract.Contexts;
 using Xunit;
 using Shouldly;
 using Moq;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.Tests.TestContract;
 
 namespace AElf.Sdk.CSharp.Tests
