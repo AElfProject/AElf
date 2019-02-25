@@ -2,9 +2,6 @@ namespace AElf.CrossChain
 {
     public class CrossChainDataProducer : ICrossChainDataProducer
     {
-        public ulong TargetChainHeight { get; set; }
-        public BlockInfoCache BlockInfoCache { get; set; }
-       
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
         public CrossChainDataProducer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)

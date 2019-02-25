@@ -15,46 +15,46 @@ namespace AElf.Crosschain
 {
     public class CrosschainTestHelper
     {
-//        public static ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
-//        public static ISmartContractExecutiveService FakeSmartContractExecutiveService()
-//        {
-//            Mock<ISmartContractExecutiveService> mockObject = new Mock<ISmartContractExecutiveService>();
-//            mockObject.Setup(m => m.GetExecutiveAsync(It.IsAny<int>(), It.IsAny<Address>()))
-//                .Returns<int, Address>((chainId, address) => Task.FromResult(FakeExecutive()));
-//            return mockObject.Object;
-//        }
-//
-//        public static IExecutive FakeExecutive()
-//        {
-//            Mock<IExecutive> mockObject = new Mock<IExecutive>();
-//            mockObject.Setup(m => m.SetTransactionContext(It.IsAny<TransactionContext>())).Returns<TransactionContext>(
-//                tc =>
-//                {
-//                    tc.Trace.RetVal.Data = new UInt64Value {Value = 1}.ToByteString();
-//                    return mockObject.Object;
-//                });
-//            mockObject.Setup(m => m.Apply()).Returns(()=> Task.CompletedTask);
-//            return mockObject.Object;
-//        }
-//
-//        public static AccountOptions FakeAccountOption()
-//        {
-//            var nodeAccount = Address.FromPublicKey(EcKeyPair.PublicKey).GetFormatted();
-//            var nodeAccountPassword = "123";
-//            return new AccountOptions
-//            {
-//                NodeAccount = nodeAccount,
-//                NodeAccountPassword = nodeAccountPassword
-//            };
-//        }
-//
-//        public static IKeyStore FakeKeyStore()
-//        {
-//            Mock<IKeyStore> mockObject = new Mock<IKeyStore>();
-//            mockObject.Setup(m => m.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-//                .Returns(Task.FromResult(AElfKeyStore.Errors.None));
-//            mockObject.Setup(m => m.GetAccountKeyPair(It.IsAny<string>())).Returns(EcKeyPair);
-//            return mockObject.Object;
-//        }
+        public static ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
+        public static ISmartContractExecutiveService FakeSmartContractExecutiveService()
+        {
+            Mock<ISmartContractExecutiveService> mockObject = new Mock<ISmartContractExecutiveService>();
+            mockObject.Setup(m => m.GetExecutiveAsync(It.IsAny<int>(), It.IsAny<IChainContext>(), It.IsAny<Address>()))
+                .Returns<int, IChainContext, Address>((chainId, chainContext, address) => Task.FromResult(FakeExecutive()));
+            return mockObject.Object;
+        }
+
+        public static IExecutive FakeExecutive()
+        {
+            Mock<IExecutive> mockObject = new Mock<IExecutive>();
+            mockObject.Setup(m => m.SetTransactionContext(It.IsAny<TransactionContext>())).Returns<TransactionContext>(
+                tc =>
+                {
+                    tc.Trace.RetVal.Data = new UInt64Value {Value = 1}.ToByteString();
+                    return mockObject.Object;
+                });
+            mockObject.Setup(m => m.Apply()).Returns(()=> Task.CompletedTask);
+            return mockObject.Object;
+        }
+
+        public static AccountOptions FakeAccountOption()
+        {
+            var nodeAccount = Address.FromPublicKey(EcKeyPair.PublicKey).GetFormatted();
+            var nodeAccountPassword = "123";
+            return new AccountOptions
+            {
+                NodeAccount = nodeAccount,
+                NodeAccountPassword = nodeAccountPassword
+            };
+        }
+
+        public static IKeyStore FakeKeyStore()
+        {
+            Mock<IKeyStore> mockObject = new Mock<IKeyStore>();
+            mockObject.Setup(m => m.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns(Task.FromResult(AElfKeyStore.Errors.None));
+            mockObject.Setup(m => m.GetAccountKeyPair(It.IsAny<string>())).Returns(EcKeyPair);
+            return mockObject.Object;
+        }
     }
 }

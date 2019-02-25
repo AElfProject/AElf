@@ -154,6 +154,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.TestBase", "AElf.OS.Rpc.TestBase\AElf.OS.Rpc.TestBase.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController.Tests", "AElf.OS.Rpc.ChainController.Tests\AElf.OS.Rpc.ChainController.Tests.csproj", "{1CADEB6E-B454-4559-8254-E9E72B234D09}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain", "AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj", "{48D20E4A-51FA-4085-A31E-096A648EB9CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
