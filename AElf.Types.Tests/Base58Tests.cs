@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xunit;
 using AElf.Common;
 using Shouldly;
@@ -39,13 +40,19 @@ namespace AElf.Types.Tests
         {
             var hash = Hash.Generate();
             var data = hash.DumpByteArray();
+            var bytes = new byte[]{0};
 
             var enCode = Base58CheckEncoding.EncodePlain(data);
             enCode.ShouldNotBe(string.Empty);
             var deCode = Base58CheckEncoding.DecodePlain(enCode);
             deCode.ShouldBe(data);
+            
+            Base58CheckEncoding.EncodePlain(bytes).ShouldBe("1");
+            Should.Throw<FormatException>(() => {
+                Base58CheckEncoding.DecodePlain(bytes.ToString());
+            });
 
-            Should.Throw<System.FormatException>(() => { Base58CheckEncoding.Decode(enCode); });
+            Should.Throw<FormatException>(() => { Base58CheckEncoding.Decode(enCode); });
         }
 
         [Fact]

@@ -15,9 +15,13 @@ namespace AElf.Types.Tests.Extensions
 
             var hexValueWithPrefix = hexValue.AppendHexPrefix();
             hexValueWithPrefix.Substring(0, 2).ShouldBe("0x");
+            var hexValueWithPrefix1 = hexValueWithPrefix.AppendHexPrefix();
+            hexValueWithPrefix1.ShouldBeSameAs(hexValueWithPrefix);
 
             var hex = hexValueWithPrefix.RemoveHexPrefix();
             hex.ShouldBe(hexValue);
+            var hex1 = hex.RemoveHexPrefix();
+            hex1.ShouldBeSameAs(hex);
 
             var hash1 = hexValue.CalculateHash();
             hash1.ShouldNotBe(null);
