@@ -318,15 +318,20 @@ message ActionResult {
     string ErrorMessage = 2;
 }
 
+enum ChainBlockLinkExecutionStatus{
+    ExecutionNone = 0;
+    ExecutionSuccess = 1;
+    ExecutionFailed = 2;
+}
+
 message ChainBlockLink{
     Hash BlockHash = 1;
     uint64 Height = 2;
     Hash PreviousBlockHash = 3;
-    bool IsExecuted = 4;
+    ChainBlockLinkExecutionStatus ExecutionStatus = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
     bool IsLightBlock = 7;//no block body
-    bool IsBadBlock = 8;
 }
 
 message Chain {
