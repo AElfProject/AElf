@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AElf.Common;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -13,8 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
             "ZZ", "ZA", "GL", "LN", "DW",
             "BB", "MM", "DZ", "JJ", "DD"
         };
-
-        public static int InitialWaitingMilliseconds = 4000;
 
         public static ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
