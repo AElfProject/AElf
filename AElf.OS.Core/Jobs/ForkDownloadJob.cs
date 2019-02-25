@@ -14,7 +14,9 @@ namespace AElf.OS.Jobs
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
 
-        public IFullBlockchainService BlockchainService { get; set; }
+        public IBlockchainService BlockchainService { get; set; }
+
+        public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
 
         private int ChainId => ChainOptions.Value.ChainId;
@@ -51,7 +53,7 @@ namespace AElf.OS.Jobs
 
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
-                    await BlockchainService.AttachBlockToChainAsync(chain, block);
+                    await BlockchainExecutingService.AttachBlockToChainAsync(chain, block);
 
                     Logger.LogDebug($"Added {block}.");
                 }
@@ -64,5 +66,3 @@ namespace AElf.OS.Jobs
         }
     }
 }
-
-    
