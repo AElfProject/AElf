@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
 
-namespace AElf.Rpc
+namespace AElf.OS.Rpc
 {
     [AttributeUsage((AttributeTargets.Class))]
     public class PathAttribute : Attribute

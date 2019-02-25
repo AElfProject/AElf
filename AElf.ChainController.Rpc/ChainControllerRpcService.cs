@@ -12,7 +12,7 @@ using AElf.Kernel.SmartContractExecution.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.OS;
-using AElf.Rpc;
+using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;

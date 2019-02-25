@@ -177,7 +177,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "AElf.Launc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.FluentScheduler", "AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj", "{8B23312F-61B4-4330-900D-280848C2DB4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Rpc", "AElf.Rpc\AElf.Rpc.csproj", "{8EA0B3B2-A6E1-43F5-8F0D-1B271C3B72CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Core", "AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj", "{8EA0B3B2-A6E1-43F5-8F0D-1B271C3B72CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Net.Rpc", "AElf.Net.Rpc\AElf.Net.Rpc.csproj", "{1494530D-5C66-48F8-8BCB-2DCC30BE3B4F}"
 EndProject

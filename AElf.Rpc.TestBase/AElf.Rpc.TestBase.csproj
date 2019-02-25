@@ -8,7 +8,7 @@
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj" />
       <ProjectReference Include="..\AElf.Net.Rpc\AElf.Net.Rpc.csproj" />
-      <ProjectReference Include="..\AElf.Rpc\AElf.Rpc.csproj" />
+      <ProjectReference Include="..\AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj" />
       <ProjectReference Include="..\AElf.Wallet.Rpc\AElf.Wallet.Rpc.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />

@@ -5,7 +5,7 @@ using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.OS;
-using AElf.Rpc;
+using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 using Microsoft.Extensions.Options;
 

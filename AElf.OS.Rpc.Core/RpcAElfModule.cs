@@ -5,7 +5,7 @@ using Volo.Abp.AspNetCore;
 using Volo.Abp.AspNetCore.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Rpc
+namespace AElf.OS.Rpc
 {
     [DependsOn(
         typeof(AbpAspNetCoreModule)

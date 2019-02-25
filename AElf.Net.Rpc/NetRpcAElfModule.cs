@@ -1,6 +1,6 @@
 ﻿using AElf.Modularity;
 using AElf.OS;
-using AElf.Rpc;
+using AElf.OS.Rpc;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
