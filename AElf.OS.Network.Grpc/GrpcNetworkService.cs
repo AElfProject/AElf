@@ -44,6 +44,7 @@ namespace AElf.OS.Network.Grpc
             {
                 try
                 {
+                    Logger?.LogDebug($"STEP 2: {blockHeader.GetHash()}");
                     await peer.AnnounceAsync(new Announcement { Header = blockHeader });
                 }
                 catch (Exception e)
@@ -149,8 +150,11 @@ namespace AElf.OS.Network.Grpc
                 FirstBlockId = topHash.Value,
                 Count = count
             });
+            
+            if (blockIds == null || blockIds.Ids.Count <= 0)
+                return new List<Hash>();
 
-            return blockIds.Ids.Select(id => Hash.FromRawBytes(id.ToByteArray())).ToList();
+            return blockIds.Ids.Select(id => Hash.LoadByteArray(id.ToByteArray())).ToList();
         }
     }
 }

@@ -20,7 +20,7 @@ namespace AElf.OS.Handlers
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
 
-         public IBackgroundJobManager BackgroundJobManager { get; set; }
+        public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
 
@@ -104,7 +104,7 @@ namespace AElf.OS.Handlers
                         List<Hash> ids = await NetworkService
                             .GetBlockIdsAsync(topHash, NetworkConsts.DefaultBlockIdRequestCount, peer); // todo this has to be in order, maybe add Height
 
-                         // Find the ids that we're missing
+                         // Find thegt ids that we're missing
                         var unlinkableIds = await FindUnlinkableBlocksAsync(ids);
 
                          // If no more ids to get break the loop 
@@ -117,8 +117,11 @@ namespace AElf.OS.Handlers
 
                      if (idsToDownload.Any())
                     {
-
-                         await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs());
+                         await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+                         {
+                             BlockHashes = idsToDownload.Select(b => b.DumpByteArray()).ToList(), 
+                             Peer = peer
+                         });
                     }
                     else
                     {

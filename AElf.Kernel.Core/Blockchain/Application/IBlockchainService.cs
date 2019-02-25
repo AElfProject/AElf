@@ -156,10 +156,11 @@ namespace AElf.Kernel.Blockchain.Application
                     }
                     else
                     {
+                        Logger?.LogDebug($"STEP 1: {block.Header.GetHash()}");
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
                             ChainId = chain.Id,
-                            BlockHeader = linkedBlock.Header
+                            BlockHeader = block.Header
                         });
                     }
                 }

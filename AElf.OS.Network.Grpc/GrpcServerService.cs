@@ -27,7 +27,7 @@ namespace AElf.OS.Network.Grpc
         
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<GrpcServerService> Logger;
+        public ILogger<GrpcServerService> Logger { get; set; } 
         
         private int ChainId => _chainOptions.ChainId;
 
@@ -137,7 +137,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Received announce {an.Header.GetHash().ToHex()} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, context.Peer));
+                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
             {
@@ -188,7 +188,7 @@ namespace AElf.OS.Network.Grpc
             if (request == null)
                 return new BlockIdList();
 
-            if (request.FirstBlockId != ByteString.Empty)
+            if (request.FirstBlockId == ByteString.Empty)
             {
                 Logger.LogError($"Request ids first block hash is null from {context.Peer}.");
                 return new BlockIdList();
@@ -208,6 +208,10 @@ namespace AElf.OS.Network.Grpc
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();
+                
+                if (headers == null || headers.Count <= 0)
+                    return list;
+                
                 list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.DumpByteArray())).ToList());
 
                 return list;

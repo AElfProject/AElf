@@ -134,7 +134,7 @@ namespace AElf.OS.Network.Grpc
             IEnumerable<GrpcPeer> toFind = _authenticatedPeers;
 
             if (!string.IsNullOrWhiteSpace(peerEndpoint))
-                toFind = toFind.Where(p => p.PeerAddress == peerEndpoint);
+                toFind = toFind.Where(p => p.PeerAddress == peerEndpoint || peerEndpoint.EndsWith(p.RemoteListenPort));
 
             if (publicKey != null)
                 toFind = toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
