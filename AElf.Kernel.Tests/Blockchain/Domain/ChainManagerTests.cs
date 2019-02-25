@@ -13,7 +13,7 @@ namespace AElf.Kernel
     {
         public static ulong BlockHeight(this ulong index)
         {
-            return GlobalConfig.GenesisBlockHeight + index;
+            return ChainConsts.GenesisBlockHeight + index;
         }
     }
 

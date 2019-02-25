@@ -7,7 +7,7 @@ namespace AElf.Kernel.SmartContractExecution.Infrastructure
     public class TransactionResultStore : KeyValueStoreBase<StateKeyValueDbContext>, ITransactionResultStore
     {
         public TransactionResultStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionResultPrefix)
+            : base(byteSerializer, keyValueDbContext, StorePrefix.TransactionResultPrefix)
         {
         }
     }

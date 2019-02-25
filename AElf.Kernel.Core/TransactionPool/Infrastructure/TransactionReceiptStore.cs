@@ -7,7 +7,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public class TransactionReceiptStore : KeyValueStoreBase<StateKeyValueDbContext>,ITransactionReceiptStore
     {
         public TransactionReceiptStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.TransactionReceiptPrefix)
+            : base(byteSerializer, keyValueDbContext, StorePrefix.TransactionReceiptPrefix)
         {
         }
     }

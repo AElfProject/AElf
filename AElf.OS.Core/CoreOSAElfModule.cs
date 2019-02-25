@@ -29,7 +29,7 @@ namespace AElf.OS
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
 
-            var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
+            var keyStore = new AElfKeyStore(ApplicationHelpers.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
         }

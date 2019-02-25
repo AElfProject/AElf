@@ -17,7 +17,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 
 namespace AElf.Runtime.CSharp
 {
-    public class Executive2 : IExecutive
+    public class Executive : IExecutive
     {
         private readonly Module _abi;
         private MethodsCache _cache;
@@ -29,7 +29,7 @@ namespace AElf.Runtime.CSharp
         private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
 
-        public Executive2(Module abiModule)
+        public Executive(Module abiModule)
         {
             _abi = abiModule;
         }
@@ -54,7 +54,7 @@ namespace AElf.Runtime.CSharp
             _stateProvider.Cache = cache;
         }
 
-        public Executive2 SetSmartContract(ISmartContract smartContract)
+        public Executive SetSmartContract(ISmartContract smartContract)
         {
             _smartContract = smartContract;
             _smartContractProxy = new CSharpSmartContractProxy(smartContract);
