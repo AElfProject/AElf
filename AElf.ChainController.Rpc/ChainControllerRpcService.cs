@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Domain;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
@@ -27,7 +28,7 @@ namespace AElf.ChainController.Rpc
     public class ChainControllerRpcService : IJsonRpcService
     {
         public IBlockchainService BlockchainService { get; set; }
-        public ITxHub TxHub { get; set; }
+        public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
@@ -42,6 +43,8 @@ namespace AElf.ChainController.Rpc
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
         private readonly ChainOptions _chainOptions;
+
+        public ITxHub TxHub => TxHubs.Get(_chainOptions.ChainId);
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
