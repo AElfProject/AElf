@@ -1,6 +1,5 @@
 ﻿using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.Services;
