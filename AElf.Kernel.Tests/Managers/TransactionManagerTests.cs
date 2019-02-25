@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
-//using AElf.Kernel.Managers;
-using Google.Protobuf;
 using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
@@ -9,9 +7,8 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.TransactionPool;
 using Shouldly;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel.Tests.Managers
 {
-    /*
     public sealed class TransactionManagerTests:AElfKernelTestBase
     {
         private ITransactionManager _transactionManager;
@@ -32,7 +29,6 @@ namespace AElf.Kernel.Tests
 
             hash.ShouldNotBeNull();
         }
-
 
         [Fact]
         public async Task Insert_MultipleTx_Test()
@@ -59,7 +55,7 @@ namespace AElf.Kernel.Tests
 
             await _transactionManager.RemoveTransaction(key2);
             var td2 = await _transactionManager.GetTransaction(key2);
-            Assert.Equal(td2, null);
+            Assert.Null(td2);
         }
 
         public static Transaction BuildTransaction(Address adrTo = null, ulong nonce = 0, ECKeyPair keyPair = null)
@@ -78,7 +74,7 @@ namespace AElf.Kernel.Tests
             //            };
             //            tx.Sigs.Add(sig);
             
-            tx.Fee = TxPoolConfig.Default.FeeThreshold + 1;
+            tx.Fee = 1;
             tx.MethodName = "hello world";
 
             // Serialize and hash the transaction
@@ -94,5 +90,4 @@ namespace AElf.Kernel.Tests
             return tx;
         }
     }
-    */
 }

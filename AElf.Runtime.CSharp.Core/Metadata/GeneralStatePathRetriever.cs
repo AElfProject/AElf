@@ -63,7 +63,7 @@ namespace AElf.Runtime.CSharp.Metadata
             {
                 AssemblyResolver = resolver
             });
-            var sdkName = Module.AssemblyReferences.Single(a => a.Name.Split(",")[0] == "AElf.Sdk.CSharp2");
+            var sdkName = Module.AssemblyReferences.Single(a => a.Name.Split(",")[0] == "AElf.Sdk.CSharp");
             Sdk = resolver.Resolve(sdkName).MainModule;
             var aelfCommonName = Module.AssemblyReferences.Single(a => a.Name.Split(",")[0] == "AElf.Common");
             AelfCommon = resolver.Resolve(aelfCommonName).MainModule;

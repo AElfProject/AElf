@@ -28,6 +28,10 @@ namespace AElf.Types.Tests
             //Generate from teo hash
             var hash5 = Hash.FromTwoHashes(hash1, hash2);
             hash5.ShouldNotBe(null);
+            
+            //Generate from xor
+            var hash6 = Hash.Xor(hash1, hash2);
+            hash6.ShouldNotBe(null);
         }
 
         [Fact]
@@ -55,7 +59,12 @@ namespace AElf.Types.Tests
         {
             var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
             var hash2 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
-            hash1.CompareTo(hash2).ShouldBe(-1);
+            hash1.CompareTo(hash2).ShouldBe(-1); 
+            Should.Throw<System.InvalidOperationException>(() => { hash1.CompareTo(null); });
+            
+            (hash1 < null).ShouldBeFalse();
+            (null < hash2).ShouldBeTrue();
+            (hash1 > hash2).ShouldBe(hash1.CompareTo(hash2)>0);
         }
 
         [Fact]

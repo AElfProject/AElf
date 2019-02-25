@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.ChainController.CrossChain;
-using AElf.Kernel.ChainController.EventMessages;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
-using AElf.Node.AElfChain;
-using AElf.RPC;
-using AElf.SmartContract;
-using AElf.SmartContract.Consensus;
-using AElf.SmartContract.Proposal;
-using AElf.Synchronization.BlockSynchronization;
+using AElf.OS;
+using AElf.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
-using Easy.MessageHub;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,43 +26,28 @@ namespace AElf.ChainController.Rpc
     [Path("/chain")]
     public class ChainControllerRpcService : IJsonRpcService
     {
-        #region Properties
-
-        public IChainService ChainService { get; set; }
-        public IChainContextService ChainContextService { get; set; }
-        public IChainCreationService ChainCreationService { get; set; }
+        public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
-        public ISmartContractService SmartContractService { get; set; }
-        public INodeService MainchainNodeService { get; set; }
-        public ICrossChainInfoReader CrossChainInfoReader { get; set; }
-        public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
-        public IBlockSynchronizer BlockSynchronizer { get; set; }
+        public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
+
+        // public INodeService MainchainNodeService { get; set; }
+        // public ICrossChainInfoReader CrossChainInfoReader { get; set; }
+        // public IAuthorizationInfoReader AuthorizationInfoReader { get; set; }
+        // public IBlockSynchronizer BlockSynchronizer { get; set; }
+
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
-        public IElectionInfo ElectionInfo { get; set; }
-
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
-
-        #endregion Properties
-
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
         private readonly ChainOptions _chainOptions;
-
-        private bool _canBroadcastTxs = true;
-        private readonly int _chainId;
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
             _chainOptions = options.Value;
-            _chainId = _chainOptions.ChainId.ConvertBase58ToChainId();
-
-            MessageHub.Instance.Subscribe<ReceivingHistoryBlocksChanged>(msg => _canBroadcastTxs = !msg.IsReceiving);
         }
-
-        #region Methods
 
         [JsonRpcMethod("GetCommands")]
         public async Task<JArray> GetCommands()
@@ -82,27 +63,22 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("ConnectChain")]
         public async Task<JObject> GetChainInfo()
         {
-            var basicContractZero =
-                ContractHelpers.GetGenesisBasicContractAddress(_chainId);
-            var crosschainContract =
-                ContractHelpers.GetCrossChainContractAddress(_chainId);
-            var authorizationContract =
-                ContractHelpers.GetAuthorizationContractAddress(_chainId);
-            var tokenContract = ContractHelpers.GetTokenContractAddress(_chainId);
-            var consensusContract = ContractHelpers.GetConsensusContractAddress(_chainId);
-            var dividendsContract = ContractHelpers.GetDividendsContractAddress(_chainId);
+            var basicContractZero = ContractHelpers.GetGenesisBasicContractAddress(_chainOptions.ChainId);
+            var crosschainContract = ContractHelpers.GetCrossChainContractAddress(_chainOptions.ChainId);
+            var authorizationContract = ContractHelpers.GetAuthorizationContractAddress(_chainOptions.ChainId);
+            var tokenContract = ContractHelpers.GetTokenContractAddress(_chainOptions.ChainId);
+            var consensusContract = ContractHelpers.GetConsensusContractAddress(_chainOptions.ChainId);
+            var dividendsContract = ContractHelpers.GetDividendsContractAddress(_chainOptions.ChainId);
 
-            //var tokenContract = this.GetGenesisContractHash(SmartContractType.TokenContract);
             var response = new JObject
             {
-                [GlobalConfig.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
-                [GlobalConfig.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
-                [GlobalConfig.GenesisAuthorizationContractAssemblyName] =
-                    authorizationContract.GetFormatted(),
-                [GlobalConfig.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
-                [GlobalConfig.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
-                [GlobalConfig.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
-                ["ChainId"] = _chainOptions.ChainId
+                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                [SmartContract.GenesisCrossChainContractAssemblyName] = crosschainContract.GetFormatted(),
+                [SmartContract.GenesisAuthorizationContractAssemblyName] = authorizationContract.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
+                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
             return response;
@@ -118,16 +94,14 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidAddress,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidAddress]);
+                throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainId, addressHash);
+            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
 
             if (abi == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             return new JObject
@@ -145,12 +119,11 @@ namespace AElf.ChainController.Rpc
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await this.CallReadOnly(_chainId, transaction);
+                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
+                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
             return response?.ToHex();
@@ -159,12 +132,6 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            if (!_canBroadcastTxs)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotBroadcastTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotBroadcastTransaction]);
-            }
-
             Transaction transaction;
             try
             {
@@ -173,15 +140,14 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransaction]);
+                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
             var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
 
             //TODO: Wait validation done
             transaction.GetTransactionInfo();
-            await TxHub.AddTransactionAsync(_chainId, transaction);
+            await TxHub.AddTransactionAsync(_chainOptions.ChainId, transaction);
 
             return response;
         }
@@ -189,12 +155,6 @@ namespace AElf.ChainController.Rpc
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
         public async Task<JObject> BroadcastTransactions(string rawTransactions)
         {
-            if (!_canBroadcastTxs)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.CannotBroadcastTransaction,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.CannotBroadcastTransaction]);
-            }
-
             var response = new List<object>();
 
             foreach (var rawTransaction in rawTransactions.Split(','))
@@ -218,75 +178,6 @@ namespace AElf.ChainController.Rpc
             };
         }
 
-        [JsonRpcMethod("GetTransactionMerklePath", "transactionId")]
-        public async Task<JObject> GetTransactionMerklePath(string transactionId)
-        {
-            Hash transactionHash;
-            try
-            {
-                transactionHash = Hash.LoadHex(transactionId);
-            }
-            catch
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
-            }
-
-            var transactionResult = await this.GetTransactionResult(transactionHash);
-            if (transactionResult == null)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
-            }
-
-            var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, transactionResult.BlockNumber);
-            var merklePath = binaryMerkleTree.GenerateMerklePath(transactionResult.Index);
-            if (merklePath == null)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
-            }
-
-            MerklePath merklePathInParentChain = null;
-            ulong boundParentChainHeight = 0;
-            try
-            {
-                merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, transactionResult.BlockNumber);
-                boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, transactionResult.BlockNumber);
-            }
-            catch (Exception e)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound], e);
-            }
-
-            if (merklePathInParentChain != null)
-                merklePath.Path.AddRange(merklePathInParentChain.Path);
-            return new JObject
-            {
-                ["MerklePath"] = merklePath.ToByteArray().ToHex(),
-                ["ParentHeight"] = boundParentChainHeight
-            };
-        }
-
-        [JsonRpcMethod("GetParentChainBlockInfo", "height")]
-        public async Task<JObject> GetParentChainBlockInfo(ulong height)
-        {
-            var merklePathInParentChain = await this.GetParentChainBlockInfo(_chainId, height);
-            if (merklePathInParentChain == null)
-            {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
-            }
-
-            return new JObject
-            {
-                ["ParentChainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
-                ["SideChainTransactionsRoot"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
-                ["ParentHeight"] = merklePathInParentChain.Height
-            };
-        }
-
         [JsonRpcMethod("GetTransactionResult", "transactionId")]
         public async Task<JObject> GetTransactionResult(string transactionId)
         {
@@ -297,8 +188,7 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidTransactionId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidTransactionId]);
+                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
             var response = await GetTransaction(transactionHash);
@@ -310,14 +200,13 @@ namespace AElf.ChainController.Rpc
         {
             if (offset < 0)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidOffset,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidOffset]);
+                throw new JsonRpcServiceException(Error.InvalidOffset,
+                    Error.Message[Error.InvalidOffset]);
             }
 
             if (num <= 0 || num > 100)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidNum,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidNum]);
+                throw new JsonRpcServiceException(Error.InvalidNum, Error.Message[Error.InvalidNum]);
             }
 
             Hash realBlockHash;
@@ -327,15 +216,13 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidBlockHash,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidBlockHash]);
+                throw new JsonRpcServiceException(Error.InvalidBlockHash, Error.Message[Error.InvalidBlockHash]);
             }
 
-            var block = await this.GetBlock(_chainId, realBlockHash);
+            var block = await this.GetBlock(_chainOptions.ChainId, realBlockHash);
             if (block == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var transactions = new JArray();
@@ -359,8 +246,7 @@ namespace AElf.ChainController.Rpc
             var receipt = await this.GetTransactionReceipt(transactionHash);
             if (receipt == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var transaction = receipt.Transaction;
@@ -368,7 +254,7 @@ namespace AElf.ChainController.Rpc
             try
             {
                 ((JObject) transactionInfo["Transaction"]).Add("params",
-                    (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(_chainId, transaction))
+                    (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(_chainOptions.ChainId, transaction))
                 );
             }
             catch (Exception)
@@ -388,7 +274,7 @@ namespace AElf.ChainController.Rpc
                 ["TransactionStatus"] = transactionResult.Status.ToString(),
                 ["TransactionInfo"] = transactionInfo["Transaction"]
             };
-            var transactionTrace = await this.GetTransactionTrace(_chainId, transactionHash, transactionResult.BlockNumber);
+            var transactionTrace = await this.GetTransactionTrace(_chainOptions.ChainId, transactionHash, transactionResult.BlockNumber);
 
 #if DEBUG
             response["TransactionTrace"] = transactionTrace?.ToString();
@@ -427,24 +313,18 @@ namespace AElf.ChainController.Rpc
         }
 
         [JsonRpcMethod("GetBlockHeight")]
-        public async Task<JObject> GetBlockHeight()
+        public async Task<ulong> GetBlockHeight()
         {
-            var height = await this.GetCurrentChainHeight(_chainId);
-            var response = new JObject
-            {
-                ["BlockHeight"] = height.ToString()
-            };
-            return response;
+            return await this.GetCurrentChainHeight(_chainOptions.ChainId);
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
         public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
         {
-            var blockInfo = await this.GetBlockAtHeight(_chainId, blockHeight);
+            var blockInfo = await this.GetBlockAtHeight(_chainOptions.ChainId, blockHeight);
             if (blockInfo == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             // TODO: Create DTO Exntension for Block
@@ -459,13 +339,13 @@ namespace AElf.ChainController.Rpc
                     ["SideChainTransactionsRoot"] = blockInfo.Header.SideChainTransactionsRoot?.ToHex(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
-                    ["ChainId"] = blockInfo.Header.ChainId.DumpBase58(),
+                    ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
                     ["Bloom"] = blockInfo.Header.Bloom.ToByteArray().ToHex()
                 },
                 ["Body"] = new JObject
                 {
                     ["TransactionsCount"] = blockInfo.Body.TransactionsCount,
-                    ["IndexedSideChainBlockInfo"] = await this.GetIndexedSideChainBlockInfo(_chainId, blockInfo.Header.Height)
+                    // ["IndexedSideChainBlockInfo"] = await this.GetIndexedSideChainBlockInfo(_chainId, blockInfo.Header.Height)
                 }
             };
 
@@ -490,6 +370,14 @@ namespace AElf.ChainController.Rpc
             return await this.GetTransactionPoolSize();
         }
 
+        [JsonRpcMethod("GetBlockStateSet", "blockHash")]
+        public async Task<JObject> GetBlockStateSet(string blockHash)
+        {
+            var obj = await BlockStateSets.GetAsync(blockHash);
+            return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
+        }
+
+        /*
         [JsonRpcMethod("GetConsensusStatus")]
         public async Task<JObject> GetConsensusStatus()
         {
@@ -507,22 +395,20 @@ namespace AElf.ChainController.Rpc
         {
             var isForked = await MainchainNodeService.CheckForkedAsync();
             var invalidBlockCount = await this.GetInvalidBlockCountAsync();
-            var rollBackTimes = await this.GetRollBackTimesAsync();
+            // var rollBackTimes = await this.GetRollBackTimesAsync();
 
             var response = new JObject
             {
                 ["IsForked"] = isForked,
                 ["InvalidBlockCount"] = invalidBlockCount,
-                ["RollBackTimes"] = rollBackTimes
+                // ["RollBackTimes"] = rollBackTimes
             };
 
             return response;
         }
+        */
 
-        #endregion Methods
-
-        #region Proposal
-
+        /*
         [JsonRpcMethod("GetProposal", "proposalId")]
         public async Task<JObject> GetProposal(string proposalId)
         {
@@ -533,15 +419,13 @@ namespace AElf.ChainController.Rpc
             }
             catch
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.InvalidProposalId,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.InvalidProposalId]);
+                throw new JsonRpcServiceException(Error.InvalidProposalId, Error.Message[Error.InvalidProposalId]);
             }
 
             var proposal = await this.GetProposal(_chainId, proposalHash);
             if (proposal == null)
             {
-                throw new JsonRpcServiceException(ChainRpcErrorConsts.NotFound,
-                    ChainRpcErrorConsts.RpcErrorMessage[ChainRpcErrorConsts.NotFound]);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
             var origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -555,18 +439,74 @@ namespace AElf.ChainController.Rpc
                 ["Proposer"] = proposal.Proposer.GetFormatted()
             };
         }
+        */
 
-        #endregion
-
-        #region Admin
-
-        [JsonRpcMethod("GetBlockStateSet", "blockHash")]
-        public async Task<JObject> GetBlockStateSet(string blockHash)
+        /*
+        [JsonRpcMethod("GetTransactionMerklePath", "transactionId")]
+        public async Task<JObject> GetTransactionMerklePath(string transactionId)
         {
-            var obj = await BlockStateSets.GetAsync(blockHash);
-            return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
-        }
+            Hash transactionHash;
+            try
+            {
+                transactionHash = Hash.LoadHex(transactionId);
+            }
+            catch
+            {
+                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
+            }
 
-        #endregion Methods
+            var transactionResult = await this.GetTransactionResult(transactionHash);
+            if (transactionResult == null)
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
+
+            var binaryMerkleTree = await this.GetBinaryMerkleTreeByHeight(_chainId, transactionResult.BlockNumber);
+            var merklePath = binaryMerkleTree.GenerateMerklePath(transactionResult.Index);
+            if (merklePath == null)
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
+
+            MerklePath merklePathInParentChain = null;
+            ulong boundParentChainHeight = 0;
+            try
+            {
+                merklePathInParentChain = await this.GetTxRootMerklePathInParentChain(_chainId, transactionResult.BlockNumber);
+                boundParentChainHeight = await this.GetBoundParentChainHeight(_chainId, transactionResult.BlockNumber);
+            }
+            catch (Exception e)
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
+
+            if (merklePathInParentChain != null)
+                merklePath.Path.AddRange(merklePathInParentChain.Path);
+            return new JObject
+            {
+                ["MerklePath"] = merklePath.ToByteArray().ToHex(),
+                ["ParentHeight"] = boundParentChainHeight
+            };
+        }
+        */
+
+        /*
+        [JsonRpcMethod("GetParentChainBlockInfo", "height")]
+        public async Task<JObject> GetParentChainBlockInfo(ulong height)
+        {
+            var merklePathInParentChain = await this.GetParentChainBlockInfo(_chainId, height);
+            if (merklePathInParentChain == null)
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
+
+            return new JObject
+            {
+                ["ParentChainId"] = merklePathInParentChain.Root.ChainId.DumpBase58(),
+                ["SideChainTransactionsRoot"] = merklePathInParentChain.Root.SideChainTransactionsRoot.ToHex(),
+                ["ParentHeight"] = merklePathInParentChain.Height
+            };
+        }
+        */
     }
 }

@@ -1,28 +1,45 @@
+using System;
+using System.IO;
+using AElf.Common;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.ChainController.Application;
+using AElf.Kernel;
+using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
+using AElf.OS;
+using AElf.Runtime.CSharp;
+using AElf.RuntimeSetup;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Consensus.Tests
 {
     [DependsOn(
-        typeof(ContractTestAElfModule)
-    )]
+        typeof(KernelAElfModule),
+        typeof(ContractTestAElfModule))]
     public class ConsensusContractTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<ConsensusContractTestAElfModule>();
+        }
 
-            context.Services.AddSingleton<ITransactionExecutingService, TransactionExecutingService>();
-            context.Services.AddSingleton<IBlockchainStateManager, BlockchainStateManager>();
-            context.Services.AddSingleton<ISmartContractService, SmartContractService>();
-            context.Services.AddSingleton<IChainCreationService, ChainCreationService>();
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var contractZero = typeof(BasicContractZero);
+            var code = File.ReadAllBytes(contractZero.Assembly.Location);
+            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
+            provider.DefaultContractZeroRegistration = new SmartContractRegistration
+            {
+                Category = 2,
+                Code = ByteString.CopyFrom(code),
+                CodeHash = Hash.FromRawBytes(code)
+            };
         }
     }
 }
