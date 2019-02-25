@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 
-namespace AElf.Contracts.CrossChain2
+namespace AElf.Contracts.CrossChain
 {
     public static class IMessageExtensions
     {

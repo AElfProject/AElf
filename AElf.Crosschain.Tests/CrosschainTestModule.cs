@@ -18,12 +18,12 @@ namespace AElf.Crosschain.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var stubAccoutOptions = CrosschainTestHelper.FakeAccountOption();
-            context.Services.AddSingleton(provider => stubAccoutOptions);
-            context.Services.AddSingleton(provider => CrosschainTestHelper.FakeKeyStore());
-            context.Services.AddTransient<IAccountService, AccountService>();
-            context.Services.AddSingleton(provider =>
-                CrosschainTestHelper.FakeSmartContractExecutiveService());
+//            var stubAccoutOptions = CrosschainTestHelper.FakeAccountOption();
+//            context.Services.AddSingleton(provider => stubAccoutOptions);
+//            context.Services.AddSingleton(provider => CrosschainTestHelper.FakeKeyStore());
+//            context.Services.AddTransient<IAccountService, AccountService>();
+//            context.Services.AddSingleton(provider =>
+//                CrosschainTestHelper.FakeSmartContractExecutiveService());
         }
     }
 }

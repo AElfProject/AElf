@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 
-namespace AElf.Contracts.Authorization2
+namespace AElf.Contracts.Authorization
 {
     public static class IMessageExtensions
     {

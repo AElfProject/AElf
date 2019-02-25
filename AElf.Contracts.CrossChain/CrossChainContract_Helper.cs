@@ -8,7 +8,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.CrossChain2
+namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract
     {

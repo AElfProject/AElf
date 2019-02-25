@@ -3,7 +3,7 @@ using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.CrossChain2
+namespace AElf.Contracts.CrossChain
 {
     public class SideChainCreationRequested : Event
     {

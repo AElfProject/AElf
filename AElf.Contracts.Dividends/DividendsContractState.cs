@@ -2,9 +2,8 @@ using System;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Sdk.CSharp2.State;
 
-namespace AElf.Contracts.Dividends2
+namespace AElf.Contracts.Dividends
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {

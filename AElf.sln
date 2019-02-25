@@ -58,6 +58,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core", "AElf.Core\AElf.Core.csproj", "{26287CC7-874E-4C9B-B41C-202511835B95}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp", "AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj", "{4895B014-DCC4-4F5B-9DDE-FA1B43E37B98}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Core", "AElf.CrossChain.Core\AElf.CrossChain.Core.csproj", "{3B20D815-01B9-4EE4-B486-012302AB954E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestContract", "AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj", "{7B4C527E-B09B-430D-9D93-9C58D78078E1}"
@@ -152,11 +153,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.OS", "AElf.OS", "{BC51
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Rpc.TestBase", "AElf.Rpc.TestBase\AElf.Rpc.TestBase.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain2", "AElf.Contracts.CrossChain2\AElf.Contracts.CrossChain2.csproj", "{48D20E4A-51FA-4085-A31E-096A648EB9CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain", "AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj", "{48D20E4A-51FA-4085-A31E-096A648EB9CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization2", "AElf.Contracts.Authorization2\AElf.Contracts.Authorization2.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividends2", "AElf.Contracts.Dividends2\AElf.Contracts.Dividends2.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividends", "AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc.Tests", "AElf.ChainController.Rpc.Tests\AElf.ChainController.Rpc.Tests.csproj", "{1CADEB6E-B454-4559-8254-E9E72B234D09}"
 EndProject

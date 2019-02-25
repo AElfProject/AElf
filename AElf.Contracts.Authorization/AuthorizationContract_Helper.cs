@@ -1,6 +1,6 @@
 using AElf.Kernel;
 
-namespace AElf.Contracts.Authorization2
+namespace AElf.Contracts.Authorization
 {
     public partial class AuthorizationContract
     {

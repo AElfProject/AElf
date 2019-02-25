@@ -4,7 +4,7 @@ using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Contracts.CrossChain2
+namespace AElf.Contracts.CrossChain
 {
     public class AuthorizationContractReferenceState : ContractReferenceState
     {
