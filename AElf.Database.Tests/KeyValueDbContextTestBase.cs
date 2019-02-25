@@ -48,7 +48,7 @@ namespace AElf.Database.Tests
         }
 
         [Fact]
-        public void ExceptionTest()
+        public void Operation_Parameter_ExceptionTest()
         {
             var key = string.Empty;
             var value = Guid.NewGuid().ToString();

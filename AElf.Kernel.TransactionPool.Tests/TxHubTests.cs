@@ -21,8 +21,8 @@ namespace AElf.Kernel.TransactionPool.Tests
         {
             _transactionManager = GetRequiredService<ITransactionManager>();
             _receiptManager = GetRequiredService<ITransactionReceiptManager>();
+            _chainService = GetRequiredService<IBlockchainService>();
 
-            _chainService = new Mock<IBlockchainService>().Object;
             var blockValidator = new TxRefBlockValidator(_chainService);
             _txHub = new TxHub(_transactionManager, _receiptManager, blockValidator);
         }
