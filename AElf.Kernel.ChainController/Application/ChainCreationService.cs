@@ -41,7 +41,7 @@ namespace AElf.Kernel.ChainController.Application
             {
                 var blockHeader = new BlockHeader
                 {
-                    Height = GlobalConfig.GenesisBlockHeight,
+                    Height = ChainConsts.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
