@@ -88,7 +88,7 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionManager.AddTransactionAsync(transaction);
                 }
             }
-            
+
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
@@ -141,8 +141,18 @@ namespace AElf.Kernel.Blockchain.Application
 
         private async Task ExecuteBlock(int chainId, ChainBlockLink blockLink)
         {
-            await _blockExecutingService.ExecuteBlockAsync(chainId, blockLink.BlockHash);
-            await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            var block = await GetBlockByHashAsync(chainId, blockLink.BlockHash);
+            // TODO: Save transactions in block
+            var result =
+                await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
+            if (!result.GetHash().Equals(block.GetHash()))
+            {
+                // TODO: execution resulted a different hash, so the result is not correct
+            }
+            else
+            {
+                await _chainManager.SetChainBlockLinkAsExecuted(chainId, blockLink);
+            }
         }
 
 
@@ -173,18 +183,19 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (chain.LastIrreversibleBlockHeight <= height)
             {
-                return (await _chainManager.GetChainBlockIndexAsync(chain.Id, chain.LastIrreversibleBlockHeight)).BlockHash;
+                return (await _chainManager.GetChainBlockIndexAsync(chain.Id, chain.LastIrreversibleBlockHeight))
+                    .BlockHash;
             }
 
             if (currentBlockHash == null)
                 currentBlockHash = chain.BestChainHash;
-            
+
             //TODO: may introduce cache to improve the performance
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, currentBlockHash);
             if (chainBlockLink.Height < height)
                 return null;
-            
+
             while (true)
             {
                 if (chainBlockLink.Height == height)
