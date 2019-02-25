@@ -3,28 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 using Xunit;
 using Shouldly;
-using AElf.Sdk.CSharp;
+using Moq;
 using AElf.Sdk.CSharp.Tests.TestContract;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class ContractTest
+    public class ContractTest:SdkCSharpTestBase
     {
-        /*
         private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
-        private IStateManager StateManager { get; } = new MockStateManager();
         private TokenContract Contract { get; } = new TokenContract();
+        private IStateProvider StateProvider { get; }
 
         public ContractTest()
         {
-            Contract.SetStateProvider(new MockStateProviderFactory(StateManager).CreateStateProvider());
+            StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
+            Contract.SetStateProvider(StateProvider);
             Contract.SetSmartContractContext(new SmartContractContext()
             {
                 ContractAddress = AddressList[0],
-                ChainService = new MockChainService()
+                ChainService = new Mock<IBlockchainService>().Object,
             });
             Contract.SetTransactionContext(new TransactionContext()
             {
@@ -144,7 +146,7 @@ namespace AElf.Sdk.CSharp.Tests
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
             SwitchOwner(AddressList[2]);
-            Should.Throw<AssertionError>(() => {Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL);});
+            Should.Throw<AssertionError>(() => { Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL); });
         }
 
         [Fact]
@@ -204,6 +206,5 @@ namespace AElf.Sdk.CSharp.Tests
                 }
             });
         }
-        */
     }
 }
