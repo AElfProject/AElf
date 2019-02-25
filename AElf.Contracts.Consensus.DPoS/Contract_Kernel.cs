@@ -10,7 +10,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
+    // ReSharper disable UnusedMember.Global
+    public partial class ConsensusContract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
         public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
         {
@@ -18,6 +19,90 @@ namespace AElf.Contracts.Consensus.DPoS
             State.TokenContract.Value = tokenContractAddress;
             State.DividendContract.Value = dividendsContractAddress;
             State.Initialized.Value = true;
+        }
+
+        [View]
+        public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
+        {
+            TryToGetMiningInterval(out var miningInterval);
+
+            // To initial this chain.
+            if (!TryToGetCurrentRoundInformation(out var roundInformation))
+            {
+                return new ConsensusCommand
+                {
+                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
+                    TimeoutMilliseconds = int.MaxValue,
+                    Hint = new DPoSHint
+                    {
+                        Behaviour = DPoSBehaviour.InitialTerm
+                    }.ToByteString()
+                };
+            }
+
+            Console.WriteLine("Current round number: " + roundInformation.RoundNumber);
+            // To terminate current round.
+            if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
+            {
+                // This node is Extra Block Producer of current round.
+                var extraBlockMiningTime = roundInformation.GetExtraBlockMiningTime(miningInterval);
+                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
+                    extraBlockMiningTime > timestamp.ToDateTime())
+                {
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString()
+                    };
+                }
+
+                // This node isn't EBP of current round.
+
+                var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
+                var roundTime = blockProducerNumber * miningInterval;
+                var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
+                if (passedTime > minerInformation.Order * miningInterval)
+                {
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds =
+                            roundTime - ((int) passedTime - (minerInformation.Order * miningInterval)),
+                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString()
+                    };
+                }
+
+                return new ConsensusCommand
+                {
+                    CountingMilliseconds = (minerInformation.Order * miningInterval) - (int) passedTime,
+                    TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                    Hint = new DPoSHint
+                    {
+                        Behaviour = DPoSBehaviour.NextRound
+                    }.ToByteString()
+                };
+            }
+
+            Console.WriteLine($"Expected mining time: {minerInformation.ExpectedMiningTime}");
+            // To produce a normal block.
+            var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
+                .TotalMilliseconds;
+            return new ConsensusCommand
+            {
+                CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
+                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                Hint = new DPoSHint
+                {
+                    Behaviour = DPoSBehaviour.PackageOutValue
+                }.ToByteString()
+            };
         }
 
         [View]
@@ -31,7 +116,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
 
-            // Yes the consensus information exists.
+            // Yes the consensus information exists in state database.
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 // The mining process will go next round or next term.
@@ -96,6 +181,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public IMessage GetNewConsensusInformation(byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
+            Console.WriteLine("public key: " + extra.PublicKey);
             var publicKey = extra.PublicKey;
 
             // To initial consensus information.
@@ -207,89 +293,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return new TransactionList();
-        }
-
-        [View]
-        public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
-        {
-            TryToGetMiningInterval(out var miningInterval);
-            
-            // To initial this chain.
-            if (!TryToGetCurrentRoundInformation(out var roundInformation))
-            {
-                return new ConsensusCommand
-                {
-                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
-                    TimeoutMilliseconds = miningInterval,
-                    Hint = new DPoSHint
-                    {
-                        Behaviour = DPoSBehaviour.InitialTerm
-                    }.ToByteString()
-                };
-            }
-
-            Console.WriteLine("Current round number: " + roundInformation.RoundNumber);
-            // To terminate current round.
-            if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
-            {
-                // This node is Extra Block Producer of current round.
-                var extraBlockMiningTime = roundInformation.GetExtraBlockMiningTime(miningInterval);
-                if (roundInformation.GetExtraBlockProducerInformation().PublicKey == publicKey &&
-                    extraBlockMiningTime > timestamp.ToDateTime())
-                {
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = (int) (extraBlockMiningTime - timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = DPoSBehaviour.NextRound
-                        }.ToByteString()
-                    };
-                }
-
-                // This node isn't EBP of current round.
-                
-                var blockProducerNumber = roundInformation.RealTimeMinersInfo.Count;
-                var roundTime = blockProducerNumber * miningInterval;
-                var passedTime = (timestamp.ToDateTime() - extraBlockMiningTime).TotalMilliseconds % roundTime;
-                if (passedTime > minerInformation.Order * miningInterval)
-                {
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = roundTime - ((int) passedTime - (minerInformation.Order * miningInterval)),
-                        TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = DPoSBehaviour.NextRound
-                        }.ToByteString()
-                    };
-                }
-
-                return new ConsensusCommand
-                {
-                    CountingMilliseconds = (minerInformation.Order * miningInterval) - (int) passedTime,
-                    TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
-                    Hint = new DPoSHint
-                    {
-                        Behaviour = DPoSBehaviour.NextRound
-                    }.ToByteString()
-                };
-            }
-
-            Console.WriteLine($"Expected mining time: {minerInformation.ExpectedMiningTime}");
-            // To produce a normal block.
-            var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
-                .TotalMilliseconds;
-            return new ConsensusCommand
-            {
-                CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
-                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
-                Hint = new DPoSHint
-                {
-                    Behaviour = DPoSBehaviour.PackageOutValue
-                }.ToByteString()
-            };
         }
     }
 }

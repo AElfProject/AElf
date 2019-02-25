@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract
+    public partial class ConsensusContract
     {
         public ActionResult InitialTerm(Term firstTerm)
         {
@@ -287,7 +287,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInfo.Values.Aggregate<MinerInRound, ulong>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-            State.DividendContract.AddDividends(dividendsTermNumber, Config.GetDividendsForVoters(minedBlocks));
+            State.DividendContract.AddDividends(dividendsTermNumber, GetDividendsForVoters(minedBlocks));
 
             ulong totalVotes = 0;
             ulong totalReappointment = 0;
@@ -307,14 +307,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 // Transfer dividends for actual miners. (The miners list based on last round of current term.)
-                var amount = Config.GetDividendsForEveryMiner(minedBlocks) +
+                var amount = GetDividendsForEveryMiner(minedBlocks) +
                              (totalVotes == 0
                                  ? 0
-                                 : Config.GetDividendsForTicketsCount(minedBlocks) * candidateTickets.ObtainedTickets /
+                                 : GetDividendsForTicketsCount(minedBlocks) * candidateTickets.ObtainedTickets /
                                    totalVotes) +
                              (totalReappointment == 0
                                  ? 0
-                                 : Config.GetDividendsForReappointment(minedBlocks) *
+                                 : GetDividendsForReappointment(minedBlocks) *
                                    continualAppointmentDict[minerInRound.Key] /
                                    totalReappointment);
                 // TODO: Can we ask the miners to claim the rewards ???
@@ -327,7 +327,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 foreach (var backup in backups)
                 {
                     var backupCount = (ulong) backups.Count;
-                    var amount = backupCount == 0 ? 0 : Config.GetDividendsForBackupNodes(minedBlocks) / backupCount;
+                    var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
                     State.DividendContract.SendDividends(Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                         amount);
                 }
@@ -352,7 +352,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             if (TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
                 forwarding.NextRound.GetMinersHash() != currentRoundInformation.GetMinersHash() &&
-                forwarding.NextRound.RealTimeMinersInfo.Keys.Count == Config.GetProducerNumber() &&
+                forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GetProducerNumber() &&
                 TryToGetTermNumber(out var termNumber))
             {
                 var miners = forwarding.NextRound.RealTimeMinersInfo.Keys.ToMiners();
@@ -577,12 +577,13 @@ namespace AElf.Contracts.Consensus.DPoS
         private void SetAliases(Term term)
         {
             var index = 0;
+            var aliases = DPoSContractConsts.InitialMinersAliases.Split(',');
             foreach (var publicKey in term.Miners.PublicKeys)
             {
-                if (index >= Config.InitialMinersAliases.Count)
+                if (index >= aliases.Length)
                     return;
 
-                var alias = Config.InitialMinersAliases[index];
+                var alias = aliases[index];
                 SetAlias(publicKey, alias);
                 AddOrUpdateMinerHistoryInformation(new CandidateInHistory
                     {PublicKey = publicKey, CurrentAlias = alias});

@@ -187,6 +187,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Wallet.Rpc", "AElf.Wal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.ChainController.Rpc", "AElf.ChainController.Rpc\AElf.ChainController.Rpc.csproj", "{34455FE3-711A-4EB6-AECB-945B4180CDF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase.Tests", "AElf.Contracts.TestBase.Tests\AElf.Contracts.TestBase.Tests.csproj", "{17CEAE8A-1F06-4027-9183-10901413FBA9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -457,6 +459,10 @@ Global
 		{8B23312F-61B4-4330-900D-280848C2DB4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B23312F-61B4-4330-900D-280848C2DB4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B23312F-61B4-4330-900D-280848C2DB4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17CEAE8A-1F06-4027-9183-10901413FBA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17CEAE8A-1F06-4027-9183-10901413FBA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17CEAE8A-1F06-4027-9183-10901413FBA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17CEAE8A-1F06-4027-9183-10901413FBA9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -520,5 +526,6 @@ Global
 		{4BFFFB87-752F-403F-AF77-8B86E3F2D67D} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{34455FE3-711A-4EB6-AECB-945B4180CDF5} = {FEAB745F-54B9-4F5F-9527-26DF3733AC07}
 		{8B23312F-61B4-4330-900D-280848C2DB4B} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{17CEAE8A-1F06-4027-9183-10901413FBA9} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
