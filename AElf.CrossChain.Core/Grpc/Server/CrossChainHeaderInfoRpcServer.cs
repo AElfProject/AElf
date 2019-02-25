@@ -135,7 +135,6 @@ namespace AElf.CrossChain.Grpc.Server
         public override async Task RequestSideChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
             IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
-            // TODO: verify the from address and the chain 
             Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
             try
@@ -145,8 +144,6 @@ namespace AElf.CrossChain.Grpc.Server
                     var requestInfo = requestStream.Current;
                     var requestedHeight = requestInfo.NextHeight;
                     
-                    
-                    // Todo: Wait until 10 rounds for most peers to be ready.
                     var block = await GetIrreversibleBlockByHeightAsync(requestInfo.SideChainId,
                         requestedHeight);
                     if (block == null)
@@ -188,7 +185,6 @@ namespace AElf.CrossChain.Grpc.Server
 
         public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
         {
-            // todo: publish event for indexing new side chain
             LocalEventBus.PublishAsync(new NewChainEvent
             {
                 CrossChainCommunicationContext = new GrpcCrossChainCommunicationContext
@@ -209,64 +205,5 @@ namespace AElf.CrossChain.Grpc.Server
             var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height);
             return await _blockchainService.GetBlockByHashAsync(chainId, blockHash);
         }
-
-        /// <summary>
-        /// Response to recording request from side chain node.
-        /// One request to many responses. 
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="responseStream"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        /*public override async Task RecordServerStreaming(RequestCrossChainBlockData request, IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
-        {
-            Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
-
-            try
-            {
-                var height = request.NextHeight;
-                var sideChainId = request.SideChainId;
-                while (height <= await BlockChain.GetCurrentBlockHeightAsync())
-                {
-                    IBlock block = await BlockChain.GetBlockByHeightAsync(height);
-                    BlockHeader header = block?.Header;
-                    BlockBody body = block?.Body;
-                
-                    var res = new ResponseParentChainBlockData
-                    {
-                        Success = block != null
-                    };
-
-                    if (res.Success)
-                    {
-                        res.BlockData = new ParentChainBlockData
-                        {
-                            Root = new ParentChainBlockRootInfo
-                            {
-                                Height = height,
-                                SideChainTransactionsRoot = header?.SideChainTransactionsRoot,
-                                SideChainId = header?.SideChainId
-                            }
-                        };
-                        
-                        var tree = await _crossChainInfoReader.GetMerkleTreeForSideChainTransactionRootAsync(height);
-                        //Todo: this is to tell side chain the height of side chain block in this main chain block, which could be removed with subsequent improvement.
-                        body?.IndexedInfo.Where(predicate: i => i.SideChainId.Equals(sideChainId))
-                            .Select((info, index) =>
-                                new KeyValuePair<ulong, MerklePath>(info.Height, tree.GenerateMerklePath(index)))
-                            .ToList().ForEach(kv => res.BlockData.IndexedMerklePath.Add(kv.Key, kv.Value));
-                    }
-                
-                    //Logger.LogLog(LogLevel.Trace, $"Parent Chain Server responsed IndexedInfo message of height {height}");
-                    await responseStream.WriteAsync(res);
-
-                    height++;
-                }
-            }
-            catch(Exception e)
-            {
-                Logger.LogError(e, "Miner server RecordDuplexStreaming failed.");
-            }
-        }*/
     }
 }

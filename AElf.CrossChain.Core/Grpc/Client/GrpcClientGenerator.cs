@@ -123,7 +123,6 @@ namespace AElf.CrossChain.Grpc.Client
             _tokenSourceToSideChain?.Cancel();
             _tokenSourceToSideChain?.Dispose();
 
-            //Todo: probably not needed
             _clientsToSideChains.Clear();
         }
 
@@ -135,7 +134,6 @@ namespace AElf.CrossChain.Grpc.Client
             _tokenSourceToParentChain?.Cancel();
             _tokenSourceToParentChain?.Dispose();
 
-            //Todo: probably not needed
             _grpcParentChainBlockInfoRpcClient = null;
         }
     }

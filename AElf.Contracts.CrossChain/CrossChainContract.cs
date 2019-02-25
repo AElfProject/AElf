@@ -110,7 +110,6 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        [Fee(0)]
         public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
@@ -185,7 +184,6 @@ namespace AElf.Contracts.CrossChain
         /// Dispose side chain. It is a proposal result from system address. 
         /// </summary>
         /// <param name="chainId"></param>
-        [Fee(0)]
         public void DisposeSideChain(string chainId)
         {
             // side chain disposal should be triggered by multi sig txn from system address.
@@ -253,7 +251,6 @@ namespace AElf.Contracts.CrossChain
 
         #region Cross chain actions
 
-        [Fee(0)]
         public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             Assert(IsMiner(), "Not authorized to do this.");
