@@ -2,8 +2,7 @@
     "profiles": {
         "AElf.Launcher": {
             "commandName": "Project",
-            "commandLineArgs": "",
-            "workingDirectory": "/Users/peng/workspace/github.com/AElfProject/configuration/bp1"
+            "commandLineArgs": ""
         }
     }
 }
