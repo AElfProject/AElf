@@ -49,11 +49,11 @@ namespace AElf.CrossChain.Grpc.Client
 
         #region Create client
 
-        public void CreateClient(ICrossChainCommunicationContext grpcClientBase)
+        public void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
         {
-            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)grpcClientBase);
+            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
-            client.StartDuplexStreamingCall(grpcClientBase.ChainId, grpcClientBase.IsSideChain
+            client.StartDuplexStreamingCall(crossChainCommunicationContext.ChainId, crossChainCommunicationContext.IsSideChain
                 ? _tokenSourceToSideChain.Token
                 : _tokenSourceToParentChain.Token);
         }

@@ -124,6 +124,7 @@ namespace AElf.Contracts.CrossChain2
 
             request.SideChainStatus = SideChainStatus.Active;
             State.SideChainInfos[id] = request;
+            State.CurrentSideChainHeight[id] = 0;
 
             // fire event
             Context.FireEvent(new SideChainCreationRequested
@@ -239,6 +240,17 @@ namespace AElf.Contracts.CrossChain2
 
         #endregion Side chain lifetime actions
 
+        #region Parent chain
+
+        public bool SetParentChainId(int chainId)
+        {
+            Assert(State.ParentChainId.Value == 0, "Already set parent chain Id.");
+            State.ParentChainId.Value = chainId;
+            return true;
+        }
+
+        #endregion
+
         #region Cross chain actions
 
         [Fee(0)]
@@ -260,7 +272,35 @@ namespace AElf.Contracts.CrossChain2
                 CrossChainBlockData = crossChainBlockData
             });
         }
+        
+        [View]
+        public SideChainIdAndHeightDict GetSideChainIdAndHeight()
+        {
+            var dict = new SideChainIdAndHeightDict();
+            for (ulong i = 1; i < State.SideChainSerialNumber.Value; i++)
+            {
+                int chainId = ChainHelpers.GetChainId(i);
+                var sideChainInfo = State.SideChainInfos[chainId];
+                if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
+                    continue;
+                var height = State.CurrentSideChainHeight[chainId];
+                dict.IdHeighDict.Add(chainId, height);
+            }
+            return dict;
+        }
 
+        [View]
+        public SideChainIdAndHeightDict GetAllChainsIdAndHeight()
+        {
+            var dict = GetSideChainIdAndHeight();
+
+            if (State.ParentChainId.Value == 0) 
+                return dict;
+            var parentChainHeight = State.CurrentParentChainHeight.Value;
+            dict.IdHeighDict.Add(State.ParentChainId.Value, parentChainHeight);
+            return dict;
+        }
+        
         /// <summary>
         /// Index parent chain blocks.
         /// </summary>
@@ -302,7 +342,6 @@ namespace AElf.Contracts.CrossChain2
         /// Index side chain block(s).
         /// </summary>
         /// <param name="sideChainBlockData"></param>
-        /// <param name="miner">Miner indexing cross chain data.</param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
         private Hash IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData)
         {

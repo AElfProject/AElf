@@ -15,6 +15,6 @@ namespace AElf.CrossChain
         Task<bool> ValidateParentChainBlockDataAsync(int chainId, IList<ParentChainBlockData> parentChainBlockInfo,
             Hash previousBlockHash, ulong preBlockHeight);
 
-        void CreateNewSideChain(int chainId);
+        void CreateNewSideChainBlockInfoCache(int chainId);
     }
 }

@@ -57,6 +57,11 @@ message SideChainInfo {
     Hash ProposalHash = 8;
 }
 
+message SideChainIdAndHeightDict{
+    map<int32, uint64> IdHeighDict = 1;
+}
+
+
 message CrossChainBlockData {
     repeated SideChainBlockData SideChainBlockData = 1;
     repeated ParentChainBlockData ParentChainBlockData = 2;

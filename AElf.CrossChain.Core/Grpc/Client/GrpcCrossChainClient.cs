@@ -16,8 +16,8 @@ namespace AElf.CrossChain.Grpc.Client
         private int _adjustedInterval;
         private const int UnavailableConnectionInterval = 1_000;
         private Channel _channel;
-        private readonly CrossChainDataProducer _crossChainDataProducer;
-        protected GrpcCrossChainClient(Channel channel, CrossChainDataProducer crossChainDataProducer)
+        private readonly ICrossChainDataProducer _crossChainDataProducer;
+        protected GrpcCrossChainClient(Channel channel, ICrossChainDataProducer crossChainDataProducer)
         {
             _channel = channel;
             Logger = NullLogger<GrpcCrossChainClient<TResponse>>.Instance;
@@ -82,7 +82,7 @@ namespace AElf.CrossChain.Grpc.Client
                 var request = new RequestCrossChainBlockData
                 {
                     SideChainId = chainId,
-                    NextHeight = _crossChainDataProducer.TargetChainHeight
+                    NextHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId)
                 };
                 //Logger.LogTrace($"New requestCrossChain for height {requestCrossChain.NextHeight} to chain {_targetChainId.DumpHex()}");
                 await call.RequestStream.WriteAsync(request);
@@ -98,43 +98,42 @@ namespace AElf.CrossChain.Grpc.Client
         /// <returns></returns>
         public async Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken)
         {
-            using (var call = Call())
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (_channel.State != ChannelState.Ready)
+                using (var call = Call())
                 {
-                    await _channel.WaitForStateChangedAsync(_channel.State);
-                }
-                
-                try
-                {
-                    // response reader task
-                    var responseReaderTask = ReadResponse(call);
-
-                    // requestCrossChain in loop
-                    await RequestLoop(call, cancellationToken, chainId);
-                    await responseReaderTask;
-                }
-                catch (RpcException e)
-                {
-                    var status = e.Status.StatusCode;
-                    if (status == StatusCode.Unavailable || status == StatusCode.DeadlineExceeded)
+                    while (_channel.State != ChannelState.Ready)
                     {
-                        var detail = e.Status.Detail;
-
-                        // TODO: maybe improvement for NO wait call, or change the try solution
-                        var task = StartDuplexStreamingCall(chainId, cancellationToken);
-                        return;
+                        await _channel.WaitForStateChangedAsync(_channel.State);
                     }
-
-                    Logger.LogError(e, "Miner client stooped with exception.");
-                    throw;
-                }
-                finally
-                {
-                    await call.RequestStream.CompleteAsync();
-                }
                 
+                    try
+                    {
+                        // response reader task
+                        var responseReaderTask = ReadResponse(call);
+
+                        // requestCrossChain in loop
+                        await RequestLoop(call, cancellationToken, chainId);
+                        await responseReaderTask;
+                    }
+                    catch (RpcException e)
+                    {
+                        var status = e.Status.StatusCode;
+                        if (status != StatusCode.Unavailable && status == StatusCode.DeadlineExceeded)
+                        {
+                            //var detail = e.Status.Detail;
+                            //var task = StartDuplexStreamingCall(chainId, cancellationToken);
+                            Logger.LogError(e, "Grpc cross chain client restarted with exception.");
+                        }
+                    }
+                    finally
+                    {
+                        await call.RequestStream.CompleteAsync();
+                    }
+                
+                } 
             }
+            
         }
 
         protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> Call(int milliSeconds = 0);

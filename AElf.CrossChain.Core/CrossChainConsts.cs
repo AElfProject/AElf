@@ -12,5 +12,8 @@ namespace AElf.CrossChain
         public static string CrossChainIndexingEvent = "CrossChainIndexingEvent";
         public static string GetSideChainHeightMthodName = "GetSideChainHeight";
         public static string GetParentChainHeightMethodName = "GetParentChainHeight";
+        public static string GetSideChainIdAndHeight = "GetSideChainIdAndHeight";
+        public static string GetAllChainsIdAndHeight = "GetAllChainsIdAndHeight";
+        public static string GetParentChainId = "GetParentChainId";
     }
 }

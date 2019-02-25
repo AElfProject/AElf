@@ -41,7 +41,6 @@ namespace AElf.Contracts.Dividends2
         [View]
         public ulong GetAvailableDividends(VotingRecord votingRecord)
         {
-            // todo: Disable temporarily
 //            ulong dividends = 0;
 //
 //            var start = votingRecord.TermNumber + 1;
@@ -74,6 +73,8 @@ namespace AElf.Contracts.Dividends2
 //            }
 //
 //            return dividends;
+            // todo: Disable temporarily
+            return 0;
         }
 
         [View]
@@ -133,7 +134,6 @@ namespace AElf.Contracts.Dividends2
 
         public ActionResult TransferDividends(VotingRecord votingRecord)
         {
-            // todo: Disable temporarily
 //            var owner = votingRecord.From;
 //            var ownerAddress =
 //                Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
@@ -179,6 +179,8 @@ namespace AElf.Contracts.Dividends2
 //            State.LastRequestDividendsMap[votingRecord.TransactionId] = actualTermNumber;
 //
 //            return new ActionResult {Success = true};
+            // todo: Disable temporarily
+            return null;
         }
 
         public ActionResult AddDividends(ulong termNumber, ulong dividendsAmount)

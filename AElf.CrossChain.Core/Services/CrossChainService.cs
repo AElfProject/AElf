@@ -1,19 +1,22 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Events;
+using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
     public class CrossChainService : ICrossChainService
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IMultiChainBlockInfoCache _multiChainBlockInfoCache;
-        
-        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, 
-            IMultiChainBlockInfoCache multiChainBlockInfoCache)
+        private ILocalEventBus LocalEventBus { get; }
+
+        public CrossChainService(ICrossChainDataProvider crossChainDataProvider)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _multiChainBlockInfoCache = multiChainBlockInfoCache;
+            LocalEventBus = NullLocalEventBus.Instance;
+            LocalEventBus.Subscribe<BestChainFoundEvent>(RegisterSideChainAsync);
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(int chainId, Hash previousBlockHash,
@@ -46,9 +49,15 @@ namespace AElf.CrossChain
                 previousBlockHash, preBlockHeight, true);
         }
 
-        public void CreateNewSideChain(int chainId)
+        public void CreateNewSideChainBlockInfoCache(int chainId)
         {
-            _multiChainBlockInfoCache.AddBlockInfoCache(chainId, new BlockInfoCache(0));
+            _crossChainDataProvider.RegisterNewChain(chainId);
+        }
+
+        private async Task RegisterSideChainAsync(BestChainFoundEvent eventData)
+        {
+            await _crossChainDataProvider.CheckCrossChainCacheAsync(eventData.ChainId, eventData.BlockHeight,
+                eventData.BlockHash);
         }
     }
 }

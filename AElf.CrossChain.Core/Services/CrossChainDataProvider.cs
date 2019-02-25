@@ -6,31 +6,12 @@ namespace AElf.CrossChain
 {
     public class CrossChainDataProvider : ICrossChainDataProvider
     {
-        //private readonly Dictionary<int, ICrossChainDataConsumer> _sideChainBlockDataConsumers = new Dictionary<int, ICrossChainDataConsumer>();
-
-        //internal ICrossChainDataConsumer ParentChainBlockDataConsumer {get; set;}
-
-//        private delegate void NewSideChainDataProducerCreationHandler(ICrossChainDataProducer crossChainDataProducer);
-//        private readonly NewSideChainDataProducerCreationHandler _newSideChainDataProducerCreationHandler;
-//        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-//        private readonly IAccountService _accountService;
-
-        //private readonly IProducerConsumerService _producerConsumerService;
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        //private readonly IMultiChainBlockInfoCache _multiChainBlockInfoCache;
-        //private readonly ChainOptions _chainOptions;
-        //public ILocalEventBus LocalEventBus { get; set; }
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader, ICrossChainDataConsumer crossChainDataConsumer)
         {
             _crossChainContractReader = crossChainContractReader;
-            //_producerConsumerService = producerConsumerService;
-            //_multiChainBlockInfoCache = multiChainBlockInfoCache;
             _crossChainDataConsumer = crossChainDataConsumer;
-            //_chainOptions = options.Value;
-            //LocalEventBus = NullLocalEventBus.Instance;
-            //_newSideChainDataProducerCreationHandler += clientService.CreateConsumerProducer;
-            //LocalEventBus.Subscribe<NewChainEvent>(OnNewSideChainConnectionReceivedEvent);
         }
 
         public async Task<bool> GetSideChainBlockDataAsync(int chainId, IList<SideChainBlockData> sideChainBlockData,
@@ -115,80 +96,22 @@ namespace AElf.CrossChain
             return res;
         }
 
-//        private async Task<ulong> GetSideChainTargetHeight(int chainId)
-//        {
-//            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-//            return await GenerateReadOnlyTransactionForChainHeight(chainId, crossChainContractMethodAddress, 
-//                CrossChainConsts.GetSideChainHeightMthodName, ChainHelpers.ConvertChainIdToBase58(chainId));
-//        }
-//
-//        private async Task<ulong> GetParentChainTargetHeight(int chainId)
-//        {
-//            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-//            return await GenerateReadOnlyTransactionForChainHeight(chainId, crossChainContractMethodAddress, 
-//                CrossChainConsts.GetParentChainHeightMethodName);
-//        }
+        public async Task CheckCrossChainCacheAsync(int chainId, ulong blockHeight, Hash blockHash)
+        {
+            if (_crossChainDataConsumer.GetCachedChainCount() > 0)
+                // caching layer already initialized
+                return;
+            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(chainId, blockHash, blockHeight);
+            foreach (var idHeight in dict)
+            {
+                _crossChainDataConsumer.RegisterNewChainCache(idHeight.Key, idHeight.Value);
+            }
+            
+        }
 
-//        private async Task<ulong> GenerateReadOnlyTransactionForChainHeight(int chainId, Address toAddress, string methodName, params object[] @params)
-//        {
-//            var transaction =  new Transaction
-//            {
-//                From = await _accountService.GetAccountAsync(),
-//                To = toAddress,
-//                MethodName = methodName,
-//                Params = ByteString.CopyFrom(ParamsPacker.Pack(@params)),
-//            };
-//            var trace = new TransactionTrace()
-//            {
-//                TransactionId = transaction.GetHash(),
-//                RetVal = new RetVal()
-//            };
-//            var txCtxt = new TransactionContext
-//            {
-//                Transaction = transaction,
-//                Trace = trace
-//            };
-//            var executive =
-//                await _smartContractExecutiveService.GetExecutiveAsync(chainId, transaction.To);
-//            await executive.SetTransactionContext(txCtxt).Apply();
-//            ulong height = (ulong) trace.RetVal.Data.DeserializeToType(typeof(ulong));
-//            return height == 0 ? height + 1 : GlobalConfig.GenesisBlockHeight;
-//        }
-
-//        private Task OnNewSideChainConnectionReceivedEvent(NewChainEvent @event)
-//        {
-//            _newSideChainDataProducerCreationHandler(@event.CrossChainDataProducer);
-//            return Task.CompletedTask;
-//        }
-
-//        public int GetCachedBlockDataCount(int chainId)
-//        {
-//            if(_sideChainBlockDataConsumers.TryGetValue(chainId, out var blockInfoCache))
-//                return blockInfoCache;
-//        }
-
-
-//        public async Task HandleEventAsync(NewChainEvent eventData)
-//        {
-//            var blockInfoCache = new BlockInfoCache();
-//            var dto = new CommunicationContextDto
-//            {
-//                CrossChainCommunicationContext = eventData.CrossChainCommunicationContext,
-//                BlockInfoCache = blockInfoCache,
-//                TargetHeight = await _crossChainContractReader.GetSideChainCurrentHeightAsync(eventData.LocalChainId, 
-//                    eventData.CrossChainCommunicationContext.ChainId, TODO, TODO)
-//            };
-//            var (consumer, _) = _producerConsumerService.CreateConsumerProducer(dto);
-//            if (eventData.CrossChainCommunicationContext.IsSideChain)
-//                _sideChainBlockDataConsumers.Add(eventData.CrossChainDataProducer.ChainId, consumer);
-//            else
-//                ParentChainBlockDataConsumer = consumer;
-//        }
-
-//        public Task HandleEventAsync(NewParentChainEvent eventData)
-//        {
-//            ParentChainBlockDataConsumer = eventData.CrossChainDataConsumer;
-//            return Task.CompletedTask;
-//        }
+        public void RegisterNewChain(int chainId)
+        {
+            _crossChainDataConsumer.RegisterNewChainCache(chainId, 0);
+        }
     }
 }

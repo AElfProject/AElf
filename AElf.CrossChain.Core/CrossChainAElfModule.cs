@@ -22,7 +22,7 @@ namespace AElf.CrossChain
              services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
              services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
-             services.AddSingleton<IMultiChainBlockInfoCache, MultiChainBlockInfoCache>();
+             services.AddSingleton<IMultiChainBlockInfoCacheProvider, MultiChainBlockInfoCacheProvider>();
              services.AddSingleton<ICrossChainDataConsumer, CrossChainDataConsumer>();
              services.AddSingleton<ICrossChainDataProducer, CrossChainDataProducer>();
          }

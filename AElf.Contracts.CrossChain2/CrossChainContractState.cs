@@ -47,6 +47,7 @@ namespace AElf.Contracts.CrossChain2
         public MappedState<ulong, ulong> ChildHeightToParentChainHeight { get; set; }
         public MappedState<ulong, MerklePath> TxRootMerklePathInParentChain { get; set; }
         public UInt64State CurrentParentChainHeight { get; set; }
+        public Int32State ParentChainId { get; set; }
 
         #endregion
     }
