@@ -16,8 +16,16 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Chain> CreateChainAsync(int chainId, Block block);
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
-        Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="block"></param>
+        /// <returns>blocks need to be executed</returns>
+        //Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
+
         Task<Chain> GetChainAsync(int chainId);
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
         Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count);
@@ -66,22 +74,17 @@ namespace AElf.Kernel.Blockchain.Application
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
-        private readonly IBlockExecutingService _blockExecutingService;
         private readonly ITransactionManager _transactionManager;
-        private readonly IBlockValidationService _blockValidationService;
         public ILocalEventBus LocalEventBus { get; set; }
         public ILogger<FullBlockchainService> Logger { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
-            IBlockExecutingService blockExecutingService, ITransactionManager transactionManager,
-            IBlockValidationService blockValidationService)
+            ITransactionManager transactionManager)
         {
             Logger = NullLogger<FullBlockchainService>.Instance;
             _chainManager = chainManager;
             _blockManager = blockManager;
-            _blockExecutingService = blockExecutingService;
             _transactionManager = transactionManager;
-            _blockValidationService = blockValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -118,110 +121,6 @@ namespace AElf.Kernel.Blockchain.Application
             return (await _blockManager.GetBlockHeaderAsync(blockId)) != null;
         }
 
-        public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
-        {
-            var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = block.Header.Height,
-                BlockHash = block.Header.GetHash(),
-                PreviousBlockHash = block.Header.PreviousBlockHash
-            });
-
-            List<ChainBlockLink> blockLinks = null;
-
-            List<ChainBlockLink> successLinks = new List<ChainBlockLink>();
-
-            if (status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
-            {
-                blockLinks = await _chainManager.GetNotExecutedBlocks(chain.Id, chain.LongestChainHash);
-
-                try
-                {
-                    foreach (var blockLink in blockLinks)
-                    {
-                        var linkedBlock = await GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
-
-                        // Set the other blocks as bad block if found the first bad block
-                        if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
-                        {
-                            await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
-                                ChainBlockLinkExecutionStatus.ExecutionFailed);
-                            Logger.LogWarning(
-                                $"Block validate fails before execution. block hash : {blockLink.BlockHash}");
-                            break;
-                        }
-
-                        if (!await ExecuteBlock(chain.Id, blockLink, linkedBlock))
-                        {
-                            await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
-                                ChainBlockLinkExecutionStatus.ExecutionFailed);
-                            Logger.LogWarning(
-                                $"Block execution failed. block hash : {blockLink.BlockHash}");
-                            break;
-                        }
-
-                        if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
-                        {
-                            await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
-                                ChainBlockLinkExecutionStatus.ExecutionFailed);
-                            Logger.LogWarning(
-                                $"Block validate fails after execution. block hash : {blockLink.BlockHash}");
-                            break;
-                        }
-
-                        await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionSuccess);
-
-                        successLinks.Add(blockLink);
-                    }
-                }
-                catch (ValidateNextTimeBlockValidationException ex)
-                {
-                    Logger.LogWarning(
-                        $"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
-                }
-
-
-                //do not need to set block execution failed, next time it will try to run again
-//                if (successLinks.Count < blockLinks.Count)
-//                {
-//                    foreach (var blockLink in blockLinks.Skip(successLinks.Count))
-//                    {
-//                        await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
-//                            ChainBlockLinkExecutionStatus.ExecutionFailed);
-//                    }
-//                }
-
-                if (successLinks.Count > 0)
-                {
-                    var blockLink = successLinks.Last();
-                    await _chainManager.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-
-                    await LocalEventBus.PublishAsync(
-                        new BestChainFoundEvent()
-                        {
-                            ChainId = chain.Id,
-                            BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
-                        });
-                }
-            }
-
-            return blockLinks;
-        }
-
-        private async Task<bool> ExecuteBlock(int chainId, ChainBlockLink blockLink, Block block)
-        {
-            // TODO: Save transactions in block
-            var result =
-                await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, block.Body.TransactionList);
-            if (!result.GetHash().Equals(block.GetHash()))
-            {
-                return false;
-            }
-
-            return true;
-        }
 
         /// <summary>
         /// Returns the block with the specified height, searching from <see cref="startBlockHash"/>. If the height
