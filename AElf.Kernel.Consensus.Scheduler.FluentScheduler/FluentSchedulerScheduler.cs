@@ -1,26 +1,27 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.EventMessages;
 using FluentScheduler;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 {
-    public class FluentSchedulerScheduler : IConsensusScheduler
+    public class FluentSchedulerScheduler : IConsensusScheduler, ISingletonDependency
     {
-        private ILocalEventBus EventBus { get; set; }
+        public ILocalEventBus LocalEventBus { get; set; }
 
-        private ILogger Logger { get; set; }
+        public ILogger Logger { get; set; }
 
         public FluentSchedulerScheduler()
         {
-            EventBus = NullLocalEventBus.Instance;
-            
-            Logger = NullLogger.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
+
+            Logger = NullLogger<FluentSchedulerScheduler>.Instance;
         }
         
         public void Dispose()
@@ -30,9 +31,6 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
         public async Task<IDisposable> StartAsync(int chainId)
         {
-            var registry = new Registry();
-            registry.Schedule(() => Logger.LogInformation("Starting FluentScheduler Scheduler."));
-            JobManager.InitializeWithoutStarting(registry);
             return this;
         }
 
@@ -43,13 +41,20 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
-            JobManager.AddJob(() => EventBus.PublishAsync(blockMiningEventData),
-                s => s.ToRunOnceIn(countingMilliseconds).Milliseconds());
+            JobManager.UseUtcTime();
+
+            var registry = new Registry();
+            registry.Schedule(() => LocalEventBus.PublishAsync(blockMiningEventData))
+                .ToRunOnceAt(DateTime.UtcNow.AddMilliseconds(countingMilliseconds));
+            JobManager.Initialize(registry);
         }
 
         public void CancelCurrentEvent()
         {
-            throw new NotImplementedException();
+            if (JobManager.RunningSchedules.Any())
+            {
+                JobManager.Stop();
+            }
         }
     }
 }
