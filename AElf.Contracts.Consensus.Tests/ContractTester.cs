@@ -42,6 +42,7 @@ namespace AElf.Contracts.Consensus.Tests
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
 
         public ContractTester(int chainId)
         {
@@ -55,9 +56,11 @@ namespace AElf.Contracts.Consensus.Tests
             _transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
-            _systemTransactionGenerationService = application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
+            _systemTransactionGenerationService =
+                application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
+            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
         }
 
         public async Task InitialChainAsync()
@@ -115,7 +118,7 @@ namespace AElf.Contracts.Consensus.Tests
                 },
                 new List<Transaction> {tx},
                 DateTime.UtcNow, new CancellationToken());
-            
+
             return executionReturnSets.Any() ? executionReturnSets.Last().ReturnValue : null;
         }
 
@@ -144,17 +147,22 @@ namespace AElf.Contracts.Consensus.Tests
                 };
                 trs.Add(tr);
             }
-            
+
             var mockTxHub = new Mock<ITxHub>();
             mockTxHub.Setup(h => h.GetReceiptsOfExecutablesAsync()).ReturnsAsync(trs);
-            
+
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(s => s.GetPublicKeyAsync())
                 .ReturnsAsync(CryptoHelpers.GenerateKeyPair().PublicKey);
+
+            //TODO: should directly get miner service. mockAccountService should done in line 50, and miner service
+            //should not directly inject TxHub, it should inject TxHubManager, get TxHub by id.
+
             return new MinerService(mockTxHub.Object, mockAccountService.Object, _blockGenerationService,
-                _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService);
+                _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
+                _blockchainExecutingService);
         }
-        
+
         private Address GetAddress(ECKeyPair keyPair)
         {
             return Address.FromPublicKey(keyPair.PublicKey);
