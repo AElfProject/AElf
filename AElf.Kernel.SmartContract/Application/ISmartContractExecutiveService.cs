@@ -28,7 +28,6 @@ namespace AElf.Kernel.SmartContract.Application
 //        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
     }
 
-
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
     {
         private readonly ISmartContractManager _smartContractManager;
@@ -36,7 +35,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
-
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
