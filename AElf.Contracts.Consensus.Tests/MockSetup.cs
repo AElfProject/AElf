@@ -32,8 +32,8 @@ namespace AElf.Contracts.Consensus.Tests
 
         public string ConsensusContractName => "AElf.Contracts.Consensus.DPoS";
         public string DividendsContractName => "AElf.Contracts.Dividends";
-        public string TokenContractName => "AElf.Contracts.Token2";
-        public string ZeroContractName => "AElf.Contracts.Genesis2";
+        public string TokenContractName => "AElf.Contracts.Token";
+        public string ZeroContractName => "AElf.Contracts.Genesis";
 
         public static byte[] GetContractCode(string contractName)
         {

@@ -11,7 +11,7 @@ namespace AElf.Contracts.TestBase
     [DependsOn(
         typeof(Kernel.ChainController.ChainControllerAElfModule),
         typeof(Kernel.SmartContract.SmartContractAElfModule),
-        typeof(Runtime.CSharp.CSharpRuntimeAElfModule2),
+        typeof(Runtime.CSharp.CSharpRuntimeAElfModule),
         typeof(SmartContractExecutionAElfModule),
         typeof(CoreKernelAElfModule),
         typeof(DatabaseAElfModule)
