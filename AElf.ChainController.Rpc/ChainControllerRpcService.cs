@@ -78,7 +78,7 @@ namespace AElf.ChainController.Rpc
                 [SmartContract.GenesisTokenContractAssemblyName] = tokenContract.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContract.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContract.GetFormatted(),
-                ["ChainId"] = _chainOptions.ChainId
+                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
             return response;
