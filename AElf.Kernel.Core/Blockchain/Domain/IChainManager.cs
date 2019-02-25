@@ -31,8 +31,10 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
 
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
-        Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink);
-        Task SetChainBlockLinkAsBadAsync(int chainId, ChainBlockLink blockLink);
+
+        Task SetChainBlockLinkExecutionStatus(int chainId, ChainBlockLink blockLink,
+            ChainBlockLinkExecutionStatus status);
+
         Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
     }
 
@@ -62,8 +64,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 Id = chainId,
                 LongestChainHeight = GlobalConfig.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
-                BestChainHeight =  GlobalConfig.GenesisBlockHeight,
-                BestChainHash =  genesisBlock,
+                BestChainHeight = GlobalConfig.GenesisBlockHeight,
+                BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 Branches =
                 {
@@ -222,57 +224,38 @@ namespace AElf.Kernel.Blockchain.Domain
             var chain = await GetAsync(chainId);
 
             var output = new List<ChainBlockLink>();
-            foreach (var bh in chain.Branches.Keys)
+
+            while (true)
             {
-                var isRightBranch = false;
-                var hash = bh;
-                var cbl = await GetChainBlockLinkAsync(chain.Id, hash);
-                while(!cbl.IsExecuted)
+                var chainBlockLink = await GetChainBlockLinkAsync(chain.Id, blockHash);
+                if (chainBlockLink != null)
                 {
-                    isRightBranch |= blockHash == cbl.BlockHash;
-
-                    if (!cbl.IsBadBlock)
+                    if (chainBlockLink.ExecutionStatus == ChainBlockLinkExecutionStatus.ExecutionNone)
                     {
-                        output.Add(cbl);
-                    }
-                    else
+                        output.Add(chainBlockLink);
+                        if(chainBlockLink.PreviousBlockHash!=null)
+                        blockHash = chainBlockLink.PreviousBlockHash;
+                        continue;
+                    }else if (chainBlockLink.ExecutionStatus == ChainBlockLinkExecutionStatus.ExecutionFailed)
                     {
-                        output = new List<ChainBlockLink>();
+                        output.Clear();
                     }
-
-                    var prevCbl = await GetChainBlockLinkAsync(chain.Id, cbl.PreviousBlockHash);
-                    if (prevCbl == null && cbl.PreviousBlockHash == Hash.Genesis)
-                    {
-                        break;
-                    }
-                    cbl = prevCbl;
                 }
-
-                if (isRightBranch)
-                {
-                    break;
-                }
-
-                output = new List<ChainBlockLink>();
+                break;
             }
-
+            
             output.Reverse();
             return output;
         }
 
-        public async Task SetChainBlockLinkAsExecuted(int chainId, ChainBlockLink blockLink)
+        public async Task SetChainBlockLinkExecutionStatus(int chainId, ChainBlockLink blockLink,
+            ChainBlockLinkExecutionStatus status)
         {
-            if (blockLink.IsExecuted)
+            if (blockLink.ExecutionStatus != ChainBlockLinkExecutionStatus.ExecutionNone ||
+                status == ChainBlockLinkExecutionStatus.ExecutionNone)
                 throw new InvalidOperationException();
-            blockLink.IsExecuted = true;
-            await SetChainBlockLinkAsync(chainId, blockLink);
-        }
-        
-        public async Task SetChainBlockLinkAsBadAsync(int chainId, ChainBlockLink blockLink)
-        {
-            if(blockLink.IsBadBlock)
-                throw new InvalidOperationException();
-            blockLink.IsBadBlock = true;
+
+            blockLink.ExecutionStatus = status;
             await SetChainBlockLinkAsync(chainId, blockLink);
         }
 
