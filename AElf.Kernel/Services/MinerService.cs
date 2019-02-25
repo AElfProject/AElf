@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -67,11 +68,10 @@ namespace AElf.Kernel.Services
 
                 var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p => p.Transaction).ToList();
 
-
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing
-                    cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
+                    //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
                     block =
                         await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
                             cts.Token);
@@ -139,12 +139,11 @@ namespace AElf.Kernel.Services
 
                 await SignBlockAsync(block);
                 // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-                await _txHub.OnNewBlock(block);
+                //await _txHub.OnNewBlock(block);
 
                 Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
                                       $"with {block.Body.TransactionsCount} txs.");
 
-                await _consensusService.TriggerConsensusAsync(chainId);
                 return block;
             }
             catch (Exception e)

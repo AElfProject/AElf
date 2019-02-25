@@ -9,12 +9,15 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <ProjectReference Include="..\AElf.Contracts.Genesis2\AElf.Contracts.Genesis2.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
-    <ProjectReference Include="..\AElf.Runtime.CSharp2\AElf.Runtime.CSharp2.csproj" />
+    <ProjectReference Include="..\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />
+    <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
+    <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
+    <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
   </ItemGroup>
   <ItemGroup>

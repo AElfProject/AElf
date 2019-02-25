@@ -18,19 +18,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     {
         private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
-        private readonly ConsensusCommand _command;
+        private readonly ConsensusControlInformation _controlInformation;
         private Hash _inValue;
 
-        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_command.Hint);
+        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
         public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
-            ConsensusCommand command)
+            ConsensusControlInformation controlInformation)
         {
             _dpoSOptions = consensusOptions.Value;
             _accountService = accountService;
-            _command = command;
+            _controlInformation = controlInformation;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
@@ -96,6 +96,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
+            Logger.LogDebug($"Current behaviour: {Hint.Behaviour.ToString()}");
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
@@ -115,7 +116,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         {
                             OutValue = currentMinerInformation.OutValue,
                             RoundId = information.CurrentRound.RoundId,
-                            Signature = currentMinerInformation.Signature
+                            Signature = currentMinerInformation.Signature,
+                            PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
                         },
                         ToBroadcast = new ToBroadcast
                         {

@@ -14,9 +14,9 @@ namespace AElf.Runtime.CSharp
         private readonly string[] _systemBlackList =
         {
             @"System\.Reflection.*",
-            @"System\.IO.*",
+            //@"System\.IO.*",
             @"System\.Net.*",
-            @"System\.Threading.*",
+            //@"System\.Threading.*",
         };
 
         private readonly string[] _systemWhiteList =

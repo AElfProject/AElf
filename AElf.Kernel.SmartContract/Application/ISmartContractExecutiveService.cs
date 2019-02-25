@@ -11,6 +11,8 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -21,11 +23,10 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
 
-        Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg);
+        Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address);
 //
 //        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
     }
-
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
     {
@@ -34,7 +35,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
-
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
@@ -118,10 +118,11 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        public async Task<IMessage> GetAbiAsync(int chainId, SmartContractRegistration reg)
+        public async Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address)
         {
-            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-            return runner.GetAbi(reg);
+            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
+            var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
+            return runner.GetAbi(smartContractRegistration);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
@@ -187,8 +188,9 @@ namespace AElf.Kernel.SmartContract.Application
                 .DefaultContractZeroRegistration.CodeHash);
             var executiveZero = await GetExecutiveAsync(registration);
             await executiveZero.SetTransactionContext(txCtxt).Apply();
-            trace.RetVal.Data.DeserializeToString();
-            return null;
+            return Hash.LoadHex(
+                ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"]
+                .ToString());
         }
 
         #endregion
