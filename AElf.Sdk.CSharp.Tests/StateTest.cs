@@ -8,14 +8,15 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Contexts;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    /*
     public class StateTest
     {
         internal T GetValue<T>()
@@ -63,7 +64,6 @@ namespace AElf.Sdk.CSharp.Tests
             throw new Exception("Not supported type.");
         }
 
-
         private void SetValues(MockContractState state)
         {
             state.BoolState.Value = GetValue<bool>();
@@ -103,15 +103,15 @@ namespace AElf.Sdk.CSharp.Tests
             Assert.Equal(GetValue<string>(), state.MappedState[GetValue<Address>()][GetValue<Address>()]);
         }
 
+        /*
         [Fact]
-        public async Task Test1()
+        public async Task State_Test()
         {
-            var stateManager = new MockStateManager();
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8("dummy_address"));
             var state = new MockContractState
             {
-                Provider = new MockStateProvider(stateManager),
+                Provider = new Mock<IStateProvider>().Object,
                 Path = path,
                 Context = new Context()
                 {
@@ -178,6 +178,6 @@ namespace AElf.Sdk.CSharp.Tests
                 },
             });
         }
+        */
     }
-    */
 }
