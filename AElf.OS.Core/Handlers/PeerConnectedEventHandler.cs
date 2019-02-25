@@ -20,7 +20,7 @@ namespace AElf.OS.Handlers
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
 
-         public IBackgroundJobManager BackgroundJobManager { get; set; }
+        public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
 
@@ -115,10 +115,13 @@ namespace AElf.OS.Handlers
                         topHash = idsToDownload.Last();
                     }
 
-                     if (idsToDownload.Any())
+                    if (idsToDownload.Any())
                     {
-
-                         await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs());
+                        await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+                        {
+                            BlockHashes = idsToDownload.Select(b => b.DumpByteArray()).ToList(), 
+                            Peer = peer
+                        });
                     }
                     else
                     {

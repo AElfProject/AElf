@@ -92,7 +92,7 @@ namespace AElf.OS.Tests.Network.Sync
             h.ChainOptions = optionsMock.Object;
                 
             //_jobManager.EnqueueAsync(h);
-            h.Execute(new ForkDownloadJobArgs { BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList() });
+            //h.Execute(new ForkDownloadJobArgs { BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList() });
             
             // setup some blocks to get
             // mock network service
