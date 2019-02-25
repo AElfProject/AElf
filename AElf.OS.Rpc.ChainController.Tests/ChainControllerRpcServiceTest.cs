@@ -1,14 +1,13 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Rpc.TestBase;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AElf.ChainController.Rpc.Tests
+namespace AElf.OS.Rpc.ChainController.Tests
 {
     public class ChainControllerRpcServiceServerTest : RpcTestBase
     {

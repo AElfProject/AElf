@@ -14,7 +14,7 @@ using Shouldly;
 using Volo.Abp.AspNetCore.TestBase;
 using Xunit.Abstractions;
 
-namespace AElf.Rpc.TestBase
+namespace AElf.OS.Rpc
 {
     public class RpcTestBase : AbpAspNetCoreIntegratedTestBase<RpcTestStartup>, ITestOutputHelperAccessor
     {

@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.OS.Rpc.ChainController;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
@@ -7,8 +6,8 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
+using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
-using AElf.OS;
 using AElf.OS.Rpc.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -16,7 +15,7 @@ using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 
-namespace AElf.Rpc.TestBase
+namespace AElf.OS.Rpc
 {
     [DependsOn(
         typeof(AbpAutofacModule),
@@ -28,7 +27,7 @@ namespace AElf.Rpc.TestBase
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule)
     )]
-    public class TestsRpcAElfModule : AElfModule
+    public class TestBaseRpcAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
