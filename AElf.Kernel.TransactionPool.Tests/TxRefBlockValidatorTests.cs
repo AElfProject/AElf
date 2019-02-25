@@ -15,13 +15,11 @@ namespace AElf.Kernel.TransactionPool.Tests
     public class TxRefBlockValidatorTests:TransactionPoolTestBase
     {
         private readonly ITxRefBlockValidator _validator;
-        private readonly IBlockchainService _chainService;
         private const int ChainId = 1234;
 
         public TxRefBlockValidatorTests()
         {
-            _chainService = GetRequiredService<IBlockchainService>();
-            _validator = new TxRefBlockValidator(_chainService);
+            _validator = GetRequiredService<ITxRefBlockValidator>();
         }
 
         [Fact]
@@ -29,8 +27,6 @@ namespace AElf.Kernel.TransactionPool.Tests
         {
             var transaction = FakeTransaction.Generate();
             _validator.ValidateAsync(ChainId, transaction).ShouldNotThrow();
-
-            _chainService.CreateChainAsync(ChainId, new Block());
 
             transaction.RefBlockNumber = 102;
             _validator.ValidateAsync(ChainId, transaction).ShouldThrow<FutureRefBlockException>();

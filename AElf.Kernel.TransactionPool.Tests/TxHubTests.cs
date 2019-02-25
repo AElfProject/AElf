@@ -12,19 +12,11 @@ namespace AElf.Kernel.TransactionPool.Tests
     public class TxHubTests:TransactionPoolTestBase
     {
         private const int ChainId = 1234;
-        private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionReceiptManager _receiptManager;
-        private readonly IBlockchainService _chainService;
         private TxHub _txHub;
 
         public TxHubTests()
         {
-            _transactionManager = GetRequiredService<ITransactionManager>();
-            _receiptManager = GetRequiredService<ITransactionReceiptManager>();
-            _chainService = GetRequiredService<IBlockchainService>();
-
-            var blockValidator = new TxRefBlockValidator(_chainService);
-            _txHub = new TxHub(_transactionManager, _receiptManager, blockValidator);
+            _txHub = GetRequiredService<TxHub>();
         }
 
         [Fact]

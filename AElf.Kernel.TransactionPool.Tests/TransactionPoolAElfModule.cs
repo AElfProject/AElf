@@ -3,6 +3,7 @@ using AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,8 @@ namespace AElf.Kernel.TransactionPool.Tests
                     .Returns(Task.FromResult<Hash>(Hash.FromString("test")));
                 return chain.Object;
             });
+            context.Services.AddSingleton<ITxRefBlockValidator, TxRefBlockValidator>();
+            context.Services.AddSingleton<TxHub>();
         }
     }
 }
