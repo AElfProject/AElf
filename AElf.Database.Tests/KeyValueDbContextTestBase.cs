@@ -18,7 +18,6 @@ namespace AElf.Database.Tests
             _database = _context.Database;
         }
 
-
         [Fact]
         public void IsConnectedTest()
         {
@@ -48,13 +47,24 @@ namespace AElf.Database.Tests
         }
 
         [Fact]
-        public void Operation_Parameter_ExceptionTest()
+        public void Get_ExceptionTest()
+        {
+            var key = string.Empty;
+            Assert.Throws<ArgumentException>(() => { _database.GetAsync(key); });
+        }
+
+        [Fact]
+        public void Set_ExceptionTest()
         {
             var key = string.Empty;
             var value = Guid.NewGuid().ToString();
-
-            Assert.Throws<ArgumentException>(() => { _database.GetAsync(key); });
             Assert.Throws<ArgumentException>(() => { _database.SetAsync(key, Helper.StringToBytes(value)); });
+        }
+
+        [Fact]
+        public void Remove_ExceptionTest()
+        {
+            var key = string.Empty;
             Assert.Throws<ArgumentException>(() => { _database.RemoveAsync(key); });
         }
     }
