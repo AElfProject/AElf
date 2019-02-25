@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var executive =
                 await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
-                    transaction.To);
+                    transaction.To, stateCache);
 
             try
             {

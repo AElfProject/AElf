@@ -186,7 +186,8 @@ namespace AElf.ChainController.Rpc
                     BlockHeight = chain.BestChainHeight
                 };
 
-                executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, address);
+                executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, address,
+                    new Dictionary<StatePath, StateCache>());
                 output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
             finally
@@ -244,7 +245,8 @@ namespace AElf.ChainController.Rpc
                 BlockHeight = chain.BestChainHeight
             };
 
-            var executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, tx.To);
+            var executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, tx.To,
+                new Dictionary<StatePath, StateCache>());
 
             try
             {
