@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Asn1.Cms;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockGenerationServiceTests : AElfKernelTestBase
     {

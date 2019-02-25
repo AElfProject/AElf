@@ -1,23 +1,22 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Blockchain.Application
 {
     public class FullBlockchainServiceTests: AElfKernelTestBase
     {
-        private readonly IFullBlockchainService _fullBlockchainService;
+        private readonly FullBlockchainService _fullBlockchainService;
         private readonly ILocalEventBus _localEventBus;
         
         public FullBlockchainServiceTests()
         {
-            _fullBlockchainService = GetRequiredService<IFullBlockchainService>();
+            _fullBlockchainService = GetRequiredService<FullBlockchainService>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
