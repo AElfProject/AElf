@@ -100,18 +100,28 @@ namespace AElf.OS.Handlers
                     // If not we download block ids backwards until we link
                     // and queue the chain download as a background job.
 
-                    List<Hash> idsToDownload = new List<Hash>();
+                    List<Hash> idsToDownload = new List<Hash> { blockHash };
 
                     Hash topHash = blockHash;
 
                     for (ulong i = header.Height - 1; i > 1; i -= (ulong)BlockIdRequestCount)
                     {
+                        Logger.LogTrace($"Query section: {{ top: {topHash}, count: {BlockIdRequestCount}, peer: {peer} }}");
+                        
                         // Ask the peer for the ids of the blocks
                         List<Hash> ids = await NetworkService
                             .GetBlockIdsAsync(topHash, BlockIdRequestCount, peer); // todo this has to be in order, maybe add Height
 
+                        if (ids == null || ids.Count == 0)
+                        {
+                            Logger.LogWarning($"Peer {peer} did not return any ids.");
+                            break;
+                        }
+
                          // Find the ids that we're missing
                         var unlinkableIds = await FindUnlinkableBlocksAsync(ids);
+                        
+                        Logger.LogDebug($"Out of {ids.Count}, {unlinkableIds.Count} are missing.");
                         
                         idsToDownload.AddRange(ids);
 
@@ -124,6 +134,8 @@ namespace AElf.OS.Handlers
 
                     if (idsToDownload.Any())
                     {
+                        Logger.LogDebug($"Queuing job to download {idsToDownload.Count} blocks: [{idsToDownload.First()}, ..., {idsToDownload.Last()}]");
+                        
                         await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                         {
                             BlockHashes = idsToDownload.Select(b => b.DumpByteArray()).ToList(), 
