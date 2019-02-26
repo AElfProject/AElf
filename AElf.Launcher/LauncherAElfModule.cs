@@ -1,6 +1,5 @@
-﻿using System;
-using System.IO;
-using AElf.ChainController.Rpc;
+﻿using System.IO;
+using AElf.OS.Rpc.ChainController;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
@@ -14,14 +13,14 @@ using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
-using AElf.Net.Rpc;
+using AElf.OS.Rpc.Net;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
-using AElf.Wallet.Rpc;
+using AElf.OS.Rpc.Wallet;
 using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +44,7 @@ namespace AElf.Launcher
         typeof(CoreOSAElfModule),
         typeof(CSharpRuntimeAElfModule2),
         typeof(SmartContractExecutionAElfModule),
-        typeof(DPoSConsensusModule),
+        typeof(DPoSConsensusAElfModule),
         typeof(GrpcNetworkModule),
         typeof(NodeAElfModule),
         typeof(ChainControllerRpcModule),

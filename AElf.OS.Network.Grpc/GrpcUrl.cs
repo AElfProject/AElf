@@ -16,7 +16,7 @@ namespace AElf.OS.Network.Grpc
 
             return url;
         }
-        
+
         public string ToIpPortFormat()
         {
             return IpAddress + ":" + Port;

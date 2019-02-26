@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,10 +27,10 @@ namespace AElf.OS.Network.Grpc
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         
-        private readonly List<GrpcPeer> _authenticatedPeers;
+        private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
         
         public ILocalEventBus EventBus { get; set; }
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
+        public ILogger<GrpcPeerPool> Logger { get; set; }
         
         private int ChainId => _chainOptions.ChainId;
 
@@ -39,9 +40,9 @@ namespace AElf.OS.Network.Grpc
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
             
-            _authenticatedPeers = new List<GrpcPeer>();
+            _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             
-            Logger = NullLogger<GrpcNetworkServer>.Instance;
+            Logger = NullLogger<GrpcPeerPool>.Instance;
             EventBus = NullLocalEventBus.Instance;
 
             _dialTimeout = networkOptions.Value.PeerDialTimeout ?? NetworkConsts.DefaultPeerDialTimeout;
@@ -63,7 +64,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                GrpcPeer peer = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == address);
+                var peer = _authenticatedPeers.FirstOrDefault(p => p.Key == address).Value;
             
                 if (peer == null)
                 {
@@ -73,8 +74,8 @@ namespace AElf.OS.Network.Grpc
 
                 await peer.SendDisconnectAsync();
                 await peer.StopAsync();
-                
-                return _authenticatedPeers.Remove(peer);
+
+                return _authenticatedPeers.TryRemove(peer.PeerAddress, out _);
             }
             catch (Exception e)
             {
@@ -95,8 +96,9 @@ namespace AElf.OS.Network.Grpc
                 var client = new PeerService.PeerServiceClient(channel);
                 var hsk = await BuildHandshakeAsync();
                 
-                if (channel.State != ChannelState.Connecting)
+                if (channel.State == ChannelState.TransientFailure)
                 {
+                    // if failing give it some time to recover
                     await channel.TryWaitForStateChangedAsync(channel.State, DateTime.UtcNow.AddSeconds(_dialTimeout));
                 }
                 
@@ -108,8 +110,8 @@ namespace AElf.OS.Network.Grpc
                 if (resp.Success != true)
                     return false;
 
-                _authenticatedPeers.Add(new GrpcPeer(channel, client, null, address, resp.Port)); 
-                        
+                _authenticatedPeers[address] = new GrpcPeer(channel, client, null, address, resp.Port); 
+                                        
                 Logger.LogTrace($"Connected to {address}.");
 
                 return true;
@@ -121,45 +123,44 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public List<GrpcPeer> GetPeers()
+        public List<IPeer> GetPeers()
         {
-            return _authenticatedPeers.ToList();
+            return _authenticatedPeers.Values.Select(p => p as IPeer).ToList();
         }
 
-        public GrpcPeer FindPeer(string peerEndpoint, byte[] publicKey = null)
+        public IPeer FindPeer(string peerAddress, byte[] publicKey = null)
         {
-            if (string.IsNullOrWhiteSpace(peerEndpoint) && publicKey == null)
+            if (string.IsNullOrWhiteSpace(peerAddress) && publicKey == null)
                 throw new InvalidOperationException("address and public cannot be both null.");
+            
+            IEnumerable<KeyValuePair<string, GrpcPeer>> toFind = _authenticatedPeers;
 
-            IEnumerable<GrpcPeer> toFind = _authenticatedPeers;
-
-            if (!string.IsNullOrWhiteSpace(peerEndpoint))
-                toFind = toFind.Where(p => p.PeerAddress == peerEndpoint || peerEndpoint.EndsWith(p.RemoteListenPort));
+            if (!string.IsNullOrWhiteSpace(peerAddress))
+                toFind = toFind.Where(p => p.Value.PeerAddress == peerAddress);
 
             if (publicKey != null)
-                toFind = toFind.Where(p => publicKey.BytesEqual(p.PublicKey));
-            
-            return toFind.FirstOrDefault();
+                toFind = toFind.Where(p => publicKey.BytesEqual(p.Value.PublicKey));
+
+            return toFind.FirstOrDefault().Value;
         }
 
-        public bool AuthenticatePeer(string peerEndpoint, byte[] pubkey, Handshake handshake)
+        public bool AuthenticatePeer(string peerAddress, Handshake handshake)
         {
-            if (pubkey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
+            var pubKey = handshake.HskData.PublicKey.ToByteArray();
+            if (pubKey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
                 return false;
             
-             bool alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.PeerAddress == peerEndpoint || pubkey.BytesEqual(p.PublicKey)) != null;
+            var alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey));
 
-             if (alreadyConnected)
-                 return false;
-             
-             // todo check handshake
+            if (!alreadyConnected.Equals(default(KeyValuePair<string, GrpcPeer>)))
+                return false;
              
             return true;
         }
 
-        public bool AddPeer(GrpcPeer peer)
+        public bool AddPeer(IPeer peer)
         {
-            _authenticatedPeers.Add(peer);
+            _authenticatedPeers[peer.PeerAddress] = peer as GrpcPeer;
             return true;
         }
 
@@ -174,7 +175,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ListeningPort = _networkOptions.ListeningPort,
                 PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
-                Version = GlobalConfig.ProtocolVersion,
+                Version = ChainConsts.ProtocolVersion,
             };
             
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
@@ -189,9 +190,9 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
         
-        public void ProcessDisconnection(string peer)
+        public void ProcessDisconnection(string peerEndpoint)
         {
-            _authenticatedPeers.RemoveAll(p => p.RemoteListenPort == peer);
+            _authenticatedPeers.RemoveAll(p => p.Value.RemoteEndpoint == peerEndpoint);
         }
     }
 }

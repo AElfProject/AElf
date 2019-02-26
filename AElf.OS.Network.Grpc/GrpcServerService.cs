@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Events;
 using Google.Protobuf;
@@ -54,11 +55,11 @@ namespace AElf.OS.Network.Grpc
             try
             {                
                 var peer = GrpcUrl.Parse(context.Peer);
-                var peerServer = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+                var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
                 
-                Logger.LogDebug($"Attempting to create channel to {peerServer}");
+                Logger.LogDebug($"Attempting to create channel to {peerAddress}");
                 
-                Channel channel = new Channel(peerServer, ChannelCredentials.Insecure);
+                Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);
 
                 if (channel.State != ChannelState.Ready)
@@ -66,10 +67,10 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
-                var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerServer, peer.Port.ToString());
+                var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
                 
                 // Verify auth
-                bool valid = _peerPool.AuthenticatePeer(peerServer, grpcPeer.PublicKey, handshake);
+                bool valid = _peerPool.AuthenticatePeer(peerAddress, handshake);
 
                 if (!valid)
                     return new AuthResponse { Err = AuthError.WrongAuth };
@@ -97,7 +98,7 @@ namespace AElf.OS.Network.Grpc
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
             var peer = GrpcUrl.Parse(context.Peer);
-            return Task.FromResult(new AuthResponse { Success = true, Port = peer.Port.ToString() });
+            return Task.FromResult(new AuthResponse { Success = true, Port = peer.ToIpPortFormat() });
         }
 
         /// <summary>
@@ -231,8 +232,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                var peer = GrpcUrl.Parse(context.Peer);
-                _peerPool.ProcessDisconnection(peer.Port.ToString());
+                _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
             }
             catch (Exception e)
             {

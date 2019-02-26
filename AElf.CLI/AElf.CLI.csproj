@@ -4,6 +4,9 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+    <Target Name="InstallAElfJS" AfterTargets="BeforeBuild">
+        <Exec Command="yarn install" />
+    </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
         <Exec Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
     </Target>
@@ -19,13 +22,13 @@
         <PackageReference Include="CommandLineParser" Version="2.2.1" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
         <PackageReference Include="ReadLine" Version="2.0.1" />
-        <PackageReference Include="AElf.JSDK" Version="0.1.2" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <EmbeddedResource Include="Scripts\aelf.js" />
         <EmbeddedResource Include="Scripts\helpers.js" />
         <EmbeddedResource Include="Scripts\crypto.js" />
         <EmbeddedResource Include="Scripts\requestor.js" />

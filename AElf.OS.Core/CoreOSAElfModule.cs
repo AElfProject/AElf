@@ -12,8 +12,6 @@ using AElf.OS.Account;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
-using AElf.OS.Network.Events;
-using AElf.OS.Network.Temp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -34,15 +32,9 @@ namespace AElf.OS
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
 
-            var keyStore = new AElfKeyStore(ApplicationHelpers.ConfigPath);
+            var keyStore = new AElfKeyStore(ApplicationHelpers.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
-            
-            context.Services.AddSingleton<PeerConnectedEventHandler>();
-            context.Services.AddTransient<ForkDownloadJob>();
-
-            //todo temp remove after peer service is wired up with the correct service 
-            context.Services.AddSingleton<IBlockService, BlockService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
