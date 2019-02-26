@@ -86,7 +86,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
-                BlockHeight = chainContext.BlockHeight,
+                BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = depth,
             };
