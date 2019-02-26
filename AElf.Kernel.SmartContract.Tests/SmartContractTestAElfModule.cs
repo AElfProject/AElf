@@ -35,6 +35,8 @@ namespace AElf.Kernel.SmartContract
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
+
+            services.AddTransient<SmartContractRunnerContainer>();
         }
     }
 }
