@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.Token;
@@ -22,7 +23,7 @@ namespace AElf.Contracts.Resource.Tests
         public ResourceContractTest()
         {
             Tester = new ContractTester();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(typeof(BasicContractZero),
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract),
                 typeof(TokenContract), typeof(ResourceContract)));
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
         }
@@ -45,14 +46,14 @@ namespace AElf.Contracts.Resource.Tests
         {
             //await Deploy_Contracts();
 
-            var initResult = Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[1], "Initialize",
+            var initResult = Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[2], "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
             var chain = await Tester.GetChainAsync();
             var height = chain.BestChainHeight;
             initResult.Result.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var feeAddress = Tester.GetAddress(FeeKeyPair);
-            var resourceResult = Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[2], "Initialize",
+            var resourceResult = Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[3], "Initialize",
                 Tester.DeployedContractsAddresses[1], feeAddress, feeAddress);
             resourceResult.Result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
