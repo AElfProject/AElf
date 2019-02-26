@@ -4,7 +4,7 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockExtraDataProvider
     {
-        Task FillExtraData(int chainId, Block block);
-        Task<bool> ValidateExtraData(int chainId, Block block);
+        Task FillExtraDataAsync(int chainId, Block block);
+        Task<bool> ValidateExtraDataAsync(int chainId, Block block);
     }
 }
