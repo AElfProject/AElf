@@ -21,9 +21,9 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var generateBlockDto = new GenerateBlockDto
             {
-                ChainId = 0,
+                ChainId = 1,
                 PreviousBlockHash = Hash.Genesis,
-                PreviousBlockHeight = 0
+                PreviousBlockHeight = 1
             };
 
             var block = await _blockGenerationService.GenerateBlockAsync(generateBlockDto);

@@ -21,8 +21,14 @@ namespace AElf.Kernel.ChainController.Application
         [Fact]
         public async Task Create_NewChain_Success()
         {
-            var chain = await _chainCreationService.CreateNewChainAsync(1, new List<Transaction>());
-            chain.Id.ShouldBe(1);
+            var chainId = 1;
+            
+            var chain = await _blockchainService.GetChainAsync(chainId);
+            chain.ShouldBeNull();
+            
+            chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<Transaction>());
+            chain = await _blockchainService.GetChainAsync(chainId);
+            chain.ShouldNotBeNull();
 
             var block = await _blockchainService.GetBlockByHashAsync(chain.Id, chain.BestChainHash);
             block.Header.Height.ShouldBe(GlobalConfig.GenesisBlockHeight);

@@ -19,7 +19,6 @@ namespace AElf.Kernel.Blockchain.Application
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
-            
         }
 
         [Fact]
@@ -43,10 +42,14 @@ namespace AElf.Kernel.Blockchain.Application
                 },
                 Body = new BlockBody()
             };
-            await _fullBlockchainService.CreateChainAsync(_chainId, block);
 
             var chain = await _fullBlockchainService.GetChainAsync(_chainId);
-            chain.Id.ShouldBe(_chainId);
+            chain.ShouldBeNull();
+            
+            await _fullBlockchainService.CreateChainAsync(_chainId, block);
+
+            chain = await _fullBlockchainService.GetChainAsync(_chainId);
+            chain.ShouldNotBeNull();
 
             eventMessage.BlockHeight.ShouldBe(GlobalConfig.GenesisBlockHeight);
         }
@@ -59,9 +62,12 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = new BlockHeader(), 
                 Body = new BlockBody()
             };
+            
+            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(_chainId, block.Header.GetHash());
+            existBlock.ShouldBeNull();
 
             await _fullBlockchainService.AddBlockAsync(_chainId, block);
-            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(_chainId, block.Header.GetHash());
+            existBlock = await _fullBlockchainService.GetBlockByHashAsync(_chainId, block.Header.GetHash());
             
             existBlock.ShouldNotBeNull();
         }
