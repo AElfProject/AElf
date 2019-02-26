@@ -1,11 +1,8 @@
-﻿using System.ComponentModel;
-//using AElf.Kernel.Managers;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Domain;
 using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel.Blockchain.Domain
 {
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
