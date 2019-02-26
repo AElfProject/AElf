@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract
+    public partial class ConsensusContract
     {
         private ulong CurrentAge => State.AgeField.Value;
 
@@ -91,8 +91,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            //TODO: Recover after testing.
-//            Api.Assert(lockTime.InRange(90, 1095), DPoSContractConsts.LockDayIllegal);
+            Assert(lockTime.InRange(90, 1095), DPoSContractConsts.LockDayIllegal);
 
             // Cannot vote to non-candidate.
             var candidates = State.CandidatesField.Value;
