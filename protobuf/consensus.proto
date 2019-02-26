@@ -205,6 +205,7 @@ message DPoSExtraInformation {
     repeated string InitialMiners = 9;
     Hash InValue = 10;
     string PublicKey = 11;
+    bool IsBootMiner = 12;
 }
 
 message ConsensusCommand {

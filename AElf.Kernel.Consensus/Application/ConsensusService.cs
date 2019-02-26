@@ -58,24 +58,26 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            _consensusControlInformation.ConsensusCommand = ConsensusCommand.Parser.ParseFrom((await ExecuteContractAsync(chainId,
+            _consensusControlInformation.ConsensusCommand = ConsensusCommand.Parser.ParseFrom(
+                (await ExecuteContractAsync(chainId,
                     await _accountService.GetAccountAsync(), chainContext, ConsensusConsts.GetConsensusCommand,
-                    Timestamp.FromDateTime(DateTime.UtcNow), (await _accountService.GetPublicKeyAsync()).ToHex()))
+                    _consensusInformationGenerationService.GetFirstExtraInformation()))
                 .ToByteArray());
 
             var blockMiningEventData = new BlockMiningEventData(chainId, chain.BestChainHash, chain.BestChainHeight,
                 DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.TimeoutMilliseconds));
-            
+
             // Initial or reload consensus scheduler.
             _consensusScheduler.CancelCurrentEvent();
-            _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.CountingMilliseconds, blockMiningEventData);
+            _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.CountingMilliseconds,
+                blockMiningEventData);
         }
 
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
             byte[] consensusInformation)
         {
             Logger.LogInformation("Validating consensus information.");
-            
+
             var chainContext = new ChainContext
             {
                 ChainId = chainId,

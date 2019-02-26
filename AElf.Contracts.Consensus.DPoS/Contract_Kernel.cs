@@ -22,8 +22,13 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
+        public IMessage GetConsensusCommand(byte[] extraInformation)
         {
+            var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
+
+            var publicKey = extra.PublicKey;
+            var timestamp = extra.Timestamp;
+            
             TryToGetMiningInterval(out var miningInterval);
 
             // To initial this chain.
@@ -31,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
+                    CountingMilliseconds = extra.IsBootMiner ? DPoSContractConsts.AElfWaitFirstRoundTime : int.MaxValue,
                     TimeoutMilliseconds = int.MaxValue,
                     Hint = new DPoSHint
                     {

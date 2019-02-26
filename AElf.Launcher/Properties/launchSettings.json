@@ -1,8 +1,19 @@
 {
     "profiles": {
-        "AElf.Launcher": {
+        "bp1": {
             "commandName": "Project",
-            "commandLineArgs": ""
+            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp1",
+            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp1"
+        },
+        "bp2": {
+            "commandName": "Project",
+            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp2",
+            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp2"
+        },
+        "bp3": {
+            "commandName": "Project",
+            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp3",
+            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp3"
         }
     }
 }
