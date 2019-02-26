@@ -17,6 +17,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
