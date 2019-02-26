@@ -26,14 +26,14 @@ namespace AElf.Contracts.CrossChain
                 Time = Timestamp.FromDateTime(Context.CurrentBlockTime)
             }.ToByteArray();
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
-
+            //TimeSpan diff = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
+            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
             Proposal proposal = new Proposal
             {
                 MultiSigAccount = fromAddress,
                 Name = proposalName,
                 TxnData = ByteString.CopyFrom(txnData),
-                ExpiredTime = diff.TotalSeconds,
+                ExpiredTime = Timestamp.FromDateTime(expiredTime),
                 Status = ProposalStatus.ToBeDecided,
                 Proposer = Context.Sender
             };
@@ -69,7 +69,7 @@ namespace AElf.Contracts.CrossChain
                 publicKeys.Add(publicKey);
             }
             
-            //todo review correctness
+            // review correctness
             uint provided = publicKeys
                 .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
                 .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);

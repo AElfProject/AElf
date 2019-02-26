@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.Kernel";
 import "common.proto";
-
+import "google/protobuf/timestamp.proto";
 message Authorization
 {
     Address MultiSigAccount = 1;
@@ -21,7 +21,7 @@ message Proposal {
     Address MultiSigAccount = 1;
     string Name = 2;
     bytes TxnData = 3;
-    double ExpiredTime = 4; //in second
+    google.protobuf.Timestamp ExpiredTime = 4;
     ProposalStatus Status = 5;
     Address Proposer = 6;
 }

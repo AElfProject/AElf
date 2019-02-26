@@ -23,7 +23,7 @@ namespace AElf.Contracts.Authorization
                 return proposal;
             }
 
-            if (Context.CurrentBlockTime > TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime))
+            if (Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime())
             {
                 proposal.Status = ProposalStatus.Expired;
             }
@@ -108,7 +108,7 @@ namespace AElf.Contracts.Authorization
                 && proposal.TxnData != null
                 && proposal.Status == ProposalStatus.ToBeDecided
                 && proposal.Proposer != null, "Invalid proposal.");
-            DateTime timestamp = TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime);
+            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
 
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
 
@@ -136,7 +136,7 @@ namespace AElf.Contracts.Authorization
             var proposal = State.Proposals[hash];
             // check authorization and permission 
             Assert(proposal.IsNotEmpty(), "Proposal not found.");
-            Assert(Context.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime),
+            Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
 
             var msig = proposal.MultiSigAccount;
@@ -166,7 +166,7 @@ namespace AElf.Contracts.Authorization
             var proposal = State.Proposals[proposalHash];
             Assert(proposal.IsNotEmpty(), "Proposal not found.");
             // check expired time of proposal
-            Assert(Context.CurrentBlockTime < TimerHelper.ConvertFromUnixTimestamp(proposal.ExpiredTime),
+            Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
             Assert(proposal.Status != ProposalStatus.Released, "Proposal already released");
 
