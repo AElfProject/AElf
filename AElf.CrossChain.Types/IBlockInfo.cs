@@ -1,6 +1,4 @@
-using AElf.Common;
-
-namespace AElf.Kernel
+namespace AElf.CrossChain
 {
     public interface IBlockInfo
     {
@@ -10,11 +8,12 @@ namespace AElf.Kernel
     
     public partial class SideChainBlockData : IBlockInfo
     {
-        
+        public ulong Height => SideChainHeight;
+        public int ChainId => SideChainId;
     }
     public partial class ParentChainBlockData : IBlockInfo
     {
-        public ulong Height => Root.Height;
-        public int ChainId => Root.ChainId;
+        public ulong Height => Root.ParentChainHeight;
+        public int ChainId => Root.ParentChainId;
     }
 }

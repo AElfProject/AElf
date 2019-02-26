@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Serializers;
 using AElf.Database;
 using Google.Protobuf;
 
