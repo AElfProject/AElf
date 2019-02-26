@@ -41,6 +41,11 @@ namespace AElf.Kernel.Blockchain.Domain
         
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
+            if (blockHash == null)
+            {
+                return null;
+            }
+
             try
             {
                 var header = await GetBlockHeaderAsync(blockHash);

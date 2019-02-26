@@ -31,7 +31,7 @@ namespace AElf.Kernel.ChainController.Application
             chain.ShouldNotBeNull();
 
             var block = await _blockchainService.GetBlockByHashAsync(chain.Id, chain.BestChainHash);
-            block.Header.Height.ShouldBe(GlobalConfig.GenesisBlockHeight);
+            block.Header.Height.ShouldBe(ChainConsts.GenesisBlockHeight);
             block.Header.PreviousBlockHash.ShouldBe(Hash.Genesis);
             block.Header.ChainId.ShouldBe(chain.Id);
         }
