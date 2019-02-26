@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -6,6 +6,7 @@ using AElf.Modularity;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract
@@ -24,9 +25,14 @@ namespace AElf.Kernel.SmartContract
             
             services.AddTransient<ISmartContractRunner>(p =>
             {
+                var mockExecutive = new Mock<IExecutive>();
+                mockExecutive.SetupProperty(e => e.ContractHash);
+                
                 var mockSmartContractRunner = new Mock<ISmartContractRunner>();
-                mockSmartContractRunner.SetupGet(v => v.Category).Returns(2);
+                mockSmartContractRunner.SetupGet(m => m.Category).Returns(2);
                 mockSmartContractRunner.Setup(m => m.CodeCheck(It.IsAny<byte[]>(), It.IsAny<bool>()));
+                mockSmartContractRunner.Setup(m => m.RunAsync(It.IsAny<SmartContractRegistration>()))
+                    .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
         }
