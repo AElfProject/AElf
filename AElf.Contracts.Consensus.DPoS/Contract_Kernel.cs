@@ -136,7 +136,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
 
                         // None of in values should be filled.
-                        if (InValueIsNull(information.Forwarding.CurrentRound))
+                        if (InValueIsNull(information.Forwarding.NextRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect in values."};
                         }

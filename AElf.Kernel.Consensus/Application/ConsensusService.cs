@@ -88,6 +88,12 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                     chainContext, ConsensusConsts.ValidateConsensus, consensusInformation))
                 .DeserializeToPbMessage<ValidationResult>();
+
+            if (!validationResult.Success)
+            {
+                Logger.LogError($"Consensus validating failed: {validationResult.Message}");
+            }
+            
             return validationResult.Success;
         }
 

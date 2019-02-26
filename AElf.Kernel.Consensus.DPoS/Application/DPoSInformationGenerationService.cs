@@ -107,12 +107,13 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
-            Logger.LogDebug($"Current behaviour: {Hint.Behaviour.ToString()}");
+            Logger.LogInformation($"Current behaviour: {Hint.Behaviour.ToString()}.");
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     information.NewTerm.ChainId = chainId;
                     information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
+                    Logger.LogInformation($"Consensus information of first two rounds.\n{information.NewTerm}");
                     return new DPoSExtraInformation
                     {
                         NewTerm = information.NewTerm
@@ -121,6 +122,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 case DPoSBehaviour.PackageOutValue:
                     var currentMinerInformation = information.CurrentRound.RealTimeMinersInfo
                         .OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
+                    Logger.LogInformation($"Producing normal block:\n" +
+                                          $"RoundId: {information.CurrentRound.RoundId}\n" +
+                                          $"OutValue: {currentMinerInformation.OutValue.ToHex()}\n" +
+                                          $"InValue: {_inValue.ToHex()}");
                     return new DPoSExtraInformation
                     {
                         ToPackage = new ToPackage
@@ -138,6 +143,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     }.ToByteArray();
 
                 case DPoSBehaviour.NextRound:
+                    Logger.LogInformation($"Consensus information of next round:\n{information.Forwarding.NextRound}");
                     return new DPoSExtraInformation
                     {
                         Forwarding = information.Forwarding,
@@ -145,6 +151,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     }.ToByteArray();
 
                 case DPoSBehaviour.NextTerm:
+                    Logger.LogInformation($"Consensus information of next two rounds:\n{information.NewTerm}");
                     return new DPoSExtraInformation
                     {
                         Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
