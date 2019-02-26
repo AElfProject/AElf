@@ -40,7 +40,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            Console.WriteLine("Current round number: " + roundInformation.RoundNumber);
             // To terminate current round.
             if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
             {
@@ -90,7 +89,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            Console.WriteLine($"Expected mining time: {minerInformation.ExpectedMiningTime}");
             // To produce a normal block.
             var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
                 .TotalMilliseconds;
