@@ -655,7 +655,7 @@ namespace AElf.Kernel.Blockchain.Domain
             currentChain.BestChainHeight.ShouldBe(1ul.BlockHeight());
             currentChain.BestChainHash.ShouldBe(_blocks[1]);
 
-            _chainManager.SetBestChainAsync(chain, 1ul.BlockHeight(), _blocks[1])
+            _chainManager.SetBestChainAsync(chain, 0ul.BlockHeight(), _blocks[1])
                 .ShouldThrow<InvalidOperationException>();
         }
 

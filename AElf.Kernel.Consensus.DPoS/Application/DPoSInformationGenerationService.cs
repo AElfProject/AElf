@@ -35,6 +35,16 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
+        public byte[] GetFirstExtraInformation()
+        {
+            return new DPoSExtraInformation
+            {
+                IsBootMiner = _dpoSOptions.IsBootMiner,
+                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                Timestamp = Timestamp.FromDateTime(DateTime.UtcNow)
+            }.ToByteArray();
+        }
+
         public byte[] GenerateExtraInformation()
         {
             switch (Hint.Behaviour)
@@ -44,7 +54,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     {
                         InitialMiners = {_dpoSOptions.InitialMiners},
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
+                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                        IsBootMiner = _dpoSOptions.IsBootMiner
                     }.ToByteArray();
 
                 case DPoSBehaviour.PackageOutValue:
@@ -96,7 +107,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
 
-            Logger.LogDebug($"Current behaviour: {Hint.Behaviour.ToString()}");
+            Logger.LogInformation($"Current behaviour: {Hint.Behaviour.ToString()}.");
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
@@ -110,6 +121,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 case DPoSBehaviour.PackageOutValue:
                     var currentMinerInformation = information.CurrentRound.RealTimeMinersInfo
                         .OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
+                    Logger.LogInformation($"Round number: {information.CurrentRound.RoundNumber}\nOrder: {currentMinerInformation.Order}");
                     return new DPoSExtraInformation
                     {
                         ToPackage = new ToPackage
