@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Xunit;
 using Shouldly;
