@@ -14,13 +14,12 @@ namespace AElf.Contracts.Token
 {
 public sealed class TokenContractTest : TokenContractTestBase
     {
-        private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private List<Address> ContractAddresses { get; set; }
         private ContractTester Tester { get; set; }
 
         public TokenContractTest()
         {
-            Tester = new ContractTester(ChainId);
+            Tester = new ContractTester();
             ContractAddresses = Tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract)).Result;
         }
 
@@ -79,7 +78,6 @@ public sealed class TokenContractTest : TokenContractTestBase
         public async Task Burn_TokenContract()
         {
             await Initialize_TokenContract();
-            var toAddress = CryptoHelpers.GenerateKeyPair();
             await Tester.ExecuteContractWithMiningAsync(ContractAddresses[1], "Burn",
                 3000UL);
             var bytes = await Tester.CallContractMethodAsync(ContractAddresses[1], "BalanceOf", Tester.GetCallOwnerAddress());
