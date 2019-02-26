@@ -55,7 +55,6 @@ public sealed class TokenContractTest : TokenContractTestBase
             var tx = Tester.GenerateTransaction(Tester.DeployedContractsAddresses[1], "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
             await Tester.MineABlockAsync(new List<Transaction> {tx});
-
             var bytes = await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[1], "BalanceOf", Tester.GetCallOwnerAddress());
             var result = bytes.DeserializeToUInt64();
             result.ShouldBe(1000_000UL);
