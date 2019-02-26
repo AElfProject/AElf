@@ -58,7 +58,7 @@ namespace AElf.Kernel.Services
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<IBlock> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight,
+        public async Task<Block> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight,
             DateTime time)
         {
             try
