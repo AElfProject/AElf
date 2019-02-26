@@ -16,7 +16,7 @@ namespace AElf.Contracts.TestBase.Tests
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
 
         [Fact]
-        public async Task InitialChainTest_ContractsDeployment_Test()
+        public async Task InitialChainTest()
         {
             var tester = new ContractTester(ChainId);
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero));

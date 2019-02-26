@@ -71,6 +71,12 @@ namespace AElf.Contracts.TestBase
             _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
         }
 
+        /// <summary>
+        /// Initial a chain with given chain id (passed to ctor),
+        /// and produce the genesis block with provided contract types.
+        /// </summary>
+        /// <param name="contractTypes"></param>
+        /// <returns>Return contract addresses as the param order.</returns>
         public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
         {
             var transactions = GetGenesisTransactions(_chainId, contractTypes);
@@ -94,6 +100,14 @@ namespace AElf.Contracts.TestBase
             return addresses;
         }
 
+        /// <summary>
+        /// Generate a transaction and sign it.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="callerKeyPair"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
         public Transaction GenerateTransaction(Address contractAddress, string methodName,
             ECKeyPair callerKeyPair, params object[] objects)
         {
@@ -111,6 +125,13 @@ namespace AElf.Contracts.TestBase
             return tx;
         }
         
+        /// <summary>
+        /// Mine a block with given normal txs and system txs.
+        /// Normal txs will use tx pool while system txs not.
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <param name="systemTxs"></param>
+        /// <returns></returns>
         public async Task<Block> MineABlockAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
         {
             var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
@@ -119,6 +140,14 @@ namespace AElf.Contracts.TestBase
                 DateTime.UtcNow.AddMilliseconds(4000));
         }
 
+        /// <summary>
+        /// Generate a tx then package the new tx to a new block.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="callerKeyPair"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
         public async Task<Block> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             ECKeyPair callerKeyPair, params object[] objects)
         {
@@ -126,6 +155,15 @@ namespace AElf.Contracts.TestBase
             return await MineABlockAsync(new List<Transaction> {tx});
         }
 
+        /// <summary>
+        /// Using tx to call a method without mining.
+        /// The state database won't change.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="callerKeyPair"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             ECKeyPair callerKeyPair, params object[] objects)
         {
@@ -163,6 +201,13 @@ namespace AElf.Contracts.TestBase
             return await _blockchainService.GetChainAsync(_chainId);
         }
 
+        /// <summary>
+        /// Execute a block and add it to chain database.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <param name="txs"></param>
+        /// <param name="systemTxs"></param>
+        /// <returns></returns>
         public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
             await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
@@ -187,6 +232,11 @@ namespace AElf.Contracts.TestBase
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
         }
 
+        /// <summary>
+        /// Get the execution result of a tx by its tx id.
+        /// </summary>
+        /// <param name="txId"></param>
+        /// <returns></returns>
         public async Task<TransactionResult> GetTransactionResult(Hash txId)
         {
             return await _transactionResultManager.GetTransactionResultAsync(txId);
