@@ -153,13 +153,13 @@ namespace AElf.Contracts.TestBase
             var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
             var minerService = BuildMinerService(txs);
             return await minerService.MineAsync(_chainId, preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.AddMilliseconds(4000));
+                DateTime.UtcNow.AddMilliseconds(4000)) as IBlock;
         }
 
         public async Task<IBlock> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             params object[] objects)
         {
-            var tx = GenerateTransaction(contractAddress, methodName, CallOwner, objects);
+            var tx = GenerateTransaction(contractAddress, methodName, objects);
             return await MineABlockAsync(new List<Transaction> {tx});
         }
 
@@ -175,7 +175,7 @@ namespace AElf.Contracts.TestBase
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             params object[] objects)
         {
-            var tx = GenerateTransaction(contractAddress, methodName, CallOwner, objects);
+            var tx = GenerateTransaction(contractAddress, methodName, objects);
             var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
             var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
                 {
