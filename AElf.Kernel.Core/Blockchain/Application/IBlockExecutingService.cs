@@ -102,6 +102,12 @@ namespace AElf.Kernel.Blockchain.Application
                             ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
+                        
+                        await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
+                        {
+                            ChainId = chain.Id,
+                            BlockHeader = linkedBlock.Header
+                        });
                     }
                 }
                 catch (ValidateNextTimeBlockValidationException ex)
