@@ -38,7 +38,7 @@ namespace AElf.Contracts.TestBase
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockGenerationService _blockGenerationService;
-        private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
+        private ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
         private readonly IChainManager _chainManager;
@@ -109,10 +109,10 @@ namespace AElf.Contracts.TestBase
             return tx;
         }
         
-        public async Task<Block> MineABlockAsync(List<Transaction> txs)
+        public async Task<Block> MineABlockAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
         {
             var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
-            var minerService = BuildMinerService(txs);
+            var minerService = BuildMinerService(txs, systemTxs);
             return await minerService.MineAsync(_chainId, preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(4000));
         }
@@ -161,8 +161,10 @@ namespace AElf.Contracts.TestBase
             return await _blockchainService.GetChainAsync(_chainId);
         }
 
-        public async Task AddABlockAsync(Block block)
+        public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
+            await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
+                new CancellationToken());
             await _blockchainService.AddBlockAsync(_chainId, block);
             var chain = await _blockchainService.GetChainAsync(_chainId);
             await _blockchainService.AttachBlockToChainAsync(chain, block);
@@ -183,7 +185,7 @@ namespace AElf.Contracts.TestBase
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
         }
 
-        private MinerService BuildMinerService(List<Transaction> txs)
+        private MinerService BuildMinerService(List<Transaction> txs, List<Transaction> systemTxs = null)
         {
             var trs = new List<TransactionReceipt>();
 
@@ -195,9 +197,18 @@ namespace AElf.Contracts.TestBase
                 };
                 trs.Add(tr);
             }
-
+            
             var mockTxHub = new Mock<ITxHub>();
             mockTxHub.Setup(h => h.GetReceiptsOfExecutablesAsync()).ReturnsAsync(trs);
+
+            if (systemTxs != null)
+            {
+                var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
+                mockSystemTransactionGenerationService.Setup(s =>
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>(),
+                        It.IsAny<int>())).Returns(systemTxs);
+                _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
+            }
 
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(s => s.GetPublicKeyAsync())

@@ -13,6 +13,7 @@ using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
+using Type = System.Type;
 
 namespace AElf.Contracts.Consensus.DPoS.Tests
 {
@@ -38,7 +39,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
             Assert.Equal(DPoSBehaviour.InitialTerm, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
-
 
         [Fact]
         public async Task Initial_GetNewConsensusInformation()
@@ -89,11 +89,9 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 PublicKey = stubMiners[0].PublicKey.ToHex()
             };
 
-            var chain = await tester.GetChainAsync();
-
             // Act
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GenerateConsensusTransactions,
-                stubMiners[0], chain.LongestChainHeight, chain.BestChainHash.Value.Take(4).ToArray(),
+                stubMiners[0], tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
                 stubInitialExtraInformation.ToByteArray());
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
@@ -102,17 +100,17 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Assert.True(initialTransactions.Transactions.First().From ==
                         Address.FromPublicKey(stubMiners[0].PublicKey));
         }
-        
-        [Fact(Skip = "Working on.")]
+
+        [Fact]
         public async Task NormalBlock_Consensus_WaitingTime()
         {
             // Arrange
             var tester1 = new ContractTester(ChainId);
             var addresses = await tester1.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
-            
+
             var tester2 = new ContractTester(ChainId);
             await tester2.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
-            
+
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
@@ -129,29 +127,38 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 PublicKey = miner1.PublicKey.ToHex()
             };
 
-            var chain = await tester1.GetChainAsync();
-
-            var txsBytes = await tester1.CallContractMethodAsync(addresses[1], ConsensusConsts.GenerateConsensusTransactions,
-                miner1, chain.LongestChainHeight, chain.BestChainHash.Value.Take(4).ToArray(), stubInitialExtraInformation.ToByteArray());
+            var txsBytes = await tester1.CallContractMethodAsync(addresses[1],
+                ConsensusConsts.GenerateConsensusTransactions, miner1, tester1.Chain.LongestChainHeight,
+                tester1.Chain.BestChainHash.Value.Take(4).ToArray(), stubInitialExtraInformation.ToByteArray());
             var txList = TransactionList.Parser.ParseFrom(txsBytes);
             var txs = txList.Transactions.ToList();
-            
-            tester1.SignTransaction(ref txs, miner1);
-            
-            var block = await tester1.MineABlockAsync(new List<Transaction>(txs));
-            
-            await tester2.AddABlockAsync(block);
 
-            var chainOfTester2 = await tester2.GetChainAsync();
-            
+            tester1.SignTransaction(ref txs, miner1);
+
+            var block = await tester1.MineABlockAsync(new List<Transaction>(), txs);
+
+            await tester2.AddABlockAsync(block, new List<Transaction>(), txs);
+
             // Act
             var bytes = await tester2.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand, miner2,
                 DateTime.UtcNow.ToTimestamp(), miner2.PublicKey.ToHex());
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
-            // This fake node should produce block immediately.
             Assert.True(actual.CountingMilliseconds != DPoSContractConsts.AElfWaitFirstRoundTime);
+        }
+
+        private async Task<List<ContractTester>> CreateTesters(int number, params Type[] contractTypes)
+        {
+            var testers = new List<ContractTester>();
+            for (var i = 0; i < number; i++)
+            {
+                var tester = new ContractTester(ChainId);
+                await tester.InitialChainAsync(contractTypes);
+                testers.Add(tester);
+            }
+
+            return testers;
         }
 /*
 
