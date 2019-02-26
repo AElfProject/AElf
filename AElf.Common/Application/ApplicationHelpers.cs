@@ -6,35 +6,21 @@ namespace AElf.Common.Application
     public static class ApplicationHelpers
     {
         private const string ApplicationFolderName = "aelf";
+        private static string _appDataPath;
 
-        private static string _configPath;
-        
-        private static string _logPath;
-
-        public static string ConfigPath
+        public static string AppDataPath
         {
-            get => _configPath;
+            get => _appDataPath;
             set
             {
                 if (CheckPath(value))
-                    _configPath = value;
-            }
-        }
-        
-        public static string LogPath
-        {
-            get => _logPath;
-            set
-            {
-                if (CheckPath(value))
-                    _logPath = value;
+                    _appDataPath = value;
             }
         }
 
         static ApplicationHelpers()
         {
-            _configPath= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
-            _logPath = "logs";
+            _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
         }
 
         private static bool CheckPath(string path)

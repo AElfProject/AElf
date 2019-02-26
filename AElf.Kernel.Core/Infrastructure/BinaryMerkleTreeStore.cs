@@ -6,7 +6,7 @@ namespace AElf.Kernel.Infrastructure
     public class BinaryMerkleTreeStore : KeyValueStoreBase<StateKeyValueDbContext>, IBinaryMerkleTreeStore
     {
         public BinaryMerkleTreeStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) :
-            base(byteSerializer, keyValueDbContext, GlobalConfig.MerkleTreePrefix)
+            base(byteSerializer, keyValueDbContext, StorePrefix.MerkleTreePrefix)
         {
         }
     }

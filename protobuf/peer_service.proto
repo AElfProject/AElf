@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "AElf.OS.Network.Grpc";
 
 import "kernel.proto";
+import "network_types.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
@@ -37,13 +38,6 @@ message Announcement {
     BlockHeader Header = 1;
 }
 
-message Handshake {
-    HandshakeData HskData = 1;
-    bytes Sig = 2;
-    bool Success = 3;
-    BlockHeader Header = 4;
-}
-
 message AuthResponse {
     bool Success = 1;
     AuthError Err = 2;
@@ -56,14 +50,8 @@ enum AuthError {
     WrongAuth = 2;
 }
 
-message HandshakeData {
-    int64 ListeningPort = 1;
-    bytes PublicKey = 2;
-    int32 Version = 3;
-}
-
 message BlockRequest {
-    int64 Height = 1;
+    uint64 Height = 1;
     bytes Id = 2;
 }
 

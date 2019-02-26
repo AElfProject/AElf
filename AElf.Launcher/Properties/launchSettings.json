@@ -2,7 +2,7 @@
     "profiles": {
         "AElf.Launcher": {
             "commandName": "Project",
-            "commandLineArgs": "",
+            "commandLineArgs": ""
         }
     }
 }
