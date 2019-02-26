@@ -96,16 +96,18 @@ namespace AElf.CrossChain
             return res;
         }
 
-        public async Task CheckCrossChainCacheAsync(int chainId, ulong blockHeight, Hash blockHash)
+        public async Task<bool> ActivateCrossChainCacheAsync(int chainId, Hash blockHash, ulong blockHeight)
         {
             if (_crossChainDataConsumer.GetCachedChainCount() > 0)
                 // caching layer already initialized
-                return;
+                return false;
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(chainId, blockHash, blockHeight);
             foreach (var idHeight in dict)
             {
                 _crossChainDataConsumer.RegisterNewChainCache(idHeight.Key, idHeight.Value);
             }
+
+            return true;
         }
 
         public void RegisterNewChain(int chainId)

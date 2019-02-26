@@ -56,8 +56,8 @@ namespace AElf.CrossChain
 
         private async Task RegisterSideChainAsync(BestChainFoundEvent eventData)
         {
-            await _crossChainDataProvider.CheckCrossChainCacheAsync(eventData.ChainId, eventData.BlockHeight,
-                eventData.BlockHash);
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(eventData.ChainId, eventData.BlockHash,
+                eventData.BlockHeight);
         }
     }
 }

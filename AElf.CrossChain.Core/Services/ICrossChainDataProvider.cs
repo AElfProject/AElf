@@ -11,7 +11,7 @@ namespace AElf.CrossChain
         Task<bool> GetParentChainBlockDataAsync(int chainId, IList<ParentChainBlockData> parentChainBlockData,
             Hash previousBlockHash, ulong preBlockHeight, bool isValidation = false);
 
-        Task CheckCrossChainCacheAsync(int chainId, ulong blockHeight, Hash blockHash);
+        Task<bool> ActivateCrossChainCacheAsync(int chainId, Hash blockHash, ulong blockHeight);
 
         void RegisterNewChain(int chainId);
         //void AddNewSideChainDataConsumer(ICrossChainDataConsumer crossChainDataConsumer);
