@@ -5,6 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Authorization;
+using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.CrossChain;
+using AElf.Contracts.Dividends;
+using AElf.Contracts.Genesis;
+using AElf.Contracts.Resource;
+using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -322,6 +329,20 @@ namespace AElf.Contracts.TestBase
         private Address GetContractAddress(ulong serialNumber)
         {
             return Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), serialNumber);
+        }
+
+        public List<Type> GetDefaultContractTypes()
+        {
+            var list = new List<Type>();
+            list.Add(typeof(BasicContractZero));
+            list.Add(typeof(ConsensusContract));
+            list.Add(typeof(TokenContract));
+            list.Add(typeof(CrossChainContract));
+            list.Add(typeof(AuthorizationContract));
+            list.Add(typeof(ResourceContract));
+            list.Add(typeof(DividendsContract));
+
+            return list;
         }
     }
 }
