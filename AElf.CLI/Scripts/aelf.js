@@ -1,1 +1,1 @@
-../aelf-sdk/dist/aelf.js
+../node_modules/aelf-sdk/dist/aelf.js

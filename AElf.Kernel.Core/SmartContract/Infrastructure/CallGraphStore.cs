@@ -7,7 +7,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     public class CallGraphStore : KeyValueStoreBase<StateKeyValueDbContext>, ICallGraphStore
     {
         public CallGraphStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext)
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.CallGraphPrefix)
+            : base(byteSerializer, keyValueDbContext, StorePrefix.CallGraphPrefix)
         {
         }
     }
