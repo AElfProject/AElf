@@ -36,7 +36,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
-            blockBody.TransactionList.Clear();
+//            blockBody.TransactionList.Clear();
             await _blockBodyStore.SetAsync(blockHash.Clone().ToStorageKey(), blockBody);
         }
         
