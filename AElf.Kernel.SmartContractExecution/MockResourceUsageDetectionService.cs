@@ -3,9 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
-using AElf.Kernel;
 using AElf.Common;
-using GlobalConfig = AElf.Common.GlobalConfig;
 
 namespace AElf.Kernel.SmartContractExecution
 {

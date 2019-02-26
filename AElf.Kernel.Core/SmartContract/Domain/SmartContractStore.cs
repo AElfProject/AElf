@@ -7,7 +7,7 @@ namespace AElf.Kernel.SmartContract.Domain
     public class SmartContractStore : KeyValueStoreBase<StateKeyValueDbContext>, ISmartContractStore
     {
         public SmartContractStore(IByteSerializer byteSerializer, StateKeyValueDbContext keyValueDbContext) 
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.SmartContractPrefix)
+            : base(byteSerializer, keyValueDbContext, StorePrefix.SmartContractPrefix)
         {
         }
     }

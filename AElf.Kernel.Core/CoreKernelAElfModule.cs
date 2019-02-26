@@ -38,6 +38,8 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
             services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
+
+            services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
