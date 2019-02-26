@@ -20,6 +20,7 @@
         <ProjectReference Include="..\AElf.Contracts.Genesis2\AElf.Contracts.Genesis2.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Token2\AElf.Contracts.Token2.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
 

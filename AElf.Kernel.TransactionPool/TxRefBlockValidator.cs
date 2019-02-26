@@ -23,7 +23,7 @@ namespace AElf.Kernel.TransactionPool
         public async Task ValidateAsync(int chainId, Transaction tx)
         {
 
-            if (tx.RefBlockNumber < GlobalConfig.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
+            if (tx.RefBlockNumber < ChainConsts.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
             {
                 return;
             }
@@ -33,13 +33,13 @@ namespace AElf.Kernel.TransactionPool
             var canonicalHash = await _blockchainService.GetBlockHashByHeightAsync(chain, tx.RefBlockNumber);
 
             var curHeight = chain.BestChainHeight;
-            if (tx.RefBlockNumber > curHeight && curHeight > GlobalConfig.GenesisBlockHeight)
+            if (tx.RefBlockNumber > curHeight && curHeight > ChainConsts.GenesisBlockHeight)
             {
                 throw  new FutureRefBlockException();
             }
 
-            if (curHeight > GlobalConfig.ReferenceBlockValidPeriod + GlobalConfig.GenesisBlockHeight &&
-                curHeight - tx.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod)
+            if (curHeight > ChainConsts.ReferenceBlockValidPeriod + ChainConsts.GenesisBlockHeight &&
+                curHeight - tx.RefBlockNumber > ChainConsts.ReferenceBlockValidPeriod)
             {
                 throw new RefBlockExpiredException();
             }

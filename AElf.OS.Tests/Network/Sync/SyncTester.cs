@@ -29,32 +29,32 @@ namespace AElf.OS.Tests.Network.Sync
             _jobManager = GetRequiredService<IBackgroundJobManager>();
             _eventBus = GetRequiredService<ILocalEventBus>();
         }
-        
+
         [Fact]
         public void Test()
         {
-            
             List<Block> downloadedBlocks = new List<Block>();
             List<IBlock> initBlocks = new List<IBlock>();
-            
+
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
             var block1 = ChainGenerationHelpers.BuildNext(genesis);
             var block2 = ChainGenerationHelpers.BuildNext(block1);
-            
+
             initBlocks.Add(genesis);
             initBlocks.Add(block1);
             initBlocks.Add(block2);
-            
+
             Mock<INetworkService> _mockNetService = new Mock<INetworkService>();
 
             _mockNetService
                 .Setup(ns => ns.GetBlockIdsAsync(It.IsAny<Hash>(), It.IsAny<int>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(initBlocks.Select(bl => bl.GetHash()).ToList()));
-            
+
             _mockNetService
                 .Setup(ns => ns.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .Returns<Hash, string, bool>((hash, peer, tryOthers) => Task.FromResult(initBlocks.FirstOrDefault(b => b.GetHash() == hash)));
-            
+                .Returns<Hash, string, bool>((hash, peer, tryOthers) =>
+                    Task.FromResult(initBlocks.FirstOrDefault(b => b.GetHash() == hash)));
+
             Mock<IFullBlockchainService> blockchainService = new Mock<IFullBlockchainService>();
             blockchainService
                 .Setup(bls => bls.AddBlockAsync(It.IsAny<int>(), It.IsAny<Block>()))
@@ -67,9 +67,9 @@ namespace AElf.OS.Tests.Network.Sync
             blockchainService
                 .Setup(bcs => bcs.HasBlockAsync(It.IsAny<int>(), It.IsAny<Hash>()))
                 .Returns(Task.FromResult(false)); // this service never has the block
-            
+
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
-            optionsMock.Setup(m => m.Value).Returns(new ChainOptions { ChainId = ChainHelpers.GetRandomChainId() });
+            optionsMock.Setup(m => m.Value).Returns(new ChainOptions {ChainId = ChainHelpers.GetRandomChainId()});
 
             // Network layer and service is mocked
 //            _eventBus.Subscribe<PeerConnectedEventData>(args =>
@@ -82,21 +82,23 @@ namespace AElf.OS.Tests.Network.Sync
 //
 //                return Task.FromResult(true);
 //            });
-            
+
             // Simulate the connection
             //_eventBus.PublishAsync(new PeerConnectedEventData { BlockId = block2.GetHash() });
-            
+
             var h = new ForkDownloadJob();
             h.NetworkService = _mockNetService.Object;
             h.BlockchainService = blockchainService.Object;
             h.ChainOptions = optionsMock.Object;
-                
+
+            h.BlockchainExecutingService = Mock.Of<IBlockchainExecutingService>();
+
             //_jobManager.EnqueueAsync(h);
-            h.Execute(new ForkDownloadJobArgs { BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList() });
-            
+            h.Execute(new ForkDownloadJobArgs {BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList()});
+
             // setup some blocks to get
             // mock network service
-            
+
             // setup a receiver list and an initial list.
             // objective is to fill the receiver with the same as the initial (everything as been requested)
             ;

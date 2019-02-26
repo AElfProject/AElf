@@ -28,6 +28,7 @@ namespace AElf.Kernel.Services
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
 
         public ILocalEventBus EventBus { get; set; }
 
@@ -37,7 +38,7 @@ namespace AElf.Kernel.Services
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IConsensusService consensusService)
+            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService)
         {
             _txHub = txHub;
             Logger = NullLogger<MinerService>.Instance;
@@ -45,6 +46,7 @@ namespace AElf.Kernel.Services
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _consensusService = consensusService;
+            _blockchainExecutingService = blockchainExecutingService;
             _blockchainService = blockchainService;
             _accountService = accountService;
             
@@ -135,7 +137,7 @@ namespace AElf.Kernel.Services
                 await SignBlockAsync(block);
                 await _blockchainService.AddBlockAsync(chainId, block);
                 var chain = await _blockchainService.GetChainAsync(chainId);
-                await _blockchainService.AttachBlockToChainAsync(chain, block);
+                await _blockchainExecutingService.AttachBlockToChainAsync(chain, block);
 
                 await SignBlockAsync(block);
                 // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized

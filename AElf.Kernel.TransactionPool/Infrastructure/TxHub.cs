@@ -197,13 +197,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void IdentifyExpiredTransactions()
         {
-            if (_curHeight > GlobalConfig.ReferenceBlockValidPeriod)
+            if (_curHeight > ChainConsts.ReferenceBlockValidPeriod)
             {
                 var expired = _allTxns.Where(tr =>
                     tr.Value.TransactionStatus == TransactionStatus.UnknownTransactionStatus
                     && tr.Value.RefBlockStatus != RefBlockStatus.RefBlockExpired
                     && _curHeight > tr.Value.Transaction.RefBlockNumber
-                    && _curHeight - tr.Value.Transaction.RefBlockNumber > GlobalConfig.ReferenceBlockValidPeriod
+                    && _curHeight - tr.Value.Transaction.RefBlockNumber > ChainConsts.ReferenceBlockValidPeriod
                 );
                 foreach (var tr in expired)
                 {
@@ -216,8 +216,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             // TODO: Improve
             // Remove old transactions (executed, invalid and expired)
-            var keepNBlocks = GlobalConfig.ReferenceBlockValidPeriod / 4 * 5;
-            if (_curHeight - GlobalConfig.GenesisBlockHeight > keepNBlocks)
+            var keepNBlocks = ChainConsts.ReferenceBlockValidPeriod / 4 * 5;
+            if (_curHeight - ChainConsts.GenesisBlockHeight > keepNBlocks)
             {
                 var blockNumberThreshold = _curHeight - keepNBlocks;
                 var toRemove = _allTxns.Where(tr => tr.Value.Transaction.RefBlockNumber < blockNumberThreshold);
@@ -243,7 +243,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var blockHeader = block.Header;
             // TODO: Handle LIB
-            if (blockHeader.Height > (_curHeight + 1) && _curHeight != GlobalConfig.GenesisBlockHeight)
+            if (blockHeader.Height > (_curHeight + 1) && _curHeight != ChainConsts.GenesisBlockHeight)
             {
                 throw new Exception($"Invalid block index {blockHeader.Height} but current height is {_curHeight}.");
             }
