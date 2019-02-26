@@ -47,7 +47,11 @@ namespace AElf.Contracts.TestBase
 
         public Chain Chain => GetChainAsync().Result;
 
-        public ContractTester(int chainId)
+        public ECKeyPair KeyPair { get; set; }
+
+        public List<Address> DeployedContractsAddresses { get; set; }
+
+        public ContractTester(int chainId, ECKeyPair keyPair = null)
         {
             _chainId = chainId;
 
@@ -71,6 +75,11 @@ namespace AElf.Contracts.TestBase
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
             _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
+
+            if (keyPair != null)
+            {
+                KeyPair = keyPair;
+            }
         }
 
         /// <summary>
@@ -98,6 +107,8 @@ namespace AElf.Contracts.TestBase
             {
                 addresses.Add(GetContractAddress(i));
             }
+
+            DeployedContractsAddresses = addresses;
 
             return addresses;
         }
