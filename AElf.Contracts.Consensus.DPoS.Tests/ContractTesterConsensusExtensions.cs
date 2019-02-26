@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             var bytes = await tester.CallContractMethodAsync(
                 tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.
-                ConsensusConsts.GetConsensusCommand, tester.CallOwnerKeyPair,
+                ConsensusConsts.GetConsensusCommand,
                 DateTime.UtcNow.ToTimestamp(), tester.CallOwnerKeyPair.PublicKey.ToHex());
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DPoSExtraInformation extraInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GetNewConsensusInformation, tester.CallOwnerKeyPair, extraInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, extraInformation.ToByteArray());
             return DPoSInformation.Parser.ParseFrom(bytes);
         }
 
@@ -34,9 +34,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DPoSExtraInformation extraInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GenerateConsensusTransactions,
-                tester.CallOwnerKeyPair, tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
-                extraInformation.ToByteArray());
+                ConsensusConsts.GenerateConsensusTransactions, tester.Chain.LongestChainHeight,
+                tester.Chain.BestChainHash.Value.Take(4).ToArray(), extraInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
             return txs;
@@ -46,8 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DPoSInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.ValidateConsensus,
-                tester.CallOwnerKeyPair, information.ToByteArray());
+                ConsensusConsts.ValidateConsensus, information.ToByteArray());
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
@@ -56,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
                 ConsensusConsts.GenerateConsensusTransactions,
-                tester.CallOwnerKeyPair, tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
+                tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
                 extraInformation.ToByteArray());
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);

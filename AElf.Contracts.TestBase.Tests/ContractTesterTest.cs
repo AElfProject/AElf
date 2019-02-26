@@ -36,8 +36,7 @@ namespace AElf.Contracts.TestBase.Tests
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero));
 
             // Create a transaction to deploy token contract.
-            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract",
-                CryptoHelpers.GenerateKeyPair(), 2,
+            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             var chain = await tester.GetChainAsync();
@@ -63,8 +62,7 @@ namespace AElf.Contracts.TestBase.Tests
             var tester2 = new ContractTester(ChainId);
             await tester2.InitialChainAsync(typeof(BasicContractZero));
 
-            var tx = tester1.GenerateTransaction(addresses[0], "DeploySmartContract",
-                CryptoHelpers.GenerateKeyPair(), 2,
+            var tx = tester1.GenerateTransaction(addresses[0], "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await tester1.MineABlockAsync(new List<Transaction> {tx});
@@ -86,8 +84,7 @@ namespace AElf.Contracts.TestBase.Tests
             var tester2 = new ContractTester(ChainId);
             await tester2.InitialChainAsync(typeof(BasicContractZero));
 
-            var tx = tester1.GenerateTransaction(addresses[0], "DeploySmartContract",
-                CryptoHelpers.GenerateKeyPair(), 2,
+            var tx = tester1.GenerateTransaction(addresses[0], "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             var block = await tester1.MineABlockAsync(new List<Transaction> {tx});
@@ -122,17 +119,17 @@ namespace AElf.Contracts.TestBase.Tests
         {
             // Choose token contract to do this test.
             const ulong totalSupply = 10_0000_0000;
-            
-            var tester = new ContractTester(ChainId);
-            var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract));
 
             var callerKeyPair = CryptoHelpers.GenerateKeyPair();
-            var txToInitialize = tester.GenerateTransaction(addresses[1], "Initialize",
-                callerKeyPair, "ELF", "ELF Token", totalSupply, 2U);
+            var tester = new ContractTester(ChainId, callerKeyPair);
+            var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract));
+
+            var txToInitialize =
+                tester.GenerateTransaction(addresses[1], "Initialize", "ELF", "ELF Token", totalSupply, 2U);
 
             await tester.MineABlockAsync(new List<Transaction> {txToInitialize});
 
-            var bytes = await tester.CallContractMethodAsync(addresses[1], "BalanceOf", callerKeyPair,
+            var bytes = await tester.CallContractMethodAsync(addresses[1], "BalanceOf",
                 Address.FromPublicKey(callerKeyPair.PublicKey));
 
             var result = bytes.DeserializeToUInt64();
@@ -146,8 +143,7 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester(ChainId);
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero));
 
-            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract",
-                CryptoHelpers.GenerateKeyPair(), 2,
+            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             
             await tester.MineABlockAsync(new List<Transaction> {tx});

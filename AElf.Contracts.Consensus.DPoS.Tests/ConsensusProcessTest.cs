@@ -26,11 +26,11 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             // Arrange
             var stubMiner = CryptoHelpers.GenerateKeyPair();
-            var tester = new ContractTester(ChainId);
+            var tester = new ContractTester(ChainId, stubMiner);
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
 
             // Act
-            var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand, stubMiner,
+            var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand,
                 DateTime.UtcNow.ToTimestamp(), stubMiner.PublicKey.ToHex());
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetNewConsensusInformation,
-                stubMiners[0], stubInitialInformation.ToByteArray());
+                stubInitialInformation.ToByteArray());
             var information = DPoSInformation.Parser.ParseFrom(bytes);
 
             // Assert
@@ -117,31 +117,32 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public async Task Initial_GenerateConsensusTransactions()
         {
             // Arrange
-            var tester = new ContractTester(ChainId);
-            var addresses = await tester.InitialChainAsync( typeof(BasicContractZero), typeof(ConsensusContract));
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
                 stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
 
+            var miner = stubMiners[0];
+            var tester = new ContractTester(ChainId, miner);
+            var addresses = await tester.InitialChainAsync( typeof(BasicContractZero), typeof(ConsensusContract));
+
             var stubInitialExtraInformation = new DPoSExtraInformation
             {
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
                 MiningInterval = 4000,
-                PublicKey = stubMiners[0].PublicKey.ToHex()
+                PublicKey = miner.PublicKey.ToHex()
             };
 
             // Act
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GenerateConsensusTransactions,
-                stubMiners[0], tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
+                 tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
                 stubInitialExtraInformation.ToByteArray());
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
             Assert.True(initialTransactions.Transactions.First().MethodName == "InitialTerm");
-            Assert.True(initialTransactions.Transactions.First().From ==
-                        Address.FromPublicKey(stubMiners[0].PublicKey));
+            Assert.True(initialTransactions.Transactions.First().From == Address.FromPublicKey(miner.PublicKey));
         }
         
         [Fact]

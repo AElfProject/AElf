@@ -46,8 +46,7 @@ namespace AElf.Contracts.Consensus.Tests
             var tester = new ContractTester(ChainId);
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero));
 
-            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract",
-                CryptoHelpers.GenerateKeyPair(), 2,
+            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await tester.MineABlockAsync(new List<Transaction> {tx});
