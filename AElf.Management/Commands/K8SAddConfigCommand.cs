@@ -10,7 +10,6 @@ using AElf.Management.Models;
 using k8s;
 using k8s.Models;
 using Microsoft.AspNetCore.JsonPatch;
-using Uri = AElf.Configuration.Config.GRPC.Uri;
 
 namespace AElf.Management.Commands
 {
@@ -37,7 +36,7 @@ namespace AElf.Management.Commands
                 var config = await K8SRequestHelper.GetClient().ReadNamespacedConfigMapAsync(GlobalSetting.CommonConfigName, arg.MainChainId);
 
                 var grpcRemoteConfig = JsonSerializer.Instance.Deserialize<GrpcRemoteConfig>(config.Data["grpc-remote.json"]);
-                grpcRemoteConfig.ChildChains.Add(arg.SideChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = arg.LauncherArg.ClusterIp});
+                //grpcRemoteConfig.ChildChains.Add(arg.SideChainId, new Uri {Port = GlobalSetting.GrpcPort, Address = arg.LauncherArg.ClusterIp});
                 config.Data["grpc-remote.json"] = JsonSerializer.Instance.Serialize(grpcRemoteConfig);
 
                 var patch = new JsonPatchDocument<V1ConfigMap>();

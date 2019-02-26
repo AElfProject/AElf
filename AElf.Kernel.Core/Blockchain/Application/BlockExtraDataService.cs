@@ -17,7 +17,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                await blockExtraDataProvider.FillExtraData(chainId, block);
+                await blockExtraDataProvider.FillExtraDataAsync(chainId, block);
             }
         }
     }

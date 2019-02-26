@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.Token;
@@ -24,7 +25,7 @@ namespace AElf.Contracts.Resource.Tests
         public ResourceContractTest()
         {
             Tester = new ContractTester();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(typeof(BasicContractZero),typeof(Consensus.DPoS.Contract),
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract),
                 typeof(TokenContract), typeof(ResourceContract)));
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
         }
