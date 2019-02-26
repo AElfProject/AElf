@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
   aelf-node:
     working_dir: /opt/aelf-node
