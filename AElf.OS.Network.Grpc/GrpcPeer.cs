@@ -43,6 +43,10 @@ namespace AElf.OS.Network.Grpc
         public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count)
         {
             var idList = await _client.RequestBlockIdsAsync(new BlockIdsRequest { FirstBlockId = topHash.Value, Count = count});
+            
+            if (idList == null || idList.Ids.Count <= 0)
+                return new List<Hash>();
+            
             return idList.Ids.Select(id => Hash.LoadByteArray(id.ToByteArray())).ToList();
         }
 
