@@ -4,14 +4,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure
 {
-    public interface IKeyValueStore
-    {
-        Task SetAsync(string key, object value);
-        Task PipelineSetAsync(Dictionary<string, object> pipelineSet);
-        Task<T> GetAsync<T>(string key);
-        Task RemoveAsync(string key);
-    }
-    
     public interface IKeyValueStore<T>
         where T: IMessage<T>
     {
