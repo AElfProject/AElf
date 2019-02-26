@@ -1,15 +1,11 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Services;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
-using Microsoft.Extensions.Options;
 namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
-
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
             _consensusService = consensusService;

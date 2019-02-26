@@ -15,10 +15,16 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
     {
         public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester)
         {
+            var firstExtraInformation = new DPoSExtraInformation
+            {
+                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
+                IsBootMiner = true
+            };
             var bytes = await tester.CallContractMethodAsync(
                 tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.
                 ConsensusConsts.GetConsensusCommand,
-                DateTime.UtcNow.ToTimestamp(), tester.CallOwnerKeyPair.PublicKey.ToHex());
+                firstExtraInformation.ToByteArray());
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 

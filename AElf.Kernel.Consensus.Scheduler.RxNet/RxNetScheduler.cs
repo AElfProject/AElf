@@ -53,7 +53,8 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
 
         public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
-            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms.");
+            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
+                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds)}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
                 .Select(_ => blockMiningEventData).Subscribe(this);
@@ -70,7 +71,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         // This is the callback.
         public void OnNext(BlockMiningEventData value)
         {
-            Logger.LogDebug($"Published block mining event: {value}");
+            Logger.LogDebug($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
             LocalEventBus.PublishAsync(value);
         }
     }
