@@ -12,14 +12,8 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     public class BlockchainStore<T> : KeyValueStoreBase<BlockchainKeyValueDbContext, T>, IBlockchainStore<T>
         where T : IMessage<T>, new()
     {
-        public BlockchainStore(BlockchainKeyValueDbContext keyValueDbContext)
-            : base(keyValueDbContext)
+        public BlockchainStore(BlockchainKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider) : base(keyValueDbContext, prefixProvider)
         {
-        }
-
-        protected override string GetDataPrefix()
-        {
-            return typeof(T).Name;
         }
     }
 }

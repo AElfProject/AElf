@@ -11,13 +11,9 @@ namespace AElf.Kernel.SmartContractExecution.Infrastructure
     public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
         where T : IMessage<T>, new()
     {
-        public StateStore(StateKeyValueDbContext keyValueDbContext) : base(keyValueDbContext)
+        public StateStore(StateKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider) : base(
+            keyValueDbContext, prefixProvider)
         {
-        }
-
-        protected override string GetDataPrefix()
-        {
-            return typeof(T).Name;
         }
     }
 }

@@ -7,6 +7,40 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure
 {
+    public interface IStoreKeyPrefixProvider<T>
+        where T : IMessage<T>, new()
+    {
+        string GetStoreKeyPrefix();
+    }
+
+    public class StoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
+        where T : IMessage<T>, new()
+    {
+        public string GetStoreKeyPrefix()
+        {
+            return typeof(T).Name;
+        }
+    }
+    
+    public class FastStoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
+        where T : IMessage<T>, new()
+    {
+
+        private readonly string _prefix;
+            
+        public FastStoreKeyPrefixProvider(string prefix)
+        {
+            _prefix = prefix;
+        }
+        
+        public string GetStoreKeyPrefix()
+        {
+            return _prefix;
+        }
+    }
+
+
+
     public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
         where T : IMessage<T>, new()
@@ -17,13 +51,12 @@ namespace AElf.Kernel.Infrastructure
 
         private readonly MessageParser<T> _messageParser;
 
-        protected abstract string GetDataPrefix();
 
-        public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext)
+        public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider)
         {
             _keyValueDbContext = keyValueDbContext;
             // ReSharper disable once VirtualMemberCallInConstructor
-            _collection = keyValueDbContext.Collection(GetDataPrefix());
+            _collection = keyValueDbContext.Collection(prefixProvider.GetStoreKeyPrefix());
 
             _messageParser = new MessageParser<T>(() => new T());
         }
@@ -33,7 +66,7 @@ namespace AElf.Kernel.Infrastructure
             await _collection.SetAsync(key, Serialize(value));
         }
 
-        private byte[] Serialize(T value)
+        private static byte[] Serialize(T value)
         {
             return value?.ToByteArray();
         }
