@@ -7,6 +7,8 @@ namespace AElf.Sdk.CSharp
 {
     public interface IContext
     {
+        void LogDebug(Func<string> func);
+
         void FireEvent(Event logEvent);
         Hash TransactionId { get; }
 
@@ -40,9 +42,9 @@ namespace AElf.Sdk.CSharp
         /// </summary>
         /// <param name="deferredTxn"></param>
         void SendDeferredTransaction(Transaction deferredTxn);
-        
+
         void DeployContract(Address address, SmartContractRegistration registration);
-        
+
         void UpdateContract(Address address, SmartContractRegistration registration);
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }

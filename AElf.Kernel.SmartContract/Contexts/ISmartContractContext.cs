@@ -2,6 +2,7 @@
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.SmartContract
@@ -15,5 +16,8 @@ namespace AElf.Kernel.SmartContract
         
         ISmartContractExecutiveService SmartContractExecutiveService { get; }
         
+#if DEBUG
+        ILogger<ISmartContractContext> Logger { get; }
+#endif
     }
 }
