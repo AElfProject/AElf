@@ -40,7 +40,9 @@ namespace AElf.Contracts.TestBase
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
+        private readonly ITransactionResultManager _transactionResultManager;
 
         public Chain Chain => GetChainAsync().Result;
         public ECKeyPair CallOwner { get; set; }
@@ -66,7 +68,9 @@ namespace AElf.Contracts.TestBase
                 application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
+            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
+            _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
 
             CallOwner = CryptoHelpers.GenerateKeyPair();
         }
@@ -156,11 +160,12 @@ namespace AElf.Contracts.TestBase
                 DateTime.UtcNow.AddMilliseconds(4000)) as IBlock;
         }
 
-        public async Task<IBlock> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
+        public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             params object[] objects)
         {
             var tx = GenerateTransaction(contractAddress, methodName, objects);
-            return await MineABlockAsync(new List<Transaction> {tx});
+            await MineABlockAsync(new List<Transaction> {tx});
+            return await GetTransactionResult(tx.GetHash());
         }
 
         public void SignTransaction(ref List<Transaction> transactions)
@@ -200,11 +205,20 @@ namespace AElf.Contracts.TestBase
             return await _blockchainService.GetChainAsync(_chainId);
         }
 
-        public async Task AddABlockAsync(Block block)
+        /// <summary>
+        /// Execute a block and add it to chain database.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <param name="txs"></param>
+        /// <param name="systemTxs"></param>
+        /// <returns></returns>
+        public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
+            await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
+                new CancellationToken());
             await _blockchainService.AddBlockAsync(_chainId, block);
             var chain = await _blockchainService.GetChainAsync(_chainId);
-            await _blockchainService.AttachBlockToChainAsync(chain, block);
+            await _blockchainExecutingService.AttachBlockToChainAsync(chain, block);
         }
 
         public async Task SetIrreversibleBlock(Hash libHash)
@@ -220,6 +234,11 @@ namespace AElf.Contracts.TestBase
             chain.LastIrreversibleBlockHash = libHash;
             chain.LastIrreversibleBlockHeight = libHeight;
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
+        }
+
+        public async Task<TransactionResult> GetTransactionResult(Hash txId)
+        {
+            return await _transactionResultManager.GetTransactionResultAsync(txId);
         }
 
         private MinerService BuildMinerService(List<Transaction> txs)
@@ -242,7 +261,7 @@ namespace AElf.Contracts.TestBase
             mockAccountService.Setup(s => s.GetPublicKeyAsync())
                 .ReturnsAsync(CryptoHelpers.GenerateKeyPair().PublicKey);
             return new MinerService(mockTxHub.Object, mockAccountService.Object, _blockGenerationService,
-                _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService);
+                _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService, _blockchainExecutingService);
         }
 
         public Address GetAddress(ECKeyPair keyPair)

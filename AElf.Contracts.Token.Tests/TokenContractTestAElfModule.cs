@@ -1,6 +1,7 @@
 using System.IO;
 using AElf.Common;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.TestBase;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.TestBase
+namespace AElf.Contracts.Token
 {
     [DependsOn(
         typeof(ContractTestAElfModule)

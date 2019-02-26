@@ -13,7 +13,7 @@ using AElf.Types.CSharp;
 using Xunit;
 using Shouldly;
 
-namespace AElf.Contracts.Token.Tests
+namespace AElf.Contracts.Token
 {
 public sealed class TokenContractTest : TokenContractTestBase
     {
@@ -67,7 +67,7 @@ public sealed class TokenContractTest : TokenContractTestBase
             bytes2.DeserializeToUInt64().ShouldBe(1000UL);
         }
 
-        [Fact(Skip = "Will complete exception cases after framwork complete..")]
+        [Fact]
         public async Task Transfer_Without_Enough_Token()
         {
             await Initialize_TokenContract();
@@ -75,7 +75,7 @@ public sealed class TokenContractTest : TokenContractTestBase
             var toAddress = CryptoHelpers.GenerateKeyPair();
             var result = Tester.ExecuteContractWithMiningAsync(ContractAddresses[1], "Transfer",
                 Tester.GetAddress(toAddress), 1000_000_00UL);
-            var block = result;
+            result.Result.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
         [Fact]
