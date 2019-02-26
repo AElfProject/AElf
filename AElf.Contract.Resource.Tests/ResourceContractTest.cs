@@ -144,7 +144,7 @@ namespace AElf.Contracts.Resource.Tests
             issueResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Theory]
+        [Theory(Skip = "https://github.com/AElfProject/AElf/issues/952")]
         [InlineData(100UL)]
         [InlineData(1000UL)]
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
@@ -183,7 +183,7 @@ namespace AElf.Contracts.Resource.Tests
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
         public async Task Sell_WithEnough_Resource()
         {
             await Buy_Resource_WithEnough_Token(1000UL);
@@ -194,7 +194,7 @@ namespace AElf.Contracts.Resource.Tests
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
         public async Task Sell_WithoutEnough_Resource()
         {
             await Buy_Resource_WithEnough_Token(100UL);
@@ -207,7 +207,7 @@ namespace AElf.Contracts.Resource.Tests
             sellResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
         public async Task Lock_Available_Resource()
         {
             await Buy_Resource_WithEnough_Token(1000UL);
