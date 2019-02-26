@@ -4,7 +4,7 @@ namespace AElf.OS.Node.Domain
 {
     public class OsBlockchainNodeContext
     {
-        private BlockchainNodeContext BlockchainNodeContext { get; set; }
+        public BlockchainNodeContext BlockchainNodeContext { get; set; }
         //private PeerPool
     }
 }
