@@ -78,6 +78,11 @@ namespace AElf.Kernel.Services
                         await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
                             cts.Token);
                 }
+                
+                Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
+                                      $"height: {block.Header.Height}, " +
+                                      $"previous: {block.Header.PreviousBlockHash}, " +
+                                      $"tx-count: {block.Body.TransactionsCount} }}");
 
                 /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
@@ -142,9 +147,6 @@ namespace AElf.Kernel.Services
                 await SignBlockAsync(block);
                 // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
                 //await _txHub.OnNewBlock(block);
-
-                Logger.LogInformation($"Generate block {block.BlockHashToHex} at height {block.Header.Height} " +
-                                      $"with {block.Body.TransactionsCount} txs.");
 
                 return block;
             }
