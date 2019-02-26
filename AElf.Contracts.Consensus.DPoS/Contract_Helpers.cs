@@ -305,12 +305,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool IsMiner(string publicKey)
         {
-            Console.WriteLine($"sender: {publicKey}");
             if (TryToGetTermNumber(out var termNumber))
             {
                 if (TryToGetMiners(termNumber, out var miners))
                 {
-                    Console.WriteLine(miners.ToString());
                     return miners.PublicKeys.Contains(publicKey);
                 }
             }

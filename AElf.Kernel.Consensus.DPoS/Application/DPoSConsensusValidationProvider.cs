@@ -15,8 +15,14 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         }
         public async Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
         {
-            return await _consensusService.ValidateConsensusAsync(chainId, block.GetHash(), block.Height,
+            if (block.Height == 1)
+            {
+                return true;
+            }
+
+            var result = await _consensusService.ValidateConsensusAsync(chainId, block.GetHash(), block.Height,
                 block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
+            return result;
         }
 
         public Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)

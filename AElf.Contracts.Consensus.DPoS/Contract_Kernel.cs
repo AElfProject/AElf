@@ -112,8 +112,8 @@ namespace AElf.Contracts.Consensus.DPoS
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-            var publicKey = Context.RecoverPublicKey().ToHex();
-            
+            var publicKey = information.SenderPublicKey;
+
             // Validate the sender.
             if (!IsMiner(publicKey) && !information.MinersList.Contains(information.Sender))
             {
@@ -193,6 +193,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new DPoSInformation
                 {
                     Sender = Context.Sender,
+                    SenderPublicKey = publicKey,
                     WillUpdateConsensus = true,
                     NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
                     MinersList =
@@ -207,6 +208,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return extra.ChangeTerm
                     ? new DPoSInformation
                     {
+                        SenderPublicKey = publicKey,
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
                         NewTerm = GenerateNextTerm(),
@@ -214,6 +216,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                     : new DPoSInformation
                     {
+                        SenderPublicKey = publicKey,
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
                         Forwarding = GenerateNewForwarding(),
@@ -224,6 +227,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // To publish Out Value.
             return new DPoSInformation
             {
+                SenderPublicKey = publicKey,
                 CurrentRound = FillOutValue(extra.HashValue, publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
                 Sender = Context.Sender

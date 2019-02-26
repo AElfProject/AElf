@@ -85,9 +85,10 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            return (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
+            var validationResult = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
                     chainContext, ConsensusConsts.ValidateConsensus, consensusInformation))
-                .DeserializeToPbMessage<ValidationResult>().Success;
+                .DeserializeToPbMessage<ValidationResult>();
+            return validationResult.Success;
         }
 
         public async Task<byte[]> GetNewConsensusInformationAsync(int chainId)

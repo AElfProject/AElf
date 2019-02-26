@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
@@ -31,17 +32,19 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IAccountService _accountService;
         public ILocalEventBus LocalEventBus { get; set; }
 
 
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
-            IBlockExecutingService blockExecutingService)
+            IBlockExecutingService blockExecutingService, IAccountService accountService)
         {
             _chainManager = chainManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
+            _accountService = accountService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -55,6 +58,9 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block.Header.GetHash(),
                 PreviousBlockHash = block.Header.PreviousBlockHash
             });
+
+            var producedByMe = (await _accountService.GetPublicKeyAsync()).ToHex() ==
+                               block.Header.P.ToByteArray().ToHex();
 
             List<ChainBlockLink> blockLinks = null;
 
@@ -71,7 +77,7 @@ namespace AElf.Kernel.Blockchain.Application
                         var linkedBlock = await _blockchainService.GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
 
                         // Set the other blocks as bad block if found the first bad block
-                        if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
+                        if (!producedByMe && !await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -80,7 +86,7 @@ namespace AElf.Kernel.Blockchain.Application
                             break;
                         }
 
-                        if (!await ExecuteBlock(chain.Id, blockLink, linkedBlock))
+                        if (!producedByMe && !await ExecuteBlock(chain.Id, blockLink, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -89,7 +95,7 @@ namespace AElf.Kernel.Blockchain.Application
                             break;
                         }
 
-                        if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
+                        if (!producedByMe && !await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);

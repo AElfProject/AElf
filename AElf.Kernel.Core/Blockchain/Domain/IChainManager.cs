@@ -261,7 +261,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash)
         {
-            if (chain.BestChainHeight >= bestChainHeight)
+            if (chain.BestChainHeight > bestChainHeight)
             {
                 throw new InvalidOperationException();
             }
