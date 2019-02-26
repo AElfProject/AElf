@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using AElf.Modularity;
-using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class CSharpRuntimeAElfModule2 : AElfModule
+    public class CSharpRuntimeAElfModule : AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
