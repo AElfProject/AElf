@@ -48,7 +48,7 @@ namespace AElf.Crosschain
             mockObject.Setup(m => m.TryTake(It.IsAny<int>(), It.IsAny<ulong>(), It.IsAny<bool>()))
                 .Returns<int, ulong, bool>((chaiId, height, limit) =>
                 {
-                    if(fakeCache.ContainsKey(chaiId) &&  (!limit || height + (ulong) CrossChainConsts.MinimalBlockInfoCacheThreshold <= (fakeCache[chaiId].LastOrDefault()?.Height??0)) && height < (ulong) fakeCache[chaiId].Count)
+                    if(fakeCache.ContainsKey(chaiId) &&  (!limit || height + (ulong) CrossChainConsts.MinimalBlockInfoCacheThreshold <= (fakeCache[chaiId].LastOrDefault()?.Height??0)) && height <= (ulong) fakeCache[chaiId].Count)
                         return fakeCache[chaiId][(int) height - 1];
                     return null;
                 });
