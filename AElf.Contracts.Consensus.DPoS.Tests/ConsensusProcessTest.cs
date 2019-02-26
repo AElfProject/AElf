@@ -148,37 +148,32 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Assert.True(actual.CountingMilliseconds != DPoSContractConsts.AElfWaitFirstRoundTime);
         }
 
-        private async Task<List<ContractTester>> CreateTesters(int number, params Type[] contractTypes)
-        {
-            var testers = new List<ContractTester>();
-            for (var i = 0; i < number; i++)
-            {
-                var tester = new ContractTester(ChainId);
-                await tester.InitialChainAsync(contractTypes);
-                testers.Add(tester);
-            }
-
-            return testers;
-        }
-/*
-
         [Fact]
         public async Task NormalBlock_Consensus_GetInformation()
         {
             // Arrange
-            var tester = new ContractTester(ChainId);
-            var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
+            var tester1 = new ContractTester(ChainId);
+            var addresses = await tester1.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
+
+            var tester2 = new ContractTester(ChainId);
+            await tester2.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
+            
             var stubMiners = new List<ECKeyPair>();
             for (var i = 0; i < 17; i++)
             {
                 stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
+            
+            var miner1 = stubMiners[0];
+            var miner2 = stubMiners[1];
 
             var stubInitialExtraInformation = new DPoSExtraInformation
             {
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
-                MiningInterval = 4000
+                MiningInterval = 4000,
+                PublicKey = miner1.PublicKey.ToHex()
             };
+/*
 
             _contracts.ExecuteAction(_contracts.ConsensusContractAddress, "GenerateConsensusTransactions",
                 stubMiners[0], new BlockHeader {Height = 1}, stubInitialExtraInformation.ToByteArray());
@@ -204,8 +199,24 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             Assert.NotNull(newConsensusInformation);
             // The out value of this fake node should be filled.
             Assert.NotNull(newConsensusInformation.CurrentRound.RealTimeMinersInfo[stubMiners[0].PublicKey.ToHex()]
-                .OutValue);
+                .OutValue);*/
         }
+        
+        private async Task<List<ContractTester>> CreateTesters(int number, params Type[] contractTypes)
+        {
+            var testers = new List<ContractTester>();
+            for (var i = 0; i < number; i++)
+            {
+                var tester = new ContractTester(ChainId);
+                await tester.InitialChainAsync(contractTypes);
+                testers.Add(tester);
+            }
+
+            return testers;
+        }
+/*
+
+        
 
         [Fact]
         public async Task NormalBlock_Consensus_Validate_Success()

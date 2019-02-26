@@ -97,6 +97,12 @@ namespace AElf.Contracts.TestBase.Tests
             var chain2 = await tester2.GetChainAsync();
 
             Assert.Equal(2UL, chain2.BestChainHeight);
+            
+            // Check the executing result of txs in new block.
+
+            var txResult = await tester2.GetTransactionResult(tx.GetHash());
+
+            Assert.Equal(TransactionResultStatus.Mined, txResult.Status);
         }
 
         [Fact]
@@ -132,6 +138,23 @@ namespace AElf.Contracts.TestBase.Tests
             var result = bytes.DeserializeToUInt64();
 
             Assert.Equal(totalSupply, result);
+        }
+
+        [Fact]
+        public async Task GetTransactionResultTest()
+        {
+            var tester = new ContractTester(ChainId);
+            var addresses = await tester.InitialChainAsync(typeof(BasicContractZero));
+
+            var tx = tester.GenerateTransaction(addresses[0], "DeploySmartContract",
+                CryptoHelpers.GenerateKeyPair(), 2,
+                File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
+            
+            await tester.MineABlockAsync(new List<Transaction> {tx});
+
+            var txResult = await tester.GetTransactionResult(tx.GetHash());
+
+            Assert.Equal(TransactionResultStatus.Mined, txResult.Status);
         }
     }
 }

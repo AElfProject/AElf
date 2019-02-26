@@ -42,6 +42,7 @@ namespace AElf.Contracts.TestBase
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IConsensusService _consensusService;
         private readonly IChainManager _chainManager;
+        private readonly ITransactionResultManager _transactionResultManager;
         
         public Chain Chain => GetChainAsync().Result;
 
@@ -67,6 +68,7 @@ namespace AElf.Contracts.TestBase
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
+            _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
         }
 
         public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
@@ -183,6 +185,11 @@ namespace AElf.Contracts.TestBase
             chain.LastIrreversibleBlockHash = libHash;
             chain.LastIrreversibleBlockHeight = libHeight;
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
+        }
+
+        public async Task<TransactionResult> GetTransactionResult(Hash txId)
+        {
+            return await _transactionResultManager.GetTransactionResultAsync(txId);
         }
 
         private MinerService BuildMinerService(List<Transaction> txs, List<Transaction> systemTxs = null)
