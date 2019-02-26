@@ -20,8 +20,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return true;
             }
 
-            var result = await _consensusService.ValidateConsensusAsync(chainId, block.GetHash(), block.Height,
-                block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
+            var result = await _consensusService.ValidateConsensusAsync(chainId, block.Header.PreviousBlockHash,
+                block.Height - 1, block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
             return result;
         }
 

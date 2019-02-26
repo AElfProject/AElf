@@ -59,9 +59,6 @@ namespace AElf.Kernel.Blockchain.Application
                 PreviousBlockHash = block.Header.PreviousBlockHash
             });
 
-            var producedByMe = (await _accountService.GetPublicKeyAsync()).ToHex() ==
-                               block.Header.P.ToByteArray().ToHex();
-
             List<ChainBlockLink> blockLinks = null;
 
             List<ChainBlockLink> successLinks = new List<ChainBlockLink>();
@@ -77,7 +74,7 @@ namespace AElf.Kernel.Blockchain.Application
                         var linkedBlock = await _blockchainService.GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
 
                         // Set the other blocks as bad block if found the first bad block
-                        if (!producedByMe && !await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
+                        if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -86,7 +83,7 @@ namespace AElf.Kernel.Blockchain.Application
                             break;
                         }
 
-                        if (!producedByMe && !await ExecuteBlock(chain.Id, blockLink, linkedBlock))
+                        if (!await ExecuteBlock(chain.Id, blockLink, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -95,7 +92,7 @@ namespace AElf.Kernel.Blockchain.Application
                             break;
                         }
 
-                        if (!producedByMe && !await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
+                        if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(chain.Id, linkedBlock))
                         {
                             await _chainManager.SetChainBlockLinkExecutionStatus(chain.Id, blockLink,
                                 ChainBlockLinkExecutionStatus.ExecutionFailed);
@@ -108,7 +105,7 @@ namespace AElf.Kernel.Blockchain.Application
                             ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
-                        
+
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
                             ChainId = chain.Id,
