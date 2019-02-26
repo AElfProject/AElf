@@ -41,7 +41,7 @@ namespace AElf.OS.Jobs
                         $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
                 }
 
-                foreach (var hash in args.BlockHashes.Select(h => Hash.LoadByteArray(h)))
+                foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
                 {
                     // Check that some other job didn't get this before.
                     var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);

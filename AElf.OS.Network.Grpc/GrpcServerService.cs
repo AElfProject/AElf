@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Grpc
         
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<GrpcServerService> Logger { get; set; } 
+        public ILogger<GrpcServerService> Logger { get; set; }
         
         private int ChainId => _chainOptions.ChainId;
 
