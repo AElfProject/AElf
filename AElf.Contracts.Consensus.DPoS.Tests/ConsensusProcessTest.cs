@@ -264,7 +264,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             return testers;
         }
-        
+
         [Fact]
         public async Task NormalBlock_ValidationConsensus_Success()
         {
@@ -274,10 +274,10 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 stubMiners.Add(CryptoHelpers.GenerateKeyPair());
             }
-            
+
             var miner1 = stubMiners[0];
             var miner2 = stubMiners[1];
-            
+
             var tester1 = new ContractTester(ChainId, miner1);
             await tester1.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
 
@@ -288,9 +288,10 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
                 MiningInterval = 4000,
-                PublicKey = miner1.PublicKey.ToHex()
+                PublicKey = miner1.PublicKey.ToHex(),
+                InitialMiners = {stubMiners.Select(p => p.PublicKey.ToHex())}
             };
-            
+
             await tester1.GenerateConsensusTransactionsAndMineABlock(stubInitialExtraInformation, tester2);
 
             var inValue = Hash.Generate();
@@ -298,16 +299,16 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var stubExtraInformation = new DPoSExtraInformation
             {
                 HashValue = outValue,
-                PublicKey = miner2.PublicKey.ToHex()
+                PublicKey = miner2.PublicKey.ToHex(),
             };
 
             var newInformation = await tester2.GetNewConsensusInformation(stubExtraInformation);
 
             // Act
-            //var validationResult = await tester1.ValidateConsensus(newInformation);
+            var validationResult = await tester1.ValidateConsensus(newInformation);
 
             // Assert
-            //Assert.True(validationResult?.Success);
+            Assert.True(validationResult?.Success);
         }
 
 /*

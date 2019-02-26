@@ -109,9 +109,10 @@ namespace AElf.Contracts.Consensus.DPoS
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-
+            var publicKey = Context.RecoverPublicKey().ToHex();
+            
             // Validate the sender.
-            if (!IsMiner(information.Sender) || !information.MinersList.Contains(information.Sender))
+            if (!IsMiner(publicKey) && !information.MinersList.Contains(information.Sender))
             {
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
@@ -221,7 +222,8 @@ namespace AElf.Contracts.Consensus.DPoS
             return new DPoSInformation
             {
                 CurrentRound = FillOutValue(extra.HashValue, publicKey),
-                Behaviour = DPoSBehaviour.PackageOutValue
+                Behaviour = DPoSBehaviour.PackageOutValue,
+                Sender = Context.Sender
             };
         }
 

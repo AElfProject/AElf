@@ -27,6 +27,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.Contracts.TestBase
 {
@@ -44,7 +45,7 @@ namespace AElf.Contracts.TestBase
         private readonly IChainManager _chainManager;
         private readonly ITransactionResultManager _transactionResultManager;
 
-        public Chain Chain => GetChainAsync().Result;
+        public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
         public ECKeyPair CallOwnerKeyPair { get; set; }
 

@@ -303,13 +303,15 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool IsMiner(Address address)
+        public bool IsMiner(string publicKey)
         {
+            Console.WriteLine($"sender: {publicKey}");
             if (TryToGetTermNumber(out var termNumber))
             {
                 if (TryToGetMiners(termNumber, out var miners))
                 {
-                    return miners.Addresses.Contains(address);
+                    Console.WriteLine(miners.ToString());
+                    return miners.PublicKeys.Contains(publicKey);
                 }
             }
 
