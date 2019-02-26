@@ -92,7 +92,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var block = await tester1.MineABlockAsync(new List<Transaction> {tx});
 
-            await tester2.AddABlockAsync(block);
+            await tester2.AddABlockAsync(block, new List<Transaction> {tx}, new List<Transaction>());
 
             var chain2 = await tester2.GetChainAsync();
 
