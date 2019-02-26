@@ -9,6 +9,7 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Xunit;
 using Shouldly;
+using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Token
 {
@@ -20,7 +21,8 @@ public sealed class TokenContractTest : TokenContractTestBase
         public TokenContractTest()
         {
             Tester = new ContractTester();
-            ContractAddresses = Tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract)).Result;
+            ContractAddresses = AsyncHelper.RunSync(()=>
+                Tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract)));
         }
 
         [Fact]
