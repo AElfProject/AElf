@@ -14,7 +14,7 @@ namespace AElf.Contracts.CrossChain
         private static string CreateSideChainMethodName { get; } = "CreateSideChain";
         private static string DisposeSideChainMethodName { get; } = "DisposeSideChain";
 
-        private double RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
+        private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
             Address authorizationContractAddress)

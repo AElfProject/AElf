@@ -12,7 +12,7 @@ namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract
     {
-        private Hash Propose(string proposalName, double waitingPeriod, Address fromAddress,
+        private Hash Propose(string proposalName, int waitingPeriod, Address fromAddress,
             Address targetAddress, string invokingMethod, params object[] args)
         {
             // packed txn

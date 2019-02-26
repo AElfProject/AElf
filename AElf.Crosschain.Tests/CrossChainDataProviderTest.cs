@@ -16,13 +16,18 @@ namespace AElf.Crosschain
 {
     public class CrossChainDataProviderTest : CrosschainTestBase
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public CrossChainDataProviderTest(ITestOutputHelper testOutputHelper)
+//        private readonly ITestOutputHelper _testOutputHelper;
+//
+//        public CrossChainDataProviderTest(ITestOutputHelper testOutputHelper)
+//        {
+//            _testOutputHelper = testOutputHelper;
+//        }
+        private ICrossChainDataProvider CreateCrossChainDataProviderWithSingleChainCache(int chainId, List<IBlockInfo> blockInfoCache)
         {
-            _testOutputHelper = testOutputHelper;
+            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
+            return NewCrossChainDataProvider(fakeCache);
         }
-
+        
         private ICrossChainDataProvider NewCrossChainDataProvider(Dictionary<int, List<IBlockInfo>> fakeCache, List<int> idListInContract = null)
         {
             var mockContractReader = CreateFakeCrossChainContractReader(idListInContract ?? fakeCache.Keys.ToList());
@@ -131,9 +136,7 @@ namespace AElf.Crosschain
         public async Task Validate_Without_ProvidedSideChainBlockData()
         {
             int chainId = 123;
-            var blockInfoCache = new List<IBlockInfo>();
             var crossChainDataProvider = NewCrossChainDataProvider(new Dictionary<int, List<IBlockInfo>>());
-
             
             var list = new List<SideChainBlockData>();
             var res = await crossChainDataProvider.GetSideChainBlockDataAsync(chainId, list, Hash.Default, 1, true);
@@ -151,8 +154,7 @@ namespace AElf.Crosschain
                 SideChainId = chainId,
                 SideChainHeight = 1
             });
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
             
             var list = new List<SideChainBlockData>{new SideChainBlockData
             {
@@ -190,8 +192,7 @@ namespace AElf.Crosschain
                 SideChainId = chainId,
                 SideChainHeight = 1
             });
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
             
             var list = new List<SideChainBlockData>{new SideChainBlockData
             {
@@ -208,8 +209,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
             
             var list = new List<SideChainBlockData>{new SideChainBlockData
             {
@@ -226,8 +226,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             for (int i = 0; i <= CrossChainConsts.MinimalBlockInfoCacheThreshold; i++)
             {
@@ -254,8 +253,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
           
             var list = new List<ParentChainBlockData>();
             var res = await crossChainDataProvider.GetParentChainBlockDataAsync(chainId, list, Hash.Default, 1);
@@ -268,8 +266,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var list = new List<ParentChainBlockData>();
             var res = await crossChainDataProvider.GetParentChainBlockDataAsync(chainId, list, Hash.Default, 1,true);
@@ -281,8 +278,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var list = new List<ParentChainBlockData>();
             for (int i = 0; i <= CrossChainConsts.MaximalCountForIndexingParentChainBlock; i++)
@@ -305,8 +301,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = 5;
             for (int i = 0; i < cachingCount; i++)
@@ -335,9 +330,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
-
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var list = new List<ParentChainBlockData>
             {
@@ -353,8 +346,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = 5;
             for (int i = 0; i < cachingCount; i++)
@@ -381,8 +373,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             for (int i = 0; i < cachingCount; i++)
@@ -409,8 +400,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             for (int i = 0; i <= cachingCount + CrossChainConsts.MinimalBlockInfoCacheThreshold; i++)
@@ -437,8 +427,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             for (int i = 0; i <= cachingCount + CrossChainConsts.MinimalBlockInfoCacheThreshold; i++)
@@ -467,8 +456,7 @@ namespace AElf.Crosschain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            var fakeCache = new Dictionary<int, List<IBlockInfo>>{{chainId, blockInfoCache}};
-            var crossChainDataProvider = NewCrossChainDataProvider(fakeCache);
+            var crossChainDataProvider = CreateCrossChainDataProviderWithSingleChainCache(chainId, blockInfoCache);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             for (int i = 0; i <= cachingCount + CrossChainConsts.MinimalBlockInfoCacheThreshold; i++)
