@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
@@ -32,19 +31,17 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IAccountService _accountService;
         public ILocalEventBus LocalEventBus { get; set; }
 
 
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
-            IBlockExecutingService blockExecutingService, IAccountService accountService)
+            IBlockExecutingService blockExecutingService)
         {
             _chainManager = chainManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
-            _accountService = accountService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -105,7 +102,9 @@ namespace AElf.Kernel.Blockchain.Application
                             ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
-
+                        
+                        Logger.LogDebug($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
+                        
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
                             ChainId = chain.Id,

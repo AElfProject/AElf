@@ -84,9 +84,7 @@ namespace AElf.Contracts.TestBase
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
             _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
             _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
-            
-            _blockchainExecutingService = new FullBlockchainExecutingService(_chainManager, _blockchainService,
-                _blockValidationService, _blockExecutingService, _accountService);
+            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
         }
 
         public void SetCallOwner(ECKeyPair caller)
@@ -296,10 +294,7 @@ namespace AElf.Contracts.TestBase
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
 
-            var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(s => s.GetPublicKeyAsync())
-                .ReturnsAsync(CryptoHelpers.GenerateKeyPair().PublicKey);
-            return new MinerService(mockTxHub.Object, mockAccountService.Object, _blockGenerationService,
+            return new MinerService(mockTxHub.Object, _accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
                 _blockchainExecutingService);
         }
