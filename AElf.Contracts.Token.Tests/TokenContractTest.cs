@@ -9,19 +9,20 @@ using AElf.Kernel;
 using AElf.Types.CSharp;
 using Xunit;
 using Shouldly;
+using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Token
 {
 public sealed class TokenContractTest : TokenContractTestBase
     {
-        private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private List<Address> ContractAddresses { get; set; }
         private ContractTester Tester { get; set; }
 
         public TokenContractTest()
         {
-            Tester = new ContractTester(ChainId);
-            ContractAddresses = Tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract)).Result;
+            Tester = new ContractTester();
+            ContractAddresses = AsyncHelper.RunSync(()=>
+                Tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract)));
         }
 
         [Fact]
@@ -79,7 +80,6 @@ public sealed class TokenContractTest : TokenContractTestBase
         public async Task Burn_TokenContract()
         {
             await Initialize_TokenContract();
-            var toAddress = CryptoHelpers.GenerateKeyPair();
             await Tester.ExecuteContractWithMiningAsync(ContractAddresses[1], "Burn",
                 3000UL);
             var bytes = await Tester.CallContractMethodAsync(ContractAddresses[1], "BalanceOf", Tester.GetCallOwnerAddress());

@@ -33,7 +33,6 @@ namespace AElf.Contracts.TestBase
     public class ContractTester : ITransientDependency
     {
         private readonly int _chainId;
-
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
