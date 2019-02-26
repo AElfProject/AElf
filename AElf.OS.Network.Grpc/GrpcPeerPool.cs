@@ -136,7 +136,7 @@ namespace AElf.OS.Network.Grpc
             IEnumerable<KeyValuePair<string, GrpcPeer>> toFind = _authenticatedPeers;
 
             if (!string.IsNullOrWhiteSpace(peerAddress))
-                toFind = toFind.Where(p => p.Value.PeerAddress == peerAddress);
+                toFind = toFind.Where(p => p.Value.PeerAddress == peerAddress || peerAddress.EndsWith(p.Value.RemoteEndpoint));
 
             if (publicKey != null)
                 toFind = toFind.Where(p => publicKey.BytesEqual(p.Value.PublicKey));

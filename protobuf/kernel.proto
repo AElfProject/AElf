@@ -186,8 +186,7 @@ message BlockHeader {
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    Hash SideChainTransactionsRoot = 11;
-    BlockExtraData BlockExtraData = 12;
+    BlockExtraData BlockExtraData = 11;
 }
 
 message BlockBody {
@@ -207,27 +206,6 @@ message SmartContractRegistration {
     Hash CodeHash = 3;
 }
 
-message SmartContractDeployment {
-    Hash ContractHash = 1;
-    Hash Caller = 2;
-    bytes ConstructParams = 3;
-    uint64 IncrementId = 4;
-}
-
-message SmartContractInvokeContext {
-    Hash Caller = 1;
-    uint64 IncrementId = 2;
-    string MethodName = 3;
-    bytes Params = 4;
-}
-
-message DataItem {
-    Hash ResourcePath = 1;
-    Hash ResourcePointer = 2;
-    Hash StateMerkleTreeLeaf = 3;
-}
-
-
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
     ReadWriteAccountSharing = 1;
@@ -238,6 +216,10 @@ message BinaryMerkleTree{
     repeated Hash Nodes = 1;
     Hash Root = 2;
     int32 LeafCount = 3;
+}
+
+message MerklePath {
+    repeated Hash Path = 1;
 }
 
 message StringList {
