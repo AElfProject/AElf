@@ -15,7 +15,7 @@ namespace AElf.Kernel
                 MultiSigAccount.WriteTo(stream);
                 Proposer.WriteTo(stream);
                 stream.WriteBytes(TxnData);
-                new DoubleValue {Value = ExpiredTime}.WriteTo(stream);
+                ExpiredTime.WriteTo(stream);
                 stream.Flush();
                 mm.Flush();
                 return Hash.FromRawBytes(mm.ToArray());
