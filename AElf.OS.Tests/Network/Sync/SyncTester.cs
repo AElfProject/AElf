@@ -94,7 +94,7 @@ namespace AElf.OS.Tests.Network.Sync
             h.BlockchainExecutingService = Mock.Of<IBlockchainExecutingService>();
 
             //_jobManager.EnqueueAsync(h);
-            h.Execute(new ForkDownloadJobArgs {BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList()});
+            h.Execute(new ForkDownloadJobArgs {BlockHashes = initBlocks.Select(bl => bl.GetHash().DumpByteArray()).ToList()});
 
             // setup some blocks to get
             // mock network service
