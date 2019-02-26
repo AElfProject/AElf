@@ -1,23 +1,23 @@
-//using AElf.Contracts.TestBase;
-//using AElf.Kernel;
-//using AElf.Modularity;
-//using Microsoft.Extensions.DependencyInjection;
-//using Volo.Abp.Modularity;
-//
-//namespace AElf.Contracts.Token.Tests
-//{
-//    [DependsOn(
-//        typeof(AElf.ChainController.ChainControllerAElfModule),
-//        typeof(AElf.SmartContract.SmartContractAElfModule),
-//        typeof(AElf.Runtime.CSharp.CSharpRuntimeAElfModule),
-//        typeof(ContractTestAElfModule),
-//        typeof(CoreKernelAElfModule)
-//    )]
-//    public class TokenContractTestAElfModule : AElfModule
-//    {
-//        public override void ConfigureServices(ServiceConfigurationContext context)
-//        {
-//            context.Services.AddAssemblyOf<TokenContractTestAElfModule>();
-//        }
-//    }
-//}
+using AElf.Contracts.TestBase;
+using AElf.Database;
+using AElf.Kernel.Infrastructure;
+using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
+
+namespace AElf.Contracts.Token
+{
+    [DependsOn(
+        typeof(ContractTestAElfModule)
+    )]
+    public class TokenContractTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddAssemblyOf<TokenContractTestAElfModule>();
+
+            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+        }
+    }
+}

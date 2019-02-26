@@ -16,17 +16,5 @@ namespace AElf.OS.Network.Grpc
             
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
         }
-        
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var myService = context.ServiceProvider.GetService<IAElfNetworkServer>();
-            AsyncHelper.RunSync(myService.StartAsync);
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            var myService = context.ServiceProvider.GetService<IAElfNetworkServer>();
-            AsyncHelper.RunSync(myService.StopAsync);
-        }
     }
 }

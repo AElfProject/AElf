@@ -47,13 +47,13 @@ namespace AElf.Contracts.TestBase
 
         public Chain Chain => GetChainAsync().Result;
 
-        public ECKeyPair KeyPair { get; set; }
+        public ECKeyPair CallOwnerKeyPair { get; set; }
 
         public List<Address> DeployedContractsAddresses { get; set; }
 
-        public ContractTester(int chainId, ECKeyPair keyPair = null)
+        public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null)
         {
-            _chainId = chainId;
+            _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
 
             var application =
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
@@ -76,10 +76,17 @@ namespace AElf.Contracts.TestBase
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
             _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
 
-            if (keyPair != null)
-            {
-                KeyPair = keyPair;
-            }
+            CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
+        }
+        
+        public void SetCallOwner(ECKeyPair caller)
+        {
+            CallOwnerKeyPair = caller;
+        }
+
+        public Address GetCallOwnerAddress()
+        {
+            return GetAddress(CallOwnerKeyPair);
         }
 
         /// <summary>
@@ -118,21 +125,20 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="callerKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
         public Transaction GenerateTransaction(Address contractAddress, string methodName,
-            ECKeyPair callerKeyPair, params object[] objects)
+            params object[] objects)
         {
             var tx = new Transaction
             {
-                From = GetAddress(callerKeyPair),
+                From = GetAddress(CallOwnerKeyPair),
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var signature = CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelpers.SignWithPrivateKey(CallOwnerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
             tx.Sigs.Add(ByteString.CopyFrom(signature));
 
             return tx;
@@ -158,14 +164,14 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="callerKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<Block> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
-            ECKeyPair callerKeyPair, params object[] objects)
+        public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
+            params object[] objects)
         {
-            var tx = GenerateTransaction(contractAddress, methodName, callerKeyPair, objects);
-            return await MineABlockAsync(new List<Transaction> {tx});
+            var tx = GenerateTransaction(contractAddress, methodName, CallOwnerKeyPair, objects);
+            await MineABlockAsync(new List<Transaction> {tx});
+            return await GetTransactionResult(tx.GetHash());
         }
 
         /// <summary>
@@ -174,13 +180,12 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="callerKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            ECKeyPair callerKeyPair, params object[] objects)
+            params object[] objects)
         {
-            var tx = GenerateTransaction(contractAddress, methodName, callerKeyPair, objects);
+            var tx = GenerateTransaction(contractAddress, methodName, CallOwnerKeyPair, objects);
             var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
             var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
                 {
@@ -290,7 +295,7 @@ namespace AElf.Contracts.TestBase
                 _blockchainExecutingService);
         }
 
-        private Address GetAddress(ECKeyPair keyPair)
+        public Address GetAddress(ECKeyPair keyPair)
         {
             return Address.FromPublicKey(keyPair.PublicKey);
         }

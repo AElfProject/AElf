@@ -3,11 +3,9 @@ using AElf.Cryptography.ECDSA;
 using Xunit;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.TransactionPool;
 using Shouldly;
 
-namespace AElf.Kernel.Tests.Managers
+namespace AElf.Kernel.Blockchain.Domain
 {
     public sealed class TransactionManagerTests:AElfKernelTestBase
     {
