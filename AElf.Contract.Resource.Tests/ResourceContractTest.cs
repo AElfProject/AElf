@@ -127,6 +127,7 @@ namespace AElf.Contracts.Resource.Tests
             var buyResult = await Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[3],
                 "BuyResource",
                 "Cpu", 10_000UL);
+            var returnMessage = buyResult.RetVal.ToStringUtf8();
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
