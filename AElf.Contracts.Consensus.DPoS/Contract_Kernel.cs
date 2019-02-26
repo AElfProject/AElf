@@ -181,7 +181,6 @@ namespace AElf.Contracts.Consensus.DPoS
         public IMessage GetNewConsensusInformation(byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
-            Console.WriteLine("public key: " + extra.PublicKey);
             var publicKey = extra.PublicKey;
 
             // To initial consensus information.
@@ -227,7 +226,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public TransactionList GenerateConsensusTransactions(ulong refBlockHeight, byte[] refBlockPrefix,
+        public TransactionList GenerateConsensusTransactions(ulong preBlockHeight, byte[] preBlockPrefix,
             byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
@@ -240,7 +239,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "InitialTerm",
+                        GenerateTransaction(preBlockHeight, preBlockPrefix, "InitialTerm",
                             new List<object> {extra.NewTerm})
                     }
                 };
@@ -256,13 +255,13 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(refBlockHeight, refBlockPrefix, "NextTerm",
+                            GenerateTransaction(preBlockHeight, preBlockPrefix, "NextTerm",
                                 new List<object> {extra.NewTerm}),
-                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SnapshotForMiners",
+                            GenerateTransaction(preBlockHeight, preBlockPrefix, "SnapshotForMiners",
                                 new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SnapshotForTerm",
+                            GenerateTransaction(preBlockHeight, preBlockPrefix, "SnapshotForTerm",
                                 new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction(refBlockHeight, refBlockPrefix, "SendDividends",
+                            GenerateTransaction(preBlockHeight, preBlockPrefix, "SendDividends",
                                 new List<object> {roundNumber, termNumber})
                         }
                     };
@@ -272,7 +271,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "NextRound",
+                        GenerateTransaction(preBlockHeight, preBlockPrefix, "NextRound",
                             new List<object> {extra.Forwarding})
                     }
                 };
@@ -284,9 +283,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     Transactions =
                     {
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "PackageOutValue",
+                        GenerateTransaction(preBlockHeight, preBlockPrefix, "PackageOutValue",
                             new List<object> {extra.ToPackage}),
-                        GenerateTransaction(refBlockHeight, refBlockPrefix, "BroadcastInValue",
+                        GenerateTransaction(preBlockHeight, preBlockPrefix, "BroadcastInValue",
                             new List<object> {extra.ToBroadcast}),
                     }
                 };

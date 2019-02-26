@@ -56,6 +56,8 @@ namespace AElf.Contracts.Consensus.DPoS
             TryToAddRoundInformation(firstTerm.FirstRound);
             TryToAddRoundInformation(firstTerm.SecondRound);
 
+            Console.WriteLine("First term initialized.");
+
             return new ActionResult {Success = true};
         }
 

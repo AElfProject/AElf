@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.Tests
 
             var initialTerm =
                 new Miners {PublicKeys = {miners.Select(m => m.PublicKey.ToHex())}}.GenerateNewTerm(4000);
-            var bytes = await tester.ExecuteContractAsync(addresses[1], "InitialTerm", miners[0],
+            var bytes = await tester.CallContractMethodAsync(addresses[1], "InitialTerm", miners[0],
                 initialTerm);
 
             var result = ActionResult.Parser.ParseFrom(bytes);
@@ -58,7 +58,7 @@ namespace AElf.Contracts.Consensus.Tests
             
             var tokenContractAddress = Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), 1);
 
-            await tester.ExecuteContractAsync(tokenContractAddress, "Initialize",
+            await tester.CallContractMethodAsync(tokenContractAddress, "Initialize",
                 CryptoHelpers.GenerateKeyPair(), "ELF", "AElf Token", 1000000000, 2);
         }
     }
