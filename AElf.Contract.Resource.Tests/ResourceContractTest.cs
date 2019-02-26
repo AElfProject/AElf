@@ -121,7 +121,7 @@ namespace AElf.Contracts.Resource.Tests
         public async Task Buy_Resource_WithEnough_Token()
         {
             await Initize_Resource();
-            var ownerAddress = Tester.GetAddress(Tester.CallOwner);
+            var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
             var tokenBalance1 =
                 await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[2], "BalanceOf", ownerAddress);
             tokenBalance1.DeserializeToUInt64().ShouldBe(1000_000UL);
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Resource.Tests
             tokenBalance2.DeserializeToUInt64().ShouldBe(1000_000UL - 10_000UL);
 
             var cpuBalance = await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[3], "GetUserBalance",
-                Tester.CallOwner, "Cpu");
+                ownerAddress, "Cpu");
             cpuBalance.DeserializeToUInt64().ShouldBeGreaterThan(0UL);
         }
 
