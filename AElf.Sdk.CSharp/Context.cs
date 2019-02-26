@@ -12,13 +12,14 @@ using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.Threading;
 
 namespace AElf.Sdk.CSharp
 {
     public class Context : IContextInternal
     {
-        private IBlockchainService _blockChain { get; set; }
+        private IBlockchainService _blockchainService;
         private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
 
@@ -34,7 +35,14 @@ namespace AElf.Sdk.CSharp
 
         private void OnSmartContractContextSet()
         {
-            _blockChain = _smartContractContext.ChainService;
+            _blockchainService = _smartContractContext.ChainService;
+        }
+
+        public void LogDebug(Func<string> func)
+        {
+#if DEBUG
+            _smartContractContext.Logger.LogDebug(func());
+#endif
         }
 
         public void FireEvent(Event logEvent)
@@ -83,7 +91,7 @@ namespace AElf.Sdk.CSharp
         public Block GetPreviousBlock()
         {
             return AsyncHelper.RunSync(
-                () => _blockChain.GetBlockByHashAsync(_smartContractContext.ChainId,
+                () => _blockchainService.GetBlockByHashAsync(_smartContractContext.ChainId,
                     TransactionContext.PreviousBlockHash));
         }
 
