@@ -47,8 +47,11 @@ namespace AElf.OS.Jobs
                     var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);
 
                     if (hasBlock)
-                        continue; // todo review maybe no need to go further.
-
+                    {
+                        Logger.LogDebug($"Block {hash} already know, skipping.");
+                        continue;
+                    }
+                    
                     // Query the peer
                     Block block = (Block) await NetworkService.GetBlockByHashAsync(hash, args.Peer);
 
@@ -68,7 +71,6 @@ namespace AElf.OS.Jobs
             catch (Exception e)
             {
                 Logger.LogError(e, $"Failed to finish download job from {args.Peer}");
-                throw;
             }
         }
     }
