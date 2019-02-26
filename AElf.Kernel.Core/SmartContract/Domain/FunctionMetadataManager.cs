@@ -1,25 +1,27 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContract.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Domain
 {
-    public class FunctionFunctionMetadataManager : IFunctionMetadataManager
+    public class FunctionMetadataManager : IFunctionMetadataManager
     {
-        private readonly IFunctionMetadataStore _functionMetadataStore;
-        private readonly ICallGraphStore _callGraphStore;
-        
-        public FunctionFunctionMetadataManager(IFunctionMetadataStore functionMetadataStore, ICallGraphStore callGraphStore)
+        private readonly IBlockchainStore<FunctionMetadata> _functionMetadataStore;
+        private readonly IBlockchainStore<SerializedCallGraph> _callGraphStore;
+
+        public FunctionMetadataManager(IBlockchainStore<FunctionMetadata> functionMetadataStore,
+            IBlockchainStore<SerializedCallGraph> callGraphStore)
         {
             _functionMetadataStore = functionMetadataStore;
             _callGraphStore = callGraphStore;
         }
 
+
         private string GetMetadataKey(int chainId, string name)
         {
             return chainId.ToStorageKey() + name;
         }
-        
+
         public async Task AddMetadataAsync(int chainId, string name, FunctionMetadata metadata)
         {
             var key = GetMetadataKey(chainId, name);
@@ -29,9 +31,9 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task<FunctionMetadata> GetMetadataAsync(int chainId, string name)
         {
             var key = GetMetadataKey(chainId, name);
-            return await _functionMetadataStore.GetAsync<FunctionMetadata>(key);
+            return await _functionMetadataStore.GetAsync(key);
         }
-        
+
         public async Task RemoveMetadataAsync(int chainId, string name)
         {
             var key = GetMetadataKey(chainId, name);
@@ -42,10 +44,10 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             await _callGraphStore.SetAsync(chainId.ToStorageKey(), callGraph);
         }
-        
+
         public async Task<SerializedCallGraph> GetCallGraphAsync(int chainId)
         {
-            return await _callGraphStore.GetAsync<SerializedCallGraph>(chainId.ToStorageKey());
+            return await _callGraphStore.GetAsync(chainId.ToStorageKey());
         }
     }
 }
