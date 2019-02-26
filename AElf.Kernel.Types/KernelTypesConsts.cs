@@ -24,15 +24,11 @@ namespace AElf
         public const string BlockBodyPrefix = "b";
         public const string SmartContractPrefix = "c";
         public const string TransactionReceiptPrefix = "e";
-        public const string GenesisBlockHashPrefix = "g";
         public const string BlockHeaderPrefix = "h";
         public const string MerkleTreePrefix = "k";
         public const string TransactionResultPrefix = "l";
         public const string FunctionMetadataPrefix = "m";
-        public const string ChainHeightPrefix = "n";
-        public const string CanonicalPrefix = "o";
         public const string MinersPrefix = "p";
-        public const string CurrentBlockHashPrefix = "r";
         public const string CallGraphPrefix = "i";
         public const string StatePrefix = "s";
         public const string TransactionPrefix = "t";

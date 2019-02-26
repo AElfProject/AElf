@@ -1,13 +1,14 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.Domain
 {
     public class BinaryMerkleTreeManager : IBinaryMerkleTreeManager
     {
-        private readonly IBinaryMerkleTreeStore _binaryMerkleTreeStore;
+        private readonly IBlockchainStore<BinaryMerkleTree> _binaryMerkleTreeStore;
 
-        public BinaryMerkleTreeManager(IBinaryMerkleTreeStore binaryMerkleTreeStore)
+        public BinaryMerkleTreeManager(IBlockchainStore<BinaryMerkleTree> binaryMerkleTreeStore)
         {
             _binaryMerkleTreeStore = binaryMerkleTreeStore;
         }
@@ -35,7 +36,7 @@ namespace AElf.Kernel.Domain
         public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(int chainId, ulong height)
         {
             var key = GetTransactionsMerkleTreeKey(chainId, height);
-            return await _binaryMerkleTreeStore.GetAsync<BinaryMerkleTree>(key);
+            return await _binaryMerkleTreeStore.GetAsync(key);
         }
 
         private string GetTransactionsMerkleTreeKey(int chainId, ulong height)

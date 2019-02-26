@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -8,10 +9,10 @@ namespace AElf.Kernel.Blockchain.Domain
 {
     public class TransactionManager: ITransactionManager
     {
-        private readonly ITransactionStore _transactionStore;
+        private readonly IBlockchainStore<Transaction> _transactionStore;
         public ILogger<TransactionManager> Logger {get;set;}
 
-        public TransactionManager(ITransactionStore transactionStore)
+        public TransactionManager(IBlockchainStore<Transaction> transactionStore)
         {
             _transactionStore = transactionStore;
             Logger = NullLogger<TransactionManager>.Instance;
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<Transaction> GetTransaction(Hash txId)
         {
-            return await _transactionStore.GetAsync<Transaction>(GetStringKey(txId));
+            return await _transactionStore.GetAsync(GetStringKey(txId));
         }
 
         public async Task RemoveTransaction(Hash txId)
@@ -36,7 +37,7 @@ namespace AElf.Kernel.Blockchain.Domain
         
         private string GetStringKey(Hash txId)
         {
-            return txId.ToHex();
+            return txId.ToStorageKey();
         }
     }
 }

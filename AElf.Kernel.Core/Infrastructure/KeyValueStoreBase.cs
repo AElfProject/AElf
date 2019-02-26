@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common.Serializers;
 using AElf.Database;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure
 {
@@ -15,6 +16,7 @@ namespace AElf.Kernel.Infrastructure
         protected readonly IKeyValueCollection _collection;
 
         protected string DataPrefix { get; set; }
+        
 
         protected KeyValueStoreBase(IByteSerializer byteSerializer, TKeyValueDbContext keyValueDbContext,
             string dataPrefix)
@@ -51,41 +53,51 @@ namespace AElf.Kernel.Infrastructure
 
     public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
+        where T : IMessage<T>, new()
     {
-        protected readonly TKeyValueDbContext _keyValueDbContext;
-        protected readonly IByteSerializer ByteSerializer;
+        private readonly TKeyValueDbContext _keyValueDbContext;
 
-        protected readonly IKeyValueCollection _collection;
+        private readonly IKeyValueCollection _collection;
 
-        protected string DataPrefix { get; set; }
+        private readonly MessageParser<T> _messageParser;
 
-        protected KeyValueStoreBase(IByteSerializer byteSerializer, TKeyValueDbContext keyValueDbContext,
-            string dataPrefix)
+        protected abstract string GetDataPrefix();
+
+        public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext)
         {
             _keyValueDbContext = keyValueDbContext;
-            ByteSerializer = byteSerializer;
-
-            DataPrefix = dataPrefix;
-            _keyValueDbContext = keyValueDbContext;
-            _collection = keyValueDbContext.Collection(DataPrefix);
+            // ReSharper disable once VirtualMemberCallInConstructor
+            _collection = keyValueDbContext.Collection(GetDataPrefix());
+            
+            _messageParser = new MessageParser<T>(()=> new T());
         }
 
         public async Task SetAsync(string key, T value)
         {
-            await _collection.SetAsync(key, ByteSerializer.Serialize(value));
+            await _collection.SetAsync(key, Serialize(value));
+        }
+
+        private byte[] Serialize(T value)
+        {
+            return value?.ToByteArray();
         }
 
         public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
         {
             await _collection.PipelineSetAsync(
-                pipelineSet.ToDictionary(k => k.Key, v => ByteSerializer.Serialize(v.Value)));
+                pipelineSet.ToDictionary(k => k.Key, v => Serialize(v.Value)));
         }
 
         public virtual async Task<T> GetAsync(string key)
         {
             var result = await _collection.GetAsync(key);
 
-            return result == null ? default(T) : ByteSerializer.Deserialize<T>(result);
+            return result == null ? default(T) : Deserialize(result);
+        }
+
+        private T Deserialize(byte[] result)
+        {
+            return _messageParser.ParseFrom(result);
         }
 
         public virtual async Task RemoveAsync(string key)
