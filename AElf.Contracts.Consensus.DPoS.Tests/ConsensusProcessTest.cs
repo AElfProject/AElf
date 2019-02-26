@@ -30,8 +30,14 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
 
             // Act
+            var firstExtraInformation = new DPoSExtraInformation
+            {
+                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                PublicKey = stubMiner.PublicKey.ToHex(),
+                IsBootMiner = true
+            };
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand,
-                DateTime.UtcNow.ToTimestamp(), stubMiner.PublicKey.ToHex());
+                firstExtraInformation.ToByteArray());
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert

@@ -22,8 +22,13 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public IMessage GetConsensusCommand(Timestamp timestamp, string publicKey)
+        public IMessage GetConsensusCommand(byte[] extraInformation)
         {
+            var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
+
+            var publicKey = extra.PublicKey;
+            var timestamp = extra.Timestamp;
+            
             TryToGetMiningInterval(out var miningInterval);
 
             // To initial this chain.
@@ -31,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = DPoSContractConsts.AElfWaitFirstRoundTime,
+                    CountingMilliseconds = extra.IsBootMiner ? DPoSContractConsts.AElfWaitFirstRoundTime : int.MaxValue,
                     TimeoutMilliseconds = int.MaxValue,
                     Hint = new DPoSHint
                     {
@@ -40,7 +45,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            Console.WriteLine("Current round number: " + roundInformation.RoundNumber);
             // To terminate current round.
             if (OwnOutValueFilled(publicKey, out var minerInformation) || TimeOverflow(timestamp))
             {
@@ -90,7 +94,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            Console.WriteLine($"Expected mining time: {minerInformation.ExpectedMiningTime}");
             // To produce a normal block.
             var expect = (int) (minerInformation.ExpectedMiningTime.ToDateTime() - timestamp.ToDateTime())
                 .TotalMilliseconds;
@@ -109,8 +112,8 @@ namespace AElf.Contracts.Consensus.DPoS
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-            var publicKey = Context.RecoverPublicKey().ToHex();
-            
+            var publicKey = information.SenderPublicKey;
+
             // Validate the sender.
             if (!IsMiner(publicKey) && !information.MinersList.Contains(information.Sender))
             {
@@ -133,7 +136,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
 
                         // None of in values should be filled.
-                        if (InValueIsNull(information.Forwarding.CurrentRound))
+                        if (!InValueIsNull(information.Forwarding.NextRound))
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect in values."};
                         }
@@ -190,6 +193,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new DPoSInformation
                 {
                     Sender = Context.Sender,
+                    SenderPublicKey = publicKey,
                     WillUpdateConsensus = true,
                     NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
                     MinersList =
@@ -204,6 +208,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return extra.ChangeTerm
                     ? new DPoSInformation
                     {
+                        SenderPublicKey = publicKey,
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
                         NewTerm = GenerateNextTerm(),
@@ -211,6 +216,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                     : new DPoSInformation
                     {
+                        SenderPublicKey = publicKey,
                         WillUpdateConsensus = true,
                         Sender = Context.Sender,
                         Forwarding = GenerateNewForwarding(),
@@ -221,6 +227,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // To publish Out Value.
             return new DPoSInformation
             {
+                SenderPublicKey = publicKey,
                 CurrentRound = FillOutValue(extra.HashValue, publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
                 Sender = Context.Sender

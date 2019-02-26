@@ -103,7 +103,7 @@ namespace AElf.Kernel.Blockchain.Application
 
                         successLinks.Add(blockLink);
                         
-                        Logger.LogDebug($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
+                        Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
                         
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
