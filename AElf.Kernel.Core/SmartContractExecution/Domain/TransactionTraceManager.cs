@@ -1,14 +1,15 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 
 namespace AElf.Kernel.SmartContractExecution.Domain
 {
     public class TransactionTraceManager : ITransactionTraceManager
     {
-        private readonly ITransactionTraceStore _transactionTraceStore;
+        private readonly IBlockchainStore<TransactionTrace> _transactionTraceStore;
         
-        public TransactionTraceManager(ITransactionTraceStore transactionTraceStore)
+        public TransactionTraceManager(IBlockchainStore<TransactionTrace> transactionTraceStore)
         {
             _transactionTraceStore = transactionTraceStore;
         }
@@ -28,7 +29,7 @@ namespace AElf.Kernel.SmartContractExecution.Domain
         public async Task<TransactionTrace> GetTransactionTraceAsync(Hash txId, Hash disambiguationHash = null)
         {
             var key = GetDisambiguatedKey(txId, disambiguationHash);
-            return await _transactionTraceStore.GetAsync<TransactionTrace>(key);
+            return await _transactionTraceStore.GetAsync(key);
         }
     }
 }
