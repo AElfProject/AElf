@@ -76,8 +76,6 @@ namespace AElf.Kernel.Consensus.Application
         public async Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
             byte[] consensusInformation)
         {
-            Logger.LogInformation("Validating consensus information.");
-
             var chainContext = new ChainContext
             {
                 ChainId = chainId,
@@ -93,14 +91,12 @@ namespace AElf.Kernel.Consensus.Application
             {
                 Logger.LogError($"Consensus validating failed: {validationResult.Message}");
             }
-            
+
             return validationResult.Success;
         }
 
         public async Task<byte[]> GetNewConsensusInformationAsync(int chainId)
         {
-            Logger.LogInformation("Getting new consensus information.");
-
             var chain = await _blockchainService.GetChainAsync(chainId);
             var chainContext = new ChainContext
             {
@@ -121,8 +117,6 @@ namespace AElf.Kernel.Consensus.Application
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId,
             ulong refBlockHeight, byte[] refBlockPrefix)
         {
-            Logger.LogInformation("Generating consensus transactions.");
-
             var chain = await _blockchainService.GetChainAsync(chainId);
             var chainContext = new ChainContext
             {
