@@ -16,7 +16,7 @@ namespace AElf.Contracts.Resource.Tests
 {
     public class ResourceContractTest: ResourceContractTestBase
     {
-        private List<Address> ContractAddresses { get; set; }
+        private List<Address> ContractAddresses;
         private ContractTester Tester;
         private ECKeyPair FeeKeyPair;
 
@@ -44,19 +44,18 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Initize_Resource_Contract()
         {
-            await Deploy_Contracts();
+            //await Deploy_Contracts();
 
-            var initTokenTx = Tester.GenerateTransaction(ContractAddresses[1], "Initialize",
+            var initResult = Tester.ExecuteContractWithMiningAsync(ContractAddresses[1], "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
-            var feeAddress = Tester.GetAddress(FeeKeyPair);
-            var initResourceTx = Tester.GenerateTransaction(ContractAddresses[2], "Initialize",
-                ContractAddresses[1], feeAddress, feeAddress);
-            await Tester.MineABlockAsync(new List<Transaction> {initTokenTx, initResourceTx});
+            var chainHeight = AsyncHelper.RunSync(() => Tester.GetChainAsync());
+            var height = chainHeight.BestChainHeight;
+            initResult.Result.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var tokenResult = await Tester.GetTransactionResult(initTokenTx.GetHash());
-            tokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var resourceResult = await Tester.GetTransactionResult(initResourceTx.GetHash());
-            resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var feeAddress = Tester.GetAddress(FeeKeyPair);
+            var resourceResult = Tester.ExecuteContractWithMiningAsync(ContractAddresses[2], "Initialize",
+                ContractAddresses[1], feeAddress, feeAddress);
+            resourceResult.Result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }
 }

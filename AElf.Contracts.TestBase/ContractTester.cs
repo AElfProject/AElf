@@ -46,10 +46,14 @@ namespace AElf.Contracts.TestBase
 
         public Chain Chain => GetChainAsync().Result;
         public ECKeyPair CallOwner { get; set; }
+        public ECKeyPair KeyPair { get; set; }
+        public List<Address> DeployedContractsAddresses { get; set; }
 
-        public ContractTester(int chainId = 0)
+        public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
         {
             _chainId = (chainId==0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
+            if (keyPair != null)
+                KeyPair = keyPair;
 
             var application =
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
@@ -104,6 +108,8 @@ namespace AElf.Contracts.TestBase
             {
                 addresses.Add(GetContractAddress(i));
             }
+
+            DeployedContractsAddresses = addresses;
 
             return addresses;
         }
