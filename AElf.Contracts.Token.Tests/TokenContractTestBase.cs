@@ -1,10 +1,8 @@
-//using AElf.Contracts.TestBase;
-//using AElf.Database;
-//using Volo.Abp;
-//
-//namespace AElf.Contracts.Token.Tests
-//{
-//    public class TokenContractTestBase : ContractTestBase<TokenContractTestAElfModule>
-//    {
-//    }
-//}
+using AElf.Contracts.TestBase;
+
+namespace AElf.Contracts.Token
+{
+    public class TokenContractTestBase : ContractTestBase<TokenContractTestAElfModule>
+    {
+    }
+}
