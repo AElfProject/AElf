@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-//using AElf.Kernel.Managers;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.TransactionPool.Domain;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Tests
+namespace AElf.Kernel.Tests.Managers
 {
-    /*
     public sealed class TransactionReceiptManagerTests:AElfKernelTestBase
     {
         private ITransactionReceiptManager _transactionReceiptManager;
@@ -20,7 +19,6 @@ namespace AElf.Kernel.Tests
         [Fact]
         public async Task AddOrUpdateReceipt_Test()
         {
-
             var transactionReceipt = GenerateTransactionReceipts(1)[0];
             await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
             var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
@@ -99,5 +97,4 @@ namespace AElf.Kernel.Tests
             return transactionReceipts;
         }
     }
-    */
 }

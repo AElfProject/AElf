@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using AElf.ChainController.Rpc;
+using AElf.OS.Rpc.ChainController;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
@@ -13,13 +13,14 @@ using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
-using AElf.Net.Rpc;
+using AElf.OS.Rpc.Net;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
+using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
-using AElf.Wallet.Rpc;
+using AElf.OS.Rpc.Wallet;
 using Google.Protobuf;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,8 @@ namespace AElf.Launcher
 
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
+        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+        
         public LauncherAElfModule()
         {
             Logger = NullLogger<LauncherAElfModule>.Instance;
@@ -82,16 +85,6 @@ namespace AElf.Launcher
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
-
-            var eventBus = context.ServiceProvider.GetService<ILocalEventBus>();
-            var minerService = context.ServiceProvider.GetService<IMinerService>();
-            eventBus.Subscribe<BlockMiningEventData>(eventData => minerService.MineAsync(
-                eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight, eventData.DueTime
-            ));
-
-            var consensusService = context.ServiceProvider.GetService<IConsensusService>();
-            eventBus.Subscribe<BestChainFoundEvent>(eventData =>
-                consensusService.TriggerConsensusAsync(eventData.ChainId));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -108,11 +101,22 @@ namespace AElf.Launcher
                 }
             };
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async () => await osService.StartAsync(dto));
+            var that = this;
+            AsyncHelper.RunSync(async () =>
+            {
+                that.OsBlockchainNodeContext = await osService.StartAsync(dto);
+            });
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
+        }
+
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        {
+            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+            var that = this;
+            AsyncHelper.RunSync(async () => { await osService.StopAsync(that.OsBlockchainNodeContext); });
         }
     }
 }

@@ -4,14 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Account;
-using AElf.Kernel.Services;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Temp;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
@@ -77,8 +73,40 @@ namespace AElf.OS.Tests.Network
 
             return (netServer, grpcPeerPool);
         }
+        
+        [Fact]
+        private async Task Multi_Connect()
+        {
+            var r = new List<(GrpcNetworkServer, IPeerPool)>();
 
-        [Fact(Skip = "Random failed, create issue #896")]
+            for (int i = 1; i <= 3; i++)
+            {
+                var s = BuildNetManager(new NetworkOptions { ListeningPort = 9800+i });
+                r.Add(s);
+                await s.Item1.StartAsync();
+            }
+
+            var m3 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:9801", "127.0.0.1:9802", "127.0.0.1:9803"},
+                ListeningPort = 9800
+            });
+
+            await m3.Item1.StartAsync();
+
+            var peer = m3.Item2.GetPeers();
+
+            foreach (var server in r.Select(m => m.Item1))
+            {
+                await server.StopAsync();
+            }
+
+            await m3.Item1.StopAsync();
+
+            Assert.Equal(3, peer.Count);
+        }
+
+        [Fact]
         private async Task Request_Block_Test()
         {
             var genesis = ChainGenerationHelpers.GetGenesisBlock();

@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Contexts
             // TODO: StatePath (string)
             var byteString = await BlockchainStateManager.GetStateAsync(
                 string.Join("/", path.Path.Select(x => x.ToStringUtf8())),
-                TransactionContext.BlockHeight,
+                TransactionContext.BlockHeight - 1,
                 TransactionContext.PreviousBlockHash
             );
             byteString = byteString ?? ByteString.Empty;

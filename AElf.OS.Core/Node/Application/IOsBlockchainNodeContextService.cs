@@ -1,5 +1,7 @@
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Domain;
 
 namespace AElf.OS.Node.Application
@@ -18,23 +20,30 @@ namespace AElf.OS.Node.Application
     public class OsBlockchainNodeContextService: IOsBlockchainNodeContextService
     {
 
-        private BlockchainNodeContextService _blockchainNodeContextService;
+        private IBlockchainNodeContextService _blockchainNodeContextService;
+        private IAElfNetworkServer _networkServer;
 
-        public OsBlockchainNodeContextService(BlockchainNodeContextService blockchainNodeContextService)
+        public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService, IAElfNetworkServer networkServer)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
+            _networkServer = networkServer;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
         {
-            await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
-            // TODO: what is it used for
-            return null;
+            var context = new OsBlockchainNodeContext
+            {
+                BlockchainNodeContext =
+                    await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto)
+            };
+            await _networkServer.StartAsync();
+            return context;
         }
 
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)
         {
-            throw new System.NotImplementedException();
+            await _networkServer.StopAsync();
+            await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
         }
     }
 }

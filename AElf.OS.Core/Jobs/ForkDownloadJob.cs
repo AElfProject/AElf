@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -14,7 +15,9 @@ namespace AElf.OS.Jobs
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
 
-        public IFullBlockchainService BlockchainService { get; set; }
+        public IBlockchainService BlockchainService { get; set; }
+
+        public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
 
         private int ChainId => ChainOptions.Value.ChainId;
@@ -38,7 +41,7 @@ namespace AElf.OS.Jobs
                         $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
                 }
 
-                foreach (var hash in args.BlockHashes)
+                foreach (var hash in args.BlockHashes.Select(h => Hash.LoadByteArray(h)))
                 {
                     // Check that some other job didn't get this before.
                     var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);
@@ -49,9 +52,15 @@ namespace AElf.OS.Jobs
                     // Query the peer
                     Block block = (Block) await NetworkService.GetBlockByHashAsync(hash, args.Peer);
 
+                    if (block == null)
+                    {
+                        Logger.LogWarning($"Aborting download, could not get {hash} from {args.Peer}");
+                        continue;
+                    }
+                    
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
-                    await BlockchainService.AttachBlockToChainAsync(chain, block);
+                    await BlockchainExecutingService.AttachBlockToChainAsync(chain, block);
 
                     Logger.LogDebug($"Added {block}.");
                 }
@@ -64,5 +73,3 @@ namespace AElf.OS.Jobs
         }
     }
 }
-
-    

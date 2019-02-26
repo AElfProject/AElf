@@ -114,10 +114,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // TODO: Insert deferredTransactions to TxPool
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
-            var allExecutedTransactions = nonCancellable.Select(x => x.GetHash())
-                .Concat(cancellable.Select(x => x.GetHash()).Where(x => executed.Contains(x))).ToList();
+            var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+            var allExecutedTransactionIds = allExecutedTransactions.Select(x=>x.GetHash()).ToList();
             var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(allExecutedTransactions);
+            bmt.AddNodes(allExecutedTransactionIds);
             blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
             blockHeader.MerkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             blockStateSet.BlockHash = blockHeader.GetHash();
@@ -126,7 +126,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 BlockHeader = blockHeader.GetHash()
             };
-            blockBody.Transactions.AddRange(allExecutedTransactions);
+            blockBody.Transactions.AddRange(allExecutedTransactionIds);
+            blockBody.TransactionList.AddRange(allExecutedTransactions);
             return new Block()
             {
                 Header = blockHeader,
