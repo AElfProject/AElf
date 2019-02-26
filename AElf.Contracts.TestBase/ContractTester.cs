@@ -31,6 +31,7 @@ using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
@@ -75,8 +76,6 @@ namespace AElf.Contracts.TestBase
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
                 {
                     options.UseAutofac();
-                    options.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-                    options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
                 });
             application.Initialize();
 
