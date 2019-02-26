@@ -16,7 +16,8 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnoucementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
+        ILocalEventHandler<AnnoucementReceivedEventData>
     {
         public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
@@ -24,6 +25,8 @@ namespace AElf.OS.Handlers
         public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
+        
+        public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
     
@@ -40,12 +43,12 @@ namespace AElf.OS.Handlers
             await ProcessNewBlock(eventData.Header, eventData.Peer);
         }
 
-         public async Task HandleEventAsync(PeerConnectedEventData eventData)
+        public async Task HandleEventAsync(PeerConnectedEventData eventData)
         {
             await ProcessNewBlock(eventData.Header, eventData.Peer);
         }
 
-         // todo eventually protect this logic with LIB
+        // todo eventually protect this logic with LIB
         private async Task ProcessNewBlock(BlockHeader header, string peer)
         {
             if (header == null)
@@ -54,27 +57,28 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-             try
+            try
             {
                 var blockHash = header.GetHash();
 
-                 Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {header.Height} }} from {peer}.");
+                Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {header.Height} }} from {peer}.");
 
-                 var hasBlock = await BlockchainService.HasBlockAsync(ChainId, blockHash);
+                var hasBlock = await BlockchainService.HasBlockAsync(ChainId, blockHash);
 
-                 // if we have the block, nothing to do.
+                // if we have the block, nothing to do.
                 if (hasBlock)
                 {
                     Logger.LogDebug($"Block {blockHash} already know.");
                     return;
                 }
 
-                 var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, header.PreviousBlockHash);
+                var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, header.PreviousBlockHash);
 
-                 // we have previous, so we only have one block to get.
+                // we have previous, so we only have one block to get.
                 if (hasPrevious)
                 {
-                    Logger.LogWarning($"Previous block found {{ hash: {header.PreviousBlockHash}, height: {header.Height} }}.");
+                    Logger.LogWarning(
+                        $"Previous block found {{ hash: {header.PreviousBlockHash}, height: {header.Height} }}.");
 
                     Block block = (Block) await NetworkService.GetBlockByHashAsync(blockHash, peer);
                     
@@ -84,21 +88,21 @@ namespace AElf.OS.Handlers
                         return;
                     }
 
-                    await BlockchainService.AddBlockAsync(ChainId, block);
-                    
-                    var chain = await BlockchainService.GetChainAsync(ChainId);
-                    var link = await BlockchainService.AttachBlockToChainAsync(chain, block);
-                    
-                    Logger.LogDebug($"Block processed {{ hash: {blockHash}, height: {header.Height} }}.");
+                     await BlockchainService.AddBlockAsync(ChainId, block);
+
+                     var chain = await BlockchainService.GetChainAsync(ChainId);
+                     var link = await BlockchainExecutingService.AttachBlockToChainAsync(chain, block);
+
+                     Logger.LogDebug($"Block processed {{ hash: {blockHash}, height: {header.Height} }}.");
                 }
                 else
                 {
                     // If not we download block ids backwards until we link
                     // and queue the chain download as a background job.
 
-                     List<Hash> idsToDownload = new List<Hash>();
+                    List<Hash> idsToDownload = new List<Hash>();
 
-                     Hash topHash = blockHash;
+                    Hash topHash = blockHash;
 
                     for (ulong i = header.Height - 1; i > 1; i -= (ulong)BlockIdRequestCount)
                     {
@@ -131,8 +135,7 @@ namespace AElf.OS.Handlers
                         Logger.LogWarning($"No blocks where needed but previous was not found for " +
                                           $"{{ previous: {header.PreviousBlockHash} hash: {blockHash}, height: {header.Height} }}.");
                     }
-
-                 }
+                }
             }
             catch (Exception e)
             {
@@ -152,7 +155,7 @@ namespace AElf.OS.Handlers
                     break;
                 }
 
-                 unlinkableIds.Add(id);           
+                unlinkableIds.Add(id);
             }
 
             return unlinkableIds;

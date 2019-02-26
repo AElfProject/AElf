@@ -88,7 +88,7 @@ namespace AElf.Runtime.CSharp
 //                throw new InvalidCodeException("No Api was found.");
 //            }
 
-            Executive2 executive = new Executive2(abiModule).SetSmartContract(instance); //.SetApi(ApiSingleton);
+            Executive executive = new Executive(abiModule).SetSmartContract(instance); //.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
         }

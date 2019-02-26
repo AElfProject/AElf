@@ -175,7 +175,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ListeningPort = _networkOptions.ListeningPort,
                 PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
-                Version = GlobalConfig.ProtocolVersion,
+                Version = ChainConsts.ProtocolVersion,
             };
             
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());

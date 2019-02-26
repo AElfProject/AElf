@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,11 +18,11 @@ namespace AElf.Kernel.Blockchain.Domain
     
     public class BlockManager : IBlockManager
     {
-        private readonly IBlockHeaderStore _blockHeaderStore;
-        private readonly IBlockBodyStore _blockBodyStore;
+        private readonly IBlockchainStore<BlockHeader> _blockHeaderStore;
+        private readonly IBlockchainStore<BlockBody> _blockBodyStore;
         public ILogger<BlockManager> Logger {get;set;}
 
-        public BlockManager(IBlockHeaderStore blockHeaderStore, IBlockBodyStore blockBodyStore)
+        public BlockManager(IBlockchainStore<BlockHeader> blockHeaderStore, IBlockchainStore<BlockBody> blockBodyStore)
         {
             Logger = NullLogger<BlockManager>.Instance;
             _blockHeaderStore = blockHeaderStore;
@@ -30,13 +31,13 @@ namespace AElf.Kernel.Blockchain.Domain
         
         public async Task AddBlockHeaderAsync(BlockHeader header)
         {
-            await _blockHeaderStore.SetAsync(header.GetHash().ToHex(), header);
+            await _blockHeaderStore.SetAsync(header.GetHash().ToStorageKey(), header);
         }
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
-            blockBody.TransactionList.Clear();
-            await _blockBodyStore.SetAsync(blockHash.Clone().ToHex(), blockBody);
+//            blockBody.TransactionList.Clear();
+            await _blockBodyStore.SetAsync(blockHash.Clone().ToStorageKey(), blockBody);
         }
         
         public async Task<Block> GetBlockAsync(Hash blockHash)
@@ -60,12 +61,12 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash)
         {
-            return await _blockHeaderStore.GetAsync<BlockHeader>(blockHash.ToHex());
+            return await _blockHeaderStore.GetAsync(blockHash.ToHex());
         }
 
-        public async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
+        private async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
         {
-            return await _blockBodyStore.GetAsync<BlockBody>(bodyHash.ToHex());
+            return await _blockBodyStore.GetAsync(bodyHash.ToHex());
         }
     }
 }
