@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
@@ -31,8 +30,6 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();
-
-            services.AddTransient<IByteSerializer, ProtobufSerializer>();
             
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
