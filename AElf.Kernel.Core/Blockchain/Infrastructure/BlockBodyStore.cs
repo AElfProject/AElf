@@ -7,7 +7,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     public class BlockBodyStore : KeyValueStoreBase<BlockchainKeyValueDbContext>, IBlockBodyStore
     {
         public BlockBodyStore(IByteSerializer byteSerializer, BlockchainKeyValueDbContext keyValueDbContext) 
-            : base(byteSerializer, keyValueDbContext, GlobalConfig.BlockBodyPrefix)
+            : base(byteSerializer, keyValueDbContext, StorePrefix.BlockBodyPrefix)
         {
         }
     }

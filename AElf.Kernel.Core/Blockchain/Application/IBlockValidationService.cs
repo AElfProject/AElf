@@ -30,21 +30,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
             foreach (var provider in _blockValidationProviders)
             {
-                var validateResult = false;
-                // TODO: Should we catch exceptions?If there is an unhandled exception, whether to stop the node?
-                try
-                {
-                    validateResult = await provider.ValidateBlockBeforeExecuteAsync(chainId, block);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Block validate fails before execution. Block hash : {block.BlockHashToHex}");
-                }
-
-                if (!validateResult)
-                {
+                if (!await provider.ValidateBlockBeforeExecuteAsync(chainId, block))
                     return false;
-                }
             }
 
             return true;
@@ -54,21 +41,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
             foreach (var provider in _blockValidationProviders)
             {
-                var validateResult = false;
-                // TODO: Should we catch exceptions?If there is an unhandled exception, whether to stop the node?
-                try
-                {
-                    validateResult = await provider.ValidateBlockAfterExecuteAsync(chainId, block);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Block validate fails after execution. Block hash : {block.BlockHashToHex}");
-                }
-
-                if (!validateResult)
-                {
+                if (!await provider.ValidateBlockAfterExecuteAsync(chainId, block))
                     return false;
-                }
             }
 
             return true;

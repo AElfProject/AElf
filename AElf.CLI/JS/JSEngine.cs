@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,10 +9,6 @@ using AElf.CLI.JS.Crypto;
 using AElf.CLI.JS.IO;
 using AElf.CLI.JS.Net;
 using AElf.CLI.Utils;
-using AElf.Common;
-using AElf.JSDK;
-using Alba.CsConsoleFormat;
-using Alba.CsConsoleFormat.Fluent;
 using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Debug;
@@ -94,8 +88,8 @@ namespace AElf.CLI.JS
 
         private void LoadAelfJs()
         {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(StaticResource)).Location)
-                .GetManifestResourceStream("AElf.JSDK.content.aelf.js"));
+            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
+                .GetManifestResourceStream("AElf.CLI.Scripts.aelf.js"));
             RunScript(@"Aelf = require('aelf');");
         }
 
