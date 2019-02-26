@@ -122,7 +122,8 @@ namespace AElf.Contracts.TestBase
                 From = GetAddress(CallOwner),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock(_chainId).Result.Height
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(CallOwner.PrivateKey, tx.GetHash().DumpByteArray());
