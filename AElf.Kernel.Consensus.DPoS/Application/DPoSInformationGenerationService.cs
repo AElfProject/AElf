@@ -113,7 +113,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 case DPoSBehaviour.InitialTerm:
                     information.NewTerm.ChainId = chainId;
                     information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
-                    Logger.LogInformation($"Consensus information of first two rounds.\n{information.NewTerm}");
                     return new DPoSExtraInformation
                     {
                         NewTerm = information.NewTerm
