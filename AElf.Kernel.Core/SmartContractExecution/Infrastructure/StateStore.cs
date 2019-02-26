@@ -1,6 +1,5 @@
 using System;
 using AElf.Common;
-using AElf.Common.Serializers;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using Google.Protobuf;
