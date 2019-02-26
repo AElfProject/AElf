@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,11 @@ namespace AElf.Kernel.Domain
 {
     public class MinersManager : IMinersManager
     {
-        private readonly IMinersStore _minersStore;
+        private readonly IBlockchainStore<Miners> _minersStore;
 
         public ILogger<MinersManager> Logger { get; set; }
 
-        public MinersManager(IMinersStore minersStore)
+        public MinersManager(IBlockchainStore<Miners> minersStore)
         {
             _minersStore = minersStore;
             Logger = NullLogger<MinersManager>.Instance;
@@ -55,7 +56,7 @@ namespace AElf.Kernel.Domain
 
         private async Task<Miners> GetMiners(string key)
         {
-            return await _minersStore.GetAsync<Miners>(key);
+            return await _minersStore.GetAsync(key);
         }
 
         private async Task SetMiners(string key, Miners miners)
