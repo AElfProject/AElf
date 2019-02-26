@@ -145,7 +145,6 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Theory(Skip = "https://github.com/AElfProject/AElf/issues/952")]
-        [InlineData(100UL)]
         [InlineData(1000UL)]
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
@@ -154,14 +153,13 @@ namespace AElf.Contracts.Resource.Tests
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 "BuyResource",
                 "Cpu", paidElf);
-            var returnMessage = buyResult.RetVal.ToStringUtf8();
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
             var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
             var tokenBalance =
                 await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
-            tokenBalance.DeserializeToUInt64().ShouldBe(1000_000UL - 10_000UL);
+            tokenBalance.DeserializeToUInt64().ShouldBe(1000_000UL - paidElf);
 
             var cpuBalance = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetUserBalance",
                 ownerAddress, "Cpu");
