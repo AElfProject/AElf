@@ -33,7 +33,6 @@ namespace AElf.Contracts.TestBase
     public class ContractTester : ITransientDependency
     {
         private readonly int _chainId;
-
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionExecutingService _transactionExecutingService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
@@ -43,11 +42,12 @@ namespace AElf.Contracts.TestBase
         private readonly IConsensusService _consensusService;
         private readonly IChainManager _chainManager;
 
+        public Chain Chain => GetChainAsync().Result;
         public ECKeyPair CallOwner { get; set; }
 
-        public ContractTester(int chainId)
+        public ContractTester(int chainId = 0)
         {
-            _chainId = chainId;
+            _chainId = (chainId==0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
 
             var application =
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
@@ -154,6 +154,45 @@ namespace AElf.Contracts.TestBase
             var minerService = BuildMinerService(txs);
             return await minerService.MineAsync(_chainId, preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(4000));
+        }
+
+        public async Task<IBlock> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
+            params object[] objects)
+        {
+            var tx = GenerateTransaction(contractAddress, methodName, CallOwner, objects);
+            return await MineABlockAsync(new List<Transaction> {tx});
+        }
+
+        public void SignTransaction(ref List<Transaction> transactions)
+        {
+            foreach (var transaction in transactions)
+            {
+                var signature = CryptoHelpers.SignWithPrivateKey(CallOwner.PrivateKey, transaction.GetHash().DumpByteArray());
+                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            }
+        }
+
+        public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
+            params object[] objects)
+        {
+            var tx = GenerateTransaction(contractAddress, methodName, CallOwner, objects);
+            var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
+            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
+                {
+                    ChainId = _chainId,
+                    BlockHash = preBlock.GetHash(),
+                    BlockHeight = preBlock.Height
+                },
+                new List<Transaction> {tx},
+                DateTime.UtcNow, new CancellationToken());
+
+            return executionReturnSets.Any() ? executionReturnSets.Last().ReturnValue : null;
+        }
+
+        public void SignTransaction(ref Transaction transaction)
+        {
+            var signature = CryptoHelpers.SignWithPrivateKey(CallOwner.PrivateKey, transaction.GetHash().DumpByteArray());
+            transaction.Sigs.Add(ByteString.CopyFrom(signature));
         }
 
         public async Task<Chain> GetChainAsync()

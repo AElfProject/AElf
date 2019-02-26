@@ -8,6 +8,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Xunit;
 using Shouldly;
@@ -67,6 +68,16 @@ public sealed class TokenContractTest : TokenContractTestBase
         }
 
         [Fact]
+        public async Task Transfer_Without_Enough_Token()
+        {
+            Initialize_TokenContract();
+            var toAddress = CryptoHelpers.GenerateKeyPair();
+            var tx = Tester.GenerateTransaction(ContractAddresses[1], "Transfer",
+                Tester.GetAddress(toAddress), 1000_000_00UL);
+            Should.ThrowAsync<AssertionError>(() => { return Tester.MineABlockAsync(new List<Transaction> {tx}); });
+        }
+
+        [Fact]
         public async Task Burn_TokenContract()
         {
             Initialize_TokenContract();
@@ -77,6 +88,5 @@ public sealed class TokenContractTest : TokenContractTestBase
             var bytes1 = await Tester.ExecuteContractAsync(ContractAddresses[1], "BalanceOf", Tester.GetCallOwnerAddress());
             bytes1.DeserializeToUInt64().ShouldBe(1000_000UL - 3000UL);
         }
-
     }
 }
