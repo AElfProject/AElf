@@ -15,5 +15,6 @@ namespace AElf.CrossChain
         public static string GetSideChainIdAndHeight = "GetSideChainIdAndHeight";
         public static string GetAllChainsIdAndHeight = "GetAllChainsIdAndHeight";
         public static string GetParentChainId = "GetParentChainId";
+        public static ulong GenesisBlockHeight = 1;
     }
 }

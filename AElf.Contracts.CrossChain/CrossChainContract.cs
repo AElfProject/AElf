@@ -312,7 +312,7 @@ namespace AElf.Contracts.CrossChain
             {
                 ulong parentChainHeight = blockInfo.Root.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : GlobalConfig.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : CrossChainConsts.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
 
@@ -365,7 +365,7 @@ namespace AElf.Contracts.CrossChain
                 if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : GlobalConfig.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : CrossChainConsts.GenesisBlockHeight;
                 if (target != sideChainHeight)
                     continue;
 
