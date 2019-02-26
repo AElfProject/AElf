@@ -1,14 +1,15 @@
 ﻿using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Infrastructure;
 
 namespace AElf.Kernel.Blockchain.Domain
 {
     public class TransactionResultManager : ITransactionResultManager
     {
-        private readonly ITransactionResultStore _transactionResultStore;
+        private readonly IBlockchainStore<TransactionResult> _transactionResultStore;
 
-        public TransactionResultManager(ITransactionResultStore transactionResultStore)
+        public TransactionResultManager(IBlockchainStore<TransactionResult> transactionResultStore)
         {
             _transactionResultStore = transactionResultStore;
         }
@@ -20,7 +21,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
-            return await _transactionResultStore.GetAsync<TransactionResult>(txId.ToHex());
+            return await _transactionResultStore.GetAsync(txId.ToHex());
         }
     }
 }

@@ -5,8 +5,6 @@ namespace AElf.Kernel.Types
 {
     public static class ContractHelpers
     {
-        public static string IndexingSideChainMethodName { get; } = "IndexSideChainBlockInfo";
-        public static string IndexingParentChainMethodName { get; } = "IndexParentChainBlockInfo";
         public static Address GetSystemContractAddress(int chainId, UInt64 serialNumber)
         {
             return Address.BuildContractAddress(chainId, serialNumber);

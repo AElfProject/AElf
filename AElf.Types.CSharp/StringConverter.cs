@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using AElf.Common;
+using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
