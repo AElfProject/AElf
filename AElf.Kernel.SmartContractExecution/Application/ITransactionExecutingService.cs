@@ -55,9 +55,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 var result = GetTransactionResult(trace);
                 if (result != null)
                 {
+                    // TODO: handle transaction executed in multiple blocks
                     await _transactionResultManager.AddTransactionResultAsync(result);
-                    returnSets.Add(GetReturnSet(trace, result));
                 }
+                returnSets.Add(GetReturnSet(trace, result));
             }
 
             return returnSets;
@@ -86,7 +87,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
                 Transaction = transaction,
-                BlockHeight = chainContext.BlockHeight,
+                BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = depth,
             };
@@ -223,7 +224,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             if (trace.RetVal == null)
             {
-                throw new NullReferenceException("RetVal of trace is null." + trace.StdErr);
+                throw new NullReferenceException("RetVal of trace is null.\n" + trace.StdErr);
             }
 
             returnSet.ReturnValue = trace.RetVal.Data;

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -40,7 +41,7 @@ namespace AElf.OS.Jobs
                         $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
                 }
 
-                foreach (var hash in args.BlockHashes)
+                foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
                 {
                     // Check that some other job didn't get this before.
                     var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);
@@ -51,6 +52,12 @@ namespace AElf.OS.Jobs
                     // Query the peer
                     Block block = (Block) await NetworkService.GetBlockByHashAsync(hash, args.Peer);
 
+                    if (block == null)
+                    {
+                        Logger.LogWarning($"Aborting download, could not get {hash} from {args.Peer}");
+                        continue;
+                    }
+                    
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
                     await BlockchainExecutingService.AttachBlockToChainAsync(chain, block);

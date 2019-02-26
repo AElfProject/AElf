@@ -15,7 +15,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
         
-        public async Task FillExtraData(int chainId, Block block)
+        public async Task FillExtraDataAsync(int chainId, Block block)
         {
             if (block.Header.BlockExtraData == null)
             {
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Consensus.Application
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }
 
-        public async Task<bool> ValidateExtraData(int chainId, Block block)
+        public async Task<bool> ValidateExtraDataAsync(int chainId, Block block)
         {
             var consensusInformation = block.Header.BlockExtraData.ConsensusInformation;
 
