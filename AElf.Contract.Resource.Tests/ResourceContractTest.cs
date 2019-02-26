@@ -94,6 +94,24 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
+        public async Task Query_Exchange_Balance()
+        {
+            await Initize_Resource();
+
+            var exchangeResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetExchangeBalance", "Cpu");
+            exchangeResult.DeserializeToUInt64().ShouldBe(1000_000UL);
+        }
+
+        [Fact]
+        public async Task Query_Elf_Balance()
+        {
+            await Initize_Resource();
+
+            var elfResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetElfBalance", "Cpu");
+            elfResult.DeserializeToUInt64().ShouldBe(1000_000UL);
+        }
+
+        [Fact]
         public async Task IssueResource_With_Conntroller_Account()
         {
             await Initize_Resource();
@@ -126,22 +144,24 @@ namespace AElf.Contracts.Resource.Tests
             issueResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact]
-        public async Task Buy_Resource_WithEnough_Token()
+        [Theory]
+        [InlineData(100UL)]
+        [InlineData(1000UL)]
+        public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
             await Initize_Resource();
 
-            var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 "BuyResource",
-                "Cpu", 10_000UL);
+                "Cpu", paidElf);
             var returnMessage = buyResult.RetVal.ToStringUtf8();
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
-            var tokenBalance2 =
+            var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
+            var tokenBalance =
                 await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
-            tokenBalance2.DeserializeToUInt64().ShouldBe(1000_000UL - 10_000UL);
+            tokenBalance.DeserializeToUInt64().ShouldBe(1000_000UL - 10_000UL);
 
             var cpuBalance = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetUserBalance",
                 ownerAddress, "Cpu");
@@ -159,7 +179,54 @@ namespace AElf.Contracts.Resource.Tests
                 "BuyResource",
                 "Cpu", 10_000UL);
             var returnMessage = buyResult.RetVal.ToStringUtf8();
+            returnMessage.Contains("").ShouldBe(true);
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        }
+
+        [Fact]
+        public async Task Sell_WithEnough_Resource()
+        {
+            await Buy_Resource_WithEnough_Token(1000UL);
+
+            var sellResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                "SellResource",
+                "Cpu", 100UL);
+            sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task Sell_WithoutEnough_Resource()
+        {
+            await Buy_Resource_WithEnough_Token(100UL);
+
+            var sellResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                "SellResource",
+                "Cpu", 1000UL);
+            var returnMessage = sellResult.RetVal.ToStringUtf8();
+            returnMessage.Contains("Insufficient CPU balance.").ShouldBe(true);
+            sellResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        }
+
+        [Fact]
+        public async Task Lock_Available_Resource()
+        {
+            await Buy_Resource_WithEnough_Token(1000UL);
+
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "LockResource",
+                100UL, "Cpu");
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task Lock_OverOwn_Resource()
+        {
+            await Initize_Resource();
+
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "LockResource",
+                1000UL, "Cpu");
+            var returnMessage = lockResult.RetVal.ToStringUtf8();
+            returnMessage.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.").ShouldBe(true);
+            lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
     }
 }
