@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class Contract
+    public partial class ConsensusContract
     {
 //        public Round TryToGetCurrentRoundInformation()
 //        {
@@ -136,13 +136,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            if (ticketsMap.Keys.Count < Config.GetProducerNumber())
+            if (ticketsMap.Keys.Count < GetProducerNumber())
             {
                 victories = null;
                 return false;
             }
 
-            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(Config.GetProducerNumber())
+            victories = ticketsMap.OrderByDescending(tm => tm.Value).Take(GetProducerNumber())
                 .Select(tm => tm.Key)
                 .ToList().ToMiners();
             return true;
@@ -303,13 +303,15 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool IsMiner(Address address)
+        public bool IsMiner(string publicKey)
         {
+            Console.WriteLine($"sender: {publicKey}");
             if (TryToGetTermNumber(out var termNumber))
             {
                 if (TryToGetMiners(termNumber, out var miners))
                 {
-                    return miners.Addresses.Contains(address);
+                    Console.WriteLine(miners.ToString());
+                    return miners.PublicKeys.Contains(publicKey);
                 }
             }
 
@@ -384,7 +386,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 return currentRoundInStateDB.RealTimeMinersInfo.Values.Count(info => info.OutValue != null) ==
-                       Config.GetProducerNumber();
+                       GetProducerNumber();
             }
 
             return false;
@@ -515,5 +517,41 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         #endregion
+        
+        public ulong GetDividendsForEveryMiner(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
+                            GetProducerNumber());
+        }
+
+        public ulong GetDividendsForTicketsCount(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
+        }
+        
+        public ulong GetDividendsForReappointment(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersReappointmentRatio);
+        }
+        
+        public ulong GetDividendsForBackupNodes(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
+        }
+
+        public ulong GetDividendsForVoters(ulong minedBlocks)
+        {
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
+        }
+        
+        public static ulong GetDividendsForAll(ulong minedBlocks)
+        {
+            return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
+        }
+        
+        public int GetProducerNumber()
+        {
+            return 17 + (DateTime.UtcNow.Year - 2019) * 2;
+        }
     }
 }

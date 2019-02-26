@@ -20,7 +20,7 @@ namespace AElf.Launcher
         {
             var transactions = new List<Transaction>();
             transactions.Add(GetTransactionForDeployment(chainId, typeof(BasicContractZero)));
-            transactions.Add(GetTransactionForDeployment(chainId, typeof(AElf.Contracts.Consensus.DPoS.Contract)));
+            transactions.Add(GetTransactionForDeployment(chainId, typeof(AElf.Contracts.Consensus.DPoS.ConsensusContract)));
             // TODO: Add initialize transactions
             return transactions.ToArray();
         }

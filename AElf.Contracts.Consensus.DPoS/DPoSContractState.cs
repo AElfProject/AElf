@@ -7,6 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
+    // ReSharper disable once ClassNeverInstantiated.Global
     public class DPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }

@@ -31,6 +31,9 @@ namespace AElf.OS
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
+            
+            context.Services.AddSingleton<PeerConnectedEventHandler>();
+            context.Services.AddTransient<ForkDownloadJob>();
 
             var keyStore = new AElfKeyStore(ApplicationHelpers.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
