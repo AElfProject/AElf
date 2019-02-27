@@ -7,7 +7,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEvent>
+    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly IConsensusService _consensusService;
 
@@ -16,7 +16,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
 
-        public async Task HandleEventAsync(BestChainFoundEvent eventData)
+        public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             await _consensusService.TriggerConsensusAsync(eventData.ChainId);
         }

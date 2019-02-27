@@ -16,7 +16,7 @@ namespace AElf.CrossChain
         {
             _crossChainDataProvider = crossChainDataProvider;
             LocalEventBus = NullLocalEventBus.Instance;
-            LocalEventBus.Subscribe<BestChainFoundEvent>(RegisterSideChainAsync);
+            LocalEventBus.Subscribe<BestChainFoundEventData>(RegisterSideChainAsync);
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(int chainId, Hash previousBlockHash,
@@ -54,7 +54,7 @@ namespace AElf.CrossChain
             _crossChainDataProvider.RegisterNewChain(chainId);
         }
 
-        private async Task RegisterSideChainAsync(BestChainFoundEvent eventData)
+        private async Task RegisterSideChainAsync(BestChainFoundEventData eventData)
         {
             await _crossChainDataProvider.ActivateCrossChainCacheAsync(eventData.ChainId, eventData.BlockHash,
                 eventData.BlockHeight);

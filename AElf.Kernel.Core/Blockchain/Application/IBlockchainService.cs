@@ -93,7 +93,7 @@ namespace AElf.Kernel.Blockchain.Application
             await AddBlockAsync(chainId, block);
             var chain = await _chainManager.CreateAsync(chainId, block.GetHash());
             await LocalEventBus.PublishAsync(
-                new BestChainFoundEvent()
+                new BestChainFoundEventData()
                 {
                     ChainId = chain.Id,
                     BlockHash = chain.BestChainHash,

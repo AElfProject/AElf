@@ -102,9 +102,9 @@ namespace AElf.Kernel.Blockchain.Application
                             ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
-                        
+
                         Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
-                        
+
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
                             ChainId = chain.Id,
@@ -134,12 +134,13 @@ namespace AElf.Kernel.Blockchain.Application
                     var blockLink = successLinks.Last();
                     await _chainManager.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
 
-                    await LocalEventBus.PublishAsync(
-                        new BestChainFoundEvent()
+                    _ = LocalEventBus.PublishAsync(
+                        new BestChainFoundEventData()
                         {
                             ChainId = chain.Id,
                             BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
+                            BlockHeight = chain.BestChainHeight,
+                            ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
                         });
                 }
             }

@@ -24,8 +24,8 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Attach_Block_To_Chain_ReturnNull()
         {
-            var eventMessage = new BestChainFoundEvent();
-            _localEventBus.Subscribe<BestChainFoundEvent>(message =>
+            var eventMessage = new BestChainFoundEventData();
+            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
             {
                 eventMessage = message;
                 return Task.CompletedTask;
@@ -51,8 +51,8 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Attach_Block_To_Chain_FoundBestChain()
         {
-            var eventMessage = new BestChainFoundEvent();
-            _localEventBus.Subscribe<BestChainFoundEvent>(message =>
+            var eventMessage = new BestChainFoundEventData();
+            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
             {
                 eventMessage = message;
                 return Task.CompletedTask;
