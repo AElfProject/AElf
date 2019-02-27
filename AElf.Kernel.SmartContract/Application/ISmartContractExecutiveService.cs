@@ -11,6 +11,8 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -40,6 +42,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+#if DEBUG
+        public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
+#endif
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
@@ -51,6 +56,9 @@ namespace AElf.Kernel.SmartContract.Application
             _stateProviderFactory = stateProviderFactory;
             _smartContractManager = smartContractManager;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+#if DEBUG
+            SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
+#endif
         }
 
 //        private async Task<Hash> GetContractHashAsync(int chainId, Address address)
@@ -100,7 +108,10 @@ namespace AElf.Kernel.SmartContract.Application
                 ContractAddress = address,
                 ChainService = _serviceProvider.GetService<IBlockchainService>(),
                 SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
-                SmartContractExecutiveService = this
+                SmartContractExecutiveService = this,
+#if DEBUG
+                Logger = SmartContractContextLogger
+#endif
             });
 
             return executive;

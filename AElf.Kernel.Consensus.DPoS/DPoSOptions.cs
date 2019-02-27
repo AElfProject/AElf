@@ -8,5 +8,6 @@ namespace AElf.Kernel.Consensus.DPoS
         // ReSharper disable once CollectionNeverUpdated.Global
         public List<string> InitialMiners { get; set; }
         public int MiningInterval { get; set; }
+        public bool IsBootMiner { get; set; }
     }
 }
