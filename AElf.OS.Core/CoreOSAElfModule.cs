@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 using AElf.Common;
-using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -20,22 +19,26 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
-    [DependsOn(typeof(CoreKernelAElfModule)), DependsOn(typeof(AbpBackgroundJobsModule))]
+    [DependsOn(
+        typeof(CoreKernelAElfModule),
+        typeof(AbpBackgroundJobsModule)
+    )]
     public class CoreOSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var hostingEnvironment = context.Services.GetHostingEnvironment();
             var configuration = context.Services.GetConfiguration();
             Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
-            
+
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
 
-            var keyStore = new AElfKeyStore(ApplicationHelpers.AppDataPath);
+            var keyStore = new AElfKeyStore(hostingEnvironment.ContentRootPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
 using Org.BouncyCastle.Crypto;
@@ -238,7 +239,8 @@ namespace AElf.Cryptography
 
         private string GetKeystoreDirectoryPath()
         {
-            return Path.Combine(_dataDirectory, KeyFolderName);
+            var keyPath = Path.Combine(_dataDirectory, KeyFolderName);
+            return Directory.Exists(keyPath) ? keyPath : Path.Combine(ApplicationHelpers.AppDataPath, KeyFolderName);
         }
     }
 }
