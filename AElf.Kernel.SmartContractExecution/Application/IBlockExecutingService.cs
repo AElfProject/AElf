@@ -140,7 +140,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
-            return successLinks;
+            return blockLinks;
         }
 
         private async Task<bool> ExecuteBlock(int chainId, ChainBlockLink blockLink, Block block)
