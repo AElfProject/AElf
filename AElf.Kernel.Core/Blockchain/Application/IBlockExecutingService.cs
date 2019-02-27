@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -147,7 +148,7 @@ namespace AElf.Kernel.Blockchain.Application
                     var miners = await _minersManager.GetMiners(0ul);
                     
                     if (miners != null && miners.PublicKeys.Count > 0)
-                        await _chainManager.UpdateIrreversibleBlockAsync(chain, successLinks.Last().BlockHash, miners.PublicKeys.Count); 
+                        await _chainManager.UpdateIrreversibleBlockAsync(chain, successLinks.Last().BlockHash, (int)Math.Floor(2f/3f * miners.PublicKeys.Count)+1); 
                 }
             }
 
