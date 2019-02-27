@@ -81,7 +81,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             {
                                 OutValue = outValue,
                                 InValue = previousInValue,
-                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
+                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                                CurrentInValue = _inValue
                             }.ToByteArray();
                         }
 
@@ -210,10 +211,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     minerInRound.PublicKey == AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex()
                         ? "(This Node)"
                         : "";
-                minerInformation += $"\nAddr::\t {minerInRound.Address}";
+                minerInformation += $"\nAddr:\t {minerInRound.Address}";
                 minerInformation += $"\nOrder:\t {minerInRound.Order}";
                 minerInformation +=
-                    $"\nTime::\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
+                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
                 minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
                 //minerInformation += $"\nIn:\t {minerInRound.InValue?.ToHex()}";
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";

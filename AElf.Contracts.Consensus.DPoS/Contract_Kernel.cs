@@ -223,13 +223,17 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
             }
 
+            var signature = Hash.Generate();
+            if (TryToGetPreviousRoundInformation(out var preRoundInformation))
+            {
+                signature = preRoundInformation.CalculateSignature(extra.CurrentInValue);
+            }
             // To publish Out Value.
             return new DPoSInformation
             {
                 SenderPublicKey = publicKey,
-                CurrentRound = FillOutValue(extra.OutValue, publicKey),
+                CurrentRound = FillOutValueAndSignature(extra.OutValue, signature,publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
-                
                 Sender = Context.Sender
             };
         }

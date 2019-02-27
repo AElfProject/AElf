@@ -193,7 +193,6 @@ message DPoSInformation {
     DPoSBehaviour Behaviour = 8;
     int32 PromisedTinyBlocks = 9;
     string SenderPublicKey = 10;
-    Hash Signature = 11;
 }
 
 message DPoSExtraInformation {
@@ -210,6 +209,7 @@ message DPoSExtraInformation {
     string PublicKey = 11;
     bool IsBootMiner = 12;
     Hash Signature = 13;
+    Hash CurrentInValue = 14;
 }
 
 message ConsensusCommand {

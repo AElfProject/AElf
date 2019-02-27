@@ -9,6 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
+    // ReSharper disable InconsistentNaming
     public partial class ConsensusContract
     {
         public ActionResult InitialTerm(Term firstTerm)
@@ -555,6 +556,11 @@ namespace AElf.Contracts.Consensus.DPoS
             roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 
             TryToAddRoundInformation(roundInformation);
+        }
+
+        private ulong CalculateLIB()
+        {
+            throw new NotImplementedException();
         }
 
         #region Vital Steps

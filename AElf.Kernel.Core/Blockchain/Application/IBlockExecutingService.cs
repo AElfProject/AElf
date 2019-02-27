@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,6 +50,9 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            
             var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
                 Height = block.Header.Height,
@@ -143,6 +147,9 @@ namespace AElf.Kernel.Blockchain.Application
                         });
                 }
             }
+
+            stopwatch.Stop();
+            Logger.LogInformation($"Attaching block duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return blockLinks;
         }

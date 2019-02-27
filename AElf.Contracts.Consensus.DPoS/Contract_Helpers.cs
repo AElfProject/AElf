@@ -466,13 +466,14 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Term();
         }
 
-        private Round FillOutValue(Hash outValue, string publicKey)
+        private Round FillOutValueAndSignature(Hash outValue, Hash signature, string publicKey)
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
                 if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
                 {
                     currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue = outValue;
+                    currentRoundInStateDB.RealTimeMinersInfo[publicKey].Signature = signature;
                 }
 
                 return currentRoundInStateDB;

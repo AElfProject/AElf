@@ -14,6 +14,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
@@ -51,6 +52,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
+
+        public bool ScheduleTriggered { get; set; }
 
         public ECKeyPair CallOwnerKeyPair { get; set; }
 
@@ -97,8 +100,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             _consensusInformationGenerationService =
                 new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation);
 
+            var consensusSchedulerMock = new Mock<IConsensusScheduler>();
+            consensusSchedulerMock.Setup(m => m.NewEvent(It.IsAny<int>(), It.IsAny<BlockMiningEventData>()))
+                .Callback(() => ScheduleTriggered = true);
+            consensusSchedulerMock.Setup(m => m.CancelCurrentEvent())
+                .Callback(() => ScheduleTriggered = false);
+            var consensusScheduler = consensusSchedulerMock.Object;
+
             _consensusService = new ConsensusService(_consensusInformationGenerationService, _accountService,
-                _transactionExecutingService, _consensusScheduler, _blockchainService, consensusControlInformation);
+                _transactionExecutingService, consensusScheduler, _blockchainService, consensusControlInformation);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
