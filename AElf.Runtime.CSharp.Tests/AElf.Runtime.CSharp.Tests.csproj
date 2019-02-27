@@ -12,6 +12,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.10.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj" />

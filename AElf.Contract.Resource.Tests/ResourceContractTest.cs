@@ -145,7 +145,7 @@ namespace AElf.Contracts.Resource.Tests
             issueResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Theory]
+        [Theory(Skip = "https://github.com/AElfProject/AElf/issues/952")]
         [InlineData(1000UL)]
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
