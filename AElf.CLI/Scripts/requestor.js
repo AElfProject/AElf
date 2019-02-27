@@ -2,9 +2,9 @@
     _requestor.isConnected = function () {
         try {
             var res = this.send({
-                id: 9999,
+                id: 1234,
                 jsonrpc: '2.0',
-                method: 'connect_chain',
+                method: 'ConnectChain',
                 params: {}
             });
             return res && res.error === undefined;
