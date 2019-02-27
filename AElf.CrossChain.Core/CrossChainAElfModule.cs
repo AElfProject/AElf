@@ -1,3 +1,4 @@
+using AElf.CrossChain.Cache;
 using AElf.CrossChain.Grpc;
 using AElf.CrossChain.Grpc.Server;
 using AElf.Kernel;

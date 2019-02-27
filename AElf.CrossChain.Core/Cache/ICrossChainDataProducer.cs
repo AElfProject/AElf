@@ -1,4 +1,4 @@
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Cache
 {
     public interface ICrossChainDataProducer
     {

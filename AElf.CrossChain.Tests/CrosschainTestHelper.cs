@@ -11,7 +11,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Moq;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain
 {
     public class CrosschainTestHelper
     {

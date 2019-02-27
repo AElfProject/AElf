@@ -2,17 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.CrossChain;
-using AElf.CrossChain.EventMessage;
-using AElf.Kernel;
-using AElf.Kernel.Account.Application;
+using AElf.CrossChain.Cache;
 using Moq;
-using NSubstitute;
-using Volo.Abp.EventBus.Local;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain
 {
     public class CrossChainDataProviderTest : CrosschainTestBase
     {

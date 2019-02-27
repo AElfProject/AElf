@@ -185,7 +185,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Sched
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "AElf.Launcher\AElf.Launcher.csproj", "{2A5C7854-9B98-4798-A9AE-8DC464093B90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Crosschain.Tests", "AElf.Crosschain.Tests\AElf.Crosschain.Tests.csproj", "{7231A984-223A-4BD9-A4A6-EAC30DE3AA4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Tests", "AElf.CrossChain.Tests\AElf.CrossChain.Tests.csproj", "{7231A984-223A-4BD9-A4A6-EAC30DE3AA4B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.FluentScheduler", "AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj", "{8B23312F-61B4-4330-900D-280848C2DB4B}"
 EndProject

@@ -1,11 +1,10 @@
-using AElf.Crosschain.Tests;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.TestBase;
 using Volo.Abp;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain
 {
     public class CrosschainTestBase : AElfIntegratedTest<CrosschainTestModule>
     {

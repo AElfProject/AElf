@@ -1,7 +1,6 @@
-using AElf.CrossChain;
 using Xunit;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain.Cache
 {
     public class MultiChainBlockInfoCacheProviderTest
     {

@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.CrossChain;
-using AElf.Kernel;
 using Moq;
 using Xunit;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain
 {
     public class CrosschainServiceTest : CrosschainTestBase
     {

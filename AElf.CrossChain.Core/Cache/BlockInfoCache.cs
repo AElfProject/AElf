@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Cache
 {
     public class BlockInfoCache
     {

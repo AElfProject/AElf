@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.CrossChain;
 using Xunit;
 
-namespace AElf.Crosschain
+namespace AElf.CrossChain.Cache
 {
     public class CrossChainMemoryCacheTest : CrosschainTestBase
     {
