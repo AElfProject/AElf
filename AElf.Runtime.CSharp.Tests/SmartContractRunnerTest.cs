@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Token;
@@ -21,7 +22,7 @@ namespace AElf.Runtime.CSharp.Tests
         }
 
         [Fact]
-        public void Get_ContractContext()
+        public void Get_IExcutive()
         {
             var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
             var reg = new SmartContractRegistration()
@@ -29,8 +30,8 @@ namespace AElf.Runtime.CSharp.Tests
                 Category = 2,
                 Code = ByteString.CopyFrom(contractCode),
                 CodeHash = Hash.FromRawBytes(contractCode)
-
             };
+
             var executive = Runner.RunAsync(reg);
             executive.ShouldNotBe(null);
         }
@@ -44,10 +45,11 @@ namespace AElf.Runtime.CSharp.Tests
                 Category = 2,
                 Code = ByteString.CopyFrom(contractCode),
                 CodeHash = Hash.FromRawBytes(contractCode)
-
             };
+
             var message = Runner.GetAbi(reg) as Module;
             message.ShouldNotBe(null);
+
             var eventList = message.Events.Select(o => o.Name).ToList();
             eventList.Contains("AElf.Contracts.Token.Transferred").ShouldBe(true);
             eventList.Contains("AElf.Contracts.Token.Approved").ShouldBe(true);
@@ -64,6 +66,22 @@ namespace AElf.Runtime.CSharp.Tests
             methodList.Contains("Symbol").ShouldBe(true);
             methodList.Contains("TokenName").ShouldBe(true);
             methodList.Contains("TotalSupply").ShouldBe(true);
+        }
+
+        [Fact]
+        public void Get_Contract_Type()
+        {
+            var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+            var reg = new SmartContractRegistration()
+            {
+                Category = 2,
+                Code = ByteString.CopyFrom(contractCode),
+                CodeHash = Hash.FromRawBytes(contractCode)
+            };
+
+            var contractType = Runner.GetContractType(reg);
+            var fullName = contractType.FullName;
+            fullName.ShouldBe("AElf.Contracts.Token.TokenContractState");
         }
     }
 }
