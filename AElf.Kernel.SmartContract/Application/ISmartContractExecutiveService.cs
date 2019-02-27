@@ -144,10 +144,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 // get runner
                 var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-                if (runner == null)
-                {
-                    throw new NotSupportedException($"Runner for category {reg.Category} is not registered.");
-                }
 
                 // run smartcontract executive info and return executive
                 executive = await runner.RunAsync(reg);
