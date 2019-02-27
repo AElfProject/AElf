@@ -26,7 +26,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
                 
-        private ulong _curHeight;
+        private ulong _curHeight = ChainConsts.GenesisBlockHeight;
         
         public int ChainId { get; private set; }
 
