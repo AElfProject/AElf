@@ -22,7 +22,7 @@ namespace AElf.Kernel.Blockchain.Application
     public interface IBlockGenerationService
     {
         Task<Block> GenerateBlockAsync(GenerateBlockDto generateBlockDto);
-        void FillBlockAsync(Block block, List<TransactionResult> results);
+        Task<Block> FillBlockAsync(BlockHeader header, List<Transaction> transactions, Hash merkleTreeRootOfWorldState, IEnumerable<byte[]> bloomData);
         
     }
     
@@ -48,30 +48,38 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = new BlockBody()
             };
             
-            // todo: get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
-            await _blockExtraDataService.FillBlockExtraData(generateBlockDto.ChainId, block);
-
             // calculate and set tx merkle tree root 
             //block.Complete(currentBlockTime, results);
             return block;
         }
 
-        public void FillBlockAsync(Block block, List<TransactionResult> results)
+        public async Task<Block> FillBlockAsync(BlockHeader header, List<Transaction> transactions,
+            Hash merkleTreeRootOfWorldState, IEnumerable<byte[]> bloomData)
         {
-            block.Header.Bloom = ByteString.CopyFrom(
-                Bloom.AndMultipleBloomBytes(
-                    results.Where(x => !x.Bloom.IsEmpty).Select(x => x.Bloom.ToByteArray())
-                )
-            );
+            var allExecutedTransactionIds = transactions.Select(x=>x.GetHash()).ToList();
+            var bmt = new BinaryMerkleTree();
+            bmt.AddNodes(allExecutedTransactionIds);
+            header.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
+            header.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
+            header.Bloom = ByteString.CopyFrom(Bloom.AndMultipleBloomBytes(bloomData));
+            
+            var body = new BlockBody()
+            {
+                BlockHeader = header.GetHash()
+            };
+            var block = new Block
+            {
+                Header = header,
+                Body = body
+            };
+            
+            // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
+            await _blockExtraDataService.FillBlockExtraData(header.ChainId, block);
             
             // add tx hash
-            block.AddTransactions(results.Select(x => x.TransactionId));
-            // set ws merkle tree root
-            block.Header.MerkleTreeRootOfWorldState =
-                new BinaryMerkleTree().AddNodes(results.Select(x => x.StateHash)).ComputeRootHash();
-            
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            block.Body.Complete(block.Header.GetHash());
+            body.Transactions.AddRange(allExecutedTransactionIds);
+            body.TransactionList.AddRange(transactions);
+            return block;
         }
     }
 }

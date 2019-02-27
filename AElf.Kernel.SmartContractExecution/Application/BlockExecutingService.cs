@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -17,13 +18,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
-
+        private readonly IBlockGenerationService _blockGenerationService;
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
-            IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager, IBlockGenerationService blockGenerationService)
         {
             _executingService = executingService;
             _blockManager = blockManager;
             _blockchainStateManager = blockchainStateManager;
+            _blockGenerationService = blockGenerationService;
         }
 
         public async Task ExecuteBlockAsync(int chainId, Hash blockHash)
@@ -111,28 +113,23 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
+            IEnumerable<byte[]> bloomData =
+                nonCancellableReturnSets.Where(returnSet => returnSet.Bloom != ByteString.Empty)
+                    .Select(returnSet => returnSet.Bloom.ToByteArray()).Concat(cancellableReturnSets
+                        .Where(returnSet => returnSet.Bloom != ByteString.Empty)
+                        .Select(returnSet => returnSet.Bloom.ToByteArray()));
             // TODO: Insert deferredTransactions to TxPool
 
+            var merklTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-            var allExecutedTransactionIds = allExecutedTransactions.Select(x=>x.GetHash()).ToList();
-            var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(allExecutedTransactionIds);
-            blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
-            blockHeader.MerkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
+
+            var block = await _blockGenerationService.FillBlockAsync(blockHeader, allExecutedTransactions,
+                merklTreeRootOfWorldState, bloomData);
+            
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-            var blockBody = new BlockBody()
-            {
-                BlockHeader = blockHeader.GetHash()
-            };
-            blockBody.Transactions.AddRange(allExecutedTransactionIds);
-            blockBody.TransactionList.AddRange(allExecutedTransactions);
-            return new Block()
-            {
-                Header = blockHeader,
-                Body = blockBody
-            };
+            return block;
         }
 
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)

@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Helpers
             // TODO: Maybe add info like Consensus protocol in Genesis block
 
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            block.Body.Complete(block.Header.GetHash());         
+            block.Body.BlockHeader = block.Header.GetHash();         
             Block = block;
 
             return this;
