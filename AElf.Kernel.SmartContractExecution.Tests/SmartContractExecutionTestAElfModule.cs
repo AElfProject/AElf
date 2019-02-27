@@ -12,13 +12,16 @@ using AElf.TestBase;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(
         typeof(SmartContractExecutionAElfModule),
-        typeof(TestBaseAElfModule))]
+        typeof(TestBaseAElfModule),
+        typeof(AbpEventBusModule)
+        )]
     public class SmartContractExecutionTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
