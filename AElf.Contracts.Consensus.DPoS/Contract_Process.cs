@@ -133,6 +133,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
 
+            TryToFindLIB();
+
             return new ActionResult {Success = true};
         }
 
@@ -516,6 +518,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToAddRoundInformation(forwarding.NextRound);
                 TryToUpdateRoundNumber(forwarding.NextRound.RoundNumber);
             }
+            
+            TryToFindLIB();
         }
 
         public void PackageOutValue(ToPackage toPackage)
@@ -540,6 +544,8 @@ namespace AElf.Contracts.Consensus.DPoS
             roundInformation.RealTimeMinersInfo[publicKey].PromisedTinyBlocks = toPackage.PromiseTinyBlocks;
 
             TryToUpdateRoundInformation(roundInformation);
+
+            TryToFindLIB();
         }
 
         public void BroadcastInValue(ToBroadcast toBroadcast)
@@ -558,9 +564,66 @@ namespace AElf.Contracts.Consensus.DPoS
             TryToAddRoundInformation(roundInformation);
         }
 
-        private ulong CalculateLIB()
+        public void TryToFindLIB()
         {
-            throw new NotImplementedException();
+            if (CalculateLIB(out var offset))
+            {
+                Context.FireEvent(new LIBFound
+                {
+                    Offset = offset
+                });
+            }
+        }
+
+        private bool CalculateLIB(out ulong offset)
+        {
+            offset = 0;
+            
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var currentRoundMiners = currentRound.RealTimeMinersInfo;
+
+                var minersCount = currentRoundMiners.Count;
+                
+                var minimumCount = ((minersCount * 2) / 3) + 1;
+                var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
+                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count();
+                if (validMinersCountOfCurrentRound >= minimumCount)
+                {
+                    offset = (ulong) minimumCount;
+                    return true;
+                }
+                
+                // Current round is not enough to find LIB.
+                
+                var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
+                
+                if (TryToGetPreviousRoundInformation(out var previousRound))
+                {
+                    var usefulPreRoundMiners = previousRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
+                        .Select(m => m.PublicKey).ToList();
+
+                    var traversalBlocksCount = publicKeys.Count;
+                    
+                    for (var i = 0; i < minersCount; i++)
+                    {
+                        if (++traversalBlocksCount > minersCount)
+                        {
+                            return false;
+                        }
+                        
+                        publicKeys.AddIfNotContains(usefulPreRoundMiners[i]);
+                        
+                        if (publicKeys.Count >= minimumCount)
+                        {
+                            offset = (ulong) validMinersCountOfCurrentRound + (ulong) i;
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
         }
 
         #region Vital Steps
