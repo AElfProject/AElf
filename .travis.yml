@@ -14,6 +14,7 @@ before_script:
   - export LD_LIBRARY_PATH=$(pwd)/ChakraCoreFiles/lib/:$LD_LIBRARY_PATH
 script:
   - bash scripts/build.sh
+  - bash scripts/test.sh
   - curl -s https://codecov.io/bash > codecov
   - chmod +x codecov
   - ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN

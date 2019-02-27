@@ -5,6 +5,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Authorization;
+using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.CrossChain;
+using AElf.Contracts.Dividends;
+using AElf.Contracts.Genesis;
+using AElf.Contracts.Resource;
+using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Database;
@@ -24,6 +31,7 @@ using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
@@ -44,6 +52,9 @@ namespace AElf.Contracts.TestBase
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly IBlockValidationService _blockValidationService;
+
+        private readonly IAccountService _accountService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
@@ -55,12 +66,16 @@ namespace AElf.Contracts.TestBase
         {
             _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
 
+            CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
+
+            var mockAccountService = new Mock<IAccountService>();
+            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
+            _accountService = mockAccountService.Object;
+
             var application =
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
                 {
                     options.UseAutofac();
-                    options.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-                    options.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
                 });
             application.Initialize();
 
@@ -72,13 +87,12 @@ namespace AElf.Contracts.TestBase
                 application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
-            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
             _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
-
-            CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
+            _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
+            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
         }
-        
+
         public void SetCallOwner(ECKeyPair caller)
         {
             CallOwnerKeyPair = caller;
@@ -134,7 +148,8 @@ namespace AElf.Contracts.TestBase
                 From = GetAddress(CallOwnerKeyPair),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock(_chainId).Result.Height
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(CallOwnerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
@@ -286,10 +301,7 @@ namespace AElf.Contracts.TestBase
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
 
-            var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(s => s.GetPublicKeyAsync())
-                .ReturnsAsync(CryptoHelpers.GenerateKeyPair().PublicKey);
-            return new MinerService(mockTxHub.Object, mockAccountService.Object, _blockGenerationService,
+            return new MinerService(mockTxHub.Object, _accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
                 _blockchainExecutingService);
         }
@@ -321,6 +333,20 @@ namespace AElf.Contracts.TestBase
         private Address GetContractAddress(ulong serialNumber)
         {
             return Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), serialNumber);
+        }
+
+        public List<Type> GetDefaultContractTypes()
+        {
+            var list = new List<Type>();
+            list.Add(typeof(BasicContractZero));
+            list.Add(typeof(ConsensusContract));
+            list.Add(typeof(TokenContract));
+            list.Add(typeof(CrossChainContract));
+            list.Add(typeof(AuthorizationContract));
+            list.Add(typeof(ResourceContract));
+            list.Add(typeof(DividendsContract));
+
+            return list;
         }
     }
 }

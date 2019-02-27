@@ -166,7 +166,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             var hashes = new List<Hash>();
 
-            for (ulong i = first.Height - 1; i >= first.Height - (ulong) count && i > 0; i--)
+            for (ulong i = first.Height - 1; hashes.Count < count && i > 0; i--)
             {
                 var bHash = await GetBlockHashByHeightAsync(chain, i);
 

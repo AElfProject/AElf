@@ -1,0 +1,12 @@
+version: '3'
+services:
+  aelf-node:
+    working_dir: /opt/aelf-node
+    image: aelf/node
+    command: dotnet /app/AElf.Launcher.dll --config.path /opt/aelf-node
+    ports:
+      - 6801:6800
+      - 8001:8000
+    volumes:
+      - /opt:/opt
+

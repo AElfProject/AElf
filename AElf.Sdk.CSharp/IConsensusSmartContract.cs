@@ -12,6 +12,6 @@ namespace AElf.Sdk.CSharp
 
         TransactionList GenerateConsensusTransactions(ulong preBlockHeight, byte[] preBlockPrefix,
             byte[] extraInformation);
-        IMessage GetConsensusCommand(Timestamp timestamp, string publicKey);
+        IMessage GetConsensusCommand(byte[] extraInformation);
     }
 }

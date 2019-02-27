@@ -10,10 +10,11 @@ using Xunit;
 using Shouldly;
 using Moq;
 using AElf.Sdk.CSharp.Tests.TestContract;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class ContractTest:SdkCSharpTestBase
+    public sealed class ContractTest : SdkCSharpTestBase
     {
         private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
         private TokenContract Contract { get; } = new TokenContract();
@@ -25,6 +26,9 @@ namespace AElf.Sdk.CSharp.Tests
             Contract.SetStateProvider(StateProvider);
             Contract.SetSmartContractContext(new SmartContractContext()
             {
+#if DEBUG
+                Logger = GetRequiredService<ILogger<ISmartContractContext>>(),
+#endif
                 ContractAddress = AddressList[0],
                 ChainService = new Mock<IBlockchainService>().Object,
             });
@@ -92,10 +96,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void Transfer_To_Null_User_Test()
         {
             Init_Test();
-            Should.Throw<Exception>(() =>
-            {
-                Contract.Transfer(null, 100UL);
-            });
+            Should.Throw<Exception>(() => { Contract.Transfer(null, 100UL); });
         }
 
         [Fact]
