@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Domain;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.TestBase;
@@ -51,6 +52,17 @@ namespace AElf.Kernel
                     .Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<int>(), It.IsAny<Block>()))
                     .Returns<int, Block>((chainId, block) => Task.FromResult(true));
                 return mockBlockValidationService.Object;
+            });
+            
+            services.AddTransient(p =>
+            {
+                var minersManagerMock = new Mock<IMinersManager>();
+                
+                minersManagerMock
+                    .Setup(m => m.GetMiners(It.IsAny<ulong>()))
+                    .Returns<ulong>(val => Task.FromResult(new Miners()));
+                
+                return minersManagerMock.Object;
             });
         }
 

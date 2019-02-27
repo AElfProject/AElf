@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Domain;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
@@ -28,17 +29,18 @@ namespace AElf.Kernel.Blockchain.Application
     public class FullBlockchainExecutingService : IBlockchainExecutingService
     {
         private readonly IChainManager _chainManager;
+        private readonly IMinersManager _minersManager;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
         public ILocalEventBus LocalEventBus { get; set; }
 
-
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
-            IBlockExecutingService blockExecutingService)
+            IBlockExecutingService blockExecutingService, IMinersManager minersManager)
         {
             _chainManager = chainManager;
+            _minersManager = minersManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
@@ -141,6 +143,11 @@ namespace AElf.Kernel.Blockchain.Application
                             BlockHash = chain.BestChainHash,
                             BlockHeight = chain.BestChainHeight
                         });
+
+                    var miners = await _minersManager.GetMiners(0ul);
+                    
+                    if (miners != null && miners.PublicKeys.Count > 0)
+                        await _chainManager.UpdateIrreversibleBlockAsync(chain, successLinks.Last().BlockHash, miners.PublicKeys.Count); 
                 }
             }
 

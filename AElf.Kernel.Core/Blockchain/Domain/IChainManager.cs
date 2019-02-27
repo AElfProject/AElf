@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Types.Comparers;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Domain
@@ -28,6 +29,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
             ChainBlockLink chainBlockLink);
 
+        Task<Hash> UpdateIrreversibleBlockAsync(Chain chain, Hash start, int confirmationsNeeded);
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
 
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(int chainId, Hash blockHash);
@@ -188,6 +190,40 @@ namespace AElf.Kernel.Blockchain.Domain
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             return status;
+        }
+
+        public async Task<Hash> UpdateIrreversibleBlockAsync(Chain chain, Hash start, int confirmationsNeeded)
+        {
+            if (start == null)
+                return null;
+            
+            HashSet<byte[]> foundKeys = new HashSet<byte[]>(new ByteArrayEqualityComparer());
+            
+            Hash newLib = null;
+            Hash currentHash = start;
+            
+            while (true)
+            {
+                ChainBlockLink link = await GetChainBlockLinkAsync(chain.Id, start);
+
+                if (link == null || link.IsIrreversibleBlock || !link.IsLinked)
+                    return null;
+                
+                foundKeys.Add(link.Producer.ToByteArray());
+
+                if (foundKeys.Count >= confirmationsNeeded)
+                {
+                    newLib = currentHash;
+                    break;
+                }
+
+                currentHash = link.PreviousBlockHash;
+            }
+
+            if (newLib != null)
+                await SetIrreversibleBlockAsync(chain, newLib);
+
+            return newLib;
         }
 
         public async Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)

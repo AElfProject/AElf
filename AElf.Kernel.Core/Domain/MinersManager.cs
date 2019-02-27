@@ -25,11 +25,7 @@ namespace AElf.Kernel.Domain
 
         public async Task<Miners> GetMiners(ulong termNumber)
         {
-            var miners = await GetMiners(CalculateKey(termNumber));
-            if (miners != null && miners.PublicKeys.Any())
-                return miners;
-
-            throw new InvalidDataException();
+            return null;
         }
 
         public async Task<bool> IsMinersInDatabase()
