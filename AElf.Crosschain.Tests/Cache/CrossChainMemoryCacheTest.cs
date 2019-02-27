@@ -102,13 +102,14 @@ namespace AElf.Crosschain
             {
                 SideChainHeight = 2
             });
+            
+            // 3 is absent.
             blockInfoCache.TryAdd(new SideChainBlockData
             {
                 SideChainHeight = 4
             });
             Assert.True(blockInfoCache.TargetChainHeight == 3);
         }
-        
         
         [Fact]
         public void TryAdd_MultiThreads_WithSameData()

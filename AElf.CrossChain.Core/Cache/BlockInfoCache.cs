@@ -11,9 +11,11 @@ namespace AElf.CrossChain
             new BlockingCollection<IBlockInfo>(new ConcurrentQueue<IBlockInfo>());
 
         private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get; } = new Queue<IBlockInfo>();
-        private static readonly int CacheSizeLimit = CrossChainConsts.MinimalBlockInfoCacheThreshold;
-        private static readonly int CachedBoundedCapacity = Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
-                                                          CrossChainConsts.MaximalCountForIndexingParentChainBlock) * CacheSizeLimit;
+
+        private static readonly int CachedBoundedCapacity =
+            Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
+                CrossChainConsts.MaximalCountForIndexingParentChainBlock) *
+            CrossChainConsts.MinimalBlockInfoCacheThreshold;
         private readonly ulong _initTargetHeight;
         public ulong TargetChainHeight
         {
@@ -56,7 +58,7 @@ namespace AElf.CrossChain
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size , for most nodes have this block.
             
-            if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + (ulong) CacheSizeLimit))
+            if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + (ulong) CrossChainConsts.MinimalBlockInfoCacheThreshold))
             {
                 var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, 
                     CrossChainConsts.WaitingIntervalInMillisecond);
@@ -70,7 +72,7 @@ namespace AElf.CrossChain
             if (blockInfo != null)
                 return !isCacheSizeLimited ||
                        ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) 
-                       >= CacheSizeLimit;
+                       >= CrossChainConsts.MinimalBlockInfoCacheThreshold;
             
             return false;
         }
