@@ -34,10 +34,6 @@ namespace AElf.Cryptography.Tests
             string addString = address.GetFormatted();
             address.ShouldNotBe(null);
 
-            var keyPair1 = _keyStore.ReadKeyPairAsync(addString, "123").Result;
-            keyPair1.PrivateKey.ShouldBe(keyPair.PrivateKey);
-            keyPair.PublicKey.ShouldBe(keyPair.PublicKey);
-
             //Open account
             var errResult = _keyStore.OpenAsync(addString, "12", true).Result;
             errResult.ShouldBe(AElfKeyStore.Errors.WrongPassword);
@@ -52,7 +48,41 @@ namespace AElf.Cryptography.Tests
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
             Directory.Delete("/tmp/keys", true);
-            Should.ThrowAsync<KeyStoreNotFoundException>(() => { return _keyStore.ReadKeyPairAsync(addString + "_fake", "123"); });
+            Should.ThrowAsync<KeyStoreNotFoundException>(() =>
+            {
+                return _keyStore.ReadKeyPairAsync(addString + "_fake", "123");
+            });
+        }
+
+        [Fact]
+        public void Account_Create_And_Read_Compare()
+        {
+            //Create
+            var keyPair = _keyStore.CreateAsync("123", "AELF").Result;
+            keyPair.ShouldNotBe(null);
+            var address = Address.FromPublicKey(keyPair.PublicKey);
+            var publicKey = keyPair.PublicKey.ToHex();
+            string addString = address.GetFormatted();
+
+            //Read
+            var keyPair1 = _keyStore.ReadKeyPairAsync(addString, "123").Result;
+            var address1 = Address.FromPublicKey(keyPair1.PublicKey);
+            var publicKey1 = keyPair1.PublicKey.ToHex();
+
+            //Compare
+            if (keyPair.PrivateKey[0] == byte.MinValue)
+            {
+                var newKeyArray = new byte[31];
+                Buffer.BlockCopy(keyPair.PrivateKey, 1, newKeyArray, 0, 31);
+                newKeyArray.ShouldBe(keyPair1.PrivateKey);
+            }
+            else
+                keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
+
+            address.ShouldBe(address1);
+            publicKey.ShouldBe(publicKey1);
+
+            Directory.Delete("/tmp/keys", true);
         }
 
         [Fact]
