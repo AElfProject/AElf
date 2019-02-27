@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
 
             var attachResult =
-                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, newBlock, status);
+                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             attachResult.ShouldBeNull();
             eventMessage.BlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
         }
@@ -78,12 +78,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             await _fullBlockchainService.AddBlockAsync(chain.Id, newBlock);
             var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
             var attachResult =
-                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, newBlock, status);
+                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             attachResult.Count.ShouldBe(2);
 
             attachResult.Last().Height.ShouldBe(2u);
-            
-            
+
 
             //event was async, wait
             await Task.Delay(10);

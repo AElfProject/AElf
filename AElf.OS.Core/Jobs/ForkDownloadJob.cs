@@ -65,7 +65,7 @@ namespace AElf.OS.Jobs
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
                     var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-                    await BlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, block, status);
+                    await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
                     Logger.LogDebug($"Added {block}.");
                 }

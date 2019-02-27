@@ -95,7 +95,7 @@ namespace AElf.OS.Handlers
 
                     var chain = await BlockchainService.GetChainAsync(ChainId);
                     var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-                    var link = await BlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, block, status);
+                    var link = await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
                     Logger.LogDebug($"Block processed {{ hash: {blockHash}, height: {header.Height} }}.");
                 }

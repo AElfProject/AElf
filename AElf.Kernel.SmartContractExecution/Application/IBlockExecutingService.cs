@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
     public interface IBlockchainExecutingService
     {
-        Task<List<ChainBlockLink>> ExecuteBlocksAttachedToChain(Chain chain, Block block,
+        Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, 
             BlockAttachOperationStatus status);
     }
 
@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToChain(Chain chain, Block block,
+        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, 
             BlockAttachOperationStatus status)
         {
             List<ChainBlockLink> blockLinks = null;

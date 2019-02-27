@@ -247,7 +247,7 @@ namespace AElf.Contracts.TestBase
             await _blockchainService.AddBlockAsync(_chainId, block);
             var chain = await _blockchainService.GetChainAsync(_chainId);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-            await _blockchainExecutingService.ExecuteBlocksAttachedToChain(chain, block, status);
+            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
         }
 
         public async Task SetIrreversibleBlock(Hash libHash)
