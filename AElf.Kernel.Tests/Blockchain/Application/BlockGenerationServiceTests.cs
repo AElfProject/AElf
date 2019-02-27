@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
                 PreviousBlockHeight = 1
             };
 
-            var block = await _blockGenerationService.GenerateBlockAsync(generateBlockDto);
+            var block = await _blockGenerationService.GenerateEmptyBlockAsync(generateBlockDto);
 
             block.Header.ChainId.ShouldBe(generateBlockDto.ChainId);
             block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);

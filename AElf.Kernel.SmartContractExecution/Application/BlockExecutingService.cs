@@ -113,22 +113,27 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
+            // TODO: Insert deferredTransactions to TxPool
+
+            var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
             IEnumerable<byte[]> bloomData =
                 nonCancellableReturnSets.Where(returnSet => returnSet.Bloom != ByteString.Empty)
                     .Select(returnSet => returnSet.Bloom.ToByteArray()).Concat(cancellableReturnSets
                         .Where(returnSet => returnSet.Bloom != ByteString.Empty)
                         .Select(returnSet => returnSet.Bloom.ToByteArray()));
-            // TODO: Insert deferredTransactions to TxPool
-
-            var merklTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
-            var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
-            var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-
-            var block = await _blockGenerationService.FillBlockAsync(blockHeader, allExecutedTransactions,
-                merklTreeRootOfWorldState, bloomData);
+            var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
+            var fillBlockDto = new FillBlockDto
+            {
+                Transactions = allExecutedTransactions,
+                MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState,
+                BloomData = bloomData
+            };
+            var block = await _blockGenerationService.FillBlockAsync(blockHeader, fillBlockDto);
             
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+            
             return block;
         }
 
