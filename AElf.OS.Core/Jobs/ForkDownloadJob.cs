@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -51,7 +52,7 @@ namespace AElf.OS.Jobs
                         Logger.LogDebug($"Block {hash} already know, skipping.");
                         continue;
                     }
-                    
+
                     // Query the peer
                     Block block = (Block) await NetworkService.GetBlockByHashAsync(hash, args.Peer);
 
@@ -60,10 +61,11 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Aborting download, could not get {hash} from {args.Peer}");
                         continue;
                     }
-                    
+
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
-                    await BlockchainExecutingService.AttachBlockToChainAsync(chain, block);
+                    var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                    await BlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, block, status);
 
                     Logger.LogDebug($"Added {block}.");
                 }

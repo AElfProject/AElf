@@ -46,7 +46,6 @@ namespace AElf.Kernel
 
             services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
 
-            services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

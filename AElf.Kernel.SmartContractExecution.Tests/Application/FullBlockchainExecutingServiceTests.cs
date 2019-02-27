@@ -1,26 +1,27 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingServiceTests: AElfKernelTestBase
+    public sealed class FullBlockchainExecutingServiceTests : SmartContractExecutionTestBase
     {
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
         private readonly IFullBlockchainService _fullBlockchainService;
         private readonly ILocalEventBus _localEventBus;
         private readonly int _chainId = 1;
-        
+
         public FullBlockchainExecutingServiceTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
             _fullBlockchainService = GetRequiredService<IFullBlockchainService>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
         }
-        
+
         [Fact]
         public async Task Attach_Block_To_Chain_ReturnNull()
         {
@@ -30,9 +31,9 @@ namespace AElf.Kernel.Blockchain.Application
                 eventMessage = message;
                 return Task.CompletedTask;
             });
-            
+
             var chain = await CreateNewChain();
-            
+
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -42,12 +43,15 @@ namespace AElf.Kernel.Blockchain.Application
                 },
                 Body = new BlockBody()
             };
-            
-            var attachResult = await _fullBlockchainExecutingService.AttachBlockToChainAsync(chain, newBlock);
+
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+
+            var attachResult =
+                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, newBlock, status);
             attachResult.ShouldBeNull();
             eventMessage.BlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
         }
-        
+
         [Fact]
         public async Task Attach_Block_To_Chain_FoundBestChain()
         {
@@ -57,7 +61,7 @@ namespace AElf.Kernel.Blockchain.Application
                 eventMessage = message;
                 return Task.CompletedTask;
             });
-            
+
             var chain = await CreateNewChain();
 
             var newBlock = new Block
@@ -71,11 +75,13 @@ namespace AElf.Kernel.Blockchain.Application
             };
 
             await _fullBlockchainService.AddBlockAsync(chain.Id, newBlock);
-            var attachResult = await _fullBlockchainExecutingService.AttachBlockToChainAsync(chain, newBlock);
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+            var attachResult =
+                await _fullBlockchainExecutingService.ExecuteBlocksAttachedToChain(chain, newBlock, status);
             attachResult.Count.ShouldBe(2);
             eventMessage.BlockHeight.ShouldBe(newBlock.Header.Height);
         }
-        
+
         private async Task<Chain> CreateNewChain()
         {
             var genesisBlock = new Block

@@ -29,7 +29,7 @@ namespace AElf.Kernel
 
             services.AddTransient<BlockValidationProvider>();
 
-            services.AddTransient<IBlockExecutingService>(p =>
+            /*services.AddTransient<IBlockExecutingService>(p =>
             {
                 var mockBlockExecutingService = new Mock<IBlockExecutingService>();
                 mockBlockExecutingService.Setup(m => m.ExecuteBlockAsync(It.IsAny<int>(), It.IsAny<BlockHeader>(),
@@ -38,7 +38,7 @@ namespace AElf.Kernel
                         (chainId, blockHeader, nonCancellableTransactions)
                             => Task.FromResult(new Block {Header = blockHeader}));
                 return mockBlockExecutingService.Object;
-            });
+            });*/
             
             services.AddTransient<IBlockValidationService>(p =>
             {

@@ -58,6 +58,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     // TODO: handle transaction executed in multiple blocks
                     await _transactionResultManager.AddTransactionResultAsync(result);
                 }
+
                 returnSets.Add(GetReturnSet(trace, result));
             }
 

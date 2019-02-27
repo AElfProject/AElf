@@ -14,14 +14,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class FullBlockchainServiceTests : AElfKernelTestBase
     {
         private readonly FullBlockchainService _fullBlockchainService;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly ILocalEventBus _localEventBus;
         private readonly int _chainId = 1;
 
         public FullBlockchainServiceTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
-            _blockchainExecutingService = GetRequiredService<IBlockchainExecutingService>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
@@ -84,7 +82,7 @@ namespace AElf.Kernel.Blockchain.Application
             var result = await _fullBlockchainService.HasBlockAsync(_chainId, blockList[1].GetHash());
             result.ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task Has_Block_ReturnFalse()
         {
@@ -137,7 +135,7 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldNotBeNull();
             result.GetHash().ShouldBe(blockList[1].GetHash());
         }
-        
+
         [Fact]
         public async Task Get_Block_ByHeight_ReturnNull()
         {
@@ -151,17 +149,17 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_Block_ByHash_ReturnBlock()
         {
             var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
-            
+
             var result = await _fullBlockchainService.GetBlockByHashAsync(_chainId, blockList[2].GetHash());
             result.ShouldNotBeNull();
             result.Height.ShouldBe(blockList[2].Height);
         }
-        
+
         [Fact]
         public async Task Get_Block_ByHash_ReturnNull()
         {
             var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
-            
+
             var result = await _fullBlockchainService.GetBlockByHashAsync(_chainId, Hash.FromString("Not Exist Block"));
             result.ShouldBeNull();
         }
@@ -174,7 +172,7 @@ namespace AElf.Kernel.Blockchain.Application
             var chain = await _fullBlockchainService.GetChainAsync(_chainId);
             chain.ShouldNotBeNull();
         }
-        
+
         [Fact]
         public async Task Get_Chain_ReturnNull()
         {
@@ -182,11 +180,12 @@ namespace AElf.Kernel.Blockchain.Application
             chain.ShouldBeNull();
         }
 
+
         [Fact]
         public async Task Get_BestChain_ReturnBlockHeader()
         {
             var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
-            
+
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -200,7 +199,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             await _fullBlockchainService.AddBlockAsync(_chainId, newBlock);
             chain = await _fullBlockchainService.GetChainAsync(_chainId);
-            await _blockchainExecutingService.AttachBlockToChainAsync(chain, newBlock);
+            await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
 
             var result = await _fullBlockchainService.GetBestChainLastBlock(_chainId);
             result.Height.ShouldBe(blockList[2].Height);
@@ -248,7 +247,7 @@ namespace AElf.Kernel.Blockchain.Application
 
                 await _fullBlockchainService.AddBlockAsync(chainId, newBlock);
                 chain = await _fullBlockchainService.GetChainAsync(chainId);
-                await _blockchainExecutingService.AttachBlockToChainAsync(chain, newBlock);
+                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
             }
 
             return (chain, blockList);
