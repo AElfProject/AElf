@@ -28,8 +28,8 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var eventMessage = new BestChainFoundEvent();
-            _localEventBus.Subscribe<BestChainFoundEvent>(message =>
+            var eventMessage = new BestChainFoundEventData();
+            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
             {
                 eventMessage = message;
                 return Task.CompletedTask;
