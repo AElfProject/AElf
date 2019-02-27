@@ -67,7 +67,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             _inValue = Hash.Generate();
                             return new DPoSExtraInformation
                             {
-                                HashValue = Hash.FromMessage(_inValue),
+                                OutValue = Hash.FromMessage(_inValue),
                                 InValue = Hash.Zero,
                                 PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                             }.ToByteArray();
@@ -79,7 +79,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             _inValue = Hash.Generate();
                             return new DPoSExtraInformation
                             {
-                                HashValue = outValue,
+                                OutValue = outValue,
                                 InValue = previousInValue,
                                 PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                             }.ToByteArray();
@@ -150,8 +150,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         }
                         Logger.LogInformation(GetLogStringForOneRound(information.CurrentRound));
                         var currentMinerInformation = minersInformation.OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
-                        Logger.LogInformation(
-                            $"\nRound number: {information.CurrentRound.RoundNumber}\nOrder: {currentMinerInformation.Order}");
                         return new DPoSExtraInformation
                         {
                             ToPackage = new ToPackage
@@ -202,22 +200,26 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private string GetLogStringForOneRound(Round round)
         {
-            var logs = $"\nRound {round.RoundNumber}. Round Id: {round.RoundId}";
+            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
             foreach (var minerInRound in round.RealTimeMinersInfo.Values.OrderBy(m => m.Order))
             {
                 var minerInformation = "\n";
                 minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
                 minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
-                minerInformation += $"\nAddress::\t {minerInRound.Address}";
+                minerInformation +=
+                    minerInRound.PublicKey == AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex()
+                        ? "(This Node)"
+                        : "";
+                minerInformation += $"\nAddr::\t {minerInRound.Address}";
                 minerInformation += $"\nOrder:\t {minerInRound.Order}";
                 minerInformation +=
                     $"\nTime::\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
                 minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
-                minerInformation += $"\nIn:\t {minerInRound.InValue?.ToHex()}";
+                //minerInformation += $"\nIn:\t {minerInRound.InValue?.ToHex()}";
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nLMiss: {minerInRound.LatestMissedTimeSlots}";
+                minerInformation += $"\nLMiss:\t {minerInRound.LatestMissedTimeSlots}";
 
                 logs += minerInformation;
             }

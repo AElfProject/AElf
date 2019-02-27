@@ -133,6 +133,7 @@ message MinerInRound {
     bool IsMissed = 14;
     Address Address = 15;
     int32 PromisedTinyBlocks = 16;
+    string Alias = 17;
 }
 
 // The information of a candidate.
@@ -192,11 +193,12 @@ message DPoSInformation {
     DPoSBehaviour Behaviour = 8;
     int32 PromisedTinyBlocks = 9;
     string SenderPublicKey = 10;
+    Hash Signature = 11;
 }
 
 message DPoSExtraInformation {
     bool ChangeTerm = 1;
-    Hash HashValue = 2;
+    Hash OutValue = 2;
     int32 MiningInterval = 3;
     Term NewTerm = 4;
     Forwarding Forwarding = 5;
@@ -207,6 +209,7 @@ message DPoSExtraInformation {
     Hash InValue = 10;
     string PublicKey = 11;
     bool IsBootMiner = 12;
+    Hash Signature = 13;
 }
 
 message ConsensusCommand {

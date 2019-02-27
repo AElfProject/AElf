@@ -227,8 +227,9 @@ namespace AElf.Contracts.Consensus.DPoS
             return new DPoSInformation
             {
                 SenderPublicKey = publicKey,
-                CurrentRound = FillOutValue(extra.HashValue, publicKey),
+                CurrentRound = FillOutValue(extra.OutValue, publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
+                
                 Sender = Context.Sender
             };
         }
