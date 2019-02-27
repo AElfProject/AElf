@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     trace.SurfaceUpError();
                 }
 
-                var result = GetTransactionResult(trace);
+                var result = GetTransactionResult(trace, chainContext.BlockHeight + 1);
                 if (result != null)
                 {
                     // TODO: handle transaction executed in multiple blocks
@@ -130,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return trace;
         }
 
-        private TransactionResult GetTransactionResult(TransactionTrace trace)
+        private TransactionResult GetTransactionResult(TransactionTrace trace, ulong blockHeight)
         {
             switch (trace.ExecutionStatus)
             {
@@ -144,6 +144,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
                         RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                        BlockNumber = blockHeight,
                         //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
                     };
