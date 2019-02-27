@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Database;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
 using AElf.TestBase;
 using Google.Protobuf;
@@ -58,6 +60,24 @@ namespace AElf.Kernel.SmartContractExecution
 
                 return mockService.Object;
             });
+
+            services.AddTransient<IResourceUsageDetectionService>(p =>
+            {
+                var mockService = new Mock<IResourceUsageDetectionService>();
+                mockService.Setup(m => m.GetResources(It.IsAny<int>(), It.IsAny<Transaction>()))
+                    .Returns<int, Transaction>((chainId, transaction) =>
+                    {
+                        var list = new List<string>()
+                        {
+                            transaction.From.GetFormatted(),
+                            transaction.To.GetFormatted()
+                        };
+                        return Task.FromResult(list.Select(a => a));
+                    });
+                return mockService.Object;
+            });
+
+            services.AddTransient<Grouper>();
         }
     }
 }
