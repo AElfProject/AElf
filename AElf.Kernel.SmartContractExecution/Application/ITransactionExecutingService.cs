@@ -222,12 +222,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.StateChanges.Add(s.Key, s.Value);
             }
 
-            if (trace.RetVal == null)
+            if (trace.IsSuccessful())
             {
-                throw new NullReferenceException("RetVal of trace is null." + trace.StdErr);
-            }
+                if (trace.RetVal == null)
+                {
+                    throw new NullReferenceException("RetVal of trace is null.");
+                }
 
-            returnSet.ReturnValue = trace.RetVal.Data;
+                returnSet.ReturnValue = trace.RetVal.Data;                
+            }
 
             return returnSet;
         }
