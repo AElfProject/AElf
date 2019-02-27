@@ -139,6 +139,11 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
+            if (!transaction.VerifySignature())
+            {
+                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
+            }
+
             var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
 
             //TODO: Wait validation done
