@@ -88,7 +88,7 @@ namespace AElf.Common
         public static readonly Address Zero = new Address(TakeByAddressLength(new byte[] { }.CalculateHash()));
 
         public static readonly Address Genesis = FromString("Genesis");
-        
+
         #endregion
 
         #region Comparing
@@ -157,24 +157,30 @@ namespace AElf.Common
         }
 
         private string _formattedAddress;
+
         public string GetFormatted()
         {
+            if (_formattedAddress != null)
+                return _formattedAddress;
+
             if (Value.Length != TypeConsts.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
 
-            string pubKeyHash = GetPublicKeyHash();
-            
-            return string.IsNullOrEmpty(_formattedAddress) 
-                ? (_formattedAddress = TypeConsts.AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
+            var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
+
+            return _formattedAddress = pubKeyHash;
         }
-        
-        public string GetPublicKeyHash()
+
+        //TODO: add a address formatted method with chain id
+        /*
+        public string GetFormatted(int chainId)
         {
-            return Base58CheckEncoding.Encode(Value.ToByteArray());
-        }
+            return (TypeConsts.AElfAddressPrefix + "_") + GetFormatted() +
+                   ("_" + Base58CheckEncoding.Encode(chainId.DumpByteArray()));
+        }*/
 
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
@@ -189,6 +195,7 @@ namespace AElf.Common
                 throw new ArgumentOutOfRangeException(
                     $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
             }
+
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
@@ -197,17 +204,9 @@ namespace AElf.Common
 
         public static Address Parse(string inputStr)
         {
-            string[] split = inputStr.Split('_');
-
-            if (split.Length < 2)
-                return null;
-
-            if (String.CompareOrdinal(split.First(), "ELF") != 0)
-                return null;
-            
-            return new Address(Base58CheckEncoding.Decode(split.Last()));
+            return new Address(Base58CheckEncoding.Decode(inputStr));
         }
-        
+
         #endregion Load and dump
     }
 }
