@@ -33,6 +33,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null);
 
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
+        Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -168,6 +169,11 @@ namespace AElf.Kernel.Blockchain.Application
             });
 
             return status;
+        }
+
+        public async Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash)
+        {
+            await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
         public async Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count)

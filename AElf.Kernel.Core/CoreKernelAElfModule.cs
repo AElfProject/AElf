@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;
 using Volo.Abp.Data;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
@@ -30,7 +31,7 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();
-            
+
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
             services.AddStoreKeyPrefixProvide<BlockBody>("b");
@@ -45,17 +46,15 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
             services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
-
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
         }
     }
-    
+
     public static class StoreKeyPrefixProviderServiceCollectionExtensions
     {
-        
         public static IServiceCollection AddStoreKeyPrefixProvide<T>(
             this IServiceCollection serviceCollection, string prefix)
             where T : IMessage<T>, new()

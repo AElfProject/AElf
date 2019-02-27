@@ -127,7 +127,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 if (successLinks.Count > 0)
                 {
                     var blockLink = successLinks.Last();
-                    await _chainManager.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
+                    await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
 
                     _ = LocalEventBus.PublishAsync(
                         new BestChainFoundEventData()
@@ -140,7 +140,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
             }
 
-            return blockLinks;
+            return successLinks;
         }
 
         private async Task<bool> ExecuteBlock(int chainId, ChainBlockLink blockLink, Block block)
