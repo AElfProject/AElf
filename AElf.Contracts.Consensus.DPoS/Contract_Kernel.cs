@@ -159,12 +159,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
-
-                        // TODO: Validate time slots (distance == 4000 ms)
                     }
                 }
                 else
                 {
+                    Console.WriteLine("Same round.");
                     // Same Round
                     if (!RoundIdMatched(information.CurrentRound))
                     {

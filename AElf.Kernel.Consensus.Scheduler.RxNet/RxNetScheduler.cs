@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
-                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds)}");
+                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds):yyyy-MM-dd HH.mm.ss,fff}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
                 .Select(_ => blockMiningEventData).Subscribe(this);
