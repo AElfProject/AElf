@@ -11,6 +11,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource;
+using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -345,6 +346,7 @@ namespace AElf.Contracts.TestBase
             list.Add(typeof(AuthorizationContract));
             list.Add(typeof(ResourceContract));
             list.Add(typeof(DividendsContract));
+            list.Add(typeof(FeeReceiverContract));
 
             return list;
         }
