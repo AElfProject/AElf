@@ -33,7 +33,6 @@ namespace AElf.Cryptography.Tests
             var address = Address.FromPublicKey(keyPair.PublicKey);
             string addString = address.GetFormatted();
             address.ShouldNotBe(null);
-            addString.StartsWith("ELF").ShouldBe(true);
 
             var keyPair1 = _keyStore.ReadKeyPairAsync(addString, "123").Result;
             keyPair1.PrivateKey.ShouldBe(keyPair.PrivateKey);
