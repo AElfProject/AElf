@@ -174,8 +174,9 @@ namespace AElf.Contracts.Consensus.DPoS
             // Tell Dividends Contract to add weights for this voting record.
             State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
 
-            Console.WriteLine($"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
-            Console.WriteLine($"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
+            Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
+            Context.LogDebug(() => $"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
+
             return new ActionResult {Success = true};
         }
 
