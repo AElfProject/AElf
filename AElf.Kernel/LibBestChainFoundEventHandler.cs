@@ -5,6 +5,7 @@ using AElf.CrossChain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -23,18 +24,20 @@ namespace AElf.Kernel
         private readonly IBlockManager _blockManager;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly IChainManager _chainManager;
+        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService, IBlockManager blockManager,
-            ITransactionResultManager transactionResultManager, IChainManager chainManager)
+            ITransactionResultManager transactionResultManager, IChainManager chainManager, IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockManager = blockManager;
             _transactionResultManager = transactionResultManager;
             _chainManager = chainManager;
+            _blockchainStateManager = blockchainStateManager;
             LocalEventBus = NullLocalEventBus.Instance;
 
             Logger = NullLogger<LibBestChainFoundEventHandler>.Instance;
@@ -73,6 +76,8 @@ namespace AElf.Kernel
                             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
 
                             Logger.LogInformation($"Lib Hash: {libHash}");
+
+                            //await _blockchainStateManager.MergeBlockStateAsync(eventData.ChainId, libHash);
                         }
 
                         //await LocalEventBus.PublishAsync(contractEvent);

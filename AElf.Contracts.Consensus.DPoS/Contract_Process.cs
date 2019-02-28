@@ -632,8 +632,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             return false;
                         }
-                        
-                        publicKeys.AddIfNotContains(preRoundMiners[i]);
+
+                        if (previousRound.RealTimeMinersInfo[preRoundMiners[i]].OutValue != null)
+                        {
+                            publicKeys.AddIfNotContains(preRoundMiners[i]);
+                        }
                         
                         if (publicKeys.Count >= minimumCount)
                         {
@@ -696,7 +699,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots
                     && currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue == null)
                 {
-                    currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
+                    //currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].InValue = suppliedMiner.Value.InValue;
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
 

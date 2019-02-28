@@ -100,7 +100,8 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ConsensusCommand
             {
                 CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
-                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                TimeoutMilliseconds = (expect >= 0 ? miningInterval : (miningInterval + expect)) /
+                                      (2 * minerInformation.PromisedTinyBlocks),
                 Hint = new DPoSHint
                 {
                     Behaviour = DPoSBehaviour.PackageOutValue
