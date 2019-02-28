@@ -2,269 +2,175 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.EventMessages;
-using AElf.Kernel.TransactionPool.Domain;
-using AElf.Kernel.TransactionPool.RefBlockExceptions;
-using AElf.Kernel.Types;
+using AElf.Kernel.Blockchain.Events;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public class TxHub : ITxHub, ISingletonDependency 
+    class CurrentOperation
     {
-        public ILogger<TxHub> Logger {get;set;}
-        
+        public static readonly CurrentOperation Nothing = new CurrentOperation("Nothing");
+        public static readonly CurrentOperation SwitchingBestChain = new CurrentOperation("SwitchingBestChain");
+        public static readonly CurrentOperation HandlingLIB = new CurrentOperation("HandlingLIB");
+        public static readonly CurrentOperation AddingTransaction = new CurrentOperation("AddingTransaction");
+        public static readonly CurrentOperation RetrievingTransactions = new CurrentOperation("RetrievingTransactions");
+        public string Name { get; }
+
+        private CurrentOperation(string name)
+        {
+            Name = name;
+        }
+
+        public override bool Equals(object other)
+        {
+            return Equals(other as CurrentOperation);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Name != null ? Name.GetHashCode() : 0);
+        }
+
+        public bool Equals(CurrentOperation other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    public class TxHub : ITxHub, ISingletonDependency
+    {
+        public ILogger<TxHub> Logger { get; set; }
+
         private readonly ITransactionManager _transactionManager;
-        private readonly ITransactionReceiptManager _receiptManager;
-        private readonly ITxRefBlockValidator _refBlockValidator;
-        
-        private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTxns =
+        private readonly IBlockchainService _blockchainService;
+
+        private readonly Dictionary<Hash, TransactionReceipt> _allTransactions =
+            new Dictionary<Hash, TransactionReceipt>();
+
+        private ConcurrentDictionary<Hash, TransactionReceipt> _queuedTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
-                
-        private ulong _curHeight = ChainConsts.GenesisBlockHeight;
-        
+
+        private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
+
+        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+
+        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
+            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+
+        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
+            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+
+        private ulong _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
+        private Hash _bestChainHash = Hash.Genesis;
+        private ulong _libHeight = ChainConsts.GenesisBlockHeight - 1;
+        private Hash _libHash = Hash.Genesis;
+        private CurrentOperation _currentOperation = CurrentOperation.Nothing;
         public int ChainId { get; private set; }
 
-        public TxHub(ITransactionManager transactionManager, ITransactionReceiptManager receiptManager,
-            ITxRefBlockValidator refBlockValidator)
+        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
-            _receiptManager = receiptManager;
-            _refBlockValidator = refBlockValidator;
-            
+            _blockchainService = blockchainService;
         }
 
-        public async Task<bool> AddTransactionAsync(int chainId, Transaction transaction, bool skipValidation = false)
+        public async Task<bool> AddTransactionAsync(int chainId, Transaction transaction)
         {
-            var tr = new TransactionReceipt(transaction);
-            if (skipValidation)
+            var receipt = new TransactionReceipt(transaction);
+
+            if (_allTransactions.ContainsKey(receipt.TransactionId))
             {
-                tr.SignatureStatus = SignatureStatus.SignatureValid;
-                tr.RefBlockStatus = RefBlockStatus.RefBlockValid;
+                return false;
             }
 
-            var txn = await _transactionManager.GetTransaction(tr.TransactionId);
-
-            // if the transaction is in TransactionManager, it is either executed or added into _allTxns
+            var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
             if (txn != null)
             {
-                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
                 return false;
             }
 
-            await VerifySignature(chainId, tr);
-
-            await ValidateRefBlock(chainId, tr);
-
-            
-            if (!_allTxns.TryAdd(tr.TransactionId, tr))
+            _allTransactions.Add(receipt.TransactionId, receipt);
+            await _transactionManager.AddTransactionAsync(transaction);
+            var currentOperation = Interlocked.CompareExchange(ref _currentOperation,
+                CurrentOperation.AddingTransaction, CurrentOperation.Nothing);
+            if (currentOperation != null && currentOperation.Equals(CurrentOperation.Nothing))
             {
-                // Logger.LogWarning($"Transaction {transaction.GetHash()} already exists.");
-                return false;
+                // Successfully claimed, validate the transaction
+                var prefix = await GetPrefixByHeightAsync(ChainId, receipt.Transaction.RefBlockNumber, _bestChainHash);
+                CheckPrefixForOne(receipt, prefix, _bestChainHeight);
+                AddToRespectiveCurrentCollection(receipt);
+                Interlocked.CompareExchange(ref _currentOperation, CurrentOperation.Nothing,
+                    CurrentOperation.AddingTransaction);
             }
-            
-            //TODO: publish events
+            else
+            {
+                // Failed to claim, add the receipt to queue
+                _queuedTransactions.TryAdd(receipt.TransactionId, receipt);
+            }
 
             return true;
         }
 
-        public async Task<List<TransactionReceipt>> GetReceiptsOfExecutablesAsync()
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
         {
-            return await Task.FromResult(_allTxns.Values.Where(x => x.IsExecutable).ToList());
-        }
-
-        public async Task<TransactionReceipt> GetCheckedReceiptsAsync(int chainId, Transaction txn)
-        {
-            if (!_allTxns.TryGetValue(txn.GetHash(), out var tr))
+            var chain = await _blockchainService.GetChainAsync(ChainId);
+            if (chain.BestChainHash != _bestChainHash)
             {
-                tr = new TransactionReceipt(txn);
-                _allTxns.TryAdd(tr.TransactionId, tr);
-            }
-            await VerifySignature(chainId, tr);
-            await ValidateRefBlock(chainId, tr);
-            return tr;
-        }
-
-        public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
-        {
-            if (!_allTxns.TryGetValue(txId, out var tr))
-            {
-                tr = await _receiptManager.GetReceiptAsync(txId);
+                await HandleBestChainFoundAsync(
+                    new BestChainFoundEvent()
+                    {
+                        ChainId = chain.Id,
+                        BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight
+                    });
             }
 
-            return tr;
-        }
-
-        public async Task<Transaction> GetTxAsync(Hash txId)
-        {
-            var tr = await GetReceiptAsync(txId);
-            if (tr != null)
+            var currentOperation = Interlocked.CompareExchange(ref _currentOperation,
+                CurrentOperation.RetrievingTransactions, CurrentOperation.Nothing);
+            if (currentOperation != null && currentOperation.Equals(CurrentOperation.Nothing))
             {
-                return tr.Transaction;
-            }
-
-            return await Task.FromResult<Transaction>(null);
-        }
-
-        public bool TryGetTx(Hash txHash, out Transaction tx)
-        {
-            tx = GetTxAsync(txHash).Result;
-            return tx != null;
-        }
-
-        #region Private Methods
-
-        private async Task VerifySignature(int chainId, TransactionReceipt tr)
-        {
-            if (tr.SignatureStatus != SignatureStatus.UnknownSignatureStatus)
-            {
-                return;
-            }
-
-            if(tr.Transaction.Sigs.Count > 1)
-            {
-                throw new NotImplementedException();
-            }
-
-            var validSig = tr.Transaction.VerifySignature();
-            tr.SignatureStatus = validSig
-                ? SignatureStatus.SignatureValid
-                : SignatureStatus.SignatureInvalid;
-        }
-
-
-
-        
-        
-        private async Task ValidateRefBlock(int chainId, TransactionReceipt tr)
-        {
-            if (tr.RefBlockStatus != RefBlockStatus.UnknownRefBlockStatus &&
-                tr.RefBlockStatus != RefBlockStatus.FutureRefBlock)
-            {
-                return;
-            }
-
-            try
-            {
-                await _refBlockValidator.ValidateAsync(chainId, tr.Transaction);
-                tr.RefBlockStatus = RefBlockStatus.RefBlockValid;
-            }
-            catch (FutureRefBlockException)
-            {
-                tr.RefBlockStatus = RefBlockStatus.FutureRefBlock;
-            }
-            catch (RefBlockInvalidException)
-            {
-                tr.RefBlockStatus = RefBlockStatus.RefBlockInvalid;
-            }
-            catch (RefBlockExpiredException)
-            {
-                tr.RefBlockStatus = RefBlockStatus.RefBlockExpired;
-            }
-        }
-
-
-        #endregion Private Methods
-
-        #region Event Handlers
-
-        // Change transaction status and add transaction into TransactionManager.
-        private void UpdateExecutedTransactions(IEnumerable<Hash> txIds, ulong blockNumber)
-        {
-            var receipts = new List<TransactionReceipt>();
-            foreach (var txId in txIds)
-            {
-                if (_allTxns.TryGetValue(txId, out var tr))
+                var output = new ExecutableTransactionSet()
                 {
-                    tr.TransactionStatus = TransactionStatus.TransactionExecuted;
-                    tr.ExecutedBlockNumber = blockNumber;
-                    _transactionManager.AddTransactionAsync(tr.Transaction);
-                    receipts.Add(tr);
-                }
-                else
-                {
-                }
+                    ChainId = ChainId,
+                    PreviousBlockHash = _bestChainHash,
+                    PreviousBlockHeight = _bestChainHeight
+                };
+                output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
+                // Successfully claimed
+                Interlocked.CompareExchange(ref _currentOperation, CurrentOperation.Nothing,
+                    CurrentOperation.RetrievingTransactions);
+                return output;
             }
 
-            _receiptManager.AddOrUpdateReceiptsAsync(receipts);
-        }
-
-        private void IdentifyExpiredTransactions()
-        {
-            if (_curHeight > ChainConsts.ReferenceBlockValidPeriod)
+            // Maybe throw exception when failed to claim   
+            return new ExecutableTransactionSet()
             {
-                var expired = _allTxns.Where(tr =>
-                    tr.Value.TransactionStatus == TransactionStatus.UnknownTransactionStatus
-                    && tr.Value.RefBlockStatus != RefBlockStatus.RefBlockExpired
-                    && _curHeight > tr.Value.Transaction.RefBlockNumber
-                    && _curHeight - tr.Value.Transaction.RefBlockNumber > ChainConsts.ReferenceBlockValidPeriod
-                );
-                foreach (var tr in expired)
-                {
-                    tr.Value.RefBlockStatus = RefBlockStatus.RefBlockExpired;
-                }
-            }
+                ChainId = ChainId,
+                PreviousBlockHash = _bestChainHash,
+                PreviousBlockHeight = _bestChainHeight
+            };
         }
-
-        private void RemoveOldTransactions()
-        {
-            // TODO: Improve
-            // Remove old transactions (executed, invalid and expired)
-            var keepNBlocks = ChainConsts.ReferenceBlockValidPeriod / 4 * 5;
-            if (_curHeight - ChainConsts.GenesisBlockHeight > keepNBlocks)
-            {
-                var blockNumberThreshold = _curHeight - keepNBlocks;
-                var toRemove = _allTxns.Where(tr => tr.Value.Transaction.RefBlockNumber < blockNumberThreshold);
-                foreach (var tr in toRemove)
-                {
-                    _allTxns.TryRemove(tr.Key, out _);
-                }
-            }
-        }
-
-        private async Task RevalidateFutureTransactions(int chainId)
-        {
-            // Re-validate FutureRefBlock transactions
-            foreach (var tr in _allTxns.Values.Where(x =>
-                x.RefBlockStatus == RefBlockStatus.FutureRefBlock))
-            {
-                await ValidateRefBlock(chainId, tr);
-            }
-        }
-
-        // Render transactions to expire, and purge old transactions (RefBlockValidPeriod + some buffer)
-        public async Task OnNewBlock(Block block)
-        {
-            var blockHeader = block.Header;
-            // TODO: Handle LIB
-            if (blockHeader.Height > (_curHeight + 1) && _curHeight != ChainConsts.GenesisBlockHeight)
-            {
-                throw new Exception($"Invalid block index {blockHeader.Height} but current height is {_curHeight}.");
-            }
-
-            _curHeight = blockHeader.Height;
-
-            UpdateExecutedTransactions(block.Body.Transactions, block.Header.Height);
-
-            IdentifyExpiredTransactions();
-
-            RemoveOldTransactions();
-
-            await RevalidateFutureTransactions(block.Header.ChainId);
-        }
-
-
-        #endregion
 
         public void Dispose()
         {
-            
         }
 
         public async Task<IDisposable> StartAsync(int chainId)
@@ -275,7 +181,241 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task StopAsync()
         {
-            
         }
+
+
+        #region Private Methods
+
+        #region Private Static Methods
+
+        private static void AddToCollection(Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> collection,
+            TransactionReceipt receipt)
+        {
+            if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
+            {
+                receipts = new Dictionary<Hash, TransactionReceipt>();
+                collection.Add(receipt.Transaction.RefBlockNumber, receipts);
+            }
+
+            receipts.Add(receipt.TransactionId, receipt);
+        }
+
+        private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix,
+            ulong bestChainHeight)
+        {
+            if (receipt.Transaction.GetExpiryBlockNumber() <= bestChainHeight)
+            {
+                receipt.RefBlockStatus = RefBlockStatus.RefBlockExpired;
+                return;
+            }
+
+            if (prefix == null)
+            {
+                receipt.RefBlockStatus = RefBlockStatus.FutureRefBlock;
+                return;
+            }
+
+            if (receipt.Transaction.RefBlockPrefix == prefix)
+            {
+                receipt.RefBlockStatus = RefBlockStatus.RefBlockValid;
+                return;
+            }
+
+            receipt.RefBlockStatus = RefBlockStatus.RefBlockInvalid;
+        }
+
+        #endregion
+
+        private List<TransactionReceipt> GetRevalidationCandidates()
+        {
+            var invalidated = _invalidatedByBlock;
+            _invalidatedByBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            var expired = _expiredByExpiryBlock;
+            _expiredByExpiryBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            var future = _futureByBlock;
+            var toRevalidate = new List<TransactionReceipt>();
+            toRevalidate.AddRange(invalidated.Values.SelectMany(x => x.Values));
+            toRevalidate.AddRange(expired.Values.SelectMany(x => x.Values));
+            toRevalidate.AddRange(future.Values.SelectMany(x => x.Values));
+            var queuedTransactions = Interlocked.Exchange(ref _queuedTransactions,
+                new ConcurrentDictionary<Hash, TransactionReceipt>());
+            toRevalidate.AddRange(queuedTransactions.Values);
+            return toRevalidate;
+        }
+
+        private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, ulong height, Hash bestChainHash)
+        {
+            var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
+            return hash == null ? null : ByteString.CopyFrom(hash.DumpByteArray().Take(4).ToArray());
+        }
+
+        private async Task<ByteString> GetPrefixByHeightAsync(int chainId, ulong height, Hash bestChainHash)
+        {
+            var chain = await _blockchainService.GetChainAsync(chainId);
+            return await GetPrefixByHeightAsync(chain, height, bestChainHash);
+        }
+
+        private async Task<Dictionary<ulong, ByteString>> GetPrefixesByHeightAsync(int chainId,
+            IEnumerable<ulong> heights, Hash bestChainHash)
+        {
+            var prefixes = new Dictionary<ulong, ByteString>();
+            var chain = await _blockchainService.GetChainAsync(chainId);
+            foreach (var h in heights)
+            {
+                var prefix = await GetPrefixByHeightAsync(chain, h, bestChainHash);
+                prefixes.Add(h, prefix);
+            }
+
+            return prefixes;
+        }
+
+        private void ResetCurrentCollections()
+        {
+            _expiredByExpiryBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            _invalidatedByBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            _futureByBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            _validated = new Dictionary<Hash, TransactionReceipt>();
+        }
+
+        private void AddToRespectiveCurrentCollection(TransactionReceipt receipt)
+        {
+            switch (receipt.RefBlockStatus)
+            {
+                case RefBlockStatus.RefBlockExpired:
+                    AddToCollection(_expiredByExpiryBlock, receipt);
+                    break;
+                case RefBlockStatus.FutureRefBlock:
+                    AddToCollection(_futureByBlock, receipt);
+                    break;
+                case RefBlockStatus.RefBlockInvalid:
+                    AddToCollection(_invalidatedByBlock, receipt);
+                    break;
+                case RefBlockStatus.RefBlockValid:
+                    _validated.Add(receipt.TransactionId, receipt);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Re-validates previously non-valid transactions (i.e. expired, invalid, future) together with the delta
+        /// (i.e. executed in previous branch but not on current branch).
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <param name="bestChainHash"></param>
+        /// <param name="delta"></param>
+        /// <returns></returns>
+        private async Task RevalidateTransactions(int chainId, Hash bestChainHash, IEnumerable<Hash> delta)
+        {
+            var toRevalidate = GetRevalidationCandidates();
+            toRevalidate.AddRange(delta.Select(x => _allTransactions[x]));
+            var heights = toRevalidate.Select(x => x.Transaction.RefBlockNumber).Distinct();
+            var prefixes = await GetPrefixesByHeightAsync(chainId, heights, bestChainHash);
+            ResetCurrentCollections();
+            foreach (var r in toRevalidate)
+            {
+                var prefix = prefixes[r.Transaction.RefBlockNumber];
+                CheckPrefixForOne(r, prefix, _bestChainHeight);
+                AddToRespectiveCurrentCollection(r);
+            }
+        }
+
+        #endregion
+
+        #region Event Handler Methods
+
+        public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
+        {
+            if (ChainId != eventData.ChainId)
+            {
+                return;
+            }
+
+            var currentOperation = Interlocked.CompareExchange(ref _currentOperation,
+                CurrentOperation.SwitchingBestChain, CurrentOperation.Nothing);
+            if (currentOperation != null && currentOperation.Equals(CurrentOperation.Nothing))
+            {
+                // successfully claimed
+                var branchSwitch =
+                    await _blockchainService.GetBranchSwitchAsync(eventData.ChainId, _bestChainHash,
+                        eventData.BlockHash);
+                var notExecuted = new HashSet<Hash>();
+                foreach (var rb in branchSwitch.RollBack)
+                {
+                    var block = await _blockchainService.GetBlockByHashAsync(eventData.ChainId, rb);
+                    foreach (var txId in block.Body.Transactions)
+                    {
+                        if (_allTransactions.TryGetValue(txId, out var receipt))
+                        {
+                            receipt.ExecutedBlockNumber = 0;
+                            notExecuted.Add(txId);
+                        }
+                    }
+                }
+
+                var executed = new HashSet<Hash>();
+                foreach (var rf in branchSwitch.RollForward)
+                {
+                    var block = await _blockchainService.GetBlockByHashAsync(eventData.ChainId, rf);
+                    foreach (var txId in block.Body.Transactions)
+                    {
+                        if (_allTransactions.TryGetValue(txId, out var receipt))
+                        {
+                            receipt.ExecutedBlockNumber = block.Height;
+                            executed.Add(txId);
+                        }
+                    }
+                }
+
+                notExecuted.ExceptWith(executed);
+
+                await RevalidateTransactions(eventData.ChainId, eventData.BlockHash, notExecuted);
+                _bestChainHash = eventData.BlockHash;
+                _bestChainHeight = eventData.BlockHeight;
+                Interlocked.CompareExchange(ref _currentOperation, CurrentOperation.Nothing,
+                    CurrentOperation.SwitchingBestChain);
+            }
+        }
+
+        public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
+        {
+            if (ChainId != eventData.ChainId)
+            {
+                return;
+            }
+
+            var currentOperation = Interlocked.CompareExchange(ref _currentOperation,
+                CurrentOperation.HandlingLIB, CurrentOperation.Nothing);
+            if (currentOperation != null && currentOperation.Equals(CurrentOperation.Nothing))
+            {
+                // Remove all executed transactions on and before lib
+                var hash = eventData.BlockHash;
+                while (hash != _libHash)
+                {
+                    var block = await _blockchainService.GetBlockByHashAsync(eventData.ChainId, hash);
+                    foreach (var txId in block.Body.Transactions)
+                    {
+                        _allTransactions.Remove(txId);
+                    }
+
+                    hash = block.Header.PreviousBlockHash;
+                }
+
+                // Remove all expired transactions on and before lib
+                var height = eventData.BlockHeight;
+                var expiredToRemove = _expiredByExpiryBlock.Keys.Where(x => x <= height).ToList();
+                foreach (var r in expiredToRemove)
+                {
+                    _expiredByExpiryBlock.Remove(r);
+                }
+
+                // Update lib record
+                _libHash = eventData.BlockHash;
+                _libHeight = eventData.BlockHeight;
+                Interlocked.CompareExchange(ref _currentOperation, CurrentOperation.Nothing,
+                    CurrentOperation.HandlingLIB);
+            }
+        }
+
+        #endregion
     }
 }

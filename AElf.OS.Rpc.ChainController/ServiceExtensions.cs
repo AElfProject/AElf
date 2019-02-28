@@ -145,10 +145,10 @@ namespace AElf.OS.Rpc.ChainController
             return await s.SmartContractExecutiveService.GetAbiAsync(chainId, chainContext, address);
         }
 
-        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
-        {
-            return await s.TxHub.GetReceiptAsync(txId);
-        }
+//        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
+//        {
+//            return await s.TxHub.GetReceiptAsync(txId);
+//        }
 
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s, Hash txHash)
         {
@@ -211,10 +211,10 @@ namespace AElf.OS.Rpc.ChainController
             return await s.BlockchainService.GetBlockByHeightAsync(chainId, height);
         }
 
-        internal static async Task<ulong> GetTransactionPoolSize(this ChainControllerRpcService s)
-        {
-            return (ulong) (await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
-        }
+//        internal static async Task<ulong> GetTransactionPoolSize(this ChainControllerRpcService s)
+//        {
+//            return (ulong) (await s.TxHub.GetExecutableTransactionSetAsync()).Count;
+//        }
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s, int chainId, ulong height)
         {

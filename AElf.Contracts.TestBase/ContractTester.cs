@@ -24,6 +24,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -289,8 +290,21 @@ namespace AElf.Contracts.TestBase
                 trs.Add(tr);
             }
 
+            var bcs = _blockchainService;
             var mockTxHub = new Mock<ITxHub>();
-            mockTxHub.Setup(h => h.GetReceiptsOfExecutablesAsync()).ReturnsAsync(trs);
+            mockTxHub.Setup(h => h.GetExecutableTransactionSetAsync()).ReturnsAsync( () =>
+            {
+                var chain = bcs.GetChainAsync(_chainId).Result;
+                return new ExecutableTransactionSet()
+                {
+                    ChainId = _chainId,
+                    PreviousBlockHash = chain.BestChainHash,
+                    PreviousBlockHeight = chain.BestChainHeight,
+                    Transactions = txs
+                };
+            });
+            var mockTxHubs = new Mock<IChainRelatedComponentManager<ITxHub>>();
+            mockTxHubs.Setup(h => h.Get(It.IsAny<int>())).Returns(mockTxHub.Object);
 
             if (systemTxs != null)
             {
@@ -303,7 +317,7 @@ namespace AElf.Contracts.TestBase
 
             return new MinerService(mockTxHub.Object, _accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
-                _blockchainExecutingService);
+                _blockchainExecutingService, mockTxHubs.Object);
         }
 
         public Address GetAddress(ECKeyPair keyPair)

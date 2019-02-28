@@ -370,12 +370,12 @@ namespace AElf.OS.Rpc.ChainController
 
             return response;
         }
-
-        [JsonRpcMethod("GetTransactionPoolSize")]
-        public async Task<ulong> GetTxPoolSize()
-        {
-            return await this.GetTransactionPoolSize();
-        }
+//
+//        [JsonRpcMethod("GetTransactionPoolSize")]
+//        public async Task<ulong> GetTxPoolSize()
+//        {
+//            return await this.GetTransactionPoolSize();
+//        }
 
         [JsonRpcMethod("GetBlockStateSet", "blockHash")]
         public async Task<JObject> GetBlockStateSet(string blockHash)

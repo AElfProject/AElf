@@ -6,6 +6,16 @@ namespace AElf.Kernel
 {
     public static class TransactionExtensions
     {
+        public static ulong GetExpiryBlockNumber(this Transaction transaction)
+        {
+            if (transaction.ExpiryBlockNumber != 0)
+            {
+                return transaction.ExpiryBlockNumber;
+            }
+
+            // Default: expiry in 64 blocks
+            return transaction.RefBlockNumber + 64;
+        }
         public static int Size(this Transaction transaction)
         {
             return transaction.CalculateSize();
