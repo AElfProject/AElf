@@ -10,7 +10,19 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     public class ConsensusCommonTest
     {
         [Fact]
-        public async Task TriggerConsensusTest()
+        public async Task TriggerConsensusTest_BootMiner()
+        {
+            var initialMinersKeyPairs = ConsensusTestHelper.GenerateMinersKeyPairs(17);
+
+            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs, true);
+
+            await tester.TriggerConsensusAsync();
+
+            Assert.True(tester.ScheduleTriggered);
+        }
+        
+        [Fact]
+        public async Task TriggerConsensusTest_NotBootMiner()
         {
             var initialMinersKeyPairs = ConsensusTestHelper.GenerateMinersKeyPairs(17);
 
@@ -18,7 +30,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             await tester.TriggerConsensusAsync();
 
-            Assert.True(tester.ScheduleTriggered);
+            Assert.False(tester.ScheduleTriggered);
         }
 
         [Fact]

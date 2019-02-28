@@ -18,6 +18,7 @@ using AElf.Kernel.EventMessages;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -136,23 +137,18 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         private MinerService BuildMinerService(List<Transaction> txs)
         {
-            var trs = new List<TransactionReceipt>();
-
-            foreach (var transaction in txs)
+            var mockTxHub = new Mock<ChainRelatedComponentManager<ITxHub>>();
+            mockTxHub.Setup(h => h.Get(It.IsAny<int>()).GetExecutableTransactionSetAsync()).ReturnsAsync(new ExecutableTransactionSet
             {
-                var tr = new TransactionReceipt(transaction)
-                {
-                    SignatureStatus = SignatureStatus.SignatureValid, RefBlockStatus = RefBlockStatus.RefBlockValid
-                };
-                trs.Add(tr);
-            }
+                ChainId = ChainId,
+                PreviousBlockHash = Chain.BestChainHash,
+                PreviousBlockHeight = Chain.BestChainHeight,
+                Transactions = txs
+            });
 
-            var mockTxHub = new Mock<ITxHub>();
-            mockTxHub.Setup(h => h.GetReceiptsOfExecutablesAsync()).ReturnsAsync(trs);
-
-            return new MinerService(mockTxHub.Object, _accountService, _blockGenerationService,
+            return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
-                _blockchainExecutingService);
+                _blockchainExecutingService, mockTxHub.Object);
         }
         
         private async Task<Chain> GetChainAsync()
