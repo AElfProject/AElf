@@ -1,8 +1,9 @@
 using System;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataProducer : ICrossChainDataProducer
+    public class CrossChainDataProducer : ICrossChainDataProducer, ISingletonDependency
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 

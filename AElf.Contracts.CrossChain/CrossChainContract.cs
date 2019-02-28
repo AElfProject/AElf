@@ -200,7 +200,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[id] = info;
             Context.FireEvent(new SideChainDisposal
             {
-                chainId = id
+                ChainId = id
             });
         }
 

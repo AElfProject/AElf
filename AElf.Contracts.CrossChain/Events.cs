@@ -7,24 +7,24 @@ namespace AElf.Contracts.CrossChain
 {
     public class SideChainCreationRequested : Event
     {
-        public Address Creator;
-        public Hash ChainId;
+        public Address Creator { get; set; }
+        public Hash ChainId { get; set; }
     }
 
     public class SideChainCreationRequestApproved : Event
     {
-        public SideChainInfo Info;
+        public SideChainInfo Info{ get; set; }
     }
 
     public class SideChainDisposal : Event
     {
-        public Hash chainId;
+        public Hash ChainId{ get; set; }
     }
     
     public class CrossChainIndexingEvent : Event
     {
-        public Hash SideChainTransactionsMerkleTreeRoot;
-        public CrossChainBlockData CrossChainBlockData;
-        public Address Sender;
+        public Hash SideChainTransactionsMerkleTreeRoot{ get; set; }
+        public CrossChainBlockData CrossChainBlockData{ get; set; }
+        public Address Sender{ get; set; }
     }
 }

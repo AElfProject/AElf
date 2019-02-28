@@ -2,6 +2,7 @@ using AElf.CrossChain.Cache;
 using AElf.CrossChain.Grpc;
 using AElf.CrossChain.Grpc.Server;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +20,12 @@ namespace AElf.CrossChain
              services.AddSingleton<CrossChainBlockDataRpcServer>();
              
              var configuration = context.Services.GetConfiguration();
-             Configure<GrpcConfigOption>(configuration.GetSection("Crosschain"));
+             Configure<GrpcConfigOption>(configuration.GetSection("CrossChain"));
              services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-             services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+             services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
+             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
-             services.AddSingleton<IMultiChainBlockInfoCacheProvider, MultiChainBlockInfoCacheProvider>();
-             services.AddSingleton<ICrossChainDataConsumer, CrossChainDataConsumer>();
-             services.AddSingleton<ICrossChainDataProducer, CrossChainDataProducer>();
          }
          
          public override void OnApplicationInitialization(ApplicationInitializationContext context)

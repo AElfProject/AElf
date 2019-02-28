@@ -51,7 +51,8 @@ namespace AElf.CrossChain
                     CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent,
                         out var crossChainBlockData);
                 // first check equality with the root in header
-                if(sideChainTransactionsRoot == null || !sideChainTransactionsRoot.Equals(block.Header.BlockExtraData.SideChainTransactionsRoot))
+                if(sideChainTransactionsRoot == null 
+                   || !sideChainTransactionsRoot.Equals(block.Header.BlockExtraData.SideChainTransactionsRoot))
                     continue;
                 return await ValidateCrossChainBlockDataAsync(block.Header.ChainId, crossChainBlockData,
                     block.Header.GetHash(), block.Header.Height);

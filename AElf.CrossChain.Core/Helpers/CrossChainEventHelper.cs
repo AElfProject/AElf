@@ -22,14 +22,16 @@ namespace AElf.CrossChain
                     ByteString.CopyFrom(CrossChainConsts.CrossChainIndexingEventName.CalculateHash())
                 }
             };
-            try
-            {
-                return logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+//            try
+//            {
+//                return logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
+//            }
+//            catch (Exception)
+//            {
+//                return false;
+//            }
+            // todo disable bloom filter and improvement needed
+            return true;
         }
 
         public static Hash TryGetValidateCrossChainBlockData(TransactionResult res, IBlock block, LogEvent interestedLogEvent, 

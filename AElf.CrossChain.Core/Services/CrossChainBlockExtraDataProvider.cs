@@ -29,6 +29,8 @@ namespace AElf.CrossChain
                     
                     var sideChainTransactionsRoot =
                         CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent, out _);
+                    if(sideChainTransactionsRoot == null)
+                        continue;
                     if (block.Header.BlockExtraData == null)
                     {
                         block.Header.BlockExtraData = new BlockExtraData();

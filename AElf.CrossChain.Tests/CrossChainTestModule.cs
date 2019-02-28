@@ -1,23 +1,21 @@
-using AElf.Kernel.Account.Application;
+using AElf.Database;
+using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
-using AElf.OS.Account;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
-    [DependsOn(typeof(AbpEventBusModule))]
+    [DependsOn(typeof(AbpEventBusModule),
+        typeof(CrossChainAElfModule))]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var stubAccoutOptions = CrossChainTestHelper.FakeAccountOption();
-            context.Services.AddSingleton(provider => stubAccoutOptions);
-            context.Services.AddSingleton(provider => CrossChainTestHelper.FakeKeyStore());
-            context.Services.AddTransient<IAccountService, AccountService>();
-            context.Services.AddSingleton(provider =>
-                CrossChainTestHelper.FakeSmartContractExecutiveService());
+            var services = context.Services;
+
+            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
     }
 }

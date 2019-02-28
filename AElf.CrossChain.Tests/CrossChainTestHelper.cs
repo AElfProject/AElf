@@ -60,12 +60,14 @@ namespace AElf.CrossChain
             return mockObject.Object;
         }
 
-        public static ITransactionResultManager FakeTransactionResultManager(List<TransactionResult> transactionResults)
+        public static byte[] Sign(byte[] data)
         {
-            Mock<ITransactionResultManager> mockObject = new Mock<ITransactionResultManager>();
-            mockObject.Setup(m => m.GetTransactionResultAsync(It.IsAny<Hash>())).Returns<Hash>(hash =>
-                Task.FromResult(transactionResults.FirstOrDefault(t => t.TransactionId.Equals(hash))));
-            return mockObject.Object;
+            return CryptoHelpers.SignWithPrivateKey(EcKeyPair.PrivateKey, data);
+        }
+
+        public static byte[] GetPubicKey()
+        {
+            return EcKeyPair.PublicKey;
         }
     }
 }
