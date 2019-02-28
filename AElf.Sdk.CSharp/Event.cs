@@ -95,11 +95,74 @@ namespace AElf.Sdk.CSharp
             var methodInfo = prop.GetGetMethod();
 
             Func<T, object> del;
-            
+
             if (methodInfo.ReturnType.IsValueType)
             {
-                //TODO: find a better way to increase the performance
-                del = o => prop.GetValue(o);
+                var type = methodInfo.ReturnType;
+
+
+                bool Test<TReturn>(Type t, out Func<T, object> ret)
+                {
+                    if (t == typeof(TReturn))
+                    {
+                        ret = o => ((Func<T, TReturn>) Delegate.CreateDelegate(typeof(Func<T, TReturn>), null,
+                            methodInfo))(o);
+                        return true;
+                    }
+
+                    ret = null;
+
+                    return false;
+                }
+
+                if (Test<byte>(type, out del))
+                {
+                }
+
+                if (Test<sbyte>(type, out del))
+                {
+                }
+                else if (Test<char>(type, out del))
+                {
+                }
+                else if (Test<short>(type, out del))
+                {
+                }
+                else if (Test<ushort>(type, out del))
+                {
+                }
+                else if (Test<int>(type, out del))
+                {
+                }
+                else if (Test<uint>(type, out del))
+                {
+                }
+                else if (Test<long>(type, out del))
+                {
+                }
+                else if (Test<ulong>(type, out del))
+                {
+                }
+                else if (Test<decimal>(type, out del))
+                {
+                }
+                else if (Test<float>(type, out del))
+                {
+                }
+                else if (Test<double>(type, out del))
+                {
+                }
+                else
+                {
+                    var my = Delegate.CreateDelegate(
+                        typeof(Func<,>).MakeGenericType(typeof(T), methodInfo.ReturnType),
+                        null,
+                        methodInfo);
+                    del = o => my.DynamicInvoke(o);
+
+                }
+
+
             }
             else
             {
@@ -107,6 +170,7 @@ namespace AElf.Sdk.CSharp
                     null,
                     methodInfo);
             }
+
             return del;
         }
 
