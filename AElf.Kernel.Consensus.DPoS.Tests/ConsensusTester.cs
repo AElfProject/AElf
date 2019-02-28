@@ -46,6 +46,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
+        private readonly IChainManager _chainManager;
 
         private ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
@@ -68,8 +69,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
-            _blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
-            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
+            _chainManager = application.ServiceProvider.GetService<IChainManager>();
 
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
@@ -82,6 +82,14 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation),
                 _accountService, transactionExecutingService, MockConsensusScheduler(), _blockchainService,
                 consensusControlInformation);
+
+            _blockGenerationService = new BlockGenerationService(
+                new BlockExtraDataService(new List<IBlockExtraDataProvider>
+                    {new ConsensusExtraDataProvider(_consensusService)}));
+
+            _blockchainExecutingService = new FullBlockchainExecutingService(_chainManager, _blockchainService,
+                new BlockValidationService(new List<IBlockValidationProvider>
+                    {new DPoSConsensusValidationProvider(_consensusService)}), _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
