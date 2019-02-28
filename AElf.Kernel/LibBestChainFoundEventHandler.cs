@@ -27,7 +27,7 @@ namespace AElf.Kernel
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
-        
+
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService, IBlockManager blockManager,
             ITransactionResultManager transactionResultManager, IChainManager chainManager)
         {
@@ -36,7 +36,7 @@ namespace AElf.Kernel
             _transactionResultManager = transactionResultManager;
             _chainManager = chainManager;
             LocalEventBus = NullLocalEventBus.Instance;
-            
+
             Logger = NullLogger<LibBestChainFoundEventHandler>.Instance;
         }
 
@@ -52,58 +52,35 @@ namespace AElf.Kernel
             {
                 var block = await _blockManager.GetBlockAsync(executedBlock);
 
-                if (!TryGetLibFoundLogEventInBlock(block, out var libFoundLogEvent))
-                    return;
-                
                 foreach (var transactionHash in block.Body.Transactions)
                 {
                     var result = await _transactionResultManager.GetTransactionResultAsync(transactionHash);
                     foreach (var contractEvent in result.Logs)
                     {
-                        if (libFoundLogEvent.Topics.Equals(contractEvent.Topics))
+                        if (contractEvent.Address ==
+                            ContractHelpers.GetConsensusContractAddress(block.Header.ChainId) &&
+                            contractEvent.Topics.Contains(
+                                ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
-                            var indexingEventData = ExtractLibFoundData(libFoundLogEvent);
+                            var indexingEventData = ExtractLibFoundData(contractEvent);
                             var offset = (ulong) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;
-                            
+
                             Logger.LogInformation($"Lib Height: {libHeight}");
 
                             var chain = await _blockchainService.GetChainAsync(eventData.ChainId);
                             var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight);
                             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
-                            
+
                             Logger.LogInformation($"Lib Hash: {libHash}");
                         }
+
                         //await LocalEventBus.PublishAsync(contractEvent);
                     }
                 }
             }
         }
-        
-        private bool TryGetLibFoundLogEventInBlock(Block block, out LogEvent logEvent)
-        {
-            logEvent = new LogEvent
-            {
-                Address = ContractHelpers.GetConsensusContractAddress(block.Header.ChainId),
-                Topics =
-                {
-                    ByteString.CopyFrom("LIBFound".CalculateHash())
-                }
-            };
 
-            try
-            {
-                var result = logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
-                return result;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e.Message);
-            }
-
-            return false;
-        }
-        
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {
             return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(ulong)});

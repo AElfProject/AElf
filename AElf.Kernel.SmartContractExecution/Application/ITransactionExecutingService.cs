@@ -52,6 +52,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     trace.SurfaceUpError();
                 }
 
+                if (trace.StdErr != string.Empty)
+                {
+                    Logger.LogError(trace.StdErr);
+                }
+
                 var result = GetTransactionResult(trace);
                 if (result != null)
                 {

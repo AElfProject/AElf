@@ -69,7 +69,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             {
                                 OutValue = Hash.FromMessage(_inValue),
                                 InValue = Hash.Zero,
-                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
+                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                                CurrentInValue = _inValue
                             }.ToByteArray();
                         }
                         else

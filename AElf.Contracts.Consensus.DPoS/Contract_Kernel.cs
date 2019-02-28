@@ -163,7 +163,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
                 else
                 {
-                    Console.WriteLine("Same round.");
                     // Same Round
                     if (!RoundIdMatched(information.CurrentRound))
                     {
@@ -224,7 +223,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var signature = Hash.Generate();
-            if (TryToGetPreviousRoundInformation(out var preRoundInformation))
+            if (TryToGetPreviousRoundInformation(out var preRoundInformation) && extra.CurrentInValue != null)
             {
                 signature = preRoundInformation.CalculateSignature(extra.CurrentInValue);
             }
