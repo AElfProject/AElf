@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using AElf.Kernel;
@@ -8,36 +10,109 @@ using AElf.Common;
 
 namespace AElf.Sdk.CSharp
 {
-    public class Event
+    public abstract class Event
     {
-        private static bool IsIndexed(PropertyInfo fieldInfo)
-        {
-            var attributes = fieldInfo.GetCustomAttributes(typeof(IndexedAttribute), true);
-            return attributes.Length > 0;
-        }
+        internal abstract LogEvent GetLogEvent(Address self = null);
+    }
 
-        internal LogEvent GetLogEvent(Address self = null)
+    public class Event<TSelf> : Event
+        where TSelf : Event<TSelf>
+    {
+        static EventParser<TSelf> _parser = new EventParser<TSelf>();
+
+        internal override LogEvent GetLogEvent(Address self = null)
         {
-            var t = GetType();
+            return _parser.ToLogEvent(this, self);
+        }
+    }
+
+    public class EventParser<TEvent>
+        where TEvent : Event<TEvent>
+    {
+        private static readonly Lazy<CacheContainer<TEvent>> _cacheContainer =
+            new Lazy<CacheContainer<TEvent>>(CreateCache);
+
+
+        public LogEvent ToLogEvent(Event<TEvent> e, Address self = null)
+        {
             var le = new LogEvent()
             {
                 Address = self
             };
-            le.Topics.Add(ByteString.CopyFrom(Hash.FromString(t.Name).DumpByteArray()));
-            var fields = t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Select(x => new {x.Name, Value = x.GetValue(this), Indexed = IsIndexed(x)})
-                .ToList();
-            foreach (var indexedField in fields.Where(x => x.Indexed))
+
+            var container = _cacheContainer.Value;
+
+            le.Topics.Add(ByteString.CopyFrom(Hash.FromString(container.EventName).DumpByteArray()));
+
+            foreach (var indexedField in container.Indexes)
             {
                 le.Topics.Add(ByteString.CopyFrom(
-                    SHA256.Create().ComputeHash(ParamsPacker.Pack(indexedField.Value)))
+                    SHA256.Create().ComputeHash(ParamsPacker.Pack(indexedField.Function(e))))
                 );
             }
 
-            var nonIndexed = fields.Where(x => !x.Indexed)
-                .Select(x => x.Value).ToArray();
+            var nonIndexed = container.NonIndexes.Select(x => x.Function(e)).ToArray();
             le.Data = ByteString.CopyFrom(ParamsPacker.Pack(nonIndexed));
             return le;
+        }
+
+        class TypeCache<T>
+            where T : Event<T>
+        {
+            public Func<Event<T>, object> Function { get; set; }
+            public string Name { get; set; }
+            public bool Indexed { get; set; }
+        }
+
+        class CacheContainer<T>
+            where T : Event<T>
+
+        {
+            public List<TypeCache<T>> Indexes { get; set; }
+            public List<TypeCache<T>> NonIndexes { get; set; }
+
+            public string EventName { get; set; }
+        }
+
+        private static CacheContainer<TEvent> CreateCache()
+        {
+            var t = typeof(Event<TEvent>);
+            var fields = t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                .Select(x =>
+                    new TypeCache<TEvent>
+                    {
+                        Function = CreateGetFuncFor<Event<TEvent>>(x.Name),
+                        Name = x.Name,
+                        Indexed = IsIndexed(x)
+                    })
+                .ToList();
+            return new CacheContainer<TEvent>()
+            {
+                Indexes = fields.Where(p => p.Indexed).ToList(),
+                NonIndexes = fields.Where(p => !p.Indexed).ToList(),
+                EventName = t.Name
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        static Func<T, object> CreateGetFuncFor<T>(string propertyName)
+        {
+            PropertyInfo prop = typeof(T).GetProperty(propertyName);
+
+            return (Func<T, object>) Delegate.CreateDelegate(typeof(Func<T, object>),
+                null,
+                prop.GetGetMethod());
+        }
+
+        private static bool IsIndexed(PropertyInfo fieldInfo)
+        {
+            var attributes = fieldInfo.GetCustomAttributes(typeof(IndexedAttribute), true);
+            return attributes.Length > 0;
         }
     }
 }
