@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Volo.Abp.EventBus" Version="0.13.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="0.14.0" />
     </ItemGroup>
 
 </Project>

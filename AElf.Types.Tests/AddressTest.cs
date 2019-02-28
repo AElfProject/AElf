@@ -47,10 +47,7 @@ namespace AElf.Types.Tests
             var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
             var addressString = address.GetFormatted();
-            var pubkeyHash = address.GetPublicKeyHash();
             addressString.ShouldNotBe(string.Empty);
-            addressString.StartsWith("ELF").ShouldBe(true);
-            pubkeyHash.ShouldNotBe(string.Empty);
         }
         
         [Fact]
@@ -69,16 +66,16 @@ namespace AElf.Types.Tests
         [Fact]
         public void Parse_Address_FromString()
         {
-            string addStr = "ELF_5rYq3rGiULxGS51xAYF6Una1RH2bhm3REEZdda6o5NJwvRF";
+            string addStr = "5rYq3rGiULxGS51xAYF6Una1RH2bhm3REEZdda6o5NJwvRF";
             var address = Address.Parse(addStr);
             address.ShouldNotBe(null);
             var addStr1 = address.GetFormatted();
             addStr1.ShouldBe(addStr);
 
-            addStr = "ELF_345678icdfvbghnjmkdfvgbhtn";
-            Should.Throw<FormatException>(() => { address = Address.Parse(addStr); });
             addStr = "345678icdfvbghnjmkdfvgbhtn";
-            Address.Parse(addStr).ShouldBeNull();
+            Should.Throw<FormatException>(() => { address = Address.Parse(addStr); });
+            //addStr = "345678icdfvbghnjmkdfvgbhtn";
+            //Address.Parse(addStr).ShouldBeNull();
         }
     }
 }
