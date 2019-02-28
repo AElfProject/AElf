@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         public static ConsensusTester CreateABootMiner()
         {
             var initialMinersKeyPairs = GenerateMinersKeyPairs(17);
-            return new ConsensusTester(0, initialMinersKeyPairs[0], initialMinersKeyPairs, true);
+            return new ConsensusTester(0, initialMinersKeyPairs[0], initialMinersKeyPairs);
         }
 
         public static TestMiners CreateTestMiners(int minersCount)
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             return new TestMiners
             {
-                BootMiner = new ConsensusTester(0, minersKeyPairs[0], minersKeyPairs, true),
+                BootMiner = new ConsensusTester(0, minersKeyPairs[0], minersKeyPairs),
                 NormalMiners = new List<ConsensusTester>(Enumerable.Range(1, minersCount - 1)
                     .Select(x => new ConsensusTester(0, minersKeyPairs[x], minersKeyPairs)))
             };

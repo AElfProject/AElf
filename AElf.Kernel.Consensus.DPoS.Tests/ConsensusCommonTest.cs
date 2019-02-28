@@ -14,7 +14,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var initialMinersKeyPairs = ConsensusTestHelper.GenerateMinersKeyPairs(17);
 
-            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs, true);
+            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs);
 
             await tester.TriggerConsensusAsync();
 
@@ -26,7 +26,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var initialMinersKeyPairs = ConsensusTestHelper.GenerateMinersKeyPairs(17);
 
-            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs, true);
+            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs);
 
             await tester.TriggerConsensusAsync();
 
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var initialMinersKeyPairs = ConsensusTestHelper.GenerateMinersKeyPairs(17);
 
-            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs, true);
+            var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs);
 
             await tester.TriggerConsensusAsync();
 

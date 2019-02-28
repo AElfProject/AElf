@@ -30,55 +30,103 @@ using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
+    // ReSharper disable InconsistentNaming
     public class ConsensusTester
     {
-        private readonly int _chainId;
-        
-        private readonly IConsensusService _consensusService;
-        private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
-        private readonly IAccountService _accountService;//Should mock one.
-        private readonly ITransactionExecutingService _transactionExecutingService;
-        private readonly IConsensusScheduler _consensusScheduler;
-        private readonly IBlockchainService _blockchainService;
-        
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
-        private readonly IBlockGenerationService _blockGenerationService;
-        private ISystemTransactionGenerationService _systemTransactionGenerationService;
-        private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
-        private readonly IChainManager _chainManager;
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly IBlockValidationService _blockValidationService;
+        public int ChainId { get; }
+        public ECKeyPair CallOwnerKeyPair { get; private set; }
 
+        private readonly IConsensusService _consensusService;
+        
+        private readonly IBlockchainService _blockchainService;
+        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+
+        //private ISystemTransactionGenerationService _systemTransactionGenerationService;
+        //private readonly IBlockExecutingService _blockExecutingService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
         public bool ScheduleTriggered { get; set; }
 
-        public ECKeyPair CallOwnerKeyPair { get; set; }
-
-        public List<Address> DeployedContractsAddresses { get; set; }
-
-        public ConsensusTester(int chainId, ECKeyPair callOwnerKeyPair, List<ECKeyPair> initialMinersKeyPairs, bool isBootMiner = false)
+        public ConsensusTester(int chainId, ECKeyPair callOwnerKeyPair, List<ECKeyPair> initialMinersKeyPairs,
+            bool isBootMiner = false)
         {
-            _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
-
+            ChainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
             CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
-            
+
             var application =
                 AbpApplicationFactory.Create<DPoSConsensusTestAElfModule>(options => { options.UseAutofac(); });
             application.Initialize();
 
-            _transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
-            _consensusScheduler = application.ServiceProvider.GetService<IConsensusScheduler>();
-            _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
+            var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
-            _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
-            //_blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
-            //_blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
-            //_blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
+            _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
+            //_blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
 
             // Mock dpos options.
+            var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
+
+            // Mock AccountService.
+            var accountService = MockAccountService();
+
+            var consensusControlInformation = new ConsensusControlInformation();
+            _consensusService = new ConsensusService(
+                new DPoSInformationGenerationService(consensusOptions, accountService, consensusControlInformation),
+                accountService, transactionExecutingService, MockConsensusScheduler(), _blockchainService,
+                consensusControlInformation);
+
+            //_systemTransactionGenerationService = new SystemTransactionGenerationService(
+                //new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
+
+            InitialChain();
+        }
+
+        public async Task TriggerConsensusAsync()
+        {
+            await _consensusService.TriggerConsensusAsync(ChainId);
+        }
+        
+        public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
+        {
+            return await _consensusService.ValidateConsensusAsync(ChainId, Chain.BestChainHash, Chain.BestChainHeight,
+                consensusInformation);
+        }
+
+        public async Task<byte[]> GetNewConsensusInformationAsync()
+        {
+            return await _consensusService.GetNewConsensusInformationAsync(ChainId);
+        }
+
+        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync()
+        {
+            return await _consensusService.GenerateConsensusTransactionsAsync(ChainId, Chain.BestChainHeight,
+                Chain.BestChainHash.Value.Take(4).ToArray());
+        }
+
+        #region Private methods
+
+        private async Task<Chain> GetChainAsync()
+        {
+            return await _blockchainService.GetChainAsync(ChainId);
+        }
+        
+        private void InitialChain()
+        {
+            var transactions = GetGenesisTransactions(ChainId, typeof(BasicContractZero), typeof(ConsensusContract));
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
+                {
+                    ChainId = ChainId,
+                    Transactions = transactions
+                }
+            };
+            
+            AsyncHelper.RunSync(() => _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto));
+
+        }
+        private IOptionsSnapshot<DPoSOptions> MockDPoSOptions(List<ECKeyPair> initialMinersKeyPairs, bool isBootMiner)
+        {
             var consensusOptionsMock = new Mock<IOptionsSnapshot<DPoSOptions>>();
             consensusOptionsMock.Setup(m => m.Value).Returns(new DPoSOptions
             {
@@ -86,49 +134,31 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 IsBootMiner = isBootMiner,
                 MiningInterval = DPoSConsensusConsts.MiningInterval
             });
-            var consensusOptions = consensusOptionsMock.Object;
             
-            // Mock AccountService.
+            return consensusOptionsMock.Object;
+        }
+
+        private IAccountService MockAccountService()
+        {
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
             mockAccountService.Setup(s => s.GetAccountAsync())
                 .ReturnsAsync(Address.FromPublicKey(CallOwnerKeyPair.PublicKey));
-            _accountService = mockAccountService.Object;
 
-            var consensusControlInformation = new ConsensusControlInformation();
+            return mockAccountService.Object;
+        }
 
-            _consensusInformationGenerationService =
-                new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation);
-
+        private IConsensusScheduler MockConsensusScheduler()
+        {
             var consensusSchedulerMock = new Mock<IConsensusScheduler>();
             consensusSchedulerMock.Setup(m => m.NewEvent(It.IsAny<int>(), It.IsAny<BlockMiningEventData>()))
                 .Callback(() => ScheduleTriggered = true);
             consensusSchedulerMock.Setup(m => m.CancelCurrentEvent())
                 .Callback(() => ScheduleTriggered = false);
-            var consensusScheduler = consensusSchedulerMock.Object;
 
-            _consensusService = new ConsensusService(_consensusInformationGenerationService, _accountService,
-                _transactionExecutingService, consensusScheduler, _blockchainService, consensusControlInformation);
-
-            _systemTransactionGenerationService = new SystemTransactionGenerationService(
-                new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
-            
-            // Initial a chain.
-            var transactions = GetGenesisTransactions(_chainId, typeof(BasicContractZero), typeof(ConsensusContract));
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = _chainId,
-                    Transactions = transactions
-                }
-            };
-
-            AsyncHelper.RunSync(() => _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto));
-//            _chainManager = application.ServiceProvider.GetService<IChainManager>();
-//            _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
+            return consensusSchedulerMock.Object;
         }
-        
+
         private Transaction[] GetGenesisTransactions(int chainId, params Type[] contractTypes)
         {
             return contractTypes.Select(contractType => GetTransactionForDeployment(chainId, contractType)).ToArray();
@@ -148,31 +178,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             };
         }
 
-        public async Task TriggerConsensusAsync()
-        {
-            await _consensusService.TriggerConsensusAsync(_chainId);
-        }
-        
-        public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
-        {
-            return await _consensusService.ValidateConsensusAsync(_chainId, Chain.BestChainHash, Chain.BestChainHeight,
-                consensusInformation);
-        }
-
-        public async Task<byte[]> GetNewConsensusInformationAsync()
-        {
-            return await _consensusService.GetNewConsensusInformationAsync(_chainId);
-        }
-
-        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync()
-        {
-            return await _consensusService.GenerateConsensusTransactionsAsync(_chainId, Chain.BestChainHeight,
-                Chain.BestChainHash.Value.Take(4).ToArray());
-        }
-
-        public async Task<Chain> GetChainAsync()
-        {
-            return await _blockchainService.GetChainAsync(_chainId);
-        }
+        #endregion
     }
 }
