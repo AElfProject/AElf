@@ -54,13 +54,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            
-            var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = block.Header.Height,
-                BlockHash = block.Header.GetHash(),
-                PreviousBlockHash = block.Header.PreviousBlockHash
-            });
 
             List<ChainBlockLink> blockLinks = null;
 
