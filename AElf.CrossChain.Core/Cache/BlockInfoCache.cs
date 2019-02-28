@@ -55,8 +55,7 @@ namespace AElf.CrossChain.Cache
         {
             // clear outdated data
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
-            // isCacheSizeLimited means minimal caching size , for most nodes have this block.
-            
+            // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
             if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + (ulong) CrossChainConsts.MinimalBlockInfoCacheThreshold))
             {
                 var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, 

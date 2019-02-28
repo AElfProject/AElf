@@ -12,8 +12,6 @@ namespace AElf.CrossChain
 {
     public static class CrossChainEventHelper
     {
-        
-
         public static bool TryGetLogEventInBlock(IBlock block, out LogEvent logEvent)
         {
             logEvent = new LogEvent
