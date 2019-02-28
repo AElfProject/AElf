@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -586,6 +587,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (CalculateLIB(out var offset))
             {
+                Context.Logger.LogInformation($"LIB found, offset is {offset}");
                 Context.FireEvent(new LIBFound
                 {
                     Offset = offset

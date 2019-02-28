@@ -59,6 +59,7 @@ namespace AElf.Sdk.CSharp
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();
+        public ILogger Logger => _smartContractContext.Logger;
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
