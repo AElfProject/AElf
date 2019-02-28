@@ -12,28 +12,16 @@ namespace AElf.Sdk.CSharp
 {
     public abstract class Event
     {
-        internal abstract LogEvent GetLogEvent(Address self = null);
     }
 
-    public class Event<TSelf> : Event
-        where TSelf : Event<TSelf>
-    {
-        static EventParser<TSelf> _parser = new EventParser<TSelf>();
-
-        internal override LogEvent GetLogEvent(Address self = null)
-        {
-            return _parser.ToLogEvent(this, self);
-        }
-    }
-
-    public class EventParser<TEvent>
-        where TEvent : Event<TEvent>
+    public static class EventParser<TEvent>
+        where TEvent : Event
     {
         private static readonly Lazy<CacheContainer<TEvent>> _cacheContainer =
             new Lazy<CacheContainer<TEvent>>(CreateCache);
 
 
-        public LogEvent ToLogEvent(Event<TEvent> e, Address self = null)
+        public static LogEvent ToLogEvent(TEvent e, Address self = null)
         {
             var le = new LogEvent()
             {
@@ -57,15 +45,15 @@ namespace AElf.Sdk.CSharp
         }
 
         class TypeCache<T>
-            where T : Event<T>
+            where T : Event
         {
-            public Func<Event<T>, object> Function { get; set; }
+            public Func<T, object> Function { get; set; }
             public string Name { get; set; }
             public bool Indexed { get; set; }
         }
 
         class CacheContainer<T>
-            where T : Event<T>
+            where T : Event
 
         {
             public List<TypeCache<T>> Indexes { get; set; }
@@ -76,12 +64,12 @@ namespace AElf.Sdk.CSharp
 
         private static CacheContainer<TEvent> CreateCache()
         {
-            var t = typeof(Event<TEvent>);
+            var t = typeof(TEvent);
             var fields = t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                 .Select(x =>
                     new TypeCache<TEvent>
                     {
-                        Function = CreateGetFuncFor<Event<TEvent>>(x.Name),
+                        Function = CreateGetFuncFor<TEvent>(x.Name),
                         Name = x.Name,
                         Indexed = IsIndexed(x)
                     })
@@ -104,9 +92,13 @@ namespace AElf.Sdk.CSharp
         {
             PropertyInfo prop = typeof(T).GetProperty(propertyName);
 
-            return (Func<T, object>) Delegate.CreateDelegate(typeof(Func<T, object>),
+            var methodInfo = prop.GetGetMethod();
+
+            var del = Delegate.CreateDelegate(typeof(Func<T, object>),
                 null,
-                prop.GetGetMethod());
+                methodInfo);
+
+            return (Func<T, object>) del;
         }
 
         private static bool IsIndexed(PropertyInfo fieldInfo)

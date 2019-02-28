@@ -3,14 +3,14 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Token
 {
-    public class Transferred : Event<Transferred>
+    public class Transferred : Event
     {
         [Indexed] public Address From { get; set; }
         [Indexed] public Address To { get; set; }
         public ulong Amount { get; set; }
     }
 
-    public class Approved : Event<Approved>
+    public class Approved : Event
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
@@ -18,14 +18,14 @@ namespace AElf.Contracts.Token
     }
 
 
-    public class UnApproved : Event<UnApproved>
+    public class UnApproved : Event
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
         public ulong Amount { get; set; }
     }
 
-    public class Burned : Event<Burned>
+    public class Burned : Event
     {
         [Indexed] public Address Burner { get; set; }
         public ulong Amount { get; set; }

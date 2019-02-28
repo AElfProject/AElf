@@ -15,7 +15,6 @@ namespace AElf.Kernel.SmartContract.Domain
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
         Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
-        // TODO: Standardize chainid to int
         Task MergeBlockStateAsync(int chainId, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync(int chainId);
     }
