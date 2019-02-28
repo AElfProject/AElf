@@ -36,7 +36,7 @@ namespace AElf.Kernel.Services
 
         private const float RatioMine = 0.3f;
 
-        public MinerService(ITxHub txHub, IAccountService accountService,
+        public MinerService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
