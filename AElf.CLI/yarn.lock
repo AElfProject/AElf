@@ -65,10 +65,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.27.tgz#eb3843f15d0ba0986cc7e4d734d2ee8b50709ef8"
   integrity sha512-e9wgeY6gaY21on3ve0xAjgBVjGDWq/xUteK0ujsE53bUoxycMkqfnkUgMt6ffZtykZ5X12Mg3T7Pw4TRCObDKg==
 
-aelf-sdk@2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.1.tgz#275e53b7e04bf8b7af43b2a6f0b5ed782b972675"
-  integrity sha512-jXn0FyaBUN6Kb28FCAR0EYCIsI/0tf+L/9chASWOX9/WF4aurxVzVUGUdjlQIMBE1GYnvRtgHrFWe980y3f5jQ==
+aelf-sdk@2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.2.tgz#a0706030e12f578efb071522a75307c9a5ddd801"
+  integrity sha512-mQWQ3xaXTBRehqbLrty0z040aYlEcVd+dsxANYKL/VgAJLtT9fwkomxZPsb5HzTFtPhSoW4qQUIS0000Zvh1Vg==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^2.0.7"

@@ -3,6 +3,6 @@
   "name": "aelf.cli",
   "private": true,
   "dependencies": {
-    "aelf-sdk": "2.0.1"
+    "aelf-sdk": "2.0.2"
   }
 }
