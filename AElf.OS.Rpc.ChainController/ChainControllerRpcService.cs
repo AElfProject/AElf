@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Domain;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract;
@@ -32,7 +33,7 @@ namespace AElf.OS.Rpc.ChainController
     {
         public IBlockchainService BlockchainService { get; set; }
         public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
-        public ITransactionResultService TransactionResultService { get; set; }
+        public ITransactionResultManager TransactionResultManager { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
 

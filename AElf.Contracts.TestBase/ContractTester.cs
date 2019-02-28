@@ -314,7 +314,7 @@ namespace AElf.Contracts.TestBase
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
 
-            return new MinerService(mockTxHub.Object, _accountService, _blockGenerationService,
+            return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
                 _blockchainExecutingService, mockTxHubs.Object);
         }
