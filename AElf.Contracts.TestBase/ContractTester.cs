@@ -74,10 +74,7 @@ namespace AElf.Contracts.TestBase
             _accountService = mockAccountService.Object;
 
             var application =
-                AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
-                {
-                    options.UseAutofac();
-                });
+                AbpApplicationFactory.Create<ContractTestAElfModule>(options => { options.UseAutofac(); });
             application.Initialize();
 
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
@@ -249,7 +246,8 @@ namespace AElf.Contracts.TestBase
                 new CancellationToken());
             await _blockchainService.AddBlockAsync(_chainId, block);
             var chain = await _blockchainService.GetChainAsync(_chainId);
-            await _blockchainExecutingService.AttachBlockToChainAsync(chain, block);
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
         }
 
         public async Task SetIrreversibleBlock(Hash libHash)

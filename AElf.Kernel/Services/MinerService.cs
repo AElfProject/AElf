@@ -9,6 +9,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -49,7 +50,7 @@ namespace AElf.Kernel.Services
             _blockchainExecutingService = blockchainExecutingService;
             _blockchainService = blockchainService;
             _accountService = accountService;
-            
+
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -78,7 +79,7 @@ namespace AElf.Kernel.Services
                         await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
                             cts.Token);
                 }
-                
+
                 Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
                                       $"height: {block.Header.Height}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
@@ -142,7 +143,8 @@ namespace AElf.Kernel.Services
                 await SignBlockAsync(block);
                 await _blockchainService.AddBlockAsync(chainId, block);
                 var chain = await _blockchainService.GetChainAsync(chainId);
-                await _blockchainExecutingService.AttachBlockToChainAsync(chain, block);
+                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
                 await SignBlockAsync(block);
                 // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized

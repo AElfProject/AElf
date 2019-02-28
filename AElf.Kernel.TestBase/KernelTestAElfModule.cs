@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.ChainController
+namespace AElf.Kernel
 {
     [DependsOn(
-        typeof(ChainControllerAElfModule),
-        typeof(TestBaseAElfModule))]
-    public class ChainControllerTestAElfModule : AElfModule
+        typeof(TestBaseAElfModule), typeof(CoreKernelAElfModule))]
+    public class TestBaseKernelAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -25,8 +25,6 @@ namespace AElf.Kernel.ChainController
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
 
-            
-            services.AddTransient<ChainCreationService>();
         }
     }
 }
