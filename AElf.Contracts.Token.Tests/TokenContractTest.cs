@@ -59,8 +59,6 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task Initialize_TokenContract()
         {
-            await Deploy_TokenContract();
-
             var tx = Tester.GenerateTransaction(TokenContractAddress, "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
             await Tester.MineABlockAsync(new List<Transaction> {tx});
@@ -181,15 +179,10 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task TransferFrom_TokenContract()
         {
-            await Initialize_TokenContract();
-
+            await Approve_TokenContract();
+            
             var owner = Tester.GetCallOwnerAddress();
             var spender = Tester.GetAddress(spenderKeyPair);
-
-            var result1 = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve", spender, 2000UL);
-            result1.Status.ShouldBe(TransactionResultStatus.Mined);
-            var bytes1 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance", owner, spender);
-            bytes1.DeserializeToUInt64().ShouldBe(2000UL);
 
             Tester.SetCallOwner(spenderKeyPair);
             var result2 =
@@ -206,15 +199,10 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task TransferFrom_With_ErrorAccount()
         {
-            await Initialize_TokenContract();
-
+            await Approve_TokenContract();
+            
             var owner = Tester.GetCallOwnerAddress();
             var spender = Tester.GetAddress(spenderKeyPair);
-
-            var result1 = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve", spender, 2000UL);
-            result1.Status.ShouldBe(TransactionResultStatus.Mined);
-            var bytes1 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance", owner, spender);
-            bytes1.DeserializeToUInt64().ShouldBe(2000UL);
 
             var result2 =
                 await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "TransferFrom", owner, spender,
@@ -233,6 +221,7 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task TransferFrom_Without_Enough_Allowance()
         {
+            await Initialize_TokenContract();     
             var owner = Tester.GetCallOwnerAddress();
             var spender = Tester.GetAddress(spenderKeyPair);
 
