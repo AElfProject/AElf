@@ -10,6 +10,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ namespace AElf.Kernel.Services
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private readonly ITxHub _txHub;
+        private IChainRelatedComponentManager<ITxHub> _txHubs;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
@@ -36,19 +37,20 @@ namespace AElf.Kernel.Services
 
         private const float RatioMine = 0.3f;
 
-        public MinerService(ITxHub txHub, IAccountService accountService,
+        public MinerService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService)
+            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService,
+            IChainRelatedComponentManager<ITxHub> txHubs)
         {
-            _txHub = txHub;
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _consensusService = consensusService;
             _blockchainExecutingService = blockchainExecutingService;
+            _txHubs = txHubs;
             _blockchainService = blockchainService;
             _accountService = accountService;
 
@@ -72,14 +74,26 @@ namespace AElf.Kernel.Services
 
                 var transactions = await GenerateSystemTransactions(chainId, previousBlockHash, previousBlockHeight);
 
-                var txInPool = (await _txHub.GetReceiptsOfExecutablesAsync()).Select(p => p.Transaction).ToList();
+                var executableTransactionSet = await _txHubs.Get(chainId).GetExecutableTransactionSetAsync();
+                var pending = new List<Transaction>();
+                if (chainId == executableTransactionSet.ChainId &&
+                    executableTransactionSet.PreviousBlockHash == previousBlockHash)
+                {
+                    pending = executableTransactionSet.Transactions;
+                }
+                else
+                {
+                    Logger.LogWarning($@"Transaction pool gives transactions to be appended
+ to {executableTransactionSet.PreviousBlockHash}
+ which doesn't match the current best chain hash {previousBlockHash}.");
+                }
 
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing
                     //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
                     block =
-                        await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, txInPool,
+                        await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, pending,
                             cts.Token);
                 }
 
@@ -146,7 +160,7 @@ namespace AElf.Kernel.Services
                 FillBlockStateSet(blockStateSet, traces); 
                 await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);*/
 
-                await SignBlockAsync(block);
+//                await SignBlockAsync(block);
                 await _blockchainService.AddBlockAsync(chainId, block);
                 var chain = await _blockchainService.GetChainAsync(chainId);
                 var status = await _blockchainService.AttachBlockToChainAsync(chain, block);

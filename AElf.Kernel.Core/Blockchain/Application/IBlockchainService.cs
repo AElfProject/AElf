@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,11 +27,14 @@ namespace AElf.Kernel.Blockchain.Application
         //Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
 
+        Task<BlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockId);
+
         Task<Chain> GetChainAsync(int chainId);
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
         Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count);
         Task<BlockHeader> GetBestChainLastBlock(int chainId);
         Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null);
+        Task<BranchSwitch> GetBranchSwitchAsync(int chainId, Hash fromHash, Hash toHash);
 
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
         Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
@@ -108,12 +112,9 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task AddBlockAsync(int chainId, Block block)
         {
             await _blockManager.AddBlockHeaderAsync(block.Header);
-            if (block.Body.TransactionList.Count > 0)
+            foreach (var transaction in block.Body.TransactionList)
             {
-                foreach (var transaction in block.Body.TransactionList)
-                {
-//                    await _transactionManager.AddTransactionAsync(transaction);
-                }
+                await _transactionManager.AddTransactionAsync(transaction);
             }
 
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
@@ -157,6 +158,69 @@ namespace AElf.Kernel.Blockchain.Application
                 startBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, startBlockHash);
             }
+        }
+
+        public async Task<BranchSwitch> GetBranchSwitchAsync(int chainId, Hash fromHash, Hash toHash)
+        {
+            var fromGenesis = false;
+            var fromHeader = await GetBlockHeaderByHashAsync(chainId, fromHash);
+            var toHeader = await GetBlockHeaderByHashAsync(chainId, toHash);
+            if (fromHeader == null && !(fromGenesis = fromHash == Hash.Genesis))
+            {
+                throw new Exception($"No block is found for provided from hash {fromHash}.");
+            }
+
+            if (toHeader == null)
+            {
+                throw new Exception($"No block is found for provided to hash {toHash}.");
+            }
+
+            var output = new BranchSwitch();
+            var reversedNewBranch = new List<Hash>();
+            checked
+            {
+                if (fromGenesis)
+                {
+                    for (int i = (int) toHeader.Height; i >= (int) ChainConsts.GenesisBlockHeight; i--)
+                    {
+                        reversedNewBranch.Add(toHeader.GetHash());
+                        toHeader = await GetBlockHeaderByHashAsync(chainId, toHeader.PreviousBlockHash);
+                    }
+                }
+                else
+                {
+                    for (ulong i = fromHeader.Height; i > toHeader.Height; i--)
+                    {
+                        output.RollBack.Add(fromHeader.GetHash());
+                        fromHeader = await GetBlockHeaderByHashAsync(chainId, fromHeader.PreviousBlockHash);
+                    }
+
+                    for (ulong i = toHeader.Height; i > fromHeader.Height; i--)
+                    {
+                        reversedNewBranch.Add(toHeader.GetHash());
+                        toHeader = await GetBlockHeaderByHashAsync(chainId, toHeader.PreviousBlockHash);
+                    }
+
+                    while (true)
+                    {
+                        var fh = fromHeader.GetHash();
+                        var th = toHeader.GetHash();
+                        if (fh == th)
+                        {
+                            break;
+                        }
+
+                        output.RollBack.Add(fh);
+                        reversedNewBranch.Add(th);
+                        fromHeader = await GetBlockHeaderByHashAsync(chainId, fromHeader.PreviousBlockHash);
+                        toHeader = await GetBlockHeaderByHashAsync(chainId, toHeader.PreviousBlockHash);
+                    }
+                }
+            }
+
+            reversedNewBranch.Reverse();
+            output.RollForward.AddRange(reversedNewBranch);
+            return output;
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block)
@@ -209,7 +273,26 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
         {
-            return await _blockManager.GetBlockAsync(blockId);
+            var block = await _blockManager.GetBlockAsync(blockId);
+            if (block == null)
+            {
+                return null;
+            }
+
+            var body = block.Body;
+
+            foreach (var txId in body.Transactions)
+            {
+                var tx = await _transactionManager.GetTransaction(txId);
+                body.TransactionList.Add(tx);
+            }
+
+            return block;
+        }
+
+        public async Task<BlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockId)
+        {
+            return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(int chainId, ulong height)
