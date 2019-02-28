@@ -113,6 +113,7 @@ message Round {
     uint64 BlockchainAge = 4;
     uint64 MinersTermNumber = 5;
     string Remark = 6;
+    string RealExtraBlockProducer = 7;
 }
 
 // The information of a miner in a specific round.
