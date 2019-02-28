@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -76,7 +77,7 @@ namespace AElf.CrossChain
                 BlockHeight = preBlockHeight
             };
             var executive =
-                await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To);
+                await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To, new Dictionary<StatePath, StateCache>());
             await executive.SetTransactionContext(txCtxt).Apply();
             return trace;
         }
