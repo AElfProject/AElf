@@ -197,8 +197,15 @@ namespace AElf.Sdk.CSharp.Tests
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
+
+            var registration = new SmartContractRegistration
+            {
+                Category = 0,
+                Code = ByteString.Empty,
+                CodeHash = Hash.Zero
+            };
             
-            context.DeployContract(Address.Zero,  new SmartContractRegistration());
+            context.DeployContract(Address.Zero, registration);
         }
         
         [Fact]
@@ -221,7 +228,14 @@ namespace AElf.Sdk.CSharp.Tests
             };
             context.SmartContractContext = smartContractContext;
             
-            context.UpdateContract(Address.Zero,  new SmartContractRegistration());
+            var registration = new SmartContractRegistration
+            {
+                Category = 0,
+                Code = ByteString.Empty,
+                CodeHash = Hash.Zero
+            };
+            
+            context.UpdateContract(Address.Zero,  registration);
         }
 
         private Context CreateNewContext()
