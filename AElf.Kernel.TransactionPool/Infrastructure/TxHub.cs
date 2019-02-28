@@ -169,6 +169,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             };
         }
 
+        public Task<TransactionReceipt> GetTransactionReceiptAsync(Hash transactionId)
+        {
+            _allTransactions.TryGetValue(transactionId, out var receipt);
+            return Task.FromResult(receipt);
+        }
+
         public void Dispose()
         {
         }
