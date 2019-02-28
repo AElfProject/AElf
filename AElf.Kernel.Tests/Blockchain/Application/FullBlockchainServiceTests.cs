@@ -113,7 +113,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_BlockHeaders_ReturnNull()
         {
-            var result = await _fullBlockchainService.GetBlockHeaders(_chainId, Hash.FromString("not exist"), 1);
+            var result = await _fullBlockchainService.GetReservedBlockHashes(_chainId, Hash.FromString("not exist"), 1);
             result.ShouldBeNull();
         }
 
@@ -123,7 +123,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
 
-            var result = await _fullBlockchainService.GetBlockHeaders(chain.Id, blockList[2].GetHash(), 2);
+            var result = await _fullBlockchainService.GetReservedBlockHashes(chain.Id, blockList[2].GetHash(), 2);
             result.Count.ShouldBe(2);
             result[0].ShouldBe(blockList[1].GetHash());
             result[1].ShouldBe(blockList[0].GetHash());

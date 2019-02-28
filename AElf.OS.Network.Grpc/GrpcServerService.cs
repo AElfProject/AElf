@@ -205,7 +205,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogDebug($"Peer {context.Peer} requested block ids: from {request.FirstBlockId}, count : {request.Count}.");
                 
-                var headers = await _blockChainService.GetBlockHeaders(ChainId, 
+                var headers = await _blockChainService.GetReservedBlockHashes(ChainId, 
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();
