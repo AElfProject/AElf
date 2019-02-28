@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Infrastructure;
+using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContractExecution.Domain
+namespace AElf.Kernel.SmartContract.Domain
 {
 
     public interface IBlockchainStateManager
