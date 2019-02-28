@@ -8,10 +8,11 @@ namespace AElf.Kernel
     {
         public static ulong GetExpiryBlockNumber(this Transaction transaction)
         {
-            if (transaction.ExpiryBlockNumber != 0)
-            {
-                return transaction.ExpiryBlockNumber;
-            }
+            // TODO: Add ExpiryBlockNumber to Transaction
+//            if (transaction.ExpiryBlockNumber != 0)
+//            {
+//                return transaction.ExpiryBlockNumber;
+//            }
 
             // Default: expiry in 64 blocks
             return transaction.RefBlockNumber + 64;
