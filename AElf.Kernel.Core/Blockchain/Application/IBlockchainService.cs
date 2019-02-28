@@ -274,7 +274,13 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
         {
             var block = await _blockManager.GetBlockAsync(blockId);
+            if (block == null)
+            {
+                return null;
+            }
+
             var body = block.Body;
+
             foreach (var txId in body.Transactions)
             {
                 var tx = await _transactionManager.GetTransaction(txId);
