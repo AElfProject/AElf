@@ -14,8 +14,7 @@ namespace AElf.Kernel
 //                return transaction.ExpiryBlockNumber;
 //            }
 
-            // Default: expiry in 64 blocks
-            return transaction.RefBlockNumber + 64;
+            return transaction.RefBlockNumber + ChainConsts.ReferenceBlockValidPeriod;
         }
         public static int Size(this Transaction transaction)
         {
