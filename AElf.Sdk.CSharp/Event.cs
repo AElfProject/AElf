@@ -12,28 +12,16 @@ namespace AElf.Sdk.CSharp
 {
     public abstract class Event
     {
-        internal abstract LogEvent GetLogEvent(Address self = null);
     }
 
-    public class Event<TSelf> : Event
-        where TSelf : Event<TSelf>
-    {
-        static EventParser<TSelf> _parser = new EventParser<TSelf>();
-
-        internal override LogEvent GetLogEvent(Address self = null)
-        {
-            return _parser.ToLogEvent(this, self);
-        }
-    }
-
-    public class EventParser<TEvent>
-        where TEvent : Event<TEvent>
+    public static class EventParser<TEvent>
+        where TEvent : Event
     {
         private static readonly Lazy<CacheContainer<TEvent>> _cacheContainer =
             new Lazy<CacheContainer<TEvent>>(CreateCache);
 
 
-        public LogEvent ToLogEvent(Event<TEvent> e, Address self = null)
+        public static LogEvent ToLogEvent(TEvent e, Address self = null)
         {
             var le = new LogEvent()
             {
@@ -57,15 +45,15 @@ namespace AElf.Sdk.CSharp
         }
 
         class TypeCache<T>
-            where T : Event<T>
+            where T : Event
         {
-            public Func<Event<T>, object> Function { get; set; }
+            public Func<T, object> Function { get; set; }
             public string Name { get; set; }
             public bool Indexed { get; set; }
         }
 
         class CacheContainer<T>
-            where T : Event<T>
+            where T : Event
 
         {
             public List<TypeCache<T>> Indexes { get; set; }
@@ -76,12 +64,12 @@ namespace AElf.Sdk.CSharp
 
         private static CacheContainer<TEvent> CreateCache()
         {
-            var t = typeof(Event<TEvent>);
+            var t = typeof(TEvent);
             var fields = t.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                 .Select(x =>
                     new TypeCache<TEvent>
                     {
-                        Function = CreateGetFuncFor<Event<TEvent>>(x.Name),
+                        Function = CreateGetFuncFor<TEvent>(x.Name),
                         Name = x.Name,
                         Indexed = IsIndexed(x)
                     })
@@ -104,9 +92,86 @@ namespace AElf.Sdk.CSharp
         {
             PropertyInfo prop = typeof(T).GetProperty(propertyName);
 
-            return (Func<T, object>) Delegate.CreateDelegate(typeof(Func<T, object>),
-                null,
-                prop.GetGetMethod());
+            var methodInfo = prop.GetGetMethod();
+
+            Func<T, object> del;
+
+            if (methodInfo.ReturnType.IsValueType)
+            {
+                var type = methodInfo.ReturnType;
+
+
+                bool Test<TReturn>(Type t, out Func<T, object> ret)
+                {
+                    if (t == typeof(TReturn))
+                    {
+                        ret = o => ((Func<T, TReturn>) Delegate.CreateDelegate(typeof(Func<T, TReturn>), null,
+                            methodInfo))(o);
+                        return true;
+                    }
+
+                    ret = null;
+
+                    return false;
+                }
+
+                if (Test<byte>(type, out del))
+                {
+                }
+
+                if (Test<sbyte>(type, out del))
+                {
+                }
+                else if (Test<char>(type, out del))
+                {
+                }
+                else if (Test<short>(type, out del))
+                {
+                }
+                else if (Test<ushort>(type, out del))
+                {
+                }
+                else if (Test<int>(type, out del))
+                {
+                }
+                else if (Test<uint>(type, out del))
+                {
+                }
+                else if (Test<long>(type, out del))
+                {
+                }
+                else if (Test<ulong>(type, out del))
+                {
+                }
+                else if (Test<decimal>(type, out del))
+                {
+                }
+                else if (Test<float>(type, out del))
+                {
+                }
+                else if (Test<double>(type, out del))
+                {
+                }
+                else
+                {
+                    var my = Delegate.CreateDelegate(
+                        typeof(Func<,>).MakeGenericType(typeof(T), methodInfo.ReturnType),
+                        null,
+                        methodInfo);
+                    del = o => my.DynamicInvoke(o);
+
+                }
+
+
+            }
+            else
+            {
+                del = (Func<T, object>) Delegate.CreateDelegate(typeof(Func<T, object>),
+                    null,
+                    methodInfo);
+            }
+
+            return del;
         }
 
         private static bool IsIndexed(PropertyInfo fieldInfo)

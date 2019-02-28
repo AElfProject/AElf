@@ -2,14 +2,14 @@ using AElf.Common;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
 {
-    public class Transferred : Event<Transferred>
+    public class Transferred : Event
     {
         [Indexed] public Address From { get; set; }
         [Indexed] public Address To { get; set; }
         [Indexed] public ulong Amount { get; set; }
     }
 
-    public class Approved : Event<Approved>
+    public class Approved : Event
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
@@ -17,14 +17,14 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
     }
 
 
-    public class UnApproved : Event<UnApproved>
+    public class UnApproved : Event
     {
         [Indexed] public Address Owner { get; set; }
         [Indexed] public Address Spender { get; set; }
         [Indexed] public ulong Amount { get; set; }
     }
 
-    public class Burned : Event<Burned>
+    public class Burned : Event
     {
         public Address Burner { get; set; }
         public ulong Amount { get; set; }
