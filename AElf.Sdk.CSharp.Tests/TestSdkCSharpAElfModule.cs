@@ -3,7 +3,6 @@ using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Modularity;
@@ -15,16 +14,14 @@ using Volo.Abp.Modularity;
 namespace AElf.Sdk.CSharp.Tests
 {
     [DependsOn(
-        typeof(DatabaseAElfModule),
         typeof(TestBaseAElfModule),
-        typeof(SmartContractAElfModule))]
+        typeof(TestBaseKernelAElfModule))]
     public class TestSdkCSharpAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            
             services.AddTransient<IStateProviderFactory, StateProviderFactory>();
 
             services.AddTransient<ISmartContractService>(p =>
