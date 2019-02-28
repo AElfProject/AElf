@@ -332,3 +332,8 @@ message Chain {
 message ChainBlockIndex{
     Hash BlockHash = 1;
 }
+
+message BranchSwitch {
+    repeated Hash RollBack = 1;
+    repeated Hash RollForward = 2;
+}

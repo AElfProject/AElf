@@ -86,6 +86,8 @@ public sealed class TokenContractTest : TokenContractTestBase
                 "ELF", "elf token", 1000_000UL, 2U);
 
             result.Status.ShouldBe(TransactionResultStatus.Failed);
+            var returnMessage = result.RetVal.ToStringUtf8();
+            returnMessage.Contains("Already initialized.").ShouldBeTrue();
         }
 
         [Fact]
@@ -109,9 +111,17 @@ public sealed class TokenContractTest : TokenContractTestBase
             await Initialize_TokenContract();
 
             var toAddress = CryptoHelpers.GenerateKeyPair();
+            var fromAddress = CryptoHelpers.GenerateKeyPair();
+            Tester.SetCallOwner(fromAddress);
+            
             var result = Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[1], "Transfer",
-                Tester.GetAddress(toAddress), 1000_000_00UL);
+                Tester.GetAddress(toAddress), 1000UL);
             result.Result.Status.ShouldBe(TransactionResultStatus.Failed);
+            var returnMessage = result.Result.RetVal.ToStringUtf8();
+            var bytes = await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[1], "BalanceOf",
+                Tester.GetAddress(fromAddress));
+            var balance = bytes.DeserializeToUInt64();
+            returnMessage.Contains($"Insufficient balance. Current balance: {balance}").ShouldBeTrue();
         }
 
         [Fact]
@@ -195,6 +205,9 @@ public sealed class TokenContractTest : TokenContractTestBase
                 await Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[1], "TransferFrom", owner, spender,
                     1000UL);
             result2.Status.ShouldBe(TransactionResultStatus.Failed);
+            var returnMessage = result2.RetVal.ToStringUtf8();
+            returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
+            
             var bytes2 = await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[1], "Allowance", owner, spender);
             bytes2.DeserializeToUInt64().ShouldBe(2000UL);
 
@@ -217,6 +230,8 @@ public sealed class TokenContractTest : TokenContractTestBase
                 await Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[1], "TransferFrom", owner, spender,
                     1000UL);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
+            var returnMessage = result.RetVal.ToStringUtf8();
+            returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
         }
 
         [Fact]
@@ -229,6 +244,19 @@ public sealed class TokenContractTest : TokenContractTestBase
             var bytes = await Tester.CallContractMethodAsync(Tester.DeployedContractsAddresses[1], "BalanceOf",
                 Tester.GetCallOwnerAddress());
             bytes.DeserializeToUInt64().ShouldBe(1000_000UL - 3000UL);
+        }
+        
+        [Fact]
+        public async Task Burn_Without_Enough_Balance()
+        {
+            await Initialize_TokenContract();
+            var burnerAddress = CryptoHelpers.GenerateKeyPair();
+            Tester.SetCallOwner(burnerAddress);
+            var result = await Tester.ExecuteContractWithMiningAsync(Tester.DeployedContractsAddresses[1], "Burn",
+                3000UL);
+            var returnMessage = result.RetVal.ToStringUtf8();
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            returnMessage.Contains("Burner doesn't own enough balance.").ShouldBeTrue();
         }
     }
 }
