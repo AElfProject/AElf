@@ -123,7 +123,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             if (!ScheduleTriggered)
             {
-                return null;
+                throw new InvalidOperationException();
             }
             
             var preBlock = await _blockchainService.GetBestChainLastBlock(ChainId);
@@ -210,8 +210,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private IConsensusScheduler MockConsensusScheduler()
         {
             var consensusSchedulerMock = new Mock<IConsensusScheduler>();
-            consensusSchedulerMock.Setup(m => m.NewEvent(It.IsAny<int>(), It.IsAny<BlockMiningEventData>()))
+            consensusSchedulerMock.Setup(m => m.NewEvent(It.IsNotIn(int.MaxValue), It.IsAny<BlockMiningEventData>()))
                 .Callback(() => ScheduleTriggered = true);
+            consensusSchedulerMock.Setup(m => m.NewEvent(It.IsIn(int.MaxValue), It.IsAny<BlockMiningEventData>()))
+                .Callback(() => ScheduleTriggered = false);
             consensusSchedulerMock.Setup(m => m.CancelCurrentEvent())
                 .Callback(() => ScheduleTriggered = false);
 
