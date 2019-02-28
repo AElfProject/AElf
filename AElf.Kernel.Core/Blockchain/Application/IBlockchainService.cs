@@ -141,7 +141,7 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             if (startBlockHash == null)
-                startBlockHash = chain.BestChainHash;
+                startBlockHash = chain.LongestChainHash;
 
             // TODO: may introduce cache to improve the performance
 
@@ -277,15 +277,15 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, last);
 
+            hashes.Add(chainBlockLink.BlockHash);
             for (var i = 0; i < count - 1; i++)
             {
-                hashes.Add(chainBlockLink.BlockHash);
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
+                hashes.Add(chainBlockLink.BlockHash);
             }
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
                 throw new Exception("block hashes should be equal");
-            hashes.Add(firstHash);
             hashes.Reverse();
 
             return hashes;
