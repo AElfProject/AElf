@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
-using AElf.CrossChain.EventMessage;
 using AElf.CrossChain.Grpc.Exceptions;
 using AElf.Cryptography.Certificate;
 using Grpc.Core;

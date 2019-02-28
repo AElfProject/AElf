@@ -261,12 +261,12 @@ namespace AElf.Contracts.CrossChain
             if (sideChainBlockData.Count > 0)
             {
                 calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
-                
             }
             Context.FireEvent(new CrossChainIndexingEvent
             {
                 SideChainTransactionsMerkleTreeRoot = calculatedRoot,
-                CrossChainBlockData = crossChainBlockData
+                CrossChainBlockData = crossChainBlockData,
+                Sender = Context.Sender // for validation 
             });
         }
         

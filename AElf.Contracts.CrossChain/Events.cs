@@ -25,5 +25,6 @@ namespace AElf.Contracts.CrossChain
     {
         public Hash SideChainTransactionsMerkleTreeRoot;
         public CrossChainBlockData CrossChainBlockData;
+        public Address Sender;
     }
 }

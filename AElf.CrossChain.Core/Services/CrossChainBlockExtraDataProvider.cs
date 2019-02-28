@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -18,19 +19,28 @@ namespace AElf.CrossChain
 
         public async Task FillExtraDataAsync(int chainId, Block block)
         {
-            if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var logEvent))
+            if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var interestedLogEvent))
                 return;
-            foreach (var txId in block.Body.Transactions)
+            try
             {
-                var res = await _transactionResultManager.GetTransactionResultAsync(txId);
-                foreach (var eventLog in res.Logs)
+                foreach (var txId in block.Body.Transactions)
                 {
-                    if (!logEvent.Topics.Equals(eventLog.Topics))
-                        continue;
-                    object[] indexingEventData = CrossChainEventHelper.ExtractCrossChainBlockDataFromEvent(eventLog);
-                    block.Header.BlockExtraData.SideChainTransactionsRoot = (Hash) indexingEventData[0];
+                    var res = await _transactionResultManager.GetTransactionResultAsync(txId);
+                    
+                    var sideChainTransactionsRoot =
+                        CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent, out _);
+                    if (block.Header.BlockExtraData == null)
+                    {
+                        block.Header.BlockExtraData = new BlockExtraData();
+                    }
+                    block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
                     return;
                 }
+            }
+            catch (Exception)
+            {
+                // ignored
+                // Deserialization/NULL value errors
             }
         }
     }
