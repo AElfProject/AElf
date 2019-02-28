@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = height
             });
             Assert.True(res);
-            Assert.True(blockInfoCache.TargetChainHeight == height + 1);
+            Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
         }
         
         [Fact]
@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = height
             });
             Assert.False(res);
-            Assert.True(blockInfoCache.TargetChainHeight == initTarget);
+            Assert.True(blockInfoCache.TargetChainHeight() == initTarget);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = height
             });
             Assert.True(res);
-            Assert.True(blockInfoCache.TargetChainHeight == height + 1);
+            Assert.True(blockInfoCache.TargetChainHeight() == height + 1);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace AElf.CrossChain.Cache
             }
 
             Task.WaitAll(taskList.ToArray());
-            Assert.True(blockInfoCache.TargetChainHeight == initTarget + 1);
+            Assert.True(blockInfoCache.TargetChainHeight() == initTarget + 1);
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace AElf.CrossChain.Cache
                     SideChainHeight = i++
                 });
             }
-            Assert.True(blockInfoCache.TargetChainHeight == 5);
+            Assert.True(blockInfoCache.TargetChainHeight() == 5);
         }
 
         [Fact]
@@ -107,7 +107,7 @@ namespace AElf.CrossChain.Cache
             {
                 SideChainHeight = 4
             });
-            Assert.True(blockInfoCache.TargetChainHeight == 3);
+            Assert.True(blockInfoCache.TargetChainHeight() == 3);
         }
         
         [Fact]
@@ -127,7 +127,7 @@ namespace AElf.CrossChain.Cache
             }
 
             Task.WaitAll(taskList.ToArray());
-            Assert.True(blockInfoCache.TargetChainHeight == initTarget + 1);
+            Assert.True(blockInfoCache.TargetChainHeight() == initTarget + 1);
         }
 
         [Fact]
@@ -249,12 +249,18 @@ namespace AElf.CrossChain.Cache
         {
             ulong initTarget = 1;
             var blockInfoCache = new BlockInfoCache(initTarget);
-            var t = blockInfoCache.TryAdd(new SideChainBlockData
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 SideChainHeight = (ulong) 1
             });
-            blockInfoCache.TryTake(1, out var b1, true);
-            Assert.True(blockInfoCache.TargetChainHeight == 2);
+            blockInfoCache.TryAdd(new SideChainBlockData
+            {
+                SideChainHeight = (ulong) 2
+            });
+            blockInfoCache.TryTake(1, out _, false);
+            blockInfoCache.TryTake(2, out _, false);
+
+            Assert.True(blockInfoCache.TargetChainHeight() == 3);
         }
     }
 }

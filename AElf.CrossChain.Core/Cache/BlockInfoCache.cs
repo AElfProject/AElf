@@ -17,29 +17,28 @@ namespace AElf.CrossChain.Cache
                 CrossChainConsts.MaximalCountForIndexingParentChainBlock) *
             CrossChainConsts.MinimalBlockInfoCacheThreshold;
         private readonly ulong _initTargetHeight;
-        public ulong TargetChainHeight
-        {
-            get
-            {
-                var lastQueuedHeight = LastOneHeightInQueue();
-                if (lastQueuedHeight != 0)
-                    return lastQueuedHeight + 1;
-                var lastCachedHeight = LastOneInCache()?.Height ?? 0;
-                if (lastCachedHeight != 0)
-                    return lastCachedHeight + 1;
-                return _initTargetHeight;
-            }
-        }
+        
 
         public BlockInfoCache(ulong chainHeight)
         {
             _initTargetHeight = chainHeight;
         }
 
+        public ulong TargetChainHeight()
+        {
+            var lastQueuedHeight = LastOneHeightInQueue();
+            if (lastQueuedHeight != 0)
+                return lastQueuedHeight + 1;
+            var lastCachedBlockInfo = LastBlockInfoInCache();
+            if (lastCachedBlockInfo != null) 
+                return lastCachedBlockInfo.Height + 1;
+            return _initTargetHeight;
+        }
+        
         public bool TryAdd(IBlockInfo blockInfo)
         {
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
-            if (blockInfo.Height != TargetChainHeight)
+            if (blockInfo.Height != TargetChainHeight())
                 return false;
             var res = ToBeIndexedBlockInfoQueue.TryAdd(blockInfo);
             return res;
@@ -68,7 +67,7 @@ namespace AElf.CrossChain.Cache
             }
             
             // this is because of rollback 
-            blockInfo = LastOneInCache(height);
+            blockInfo = LastBlockInfoInCache(height);
             if (blockInfo != null)
                 return !isCacheSizeLimited ||
                        ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) 
@@ -81,10 +80,10 @@ namespace AElf.CrossChain.Cache
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        private IBlockInfo LastOneInCache(ulong height = 0)
+        private IBlockInfo LastBlockInfoInCache(ulong height = 0)
         {
-            return height == 0 ? CachedIndexedBlockInfoQueue.FirstOrDefault() 
-                : CachedIndexedBlockInfoQueue.FirstOrDefault(c => c.Height == height);
+            return height == 0 ? CachedIndexedBlockInfoQueue.LastOrDefault() 
+                : CachedIndexedBlockInfoQueue.LastOrDefault(c => c.Height == height);
         }
 
         private ulong LastOneHeightInQueue()

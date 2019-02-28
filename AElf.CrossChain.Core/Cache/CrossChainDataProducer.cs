@@ -28,7 +28,7 @@ namespace AElf.CrossChain.Cache
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)
                 throw new Exception("Chain data cache not found.");
-            return blockInfoCache.TargetChainHeight;
+            return blockInfoCache.TargetChainHeight();
         }
     }
 }
