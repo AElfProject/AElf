@@ -52,7 +52,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     trace.SurfaceUpError();
                 }
 
+                if (trace.StdErr != string.Empty)
+                {
+                    Logger.LogError(trace.StdErr);
+                }
+
                 var result = GetTransactionResult(trace, chainContext.BlockHeight + 1);
+
                 if (result != null)
                 {
                     // TODO: handle transaction executed in multiple blocks

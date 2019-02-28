@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +52,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, 
             BlockAttachOperationStatus status)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             List<ChainBlockLink> blockLinks = null;
 
             List<ChainBlockLink> successLinks = new List<ChainBlockLink>();
@@ -139,6 +143,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         });
                 }
             }
+
+            stopwatch.Stop();
+            Logger.LogInformation($"Attaching block duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return blockLinks;
         }

@@ -47,115 +47,186 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public byte[] GenerateExtraInformation()
         {
-            switch (Hint.Behaviour)
+            try
             {
-                case DPoSBehaviour.InitialTerm:
-                    return new DPoSExtraInformation
-                    {
-                        InitialMiners = {_dpoSOptions.InitialMiners},
-                        MiningInterval = DPoSConsensusConsts.MiningInterval,
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        IsBootMiner = _dpoSOptions.IsBootMiner
-                    }.ToByteArray();
-
-                case DPoSBehaviour.PackageOutValue:
-                    if (_inValue == null)
-                    {
-                        // For Round 1.
-                        _inValue = Hash.Generate();
+                switch (Hint.Behaviour)
+                {
+                    case DPoSBehaviour.InitialTerm:
                         return new DPoSExtraInformation
                         {
-                            HashValue = Hash.FromMessage(_inValue),
-                            InValue = Hash.Zero,
-                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
+                            InitialMiners = {_dpoSOptions.InitialMiners},
+                            MiningInterval = DPoSConsensusConsts.MiningInterval,
+                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                            IsBootMiner = _dpoSOptions.IsBootMiner
                         }.ToByteArray();
-                    }
-                    else
-                    {
-                        var previousInValue = _inValue;
-                        var outValue = Hash.FromMessage(_inValue);
-                        _inValue = Hash.Generate();
+
+                    case DPoSBehaviour.PackageOutValue:
+                        if (_inValue == null)
+                        {
+                            // For Round 1.
+                            _inValue = Hash.Generate();
+                            return new DPoSExtraInformation
+                            {
+                                OutValue = Hash.FromMessage(_inValue),
+                                InValue = Hash.Zero,
+                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                                CurrentInValue = _inValue
+                            }.ToByteArray();
+                        }
+                        else
+                        {
+                            var previousInValue = _inValue;
+                            var outValue = Hash.FromMessage(_inValue);
+                            _inValue = Hash.Generate();
+                            return new DPoSExtraInformation
+                            {
+                                OutValue = outValue,
+                                InValue = previousInValue,
+                                PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                                CurrentInValue = _inValue
+                            }.ToByteArray();
+                        }
+
+                    case DPoSBehaviour.NextRound:
                         return new DPoSExtraInformation
                         {
-                            HashValue = outValue,
-                            InValue = previousInValue,
+                            Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
                             PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
                         }.ToByteArray();
-                    }
 
-                case DPoSBehaviour.NextRound:
-                    return new DPoSExtraInformation
-                    {
-                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
-                    }.ToByteArray();
+                    case DPoSBehaviour.NextTerm:
+                        return new DPoSExtraInformation
+                        {
+                            Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                            ChangeTerm = true,
+                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
+                        }.ToByteArray();
 
-                case DPoSBehaviour.NextTerm:
-                    return new DPoSExtraInformation
-                    {
-                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ChangeTerm = true,
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex()
-                    }.ToByteArray();
-
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            catch (NullReferenceException e)
+            {
+                throw new NullReferenceException(
+                    $"Invalid data of generating consensus extra information.\n{e.Message}");
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Unknown exception.\n{e.Message}");
             }
         }
 
         public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation, int chainId)
         {
-            var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
+            DPoSInformation information;
+            try
+            {
+                information = DPoSInformation.Parser.ParseFrom(consensusInformation);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidCastException($"Failed to parse byte array to DPoSInformation.\n{e.Message}");
+            }
 
             Logger.LogInformation($"Current behaviour: {Hint.Behaviour.ToString()}.");
-            switch (Hint.Behaviour)
+
+            try
             {
-                case DPoSBehaviour.InitialTerm:
-                    information.NewTerm.ChainId = chainId;
-                    information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
-                    return new DPoSExtraInformation
-                    {
-                        NewTerm = information.NewTerm
-                    }.ToByteArray();
+                switch (Hint.Behaviour)
+                {
+                    case DPoSBehaviour.InitialTerm:
+                        Logger.LogInformation(GetLogStringForOneRound(information.NewTerm.FirstRound));
+                        information.NewTerm.ChainId = chainId;
+                        information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
+                        return new DPoSExtraInformation
+                        {
+                            NewTerm = information.NewTerm
+                        }.ToByteArray();
 
-                case DPoSBehaviour.PackageOutValue:
-                    var currentMinerInformation = information.CurrentRound.RealTimeMinersInfo
-                        .OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
-                    Logger.LogInformation($"Round number: {information.CurrentRound.RoundNumber}\nOrder: {currentMinerInformation.Order}");
-                    return new DPoSExtraInformation
-                    {
-                        ToPackage = new ToPackage
+                    case DPoSBehaviour.PackageOutValue:
+                        var minersInformation = information.CurrentRound.RealTimeMinersInfo;
+                        if (!minersInformation.Any())
                         {
-                            OutValue = currentMinerInformation.OutValue,
-                            RoundId = information.CurrentRound.RoundId,
-                            Signature = currentMinerInformation.Signature,
-                            PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
-                        },
-                        ToBroadcast = new ToBroadcast
-                        {
-                            InValue = _inValue,
-                            RoundId = information.CurrentRound.RoundId
+                            Logger.LogError($"Incorrect consensus information.\n{information}");
                         }
-                    }.ToByteArray();
+                        Logger.LogInformation(GetLogStringForOneRound(information.CurrentRound));
+                        var currentMinerInformation = minersInformation.OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
+                        return new DPoSExtraInformation
+                        {
+                            ToPackage = new ToPackage
+                            {
+                                OutValue = currentMinerInformation.OutValue,
+                                RoundId = information.CurrentRound.RoundId,
+                                Signature = currentMinerInformation.Signature,
+                                PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
+                            },
+                            ToBroadcast = new ToBroadcast
+                            {
+                                InValue = _inValue,
+                                RoundId = information.CurrentRound.RoundId
+                            }
+                        }.ToByteArray();
 
-                case DPoSBehaviour.NextRound:
-                    return new DPoSExtraInformation
-                    {
-                        Forwarding = information.Forwarding,
-                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow)
-                    }.ToByteArray();
+                    case DPoSBehaviour.NextRound:
+                        Logger.LogInformation(GetLogStringForOneRound(information.Forwarding.NextRound));
+                        return new DPoSExtraInformation
+                        {
+                            Forwarding = information.Forwarding,
+                            Timestamp = Timestamp.FromDateTime(DateTime.UtcNow)
+                        }.ToByteArray();
 
-                case DPoSBehaviour.NextTerm:
-                    return new DPoSExtraInformation
-                    {
-                        Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ChangeTerm = true,
-                        NewTerm = information.NewTerm
-                    }.ToByteArray();
+                    case DPoSBehaviour.NextTerm:
+                        Logger.LogInformation(GetLogStringForOneRound(information.NewTerm.FirstRound));
+                        return new DPoSExtraInformation
+                        {
+                            Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                            ChangeTerm = true,
+                            NewTerm = information.NewTerm
+                        }.ToByteArray();
 
-                default:
-                    throw new ArgumentOutOfRangeException();
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+            catch (NullReferenceException e)
+            {
+                throw new NullReferenceException(
+                    $"Invalid data of generating consensus extra information for transaction.\n{e.Message}");
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Unknown exception.\n{e.Message}");
+            }
+        }
+
+        private string GetLogStringForOneRound(Round round)
+        {
+            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
+            foreach (var minerInRound in round.RealTimeMinersInfo.Values.OrderBy(m => m.Order))
+            {
+                var minerInformation = "\n";
+                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
+                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
+                minerInformation +=
+                    minerInRound.PublicKey == AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex()
+                        ? "(This Node)"
+                        : "";
+                minerInformation += $"\nAddr:\t {minerInRound.Address}";
+                minerInformation += $"\nOrder:\t {minerInRound.Order}";
+                minerInformation +=
+                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
+                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
+                //minerInformation += $"\nIn:\t {minerInRound.InValue?.ToHex()}";
+                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
+                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
+                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
+                minerInformation += $"\nLMiss:\t {minerInRound.LatestMissedTimeSlots}";
+
+                logs += minerInformation;
+            }
+
+            return logs;
         }
     }
 }

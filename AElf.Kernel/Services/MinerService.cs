@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,6 +67,8 @@ namespace AElf.Kernel.Services
         {
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
                 // generate block without txns
                 var block = await GenerateBlock(chainId, previousBlockHash, previousBlockHeight);
 
@@ -94,11 +97,14 @@ namespace AElf.Kernel.Services
                             cts.Token);
                 }
 
+
+                stopwatch.Stop();
                 Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
                                       $"height: {block.Header.Height}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
-                                      $"tx-count: {block.Body.TransactionsCount} }}");
-
+                                      $"tx-count: {block.Body.TransactionsCount}," +
+                                      $"duration: {stopwatch.ElapsedMilliseconds} ms. }}");
+                
                 /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
                 var txs = await _txHub.GetReceiptsOfExecutablesAsync();
                 var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
