@@ -52,7 +52,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     trace.SurfaceUpError();
                 }
 
-                var result = GetTransactionResult(trace);
+                if (trace.StdErr != string.Empty)
+                {
+                    Logger.LogError(trace.StdErr);
+                }
+
+                var result = GetTransactionResult(trace, chainContext.BlockHeight + 1);
+
                 if (result != null)
                 {
                     // TODO: handle transaction executed in multiple blocks
@@ -95,7 +101,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var executive =
                 await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
-                    transaction.To);
+                    transaction.To, stateCache);
 
             try
             {
@@ -131,7 +137,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return trace;
         }
 
-        private TransactionResult GetTransactionResult(TransactionTrace trace)
+        private TransactionResult GetTransactionResult(TransactionTrace trace, ulong blockHeight)
         {
             switch (trace.ExecutionStatus)
             {
@@ -145,6 +151,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
                         RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                        BlockNumber = blockHeight,
                         //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
                     };
@@ -223,12 +230,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.StateChanges.Add(s.Key, s.Value);
             }
 
-            if (trace.RetVal == null)
+            if (trace.IsSuccessful())
             {
-                throw new NullReferenceException("RetVal of trace is null.\n" + trace.StdErr);
-            }
+                if (trace.RetVal == null)
+                {
+                    throw new NullReferenceException("RetVal of trace is null.");
+                }
 
-            returnSet.ReturnValue = trace.RetVal.Data;
+                returnSet.ReturnValue = trace.RetVal.Data;                
+            }
 
             return returnSet;
         }

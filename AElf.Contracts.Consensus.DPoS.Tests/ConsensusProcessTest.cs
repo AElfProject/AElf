@@ -245,7 +245,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var outValue = Hash.FromMessage(inValue);
             var stubExtraInformation = new DPoSExtraInformation
             {
-                HashValue = outValue,
+                OutValue = outValue,
                 PublicKey = miner2.PublicKey.ToHex()
             };
 
@@ -304,7 +304,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var outValue = Hash.FromMessage(inValue);
             var stubExtraInformation = new DPoSExtraInformation
             {
-                HashValue = outValue,
+                OutValue = outValue,
                 PublicKey = miner2.PublicKey.ToHex(),
             };
 

@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
-using Volo.Abp.AspNetCore.Modularity;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS.Rpc
