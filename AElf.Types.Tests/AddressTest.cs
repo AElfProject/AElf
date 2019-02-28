@@ -74,8 +74,22 @@ namespace AElf.Types.Tests
 
             addStr = "345678icdfvbghnjmkdfvgbhtn";
             Should.Throw<FormatException>(() => { address = Address.Parse(addStr); });
-            //addStr = "345678icdfvbghnjmkdfvgbhtn";
-            //Address.Parse(addStr).ShouldBeNull();
         }
+        
+        [Fact]
+        public void Chain_Address()
+        {
+            var address = Address.Generate();
+            var chainId = ChainHelpers.GetRandomChainId();
+            var chainAddress1 = new ChainAddress(address, chainId);
+
+            string str = chainAddress1.GetFormatted();
+            var chainAddress2 = ChainAddress.Parse(str);
+            chainAddress1.Address.ShouldBe(chainAddress2.Address);
+            chainAddress1.ChainId.ShouldBe(chainAddress2.ChainId);
+
+            var strError = chainAddress1.ToString();
+            Should.Throw<ArgumentException>(() => { chainAddress2 = ChainAddress.Parse(strError); });
+        }        
     }
 }
