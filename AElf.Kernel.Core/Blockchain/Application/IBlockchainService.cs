@@ -109,12 +109,9 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task AddBlockAsync(int chainId, Block block)
         {
             await _blockManager.AddBlockHeaderAsync(block.Header);
-            if (block.Body.TransactionList.Count > 0)
+            foreach (var transaction in block.Body.TransactionList)
             {
-                foreach (var transaction in block.Body.TransactionList)
-                {
-//                    await _transactionManager.AddTransactionAsync(transaction);
-                }
+                await _transactionManager.AddTransactionAsync(transaction);
             }
 
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
@@ -256,7 +253,15 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
         {
-            return await _blockManager.GetBlockAsync(blockId);
+            var block = await _blockManager.GetBlockAsync(blockId);
+            var body = block.Body;
+            foreach (var txId in body.Transactions)
+            {
+                var tx = await _transactionManager.GetTransaction(txId);
+                body.TransactionList.Add(tx);
+            }
+
+            return block;
         }
 
         public async Task<BlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockId)
