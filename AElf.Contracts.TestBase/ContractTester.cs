@@ -243,7 +243,7 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
-            await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
+            block = await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
                 new CancellationToken());
             await _blockchainService.AddBlockAsync(_chainId, block);
             var chain = await _blockchainService.GetChainAsync(_chainId);
