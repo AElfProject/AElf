@@ -3,13 +3,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Blockchain.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface IBlockExecutingService
     {
@@ -23,7 +23,8 @@ namespace AElf.Kernel.Blockchain.Application
 
     public interface IBlockchainExecutingService
     {
-        Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
+        Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, 
+            BlockAttachOperationStatus status);
     }
 
     public class FullBlockchainExecutingService : IBlockchainExecutingService
@@ -48,7 +49,8 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        public async Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block)
+        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, 
+            BlockAttachOperationStatus status)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -106,9 +108,9 @@ namespace AElf.Kernel.Blockchain.Application
                             ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
-                        
+
                         Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
-                        
+
                         await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                         {
                             ChainId = chain.Id,
@@ -136,14 +138,15 @@ namespace AElf.Kernel.Blockchain.Application
                 if (successLinks.Count > 0)
                 {
                     var blockLink = successLinks.Last();
-                    await _chainManager.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
+                    await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
 
-                    await LocalEventBus.PublishAsync(
-                        new BestChainFoundEvent()
+                    _ = LocalEventBus.PublishAsync(
+                        new BestChainFoundEventData()
                         {
                             ChainId = chain.Id,
                             BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
+                            BlockHeight = chain.BestChainHeight,
+                            ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
                         });
                 }
             }

@@ -17,6 +17,7 @@ namespace AElf.Sdk.CSharp
         public CSharpSmartContract()
         {
             State = Activator.CreateInstance<TContractState>();
+            State.Context = _context;
         }
     }
 }

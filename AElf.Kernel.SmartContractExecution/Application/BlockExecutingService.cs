@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -30,6 +31,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             // TODO: If already executed, don't execute again. Maybe check blockStateSet?
             var block = await _blockManager.GetBlockAsync(blockHash);
+            if (block == null)
+            {
+                throw new InvalidOperationException($"Block {blockHash.ToHex()} not exist.");
+            }
+
+            // TODO: BlockBody doesn't contains transactions , should get from tx pool
             var readyTxs = block.Body.TransactionList.ToList();
 
             // TODO: Use BlockStateSet to calculate merkle tree
