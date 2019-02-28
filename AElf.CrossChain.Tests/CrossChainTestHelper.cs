@@ -17,47 +17,7 @@ namespace AElf.CrossChain
     public class CrossChainTestHelper
     {
         public static ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
-        public static ISmartContractExecutiveService FakeSmartContractExecutiveService()
-        {
-            Mock<ISmartContractExecutiveService> mockObject = new Mock<ISmartContractExecutiveService>();
-            mockObject.Setup(m => m.GetExecutiveAsync(It.IsAny<int>(), It.IsAny<IChainContext>(), It.IsAny<Address>(), It.IsAny<Dictionary<StatePath, StateCache>>()))
-                .Returns<int, IChainContext, Address, Dictionary<StatePath, StateCache>>((chainId, chainContext, address, dict) => Task.FromResult(FakeExecutive()));
-            return mockObject.Object;
-        }
-
-        private static IExecutive FakeExecutive()
-        {
-            Mock<IExecutive> mockObject = new Mock<IExecutive>();
-            mockObject.Setup(m => m.SetTransactionContext(It.IsAny<TransactionContext>())).Returns<TransactionContext>(
-                tc =>
-                {
-                    tc.Trace.RetVal.Data = new UInt64Value {Value = 1}.ToByteString();
-                    return mockObject.Object;
-                });
-            mockObject.Setup(m => m.Apply()).Returns(()=> Task.CompletedTask);
-            return mockObject.Object;
-        }
-
-        public static AccountOptions FakeAccountOption()
-        {
-            var nodeAccount = Address.FromPublicKey(EcKeyPair.PublicKey).GetFormatted();
-            var nodeAccountPassword = "123";
-            return new AccountOptions
-            {
-                NodeAccount = nodeAccount,
-                NodeAccountPassword = nodeAccountPassword
-            };
-        }
-
-        public static IKeyStore FakeKeyStore()
-        {
-            Mock<IKeyStore> mockObject = new Mock<IKeyStore>();
-            mockObject.Setup(m => m.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
-                .Returns(Task.FromResult(AElfKeyStore.Errors.None));
-            mockObject.Setup(m => m.GetAccountKeyPair(It.IsAny<string>())).Returns(EcKeyPair);
-            return mockObject.Object;
-        }
-
+        
         public static byte[] Sign(byte[] data)
         {
             return CryptoHelpers.SignWithPrivateKey(EcKeyPair.PrivateKey, data);
