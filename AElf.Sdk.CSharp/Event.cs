@@ -94,11 +94,20 @@ namespace AElf.Sdk.CSharp
 
             var methodInfo = prop.GetGetMethod();
 
-            var del = Delegate.CreateDelegate(typeof(Func<T, object>),
-                null,
-                methodInfo);
-
-            return (Func<T, object>) del;
+            Func<T, object> del;
+            
+            if (methodInfo.ReturnType.IsValueType)
+            {
+                //TODO: find a better way to increase the performance
+                del = o => prop.GetValue(o);
+            }
+            else
+            {
+                del = (Func<T, object>) Delegate.CreateDelegate(typeof(Func<T, object>),
+                    null,
+                    methodInfo);
+            }
+            return del;
         }
 
         private static bool IsIndexed(PropertyInfo fieldInfo)
