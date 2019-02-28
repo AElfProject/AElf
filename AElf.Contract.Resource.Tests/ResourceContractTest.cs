@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
@@ -23,19 +25,27 @@ namespace AElf.Contracts.Resource.Tests
     {
         private ContractTester Tester;
         private ECKeyPair FeeKeyPair;
+        private ECKeyPair FoundationKeyPair;
 
         private Address BasicZeroContractAddress;
         private Address TokenContractAddress;
         private Address ResourceContractAddress;
+        private Address FeeReceiverContractAddress;
 
         public ResourceContractTest()
         {
             Tester = new ContractTester();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
+            var contractArray = Tester.GetDefaultContractTypes();
+            contractArray.Add(typeof(FeeReceiverContract));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
+
             BasicZeroContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.GenesisBasicContract];
             TokenContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.TokenContract];
             ResourceContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.ResourceContract];
+            FeeReceiverContractAddress = Tester.DeployedContractsAddresses[contractArray.Count - 1];
+
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
+            FoundationKeyPair = CryptoHelpers.GenerateKeyPair();
         }
 
         [Fact]
@@ -54,13 +64,38 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Initize_Resource()
         {
+            //init token contract
             var initResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            //init fee receiver contract
+            var foundationAddress = Tester.GetAddress(FoundationKeyPair);
+            var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Initialize",
+                TokenContractAddress, foundationAddress);
+            feeReceiverResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            //init resource contract
             var feeAddress = Tester.GetAddress(FeeKeyPair);
             var resourceResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "Initialize",
                 TokenContractAddress, feeAddress, feeAddress);
             resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task Verify_FeeReceiverContract_Information()
+        {
+            await Initize_Resource();
+
+            var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, "GetElfTokenAddress");
+            addressResult.DeserializeToString().ShouldBe(TokenContractAddress.GetFormatted());
+
+            var foundationAddress = Tester.GetAddress(FoundationKeyPair).GetFormatted();
+            var address1Result = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, "GetFoundationAddress");
+            address1Result.DeserializeToString().ShouldBe(foundationAddress);
+
+            var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, "GetOwedToFoundation");
+            balanceResult.DeserializeToUInt64().ShouldBe(0u);
         }
 
         [Fact]
@@ -151,8 +186,11 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initize_Resource();
             var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
-            var initBalance = await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
-            initBalance.DeserializeToUInt64().ShouldBe(1000_000UL);
+
+            //Approve first
+            await ApproveBalance(paidElf);
+
+            //Buy resouorce
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 "BuyResource",
                 "Cpu", paidElf);
@@ -160,7 +198,7 @@ namespace AElf.Contracts.Resource.Tests
             returnMessage.ShouldBe(string.Empty);
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            //check result
+            //Check result
             var tokenBalance =
                 await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
             tokenBalance.DeserializeToUInt64().ShouldBe(1000_000UL - paidElf);
@@ -229,6 +267,30 @@ namespace AElf.Contracts.Resource.Tests
             var returnMessage = lockResult.RetVal.ToStringUtf8();
             returnMessage.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.").ShouldBe(true);
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        }
+
+        private async Task ApproveBalance(ulong amount)
+        {
+            var callOwner = Tester.GetAddress(Tester.CallOwnerKeyPair);
+            var feeAddress = Tester.GetAddress(FeeKeyPair);
+
+            var feeRate = new decimal(5, 0, 0, false, 3);
+            var fees = (ulong) (amount * feeRate);
+            var elfForRes = amount - fees;
+
+            var resourceResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve",
+                ResourceContractAddress, elfForRes);
+            resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var allowanceResult1 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance",
+                callOwner, ResourceContractAddress);
+            Console.WriteLine($"Allowance Query: {ResourceContractAddress} = {allowanceResult1.DeserializeToUInt64()}");
+
+            var feeResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve",
+                feeAddress, fees);
+            feeResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var allowanceResult2 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance",
+                callOwner, feeAddress);
+            Console.WriteLine($"Allowance Query: {feeAddress} = {allowanceResult2.DeserializeToUInt64()}");
         }
     }
 }
