@@ -30,46 +30,6 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [Fact]
-        public void Should_Transaction_ReadOnly()
-        {
-            var context = CreateNewContext();
-            var transaction = context.Transaction;
-            transaction.From = Address.FromString("NewFrom");
-            
-            context.Transaction.ShouldNotBe(transaction);
-        }
-        
-        [Fact]
-        public void Should_TransactionFrom_ReadOnly()
-        {
-            var context = CreateNewContext();
-            var from = context.Transaction.From;
-            from = Address.FromString("NewFrom");
-            
-            context.Transaction.From.ShouldNotBe(from);
-        }
-        
-        [Fact]
-        public void Should_ContractAddress_ReadOnly()
-        {
-            var context = CreateNewContext();
-            var contractAddress = context.SmartContractContext.ContractAddress;
-            contractAddress = Address.FromString("NewContractAddress");
-            
-            context.SmartContractContext.ContractAddress.ShouldNotBe(contractAddress);
-        }
-        
-        [Fact]
-        public void Should_PreviousBlockHash_ReadOnly()
-        {
-            var context = CreateNewContext();
-            var previousBlockHash = context.PreviousBlockHash;
-            previousBlockHash = Hash.FromString("NewHash");
-            
-            context.PreviousBlockHash.ShouldNotBe(previousBlockHash);
-        }
-
-        [Fact]
         public void Recover_PublicKey_Success()
         {
             var context = CreateNewContext();
