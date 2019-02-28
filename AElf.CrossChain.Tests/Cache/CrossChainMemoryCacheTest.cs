@@ -4,7 +4,7 @@ using Xunit;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainMemoryCacheTest : CrosschainTestBase
+    public class CrossChainMemoryCacheTest : CrossChainTestBase
     {
         [Fact]
         public void TryAdd_SingleThread_Success()

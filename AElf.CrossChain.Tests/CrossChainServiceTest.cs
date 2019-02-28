@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.CrossChain
 {
-    public class CrosschainServiceTest : CrosschainTestBase
+    public class CrossChainServiceTest : CrossChainTestBase
     {
         private ICrossChainDataProvider CreateFakeCrossChainDataProvider(IList<SideChainBlockData> sideChainBlockData, 
             List<ParentChainBlockData> parentChainBlockData)

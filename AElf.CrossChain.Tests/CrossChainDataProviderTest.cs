@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainDataProviderTest : CrosschainTestBase
+    public class CrossChainDataProviderTest : CrossChainTestBase
     {
 //        private readonly ITestOutputHelper _testOutputHelper;
 //

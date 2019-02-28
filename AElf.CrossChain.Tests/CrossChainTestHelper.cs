@@ -1,8 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -13,7 +16,7 @@ using Moq;
 
 namespace AElf.CrossChain
 {
-    public class CrosschainTestHelper
+    public class CrossChainTestHelper
     {
         public static ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
         public static ISmartContractExecutiveService FakeSmartContractExecutiveService()
@@ -24,7 +27,7 @@ namespace AElf.CrossChain
             return mockObject.Object;
         }
 
-        public static IExecutive FakeExecutive()
+        private static IExecutive FakeExecutive()
         {
             Mock<IExecutive> mockObject = new Mock<IExecutive>();
             mockObject.Setup(m => m.SetTransactionContext(It.IsAny<TransactionContext>())).Returns<TransactionContext>(
@@ -54,6 +57,14 @@ namespace AElf.CrossChain
             mockObject.Setup(m => m.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(Task.FromResult(AElfKeyStore.Errors.None));
             mockObject.Setup(m => m.GetAccountKeyPair(It.IsAny<string>())).Returns(EcKeyPair);
+            return mockObject.Object;
+        }
+
+        public static ITransactionResultManager FakeTransactionResultManager(List<TransactionResult> transactionResults)
+        {
+            Mock<ITransactionResultManager> mockObject = new Mock<ITransactionResultManager>();
+            mockObject.Setup(m => m.GetTransactionResultAsync(It.IsAny<Hash>())).Returns<Hash>(hash =>
+                Task.FromResult(transactionResults.FirstOrDefault(t => t.TransactionId.Equals(hash))));
             return mockObject.Object;
         }
     }

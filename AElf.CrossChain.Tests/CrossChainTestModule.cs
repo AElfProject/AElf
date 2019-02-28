@@ -8,16 +8,16 @@ using Volo.Abp.Modularity;
 namespace AElf.CrossChain
 {
     [DependsOn(typeof(AbpEventBusModule))]
-    public class CrosschainTestModule : AElfModule
+    public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var stubAccoutOptions = CrosschainTestHelper.FakeAccountOption();
+            var stubAccoutOptions = CrossChainTestHelper.FakeAccountOption();
             context.Services.AddSingleton(provider => stubAccoutOptions);
-            context.Services.AddSingleton(provider => CrosschainTestHelper.FakeKeyStore());
+            context.Services.AddSingleton(provider => CrossChainTestHelper.FakeKeyStore());
             context.Services.AddTransient<IAccountService, AccountService>();
             context.Services.AddSingleton(provider =>
-                CrosschainTestHelper.FakeSmartContractExecutiveService());
+                CrossChainTestHelper.FakeSmartContractExecutiveService());
         }
     }
 }

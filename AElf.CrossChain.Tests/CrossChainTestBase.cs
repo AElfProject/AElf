@@ -6,12 +6,12 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
-    public class CrosschainTestBase : AElfIntegratedTest<CrosschainTestModule>
+    public class CrossChainTestBase : AElfIntegratedTest<CrossChainTestModule>
     {
         protected ILocalEventBus LocalEventBus;
         protected ISmartContractExecutiveService SmartContractExecutiveService;
         protected IAccountService AccountService;
-        protected CrosschainTestBase()
+        protected CrossChainTestBase()
         {
             LocalEventBus = GetRequiredService<ILocalEventBus>();
             SmartContractExecutiveService = GetRequiredService<ISmartContractExecutiveService>();
