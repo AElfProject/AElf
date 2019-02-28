@@ -585,12 +585,15 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 var minersCount = currentRoundMiners.Count;
                 
-                var minimumCount = ((minersCount * 2) / 3) + 1;
+                var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
-                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count();
-                if (validMinersCountOfCurrentRound >= minimumCount)
+                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
+
+                var senderPublicKey = Context.RecoverPublicKey().ToHex();
+                var senderOrder = currentRoundMiners[senderPublicKey].Order;
+                if (validMinersCountOfCurrentRound > minimumCount)
                 {
-                    offset = (ulong) minimumCount;
+                    offset = (ulong) senderOrder;
                     return true;
                 }
                 
@@ -600,7 +603,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 
                 if (TryToGetPreviousRoundInformation(out var previousRound))
                 {
-                    var usefulPreRoundMiners = previousRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
+                    var preRoundMiners = previousRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
                         .Select(m => m.PublicKey).ToList();
 
                     var traversalBlocksCount = publicKeys.Count;
@@ -612,7 +615,7 @@ namespace AElf.Contracts.Consensus.DPoS
                             return false;
                         }
                         
-                        publicKeys.AddIfNotContains(usefulPreRoundMiners[i]);
+                        publicKeys.AddIfNotContains(preRoundMiners[i]);
                         
                         if (publicKeys.Count >= minimumCount)
                         {

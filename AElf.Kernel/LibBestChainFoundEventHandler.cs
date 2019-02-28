@@ -90,12 +90,23 @@ namespace AElf.Kernel
                     ByteString.CopyFrom("LIBFound".CalculateHash())
                 }
             };
-            return logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
+
+            try
+            {
+                var result = logEvent.GetBloom().IsIn(new Bloom(block.Header.Bloom.ToByteArray()));
+                return result;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
+            }
+
+            return false;
         }
         
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {
-            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(Hash), typeof(CrossChainBlockData)});
+            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(ulong)});
         }
     }
 }
