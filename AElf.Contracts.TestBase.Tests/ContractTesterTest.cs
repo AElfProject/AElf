@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
@@ -122,15 +123,16 @@ namespace AElf.Contracts.TestBase.Tests
 
             var callerKeyPair = CryptoHelpers.GenerateKeyPair();
             var tester = new ContractTester(ChainId, callerKeyPair);
-            var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(TokenContract));
+            await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract), typeof(TokenContract));
 
             var txToInitialize =
-                tester.GenerateTransaction(addresses[1], "Initialize", "ELF", "ELF Token", totalSupply, 2U);
+                tester.GenerateTransaction(tester.DeployedContractsAddresses[2], "Initialize", "ELF", "ELF Token",
+                    totalSupply, 2U);
 
             await tester.MineABlockAsync(new List<Transaction> {txToInitialize});
 
-            var bytes = await tester.CallContractMethodAsync(addresses[1], "BalanceOf",
-                Address.FromPublicKey(callerKeyPair.PublicKey));
+            var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[2], "BalanceOf",
+                tester.GetCallOwnerAddress());
 
             var result = bytes.DeserializeToUInt64();
 
