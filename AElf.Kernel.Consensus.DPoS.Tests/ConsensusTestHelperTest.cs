@@ -20,6 +20,5 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var bootMiner = ConsensusTestHelper.CreateABootMiner();
         }
-        
     }
 }
