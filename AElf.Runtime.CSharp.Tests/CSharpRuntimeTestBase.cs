@@ -1,16 +1,10 @@
 using AElf.Database;
+using AElf.TestBase;
 using Volo.Abp;
 
-namespace AElf.Runtime.CSharp.Tests
+namespace AElf.Runtime.CSharp
 {
-    /*
-    public class CSharpRuntimeTestBase : AElf.TestBase.AElfIntegratedTest<TestCSharpRuntimeAElfModule>
+    public class CSharpRuntimeTestBase : AElfIntegratedTest<TestCSharpRuntimeAElfModule>
     {
-        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-        {
-            base.SetAbpApplicationCreationOptions(options);
-
-        }
     }
-     */
 }

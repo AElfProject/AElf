@@ -56,6 +56,8 @@ namespace AElf.Common
             return BuildContractAddress(chainId.ComputeHash(), serialNumber);
         }
 
+
+        //TODO: move this method into test project
         /// <summary>
         /// Creates an address from a string. This method is supposed to be used for test only.
         /// The hash bytes of the string will be used to create the address.
@@ -88,7 +90,7 @@ namespace AElf.Common
         public static readonly Address Zero = new Address(TakeByAddressLength(new byte[] { }.CalculateHash()));
 
         public static readonly Address Genesis = FromString("Genesis");
-        
+
         #endregion
 
         #region Comparing
@@ -157,24 +159,23 @@ namespace AElf.Common
         }
 
         private string _formattedAddress;
+
         public string GetFormatted()
         {
+            if (_formattedAddress != null)
+                return _formattedAddress;
+
             if (Value.Length != TypeConsts.AddressHashLength)
             {
                 throw new ArgumentOutOfRangeException(
                     $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
             }
 
-            string pubKeyHash = GetPublicKeyHash();
-            
-            return string.IsNullOrEmpty(_formattedAddress) 
-                ? (_formattedAddress = TypeConsts.AElfAddressPrefix + '_' + pubKeyHash) : _formattedAddress;
+            var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
+
+            return _formattedAddress = pubKeyHash;
         }
-        
-        public string GetPublicKeyHash()
-        {
-            return Base58CheckEncoding.Encode(Value.ToByteArray());
-        }
+
 
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
@@ -189,6 +190,7 @@ namespace AElf.Common
                 throw new ArgumentOutOfRangeException(
                     $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
             }
+
             return new Address
             {
                 Value = ByteString.CopyFrom(bytes)
@@ -197,17 +199,48 @@ namespace AElf.Common
 
         public static Address Parse(string inputStr)
         {
-            string[] split = inputStr.Split('_');
-
-            if (split.Length < 2)
-                return null;
-
-            if (String.CompareOrdinal(split.First(), "ELF") != 0)
-                return null;
-            
-            return new Address(Base58CheckEncoding.Decode(split.Last()));
+            return new Address(Base58CheckEncoding.Decode(inputStr));
         }
-        
+
         #endregion Load and dump
+    }
+
+    //TODO: make unit test for it
+    public class ChainAddress
+    {
+        public Address Address { get; }
+        public int ChainId { get;}
+
+        public ChainAddress(Address address, int chainId)
+        {
+            Address = address;
+            ChainId = chainId;
+        }
+
+        public static ChainAddress Parse(string str)
+        {
+            var arr = str.Split('_');
+
+            if (arr[0] != TypeConsts.AElfAddressPrefix)
+            {
+                throw new ArgumentException("invalid chain address", nameof(str));
+            }
+
+            var address = Address.Parse(arr[1]);
+
+            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(str), 0);
+
+            return new ChainAddress(address,chainId);
+        }
+
+        private string _formatted;
+
+        public string GetFormatted()
+        {
+            if (_formatted != null)
+                return _formatted;
+            return _formatted = (TypeConsts.AElfAddressPrefix + "_") + Address.GetFormatted() +
+                               ("_" + Base58CheckEncoding.Encode(ChainId.DumpByteArray()));
+        }
     }
 }

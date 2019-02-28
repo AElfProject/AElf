@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
@@ -149,14 +150,17 @@ namespace AElf.Contracts.Resource.Tests
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
             await Initize_Resource();
-
+            var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
+            var initBalance = await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
+            initBalance.DeserializeToUInt64().ShouldBe(1000_000UL);
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 "BuyResource",
                 "Cpu", paidElf);
+            var returnMessage = buyResult.RetVal.ToStringUtf8();
+            returnMessage.ShouldBe(string.Empty);
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
-            var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
             var tokenBalance =
                 await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf", ownerAddress);
             tokenBalance.DeserializeToUInt64().ShouldBe(1000_000UL - paidElf);

@@ -136,7 +136,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (chain.BestChainHash != _bestChainHash)
             {
                 await HandleBestChainFoundAsync(
-                    new BestChainFoundEvent()
+                    new BestChainFoundEventData()
                     {
                         ChainId = chain.Id,
                         BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight
@@ -329,7 +329,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Event Handler Methods
 
-        public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
+        public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
             if (ChainId != eventData.ChainId)
             {

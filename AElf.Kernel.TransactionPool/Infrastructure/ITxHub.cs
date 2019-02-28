@@ -19,7 +19,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task<bool> AddTransactionAsync(int chainId, Transaction transaction);
 
         Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync();
-        Task HandleBestChainFoundAsync(BestChainFoundEvent eventData);
+        Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
         Task<TransactionReceipt> GetTransactionReceiptAsync(Hash transactionId);
     }
