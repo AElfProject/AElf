@@ -205,7 +205,6 @@ namespace AElf.Common
         #endregion Load and dump
     }
 
-    //TODO: make unit test for it
     public class ChainAddress
     {
         public Address Address { get; }
@@ -228,7 +227,7 @@ namespace AElf.Common
 
             var address = Address.Parse(arr[1]);
 
-            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(str), 0);
+            var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 
             return new ChainAddress(address,chainId);
         }

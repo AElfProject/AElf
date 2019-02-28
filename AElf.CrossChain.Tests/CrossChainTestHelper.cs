@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -22,8 +20,8 @@ namespace AElf.CrossChain
         public static ISmartContractExecutiveService FakeSmartContractExecutiveService()
         {
             Mock<ISmartContractExecutiveService> mockObject = new Mock<ISmartContractExecutiveService>();
-            mockObject.Setup(m => m.GetExecutiveAsync(It.IsAny<int>(), It.IsAny<IChainContext>(), It.IsAny<Address>()))
-                .Returns<int, IChainContext, Address>((chainId, chainContext, address) => Task.FromResult(FakeExecutive()));
+            mockObject.Setup(m => m.GetExecutiveAsync(It.IsAny<int>(), It.IsAny<IChainContext>(), It.IsAny<Address>(), It.IsAny<Dictionary<StatePath, StateCache>>()))
+                .Returns<int, IChainContext, Address, Dictionary<StatePath, StateCache>>((chainId, chainContext, address, dict) => Task.FromResult(FakeExecutive()));
             return mockObject.Object;
         }
 

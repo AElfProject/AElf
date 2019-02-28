@@ -23,11 +23,11 @@
     if (aelf.isConnected()) {
         console.log("connect..");
 
-        var cRes = aelf.chain.connectChain().result;
+        var cRes = aelf.chain.connectChain();
         chain = {
             contractZero: getContractZero(cRes),
-            authorizationContract: getAuthorization(cRes),
-            crossChainContract: getCrossChain(cRes)
+            // authorizationContract: getAuthorization(cRes),
+            // crossChainContract: getCrossChain(cRes)
         };
     }
 })();

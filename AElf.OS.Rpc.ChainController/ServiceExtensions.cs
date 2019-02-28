@@ -145,15 +145,37 @@ namespace AElf.OS.Rpc.ChainController
             return await s.SmartContractExecutiveService.GetAbiAsync(chainId, chainContext, address);
         }
 
-        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
-        {
-            return await s.TxHub.GetReceiptAsync(txId);
-        }
+//        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
+//        {
+//            return await s.TxHub.GetReceiptAsync(txId);
+//        }
 
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s, Hash txHash)
         {
-            var res = await s.TransactionResultService.GetResultAsync(txHash);
-            return res;
+            // in storage
+            var res = await s.TransactionResultManager.GetTransactionResultAsync(txHash);
+            if (res != null)
+            {
+                return res;
+            }
+
+            // in tx pool
+            var receipt = await s.TxHub.GetTransactionReceiptAsync(txHash);
+            if (receipt != null)
+            {
+                return new TransactionResult
+                {
+                    TransactionId = receipt.TransactionId,
+                    Status = TransactionResultStatus.Pending
+                };
+            }
+
+            // not existed
+            return new TransactionResult
+            {
+                TransactionId = txHash,
+                Status = TransactionResultStatus.NotExisted
+            };
         }
 
         internal static async Task<TransactionTrace> GetTransactionTrace(this ChainControllerRpcService s, int chainId, Hash txHash, ulong height)
@@ -185,7 +207,8 @@ namespace AElf.OS.Rpc.ChainController
                     BlockHeight = chain.BestChainHeight
                 };
 
-                executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, address);
+                executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, address,
+                    new Dictionary<StatePath, StateCache>());
                 output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
             }
             finally
@@ -210,10 +233,10 @@ namespace AElf.OS.Rpc.ChainController
             return await s.BlockchainService.GetBlockByHeightAsync(chainId, height);
         }
 
-        internal static async Task<ulong> GetTransactionPoolSize(this ChainControllerRpcService s)
-        {
-            return (ulong) (await s.TxHub.GetReceiptsOfExecutablesAsync()).Count;
-        }
+//        internal static async Task<ulong> GetTransactionPoolSize(this ChainControllerRpcService s)
+//        {
+//            return (ulong) (await s.TxHub.GetExecutableTransactionSetAsync()).Count;
+//        }
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s, int chainId, ulong height)
         {
@@ -243,7 +266,8 @@ namespace AElf.OS.Rpc.ChainController
                 BlockHeight = chain.BestChainHeight
             };
 
-            var executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, tx.To);
+            var executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, tx.To,
+                new Dictionary<StatePath, StateCache>());
 
             try
             {

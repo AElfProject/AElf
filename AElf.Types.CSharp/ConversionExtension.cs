@@ -256,7 +256,7 @@ namespace AElf.Types.CSharp
 
         public static byte[] DeserializeToBytes(this ByteString bs)
         {
-            return BytesValue.Parser.ParseFrom(bs).Value.ToByteArray();
+            return bs.ToByteArray();
         }
 
         public static byte[] ToFriendlyBytes(this byte[] value)

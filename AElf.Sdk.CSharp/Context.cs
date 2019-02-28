@@ -55,7 +55,7 @@ namespace AElf.Sdk.CSharp
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
-        public Address Genesis => Address.Genesis.ToReadOnly();
+        public Address Genesis => Address.Genesis;
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();

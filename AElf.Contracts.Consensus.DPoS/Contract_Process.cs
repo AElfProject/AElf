@@ -9,14 +9,16 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
+    // ReSharper disable InconsistentNaming
     public partial class ConsensusContract
     {
         public ActionResult InitialTerm(Term firstTerm)
         {
-            Assert(firstTerm.FirstRound.RoundNumber == 1, "It seems that the term number of initial term is incorrect.");
+            Assert(firstTerm.FirstRound.RoundNumber == 1,
+                "It seems that the term number of initial term is incorrect.");
             Assert(firstTerm.SecondRound.RoundNumber == 2,
                 "It seems that the term number of initial term is incorrect.");
-            
+
             InitialBlockchain(firstTerm);
 
             InitialMainchainToken();
@@ -131,6 +133,8 @@ namespace AElf.Contracts.Consensus.DPoS
             TryToAddRoundInformation(term.SecondRound);
 
             Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
+
+            TryToFindLIB();
 
             return new ActionResult {Success = true};
         }
@@ -352,6 +356,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
+            forwarding.CurrentRound.RealExtraBlockProducer = senderPublicKey;
+
             if (TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
                 forwarding.NextRound.GetMinersHash() != currentRoundInformation.GetMinersHash() &&
                 forwarding.NextRound.RealTimeMinersInfo.Keys.Count == GetProducerNumber() &&
@@ -370,7 +376,7 @@ namespace AElf.Contracts.Consensus.DPoS
             TryToGetCurrentRoundInformation(out var currentRound);
             Assert(forwardingCurrentRound.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
 
-            var completeCurrentRoundInfo = Process_SupplyCurrentRoundInfo(currentRound, forwardingCurrentRound);
+            var completeCurrentRoundInfo = SupplyCurrentRoundInfo(currentRound, forwardingCurrentRound);
 
             Assert(TryToGetCurrentAge(out var blockAge), "Block age not found.");
 
@@ -515,6 +521,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToAddRoundInformation(forwarding.NextRound);
                 TryToUpdateRoundNumber(forwarding.NextRound.RoundNumber);
             }
+
+            TryToFindLIB();
         }
 
         public void PackageOutValue(ToPackage toPackage)
@@ -539,6 +547,8 @@ namespace AElf.Contracts.Consensus.DPoS
             roundInformation.RealTimeMinersInfo[publicKey].PromisedTinyBlocks = toPackage.PromiseTinyBlocks;
 
             TryToUpdateRoundInformation(roundInformation);
+
+            TryToFindLIB();
         }
 
         public void BroadcastInValue(ToBroadcast toBroadcast)
@@ -555,6 +565,86 @@ namespace AElf.Contracts.Consensus.DPoS
             roundInformation.RealTimeMinersInfo[Context.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
 
             TryToAddRoundInformation(roundInformation);
+        }
+
+        public bool IsCurrentMiner(string publicKey)
+        {
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
+                return false;
+
+            if (currentRound.RealTimeMinersInfo.Values.All(m => m.OutValue == null) &&
+                TryToGetPreviousRoundInformation(out var preRound))
+            {
+                return preRound.RealExtraBlockProducer != null && preRound.RealExtraBlockProducer == publicKey;
+            }
+
+            return currentRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
+                       .First(m => m.OutValue != null).PublicKey == publicKey;
+        }
+
+        public void TryToFindLIB()
+        {
+            if (CalculateLIB(out var offset))
+            {
+                Context.FireEvent(new LIBFound
+                {
+                    Offset = offset
+                });
+            }
+        }
+
+        private bool CalculateLIB(out ulong offset)
+        {
+            offset = 0;
+            
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var currentRoundMiners = currentRound.RealTimeMinersInfo;
+
+                var minersCount = currentRoundMiners.Count;
+                
+                var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+                var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
+                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
+
+                var senderPublicKey = Context.RecoverPublicKey().ToHex();
+                var senderOrder = currentRoundMiners[senderPublicKey].Order;
+                if (validMinersCountOfCurrentRound > minimumCount)
+                {
+                    offset = (ulong) senderOrder;
+                    return true;
+                }
+                
+                // Current round is not enough to find LIB.
+                
+                var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
+                
+                if (TryToGetPreviousRoundInformation(out var previousRound))
+                {
+                    var preRoundMiners = previousRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
+                        .Select(m => m.PublicKey).ToList();
+
+                    var traversalBlocksCount = publicKeys.Count;
+                    
+                    for (var i = 0; i < minersCount; i++)
+                    {
+                        if (++traversalBlocksCount > minersCount)
+                        {
+                            return false;
+                        }
+                        
+                        publicKeys.AddIfNotContains(preRoundMiners[i]);
+                        
+                        if (publicKeys.Count >= minimumCount)
+                        {
+                            offset = (ulong) validMinersCountOfCurrentRound + (ulong) i;
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
         }
 
         #region Vital Steps
@@ -598,7 +688,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         /// <param name="currentRound"></param>
         /// <param name="forwardingCurrentRound"></param>
-        private Round Process_SupplyCurrentRoundInfo(Round currentRound, Round forwardingCurrentRound)
+        private Round SupplyCurrentRoundInfo(Round currentRound, Round forwardingCurrentRound)
         {
             foreach (var suppliedMiner in forwardingCurrentRound.RealTimeMinersInfo)
             {
@@ -614,6 +704,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].IsMissed = true;
                 }
             }
+
+            currentRound.RealExtraBlockProducer = forwardingCurrentRound.RealExtraBlockProducer;
 
             TryToUpdateRoundInformation(currentRound);
 

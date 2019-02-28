@@ -159,8 +159,6 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                         }
-
-                        // TODO: Validate time slots (distance == 4000 ms)
                     }
                 }
                 else
@@ -224,11 +222,16 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
             }
 
+            var signature = Hash.Generate();
+            if (TryToGetPreviousRoundInformation(out var preRoundInformation) && extra.CurrentInValue != null)
+            {
+                signature = preRoundInformation.CalculateSignature(extra.CurrentInValue);
+            }
             // To publish Out Value.
             return new DPoSInformation
             {
                 SenderPublicKey = publicKey,
-                CurrentRound = FillOutValue(extra.HashValue, publicKey),
+                CurrentRound = FillOutValueAndSignature(extra.OutValue, signature,publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
                 Sender = Context.Sender
             };
