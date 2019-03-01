@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IExecutive SetSmartContractContext(ISmartContractContext contractContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
         IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
-        void SetDataCache(Dictionary<StatePath, StateCache> cache); //temporary solution to let data provider access actor's state cache
+        void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
         ulong GetFee(string methodName);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);

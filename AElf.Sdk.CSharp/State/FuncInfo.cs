@@ -43,7 +43,7 @@ namespace AElf.Sdk.CSharp.State
             };
             AsyncHelper.RunSync(async () =>
             {
-                var executive = await svc.GetExecutiveAsync(chainId, chainContext, _owner.Value, _owner.Provider.Cache);
+                var executive = await svc.GetExecutiveAsync(chainId, chainContext, _owner.Value);
                 executive.SetDataCache(_owner.Provider.Cache);
                 try
                 {
