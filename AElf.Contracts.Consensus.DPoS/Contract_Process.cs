@@ -587,7 +587,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (CalculateLIB(out var offset))
             {
-                Context.Logger.LogInformation($"LIB found, offset is {offset}");
+                Context.LogDebug(()=>$"LIB found, offset is {offset}");
                 Context.FireEvent(new LIBFound
                 {
                     Offset = offset

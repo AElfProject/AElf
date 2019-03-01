@@ -15,8 +15,6 @@ namespace AElf.Sdk.CSharp
 
         int ChainId { get; }
         
-        ILogger Logger { get; }
-
         // TODO: Remove Transaction
         Transaction Transaction { get; }
         Address Sender { get; }

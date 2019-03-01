@@ -30,7 +30,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Logger = GetRequiredService<ILogger<ISmartContractContext>>(),
 #endif
                 ContractAddress = AddressList[0],
-                ChainService = new Mock<IBlockchainService>().Object,
+                BlockchainService = new Mock<IBlockchainService>().Object,
             });
             Contract.SetTransactionContext(new TransactionContext()
             {

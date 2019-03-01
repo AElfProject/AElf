@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State

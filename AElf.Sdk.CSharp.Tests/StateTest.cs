@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Moq;

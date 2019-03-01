@@ -62,12 +62,12 @@ namespace AElf.Contracts.Dividends
                     var totalDividends = State.DividendsMap[i];
                     if (totalDividends > 0)
                     {
-                        Context.Logger.LogInformation($"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
-                        Context.Logger.LogInformation($"Total weights of term {i}: {totalWeights}");
-                        Context.Logger.LogInformation($"Total dividends of term {i}: {totalDividends}");
-                        Context.Logger.LogInformation($"Weights of this vote: {votingRecord.Weight}");
+                        Context.LogDebug(()=>$"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
+                        Context.LogDebug(()=>$"Total weights of term {i}: {totalWeights}");
+                        Context.LogDebug(()=>$"Total dividends of term {i}: {totalDividends}");
+                        Context.LogDebug(()=>$"Weights of this vote: {votingRecord.Weight}");
                         dividends += totalDividends * votingRecord.Weight / totalWeights;
-                        Context.Logger.LogInformation($"Result: {dividends}");
+                        Context.LogDebug(()=>$"Result: {dividends}");
                     }
                 }
             }
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Dividends
 
             State.TokenContract.Transfer(ownerAddress, dividendsAmount);
 
-            Context.Logger.LogInformation($"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
+            Context.LogDebug(()=>$"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
 
             State.LastRequestDividendsMap[votingRecord.TransactionId] = actualTermNumber;
 
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Dividends
                 State.DividendsMap[termNumber] = dividendsAmount;
             }
 
-            Context.Logger.LogInformation($"Dividends of term {termNumber}: {dividendsAmount}");
+            Context.LogDebug(()=>$"Dividends of term {termNumber}: {dividendsAmount}");
 
             return new ActionResult {Success = true};
         }
@@ -221,12 +221,12 @@ namespace AElf.Contracts.Dividends
             {
                 var finalWeights = totalWeights + weights;
                 State.TotalWeightsMap[termNumber] = finalWeights;
-                Context.Logger.LogInformation($"Weights of term {termNumber}: {finalWeights}.[Add]");
+                Context.LogDebug(()=>$"Weights of term {termNumber}: {finalWeights}.[Add]");
             }
             else
             {
                 State.TotalWeightsMap[termNumber] = weights;
-                Context.Logger.LogInformation($"Weights of term {termNumber}: {weights}.[Add]");
+                Context.LogDebug(()=>$"Weights of term {termNumber}: {weights}.[Add]");
             }
 
             return new ActionResult {Success = true};
@@ -237,7 +237,7 @@ namespace AElf.Contracts.Dividends
             var totalWeights = State.TotalWeightsMap[oldTermNumber];
             if (totalWeights > 0)
             {
-                Context.Logger.LogInformation("[Forwarding weights]");
+                Context.LogDebug(()=>"[Forwarding weights]");
                 AddWeights(totalWeights, oldTermNumber + 1);
             }
 
@@ -251,7 +251,7 @@ namespace AElf.Contracts.Dividends
             {
                 var newWeights = totalWeights - weights;
                 State.TotalWeightsMap[termNumber] = newWeights;
-                Context.Logger.LogInformation($"Weights of term {termNumber}: {totalWeights}.[Sub]");
+                Context.LogDebug(()=>$"Weights of term {termNumber}: {totalWeights}.[Sub]");
             }
 
             return new ActionResult {Success = true};
