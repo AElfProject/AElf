@@ -5,16 +5,16 @@ namespace AElf.CrossChain
 {
     public class CrossChainTestHelper
     {
-        public static ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
+        private static readonly ECKeyPair _ecKeyPair = CryptoHelpers.GenerateKeyPair();
         
         public static byte[] Sign(byte[] data)
         {
-            return CryptoHelpers.SignWithPrivateKey(EcKeyPair.PrivateKey, data);
+            return CryptoHelpers.SignWithPrivateKey(_ecKeyPair.PrivateKey, data);
         }
 
         public static byte[] GetPubicKey()
         {
-            return EcKeyPair.PublicKey;
+            return _ecKeyPair.PublicKey;
         }
     }
 }
