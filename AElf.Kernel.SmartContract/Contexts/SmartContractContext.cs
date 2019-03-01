@@ -20,21 +20,21 @@ namespace AElf.Kernel.SmartContract
 #if DEBUG
         public ILogger<ISmartContractContext> Logger { get; set; } = NullLogger<ISmartContractContext>.Instance;
 
-        public Task DeployContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration,
+        public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {
-            return SmartContractService.DeployContractAsync(chainId, contractAddress, registration, isPrivileged);
+            return SmartContractService.DeployContractAsync(ChainId, contractAddress, registration, isPrivileged);
         }
 
-        public Task UpdateContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration,
+        public Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {
-            return SmartContractService.UpdateContractAsync(chainId, contractAddress, registration, isPrivileged);
+            return SmartContractService.UpdateContractAsync(ChainId, contractAddress, registration, isPrivileged);
         }
 
-        public Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
+        public Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            return BlockchainService.GetBlockByHashAsync(chainId, blockId);
+            return BlockchainService.GetBlockByHashAsync(ChainId, blockId);
         }
 #endif
     }

@@ -14,13 +14,12 @@ namespace AElf.Kernel.SmartContract
 #if DEBUG
         ILogger<ISmartContractContext> Logger { get; }
 #endif
-        Task DeployContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration,
+        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
 
-        Task UpdateContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration,
+        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
-        
-        Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
 
+        Task<Block> GetBlockByHashAsync(Hash blockId);
     }
 }

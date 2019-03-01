@@ -76,7 +76,7 @@ namespace AElf.Sdk.CSharp
         public Block GetPreviousBlock()
         {
             return AsyncHelper.RunSync(
-                () => SmartContractContext.GetBlockByHashAsync(SmartContractContext.ChainId,
+                () => SmartContractContext.GetBlockByHashAsync(
                     TransactionContext.PreviousBlockHash));
         }
 
@@ -110,7 +110,7 @@ namespace AElf.Sdk.CSharp
             }
 
             AsyncHelper.RunSync(async () =>
-                await SmartContractContext.DeployContractAsync(ChainId, address, registration,
+                await SmartContractContext.DeployContractAsync(address, registration,
                     false));
         }
 
@@ -122,7 +122,7 @@ namespace AElf.Sdk.CSharp
             }
 
             AsyncHelper.RunSync(async () =>
-                await SmartContractContext.UpdateContractAsync(ChainId, address, registration,
+                await SmartContractContext.UpdateContractAsync(address, registration,
                     false));
         }
     }
