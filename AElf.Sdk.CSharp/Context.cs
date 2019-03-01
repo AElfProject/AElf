@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = TransactionContext.Transaction.From,
+                From = Self,
                 To = address,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
