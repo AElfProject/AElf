@@ -62,7 +62,7 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task Initize_Resource()
+        public async Task Initialize_Resource()
         {
             //init token contract
             var initResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Initialize",
@@ -82,10 +82,12 @@ namespace AElf.Contracts.Resource.Tests
             resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
+        #region FeeReceiver Contract cases
+
         [Fact]
-        public async Task Verify_FeeReceiverContract_Information()
+        public async Task Query_FeeReceiver_Information()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, "GetElfTokenAddress");
             addressResult.DeserializeToString().ShouldBe(TokenContractAddress.GetFormatted());
@@ -99,9 +101,70 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task Verify_Resource_AddressInfo()
+        public async Task FeeReceiver_WithDraw_WithoutPermission()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
+
+            Tester.SetCallOwner(CryptoHelpers.GenerateKeyPair());
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Withdraw",
+                100);
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            var retValue = withdrawResult.RetVal.ToStringUtf8();
+            retValue.Contains("Only foundation can withdraw token.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task FeeReceiver_WithDraw_OverToken()
+        {
+            await Initialize_Resource();
+
+            Tester.SetCallOwner(FoundationKeyPair);
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Withdraw",
+                100);
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            var retValue = withdrawResult.RetVal.ToStringUtf8();
+            retValue.Contains("Too much to withdraw.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task FeeReceiver_WithDraw_NormalCase()
+        {
+            await Initialize_Resource();
+
+            Tester.SetCallOwner(FoundationKeyPair);
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Withdraw",
+                0);
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task FeeReceiver_WithDraw_all()
+        {
+            await Initialize_Resource();
+
+            Tester.SetCallOwner(FoundationKeyPair);
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "WithdrawAll");
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact(Skip = "Anyone can burn foundation token until token value is smaller than foundation owed fee.")]
+        public async Task FeeReceiver_Burn()
+        {
+            await Initialize_Resource();
+
+            Console.WriteLine($"CallOwner: {Tester.GetAddress(Tester.CallOwnerKeyPair)}");
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Burn");
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        #endregion
+
+        #region Resource Contract cases
+
+        [Fact]
+        public async Task Query_Resource_AddressInfo()
+        {
+            await Initialize_Resource();
 
             //verify result
             var tokenAddress = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetElfTokenAddress");
@@ -119,7 +182,7 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Query_Rsource_ConverterInfo()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var cpuConverter = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetConverter", "Cpu");
             var cpuString = cpuConverter.DeserializeToString();
@@ -132,7 +195,7 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Query_Exchange_Balance()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var exchangeResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetExchangeBalance", "Cpu");
             exchangeResult.DeserializeToUInt64().ShouldBe(1000_000UL);
@@ -141,16 +204,16 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Query_Elf_Balance()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var elfResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetElfBalance", "Cpu");
             elfResult.DeserializeToUInt64().ShouldBe(1000_000UL);
         }
 
         [Fact]
-        public async Task IssueResource_With_Conntroller_Account()
+        public async Task IssueResource_With_Controller_Account()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             Tester.SetCallOwner(FeeKeyPair);
             var issueResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
@@ -168,9 +231,9 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task IssueResource_WithNot_Conntroller_Account()
+        public async Task IssueResource_WithNot_Controller_Account()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var otherKeyPair = CryptoHelpers.GenerateKeyPair();
             Tester.SetCallOwner(otherKeyPair);
@@ -186,7 +249,7 @@ namespace AElf.Contracts.Resource.Tests
         [InlineData(1000UL)]
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
-            await Initize_Resource();
+            await Initialize_Resource();
             var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
 
             //Approve first
@@ -213,7 +276,7 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Buy_Resource_WithoutEnough_Token()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var noTokenKeyPair = CryptoHelpers.GenerateKeyPair();
             Tester.SetCallOwner(noTokenKeyPair);
@@ -262,7 +325,7 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Lock_OverOwn_Resource()
         {
-            await Initize_Resource();
+            await Initialize_Resource();
 
             var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "LockResource",
                 1000UL, "Cpu");
@@ -294,5 +357,7 @@ namespace AElf.Contracts.Resource.Tests
                 callOwner, feeAddress);
             Console.WriteLine($"Allowance Query: {feeAddress} = {allowanceResult2.DeserializeToUInt64()}");
         }
+
+        #endregion
     }
 }
