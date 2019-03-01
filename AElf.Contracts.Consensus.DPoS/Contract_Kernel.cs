@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = extra.IsBootMiner ? miningInterval : int.MaxValue,
+                    CountingMilliseconds = extra.IsBootMiner ? extra.MiningInterval : int.MaxValue,
                     TimeoutMilliseconds = int.MaxValue,
                     Hint = new DPoSHint
                     {
