@@ -8,14 +8,16 @@ namespace AElf.Kernel.EventMessages
         public int ChainId { get; }
         public Hash PreviousBlockHash { get; }
         public ulong PreviousBlockHeight { get; }
-        public DateTime DueTime { get; }
+        public DateTime DueTime => DateTime.UtcNow.AddMilliseconds(TimeoutMilliseconds);
+        public int TimeoutMilliseconds { get; }
 
-        public BlockMiningEventData(int chainId, Hash previousBlockHash, ulong previousBlockHeight, DateTime dueTime)
+        public BlockMiningEventData(int chainId, Hash previousBlockHash, ulong previousBlockHeight,
+            int timeoutMilliseconds)
         {
             ChainId = chainId;
             PreviousBlockHash = previousBlockHash;
             PreviousBlockHeight = previousBlockHeight;
-            DueTime = dueTime;
+            TimeoutMilliseconds = timeoutMilliseconds;
         }
     }
 }

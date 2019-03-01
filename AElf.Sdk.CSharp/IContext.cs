@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Sdk.CSharp
 {
@@ -9,10 +10,12 @@ namespace AElf.Sdk.CSharp
     {
         void LogDebug(Func<string> func);
 
-        void FireEvent(Event logEvent);
+        void FireEvent<TEvent>(TEvent logEvent) where TEvent : Event;
         Hash TransactionId { get; }
 
         int ChainId { get; }
+        
+        ILogger Logger { get; }
 
         // TODO: Remove Transaction
         Transaction Transaction { get; }

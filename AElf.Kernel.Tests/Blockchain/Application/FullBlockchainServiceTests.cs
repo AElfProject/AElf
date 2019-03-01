@@ -111,22 +111,47 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Get_BlockHeaders_ReturnNull()
+        public async Task Get_GetReservedBlockHashes_ReturnNull()
         {
-            var result = await _fullBlockchainService.GetBlockHeaders(_chainId, Hash.FromString("not exist"), 1);
+            var result = await _fullBlockchainService.GetReversedBlockHashes(_chainId, Hash.FromString("not exist"), 1);
             result.ShouldBeNull();
         }
 
+        
+        
+        [Fact]
+        public async Task Get_GetBlockHashes_ReturnNull()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync(_chainId);
+            var result = await _fullBlockchainService.GetBlockHashes(chain, Hash.FromString("not exist"), 1);
+            result.ShouldBeNull();
+        }
 
         [Fact]
-        public async Task Get_BlockHeaders_ReturnHeaders()
+        public async Task Get_GetReservedBlockHashes_ReturnHashes()
         {
             var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
 
-            var result = await _fullBlockchainService.GetBlockHeaders(chain.Id, blockList[2].GetHash(), 2);
+            var result = await _fullBlockchainService.GetReversedBlockHashes(chain.Id, blockList[2].GetHash(), 2);
             result.Count.ShouldBe(2);
             result[0].ShouldBe(blockList[1].GetHash());
             result[1].ShouldBe(blockList[0].GetHash());
+        }
+        
+        [Fact]
+        public async Task Get_GetBlockHashes_ReturnHashes()
+        {
+            
+            var (chain, blockList) = await CreateNewChainWithBlock(_chainId, 3);
+
+            var result = await _fullBlockchainService.GetBlockHashes(chain, blockList[0].GetHash(), 2);
+            result.Count.ShouldBe(2);
+            result[0].ShouldBe(blockList[1].GetHash()); //6c56
+            result[1].ShouldBe(blockList[2].GetHash()); //
+            
+            result = await _fullBlockchainService.GetBlockHashes(chain, blockList[1].GetHash(), 1);
+            result.Count.ShouldBe(1);
+            result[0].ShouldBe(blockList[2].GetHash()); //
         }
 
         [Fact]

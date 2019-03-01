@@ -25,9 +25,5 @@ namespace AElf.Database
             return collection;
         }
 
-        protected virtual void Configure()
-        {
-            
-        }
     }
 }

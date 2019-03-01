@@ -184,7 +184,9 @@ namespace AElf.Contracts.TestBase
         {
             var tx = GenerateTransaction(contractAddress, methodName, objects);
             await MineABlockAsync(new List<Transaction> {tx});
-            return await GetTransactionResult(tx.GetHash());
+            var result = await GetTransactionResult(tx.GetHash());
+
+            return result;
         }
 
         /// <summary>

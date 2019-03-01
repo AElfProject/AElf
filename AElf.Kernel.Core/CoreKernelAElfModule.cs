@@ -5,7 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node.Domain;
-using AElf.Kernel.SmartContractExecution.Infrastructure;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Types;
 using AElf.Modularity;
 using Google.Protobuf;

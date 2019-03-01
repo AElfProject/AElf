@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Genesis
 {
@@ -75,7 +76,7 @@ namespace AElf.Contracts.Genesis
 
             Context.DeployContract(contractAddress, reg);
 
-            Console.WriteLine("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
+            Context.Logger.LogInformation("InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
@@ -113,8 +114,8 @@ namespace AElf.Contracts.Genesis
                 Creator = Context.Sender
             });
 
-            Console.WriteLine("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Console.WriteLine("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            Context.Logger.LogInformation("BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
+            Context.Logger.LogInformation("BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
@@ -147,7 +148,7 @@ namespace AElf.Contracts.Genesis
                 NewCodeHash = newCodeHash
             });
 
-            Console.WriteLine("BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.Logger.LogInformation("BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 

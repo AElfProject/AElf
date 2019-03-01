@@ -77,7 +77,7 @@ namespace AElf.CrossChain
                 BlockHeight = preBlockHeight
             };
             var executive =
-                await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To, new Dictionary<StatePath, StateCache>());
+                await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To);
             await executive.SetTransactionContext(txCtxt).Apply();
             return trace;
         }

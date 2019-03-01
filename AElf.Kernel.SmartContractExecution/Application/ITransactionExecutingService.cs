@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Contexts;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -36,7 +37,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
             List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken)
         {
-            var stateCache = new Dictionary<StatePath, StateCache>();
+            chainContext.StateCache = new InmemoryStateCache();
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
             {
@@ -46,7 +47,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
 
                 var trace = await ExecuteOneAsync(0, chainContext, transaction, currentBlockTime,
-                    cancellationToken, stateCache);
+                    cancellationToken);
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
@@ -72,8 +73,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
-            Transaction transaction, DateTime currentBlockTime, CancellationToken cancellationToken,
-            Dictionary<StatePath, StateCache> stateCache)
+            Transaction transaction, DateTime currentBlockTime, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -99,28 +99,26 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 CallDepth = depth,
             };
 
-            var executive =
-                await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
-                    transaction.To, stateCache);
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
+                transaction.To);
 
             try
             {
-                executive.SetDataCache(stateCache);
+                executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
 
-                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
-                foreach (var kv in txCtxt.Trace.StateChanges)
-                {
-                    // TODO: Better encapsulation/abstraction for committing to state cache
-                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
-                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
-                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
-                }
+//                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
+//                foreach (var kv in txCtxt.Trace.StateChanges)
+//                {
+//                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
+//                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
+//                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
+//                }
 
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, chainContext, inlineTx,
-                        currentBlockTime, cancellationToken, stateCache);
+                        currentBlockTime, cancellationToken);
                     trace.InlineTraces.Add(inlineTrace);
                 }
             }
@@ -237,7 +235,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     throw new NullReferenceException("RetVal of trace is null.");
                 }
 
-                returnSet.ReturnValue = trace.RetVal.Data;                
+                returnSet.ReturnValue = trace.RetVal.Data;
             }
 
             return returnSet;

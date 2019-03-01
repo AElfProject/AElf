@@ -54,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 minerInRound.Order = i + 1;
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow((i * miningInterval) + DPoSContractConsts.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
                 minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;
 
@@ -92,8 +92,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
 
                 minerInRound.Address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(enumerable[i]));
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound +
-                                         DPoSContractConsts.AElfWaitFirstRoundTime);
+                    GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound + miningInterval);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;

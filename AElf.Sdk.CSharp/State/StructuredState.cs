@@ -80,20 +80,20 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in PropertyInfos)
             {
                 var propertyInfo = kv.Value;
                 var propertyValue = (StateBase) propertyInfo.GetValue(this);
-                foreach (var kv1 in propertyValue.GetChanges())
+                foreach (var kv1 in propertyValue.GetChanges().Writes)
                 {
-                    dict[kv1.Key] = kv1.Value;
+                    stateSet.Writes[kv1.Key] = kv1.Value;
                 }
             }
 
-            return dict;
+            return stateSet;
         }
     }
 }

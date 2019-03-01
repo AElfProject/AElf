@@ -45,9 +45,10 @@ namespace AElf.Sdk.CSharp
 #endif
         }
 
-        public void FireEvent(Event logEvent)
+        public void FireEvent<TEvent>(TEvent e) where TEvent : Event
         {
-            TransactionContext.Trace.Logs.Add(logEvent.GetLogEvent(Self));
+            var logEvent = EventParser<TEvent>.ToLogEvent(e, Self);
+            TransactionContext.Trace.Logs.Add(logEvent);
         }
 
         public int ChainId => SmartContractContext.ChainId;
@@ -55,10 +56,11 @@ namespace AElf.Sdk.CSharp
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
         public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
-        public Address Genesis => Address.Genesis.ToReadOnly();
+        public Address Genesis => Address.Genesis;
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();
+        public ILogger Logger => _smartContractContext.Logger;
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
