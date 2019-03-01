@@ -7,7 +7,6 @@ using AElf.Cryptography;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Types;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
@@ -19,8 +18,6 @@ namespace AElf.Sdk.CSharp
 {
     public class Context : IContextInternal
     {
-        private IBlockchainService _blockchainService;
-        private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
 
         public ISmartContractContext SmartContractContext { get; set; }
@@ -28,7 +25,7 @@ namespace AElf.Sdk.CSharp
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
-            _smartContractContext.Logger.LogDebug(func());
+            SmartContractContext.Logger.LogDebug(func());
 #endif
         }
 
@@ -47,7 +44,6 @@ namespace AElf.Sdk.CSharp
         public ulong CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();
-        public ILogger Logger => _smartContractContext.Logger;
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
@@ -80,7 +76,7 @@ namespace AElf.Sdk.CSharp
         public Block GetPreviousBlock()
         {
             return AsyncHelper.RunSync(
-                () => _blockchainService.GetBlockByHashAsync(_smartContractContext.ChainId,
+                () => TransactionContext.GetBlockByHashAsync(SmartContractContext.ChainId,
                     TransactionContext.PreviousBlockHash));
         }
 
@@ -114,7 +110,7 @@ namespace AElf.Sdk.CSharp
             }
 
             AsyncHelper.RunSync(async () =>
-                await SmartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
+                await SmartContractContext.DeployContractAsync(ChainId, address, registration,
                     false));
         }
 
@@ -126,7 +122,7 @@ namespace AElf.Sdk.CSharp
             }
 
             AsyncHelper.RunSync(async () =>
-                await SmartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration,
+                await SmartContractContext.UpdateContractAsync(ChainId, address, registration,
                     false));
         }
     }

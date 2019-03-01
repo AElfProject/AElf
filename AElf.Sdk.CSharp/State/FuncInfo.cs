@@ -24,6 +24,7 @@ namespace AElf.Sdk.CSharp.State
         internal T Call(params object[] args)
         {
             throw new NotImplementedException();
+            //TODO: create a call method in smart contract context 
             /*
             var svc = _owner.Context.SmartContractContext.SmartContractExecutiveService;
             var transactionContext = new TransactionContext()
