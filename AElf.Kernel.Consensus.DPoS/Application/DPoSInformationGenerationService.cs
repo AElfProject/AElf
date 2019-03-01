@@ -150,8 +150,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         {
                             Logger.LogError($"Incorrect consensus information.\n{information}");
                         }
+
                         Logger.LogInformation(GetLogStringForOneRound(information.CurrentRound));
-                        var currentMinerInformation = minersInformation.OrderByDescending(m => m.Value.Order).First(m => m.Value.OutValue != null).Value;
+                        var currentMinerInformation = minersInformation.OrderByDescending(m => m.Value.Order)
+                            .First(m => m.Value.OutValue != null).Value;
                         return new DPoSExtraInformation
                         {
                             ToPackage = new ToPackage
@@ -192,7 +194,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             catch (NullReferenceException e)
             {
                 throw new NullReferenceException(
-                    $"Invalid data of generating consensus extra information for transaction.\n{e.Message}");
+                    $"Invalid data of generating consensus extra information for creating {Hint.Behaviour.ToString()} transactions.\n{e.Message}");
             }
             catch (Exception e)
             {

@@ -5,6 +5,7 @@ using AElf.CrossChain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
@@ -79,7 +80,7 @@ namespace AElf.Kernel
 
                             var count = (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
                             var hashes =
-                                await _blockchainService.GetBlockHeaders(eventData.ChainId, libHash, count);
+                                await _blockchainService.GetReversedBlockHashes(eventData.ChainId, libHash, count);
 
                             hashes.Reverse();
 
