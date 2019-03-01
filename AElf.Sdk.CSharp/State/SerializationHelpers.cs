@@ -90,7 +90,7 @@ namespace AElf.Sdk.CSharp.State
             if (type.IsPbMessageType())
             {
                 var v = (IMessage) value;
-                return v.ToByteArray();
+                return v?.ToByteArray();
             }
 
             throw new InvalidOperationException($"Invalid type {type}.");
@@ -117,6 +117,7 @@ namespace AElf.Sdk.CSharp.State
                 }
             }
 
+            bytes = bytes ?? new byte[0];
             if (type == typeof(string))
             {
                 return (T) (object) Encoding.UTF8.GetString(bytes);
