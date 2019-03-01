@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using Volo.Abp.DependencyInjection;
 

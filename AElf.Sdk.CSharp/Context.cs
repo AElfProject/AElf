@@ -45,9 +45,10 @@ namespace AElf.Sdk.CSharp
 #endif
         }
 
-        public void FireEvent(Event logEvent)
+        public void FireEvent<TEvent>(TEvent e) where TEvent : Event
         {
-            TransactionContext.Trace.Logs.Add(logEvent.GetLogEvent(Self));
+            var logEvent = EventParser<TEvent>.ToLogEvent(e, Self);
+            TransactionContext.Trace.Logs.Add(logEvent);
         }
 
         public int ChainId => SmartContractContext.ChainId;
