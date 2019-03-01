@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using Microsoft.Extensions.Logging;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.SmartContract
@@ -11,9 +11,8 @@ namespace AElf.Kernel.SmartContract
         int ChainId { get; }
         Address ContractAddress { get; }
 
-#if DEBUG
-        ILogger<ISmartContractContext> Logger { get; }
-#endif
+        void LogDebug(Func<string> func);
+        
         Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
 

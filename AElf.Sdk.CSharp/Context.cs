@@ -25,7 +25,7 @@ namespace AElf.Sdk.CSharp
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
-            SmartContractContext.Logger.LogDebug(func());
+            SmartContractContext.LogDebug(func);
 #endif
         }
 

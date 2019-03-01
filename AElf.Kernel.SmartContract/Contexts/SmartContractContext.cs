@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -20,6 +21,13 @@ namespace AElf.Kernel.SmartContract
 #if DEBUG
         public ILogger<ISmartContractContext> Logger { get; set; } = NullLogger<ISmartContractContext>.Instance;
 
+        public void LogDebug(Func<string> func)
+        {
+            Logger.LogDebug(func());
+        }
+#endif
+
+
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {
@@ -36,6 +44,5 @@ namespace AElf.Kernel.SmartContract
         {
             return BlockchainService.GetBlockByHashAsync(ChainId, blockId);
         }
-#endif
     }
 }
