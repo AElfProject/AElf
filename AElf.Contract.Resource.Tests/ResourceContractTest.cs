@@ -83,7 +83,7 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task Verify_FeeReceiverContract_Information()
+        public async Task Verify_FeeReceiver_Information()
         {
             await Initize_Resource();
 
@@ -96,6 +96,17 @@ namespace AElf.Contracts.Resource.Tests
 
             var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, "GetOwedToFoundation");
             balanceResult.DeserializeToUInt64().ShouldBe(0u);
+        }
+
+        [Fact]
+        public async Task Verify_FeeReceiver_WithDraw_WithoutPermission()
+        {
+            await Initize_Resource();
+            Tester.SetCallOwner(CryptoHelpers.GenerateKeyPair());
+            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Withdraw",
+                100);
+
+
         }
 
         [Fact]
@@ -148,7 +159,7 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task IssueResource_With_Conntroller_Account()
+        public async Task IssueResource_With_Controller_Account()
         {
             await Initize_Resource();
 
@@ -168,7 +179,7 @@ namespace AElf.Contracts.Resource.Tests
         }
 
         [Fact]
-        public async Task IssueResource_WithNot_Conntroller_Account()
+        public async Task IssueResource_WithNot_Controller_Account()
         {
             await Initize_Resource();
 
