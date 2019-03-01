@@ -156,6 +156,8 @@ namespace AElf.Contracts.Resource.Tests
             var issueResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 "IssueResource",
                 "Cpu", 100_000UL);
+            
+            
             issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
