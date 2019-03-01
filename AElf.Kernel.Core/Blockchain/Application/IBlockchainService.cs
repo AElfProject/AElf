@@ -25,7 +25,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Chain> GetChainAsync(int chainId);
 
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
-        Task<List<Hash>> GetReservedBlockHashes(int chainId, Hash lastBlockHash, int count);
+        Task<List<Hash>> GetReversedBlockHashes(int chainId, Hash lastBlockHash, int count);
 
         Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null);
@@ -238,19 +238,24 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        public async Task<List<Hash>> GetReservedBlockHashes(int chainId, Hash lastBlockHash, int count)
+        public async Task<List<Hash>> GetReversedBlockHashes(int chainId, Hash lastBlockHash, int count)
         {
             var hashes = new List<Hash>();
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainId, lastBlockHash);
 
-            if (chainBlockLink == null)
+            if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
                 return null;
+            
             hashes.Add(chainBlockLink.PreviousBlockHash);
 
             for (var i = 0; i < count - 1; i++)
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainId, chainBlockLink.PreviousBlockHash);
+
+                if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
+                    break;
+                
                 hashes.Add(chainBlockLink.PreviousBlockHash);
             }
 

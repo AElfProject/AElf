@@ -20,8 +20,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveService
     {
-        Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address,
-            Dictionary<StatePath, StateCache> stateCache);
+        Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address);
 
         Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg);
 
@@ -96,10 +95,9 @@ namespace AElf.Kernel.SmartContract.Application
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address,
-            Dictionary<StatePath, StateCache> stateCache)
+        public async Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address)
         {
-            var reg = await GetSmartContractRegistrationAsync(chainId, chainContext, address, stateCache);
+            var reg = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
             var executive = await GetExecutiveAsync(reg);
 
             executive.SetSmartContractContext(new SmartContractContext()
@@ -126,7 +124,7 @@ namespace AElf.Kernel.SmartContract.Application
                     To = address // This is to ensure that the contract has same address
                 }
             });
-            executive.SetDataCache(new Dictionary<StatePath, StateCache>());
+            executive.SetDataCache(new NullStateCache());
             (await GetPoolForAsync(executive.ContractHash)).Add(executive);
 
             await Task.CompletedTask;
@@ -134,8 +132,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address)
         {
-            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainId, chainContext, address,
-                new Dictionary<StatePath, StateCache>());
+            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
             var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
             return runner.GetAbi(smartContractRegistration);
         }
@@ -161,20 +158,19 @@ namespace AElf.Kernel.SmartContract.Application
         #region private methods
 
         private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(int chainId,
-            IChainContext chainContext, Address address, Dictionary<StatePath, StateCache> stateCache)
+            IChainContext chainContext, Address address)
         {
             if (address == Address.BuildContractAddress(chainId, 0))
             {
                 return _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
 
-            var hash = await GetContractHashFromZeroAsync(chainId, chainContext, address, stateCache);
+            var hash = await GetContractHashFromZeroAsync(chainId, chainContext, address);
 
             return await _smartContractManager.GetAsync(hash);
         }
 
-        private async Task<Hash> GetContractHashFromZeroAsync(int chainId, IChainContext chainContext, Address address,
-            Dictionary<StatePath, StateCache> stateCache)
+        private async Task<Hash> GetContractHashFromZeroAsync(int chainId, IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
             {
@@ -199,12 +195,28 @@ namespace AElf.Kernel.SmartContract.Application
             };
             var registration = await _smartContractManager.GetAsync(_defaultContractZeroCodeProvider
                 .DefaultContractZeroRegistration.CodeHash);
-            var executiveZero = await GetExecutiveAsync(registration);
-            executiveZero.SetDataCache(stateCache);
-            await executiveZero.SetTransactionContext(txCtxt).Apply();
-            return Hash.LoadHex(
-                ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"]
-                .ToString());
+
+            IExecutive executiveZero = null;
+            try
+            {
+                executiveZero = await GetExecutiveAsync(registration);
+                executiveZero.SetDataCache(chainContext.StateCache);
+                await executiveZero.SetTransactionContext(txCtxt).Apply();
+            }
+            finally
+            {
+                if (executiveZero != null)
+                {
+                    await PutExecutiveAsync(chainId, Address.BuildContractAddress(chainId, 0), executiveZero);
+                }
+            }
+
+            var codeHash = ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"];
+            if (codeHash == null)
+            {
+                throw new NullReferenceException();
+            }
+            return Hash.LoadHex(codeHash.ToString());
         }
 
         #endregion

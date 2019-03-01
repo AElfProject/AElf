@@ -49,9 +49,9 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public void SetDataCache(Dictionary<StatePath, StateCache> cache)
+        public void SetDataCache(IStateCache cache)
         {
-            _stateProvider.Cache = cache;
+            _stateProvider.Cache = cache ?? new NullStateCache();
         }
 
         public Executive SetSmartContract(ISmartContract smartContract)
@@ -149,12 +149,17 @@ namespace AElf.Runtime.CSharp
                 if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
                     _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted)
                 {
-                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
-                    {
-                        StatePath = kv.Key,
-                        StateValue = kv.Value
-                    });
-                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
+                    _currentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
+//                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
+//                    {
+//                        StatePath = kv.Key,
+//                        StateValue = kv.Value
+//                    });
+//                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
+                }
+                else
+                {
+                    _currentTransactionContext.Trace.StateSet = new TransactionExecutingStateSet();
                 }
             }
             catch (Exception ex)
