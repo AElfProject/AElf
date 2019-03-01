@@ -41,8 +41,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             DPoSExtraInformation extraInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GenerateConsensusTransactions, tester.Chain.LongestChainHeight,
-                tester.Chain.BestChainHash.Value.Take(4).ToArray(), extraInformation.ToByteArray());
+                ConsensusConsts.GenerateConsensusTransactions, extraInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
             return txs;
@@ -61,7 +60,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
                 ConsensusConsts.GenerateConsensusTransactions,
-                tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
                 extraInformation.ToByteArray());
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);

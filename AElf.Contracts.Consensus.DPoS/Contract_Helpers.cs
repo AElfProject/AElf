@@ -395,6 +395,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
                 }
+
                 return currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue != null;
             }
 
@@ -492,17 +493,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return DateTime.MaxValue;
         }
 
-        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName,
-            List<object> parameters)
+        private Transaction GenerateTransaction(string methodName, List<object> parameters)
         {
-            refBlockHeight = refBlockHeight > 4 ? refBlockHeight - 4 : 0;
-
             var tx = new Transaction
             {
                 From = Context.Sender,
                 To = Context.Self,
-                RefBlockNumber = refBlockHeight,
-                RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
                 Type = TransactionType.DposTransaction,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
@@ -512,7 +508,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         #endregion
-        
+
         public ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
@@ -523,12 +519,13 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
         }
-        
+
         public ulong GetDividendsForReappointment(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersReappointmentRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock *
+                            DPoSContractConsts.MinersReappointmentRatio);
         }
-        
+
         public ulong GetDividendsForBackupNodes(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
@@ -538,12 +535,12 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
-        
+
         public static ulong GetDividendsForAll(ulong minedBlocks)
         {
             return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
-        
+
         public int GetProducerNumber()
         {
             return 17 + (DateTime.UtcNow.Year - 2019) * 2;

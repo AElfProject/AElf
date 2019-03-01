@@ -117,8 +117,7 @@ namespace AElf.Kernel.Consensus.Application
             return newConsensusInformation;*/
         }
 
-        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId,
-            ulong refBlockHeight, byte[] refBlockPrefix)
+        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId)
         {
             Logger.LogInformation("Generating consensus transactions.");
 
@@ -135,11 +134,17 @@ namespace AElf.Kernel.Consensus.Application
                 _consensusInformationGenerationService.GenerateExtraInformation())).ToByteArray();
 
             var generatedTransactions = (await ExecuteContractAsync(chainId, await _accountService.GetAccountAsync(),
-                    chainContext, ConsensusConsts.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
+                    chainContext, ConsensusConsts.GenerateConsensusTransactions, 
                     _consensusInformationGenerationService.GenerateExtraInformationForTransaction(
                         _latestGeneratedConsensusInformation, chainId))).DeserializeToPbMessage<TransactionList>()
                 .Transactions
                 .ToList();
+
+            foreach (var generatedTransaction in generatedTransactions)
+            {
+                generatedTransaction.RefBlockNumber = chain.BestChainHeight;
+                generatedTransaction.RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray());
+            }
 
             return generatedTransactions;
         }

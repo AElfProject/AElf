@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             generatedTransactions.AddRange(
                 AsyncHelper.RunSync(() =>
-                    _consensusService.GenerateConsensusTransactionsAsync(chainId, refBlockHeight, refBlockPrefix)));
+                    _consensusService.GenerateConsensusTransactionsAsync(chainId)));
         }
     }
 }

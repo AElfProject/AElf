@@ -145,7 +145,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Act
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GenerateConsensusTransactions,
-                 tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
                 stubInitialExtraInformation.ToByteArray());
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
