@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -28,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var publicKey = extra.PublicKey;
             var timestamp = extra.Timestamp;
-            
+
             TryToGetMiningInterval(out var miningInterval);
 
             // To initial this chain.
@@ -36,7 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ConsensusCommand
                 {
-                    CountingMilliseconds = extra.IsBootMiner ? DPoSContractConsts.AElfWaitFirstRoundTime : int.MaxValue,
+                    CountingMilliseconds = extra.IsBootMiner ? extra.MiningInterval : int.MaxValue,
                     TimeoutMilliseconds = int.MaxValue,
                     Hint = new DPoSHint
                     {
@@ -100,7 +101,8 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ConsensusCommand
             {
                 CountingMilliseconds = expect >= 0 ? expect : expect > -miningInterval ? 0 : int.MaxValue,
-                TimeoutMilliseconds = miningInterval / minerInformation.PromisedTinyBlocks,
+                TimeoutMilliseconds = (expect >= 0 ? miningInterval : (miningInterval + expect)) /
+                                      (2 * minerInformation.PromisedTinyBlocks),
                 Hint = new DPoSHint
                 {
                     Behaviour = DPoSBehaviour.PackageOutValue
@@ -227,11 +229,12 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 signature = preRoundInformation.CalculateSignature(extra.CurrentInValue);
             }
+
             // To publish Out Value.
             return new DPoSInformation
             {
                 SenderPublicKey = publicKey,
-                CurrentRound = FillOutValueAndSignature(extra.OutValue, signature,publicKey),
+                CurrentRound = FillOutValueAndSignature(extra.OutValue, signature, publicKey),
                 Behaviour = DPoSBehaviour.PackageOutValue,
                 Sender = Context.Sender
             };
