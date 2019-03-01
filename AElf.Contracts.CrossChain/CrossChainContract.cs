@@ -75,14 +75,14 @@ namespace AElf.Contracts.CrossChain
             LockTokenAndResource(request);
 
             // side chain creation proposal
-            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
-                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
-            request.SideChainStatus = SideChainStatus.Review;
-            request.ProposalHash = hash;
+//            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
+//                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
+//            request.SideChainStatus = SideChainStatus.Review;
+//            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
             var res = new JObject
             {
-                ["proposal_hash"] = hash.ToHex(),
+//                ["proposal_hash"] = hash.ToHex(),
                 ["chain_id"] = ChainHelpers.ConvertChainIdToBase58(chainId)
             };
             return res.ToString();
@@ -113,7 +113,7 @@ namespace AElf.Contracts.CrossChain
         public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
-            CheckAuthority(Context.Genesis);
+//            CheckAuthority(Context.Genesis);
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var request = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
