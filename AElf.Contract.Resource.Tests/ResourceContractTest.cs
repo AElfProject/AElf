@@ -337,25 +337,13 @@ namespace AElf.Contracts.Resource.Tests
         private async Task ApproveBalance(ulong amount)
         {
             var callOwner = Tester.GetAddress(Tester.CallOwnerKeyPair);
-            var feeAddress = Tester.GetAddress(FeeKeyPair);
-
-            var feeRate = new decimal(5, 0, 0, false, 3);
-            var fees = (ulong) (amount * feeRate);
-            var elfForRes = amount - fees;
 
             var resourceResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve",
-                ResourceContractAddress, elfForRes);
+                ResourceContractAddress, amount);
             resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
             var allowanceResult1 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance",
                 callOwner, ResourceContractAddress);
             Console.WriteLine($"Allowance Query: {ResourceContractAddress} = {allowanceResult1.DeserializeToUInt64()}");
-
-            var feeResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve",
-                feeAddress, fees);
-            feeResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var allowanceResult2 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance",
-                callOwner, feeAddress);
-            Console.WriteLine($"Allowance Query: {feeAddress} = {allowanceResult2.DeserializeToUInt64()}");
         }
 
         #endregion
