@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
@@ -71,6 +72,9 @@ namespace AElf.OS.Handlers
                 // if we have the block, nothing to do.
                 if (hasBlock)
                 {
+                    if (await CheckAndFixLink(blockHash))
+                        return;
+                    
                     Logger.LogDebug($"Block {blockHash} already know.");
                     return;
                 }
@@ -160,6 +164,46 @@ namespace AElf.OS.Handlers
             {
                 Logger.LogError(e, $"Error during {nameof(ProcessNewBlock)}, peer: {peer}.");
             }
+        }
+
+        /// <summary>
+        /// Returns true if it had to fix.
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
+        private async Task<bool> CheckAndFixLink(Hash hash)
+        {
+            try
+            {
+                var link = await BlockchainService.GetBlockByHeight(ChainId, hash);
+
+                // If the block is already linked => no problem.
+                if (link.IsLinked)
+                    return false;
+  
+                var chain = await BlockchainService.GetChainAsync(ChainId);
+
+                if (!chain.NotLinkedBlocks.Values.Contains(hash.ToStorageKey()))
+                {
+                    Logger.LogWarning($"Fixing link ({hash})");
+                    // If the blocks that are not linked doesn't contain the unlinked block found in the 
+                    // db, we try and re-inject it in the pipeline.
+                    var block = await BlockchainService.GetBlockByHashAsync(ChainId, hash);
+                    var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                    await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                    
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error while checking and linking block.");
+                return true;
+            }
+
+            return false;
         }
 
         private async Task<List<Hash>> FindUnlinkableBlocksAsync(List<Hash> ids)

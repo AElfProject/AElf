@@ -17,7 +17,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Chain> CreateChainAsync(int chainId, Block block);
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
-
+        Task<ChainBlockLink> GetBlockByHeight(int chainId, Hash blockId);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
 
         Task<BlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockId);
@@ -123,6 +123,10 @@ namespace AElf.Kernel.Blockchain.Application
             return (await _blockManager.GetBlockHeaderAsync(blockId)) != null;
         }
 
+        public async Task<ChainBlockLink> GetBlockByHeight(int chainId, Hash blockId)
+        {
+            return await _chainManager.GetChainBlockLinkAsync(chainId, blockId);
+        }
 
         /// <summary>
         /// Returns the block with the specified height, searching from <see cref="startBlockHash"/>. If the height
