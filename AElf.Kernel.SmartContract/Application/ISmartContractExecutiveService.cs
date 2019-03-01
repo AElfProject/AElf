@@ -216,7 +216,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 throw new NullReferenceException();
             }
-            Console.WriteLine(trace);
             return Hash.LoadHex(codeHash.ToString());
         }
 
