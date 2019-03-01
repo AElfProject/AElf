@@ -42,21 +42,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         public ECKeyPair CallOwnerKeyPair { get; private set; }
 
         private readonly IConsensusService _consensusService;
-
         private readonly IAccountService _accountService;
-        
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
-        private readonly IChainManager _chainManager;
-        private readonly IBlockManager _blockManager;
-        private readonly IBlockchainStateManager _blockchainStateManager;
-        
-        private readonly IChainRelatedComponentManager<ITxHub> _txHubs;
-
-
-        private ISystemTransactionGenerationService _systemTransactionGenerationService;
+        private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
@@ -76,11 +67,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             //_blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
-            _chainManager = application.ServiceProvider.GetService<IChainManager>();
-            _blockManager = application.ServiceProvider.GetService<IBlockManager>();
-            _blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
-            _txHubs = application.ServiceProvider.GetService<IChainRelatedComponentManager<ITxHub>>();
-            
+            var chainManager = application.ServiceProvider.GetService<IChainManager>();
+            var blockManager = application.ServiceProvider.GetService<IBlockManager>();
+            var blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
+            var txHubs = application.ServiceProvider.GetService<IChainRelatedComponentManager<ITxHub>>();
+
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
 
@@ -97,16 +88,18 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
                     {new ConsensusExtraDataProvider(_consensusService)}));
 
-            _blockchainExecutingService = new FullBlockchainExecutingService(_chainManager, _blockchainService,
+            _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
                     {new DPoSConsensusValidationProvider(_consensusService)}), _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
-            
-            _blockExecutingService = new BlockExecutingService(transactionExecutingService, _blockManager, _blockchainStateManager, _blockGenerationService);
 
-            _blockchainNodeContextService = new BlockchainNodeContextService(_txHubs, _blockchainService, new ChainCreationService(_blockchainService, _blockExecutingService));
+            _blockExecutingService = new BlockExecutingService(transactionExecutingService, blockManager,
+                blockchainStateManager, _blockGenerationService);
+
+            _blockchainNodeContextService = new BlockchainNodeContextService(txHubs, _blockchainService,
+                new ChainCreationService(_blockchainService, _blockExecutingService));
 
             InitialChain();
         }
@@ -115,7 +108,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             await _consensusService.TriggerConsensusAsync(ChainId);
         }
-        
+
         public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
         {
             return await _consensusService.ValidateConsensusAsync(ChainId, Chain.BestChainHash, Chain.BestChainHeight,
@@ -139,7 +132,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             {
                 throw new InvalidOperationException();
             }
-            
+
             var preBlock = await _blockchainService.GetBestChainLastBlock(ChainId);
             var minerService = BuildMinerService(txs);
             return await minerService.MineAsync(ChainId, preBlock.GetHash(), preBlock.Height,
@@ -151,24 +144,25 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private MinerService BuildMinerService(List<Transaction> txs)
         {
             var mockTxHub = new Mock<ChainRelatedComponentManager<ITxHub>>();
-            mockTxHub.Setup(h => h.Get(It.IsAny<int>()).GetExecutableTransactionSetAsync()).ReturnsAsync(new ExecutableTransactionSet
-            {
-                ChainId = ChainId,
-                PreviousBlockHash = Chain.BestChainHash,
-                PreviousBlockHeight = Chain.BestChainHeight,
-                Transactions = txs
-            });
+            mockTxHub.Setup(h => h.Get(It.IsAny<int>()).GetExecutableTransactionSetAsync()).ReturnsAsync(
+                new ExecutableTransactionSet
+                {
+                    ChainId = ChainId,
+                    PreviousBlockHash = Chain.BestChainHash,
+                    PreviousBlockHeight = Chain.BestChainHeight,
+                    Transactions = txs
+                });
 
             return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
                 _blockchainExecutingService, mockTxHub.Object);
         }
-        
+
         private async Task<Chain> GetChainAsync()
         {
             return await _blockchainService.GetChainAsync(ChainId);
         }
-        
+
         private void InitialChain()
         {
             var transactions = GetGenesisTransactions(ChainId, typeof(BasicContractZero), typeof(ConsensusContract));
@@ -180,7 +174,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     Transactions = transactions
                 }
             };
-            
+
             AsyncHelper.RunSync(() => _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto));
         }
 
@@ -193,6 +187,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             return mockSystemTransactionGenerationService.Object;
         }
+
         private IOptionsSnapshot<DPoSOptions> MockDPoSOptions(List<ECKeyPair> initialMinersKeyPairs, bool isBootMiner)
         {
             var consensusOptionsMock = new Mock<IOptionsSnapshot<DPoSOptions>>();
@@ -202,7 +197,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 IsBootMiner = isBootMiner,
                 MiningInterval = DPoSConsensusConsts.MiningInterval
             });
-            
+
             return consensusOptionsMock.Object;
         }
 
@@ -233,7 +228,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             return contractTypes.Select(contractType => GetTransactionForDeployment(chainId, contractType)).ToArray();
         }
-        
+
         private Transaction GetTransactionForDeployment(int chainId, Type contractType)
         {
             var zeroAddress = Address.BuildContractAddress(chainId, 0);
