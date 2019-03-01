@@ -51,9 +51,9 @@ namespace AElf.Runtime.CSharp
             _methodInfos[nameof(SetStateProvider)].Invoke(_instance, new object[] {stateProvider});
         }
 
-        public Dictionary<StatePath, StateValue> GetChanges()
+        public TransactionExecutingStateSet GetChanges()
         {
-            return (Dictionary<StatePath, StateValue>) _methodInfos[nameof(GetChanges)]
+            return (TransactionExecutingStateSet) _methodInfos[nameof(GetChanges)]
                 .Invoke(_instance, new object[0]);
         }
 
