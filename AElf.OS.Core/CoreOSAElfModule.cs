@@ -35,7 +35,7 @@ namespace AElf.OS
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
 
-            var keyStore = new AElfKeyStore(ApplicationHelpers.AppDataPath);
+            var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
         }

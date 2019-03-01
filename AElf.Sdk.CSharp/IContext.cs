@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Sdk.CSharp
 {

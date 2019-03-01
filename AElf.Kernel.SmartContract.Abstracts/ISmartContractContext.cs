@@ -12,7 +12,7 @@ namespace AElf.Kernel.SmartContract
         Address ContractAddress { get; }
 
         void LogDebug(Func<string> func);
-        
+
         Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
 
@@ -20,5 +20,12 @@ namespace AElf.Kernel.SmartContract
             bool isPrivileged);
 
         Task<Block> GetBlockByHashAsync(Hash blockId);
+        Block GetBlockByHash(Hash blockId);
+
+        void DeployContract(Address contractAddress, SmartContractRegistration registration,
+            bool isPrivileged);
+
+        void UpdateContract(Address contractAddress, SmartContractRegistration registration,
+            bool isPrivileged);
     }
 }

@@ -5,7 +5,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Dividends
 {
