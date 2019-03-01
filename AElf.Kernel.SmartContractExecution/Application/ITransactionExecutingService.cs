@@ -110,7 +110,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 //                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
 //                foreach (var kv in txCtxt.Trace.StateChanges)
 //                {
-//                    // TODO: Better encapsulation/abstraction for committing to state cache
 //                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
 //                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
 //                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;

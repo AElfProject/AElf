@@ -195,7 +195,7 @@ namespace AElf.Kernel.SmartContract.Application
             };
             var registration = await _smartContractManager.GetAsync(_defaultContractZeroCodeProvider
                 .DefaultContractZeroRegistration.CodeHash);
-            // TODO: Need to put back executive
+
             IExecutive executiveZero = null;
             try
             {
