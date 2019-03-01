@@ -41,6 +41,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var tester = new ConsensusTester(0, CryptoHelpers.GenerateKeyPair(), initialMinersKeyPairs);
 
             await tester.TriggerConsensusAsync();
+            
+            await tester.GenerateConsensusTransactionsAsync();
 
             var consensusInformation = await tester.GetNewConsensusInformationAsync();
 
@@ -56,8 +58,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             await tester.TriggerConsensusAsync();
 
-            await tester.GetNewConsensusInformationAsync();
-
             var txs = await tester.GenerateConsensusTransactionsAsync();
 
             Assert.True(txs.Any());
@@ -69,6 +69,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var tester = ConsensusTestHelper.CreateABootMiner();
 
             await tester.TriggerConsensusAsync();
+            
+            await tester.GenerateConsensusTransactionsAsync();
 
             var consensusInformation = await tester.GetNewConsensusInformationAsync();
 

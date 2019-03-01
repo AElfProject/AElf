@@ -11,6 +11,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
@@ -20,6 +21,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
@@ -48,6 +50,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IChainManager _chainManager;
+        private readonly IBlockManager _blockManager;
+        private readonly IBlockchainStateManager _blockchainStateManager;
+        
+        private readonly IChainRelatedComponentManager<ITxHub> _txHubs;
+
 
         private ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
@@ -67,11 +74,13 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             application.Initialize();
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
-            _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
+            //_blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
-            _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
-
+            _blockManager = application.ServiceProvider.GetService<IBlockManager>();
+            _blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
+            _txHubs = application.ServiceProvider.GetService<IChainRelatedComponentManager<ITxHub>>();
+            
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
 
@@ -94,6 +103,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
+            
+            _blockExecutingService = new BlockExecutingService(transactionExecutingService, _blockManager, _blockchainStateManager, _blockGenerationService);
+
+            _blockchainNodeContextService = new BlockchainNodeContextService(_txHubs, _blockchainService, new ChainCreationService(_blockchainService, _blockExecutingService));
 
             InitialChain();
         }

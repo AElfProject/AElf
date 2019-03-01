@@ -1,16 +1,18 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
+
 namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
+
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
             _consensusService = consensusService;
         }
-        
+
         public async Task FillExtraDataAsync(int chainId, Block block)
         {
             if (block.Header.BlockExtraData == null)
@@ -18,7 +20,7 @@ namespace AElf.Kernel.Consensus.Application
                 block.Header.BlockExtraData = new BlockExtraData();
             }
 
-            if (block.Height == 1 && block.Header.BlockExtraData.ConsensusInformation != null)
+            if (block.Height == 1 || !block.Header.BlockExtraData.ConsensusInformation.IsEmpty)
             {
                 return;
             }
