@@ -23,6 +23,8 @@ namespace AElf.Sdk.CSharp.State
 
         internal T Call(params object[] args)
         {
+            throw new NotImplementedException();
+            /*
             var svc = _owner.Context.SmartContractContext.SmartContractExecutiveService;
             var transactionContext = new TransactionContext()
             {
@@ -62,7 +64,7 @@ namespace AElf.Sdk.CSharp.State
                 throw new ContractCallError($"Failed to call view method {_name} in contract {_owner.Value}.");
             }
 
-            return (T) transactionContext.Trace.RetVal.Data.DeserializeToType(typeof(T));
+            return (T) transactionContext.Trace.RetVal.Data.DeserializeToType(typeof(T));*/
         }
     }
 }

@@ -5,7 +5,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Contexts;
 using Xunit;
 using Shouldly;
 using Moq;

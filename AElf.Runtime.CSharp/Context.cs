@@ -23,20 +23,7 @@ namespace AElf.Sdk.CSharp
         private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
 
-        public ISmartContractContext SmartContractContext
-        {
-            get => _smartContractContext;
-            set
-            {
-                _smartContractContext = value;
-                OnSmartContractContextSet();
-            }
-        }
-
-        private void OnSmartContractContextSet()
-        {
-            _blockchainService = _smartContractContext.ChainService;
-        }
+        public ISmartContractContext SmartContractContext { get; set; }
 
         public void LogDebug(Func<string> func)
         {

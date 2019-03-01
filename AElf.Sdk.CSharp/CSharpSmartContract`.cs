@@ -8,7 +8,7 @@ namespace AElf.Sdk.CSharp
 {
     public partial class CSharpSmartContract<TContractState> where TContractState : ContractState
     {
-        private readonly IContextInternal _context = new Context();
+        private readonly IContextInternal _context;
 
         public IContext Context => _context;
 
