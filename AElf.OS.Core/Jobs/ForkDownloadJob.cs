@@ -42,6 +42,8 @@ namespace AElf.OS.Jobs
                         $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
                 }
 
+                args.BlockHashes.Reverse();
+
                 foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
                 {
                     // Check that some other job didn't get this before.

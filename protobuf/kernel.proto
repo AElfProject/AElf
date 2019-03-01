@@ -149,6 +149,11 @@ message LogEvent {
     bytes Data = 3;
 }
 
+message TransactionLogEvent{
+    Hash Transaction = 1;
+    LogEvent LogEvent = 2;
+}
+
 message RetVal {
     RetType Type = 1;
     bytes Data = 2;

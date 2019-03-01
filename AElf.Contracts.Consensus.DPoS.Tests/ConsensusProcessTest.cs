@@ -21,6 +21,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
     {
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
 
+        private int _miningInterval = 4000;
+
         [Fact]
         public async Task Initial_Command()
         {
@@ -41,7 +43,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
-            Assert.Equal(DPoSContractConsts.AElfWaitFirstRoundTime, actual.CountingMilliseconds);
+            Assert.Equal(_miningInterval, actual.CountingMilliseconds);
             Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
             Assert.Equal(DPoSBehaviour.InitialTerm, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
@@ -58,7 +60,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var actual = await tester.GetConsensusCommand();
 
             // Assert
-            Assert.Equal(DPoSContractConsts.AElfWaitFirstRoundTime, actual.CountingMilliseconds);
+            Assert.Equal(_miningInterval, actual.CountingMilliseconds);
             Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
             Assert.Equal(DPoSBehaviour.InitialTerm, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
@@ -210,7 +212,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var actual = await tester2.GetConsensusCommand();
 
             // Assert
-            Assert.True(actual.CountingMilliseconds != DPoSContractConsts.AElfWaitFirstRoundTime);
+            Assert.True(actual.CountingMilliseconds != _miningInterval);
         }
 
         [Fact]

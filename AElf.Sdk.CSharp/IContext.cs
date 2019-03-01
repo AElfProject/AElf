@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp
     {
         void LogDebug(Func<string> func);
 
-        void FireEvent(Event logEvent);
+        void FireEvent<TEvent>(TEvent logEvent) where TEvent : Event;
         Hash TransactionId { get; }
 
         int ChainId { get; }

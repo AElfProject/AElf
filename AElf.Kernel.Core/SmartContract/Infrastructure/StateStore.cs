@@ -1,11 +1,7 @@
-using System;
-using AElf.Common;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using Google.Protobuf;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContractExecution.Infrastructure
+namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public class StateStore<T> : KeyValueStoreBase<StateKeyValueDbContext, T>, IStateStore<T>
         where T : IMessage<T>, new()

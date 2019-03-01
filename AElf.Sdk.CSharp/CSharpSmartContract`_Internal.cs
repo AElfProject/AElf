@@ -41,7 +41,7 @@ namespace AElf.Sdk.CSharp
             State.Path = path;
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
             return State.GetChanges();
         }

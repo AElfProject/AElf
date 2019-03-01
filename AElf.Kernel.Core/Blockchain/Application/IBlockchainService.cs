@@ -18,22 +18,20 @@ namespace AElf.Kernel.Blockchain.Application
         Task AddBlockAsync(int chainId, Block block);
         Task<bool> HasBlockAsync(int chainId, Hash blockId);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="chain"></param>
-        /// <param name="block"></param>
-        /// <returns>blocks need to be executed</returns>
-        //Task<List<ChainBlockLink>> AttachBlockToChainAsync(Chain chain, Block block);
         Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
 
         Task<BlockHeader> GetBlockHeaderByHashAsync(int chainId, Hash blockId);
 
         Task<Chain> GetChainAsync(int chainId);
+
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
-        Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count);
+        Task<List<Hash>> GetReversedBlockHashes(int chainId, Hash lastBlockHash, int count);
+
+        Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
+            Hash chainBranchBlockHash = null);
+
         Task<BlockHeader> GetBestChainLastBlock(int chainId);
-        Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash currentBlockHash = null);
+        Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash chainBranchBlockHash = null);
         Task<BranchSwitch> GetBranchSwitchAsync(int chainId, Hash fromHash, Hash toHash);
 
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
@@ -143,7 +141,7 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             if (startBlockHash == null)
-                startBlockHash = chain.BestChainHash;
+                startBlockHash = chain.LongestChainHash;
 
             // TODO: may introduce cache to improve the performance
 
@@ -240,25 +238,60 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        public async Task<List<Hash>> GetBlockHeaders(int chainId, Hash firstHash, int count)
+        public async Task<List<Hash>> GetReversedBlockHashes(int chainId, Hash lastBlockHash, int count)
         {
-            var chain = await GetChainAsync(chainId);
+            var hashes = new List<Hash>();
+
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainId, lastBlockHash);
+
+            if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
+                return null;
+            
+            hashes.Add(chainBlockLink.PreviousBlockHash);
+
+            for (var i = 0; i < count - 1; i++)
+            {
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainId, chainBlockLink.PreviousBlockHash);
+
+                if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
+                    break;
+                
+                hashes.Add(chainBlockLink.PreviousBlockHash);
+            }
+
+            return hashes;
+        }
+
+
+        public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
+            Hash chainBranchBlockHash = null)
+        {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
 
             if (first == null)
                 return null;
 
+            var height = first.Height + (ulong) count;
+
+            var last = await GetBlockHashByHeightAsync(chain, height, chainBranchBlockHash);
+
+            if (last == null)
+                throw new InvalidOperationException("not support");
+
             var hashes = new List<Hash>();
 
-            for (ulong i = first.Height - 1; hashes.Count < count && i > 0; i--)
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, last);
+
+            hashes.Add(chainBlockLink.BlockHash);
+            for (var i = 0; i < count - 1; i++)
             {
-                var bHash = await GetBlockHashByHeightAsync(chain, i);
-
-                if (bHash == null)
-                    return hashes;
-
-                hashes.Add(bHash);
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chain.Id, chainBlockLink.PreviousBlockHash);
+                hashes.Add(chainBlockLink.BlockHash);
             }
+
+            if (chainBlockLink.PreviousBlockHash != firstHash)
+                throw new Exception("block hashes should be equal");
+            hashes.Reverse();
 
             return hashes;
         }

@@ -9,10 +9,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -65,7 +63,7 @@ namespace AElf.Kernel.Consensus.Application
                 .ToByteArray());
 
             var blockMiningEventData = new BlockMiningEventData(chainId, chain.BestChainHash, chain.BestChainHeight,
-                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.TimeoutMilliseconds));
+                _consensusControlInformation.ConsensusCommand.TimeoutMilliseconds);
 
             // Initial or reload consensus scheduler.
             _consensusScheduler.CancelCurrentEvent();

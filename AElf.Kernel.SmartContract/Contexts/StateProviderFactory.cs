@@ -1,4 +1,5 @@
 using System;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 
 namespace AElf.Kernel.SmartContract.Contexts

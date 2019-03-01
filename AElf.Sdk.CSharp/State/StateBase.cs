@@ -57,9 +57,9 @@ namespace AElf.Sdk.CSharp.State
         {
         }
 
-        internal virtual Dictionary<StatePath, StateValue> GetChanges()
+        internal virtual TransactionExecutingStateSet GetChanges()
         {
-            return new Dictionary<StatePath, StateValue>();
+            return new TransactionExecutingStateSet();
         }
     }
 }
