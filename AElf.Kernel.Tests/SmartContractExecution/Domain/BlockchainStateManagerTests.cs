@@ -159,7 +159,8 @@ namespace AElf.Kernel
             await check3_2();
 
             int chainId = 1;
-            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[1].BlockHash);
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync(chainId);
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
 
             await check1();
             await check2();
@@ -167,16 +168,16 @@ namespace AElf.Kernel
             await check3_2();
             
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[3].BlockHash));
+                await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[3].BlockHash));
 
             
-            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[2].BlockHash);
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash);
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await check1());
             await check2();
             
             //merge best to second branch
-            await _blockchainStateManager.MergeBlockStateAsync(chainId, _tv[4].BlockHash);
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await check1());
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>

@@ -31,7 +31,8 @@ namespace AElf.Kernel
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService, IBlockManager blockManager,
-            ITransactionResultManager transactionResultManager, IChainManager chainManager, IBlockchainStateManager blockchainStateManager)
+            ITransactionResultManager transactionResultManager, IChainManager chainManager,
+            IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockManager = blockManager;
@@ -69,22 +70,44 @@ namespace AElf.Kernel
                             var offset = (ulong) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;
 
-                            Logger.LogInformation($"Lib Height: {libHeight}");
-
                             var chain = await _blockchainService.GetChainAsync(eventData.ChainId);
                             var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight);
+                            
+                            Logger.LogInformation($"Lib height: {libHeight}, Lib Hash: {libHash}");
+
+                            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync(eventData.ChainId);
+
+                            var count = (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
+                            var hashes =
+                                await _blockchainService.GetBlockHeaders(eventData.ChainId, libHash, count);
+
+                            hashes.Reverse();
+
+                            hashes.Add(libHash);
+
+                            var startHeight = chain.LastIrreversibleBlockHeight + 1;
+                            foreach (var hash in hashes)
+                            {
+                                try
+                                {
+                                    
+                                    Logger.LogInformation($"Merge Lib hash: {hash}， height: {startHeight++}");
+                                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
+                                }
+                                catch (Exception e)
+                                {
+                                    Logger.LogError(e.Message);
+                                }
+                            }
                             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
 
-                            Logger.LogInformation($"Lib Hash: {libHash}");
-
-                            //await _blockchainStateManager.MergeBlockStateAsync(eventData.ChainId, libHash);
+                            Logger.LogInformation("Lib setting finished.");
                         }
-
-                        //await LocalEventBus.PublishAsync(contractEvent);
                     }
                 }
             }
         }
+
 
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {
