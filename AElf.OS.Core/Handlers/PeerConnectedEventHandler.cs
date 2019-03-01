@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
@@ -60,101 +61,34 @@ namespace AElf.OS.Handlers
                 return;
             }
 
+
             try
             {
                 var blockHash = header.GetHash();
 
                 Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {header.Height} }} from {peer}.");
 
-                var hasBlock = await BlockchainService.HasBlockAsync(ChainId, blockHash);
 
-                // if we have the block, nothing to do.
-                if (hasBlock)
+                var block = await BlockchainService.GetBlockByHashAsync(ChainId, blockHash);
+                
+                
+                if (block==null)
                 {
+                    block = (Block)  await NetworkService.GetBlockByHashAsync(blockHash);
                     Logger.LogDebug($"Block {blockHash} already know.");
                     return;
                 }
 
-                var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, header.PreviousBlockHash);
+                var chain = await BlockchainService.GetChainAsync(ChainId);
 
-                // we have previous, so we only have one block to get.
-                if (hasPrevious)
+                var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+
+                await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+
+                if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
                 {
-                    Logger.LogWarning(
-                        $"Previous block found {{ hash: {header.PreviousBlockHash}, height: {header.Height} }}.");
-
-                    Block block = (Block) await NetworkService.GetBlockByHashAsync(blockHash, peer);
-
-                    if (block == null)
-                    {
-                        Logger.LogWarning($"No peer has the block {{ hash: {blockHash}, height: {header.Height} }}.");
-                        return;
-                    }
-
-                    await BlockchainService.AddBlockAsync(ChainId, block);
-
-                    var chain = await BlockchainService.GetChainAsync(ChainId);
-                    var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-                    var link = await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-
-                    Logger.LogDebug($"Block processed {{ hash: {blockHash}, height: {header.Height} }}.");
                 }
-                else
-                {
-                    // If not we download block ids backwards until we link
-                    // and queue the chain download as a background job.
 
-                    List<Hash> idsToDownload = new List<Hash> {blockHash};
-
-                    Hash topHash = blockHash;
-
-                    for (ulong i = header.Height - 1; i > 1; i -= (ulong) BlockIdRequestCount)
-                    {
-                        Logger.LogTrace(
-                            $"Query section: {{ top: {topHash}, count: {BlockIdRequestCount}, peer: {peer} }}");
-
-                        // Ask the peer for the ids of the blocks
-                        List<Hash> ids = await NetworkService
-                            .GetBlockIdsAsync(topHash, BlockIdRequestCount,
-                                peer); // todo this has to be in order, maybe add Height
-
-                        if (ids == null || ids.Count == 0)
-                        {
-                            Logger.LogWarning($"Peer {peer} did not return any ids.");
-                            break;
-                        }
-
-                        // Find the ids that we're missing
-                        var unlinkableIds = await FindUnlinkableBlocksAsync(ids);
-
-                        Logger.LogDebug($"Out of {ids.Count}, {unlinkableIds.Count} are missing.");
-
-                        idsToDownload.AddRange(ids);
-
-                        // If one or more blocks are linked
-                        if (unlinkableIds.Count != ids.Count)
-                            break;
-
-                        topHash = idsToDownload.Last();
-                    }
-
-                    if (idsToDownload.Any())
-                    {
-                        Logger.LogDebug(
-                            $"Queuing job to download {idsToDownload.Count} blocks: [{idsToDownload.First()}, ..., {idsToDownload.Last()}]");
-
-                        await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
-                        {
-                            BlockHashes = idsToDownload.Select(b => b.DumpByteArray()).ToList(),
-                            Peer = peer
-                        });
-                    }
-                    else
-                    {
-                        Logger.LogWarning($"No blocks where needed but previous was not found for " +
-                                          $"{{ previous: {header.PreviousBlockHash} hash: {blockHash}, height: {header.Height} }}.");
-                    }
-                }
             }
             catch (Exception e)
             {
@@ -162,22 +96,5 @@ namespace AElf.OS.Handlers
             }
         }
 
-        private async Task<List<Hash>> FindUnlinkableBlocksAsync(List<Hash> ids)
-        {
-            List<Hash> unlinkableIds = new List<Hash>();
-
-            foreach (var id in ids)
-            {
-                if (await BlockchainService.HasBlockAsync(ChainId, id))
-                {
-                    // we have linked the fork
-                    break;
-                }
-
-                unlinkableIds.Add(id);
-            }
-
-            return unlinkableIds;
-        }
     }
 }
