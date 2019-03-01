@@ -11,8 +11,6 @@ using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.Threading;
 
 namespace AElf.Sdk.CSharp
 {
@@ -25,7 +23,7 @@ namespace AElf.Sdk.CSharp
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
-            SmartContractContext.Logger.LogDebug(func());
+            SmartContractContext.LogDebug(func);
 #endif
         }
 
@@ -75,9 +73,8 @@ namespace AElf.Sdk.CSharp
 
         public Block GetPreviousBlock()
         {
-            return AsyncHelper.RunSync(
-                () => SmartContractContext.GetBlockByHashAsync(SmartContractContext.ChainId,
-                    TransactionContext.PreviousBlockHash));
+            return SmartContractContext.GetBlockByHash(
+                TransactionContext.PreviousBlockHash);
         }
 
         public bool VerifySignature(Transaction tx)
@@ -109,9 +106,8 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError("no permission.");
             }
 
-            AsyncHelper.RunSync(async () =>
-                await SmartContractContext.DeployContractAsync(ChainId, address, registration,
-                    false));
+            SmartContractContext.DeployContract(address, registration,
+                false);
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration)
@@ -121,9 +117,8 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError("no permission.");
             }
 
-            AsyncHelper.RunSync(async () =>
-                await SmartContractContext.UpdateContractAsync(ChainId, address, registration,
-                    false));
+            SmartContractContext.UpdateContract(address, registration,
+                false);
         }
     }
 }

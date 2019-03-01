@@ -6,7 +6,6 @@ using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Volo.Abp.Threading;
 
 namespace AElf.Sdk.CSharp.State
 {

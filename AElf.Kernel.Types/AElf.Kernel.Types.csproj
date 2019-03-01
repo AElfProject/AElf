@@ -7,7 +7,6 @@
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
   </ItemGroup>
   <ItemGroup>

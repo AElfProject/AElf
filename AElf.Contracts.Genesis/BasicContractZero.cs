@@ -4,7 +4,6 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Genesis
 {
