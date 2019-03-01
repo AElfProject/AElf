@@ -19,5 +19,8 @@ namespace AElf.Kernel.SmartContract
 
         Task UpdateContractAsync(int chainId, Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
+        
+        Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
+
     }
 }

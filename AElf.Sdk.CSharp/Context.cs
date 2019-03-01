@@ -76,7 +76,7 @@ namespace AElf.Sdk.CSharp
         public Block GetPreviousBlock()
         {
             return AsyncHelper.RunSync(
-                () => TransactionContext.GetBlockByHashAsync(SmartContractContext.ChainId,
+                () => SmartContractContext.GetBlockByHashAsync(SmartContractContext.ChainId,
                     TransactionContext.PreviousBlockHash));
         }
 

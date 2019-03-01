@@ -19,7 +19,6 @@ namespace AElf.Kernel.SmartContract
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
         
-        Task<Block> GetBlockByHashAsync(int chainId, Hash blockId);
 
     }
 }

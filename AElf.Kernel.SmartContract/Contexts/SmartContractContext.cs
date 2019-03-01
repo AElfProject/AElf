@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract
         public int ChainId { get; set; }
         public Address ContractAddress { get; set; }
         public ISmartContractService SmartContractService { get; set; }
-        public IBlockchainService ChainService { get; set; }
+        public IBlockchainService BlockchainService { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
 
 #if DEBUG
@@ -30,6 +30,11 @@ namespace AElf.Kernel.SmartContract
             bool isPrivileged)
         {
             return SmartContractService.UpdateContractAsync(chainId, contractAddress, registration, isPrivileged);
+        }
+
+        public Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
+        {
+            return BlockchainService.GetBlockByHashAsync(chainId, blockId);
         }
 #endif
     }
