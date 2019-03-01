@@ -55,13 +55,15 @@ namespace AElf.OS.Handlers
         // todo eventually protect this logic with LIB
         private async Task ProcessNewBlock(BlockHeader header, string peer)
         {
-            if (header == null)
+            
+            var chain = await BlockchainService.GetChainAsync(ChainId);
+
+            if (header.Height - chain.LongestChainHeight < 10)
             {
-                Logger.LogWarning($"Cannot process null header");
+
                 return;
             }
-
-
+            
             try
             {
                 var blockHash = header.GetHash();
@@ -79,7 +81,6 @@ namespace AElf.OS.Handlers
                     return;
                 }
 
-                var chain = await BlockchainService.GetChainAsync(ChainId);
 
                 var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
 
