@@ -36,7 +36,6 @@ namespace AElf.Sdk.CSharp.State
                 }
 
                 _value = value;
-                UpdateToCache(value);
             }
         }
 

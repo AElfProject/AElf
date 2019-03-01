@@ -47,7 +47,6 @@ namespace AElf.Sdk.CSharp.State
                 }
 
                 valuePair.Value = value;
-                UpdateToCache(key, value);
             }
         }
 

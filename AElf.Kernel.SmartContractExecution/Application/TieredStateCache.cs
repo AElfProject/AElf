@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class TieredStateCache : IStateCache
     {
-        private IStateCache _parent;
+        private IStateCache _parent = new NullStateCache();
         private Dictionary<StatePath, byte[]> _originalValues = new Dictionary<StatePath, byte[]>();
         private Dictionary<string, byte[]> _currentValues = new Dictionary<string, byte[]>();
 

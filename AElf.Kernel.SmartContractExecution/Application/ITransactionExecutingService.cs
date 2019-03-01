@@ -246,9 +246,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.DeferredTransactions.Add(tx);
             }
 
-            foreach (var s in trace.StateSet.Writes)
+            foreach (var s in trace.GetFlattenedWrite())
             {
-                returnSet.StateChanges.Add(s.Key, s.Value);
+                returnSet.StateChanges[s.Key] = s.Value;
             }
 
             if (trace.IsSuccessful())
