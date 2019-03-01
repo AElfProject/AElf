@@ -13,7 +13,7 @@ namespace AElf.CrossChain
             Dictionary<int, ulong> sideChainIdHeights, Dictionary<int, ulong> parentCHainIdHeights)
         {
             var fakeMultiChainBlockInfoCacheProvider = CreateFakeMultiChainBlockInfoCacheProvider(fakeCache);
-            var fakeConsumer = CreateFakeCrossCHainDataConsumer(fakeMultiChainBlockInfoCacheProvider);
+            var fakeConsumer = CreateFakeCrossChainDataConsumer(fakeMultiChainBlockInfoCacheProvider);
             var mockContractReader = CreateFakeCrossChainContractReader(sideChainIdHeights, parentCHainIdHeights);
             var crossChainDataProvider = new CrossChainDataProvider(mockContractReader, fakeConsumer);
             return new CrossChainService(crossChainDataProvider);

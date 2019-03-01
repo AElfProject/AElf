@@ -57,27 +57,30 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public string ReuqestChainCreation(SideChainInfo request)
+        public string RequestChainCreation(SideChainInfo request)
         {
+            Console.WriteLine("Request..");
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
                 Context.Sender.Equals(request.Proposer), "Invalid chain creation request.");
 
+            Console.WriteLine("Create chain id..");
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelpers.GetChainId(serialNumber);
             var info = State.SideChainInfos[chainId];
             Assert(info.IsEmpty(), "Chain creation request already exists.");
 
+            Console.WriteLine("Create chain id..");
             // lock token and resource
             request.SideChainId = chainId;
-            LockTokenAndResource(request);
+            //LockTokenAndResource(request);
 
             // side chain creation proposal
 //            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
 //                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
-//            request.SideChainStatus = SideChainStatus.Review;
+            request.SideChainStatus = SideChainStatus.Review;
 //            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
             var res = new JObject
@@ -99,7 +102,7 @@ namespace AElf.Contracts.CrossChain
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
 
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
+            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Authentication failed.");
             UnlockTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
             State.SideChainInfos[id] = sideChainInfo;
