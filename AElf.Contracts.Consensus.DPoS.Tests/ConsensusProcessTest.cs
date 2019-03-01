@@ -36,7 +36,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 PublicKey = stubMiner.PublicKey.ToHex(),
-                IsBootMiner = true
+                IsBootMiner = true,
+                MiningInterval = _miningInterval
             };
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand,
                 firstExtraInformation.ToByteArray());
