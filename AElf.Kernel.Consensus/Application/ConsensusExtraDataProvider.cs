@@ -18,8 +18,17 @@ namespace AElf.Kernel.Consensus.Application
                 block.Header.BlockExtraData = new BlockExtraData();
             }
 
-            var consensusInformation =
-                await _consensusService.GetNewConsensusInformationAsync(chainId);
+            if (block.Height == 1 && block.Header.BlockExtraData.ConsensusInformation != null)
+            {
+                return;
+            }
+
+            var consensusInformation = await _consensusService.GetNewConsensusInformationAsync(chainId);
+
+            if (consensusInformation == null)
+            {
+                return;
+            }
 
             block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
         }

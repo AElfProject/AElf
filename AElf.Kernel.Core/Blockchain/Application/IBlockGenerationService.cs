@@ -67,10 +67,7 @@ namespace AElf.Kernel.Blockchain.Application
             blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
             blockHeader.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
             
-            var blockBody = new BlockBody()
-            {
-                BlockHeader = blockHeader.GetHash()
-            };
+            var blockBody = new BlockBody();
             blockBody.Transactions.AddRange(allExecutedTransactionIds);
             blockBody.TransactionList.AddRange(transactions);
             
@@ -81,6 +78,8 @@ namespace AElf.Kernel.Blockchain.Application
             };
             // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
             await _blockExtraDataService.FillBlockExtraData(blockHeader.ChainId, block);
+            blockBody.BlockHeader = blockHeader.GetHash();
+            
             return block;
         }
     }
