@@ -34,14 +34,6 @@ namespace AElf.OS.Jobs
             {
                 Logger.LogDebug($"Starting download of {args.BlockHashes.Count} blocks from {args.Peer}.");
 
-                var chain = await BlockchainService.GetChainAsync(ChainId);
-
-                if (chain == null)
-                {
-                    Logger.LogError(
-                        $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
-                }
-
                 args.BlockHashes.Reverse();
 
                 foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
@@ -64,6 +56,14 @@ namespace AElf.OS.Jobs
                         continue;
                     }
 
+                    var chain = await BlockchainService.GetChainAsync(ChainId);
+
+                    if (chain == null)
+                    {
+                        Logger.LogError($"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
+                        break;
+                    }
+                    
                     // Add to our chain
                     await BlockchainService.AddBlockAsync(ChainId, block);
                     var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
