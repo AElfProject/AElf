@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -586,6 +587,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (CalculateLIB(out var offset))
             {
+                Context.Logger.LogInformation($"LIB found, offset is {offset}");
                 Context.FireEvent(new LIBFound
                 {
                     Offset = offset
@@ -632,8 +634,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             return false;
                         }
-                        
-                        publicKeys.AddIfNotContains(preRoundMiners[i]);
+
+                        if (previousRound.RealTimeMinersInfo[preRoundMiners[i]].OutValue != null)
+                        {
+                            publicKeys.AddIfNotContains(preRoundMiners[i]);
+                        }
                         
                         if (publicKeys.Count >= minimumCount)
                         {
@@ -696,7 +701,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].MissedTimeSlots
                     && currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue == null)
                 {
-                    currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
+                    //currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].InValue = suppliedMiner.Value.InValue;
                     currentRound.RealTimeMinersInfo[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
 
