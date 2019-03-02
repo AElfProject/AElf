@@ -27,13 +27,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockManager = GetRequiredService<IBlockManager>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
         }
-
-        [Fact]
-        public async Task Execute_Block_ThrowInvalidOperationException()
-        {
-            var result = _blockExecutingService.ExecuteBlockAsync(_chainId, Hash.FromString("NotExistExecuteBlock"));
-            result.ShouldThrow<InvalidOperationException>();
-        }
         
         [Fact]
         public async Task Execute_Block_NonCancellable()
