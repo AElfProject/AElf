@@ -154,7 +154,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
-        public async Task<JObject> BroadcastTransactions(string rawTransactions)
+        public async Task<JArray> BroadcastTransactions(string rawTransactions)
         {
             var response = new List<object>();
 
@@ -173,10 +173,7 @@ namespace AElf.OS.Rpc.ChainController
                 response.Add(result["TransactionId"].ToString());
             }
 
-            return new JObject
-            {
-                JToken.FromObject(response)
-            };
+            return JArray.FromObject(response);
         }
 
         [JsonRpcMethod("GetTransactionResult", "transactionId")]

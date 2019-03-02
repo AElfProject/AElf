@@ -202,6 +202,7 @@ namespace AElf.Kernel.SmartContract.Application
             var executiveZero = await GetExecutiveAsync(registration);
             executiveZero.SetDataCache(stateCache);
             await executiveZero.SetTransactionContext(txCtxt).Apply();
+            // TODD: should handle the situation contract doesn't exist
             return Hash.LoadHex(
                 ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"]
                 .ToString());

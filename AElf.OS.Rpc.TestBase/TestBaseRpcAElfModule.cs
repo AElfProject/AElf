@@ -70,13 +70,12 @@ namespace AElf.OS.Rpc
 
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
-                var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
-                mockSystemTransactionGenerationService.Setup(s =>
+                var mockService = new Mock<ISystemTransactionGenerationService>();
+                mockService.Setup(s =>
                     s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>(),
                         It.IsAny<int>())).Returns(new List<Transaction>());
-                return mockSystemTransactionGenerationService.Object;
+                return mockService.Object;
             });
-            context.Services.AddTransient<IMinerService, MinerService>();
 
             context.Services.AddTransient<IBlockExtraDataService>(o =>
             {
@@ -102,7 +101,7 @@ namespace AElf.OS.Rpc
             var defaultZero = typeof(BasicContractZero);
             var code = File.ReadAllBytes(defaultZero.Assembly.Location);
             var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration()
+            provider.DefaultContractZeroRegistration = new SmartContractRegistration
             {
                 Category = 2,
                 Code = ByteString.CopyFrom(code),
@@ -113,8 +112,10 @@ namespace AElf.OS.Rpc
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            
-            var transactions = RpcTestHelper.GetGenesisTransactions(chainId);
+            var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
+                .Value.NodeAccount);
+
+            var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
             var dto = new OsBlockchainNodeContextStartDto
             {
                 BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
