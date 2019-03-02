@@ -57,15 +57,15 @@ namespace AElf.OS.Tests.Network.Sync
             
             Mock<IFullBlockchainService> blockchainService = new Mock<IFullBlockchainService>();
             blockchainService
-                .Setup(bls => bls.AddBlockAsync(It.IsAny<int>(), It.IsAny<Block>()))
+                .Setup(bls => bls.AddBlockAsync(It.IsAny<Block>()))
                 .Returns<int, Block>((chainId, block) => Task.Run(() => downloadedBlocks.Add(block)));
 
             blockchainService
-                .Setup(bcs => bcs.GetChainAsync(It.IsAny<int>()))
+                .Setup(bcs => bcs.GetChainAsync())
                 .Returns(Task.FromResult(new Chain()));
 
             blockchainService
-                .Setup(bcs => bcs.HasBlockAsync(It.IsAny<int>(), It.IsAny<Hash>()))
+                .Setup(bcs => bcs.HasBlockAsync(It.IsAny<Hash>()))
                 .Returns(Task.FromResult(false)); // this service never has the block
             
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();

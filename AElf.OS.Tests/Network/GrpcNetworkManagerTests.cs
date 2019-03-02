@@ -54,15 +54,15 @@ namespace AElf.OS.Tests.Network
             var mockBlockService = new Mock<IFullBlockchainService>();
             if (blockList != null)
             {
-                mockBlockService.Setup(bs => bs.GetBlockByHashAsync(It.IsAny<int>(), It.IsAny<Hash>()))
+                mockBlockService.Setup(bs => bs.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns<int, Hash>((chainId, h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
                 
-                mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<int>(), It.IsAny<ulong>()))
+                mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<ulong>()))
                     .Returns<int, ulong>((chainId, h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
             }
             
             var mockBlockChainService = new Mock<IFullBlockchainService>();
-            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
 
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
