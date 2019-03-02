@@ -12,10 +12,14 @@ namespace AElf.OS.Network
         Task SendDisconnectAsync();
         Task StopAsync();
 
-        //TODO: change announce(height,blockHash)
+        //TODO: change announce(NewBlockAnnouncement), create a new protobuf type in os
         Task AnnounceAsync(BlockHeader header);
         Task SendTransactionAsync(Transaction tx);
         Task<Block> RequestBlockAsync(Hash hash, ulong height);
         Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count);
+        
+        Hash CurrentBlockHash { get; set; }
+        
+        ulong CurrentBlockHeight { get; set; }
     }
 }

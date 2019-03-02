@@ -50,6 +50,9 @@ namespace AElf.OS.Network.Grpc
             return idList.Ids.Select(id => Hash.LoadByteArray(id.ToByteArray())).ToList();
         }
 
+        public Hash CurrentBlockHash { get; set; }
+        public ulong CurrentBlockHeight { get; set; }
+
         public async Task AnnounceAsync(BlockHeader header)
         {
             await _client.AnnounceAsync(new Announcement { Header = header});

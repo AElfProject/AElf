@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "AElf.OS.Network";
 
 import "kernel.proto";
+import "common.proto";
 
 message Handshake {
     HandshakeData HskData = 1;
@@ -15,4 +16,9 @@ message HandshakeData {
     int64 ListeningPort = 1;
     bytes PublicKey = 2;
     int32 Version = 3;
+}
+
+message PeerNewBlockAnnouncement{
+    Hash BlockHash = 1;
+    uint64 BlockHeight = 2;
 }
