@@ -11,7 +11,6 @@ namespace AElf.Contracts.Consensus.DPoS
         public const ulong LockTokenForElection = 100_000;
         public const ulong MaxMissedTimeSlots = 1024;
         public const int AliasLimit = 20;
-        public const int AElfWaitFirstRoundTime = 4_000;
 
         public const string InitialMinersAliases = "YQ,SM,WK,ZY,SC,ZX,RP,ZZ,MH,YS,GL,LN,ZA,MM,GG,MC,WS,KL";
         

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Sdk.CSharp.State
 {
@@ -57,9 +57,9 @@ namespace AElf.Sdk.CSharp.State
         {
         }
 
-        internal virtual Dictionary<StatePath, StateValue> GetChanges()
+        internal virtual TransactionExecutingStateSet GetChanges()
         {
-            return new Dictionary<StatePath, StateValue>();
+            return new TransactionExecutingStateSet();
         }
     }
 }

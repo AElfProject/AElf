@@ -12,6 +12,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Shouldly;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
@@ -33,6 +35,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         private readonly ITxHub _txHub;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly IAccountService _accountService;
+        private ILocalEventBus _localEventBus;
 
         private readonly int _chainId;
         private ECKeyPair _keyPair;
@@ -49,7 +52,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             _accountService = GetRequiredService<IAccountService>();
 
             _chainId = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-
+            _localEventBus = NullLocalEventBus.Instance;
             _keyPair = CryptoHelpers.GenerateKeyPair();
             
             AsyncHelper.RunSync( async () => { InitAccountAmount(); });
@@ -254,15 +257,10 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseCode.ShouldBe(Error.InvalidTransactionId);
             responseMessage.ShouldBe(Error.Message[Error.InvalidTransactionId]);
         }
-        
-        
 
         private async Task<Block> MinedOneBlock(Chain chain, List<Transaction> txs)
         {
-            foreach (var tx in txs)
-            {
-                await _txHub.AddTransactionAsync(_chainId, tx);
-            }
+            await PublishTransaction(txs);
 
             var block = await _minerService.MineAsync(_chainId, chain.BestChainHash, chain.BestChainHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
@@ -312,6 +310,15 @@ namespace AElf.OS.Rpc.ChainController.Tests
             };
 
             return tx;
+        }
+
+        private async Task PublishTransaction(List<Transaction> txs)
+        {
+            await _localEventBus.PublishAsync(new TransactionsReceivedEvent()
+            {
+                ChainId = _chainId,
+                Transactions = txs
+            });
         }
     }
 }

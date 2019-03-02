@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
@@ -54,19 +55,15 @@ namespace AElf.Sdk.CSharp.State
             _value = _originalValue;
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             if (!Equals(_originalValue, _value))
             {
-                dict[Path] = new StateValue()
-                {
-                    OriginalValue = ByteString.CopyFrom(SerializationHelpers.Serialize(_originalValue)),
-                    CurrentValue = ByteString.CopyFrom(SerializationHelpers.Serialize(_value))
-                };
+                stateSet.Writes[Path.ToStateKey()] = ByteString.CopyFrom(SerializationHelpers.Serialize(_value));
             }
 
-            return dict;
+            return stateSet;
         }
 
         private void Load()
@@ -75,6 +72,11 @@ namespace AElf.Sdk.CSharp.State
             _originalValue = SerializationHelpers.Deserialize<TEntity>(bytes);
             _value = _originalValue;
             Loaded = true;
+        }
+
+        private void UpdateToCache(TEntity value)
+        {
+            Provider.Cache[Path] = SerializationHelpers.Serialize(value);
         }
     }
 }

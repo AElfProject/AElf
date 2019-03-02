@@ -4,7 +4,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Contexts;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
@@ -41,7 +40,7 @@ namespace AElf.Sdk.CSharp
             State.Path = path;
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
             return State.GetChanges();
         }

@@ -19,55 +19,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
-
+        private readonly IBlockGenerationService _blockGenerationService;
+        
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
-            IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager, IBlockGenerationService blockGenerationService)
         {
             _executingService = executingService;
             _blockManager = blockManager;
             _blockchainStateManager = blockchainStateManager;
-        }
-
-        public async Task ExecuteBlockAsync(int chainId, Hash blockHash)
-        {
-            // TODO: If already executed, don't execute again. Maybe check blockStateSet?
-            var block = await _blockManager.GetBlockAsync(blockHash);
-            if (block == null)
-            {
-                throw new InvalidOperationException($"Block {blockHash.ToHex()} not exist.");
-            }
-
-            // TODO: BlockBody doesn't contains transactions , should get from tx pool
-            var readyTxs = block.Body.TransactionList.ToList();
-
-            // TODO: Use BlockStateSet to calculate merkle tree
-
-            var blockStateSet = new BlockStateSet()
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                PreviousHash = block.Header.PreviousBlockHash
-            };
-
-            var chainContext = new ChainContext()
-            {
-                ChainId = block.Header.ChainId,
-                BlockHash = block.Header.PreviousBlockHash,
-                BlockHeight = block.Header.Height - 1
-            };
-            var returnSets = await _executingService.ExecuteAsync(chainContext, readyTxs,
-                block.Header.Time.ToDateTime(), CancellationToken.None);
-            foreach (var returnSet in returnSets)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes.Add(change.Key, change.Value);
-                }
-            }
-
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-
-            // TODO: Insert deferredTransactions to TxPool
+            _blockGenerationService = blockGenerationService;
         }
 
         public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
@@ -123,24 +83,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-            var allExecutedTransactionIds = allExecutedTransactions.Select(x=>x.GetHash()).ToList();
-            var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(allExecutedTransactionIds);
-            blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
-            blockHeader.MerkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
+            var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
+            var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
+                merkleTreeRootOfWorldState);
+            
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-            var blockBody = new BlockBody()
-            {
-                BlockHeader = blockHeader.GetHash()
-            };
-            blockBody.Transactions.AddRange(allExecutedTransactionIds);
-            blockBody.TransactionList.AddRange(allExecutedTransactions);
-            return new Block()
-            {
-                Header = blockHeader,
-                Body = blockBody
-            };
+            
+            return block;
         }
 
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)

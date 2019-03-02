@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContract.Domain
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
         Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
-        Task MergeBlockStateAsync(int chainId, Hash blockStateHash);
+        Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync(int chainId);
     }
 
@@ -130,10 +130,8 @@ namespace AElf.Kernel.SmartContract.Domain
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        public async Task MergeBlockStateAsync(int chainId, Hash blockStateHash)
+        public async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash)
         {
-            var chainStateInfo = await GetChainStateInfoAsync(chainId);
-
             var blockState = await _blockStateSets.GetAsync(blockStateHash.ToStorageKey());
             if (blockState == null)
             {
@@ -143,7 +141,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     chainStateInfo.Status = ChainStateMergingStatus.Common;
                     chainStateInfo.MergingBlockHash = null;
 
-                    await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
+                    await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
                     return;
                 }
 
@@ -160,7 +158,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
-                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
                 var dic = blockState.Changes.Select(change => new VersionedState()
                 {
                     Key = change.Key,
@@ -175,14 +173,14 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;
                 chainStateInfo.BlockHeight = blockState.BlockHeight;
-                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
 
                 await _blockStateSets.RemoveAsync(blockStateHash.ToStorageKey());
 
                 chainStateInfo.Status = ChainStateMergingStatus.Common;
                 chainStateInfo.MergingBlockHash = null;
 
-                await _chainStateInfoCollection.SetAsync(chainId.ToStorageKey(), chainStateInfo);
+                await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
             }
             else
             {

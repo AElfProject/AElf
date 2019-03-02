@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContract.Application
             mockExecutive.SetupProperty(e => e.ContractHash);
             mockExecutive.Setup(e => e.SetTransactionContext(It.IsAny<TransactionContext>()))
                 .Returns(mockExecutive.Object);
-            mockExecutive.Setup(e => e.SetDataCache(It.IsAny<Dictionary<StatePath, StateCache>>()));
+            mockExecutive.Setup(e => e.SetDataCache(It.IsAny<IStateCache>()));
 
             mockExecutive.Object.ContractHash = registration.CodeHash;
 

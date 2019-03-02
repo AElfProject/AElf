@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
@@ -55,22 +56,19 @@ namespace AElf.Sdk.CSharp.State
             Cache = new Dictionary<TKey, ValuePair>();
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
                 if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
                 {
-                    dict[GetSubStatePath(kv.Key.ToString())] = new StateValue()
-                    {
-                        CurrentValue = ByteString.CopyFrom(SerializationHelpers.Serialize(kv.Value.Value)),
-                        OriginalValue = ByteString.CopyFrom(SerializationHelpers.Serialize(kv.Value.OriginalValue))
-                    };
+                    var key = GetSubStatePath(kv.Key.ToString()).ToStateKey();
+                    stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelpers.Serialize(kv.Value.Value));
                 }
             }
 
-            return dict;
+            return stateSet;
         }
 
         private ValuePair LoadKey(TKey key)
@@ -84,6 +82,11 @@ namespace AElf.Sdk.CSharp.State
                 OriginalValue = value,
                 Value = value
             };
+        }
+        private void UpdateToCache(TKey key, TEntity value)
+        {
+            var path = GetSubStatePath(key.ToString());
+            Provider.Cache[path] = SerializationHelpers.Serialize(value);
         }
     }
 
@@ -115,18 +118,18 @@ namespace AElf.Sdk.CSharp.State
             Cache = new Dictionary<TKey1, MappedState<TKey2, TEntity>>();
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges())
+                foreach (var kv1 in kv.Value.GetChanges().Writes)
                 {
-                    dict[kv1.Key] = kv1.Value;
+                    stateSet.Writes[kv1.Key] = kv1.Value;
                 }
             }
 
-            return dict;
+            return stateSet;
         }
     }
 
@@ -158,18 +161,18 @@ namespace AElf.Sdk.CSharp.State
             Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TEntity>>();
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges())
+                foreach (var kv1 in kv.Value.GetChanges().Writes)
                 {
-                    dict[kv1.Key] = kv1.Value;
+                    stateSet.Writes[kv1.Key] = kv1.Value;
                 }
             }
 
-            return dict;
+            return stateSet;
         }
     }
 
@@ -201,18 +204,18 @@ namespace AElf.Sdk.CSharp.State
             Cache = new Dictionary<TKey1, MappedState<TKey2, TKey3, TKey4, TEntity>>();
         }
 
-        internal override Dictionary<StatePath, StateValue> GetChanges()
+        internal override TransactionExecutingStateSet GetChanges()
         {
-            var dict = new Dictionary<StatePath, StateValue>();
+            var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges())
+                foreach (var kv1 in kv.Value.GetChanges().Writes)
                 {
-                    dict[kv1.Key] = kv1.Value;
+                    stateSet.Writes[kv1.Key] = kv1.Value;
                 }
             }
 
-            return dict;
+            return stateSet;
         }
     }
 }

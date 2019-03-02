@@ -13,7 +13,7 @@ namespace AElf.Sdk.CSharp
         Hash TransactionId { get; }
 
         int ChainId { get; }
-
+        
         // TODO: Remove Transaction
         Transaction Transaction { get; }
         Address Sender { get; }

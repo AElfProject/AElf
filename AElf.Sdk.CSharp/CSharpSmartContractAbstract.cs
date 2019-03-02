@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Sdk.CSharp
 {
@@ -12,7 +11,7 @@ namespace AElf.Sdk.CSharp
         internal abstract void SetTransactionContext(ITransactionContext transactionContext);
         internal abstract void SetStateProvider(IStateProvider stateProvider);
         internal abstract void SetContractAddress(Address address);
-        internal abstract Dictionary<StatePath, StateValue> GetChanges();
+        internal abstract TransactionExecutingStateSet GetChanges();
         internal abstract void Cleanup();
 
         protected void Assert(bool asserted, string message = "Assertion failed!")

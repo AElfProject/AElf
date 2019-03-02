@@ -1,7 +1,6 @@
 ﻿using System;
 using AElf.Common;
 using AElf.Sdk.CSharp;
-using QuickGraph.Algorithms.RandomWalks;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {

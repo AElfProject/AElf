@@ -19,14 +19,9 @@ namespace AElf.Kernel
         typeof(SmartContractAElfModule),
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
-        typeof(TypesAElfModule),
         typeof(TransactionPoolAElfModule))]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-//            context.Services.AddSingleton<IMinerService, MinerService>();
-//            context.Services.AddSingleton<BlockMiningEventHandler>();
-        }
+
     }
 }

@@ -1,7 +1,7 @@
 (function () {
     deployCommand = function (category, code) {
-        var txHash = chain.contractZero.DeploySmartContract(category, code).TransactionId;
         console.log("Deploying contract ...");
+        var txHash = chain.contractZero.DeploySmartContract(category, code).TransactionId;
         console.log("TransactionId is: " + txHash);
         // _repeatedCalls(function () {
         //     var res = aelf.chain.getTxResult(txHash);

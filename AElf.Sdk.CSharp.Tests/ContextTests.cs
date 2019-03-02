@@ -77,7 +77,7 @@ namespace AElf.Sdk.CSharp.Tests
             
             var inlineTransaction = context.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
-            inlineTransaction[0].From.ShouldBe(context.TransactionContext.Transaction.From);
+            inlineTransaction[0].From.ShouldBe(context.Self);
             inlineTransaction[0].To.ShouldBe(to);
             inlineTransaction[0].MethodName.ShouldBe(methodName);
             inlineTransaction[0].Params.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(arg)));
@@ -193,7 +193,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
@@ -223,7 +223,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
@@ -246,7 +246,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = Address.Genesis,
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;

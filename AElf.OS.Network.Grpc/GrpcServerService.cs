@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Network.Events;
 using Google.Protobuf;
 using Grpc.Core;
@@ -108,7 +110,11 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await EventBus.PublishAsync(new TxReceivedEventData(tx));
+                await EventBus.PublishAsync(new TransactionsReceivedEvent()
+                {
+                    ChainId = ChainId,
+                    Transactions = new List<Transaction>() {tx}
+                });
             }
             catch (Exception e)
             {
@@ -203,9 +209,9 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
-                Logger.LogDebug($"Peer {context.Peer} requested block ids: from {request.FirstBlockId}, count : {request.Count}.");
+                Logger.LogDebug($"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.FirstBlockId.ToByteArray())}, count : {request.Count}.");
                 
-                var headers = await _blockChainService.GetReservedBlockHashes(ChainId, 
+                var headers = await _blockChainService.GetReversedBlockHashes(ChainId, 
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();

@@ -1,13 +1,12 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract
 {
+
     public interface IStateProvider
     {
         ITransactionContext TransactionContext { get; set; }
-        Dictionary<StatePath, StateCache> Cache { get; set; }
+        IStateCache Cache { get; set; }
         Task<byte[]> GetAsync(StatePath path);
         
     }

@@ -7,41 +7,23 @@ using AElf.Cryptography;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Types;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp.ReadOnly;
 using AElf.Kernel.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.Threading;
 
 namespace AElf.Sdk.CSharp
 {
     public class Context : IContextInternal
     {
-        private IBlockchainService _blockchainService;
-        private ISmartContractContext _smartContractContext;
         public ITransactionContext TransactionContext { get; set; }
 
-        public ISmartContractContext SmartContractContext
-        {
-            get => _smartContractContext;
-            set
-            {
-                _smartContractContext = value;
-                OnSmartContractContextSet();
-            }
-        }
-
-        private void OnSmartContractContextSet()
-        {
-            _blockchainService = _smartContractContext.ChainService;
-        }
+        public ISmartContractContext SmartContractContext { get; set; }
 
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
-            _smartContractContext.Logger.LogDebug(func());
+            SmartContractContext.LogDebug(func);
 #endif
         }
 
@@ -81,7 +63,7 @@ namespace AElf.Sdk.CSharp
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = TransactionContext.Transaction.From,
+                From = Self,
                 To = address,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
@@ -91,9 +73,8 @@ namespace AElf.Sdk.CSharp
 
         public Block GetPreviousBlock()
         {
-            return AsyncHelper.RunSync(
-                () => _blockchainService.GetBlockByHashAsync(_smartContractContext.ChainId,
-                    TransactionContext.PreviousBlockHash));
+            return SmartContractContext.GetBlockByHash(
+                TransactionContext.PreviousBlockHash);
         }
 
         public bool VerifySignature(Transaction tx)
@@ -125,9 +106,8 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError("no permission.");
             }
 
-            AsyncHelper.RunSync(async () =>
-                await SmartContractContext.SmartContractService.DeployContractAsync(ChainId, address, registration,
-                    false));
+            SmartContractContext.DeployContract(address, registration,
+                false);
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration)
@@ -137,9 +117,8 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError("no permission.");
             }
 
-            AsyncHelper.RunSync(async () =>
-                await SmartContractContext.SmartContractService.UpdateContractAsync(ChainId, address, registration,
-                    false));
+            SmartContractContext.UpdateContract(address, registration,
+                false);
         }
     }
 }
