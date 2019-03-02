@@ -5,7 +5,6 @@ using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Newtonsoft.Json.Linq;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -80,12 +79,17 @@ namespace AElf.Contracts.CrossChain
             request.SideChainStatus = SideChainStatus.Review;
 //            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
+            
+            //TODO: do not return json in a smart contract
+            /*
             var res = new JObject
             {
 //                ["proposal_hash"] = hash.ToHex(),
                 ["chain_id"] = ChainHelpers.ConvertChainIdToBase58(chainId)
             };
-            return res.ToString();
+            return res.ToString();*/
+            throw new NotImplementedException();
+
         }
 
         public void WithdrawRequest(string chainId)
@@ -219,13 +223,13 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             return State.CurrentSideChainHeight[id];
         }
-        
+
         [View]
         public ulong GetParentChainHeight()
         {
             return State.CurrentParentChainHeight.Value;
         }
-        
+
         [View]
         public ulong LockedBalance(string chainId)
         {
@@ -257,11 +261,12 @@ namespace AElf.Contracts.CrossChain
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
             if (crossChainBlockData.ParentChainBlockData.Count > 0)
                 IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
-            Hash calculatedRoot = null; 
+            Hash calculatedRoot = null;
             if (sideChainBlockData.Count > 0)
             {
                 calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
             }
+
             Context.FireEvent(new CrossChainIndexingEvent
             {
                 SideChainTransactionsMerkleTreeRoot = calculatedRoot,
@@ -269,7 +274,7 @@ namespace AElf.Contracts.CrossChain
                 Sender = Context.Sender // for validation 
             });
         }
-        
+
         [View]
         public SideChainIdAndHeightDict GetSideChainIdAndHeight()
         {
@@ -283,6 +288,7 @@ namespace AElf.Contracts.CrossChain
                 var height = State.CurrentSideChainHeight[chainId];
                 dict.IdHeighDict.Add(chainId, height);
             }
+
             return dict;
         }
 
@@ -291,13 +297,13 @@ namespace AElf.Contracts.CrossChain
         {
             var dict = GetSideChainIdAndHeight();
 
-            if (State.ParentChainId.Value == 0) 
+            if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             dict.IdHeighDict.Add(State.ParentChainId.Value, parentChainHeight);
             return dict;
         }
-        
+
         /// <summary>
         /// Index parent chain blocks.
         /// </summary>
@@ -365,7 +371,9 @@ namespace AElf.Contracts.CrossChain
                 if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                var target = currentSideChainHeight != 0 ? currentSideChainHeight + 1 : CrossChainConsts.GenesisBlockHeight;
+                var target = currentSideChainHeight != 0
+                    ? currentSideChainHeight + 1
+                    : CrossChainConsts.GenesisBlockHeight;
                 if (target != sideChainHeight)
                     continue;
 

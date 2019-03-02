@@ -6,7 +6,6 @@ using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -587,7 +586,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (CalculateLIB(out var offset))
             {
-                Context.Logger.LogInformation($"LIB found, offset is {offset}");
+                Context.LogDebug(() => $"LIB found, offset is {offset}");
                 Context.FireEvent(new LIBFound
                 {
                     Offset = offset
@@ -598,13 +597,13 @@ namespace AElf.Contracts.Consensus.DPoS
         private bool CalculateLIB(out ulong offset)
         {
             offset = 0;
-            
+
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 var currentRoundMiners = currentRound.RealTimeMinersInfo;
 
                 var minersCount = currentRoundMiners.Count;
-                
+
                 var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
                 var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
@@ -616,18 +615,18 @@ namespace AElf.Contracts.Consensus.DPoS
                     offset = (ulong) senderOrder;
                     return true;
                 }
-                
+
                 // Current round is not enough to find LIB.
-                
+
                 var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
-                
+
                 if (TryToGetPreviousRoundInformation(out var previousRound))
                 {
                     var preRoundMiners = previousRound.RealTimeMinersInfo.Values.OrderByDescending(m => m.Order)
                         .Select(m => m.PublicKey).ToList();
 
                     var traversalBlocksCount = publicKeys.Count;
-                    
+
                     for (var i = 0; i < minersCount; i++)
                     {
                         if (++traversalBlocksCount > minersCount)
@@ -635,11 +634,14 @@ namespace AElf.Contracts.Consensus.DPoS
                             return false;
                         }
 
-                        if (previousRound.RealTimeMinersInfo[preRoundMiners[i]].OutValue != null)
+                        var miner = preRoundMiners[i];
+
+                        if (previousRound.RealTimeMinersInfo[miner].OutValue != null)
                         {
-                            publicKeys.AddIfNotContains(preRoundMiners[i]);
+                            if (!publicKeys.Contains(miner))
+                                publicKeys.Add(miner);
                         }
-                        
+
                         if (publicKeys.Count >= minimumCount)
                         {
                             offset = (ulong) validMinersCountOfCurrentRound + (ulong) i;
@@ -648,7 +650,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 }
             }
-            
+
             return false;
         }
 

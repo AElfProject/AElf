@@ -193,7 +193,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
@@ -223,7 +223,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
@@ -246,7 +246,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ChainId = _chainId,
                 ContractAddress = Address.Genesis,
-                ChainService = _blockchainService,
+                BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
             context.SmartContractContext = smartContractContext;
