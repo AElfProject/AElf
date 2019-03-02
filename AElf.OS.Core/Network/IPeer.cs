@@ -24,6 +24,6 @@ namespace AElf.OS.Network
         ulong CurrentBlockHeight { get; set; }
 
         //TODO: help me implement it
-        Task<List<Block>> GetBlocks(Hash previousHash, ulong height, int count);
+        Task<List<Block>> GetBlocksAsync(Hash previousHash, ulong height, int count);
     }
 }
