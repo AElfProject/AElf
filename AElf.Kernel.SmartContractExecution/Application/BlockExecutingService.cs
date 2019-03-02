@@ -30,48 +30,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockGenerationService = blockGenerationService;
         }
 
-        public async Task ExecuteBlockAsync(int chainId, Hash blockHash)
-        {
-            // TODO: If already executed, don't execute again. Maybe check blockStateSet?
-            var block = await _blockManager.GetBlockAsync(blockHash);
-            if (block == null)
-            {
-                throw new InvalidOperationException($"Block {blockHash.ToHex()} not exist.");
-            }
-
-            // TODO: BlockBody doesn't contains transactions , should get from tx pool
-            var readyTxs = block.Body.TransactionList.ToList();
-
-            // TODO: Use BlockStateSet to calculate merkle tree
-
-            var blockStateSet = new BlockStateSet()
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                PreviousHash = block.Header.PreviousBlockHash
-            };
-
-            var chainContext = new ChainContext()
-            {
-                ChainId = block.Header.ChainId,
-                BlockHash = block.Header.PreviousBlockHash,
-                BlockHeight = block.Header.Height - 1
-            };
-            var returnSets = await _executingService.ExecuteAsync(chainContext, readyTxs,
-                block.Header.Time.ToDateTime(), CancellationToken.None);
-            foreach (var returnSet in returnSets)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes.Add(change.Key, change.Value);
-                }
-            }
-
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-
-            // TODO: Insert deferredTransactions to TxPool
-        }
-
         public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {

@@ -246,13 +246,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.DeferredTransactions.Add(tx);
             }
 
-            foreach (var s in trace.GetFlattenedWrite())
-            {
-                returnSet.StateChanges[s.Key] = s.Value;
-            }
-
             if (trace.IsSuccessful())
             {
+                foreach (var s in trace.GetFlattenedWrite())
+                {
+                    returnSet.StateChanges[s.Key] = s.Value;
+                }
+
                 if (trace.RetVal == null)
                 {
                     throw new NullReferenceException("RetVal of trace is null.");
