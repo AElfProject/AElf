@@ -214,7 +214,7 @@ message DPoSExtraInformation {
 }
 
 message ConsensusCommand {
-    int32 CountingMilliseconds = 1;// How many milliseconds left to really mine next block.
+    int32 CountingMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
     int32 TimeoutMilliseconds = 2;// Time limit of mining next block.
     bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
 }
@@ -238,6 +238,18 @@ message ValidationResult {
 message DPoSTriggerInformation {
     string PublicKey = 1;// A must-have.
     google.protobuf.Timestamp Timestamp = 2;// A must-have.
-    bool IsBootMiner = 3;
-    int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).
+    bool IsBootMiner = 3;// Only useful when initial one chain.
+}
+
+message RequestDPoSTransactions {
+    string PublicKey = 1;// A must-have.
+    google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    int32 MiningInterval = 3;// For the boot miner to set mining interval, usually it's 4000 (ms).
+    repeated string Miners = 4;// For the boot miner or miner gonna commit to change term to set miners of new round.
+    Hash CurrentInValue = 5;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash PreviousInValue = 6;// Publish In Value of previous round for validating the miner's signature.
+}
+
+message RequestDPoSExtraData {
+    
 }

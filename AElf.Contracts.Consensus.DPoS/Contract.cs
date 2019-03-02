@@ -43,8 +43,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     // For now, only if one node configured himself as a boot miner can he actually create the first block,
                     // which block height is 2.
-                    CountingMilliseconds =
-                        triggerInformation.IsBootMiner ? triggerInformation.MiningInterval : int.MaxValue,
+                    CountingMilliseconds = triggerInformation.IsBootMiner
+                        ? DPoSContractConsts.BootMinerWaitingMilliseconds
+                        : int.MaxValue,
                     // No need to limit the mining time for the first block a chain.
                     TimeoutMilliseconds = int.MaxValue,
                     Hint = new DPoSHint
@@ -56,10 +57,27 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
 
-            // If this node missed his time slot, a command of terminating current round will be fired,
-            // and the terminate time will based on the order of this node (to avoid conflicts).
             if (round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound))
             {
+                Context.LogDebug(() => "About to produce a normal block.");
+                
+                var expectedMiningTime = round.GetExpectedMiningTime(publicKey);
+                var countingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
+                return new ConsensusCommand
+                {
+                    CountingMilliseconds = countingMilliseconds,
+                    TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
+                    Hint = new DPoSHint
+                    {
+                        Behaviour = DPoSBehaviour.PackageOutValue
+                    }.ToByteString()
+                };
+            }
+            else
+            {
+                // If this node missed his time slot, a command of terminating current round will be fired,
+                // and the terminate time will based on the order of this node (to avoid conflicts).
+                
                 // TODO: Add a test case to test the ability to mine a block even this miner missed his time slot long time ago.
                 
                 Context.LogDebug(() => "About to terminate current round.");
@@ -76,28 +94,122 @@ namespace AElf.Contracts.Consensus.DPoS
                     }.ToByteString()
                 };
             }
-            else
+        }
+        
+        [View]
+        public TransactionList GenerateConsensusTransactions(byte[] requestConsensusTransactions)
+        {
+            var payload = RequestDPoSTransactions.Parser.ParseFrom(requestConsensusTransactions);
+            
+            // Some basic checks.
+            Assert(payload.PublicKey.Any(), "Data to request consensus txs should contain public key.");
+
+            var publicKey = payload.PublicKey;
+
+            // If this node cannot get current round information, he has no choice but initial the chain.
+            if (!TryToGetCurrentRoundInformation(out var round))
             {
-                Context.LogDebug(() => "About to produce a normal block.");
-                
-                var expectedMiningTime = round.GetExpectedMiningTime(publicKey);
-                var countingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
-                return new ConsensusCommand
+                var miningInterval = payload.MiningInterval;
+                var initialMiners = payload.Miners;
+                var firstTerm = initialMiners.ToMiners().GenerateNewTerm(miningInterval);
+                return new TransactionList
                 {
-                    CountingMilliseconds = countingMilliseconds,
-                    TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                    Hint = new DPoSHint
+                    Transactions =
                     {
-                        Behaviour = DPoSBehaviour.PackageOutValue
-                    }.ToByteString()
+                        GenerateTransaction("InitialTerm", new List<object> {firstTerm})
+                    }
                 };
             }
+            
+            Assert(payload.Timestamp.IsNotEmpty(), "Need the timestamp to generate consensus txs.");
+
+            var timestamp = payload.Timestamp;
+
+            if (round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound))
+            {
+                Assert(payload.CurrentInValue.IsNotEmpty(), "Need in value to generate tx for producing normal block.");
+
+                var forward = new Forwarding
+                {
+                    CurrentRound = round.RoundNumber == 1 ? round.SupplementForFirstRound() : (TryToGetPreviousRoundInformation(out var previousRound) ? round.Supplement(previousRound) : new Round()),
+                    //NextRound = 
+                };
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction("NextRound", new List<object> {forward})
+                    }
+                };
+            }
+            
+            // Calculate the approvals of changing term, change the term if approvals more than the number of 2 / 3 miners.
+            
+            return new TransactionList();
+            /*
+            var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
+            var publicKey = extra.PublicKey;
+
+            // To initial consensus information.
+            if (!TryToGetRoundNumber(out _))
+            {
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction("InitialTerm", new List<object> {extra.NewTerm})
+                    }
+                };
+            }
+
+            // To terminate current round.
+            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
+            {
+                if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
+                    TryToGetTermNumber(out var termNumber))
+                {
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction("NextTerm", new List<object> {extra.NewTerm}),
+                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
+                        }
+                    };
+                }
+
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction("NextRound", new List<object> {extra.Forwarding})
+                    }
+                };
+            }
+
+            if (extra.ToBroadcast != null && extra.ToPackage != null)
+            {
+                return new TransactionList
+                {
+                    Transactions =
+                    {
+                        GenerateTransaction("PackageOutValue", new List<object> {extra.ToPackage}),
+                        GenerateTransaction("BroadcastInValue", new List<object> {extra.ToBroadcast}),
+                    }
+                };
+            }
+
+            return new TransactionList();
+            */
         }
 
         [View]
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
+            
             var publicKey = information.SenderPublicKey;
 
             // Validate the sender.
@@ -224,64 +336,6 @@ namespace AElf.Contracts.Consensus.DPoS
             };
         }
 
-        [View]
-        public TransactionList GenerateConsensusTransactions(byte[] extraInformation)
-        {
-            var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
-            var publicKey = extra.PublicKey;
-
-            // To initial consensus information.
-            if (!TryToGetRoundNumber(out _))
-            {
-                return new TransactionList
-                {
-                    Transactions =
-                    {
-                        GenerateTransaction("InitialTerm", new List<object> {extra.NewTerm})
-                    }
-                };
-            }
-
-            // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
-            {
-                if (extra.ChangeTerm && TryToGetRoundNumber(out var roundNumber) &&
-                    TryToGetTermNumber(out var termNumber))
-                {
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction("NextTerm", new List<object> {extra.NewTerm}),
-                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
-                        }
-                    };
-                }
-
-                return new TransactionList
-                {
-                    Transactions =
-                    {
-                        GenerateTransaction("NextRound", new List<object> {extra.Forwarding})
-                    }
-                };
-            }
-
-            if (extra.ToBroadcast != null && extra.ToPackage != null)
-            {
-                return new TransactionList
-                {
-                    Transactions =
-                    {
-                        GenerateTransaction("PackageOutValue", new List<object> {extra.ToPackage}),
-                        GenerateTransaction("BroadcastInValue", new List<object> {extra.ToBroadcast}),
-                    }
-                };
-            }
-
-            return new TransactionList();
-        }
+        
     }
 }

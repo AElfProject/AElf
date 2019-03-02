@@ -12,33 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-//        public Round TryToGetCurrentRoundInformation()
-//        {
-//            var roundNumber = TryToGetRoundNumber();
-//            return roundNumber != 0 ? State.RoundsMap[roundNumber.ToUInt64Value()] : new Round();
-//        }
-//
-//        public ulong TryToGetTermNumber()
-//        {
-//            termNumber = _dataStructures.CurrentTermNumberField.GetValue();
-//        }
-//        public ulong TryToGetRoundNumber()
-//        {
-//            return State.CurrentRoundNumberField.Value;
-//        }
-//        public bool IsMiner(Address address)
-//        {
-//            if (TryToGetTermNumber(out var termNumber))
-//            {
-//                if (TryToGetMiners(termNumber, out var miners))
-//                {
-//                    return miners.Addresses.Contains(address);
-//                }
-//            }
-//
-//            return false;
-//        }
-
         public bool TryToUpdateRoundNumber(ulong roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumberField.Value;

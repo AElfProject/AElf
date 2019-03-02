@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
         }
 
-        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong roundNumber = 0, ulong termNumber = 0)
+        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
@@ -100,20 +100,20 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 infosOfRound2.RealTimeMinersInformation.Add(enumerable[i], minerInRound);
             }
 
-            infosOfRound1.RoundNumber = roundNumber + 1;
-            infosOfRound2.RoundNumber = roundNumber + 2;
+            infosOfRound1.RoundNumber = currentRoundNumber + 1;
+            infosOfRound2.RoundNumber = currentRoundNumber + 2;
 
             infosOfRound1.MiningInterval = miningInterval;
             infosOfRound2.MiningInterval = miningInterval;
 
             var term = new Term
             {
-                TermNumber = termNumber + 1,
+                TermNumber = currentTermNumber + 1,
                 FirstRound = infosOfRound1,
                 SecondRound = infosOfRound2,
                 Miners = new Miners
                 {
-                    TermNumber = termNumber + 1,
+                    TermNumber = currentTermNumber + 1,
                     PublicKeys = {miners.PublicKeys}
                 },
                 MiningInterval = miningInterval,

@@ -323,7 +323,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
         
         [Fact]
-        public async Task NormalBlock_Consensus_GenerateTransaction()
+        public async Task NormalBlock_GenerateTransaction()
         {
             // Arrange
             
