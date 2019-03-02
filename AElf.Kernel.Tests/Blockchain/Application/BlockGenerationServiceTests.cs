@@ -12,10 +12,10 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly BlockGenerationService _blockGenerationService;
 
         private readonly IBlockchainService _blockchainService;
-        
-        public BlockGenerationServiceTests(IBlockchainService blockchainService)
+
+        public BlockGenerationServiceTests()
         {
-            _blockchainService = blockchainService;
+            _blockchainService = GetRequiredService<IBlockchainService>();
             _blockGenerationService = GetRequiredService<BlockGenerationService>();
         }
 

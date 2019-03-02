@@ -114,7 +114,7 @@ namespace AElf.OS.Tests.Network.Sync
 
             var mockBlockChainService = new Mock<IFullBlockchainService>(); // our chain only has genesis
             mockBlockChainService.Setup(m => m.HasBlockAsync(It.IsAny<Hash>()))
-                .Returns<int, Hash>((chainId, blockId) => Task.FromResult(blockId == genesis.GetHash()));
+                .Returns<Hash>((blockId) => Task.FromResult(blockId == genesis.GetHash()));
 
             var handler = BuildEventHandler(null, chainOptions, backgroundMng.Object, netMock.Object,
                 mockBlockChainService.Object);
@@ -160,7 +160,7 @@ namespace AElf.OS.Tests.Network.Sync
             // our chain only has genesis and B1
             var mockBlockChainService = new Mock<IFullBlockchainService>();
             mockBlockChainService.Setup(m => m.HasBlockAsync(It.IsAny<Hash>()))
-                .Returns<int, Hash>((chainId, blockId) =>
+                .Returns<Hash>((blockId) =>
                     Task.FromResult(blockId == genesis.GetHash() || blockId == blocks[1].GetHash()));
 
             var backgroundMng = new Mock<IBackgroundJobManager>();

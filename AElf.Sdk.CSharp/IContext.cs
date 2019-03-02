@@ -8,7 +8,7 @@ namespace AElf.Sdk.CSharp
     public interface IContext
     {
         int ChainId { get; }
-        
+
         void LogDebug(Func<string> func);
 
         void FireEvent<TEvent>(TEvent logEvent) where TEvent : Event;

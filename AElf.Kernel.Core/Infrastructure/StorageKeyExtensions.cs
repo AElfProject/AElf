@@ -20,7 +20,7 @@ namespace AElf.Kernel.Infrastructure
         }
         public static string ToStorageKey(this Hash hash)
         {
-            return hash.ToHex();
+            return hash?.ToHex();
         }
     }
 }
