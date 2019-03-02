@@ -100,7 +100,6 @@ namespace AElf.Kernel.Blockchain.Application
             await LocalEventBus.PublishAsync(
                 new BestChainFoundEventData()
                 {
-                    ChainId = chain.Id,
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });

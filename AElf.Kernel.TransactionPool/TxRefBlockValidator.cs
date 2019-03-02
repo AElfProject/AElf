@@ -20,7 +20,7 @@ namespace AElf.Kernel.TransactionPool
             _blockchainService = blockchainService;
         }
 
-        public async Task ValidateAsync(int chainId, Transaction tx)
+        public async Task ValidateAsync( Transaction tx)
         {
 
             if (tx.RefBlockNumber < ChainConsts.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
@@ -28,7 +28,7 @@ namespace AElf.Kernel.TransactionPool
                 return;
             }
 
-            var chain = await _blockchainService.GetChainAsync(chainId);
+            var chain = await _blockchainService.GetChainAsync();
 
             var canonicalHash = await _blockchainService.GetBlockHashByHeightAsync(chain, tx.RefBlockNumber);
 

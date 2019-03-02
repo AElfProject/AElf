@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Types;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -37,6 +38,8 @@ namespace AElf.Kernel.Blockchain.Domain
             ChainBlockLinkExecutionStatus status);
 
         Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
+
+        Address GetConsensusContractAddress();
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -277,6 +280,11 @@ namespace AElf.Kernel.Blockchain.Domain
             chain.BestChainHash = bestChainHash;
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+        }
+
+        public Address GetConsensusContractAddress()
+        {
+            return ContractHelpers.GetConsensusContractAddress(_chainId);
         }
     }
 }

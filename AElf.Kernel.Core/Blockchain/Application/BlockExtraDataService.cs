@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Services;
 
 namespace AElf.Kernel.Blockchain.Application
 {

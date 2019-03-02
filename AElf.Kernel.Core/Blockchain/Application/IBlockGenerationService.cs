@@ -11,7 +11,6 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class GenerateBlockDto
     {
-        public int ChainId { get; set; }
         public Hash PreviousBlockHash { get; set; }
         public ulong PreviousBlockHeight { get; set; }
         
@@ -42,7 +41,6 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     Height = generateBlockDto.PreviousBlockHeight + 1,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
-                    ChainId = generateBlockDto.ChainId,
                     Time = Timestamp.FromDateTime(generateBlockDto.BlockTime)
                 },
                 Body = new BlockBody()

@@ -210,11 +210,10 @@ namespace AElf.Kernel.Services
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(int chainId, Hash preBlockHash, ulong preBlockHeight)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, ulong preBlockHeight)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
-                ChainId = chainId,
                 PreviousBlockHash = preBlockHash,
                 PreviousBlockHeight = preBlockHeight
             });
