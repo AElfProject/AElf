@@ -209,7 +209,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
                     {
-                        ChainId = eventData.ChainId,
                         Transaction = transaction
                     });
                 }

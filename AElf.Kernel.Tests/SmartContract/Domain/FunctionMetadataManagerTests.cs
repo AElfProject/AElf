@@ -7,7 +7,6 @@ namespace AElf.Kernel.SmartContract.Domain
     public class FunctionMetadataManagerTests : AElfKernelTestBase
     {
         private readonly FunctionMetadataManager _functionMetadataManager;
-        private int _chainId = 1;
         public FunctionMetadataManagerTests()
         {
             _functionMetadataManager = GetRequiredService<FunctionMetadataManager>();
@@ -18,12 +17,12 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             var metadataName = "TestMetadataAdd";
             
-            var existMetadata = await _functionMetadataManager.GetMetadataAsync(_chainId, metadataName);
+            var existMetadata = await _functionMetadataManager.GetMetadataAsync(metadataName);
             existMetadata.ShouldBeNull();
 
-            await _functionMetadataManager.AddMetadataAsync(_chainId, metadataName, new FunctionMetadata());
+            await _functionMetadataManager.AddMetadataAsync(metadataName, new FunctionMetadata());
             
-            existMetadata = await _functionMetadataManager.GetMetadataAsync(_chainId, metadataName);
+            existMetadata = await _functionMetadataManager.GetMetadataAsync(metadataName);
             existMetadata.ShouldNotBeNull();
         }
 
@@ -32,13 +31,13 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             var metadataName = "TestMetadataRemove";
             
-            var existMetadata = await _functionMetadataManager.GetMetadataAsync(_chainId, metadataName);
+            var existMetadata = await _functionMetadataManager.GetMetadataAsync(metadataName);
             existMetadata.ShouldBeNull();
             
-            await _functionMetadataManager.AddMetadataAsync(_chainId, metadataName, new FunctionMetadata());
-            await _functionMetadataManager.RemoveMetadataAsync(_chainId, metadataName);
+            await _functionMetadataManager.AddMetadataAsync(metadataName, new FunctionMetadata());
+            await _functionMetadataManager.RemoveMetadataAsync(metadataName);
             
-            existMetadata = await _functionMetadataManager.GetMetadataAsync(_chainId, metadataName);
+            existMetadata = await _functionMetadataManager.GetMetadataAsync(metadataName);
             existMetadata.ShouldBeNull();
         }
         
@@ -47,21 +46,21 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             var metadataName = "TestMetadataRemove";
 
-            var existMetadata = await _functionMetadataManager.GetMetadataAsync(_chainId, metadataName);
+            var existMetadata = await _functionMetadataManager.GetMetadataAsync(metadataName);
             existMetadata.ShouldBeNull();
             
-            await _functionMetadataManager.RemoveMetadataAsync(_chainId, metadataName);
+            await _functionMetadataManager.RemoveMetadataAsync(metadataName);
         }
 
         [Fact]
         public async Task Add_CallGraph_Success()
         {
-            var graph = await _functionMetadataManager.GetCallGraphAsync(_chainId);
+            var graph = await _functionMetadataManager.GetCallGraphAsync();
             graph.ShouldBeNull();
 
-            await _functionMetadataManager.AddCallGraphAsync(_chainId, new SerializedCallGraph());
+            await _functionMetadataManager.AddCallGraphAsync(new SerializedCallGraph());
             
-            graph = await _functionMetadataManager.GetCallGraphAsync(_chainId);
+            graph = await _functionMetadataManager.GetCallGraphAsync();
             graph.ShouldNotBeNull();
         }
     }

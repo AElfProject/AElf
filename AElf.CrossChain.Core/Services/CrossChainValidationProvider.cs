@@ -21,13 +21,13 @@ namespace AElf.CrossChain
             _crossChainService = crossChainService;
         }
 
-        public Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
+        public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             // nothing to validate before execution for cross chain
             return Task.FromResult(true);
         }
 
-        public async Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)
+        public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             try
             {
@@ -54,18 +54,18 @@ namespace AElf.CrossChain
                 if(sideChainTransactionsRoot == null 
                    || !sideChainTransactionsRoot.Equals(block.Header.BlockExtraData.SideChainTransactionsRoot))
                     continue;
-                return await ValidateCrossChainBlockDataAsync(block.Header.ChainId, crossChainBlockData,
+                return await ValidateCrossChainBlockDataAsync(crossChainBlockData,
                     block.Header.GetHash(), block.Header.Height);
             }
             return false;
         }
 
-        private async Task<bool> ValidateCrossChainBlockDataAsync(int chainId, CrossChainBlockData crossChainBlockData,
+        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData,
             Hash preBlockHash, ulong preBlockHeight)
         {
-            return await _crossChainService.ValidateSideChainBlockDataAsync(chainId,
+            return await _crossChainService.ValidateSideChainBlockDataAsync(
                        crossChainBlockData.SideChainBlockData, preBlockHash, preBlockHeight) &&
-                   await _crossChainService.ValidateParentChainBlockDataAsync(chainId,
+                   await _crossChainService.ValidateParentChainBlockDataAsync(
                        crossChainBlockData.ParentChainBlockData, preBlockHash, preBlockHeight);
         }
     }
