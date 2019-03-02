@@ -19,44 +19,44 @@ namespace AElf.CrossChain
             LocalEventBus.Subscribe<BestChainFoundEventData>(RegisterSideChainAsync);
         }
 
-        public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(int chainId, Hash previousBlockHash,
+        public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash,
             ulong preBlockHeight)
         {
             var res = new List<SideChainBlockData>();
-            await _crossChainDataProvider.GetSideChainBlockDataAsync(chainId, res, previousBlockHash, preBlockHeight);
+            await _crossChainDataProvider.GetSideChainBlockDataAsync(res, previousBlockHash, preBlockHeight);
             return res;
         }
 
-        public async Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(int chainId, Hash previousBlockHash,
+        public async Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash,
             ulong preBlockHeight)
         {
             var res = new List<ParentChainBlockData>();
-            await _crossChainDataProvider.GetParentChainBlockDataAsync(chainId, res, previousBlockHash, preBlockHeight);
+            await _crossChainDataProvider.GetParentChainBlockDataAsync(res, previousBlockHash, preBlockHeight);
             return res;
         }
 
-        public async Task<bool> ValidateSideChainBlockDataAsync(int chainId,
+        public async Task<bool> ValidateSideChainBlockDataAsync(
             IList<SideChainBlockData> sideChainBlockData, Hash previousBlockHash, ulong preBlockHeight)
         {
-            return await _crossChainDataProvider.GetSideChainBlockDataAsync(chainId, sideChainBlockData, 
+            return await _crossChainDataProvider.GetSideChainBlockDataAsync(sideChainBlockData, 
                 previousBlockHash, preBlockHeight, true);
         }
         
-        public async Task<bool> ValidateParentChainBlockDataAsync(int chainId,
+        public async Task<bool> ValidateParentChainBlockDataAsync(
             IList<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, ulong preBlockHeight)
         {
-            return await _crossChainDataProvider.GetParentChainBlockDataAsync(chainId, parentChainBlockData, 
+            return await _crossChainDataProvider.GetParentChainBlockDataAsync(parentChainBlockData, 
                 previousBlockHash, preBlockHeight, true);
         }
 
-        public void CreateNewSideChainBlockInfoCache(int chainId)
+        public void CreateNewSideChainBlockInfoCache()
         {
-            _crossChainDataProvider.RegisterNewChain(chainId);
+            _crossChainDataProvider.RegisterNewChain();
         }
 
         private async Task RegisterSideChainAsync(BestChainFoundEventData eventData)
         {
-            await _crossChainDataProvider.ActivateCrossChainCacheAsync(eventData.ChainId, eventData.BlockHash,
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(eventData.BlockHash,
                 eventData.BlockHeight);
         }
     }

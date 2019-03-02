@@ -21,7 +21,7 @@ namespace AElf.CrossChain
             _transactionResultManager = transactionResultManager;
         }
 
-        public async Task FillExtraDataAsync(int chainId, Block block)
+        public async Task FillExtraDataAsync(Block block)
         {
             if (!TryGetLogEventInBlock(block, out var logEvent))
                 return;
@@ -61,7 +61,7 @@ namespace AElf.CrossChain
 //            txn.Sigs.Add(ByteString.CopyFrom(rawSig));
 //            block.AddTransaction(txn);
         }
-        public async Task<bool> ValidateExtraDataAsync(int chainId, Block block)
+        public async Task<bool> ValidateExtraDataAsync(Block block)
         {
             try
             {
@@ -86,8 +86,8 @@ namespace AElf.CrossChain
                         if (!sideChainTransactionsRoot.Equals(block.Header.BlockExtraData
                                 .SideChainTransactionsRoot))
                             return false;
-                        return await _crossChainService.ValidateSideChainBlockDataAsync(block.Header.ChainId, crossChainBlockData.SideChainBlockData, block.Header.PreviousBlockHash, block.Header.Height) &&
-                               await _crossChainService.ValidateParentChainBlockDataAsync(block.Header.ChainId, crossChainBlockData.ParentChainBlockData, block.Header.PreviousBlockHash, block.Header.Height);
+                        return await _crossChainService.ValidateSideChainBlockDataAsync(crossChainBlockData.SideChainBlockData, block.Header.PreviousBlockHash, block.Header.Height) &&
+                               await _crossChainService.ValidateParentChainBlockDataAsync(crossChainBlockData.ParentChainBlockData, block.Header.PreviousBlockHash, block.Header.Height);
                     }
                 }
 
