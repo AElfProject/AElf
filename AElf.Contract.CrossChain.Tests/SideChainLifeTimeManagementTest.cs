@@ -23,33 +23,74 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation()
         {
-            var initResult = await ContractTester.ExecuteContractWithMiningAsync(TokenContractAddress, "Initialize",
-                "ELF", "elf token", 1000_000UL, 2U);
+            await Initialize(1000_000UL);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
             };
             var txResult = await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
                 sideChainInfo);
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
-            Assert.False(txResult.RetVal.ToByteArray().IsNullOrEmpty());
             var expectedChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetChainId(1));
             var actualChainId = txResult.RetVal.ToStringUtf8();
             Assert.Equal(expectedChainId, actualChainId);
         }
-
+        
         [Fact]
-        public async Task Request_SideChain_Creation_WrongProposer()
+        public async Task Request_SideChain_Creation_WithoutApprove()
         {
+            await Initialize(1000_000UL);
+            ulong lockedTokenAmount = 10;
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
+            };
+            var txResult = await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Failed);
+        }
+        
+        [Fact]
+        public async Task Request_SideChain_Creation_WithoutEnoughToken()
+        {
+            await Initialize(1000);
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = 1000_000UL
+            };
+            var txResult = await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Failed);
+        }
+
+        [Fact]
+        public async Task Request_SideChain_Creation_WrongProposer()
+        {
+            await Initialize(1000_000UL);
+            ulong lockedTokenAmount = 10;
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                LockedTokenAmount = lockedTokenAmount,
                 Proposer = Address.Generate()
             };
             var txResult = await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
@@ -61,6 +102,9 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation_WrongStatus()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Review,
@@ -77,11 +121,15 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation_Twice()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
+
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
+                IndexingPrice = lockedTokenAmount,
                 Proposer = CrossChainContractTestHelper.GetAddress()
             };
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
@@ -99,6 +147,9 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Withdraw_ChainCreation()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -121,13 +172,18 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Withdraw_ChainCreation_WithWrongSender()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
+            
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
-                Proposer = Address.FromPublicKey(ecKeyPair.PublicKey)
+                Proposer = Address.FromPublicKey(ecKeyPair.PublicKey),
+                LockedTokenAmount = lockedTokenAmount
             };
             
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", ecKeyPair,
@@ -144,12 +200,16 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Withdraw_ChainCreation_ChainNotExist()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
             };
             
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", 
@@ -163,37 +223,47 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Failed);
         }
         
-//        [Fact]
-//        public async Task Withdraw_ChainCreation_WrongStatus()
-//        {
-//            var sideChainInfo = new SideChainInfo
-//            {
-//                SideChainStatus = SideChainStatus.Apply,
-//                ContractCode = ByteString.Empty,
-//                IndexingPrice = 1,
-//                Proposer = CrossChainContractTestHelper.GetAddress()
-//            };
-//            
-//            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", 
-//                sideChainInfo);
-//            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
-//            var expectedChainId = ChainHelpers.GetChainId(2);
-//            var txResult =
-//                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "WithdrawRequest",
-//                    ChainHelpers.ConvertChainIdToBase58(expectedChainId));
-//            var status = txResult.Status;
-//            Assert.True(status == TransactionResultStatus.Failed);
-//        }
-
         [Fact]
-        public async Task Create_SideChain()
+        public async Task Withdraw_ChainCreation_WrongStatus()
         {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
+            };
+            
+            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", 
+                sideChainInfo);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+            var chainId = ChainHelpers.GetChainId(1);
+            await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "CreateSideChain",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var txResult =
+                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "WithdrawRequest",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Failed);
+        }
+
+        [Fact]
+        public async Task Create_SideChain()
+        {
+            await Initialize(1000);
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
             };
             
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
@@ -210,22 +280,28 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Create_SideChain_FireEvent()
         {
+//            await Initialize(1000);
+//            await ApproveBalance(lockedTokenAmount);
+            
+            ulong lockedTokenAmount = 10;
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
             };
             
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
                 sideChainInfo);
             await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+            var txRes = await ContractTester.GetTransactionResult(tx.GetHash());
             var chainId = ChainHelpers.GetChainId(1);
             var txResult =
                 await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "CreateSideChain",
                     ChainHelpers.ConvertChainIdToBase58(chainId));
-            Assert.True(txResult.Logs.Count > 0);
+            Assert.True(txResult.Status == TransactionResultStatus.Mined);
             object[] data = ParamsPacker.Unpack(txResult.Logs.First().Data.ToByteArray(),
                 new[] {typeof(Address), typeof(int)});
             var actualChainId = (int) data[1];
@@ -233,7 +309,6 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(chainId == actualChainId);
             Assert.Equal(CrossChainContractTestHelper.GetAddress(), actualSender);    
         }
-        
         
         [Fact]
         public async Task Create_SideChain_ChainNotExist()

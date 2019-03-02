@@ -61,7 +61,7 @@ namespace AElf.Contracts.CrossChain
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
-                Context.Sender.Equals(request.Proposer), "Invalid chain creation request.");
+                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0, "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
@@ -101,7 +101,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         /// <summary>
-        /// Create side chain. It is a proposal result from system address. 
+        /// Create side chain. It is a proposal result from system address.
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>

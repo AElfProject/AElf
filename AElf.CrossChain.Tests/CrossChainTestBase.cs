@@ -41,18 +41,6 @@ namespace AElf.CrossChain
         {
             return new CrossChainDataConsumer(multiChainBlockInfoCacheProvider);            
         }
-
-        protected ICrossChainDataProducer CreateFakeCrossChainDataProducer(
-            IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
-        {
-            return new CrossChainDataProducer(multiChainBlockInfoCacheProvider);
-        }
-
-        protected ICrossChainDataProvider CreateFakeCrossChainDataProvider(
-            ICrossChainContractReader crossChainContractReader, ICrossChainDataConsumer crossChainDataConsumer)
-        {
-            return new CrossChainDataProvider(crossChainContractReader, crossChainDataConsumer);
-        }
         
         protected ICrossChainContractReader CreateFakeCrossChainContractReader(Dictionary<int, ulong> sideChainIdHeights, Dictionary<int, ulong> parentChainIdHeights)
         {
