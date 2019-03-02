@@ -20,6 +20,8 @@ namespace AElf.Sdk.CSharp
 
         public ISmartContractContext SmartContractContext { get; set; }
 
+        public int ChainId => SmartContractContext.GetChainId();
+
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
@@ -33,7 +35,6 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
-        public int ChainId => SmartContractContext.ChainId;
         public Transaction Transaction => TransactionContext.Transaction.ToReadOnly();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
@@ -101,10 +102,11 @@ namespace AElf.Sdk.CSharp
 
         public void DeployContract(Address address, SmartContractRegistration registration)
         {
-            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
-            {
-                throw new AssertionError("no permission.");
-            }
+            //TODO: should not check in sdk, not safe
+//            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
+//            {
+//                throw new AssertionError("no permission.");
+//            }
 
             SmartContractContext.DeployContract(address, registration,
                 false);
@@ -112,10 +114,10 @@ namespace AElf.Sdk.CSharp
 
         public void UpdateContract(Address address, SmartContractRegistration registration)
         {
-            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
-            {
-                throw new AssertionError("no permission.");
-            }
+//            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
+//            {
+//                throw new AssertionError("no permission.");
+//            }
 
             SmartContractContext.UpdateContract(address, registration,
                 false);

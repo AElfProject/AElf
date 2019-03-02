@@ -48,7 +48,6 @@ namespace AElf.OS.Rpc.ChainController
 
             await s.LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
             {
-                ChainId = s.ChainId,
                 Transactions = transactions
             });
             return txIds;
@@ -175,10 +174,9 @@ namespace AElf.OS.Rpc.ChainController
         internal static async Task<IMessage> GetContractAbi(this ChainControllerRpcService s, int chainId,
             Address address)
         {
-            var chain = await s.BlockchainService.GetChainAsync(chainId);
+            var chain = await s.BlockchainService.GetChainAsync();
             var chainContext = new ChainContext()
             {
-                ChainId = chainId,
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };

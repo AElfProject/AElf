@@ -7,12 +7,12 @@ namespace AElf.Sdk.CSharp
 {
     public interface IContext
     {
+        int ChainId { get; }
+        
         void LogDebug(Func<string> func);
 
         void FireEvent<TEvent>(TEvent logEvent) where TEvent : Event;
         Hash TransactionId { get; }
-
-        int ChainId { get; }
         
         // TODO: Remove Transaction
         Transaction Transaction { get; }

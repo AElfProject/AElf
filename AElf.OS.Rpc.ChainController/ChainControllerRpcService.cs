@@ -28,7 +28,7 @@ namespace AElf.OS.Rpc.ChainController
     public class ChainControllerRpcService : IJsonRpcService
     {
         public IBlockchainService BlockchainService { get; set; }
-        public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
+        public ITxHub TxHub { get; set; }
         public ITransactionResultManager TransactionResultManager { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
@@ -46,7 +46,6 @@ namespace AElf.OS.Rpc.ChainController
 
         public int ChainId => _chainOptions.ChainId;
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
-        public ITxHub TxHub => TxHubs.Get(_chainOptions.ChainId);
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
@@ -351,7 +350,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetChainStatus")]
         public async Task<JObject> GetChainStatus()
         {
-            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);
+            var chain = await BlockchainService.GetChainAsync();
             var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
             var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
             return new JObject

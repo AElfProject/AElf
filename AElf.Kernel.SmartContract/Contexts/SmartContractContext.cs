@@ -45,6 +45,11 @@ namespace AElf.Kernel.SmartContract
             AsyncHelper.RunSync(() => UpdateContractAsync(contractAddress, registration, isPrivileged));
         }
 
+        public int GetChainId()
+        {
+            return BlockchainService.GetChainId();
+        }
+
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {

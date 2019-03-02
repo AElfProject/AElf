@@ -26,5 +26,7 @@ namespace AElf.Kernel.SmartContract
 
         void UpdateContract(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
+
+        int GetChainId();
     }
 }
