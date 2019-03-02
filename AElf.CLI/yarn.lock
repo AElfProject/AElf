@@ -65,7 +65,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.27.tgz#eb3843f15d0ba0986cc7e4d734d2ee8b50709ef8"
   integrity sha512-e9wgeY6gaY21on3ve0xAjgBVjGDWq/xUteK0ujsE53bUoxycMkqfnkUgMt6ffZtykZ5X12Mg3T7Pw4TRCObDKg==
 
-aelf-sdk@2.0.2:
+aelf-sdk@latest:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.2.tgz#a0706030e12f578efb071522a75307c9a5ddd801"
   integrity sha512-mQWQ3xaXTBRehqbLrty0z040aYlEcVd+dsxANYKL/VgAJLtT9fwkomxZPsb5HzTFtPhSoW4qQUIS0000Zvh1Vg==
