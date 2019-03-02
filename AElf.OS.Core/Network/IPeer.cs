@@ -12,6 +12,7 @@ namespace AElf.OS.Network
         Task SendDisconnectAsync();
         Task StopAsync();
 
+        //TODO: change announce(height,blockHash)
         Task AnnounceAsync(BlockHeader header);
         Task SendTransactionAsync(Transaction tx);
         Task<Block> RequestBlockAsync(Hash hash, ulong height);
