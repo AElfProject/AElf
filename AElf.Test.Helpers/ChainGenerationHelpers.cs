@@ -28,15 +28,15 @@ namespace AElf.Synchronization.Tests
             return keyPairs;
         }
 
-        public static List<string> ToPubKeyStrings(this List<ECKeyPair> keyPairs)
-        {
-            List<string> pubKeyStrings = new List<string>(keyPairs.Count);
-            
-            foreach (var key in keyPairs)
-                pubKeyStrings.Add(key.PublicKey.ToHex());
-
-            return pubKeyStrings;
-        }
+//        public static List<string> ToPubKeyStrings(this List<ECKeyPair> keyPairs)
+//        {
+//            List<string> pubKeyStrings = new List<string>(keyPairs.Count);
+//            
+//            foreach (var key in keyPairs)
+//                pubKeyStrings.Add(key.PublicKey.ToHex());
+//
+//            return pubKeyStrings;
+//        }
         
         /// <summary>
         /// Builds the genesis block with AElfs builder.
@@ -79,22 +79,22 @@ namespace AElf.Synchronization.Tests
         /// <param name="start">The start block, if null will create a genesis block.</param>
         /// <param name="count">The amount of extra blocks to create</param>
         /// <returns>return the generated chain</returns>
-        public static List<IBlock> GenerateChain(int count, Block start = null)
-        {
-            Assert.True(count > 0);
-            
-            List<IBlock> blocks = new List<IBlock>();
-            
-            IBlock current = start ?? GetGenesisBlock();
-            blocks.Add(current);
-            
-            for (int i = 0; i < count; i++)
-            {
-                current = BuildNext(current);
-                blocks.Add(current);
-            }
-
-            return blocks;
-        }   
+//        public static List<IBlock> GenerateChain(int count, Block start = null)
+//        {
+//            Assert.True(count > 0);
+//            
+//            List<IBlock> blocks = new List<IBlock>();
+//            
+//            IBlock current = start ?? GetGenesisBlock();
+//            blocks.Add(current);
+//            
+//            for (int i = 0; i < count; i++)
+//            {
+//                current = BuildNext(current);
+//                blocks.Add(current);
+//            }
+//
+//            return blocks;
+//        }   
     }
 }
