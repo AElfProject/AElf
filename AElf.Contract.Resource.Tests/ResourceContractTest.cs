@@ -147,14 +147,14 @@ namespace AElf.Contracts.Resource.Tests
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact(Skip = "Anyone can burn foundation token until token value is smaller than foundation owed fee.")]
+        [Fact]
         public async Task FeeReceiver_Burn()
         {
             await Initialize_Resource();
 
-            Console.WriteLine($"CallOwner: {Tester.GetAddress(Tester.CallOwnerKeyPair)}");
-            var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Burn");
-            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Burn");
+            var returnMessage = burnResult.RetVal.ToStringUtf8();
+            burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         #endregion
@@ -429,9 +429,6 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Buy_Resource_WithEnough_Token(1000UL);
             var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
-            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetUserBalance",
-                ownerAddress, "Cpu");
-            var userBalance0 = resourceResult.DeserializeToUInt64();
 
             //Action
             var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "LockResource",
@@ -450,16 +447,12 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Buy_Resource_WithEnough_Token(1000UL);
             var ownerAddress = Tester.GetAddress(Tester.CallOwnerKeyPair);
-            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, "GetUserBalance",
-                ownerAddress, "Cpu");
-            var userBalance0 = resourceResult.DeserializeToUInt64();
 
             //Action
             var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "LockResource",
                 100UL, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var controllerAddress = Tester.GetAddress(FeeKeyPair);
             Tester.SetCallOwner(FeeKeyPair);
             var unlockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, "UnlockResource",
                 ownerAddress, 200UL, "Cpu");
