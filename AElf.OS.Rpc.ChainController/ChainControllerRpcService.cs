@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -10,14 +8,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Domain;
 using AElf.Kernel.Node.Domain;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Kernel.Types;
 using Anemonis.AspNetCore.JsonRpc;
-using Anemonis.JsonRpc;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -384,6 +379,26 @@ namespace AElf.OS.Rpc.ChainController
             return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
         }
 
+        [JsonRpcMethod("GetChainStatus")]
+        public async Task<JObject> GetChainStatus()
+        {
+            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);
+            var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
+            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
+            return new JObject
+            {
+                ["Branches"] = branches,
+                ["NotLinkedBlocks"] = notLinkedBlocks,
+                ["LongestChainHeight"] = chain.LongestChainHeight,
+                ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),
+                ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),
+                ["LastIrreversibleBlockHash"] = chain.LastIrreversibleBlockHash?.ToHex(),
+                ["LastIrreversibleBlockHeight"] = chain.LastIrreversibleBlockHeight,
+                ["BestChainHash"] = chain.BestChainHash?.ToHex(),
+                ["BestChainHeight"] = chain.BestChainHeight
+            };
+        }
+
         /*
         [JsonRpcMethod("GetConsensusStatus")]
         public async Task<JObject> GetConsensusStatus()
@@ -396,24 +411,6 @@ namespace AElf.OS.Rpc.ChainController
 
             return response;
         }
-
-        [JsonRpcMethod("GetNodeStatus")]
-        public async Task<JObject> GetNodeStatus()
-        {
-            var isForked = await MainchainNodeService.CheckForkedAsync();
-            var invalidBlockCount = await this.GetInvalidBlockCountAsync();
-            // var rollBackTimes = await this.GetRollBackTimesAsync();
-
-            var response = new JObject
-            {
-                ["IsForked"] = isForked,
-                ["InvalidBlockCount"] = invalidBlockCount,
-                // ["RollBackTimes"] = rollBackTimes
-            };
-
-            return response;
-        }
-        */
 
         /*
         [JsonRpcMethod("GetProposal", "proposalId")]
