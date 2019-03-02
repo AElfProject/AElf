@@ -12,11 +12,11 @@ namespace AElf.CrossChain
 {
     public class CrossChainBlockExtraDataProviderTest : CrossChainTestBase
     {
-        private LogEvent CreateCrossChainLogEvent(int chainId, byte[] topic, byte[] data)
+        private LogEvent CreateCrossChainLogEvent(byte[] topic, byte[] data)
         {
             return new LogEvent
             {
-                Address = ContractHelpers.GetCrossChainContractAddress(chainId),
+                Address = ContractHelpers.GetCrossChainContractAddress(0),
                 Topics =
                 {
                     ByteString.CopyFrom(topic)
@@ -45,26 +45,22 @@ namespace AElf.CrossChain
             var fakeTransactionResultManager = TransactionResultManager;
             //    CrossChainTestHelper.FakeTransactionResultManager(new List<TransactionResult>());
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(fakeTransactionResultManager);
-            int chainId = 123;
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(chainId, block);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync( block);
             Assert.Null(block.Header.BlockExtraData);
         }
         
         [Fact]
         public async Task FillExtraData_NotFoundEvent()
-        {
-            int chainId = 123;
-            
+        {            
             Hash txId1 = Hash.FromString("tx1");
             var txRes1 =
-                CreateFakeTransactionResult(txId1, new []{CreateCrossChainLogEvent(chainId, new byte[0], new byte[0])});
+                CreateFakeTransactionResult(txId1, new []{CreateCrossChainLogEvent(new byte[0], new byte[0])});
             txRes1.UpdateBloom();
             
             var block = new Block
             {
                 Header = new BlockHeader
                 {
-                    ChainId = chainId,
                     Bloom = ByteString.CopyFrom(Bloom.AndMultipleBloomBytes(new[] {txRes1.Bloom.ToByteArray()}))
                 },
                 Body = new BlockBody()
@@ -73,38 +69,36 @@ namespace AElf.CrossChain
             var transactionResultManager = TransactionResultManager;
             await transactionResultManager.AddTransactionResultAsync(txRes1);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(transactionResultManager);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(chainId, block);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }
         
         [Fact]
         public async Task FillExtraData_OneEvent()
         {
-            int chainId = 123;
 
             var fakeMerkleTreeRoot = Hash.FromString("SideChainTransactionsMerkleTreeRoot");
             var publicKey = CrossChainTestHelper.GetPubicKey();
             var data = ParamsPacker.Pack(fakeMerkleTreeRoot, new CrossChainBlockData(),
                 Address.FromPublicKey(publicKey));
             var logEvent =
-                CreateCrossChainLogEvent(chainId, CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
+                CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
             
             Hash txId1 = Hash.FromString("tx1");
             var txRes1 = CreateFakeTransactionResult(txId1, new []{logEvent});
             txRes1.UpdateBloom();
             Hash txId2 = Hash.FromString("tx2");
             var txRes2 = CreateFakeTransactionResult(txId2,
-                new[] {CreateCrossChainLogEvent(chainId, new byte[0], new byte[0])});
+                new[] {CreateCrossChainLogEvent(new byte[0], new byte[0])});
             
             Hash txId3 = Hash.FromString("tx3");
             var txRes3 = CreateFakeTransactionResult(txId3,
-                new[] {CreateCrossChainLogEvent(chainId, new byte[0], new byte[0])});
+                new[] {CreateCrossChainLogEvent(new byte[0], new byte[0])});
             
             var block = new Block
             {
                 Header = new BlockHeader
                 {
-                    ChainId = chainId,
                     Bloom = ByteString.CopyFrom(Bloom.AndMultipleBloomBytes(new[] {txRes1.Bloom.ToByteArray()}))
                 },
                 Body = new BlockBody()
@@ -117,32 +111,29 @@ namespace AElf.CrossChain
             await transactionResultManager.AddTransactionResultAsync(txRes2);
             await transactionResultManager.AddTransactionResultAsync(txRes3);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(transactionResultManager);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(chainId, block);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Equal(fakeMerkleTreeRoot, block.Header.BlockExtraData.SideChainTransactionsRoot);
         }
         
         [Fact]
         public async Task FillExtraData_MultiEventsInOneTransaction()
-        {
-            int chainId = 123;
-            
+        {            
             var fakeMerkleTreeRoot = Hash.FromString("SideChainTransactionsMerkleTreeRoot");
             var publicKey = CrossChainTestHelper.GetPubicKey();
             var data = ParamsPacker.Pack(fakeMerkleTreeRoot, new CrossChainBlockData(),
                 Address.FromPublicKey(publicKey));
             var interestedLogEvent =
-                CreateCrossChainLogEvent(chainId, CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
+                CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
             
             Hash txId = Hash.FromString("tx1");
             var txRes = CreateFakeTransactionResult(txId,
-                new[] {CreateCrossChainLogEvent(chainId, new byte[0], new byte[0]), interestedLogEvent});
+                new[] {CreateCrossChainLogEvent(new byte[0], new byte[0]), interestedLogEvent});
             txRes.UpdateBloom();
             
             var fakeBlock = new Block
             {
                 Header = new BlockHeader
                 {
-                    ChainId = chainId,
                     Bloom = ByteString.CopyFrom(Bloom.AndMultipleBloomBytes(new[] {txRes.Bloom.ToByteArray()}))
                 },
                 Body = new BlockBody()
@@ -154,18 +145,17 @@ namespace AElf.CrossChain
             var fakeTransactionResultManager = TransactionResultManager;
             await fakeTransactionResultManager.AddTransactionResultAsync(txRes);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(fakeTransactionResultManager);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(chainId, fakeBlock);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(fakeBlock);
             Assert.Equal(fakeMerkleTreeRoot, fakeBlock.Header.BlockExtraData.SideChainTransactionsRoot);
         }
         
         [Fact]
         public async Task FillExtraData_OneEvent_WithWrongData()
         {
-            int chainId = 123;
             int wrongHash = 123; // which should be Hash type
             var data = ParamsPacker.Pack(wrongHash, new CrossChainBlockData());
             var logEvent =
-                CreateCrossChainLogEvent(chainId, CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
+                CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
             
             Hash txId1 = Hash.FromString("tx1");
             var txRes1 = CreateFakeTransactionResult(txId1, new []{logEvent});
@@ -175,7 +165,6 @@ namespace AElf.CrossChain
             {
                 Header = new BlockHeader
                 {
-                    ChainId = chainId,
                     Bloom = ByteString.CopyFrom(Bloom.AndMultipleBloomBytes(new[] {txRes1.Bloom.ToByteArray()}))
                 },
                 Body = new BlockBody()
@@ -184,7 +173,7 @@ namespace AElf.CrossChain
             var transactionResultManager = TransactionResultManager;
             await transactionResultManager.AddTransactionResultAsync(txRes1);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(transactionResultManager);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(chainId, block);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }
     }

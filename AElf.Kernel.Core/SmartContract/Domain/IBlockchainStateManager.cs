@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Domain
@@ -16,7 +17,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task<ByteString> GetStateAsync(string key, ulong blockHeight, Hash blockHash);
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
-        Task<ChainStateInfo> GetChainStateInfoAsync(int chainId);
+        Task<ChainStateInfo> GetChainStateInfoAsync();
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -26,12 +27,16 @@ namespace AElf.Kernel.SmartContract.Domain
 
         private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
 
+        private readonly int _chainId;
+
         public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
-            IStateStore<BlockStateSet> blockStateSets, IStateStore<ChainStateInfo> chainStateInfoCollection)
+            IStateStore<BlockStateSet> blockStateSets, IStateStore<ChainStateInfo> chainStateInfoCollection,
+            IOptionsSnapshot<ChainOptions> options)
         {
             _versionedStates = versionedStates;
             _blockStateSets = blockStateSets;
             _chainStateInfoCollection = chainStateInfoCollection;
+            _chainId = options.Value.ChainId;
         }
 
         /// <summary>
@@ -189,10 +194,10 @@ namespace AElf.Kernel.SmartContract.Domain
             }
         }
 
-        public async Task<ChainStateInfo> GetChainStateInfoAsync(int chainId)
+        public async Task<ChainStateInfo> GetChainStateInfoAsync()
         {
-            var o = await _chainStateInfoCollection.GetAsync(chainId.ToStorageKey());
-            return o ?? new ChainStateInfo() {ChainId = chainId};
+            var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
+            return o ?? new ChainStateInfo() {ChainId = _chainId};
         }
 
 

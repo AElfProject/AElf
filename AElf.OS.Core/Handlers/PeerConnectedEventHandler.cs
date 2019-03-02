@@ -66,7 +66,7 @@ namespace AElf.OS.Handlers
 
                 Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {header.Height} }} from {peer}.");
 
-                var hasBlock = await BlockchainService.HasBlockAsync(ChainId, blockHash);
+                var hasBlock = await BlockchainService.HasBlockAsync(blockHash);
 
                 // if we have the block, nothing to do.
                 if (hasBlock)
@@ -75,7 +75,7 @@ namespace AElf.OS.Handlers
                     return;
                 }
 
-                var hasPrevious = await BlockchainService.HasBlockAsync(ChainId, header.PreviousBlockHash);
+                var hasPrevious = await BlockchainService.HasBlockAsync(header.PreviousBlockHash);
 
                 // we have previous, so we only have one block to get.
                 if (hasPrevious)
@@ -91,9 +91,9 @@ namespace AElf.OS.Handlers
                         return;
                     }
 
-                    await BlockchainService.AddBlockAsync(ChainId, block);
+                    await BlockchainService.AddBlockAsync( block);
 
-                    var chain = await BlockchainService.GetChainAsync(ChainId);
+                    var chain = await BlockchainService.GetChainAsync();
                     var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
                     var link = await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
@@ -168,7 +168,7 @@ namespace AElf.OS.Handlers
 
             foreach (var id in ids)
             {
-                if (await BlockchainService.HasBlockAsync(ChainId, id))
+                if (await BlockchainService.HasBlockAsync( id))
                 {
                     // we have linked the fork
                     break;

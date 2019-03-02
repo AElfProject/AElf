@@ -6,11 +6,11 @@ namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusService
     {
-        Task TriggerConsensusAsync(int chainId);
+        Task TriggerConsensusAsync();
 
-        Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
+        Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
             byte[] consensusInformation);
-        Task<byte[]> GetNewConsensusInformationAsync(int chainId);
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId, ulong refBlockHeight, byte[] refBlockPrefix);
+        Task<byte[]> GetNewConsensusInformationAsync();
+        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ulong refBlockHeight, byte[] refBlockPrefix);
     }
 }

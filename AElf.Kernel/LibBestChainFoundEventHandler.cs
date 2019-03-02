@@ -63,7 +63,7 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         if (contractEvent.Address ==
-                            ContractHelpers.GetConsensusContractAddress(block.Header.ChainId) &&
+                            _chainManager.GetConsensusContractAddress() &&
                             contractEvent.Topics.Contains(
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
@@ -71,16 +71,17 @@ namespace AElf.Kernel
                             var offset = (ulong) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;
 
-                            var chain = await _blockchainService.GetChainAsync(eventData.ChainId);
+                            var chain = await _blockchainService.GetChainAsync();
                             var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight);
-                            
+
                             Logger.LogInformation($"Lib height: {libHeight}, Lib Hash: {libHash}");
 
-                            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync(eventData.ChainId);
+                            var chainStateInfo =
+                                await _blockchainStateManager.GetChainStateInfoAsync();
 
                             var count = (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
                             var hashes =
-                                await _blockchainService.GetReversedBlockHashes(eventData.ChainId, libHash, count);
+                                await _blockchainService.GetReversedBlockHashes(libHash, count);
 
                             hashes.Reverse();
 
@@ -91,7 +92,6 @@ namespace AElf.Kernel
                             {
                                 try
                                 {
-                                    
                                     Logger.LogInformation($"Merge Lib hash: {hash}， height: {startHeight++}");
                                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
                                 }
@@ -100,6 +100,7 @@ namespace AElf.Kernel
                                     Logger.LogError(e.Message);
                                 }
                             }
+
                             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
 
                             Logger.LogInformation("Lib setting finished.");

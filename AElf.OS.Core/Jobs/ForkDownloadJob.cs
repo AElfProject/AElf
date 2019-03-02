@@ -39,7 +39,7 @@ namespace AElf.OS.Jobs
                 foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
                 {
                     // Check that some other job didn't get this before.
-                    var hasBlock = await BlockchainService.HasBlockAsync(ChainId, hash);
+                    var hasBlock = await BlockchainService.HasBlockAsync(hash);
 
                     if (hasBlock)
                     {
@@ -56,16 +56,17 @@ namespace AElf.OS.Jobs
                         continue;
                     }
 
-                    var chain = await BlockchainService.GetChainAsync(ChainId);
+                    var chain = await BlockchainService.GetChainAsync();
 
                     if (chain == null)
                     {
-                        Logger.LogError($"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
+                        Logger.LogError(
+                            $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
                         break;
                     }
-                    
+
                     // Add to our chain
-                    await BlockchainService.AddBlockAsync(ChainId, block);
+                    await BlockchainService.AddBlockAsync(block);
                     var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
                     await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 

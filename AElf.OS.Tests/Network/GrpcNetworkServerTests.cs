@@ -47,7 +47,7 @@ namespace AElf.OS.Tests.Network
             }
             
             var mockBlockChainService = new Mock<IFullBlockchainService>();
-            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);

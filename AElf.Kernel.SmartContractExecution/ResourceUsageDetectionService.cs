@@ -17,14 +17,14 @@ namespace AElf.Kernel.SmartContractExecution
             _functionMetadataService = functionMetadataService;
         }
 
-        public async Task<IEnumerable<string>> GetResources(int chainId, Transaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Transaction transaction)
         {
 
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
                 .Select(addr => addr.GetFormatted()).ToList();
 
             var results = new List<string>();
-            var functionMetadata = await _functionMetadataService.GetFunctionMetadata(chainId, GetFunctionName(transaction));
+            var functionMetadata = await _functionMetadataService.GetFunctionMetadata(GetFunctionName(transaction));
             foreach (var resource in functionMetadata.FullResourceSet)
             {
                 switch (resource.DataAccessMode)

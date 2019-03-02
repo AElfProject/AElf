@@ -16,6 +16,9 @@ namespace AElf.CrossChain
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            
+            //TODO: please mock data here, do not directly new object, if you have multiple dependency, you should have 
+            //different modules, like  AElfIntegratedTest<AAACrossChainTestModule>,  AElfIntegratedTest<BBBCrossChainTestModule>
         }
     }
 }

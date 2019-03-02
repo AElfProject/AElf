@@ -11,8 +11,11 @@ namespace AElf.Kernel.Blockchain.Application
     {
         private readonly BlockGenerationService _blockGenerationService;
 
+        private readonly IBlockchainService _blockchainService;
+
         public BlockGenerationServiceTests()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
             _blockGenerationService = GetRequiredService<BlockGenerationService>();
         }
 
@@ -21,14 +24,13 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var generateBlockDto = new GenerateBlockDto
             {
-                ChainId = 1,
                 PreviousBlockHash = Hash.Genesis,
                 PreviousBlockHeight = 1
             };
 
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(generateBlockDto);
 
-            block.Header.ChainId.ShouldBe(generateBlockDto.ChainId);
+            block.Header.ChainId.ShouldBe(_blockchainService.GetChainId());
             block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
             block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
             block.Header.Time.ShouldBe(Timestamp.FromDateTime(generateBlockDto.BlockTime));

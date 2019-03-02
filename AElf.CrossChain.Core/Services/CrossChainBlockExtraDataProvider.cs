@@ -17,7 +17,7 @@ namespace AElf.CrossChain
             _transactionResultManager = transactionResultManager;
         }
 
-        public async Task FillExtraDataAsync(int chainId, Block block)
+        public async Task FillExtraDataAsync(Block block)
         {
             if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var interestedLogEvent))
                 return;

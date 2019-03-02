@@ -30,14 +30,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockGenerationService = blockGenerationService;
         }
 
-        public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
+        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
-            return await ExecuteBlockAsync(chainId, blockHeader, nonCancellableTransactions, new List<Transaction>(),
+            return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
 
-        public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
+        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
@@ -48,7 +48,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var chainContext = new ChainContext()
             {
-                ChainId = blockHeader.ChainId,
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             };

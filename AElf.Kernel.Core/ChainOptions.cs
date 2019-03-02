@@ -1,4 +1,4 @@
-namespace AElf.OS
+namespace AElf.Kernel
 {
     public class ChainOptions
     {

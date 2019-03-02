@@ -19,18 +19,19 @@ namespace AElf.Kernel.SmartContract
         /// <param name="contractReferences">the map where smart contract member reference to its acutal address</param>
         /// <exception cref="InvalidOperationException">Throw when FunctionMetadataMap already contains a function with same fullname</exception>
         /// <returns>True when success, false when something is wrong (usually is cannot find record with respect to functionName in the parameter otherFunctionsCallByThis)</returns>
-        Task DeployNewContract(int chainID, Address contractAddr, ContractMetadataTemplate contractMetadataTemplate);
+        Task DeployNewContract(Address contractAddr, ContractMetadataTemplate contractMetadataTemplate);
 
-        Task UpdateContract(int chainId, Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate, ContractMetadataTemplate newContractMetadataTemplate);
+        Task UpdateContract(Address contractAddr, ContractMetadataTemplate oldContractMetadataTemplate,
+            ContractMetadataTemplate newContractMetadataTemplate);
 
         /// <summary>
         /// Get a function's metadata, throw  if this function is not found in the map.
         /// TODO: need to be async when this access datastore
         /// </summary>
-        /// <param name="chainId"></param>
+        /// <param name=""></param>
         /// <param name="functionFullName"></param>
-        Task<FunctionMetadata> GetFunctionMetadata(int chainId, string functionFullName);
-        
+        Task<FunctionMetadata> GetFunctionMetadata(string functionFullName);
+
         /// <summary>
         /// Update metadata of an existing function.
         /// This function should only be called when this contract legally update.
@@ -38,7 +39,7 @@ namespace AElf.Kernel.SmartContract
         /// <param name="functionFullName"></param>
         /// <param name="otherFunctionsCallByThis"></param>
         /// <param name="nonRecursivePathSet"></param>
-        bool UpdataExistingMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis, HashSet<string> nonRecursivePathSet);
-
+        bool UpdataExistingMetadata(string functionFullName, HashSet<string> otherFunctionsCallByThis,
+            HashSet<string> nonRecursivePathSet);
     }
 }

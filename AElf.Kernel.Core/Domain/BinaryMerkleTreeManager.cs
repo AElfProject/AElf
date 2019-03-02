@@ -21,9 +21,9 @@ namespace AElf.Kernel.Domain
         /// <param name="chainId"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public async Task AddTransactionsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, int chainId, ulong height)
+        public async Task AddTransactionsMerkleTreeAsync(BinaryMerkleTree binaryMerkleTree, ulong height)
         {
-            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            var key = GetTransactionsMerkleTreeKey(height);
             await _binaryMerkleTreeStore.SetAsync(key, binaryMerkleTree);
         }
 
@@ -33,15 +33,15 @@ namespace AElf.Kernel.Domain
         /// <param name="chainId"></param>
         /// <param name="height">=</param>
         /// <returns></returns>
-        public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(int chainId, ulong height)
+        public async Task<BinaryMerkleTree> GetTransactionsMerkleTreeByHeightAsync(ulong height)
         {
-            var key = GetTransactionsMerkleTreeKey(chainId, height);
+            var key = GetTransactionsMerkleTreeKey(height);
             return await _binaryMerkleTreeStore.GetAsync(key);
         }
 
-        private string GetTransactionsMerkleTreeKey(int chainId, ulong height)
+        private string GetTransactionsMerkleTreeKey(ulong height)
         {
-            return chainId.ToStorageKey() + height;
+            return height.ToStorageKey();
         }
     }
 }
