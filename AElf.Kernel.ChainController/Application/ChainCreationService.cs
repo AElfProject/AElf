@@ -44,7 +44,8 @@ namespace AElf.Kernel.ChainController.Application
                 {
                     Height = ChainConsts.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    ChainId = _blockchainService.GetChainId()
                 };
 
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);

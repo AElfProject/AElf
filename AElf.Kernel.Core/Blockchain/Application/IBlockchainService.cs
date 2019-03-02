@@ -102,7 +102,6 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<Chain> CreateChainAsync(Block block)
         {
-            block.Header.ChainId = _chainManager.GetChainId();
             await AddBlockAsync(block);
             var chain = await _chainManager.CreateAsync(block.GetHash());
             await LocalEventBus.PublishAsync(

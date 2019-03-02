@@ -54,6 +54,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         public bool ScheduleTriggered { get; set; }
 
+        //TODO: should use one ConsensusTester,you can make ge generic type with XXXTestAElfModule, and mock different 
+        //services in the module ConfigServices
         public ConsensusTester(int chainId, ECKeyPair callOwnerKeyPair, List<ECKeyPair> initialMinersKeyPairs,
             bool isBootMiner = false)
         {
@@ -61,7 +63,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
 
             var application =
-                AbpApplicationFactory.Create<DPoSConsensusTestAElfModule>(options => { options.UseAutofac(); });
+                AbpApplicationFactory.Create<DPoSConsensusTestAElfModule>(options =>
+                {
+                    options.UseAutofac();
+                    options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
+
+                });
             application.Initialize();
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
