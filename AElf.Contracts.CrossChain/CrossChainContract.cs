@@ -59,20 +59,17 @@ namespace AElf.Contracts.CrossChain
         /// <returns></returns>
         public string RequestChainCreation(SideChainInfo request)
         {
-            Console.WriteLine("Request..");
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
                 Context.Sender.Equals(request.Proposer), "Invalid chain creation request.");
 
-            Console.WriteLine("Create chain id..");
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelpers.GetChainId(serialNumber);
             var info = State.SideChainInfos[chainId];
             Assert(info.IsEmpty(), "Chain creation request already exists.");
 
-            Console.WriteLine("Create chain id..");
             // lock token and resource
             request.SideChainId = chainId;
             //LockTokenAndResource(request);
@@ -178,9 +175,9 @@ namespace AElf.Contracts.CrossChain
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
-            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Context.Genesis,
-                Context.Self, DisposeSideChainMethodName, chainId);
-            return proposalHash.DumpByteArray();
+//            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Context.Genesis,
+//                Context.Self, DisposeSideChainMethodName, chainId);
+            return new byte[0];
         }
 
         /// <summary>

@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -14,7 +16,8 @@ namespace AElf.Contract.CrossChain.Tests
     /*
      * Todo:
      * Side chain creation proposal is disable.
-     * Lock token and resource is disable. 
+     * Lock token and resource is disable.
+     * Recharge is disable.
     */
     public class SideChainLifeTimeManagementTest : CrossChainContractTestBase
     {
@@ -148,7 +151,6 @@ namespace AElf.Contract.CrossChain.Tests
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
                 Proposer = CrossChainContractTestHelper.GetAddress()
-
             };
             
             var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", 
@@ -161,5 +163,125 @@ namespace AElf.Contract.CrossChain.Tests
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
         }
+        
+//        [Fact]
+//        public async Task Withdraw_ChainCreation_WrongStatus()
+//        {
+//            var sideChainInfo = new SideChainInfo
+//            {
+//                SideChainStatus = SideChainStatus.Apply,
+//                ContractCode = ByteString.Empty,
+//                IndexingPrice = 1,
+//                Proposer = CrossChainContractTestHelper.GetAddress()
+//            };
+//            
+//            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation", 
+//                sideChainInfo);
+//            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+//            var expectedChainId = ChainHelpers.GetChainId(2);
+//            var txResult =
+//                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "WithdrawRequest",
+//                    ChainHelpers.ConvertChainIdToBase58(expectedChainId));
+//            var status = txResult.Status;
+//            Assert.True(status == TransactionResultStatus.Failed);
+//        }
+
+        [Fact]
+        public async Task Create_SideChain()
+        {
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress()
+            };
+            
+            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+            var chainId = ChainHelpers.GetChainId(1);
+            var txResult =
+                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "CreateSideChain",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Mined);
+        }
+        
+        [Fact]
+        public async Task Create_SideChain_FireEvent()
+        {
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress()
+            };
+            
+            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+            var chainId = ChainHelpers.GetChainId(1);
+            var txResult =
+                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "CreateSideChain",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            Assert.True(txResult.Logs.Count > 0);
+            object[] data = ParamsPacker.Unpack(txResult.Logs.First().Data.ToByteArray(),
+                new[] {typeof(Address), typeof(int)});
+            var actualChainId = (int) data[1];
+            var actualSender = (Address) data[0];
+            Assert.True(chainId == actualChainId);
+            Assert.Equal(CrossChainContractTestHelper.GetAddress(), actualSender);    
+        }
+        
+        
+        [Fact]
+        public async Task Create_SideChain_ChainNotExist()
+        {
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress()
+            };
+            
+            var tx = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx});
+            var chainId = ChainHelpers.GetChainId(2);
+            var txResult =
+                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "CreateSideChain",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Failed);
+        }
+
+        [Fact]
+        public async Task Request_SideChain_Disposal()
+        {
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress()
+            };
+            
+            var tx1 = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
+                sideChainInfo);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx1});
+            var chainId = ChainHelpers.GetChainId(1);
+            var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
+                chainId);
+            await ContractTester.MineABlockAsync(new List<Transaction> {tx2});
+            var txResult =
+                await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainDisposal",
+                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Mined);
+        }
+        
     }
 }

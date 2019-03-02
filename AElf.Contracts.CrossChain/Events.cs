@@ -8,7 +8,7 @@ namespace AElf.Contracts.CrossChain
     public class SideChainCreationRequested : Event
     {
         public Address Creator { get; set; }
-        public Hash ChainId { get; set; }
+        public int ChainId { get; set; }
     }
 
     public class SideChainCreationRequestApproved : Event
