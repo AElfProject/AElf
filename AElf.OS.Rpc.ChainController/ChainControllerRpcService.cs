@@ -344,6 +344,26 @@ namespace AElf.OS.Rpc.ChainController
             var obj = await BlockStateSets.GetAsync(blockHash);
             return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
         }
+        
+        [JsonRpcMethod("GetChainStatus")]	
+        public async Task<JObject> GetChainStatus()	
+        {	
+            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);	
+            var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());	
+            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());	
+            return new JObject	
+            {	
+                ["Branches"] = branches,	
+                ["NotLinkedBlocks"] = notLinkedBlocks,	
+                ["LongestChainHeight"] = chain.LongestChainHeight,	
+                ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),	
+                ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),	
+                ["LastIrreversibleBlockHash"] = chain.LastIrreversibleBlockHash?.ToHex(),	
+                ["LastIrreversibleBlockHeight"] = chain.LastIrreversibleBlockHeight,	
+                ["BestChainHash"] = chain.BestChainHash?.ToHex(),	
+                ["BestChainHeight"] = chain.BestChainHeight	
+            };	
+        }
 
         /*
         [JsonRpcMethod("GetConsensusStatus")]
@@ -353,23 +373,6 @@ namespace AElf.OS.Rpc.ChainController
             var response = new JObject
             {
                 ["IsAlive"] = isAlive
-            };
-
-            return response;
-        }
-
-        [JsonRpcMethod("GetNodeStatus")]
-        public async Task<JObject> GetNodeStatus()
-        {
-            var isForked = await MainchainNodeService.CheckForkedAsync();
-            var invalidBlockCount = await this.GetInvalidBlockCountAsync();
-            // var rollBackTimes = await this.GetRollBackTimesAsync();
-
-            var response = new JObject
-            {
-                ["IsForked"] = isForked,
-                ["InvalidBlockCount"] = invalidBlockCount,
-                // ["RollBackTimes"] = rollBackTimes
             };
 
             return response;
