@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

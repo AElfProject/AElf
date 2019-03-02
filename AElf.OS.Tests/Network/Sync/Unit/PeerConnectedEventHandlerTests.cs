@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Handlers;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.Synchronization.Tests;
 using Microsoft.Extensions.Options;

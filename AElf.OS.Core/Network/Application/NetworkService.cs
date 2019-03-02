@@ -8,19 +8,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network.Application
 {
-    public class GrpcNetworkService : INetworkService, ISingletonDependency
+    public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
         
-        public ILogger<GrpcNetworkService> Logger { get; set; }
+        public ILogger<NetworkService> Logger { get; set; }
 
-        public GrpcNetworkService(IPeerPool peerPool)
+        public NetworkService(IPeerPool peerPool)
         {
             _peerPool = peerPool;
             
-            Logger = NullLogger<GrpcNetworkService>.Instance;
+            Logger = NullLogger<NetworkService>.Instance;
         }
 
         public async Task<bool> AddPeerAsync(string address)

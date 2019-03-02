@@ -21,7 +21,7 @@ namespace AElf.OS.Network.Grpc
     /// Implementation of the grpc generated service. It contains the rpc methods
     /// exposed to peers.
     /// </summary>
-    public class GrpcServerService : PeerService.PeerServiceBase, IAElfServerService
+    public class GrpcServerService : PeerService.PeerServiceBase
     {
         private readonly ChainOptions _chainOptions;
         

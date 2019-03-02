@@ -1,4 +1,5 @@
 using AElf.Modularity;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,8 +15,9 @@ namespace AElf.OS.Network.Grpc
         {
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
             context.Services.AddSingleton<GrpcPeerPool>();
-            context.Services.AddSingleton<INetworkService, GrpcNetworkService>();
-            
+            context.Services.AddSingleton<INetworkService, NetworkService>();
+            context.Services.AddSingleton<IPeerPool, GrpcPeerPool>();
+
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
         }
     }

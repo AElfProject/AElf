@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
         public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
-            GrpcPeerPool peerPool)
+            IPeerPool peerPool)
         {
             _serverService = serverService;
             PeerPool = peerPool;
@@ -59,7 +59,6 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogWarning("Boot nodes list is empty.");
             }
-
         }
 
         public async Task StopAsync()

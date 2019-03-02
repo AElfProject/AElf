@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Application
 {
     public interface INetworkService
     {

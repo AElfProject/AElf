@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.Synchronization.Tests;
 using Microsoft.Extensions.Options;
 using Moq;
