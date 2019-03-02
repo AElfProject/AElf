@@ -11,9 +11,8 @@ namespace AElf.OS.Network
         
         Task SendDisconnectAsync();
         Task StopAsync();
-
-        //TODO: change announce(NewBlockAnnouncement), create a new protobuf type in os
-        Task AnnounceAsync(BlockHeader header);
+        
+        Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
         Task<Block> RequestBlockAsync(Hash hash, ulong height);
         Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count);

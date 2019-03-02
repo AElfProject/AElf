@@ -4,13 +4,13 @@ namespace AElf.OS.Network.Events
 {
     public class AnnoucementReceivedEventData
     {
-        public BlockHeader Header { get; private set; }
+        public PeerNewBlockAnnouncement Announce { get; private set; }
         public string Peer { get; private set; }
         
-        public AnnoucementReceivedEventData(BlockHeader header, string peer)
+        public AnnoucementReceivedEventData(PeerNewBlockAnnouncement an, string peer)
         {
             Peer = peer;
-            Header = header;
+            Announce = an;
         }
     }
 }

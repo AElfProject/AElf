@@ -241,7 +241,7 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
 
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Announce.GetHash() == genesis.GetHash());
         }
 
         [Fact]
@@ -327,7 +327,7 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
 
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Announce.GetHash() == genesis.GetHash());
         }
 
         private (List<Transaction>, List<Hash>) GenerateTransactionListInfo(int count)

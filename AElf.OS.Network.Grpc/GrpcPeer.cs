@@ -53,9 +53,9 @@ namespace AElf.OS.Network.Grpc
         public Hash CurrentBlockHash { get; set; }
         public ulong CurrentBlockHeight { get; set; }
 
-        public async Task AnnounceAsync(BlockHeader header)
+        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            await _client.AnnounceAsync(new Announcement { Header = header});
+            await _client.AnnounceAsync(header);
         }
 
         public async Task SendTransactionAsync(Transaction tx)
