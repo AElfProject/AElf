@@ -30,7 +30,6 @@ namespace AElf.OS.Jobs
             {
                 var count = 5;
 
-                var chainId = args.ChainId;
                 var pool = Server.PeerPool;
 
 

@@ -7,6 +7,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;

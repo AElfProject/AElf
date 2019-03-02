@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeerPool
     {

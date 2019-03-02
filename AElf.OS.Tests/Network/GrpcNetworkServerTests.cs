@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -52,7 +53,7 @@ namespace AElf.OS.Tests.Network
             
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
             
-            GrpcServerService serverService = new GrpcServerService(_optionsMock, grpcPeerPool, null);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);

@@ -10,6 +10,7 @@ using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Infrastructure;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
@@ -71,7 +72,7 @@ namespace AElf.OS.Tests.Network
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object,
                 NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService =
-                new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
+                new GrpcServerService(grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
 
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
@@ -209,14 +210,14 @@ namespace AElf.OS.Tests.Network
         [Fact]
         private async Task Announcement_Event_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
+            List<AnnouncementReceivedEventData> receivedEventDatas = new List<AnnouncementReceivedEventData>();
 
             void TransferEventCallbackAction(object eventData)
             {
                 // todo use event bus
                 try
                 {
-                    if (eventData is AnnoucementReceivedEventData data)
+                    if (eventData is AnnouncementReceivedEventData data)
                     {
                         receivedEventDatas.Add(data);
                     }
@@ -296,13 +297,13 @@ namespace AElf.OS.Tests.Network
         [Fact]
         private async Task Announcement_Request_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
+            List<AnnouncementReceivedEventData> receivedEventDatas = new List<AnnouncementReceivedEventData>();
 
             void TransferEventCallbackAction(object eventData)
             {
                 try
                 {
-                    if (eventData is AnnoucementReceivedEventData data)
+                    if (eventData is AnnouncementReceivedEventData data)
                     {
                         receivedEventDatas.Add(data);
                     }

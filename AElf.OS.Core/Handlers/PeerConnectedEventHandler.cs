@@ -22,7 +22,7 @@ using Volo.Abp.EventBus;
 namespace AElf.OS.Handlers
 {
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
-        ILocalEventHandler<AnnoucementReceivedEventData>
+        ILocalEventHandler<AnnouncementReceivedEventData>
     {
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
@@ -45,7 +45,7 @@ namespace AElf.OS.Handlers
         private int BlockIdRequestCount =>
             NetworkOptions?.Value?.BlockIdRequestCount ?? NetworkConsts.DefaultBlockIdRequestCount;
 
-        public async Task HandleEventAsync(AnnoucementReceivedEventData eventData)
+        public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
             await ProcessNewBlock(eventData, eventData.Peer);
         }
@@ -55,11 +55,10 @@ namespace AElf.OS.Handlers
             //await ProcessNewBlock(eventData, eventData.Peer);
         }
 
-        private async Task ProcessNewBlock(AnnoucementReceivedEventData header, string peerAddress)
+        private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string peerAddress)
         {
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
-            var chainId = header.ChainId;
 
             var peerInPool = NetworkServer.PeerPool.FindPeer(peerAddress);
             if (peerInPool != null)
@@ -101,7 +100,7 @@ namespace AElf.OS.Handlers
                     await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                     {
                         SuggestedPeerAddress = peerAddress,
-                        ChainId = chainId,
+                        BlockHash = header.Announce.BlockHash, 
                     });
                 }
             }

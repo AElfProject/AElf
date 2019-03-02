@@ -8,6 +8,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -24,25 +25,22 @@ namespace AElf.OS.Network.Grpc
     public class GrpcServerService : PeerService.PeerServiceBase
     {
         private readonly ChainOptions _chainOptions;
-        
+
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
-        
+
         public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcServerService> Logger { get; set; }
-        
-        private int ChainId => _chainOptions.ChainId;
 
-        public GrpcServerService(IOptionsSnapshot<ChainOptions> options, IPeerPool peerPool, IBlockchainService blockChainService)
+
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService)
         {
             _peerPool = peerPool;
             _blockChainService = blockChainService;
-            
+
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
-
-            _chainOptions = options.Value;
         }
 
         /// <summary>
@@ -55,12 +53,12 @@ namespace AElf.OS.Network.Grpc
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
             try
-            {                
+            {
                 var peer = GrpcUrl.Parse(context.Peer);
                 var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
-                
+
                 Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-                
+
                 Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel);
 
@@ -70,26 +68,26 @@ namespace AElf.OS.Network.Grpc
                 }
 
                 var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
-                
+
                 // Verify auth
                 bool valid = _peerPool.AuthenticatePeer(peerAddress, handshake);
 
                 if (!valid)
-                    return new AuthResponse { Err = AuthError.WrongAuth };
-                
+                    return new AuthResponse {Err = AuthError.WrongAuth};
+
                 // send our credentials
                 var hsk = await _peerPool.GetHandshakeAsync();
                 var resp = client.Authentify(hsk);
-                
+
                 // If auth ok -> add it to our peers
                 _peerPool.AddPeer(grpcPeer);
-                
-                return new AuthResponse { Success = true, Port = resp.Port };
+
+                return new AuthResponse {Success = true, Port = resp.Port};
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
-                return new AuthResponse { Err = AuthError.UnknownError };
+                return new AuthResponse {Err = AuthError.UnknownError};
             }
         }
 
@@ -100,7 +98,7 @@ namespace AElf.OS.Network.Grpc
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
             var peer = GrpcUrl.Parse(context.Peer);
-            return Task.FromResult(new AuthResponse { Success = true, Port = peer.ToIpPortFormat() });
+            return Task.FromResult(new AuthResponse {Success = true, Port = peer.ToIpPortFormat()});
         }
 
         /// <summary>
@@ -119,7 +117,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(e, "Error during connect, peer: {context.Peer}.");
             }
-            
+
             return new VoidReply();
         }
 
@@ -133,17 +131,18 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
                 return new VoidReply();
             }
-                
+
             try
             {
                 Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnoucementReceivedEventData(ChainId, an, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
+                await EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
+                    GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during announcement processing, peer: {context.Peer}.");
             }
-            
+
             return new VoidReply();
         }
 
@@ -156,30 +155,30 @@ namespace AElf.OS.Network.Grpc
         {
             if (request == null)
                 return new BlockReply();
-            
+
             try
             {
                 Block block;
                 if (request.Id != null && request.Id.Length > 0)
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block with id {request.Id.ToByteArray().ToHex()}.");
-                    block = await _blockChainService.GetBlockByHashAsync( Hash.LoadByteArray(request.Id.ToByteArray()));
+                    block = await _blockChainService.GetBlockByHashAsync(Hash.LoadByteArray(request.Id.ToByteArray()));
                 }
                 else
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block at height {request.Height}.");
                     block = await _blockChainService.GetBlockByHeightAsync(request.Height);
                 }
-                
+
                 Logger.LogDebug($"Sending {block} to {context.Peer}.");
-                
-                return new BlockReply { Block = block };
+
+                return new BlockReply {Block = block};
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during block request handle, peer: {context.Peer}.");
             }
-            
+
             return new BlockReply();
         }
 
@@ -190,8 +189,8 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                var blocks = await _blockChainService.GetBlocksAsync(ChainId, request.FirstBlockId, request.Count);
-                
+                var blocks = await _blockChainService.GetBlocksAsync( request.FirstBlockId, request.Count);
+
                 BlockList blockList = new BlockList();
 
                 if (blocks == null)
@@ -203,7 +202,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(e, "Error during RequestBlock handle.");
             }
-            
+
             return new BlockList();
         }
 
@@ -217,25 +216,26 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError($"Request ids first block hash is null from {context.Peer}.");
                 return new BlockIdList();
             }
-            
+
             if (request.Count <= 0)
             {
                 Logger.LogError($"Request ids count is invalid from {context.Peer}.");
                 return new BlockIdList();
             }
-            
+
             try
             {
-                Logger.LogDebug($"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.FirstBlockId.ToByteArray())}, count : {request.Count}.");
-                
+                Logger.LogDebug(
+                    $"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.FirstBlockId.ToByteArray())}, count : {request.Count}.");
+
                 var headers = await _blockChainService.GetReversedBlockHashes(
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
-                
+
                 BlockIdList list = new BlockIdList();
-                
+
                 if (headers == null || headers.Count <= 0)
                     return list;
-                
+
                 list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.DumpByteArray())).ToList());
 
                 return list;
@@ -244,7 +244,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(e, "Error during RequestBlock handle.");
             }
-            
+
             return new BlockIdList();
         }
 
@@ -261,7 +261,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(e, "Error during Disconnect handle.");
             }
-            
+
             return Task.FromResult(new VoidReply());
         }
     }

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
 
