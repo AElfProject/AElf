@@ -18,7 +18,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
 {
-    [DependsOn(typeof(TypesAElfModule), typeof(DatabaseAElfModule), typeof(CoreAElfModule))]
+    [DependsOn(typeof(DatabaseAElfModule), typeof(CoreAElfModule))]
     public class CoreKernelAElfModule : AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
@@ -17,5 +18,7 @@ namespace AElf.Kernel.SmartContract
         int CallDepth { get; set; }
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
+        
+
     }
 }

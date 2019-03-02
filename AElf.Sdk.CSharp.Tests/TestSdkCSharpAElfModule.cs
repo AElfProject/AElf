@@ -5,7 +5,6 @@ using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using AElf.TestBase;

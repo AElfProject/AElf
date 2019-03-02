@@ -3,7 +3,7 @@ using System.IO;
 
 namespace AElf.Common.Application
 {
-    public static class ApplicationHelpers
+    public static class ApplicationHelper
     {
         private const string ApplicationFolderName = "aelf";
         private static string _appDataPath;
@@ -18,7 +18,7 @@ namespace AElf.Common.Application
             }
         }
 
-        static ApplicationHelpers()
+        static ApplicationHelper()
         {
             _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
         }
