@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;

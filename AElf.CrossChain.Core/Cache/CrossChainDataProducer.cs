@@ -1,6 +1,9 @@
-namespace AElf.CrossChain
+using System;
+using Volo.Abp.DependencyInjection;
+
+namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataProducer : ICrossChainDataProducer
+    public class CrossChainDataProducer : ICrossChainDataProducer, ISingletonDependency
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
@@ -11,9 +14,11 @@ namespace AElf.CrossChain
 
         public bool AddNewBlockInfo(IBlockInfo blockInfo)
         {
+            if (blockInfo == null)
+                return false;
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(blockInfo.ChainId);
 
-            if (blockInfo.Height != blockInfoCache.TargetChainHeight)
+            if (blockInfoCache == null)
                 return false;
             var res = blockInfoCache.TryAdd(blockInfo);
             return res;
@@ -23,8 +28,8 @@ namespace AElf.CrossChain
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)
-                return 0;
-            return blockInfoCache.TargetChainHeight;
+                throw new Exception("Chain data cache not found.");
+            return blockInfoCache.TargetChainHeight();
         }
     }
 }

@@ -13,6 +13,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
@@ -40,11 +41,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ulong _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Genesis;
 
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
@@ -201,6 +205,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
                 CheckPrefixForOne(receipt, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(receipt);
+                if (receipt.RefBlockStatus == RefBlockStatus.RefBlockValid)
+                {
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                    {
+                        ChainId = eventData.ChainId,
+                        Transaction = transaction
+                    });
+                }
             }
         }
 

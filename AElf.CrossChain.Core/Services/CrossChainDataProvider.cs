@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.CrossChain.Cache;
 using AElf.Kernel.Blockchain.Domain;
 
 namespace AElf.CrossChain
@@ -29,11 +30,11 @@ namespace AElf.CrossChain
                     return false;
                 var dict = await _crossChainContractReader.GetSideChainIdAndHeightAsync(previousBlockHash,
                     preBlockHeight);
-                foreach (var keyValuePair in dict)
+                foreach (var idHeight in dict)
                 {
                     // index only one block from one side chain which could be changed later.
                     // cause take these data before mining, the target height of consumer == height + 1
-                    var blockInfo = _crossChainDataConsumer.TryTake(keyValuePair.Key, keyValuePair.Value + 1, true);
+                    var blockInfo = _crossChainDataConsumer.TryTake(idHeight.Key, idHeight.Value + 1, true);
                     if (blockInfo == null)
                         continue;
 
@@ -83,8 +84,8 @@ namespace AElf.CrossChain
                 : CrossChainConsts.MaximalCountForIndexingParentChainBlock;
 
             int i = 0;
-            ulong targetHeight =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);
+            var heightInState =
+                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);ulong targetHeight = isValidation ? heightInState : heightInState + 1;
             var res = true;
             while (i < length)
             {

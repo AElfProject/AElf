@@ -213,7 +213,8 @@ namespace AElf.Kernel.Services
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
                 PreviousBlockHash = preBlockHash,
-                PreviousBlockHeight = preBlockHeight
+                PreviousBlockHeight = preBlockHeight,
+                BlockTime = DateTime.UtcNow
             });
             return block;
         }
