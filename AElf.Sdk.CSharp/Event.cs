@@ -14,7 +14,7 @@ namespace AElf.Sdk.CSharp
     {
     }
 
-    public static class EventParser<TEvent>
+    internal static class EventParser<TEvent>
         where TEvent : Event
     {
         private static readonly Lazy<CacheContainer<TEvent>> _cacheContainer =
@@ -117,9 +117,7 @@ namespace AElf.Sdk.CSharp
 
                 if (Test<byte>(type, out del))
                 {
-                }
-
-                if (Test<sbyte>(type, out del))
+                }else if (Test<sbyte>(type, out del))
                 {
                 }
                 else if (Test<char>(type, out del))

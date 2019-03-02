@@ -17,7 +17,7 @@ namespace AElf.OS.Rpc.Wallet
         private AElfKeyStore _ks;
 
         private AElfKeyStore KeyStore =>
-            _ks ?? (_ks = new AElfKeyStore(Path.Combine(ApplicationHelpers.AppDataPath, "rpc-managed-wallet")));
+            _ks ?? (_ks = new AElfKeyStore(Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet")));
 
         private readonly ChainOptions _chainOptions;
 

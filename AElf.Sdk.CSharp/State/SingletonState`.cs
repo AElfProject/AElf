@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
@@ -36,7 +37,6 @@ namespace AElf.Sdk.CSharp.State
                 }
 
                 _value = value;
-                UpdateToCache(value);
             }
         }
 

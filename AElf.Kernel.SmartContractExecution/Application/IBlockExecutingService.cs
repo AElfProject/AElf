@@ -69,6 +69,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         var linkedBlock = await _blockchainService.GetBlockByHashAsync(chain.Id, blockLink.BlockHash);
 
+                        Logger.LogInformation(linkedBlock.ToString());
                         // Set the other blocks as bad block if found the first bad block
                         if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(chain.Id, linkedBlock))
                         {

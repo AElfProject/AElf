@@ -7,7 +7,4 @@
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     <PackageReference Include="Volo.Abp.Core" Version="0.14.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-  </ItemGroup>
 </Project>

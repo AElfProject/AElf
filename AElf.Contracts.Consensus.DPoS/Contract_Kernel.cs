@@ -7,7 +7,6 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

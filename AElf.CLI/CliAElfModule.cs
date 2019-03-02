@@ -10,6 +10,7 @@ using ChakraCore.NET.Debug;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.CLI
 {
@@ -18,6 +19,7 @@ namespace AElf.CLI
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            
             var services = context.Services;
 
             services.AddAssemblyOf<CliAElfModule>();
