@@ -35,9 +35,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
-        public byte[] GetFirstExtraInformation()
+        public byte[] GetTriggerInformation()
         {
-            return new DPoSExtraInformation
+            return new DPoSTriggerInformation
             {
                 IsBootMiner = _dpoSOptions.IsBootMiner,
                 PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
@@ -110,11 +110,12 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             catch (NullReferenceException e)
             {
                 throw new NullReferenceException(
-                    $"Invalid data of generating consensus extra information.\n{e.Message}");
+                    $"Invalid data of generating {Hint.Behaviour.ToString()} consensus extra information.\n{e.Message}");
             }
             catch (Exception e)
             {
-                throw new Exception($"Unknown exception.\n{e.Message}");
+                throw new Exception(
+                    $"Unknown exception when generating {Hint.Behaviour.ToString()} information.\n{e.Message}");
             }
         }
 
@@ -146,7 +147,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         }.ToByteArray();
 
                     case DPoSBehaviour.PackageOutValue:
-                        var minersInformation = information.CurrentRound.RealTimeMinersInfo;
+                        var minersInformation = information.CurrentRound.RealTimeMinersInformation;
                         if (!minersInformation.Any())
                         {
                             Logger.LogError($"Incorrect consensus information.\n{information}");
@@ -199,14 +200,15 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
             catch (Exception e)
             {
-                throw new Exception($"Unknown exception.\n{e.Message}");
+                throw new Exception(
+                    $"Unknown exception when creating {Hint.Behaviour.ToString()} transactions.\n{e.Message}");
             }
         }
 
         private string GetLogStringForOneRound(Round round)
         {
             var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
-            foreach (var minerInRound in round.RealTimeMinersInfo.Values.OrderBy(m => m.Order))
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
                 var minerInformation = "\n";
                 minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";

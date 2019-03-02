@@ -11,6 +11,6 @@ namespace AElf.Sdk.CSharp
         IMessage GetNewConsensusInformation(byte[] extraInformation);
 
         TransactionList GenerateConsensusTransactions(byte[] extraInformation);
-        IMessage GetConsensusCommand(byte[] extraInformation);
+        IMessage GetConsensusCommand(byte[] consensusTriggerInformation);
     }
 }

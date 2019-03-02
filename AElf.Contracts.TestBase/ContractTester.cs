@@ -243,7 +243,7 @@ namespace AElf.Contracts.TestBase
         /// <param name="txs"></param>
         /// <param name="systemTxs"></param>
         /// <returns></returns>
-        public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
+        public async Task ExecuteBlock(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
             block = await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
                 new CancellationToken());

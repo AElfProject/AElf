@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
     {
         public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester)
         {
-            var firstExtraInformation = new DPoSExtraInformation
+            var firstExtraInformation = new DPoSTriggerInformation
             {
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var block = await tester.MineABlockAsync(new List<Transaction>(), systemTxs);
             foreach (var contractTester in testersToExecuteBlock)
             {
-                await contractTester.AddABlockAsync(block, new List<Transaction>(), systemTxs);
+                await contractTester.ExecuteBlock(block, new List<Transaction>(), systemTxs);
             }
 
             return block;

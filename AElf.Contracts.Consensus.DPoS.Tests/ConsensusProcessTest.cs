@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var addresses = await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
 
             // Act
-            var firstExtraInformation = new DPoSExtraInformation
+            var firstTriggerInformation = new DPoSTriggerInformation
             {
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 PublicKey = stubMiner.PublicKey.ToHex(),
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 MiningInterval = _miningInterval
             };
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand,
-                firstExtraInformation.ToByteArray());
+                firstTriggerInformation.ToByteArray());
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
@@ -198,7 +198,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             var tester2 = new ContractTester(ChainId, miner2);
             await tester2.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract));
-
+            
             var stubInitialExtraInformation = new DPoSExtraInformation
             {
                 NewTerm = stubMiners.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateNewTerm(4000),
@@ -256,7 +256,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             
             // Assert
             Assert.NotNull(newConsensusInformation);
-            Assert.Equal(outValue, newConsensusInformation.CurrentRound.RealTimeMinersInfo[miner2.PublicKey.ToHex()]
+            Assert.Equal(outValue, newConsensusInformation.CurrentRound.RealTimeMinersInformation[miner2.PublicKey.ToHex()]
                 .OutValue);
         }
         

@@ -19,10 +19,10 @@ namespace AElf.Kernel.Consensus.Application
         /// <param name="chainId"></param>
         /// <param name="preBlockHash"></param>
         /// <param name="preBlockHeight"></param>
-        /// <param name="consensusInformation"></param>
+        /// <param name="consensusExtraData">Extract from block header.</param>
         /// <returns></returns>
         Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
-            byte[] consensusInformation);
+            byte[] consensusExtraData);
         
         /// <summary>
         /// After the execution of consensus transactions, the new consensus

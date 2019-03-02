@@ -108,7 +108,7 @@ message CandidateInTerm {
 // The information of a round.
 message Round {
     uint64 RoundNumber = 1;
-    map<string, MinerInRound> RealTimeMinersInfo = 2;
+    map<string, MinerInRound> RealTimeMinersInformation = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
     uint64 MinersTermNumber = 5;
@@ -214,9 +214,9 @@ message DPoSExtraInformation {
 }
 
 message ConsensusCommand {
-    int32 CountingMilliseconds = 1;
-    int32 TimeoutMilliseconds = 2;
-    bytes Hint = 3;
+    int32 CountingMilliseconds = 1;// How many milliseconds left to really mine next block.
+    int32 TimeoutMilliseconds = 2;// Time limit of mining next block.
+    bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
 }
 
 message DPoSHint {
@@ -233,4 +233,11 @@ enum DPoSBehaviour {
 message ValidationResult {
     bool Success = 1;
     string Message = 2;
+}
+
+message DPoSTriggerInformation {
+    string PublicKey = 1;// A must-have.
+    google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    bool IsBootMiner = 3;
+    int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).
 }
