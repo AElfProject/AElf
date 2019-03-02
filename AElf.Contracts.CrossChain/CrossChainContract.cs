@@ -71,7 +71,7 @@ namespace AElf.Contracts.CrossChain
 
             // lock token and resource
             request.SideChainId = chainId;
-            //LockTokenAndResource(request);
+            LockTokenAndResource(request);
 
             // side chain creation proposal
 //            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
@@ -80,16 +80,7 @@ namespace AElf.Contracts.CrossChain
 //            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
             
-            //TODO: do not return json in a smart contract
-            /*
-            var res = new JObject
-            {
-//                ["proposal_hash"] = hash.ToHex(),
-                ["chain_id"] = ChainHelpers.ConvertChainIdToBase58(chainId)
-            };
-            return res.ToString();*/
-            throw new NotImplementedException();
-
+            return ChainHelpers.ConvertChainIdToBase58(chainId);
         }
 
         public void WithdrawRequest(string chainId)
@@ -159,7 +150,7 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfos[id] = sideChainInfo;
             }
 
-            State.TokenContract.Lock(Context.Sender, amount);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
         }
 
         /// <summary>
@@ -389,7 +380,7 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
-                State.TokenContract.Unlock(Context.Self, indexingPrice);
+                State.TokenContract.Transfer(Context.Sender, indexingPrice);
 
                 State.CurrentSideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
@@ -459,7 +450,7 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
             // update locked token balance
-            State.TokenContract.Lock(Context.Sender, sideChainInfo.LockedTokenAmount);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, sideChainInfo.LockedTokenAmount);
             var chainId = sideChainInfo.SideChainId;
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -477,7 +468,7 @@ namespace AElf.Contracts.CrossChain
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
             if (balance != 0)
-                State.TokenContract.Unlock(sideChainInfo.Proposer, balance);
+                State.TokenContract.Transfer(sideChainInfo.Proposer, balance);
             State.IndexingBalance[chainId] = 0;
 
             // unlock resource 

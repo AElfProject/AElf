@@ -8,7 +8,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace AElf.Contract.CrossChain.Tests
@@ -24,6 +23,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation()
         {
+            var initResult = await ContractTester.ExecuteContractWithMiningAsync(TokenContractAddress, "Initialize",
+                "ELF", "elf token", 1000_000UL, 2U);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -37,8 +38,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Mined);
             Assert.False(txResult.RetVal.ToByteArray().IsNullOrEmpty());
             var expectedChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetChainId(1));
-            var chainIdString = Encoding.UTF8.GetString(txResult.RetVal.ToByteArray());
-            var actualChainId = JObject.Parse(chainIdString)["chain_id"];
+            var actualChainId = txResult.RetVal.ToStringUtf8();
             Assert.Equal(expectedChainId, actualChainId);
         }
 
@@ -91,8 +91,7 @@ namespace AElf.Contract.CrossChain.Tests
             var txResult = await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
                 sideChainInfo);
             var expectedChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetChainId(2));
-            var chainIdString = Encoding.UTF8.GetString(txResult.RetVal.ToByteArray());
-            var actualChainId = JObject.Parse(chainIdString)["chain_id"];
+            var actualChainId = txResult.RetVal.ToStringUtf8();
             Assert.Equal(expectedChainId, actualChainId);
         }
 
@@ -274,7 +273,7 @@ namespace AElf.Contract.CrossChain.Tests
             await ContractTester.MineABlockAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
-                chainId);
+                ChainHelpers.ConvertChainIdToBase58(chainId));
             await ContractTester.MineABlockAsync(new List<Transaction> {tx2});
             var txResult =
                 await ContractTester.ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainDisposal",

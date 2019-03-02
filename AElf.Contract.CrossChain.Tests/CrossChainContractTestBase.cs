@@ -10,11 +10,13 @@ namespace AElf.Contract.CrossChain.Tests
     {
         protected ContractTester ContractTester;
         protected Address CrossChainContractAddress;
+        protected Address TokenContractAddress;
         public CrossChainContractTestBase()
         {
             ContractTester = new ContractTester(0, CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() => ContractTester.InitialChainAsync(ContractTester.GetDefaultContractTypes().ToArray()));
             CrossChainContractAddress = ContractTester.DeployedContractsAddresses[(int) ContractConsts.CrossChainContract];
+            TokenContractAddress = ContractTester.DeployedContractsAddresses[(int) ContractConsts.TokenContract];
         }
     }
 }
