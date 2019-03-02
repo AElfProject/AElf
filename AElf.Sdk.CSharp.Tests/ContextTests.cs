@@ -77,7 +77,7 @@ namespace AElf.Sdk.CSharp.Tests
             
             var inlineTransaction = context.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
-            inlineTransaction[0].From.ShouldBe(context.TransactionContext.Transaction.From);
+            inlineTransaction[0].From.ShouldBe(context.Self);
             inlineTransaction[0].To.ShouldBe(to);
             inlineTransaction[0].MethodName.ShouldBe(methodName);
             inlineTransaction[0].Params.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(arg)));
