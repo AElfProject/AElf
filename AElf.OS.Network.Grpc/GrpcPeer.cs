@@ -52,6 +52,10 @@ namespace AElf.OS.Network.Grpc
 
         public Hash CurrentBlockHash { get; set; }
         public ulong CurrentBlockHeight { get; set; }
+        public Task<List<Block>> GetBlocksAsync(Hash previousHash, int count)
+        {
+            throw new System.NotImplementedException();
+        }
 
         public async Task AnnounceAsync(BlockHeader header)
         {

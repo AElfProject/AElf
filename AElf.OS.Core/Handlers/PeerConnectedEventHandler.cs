@@ -84,7 +84,7 @@ namespace AElf.OS.Handlers
                 Logger.LogTrace(
                     $"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
 
-                var block = await BlockchainService.GetBlockByHashAsync(ChainId, blockHash);
+                var block = await BlockchainService.GetBlockByHashAsync(chainId, blockHash);
 
                 if (block == null)
                 {

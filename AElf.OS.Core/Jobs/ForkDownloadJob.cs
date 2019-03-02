@@ -27,21 +27,35 @@ namespace AElf.OS.Jobs
         {
             try
             {
+                var count = 5;
+
                 var chainId = args.ChainId;
                 var pool = Servers.Get(chainId).PeerPool;
-                var chain = await BlockchainService.GetChainAsync(chainId);
 
-                var blockHash = chain.LongestChainHash;
-                var blockHeight = chain.LongestChainHeight;
-                
-                
-                var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > blockHeight);
 
-                //TODO: change to random request to peer, or maybe we can measure the network speed of nodes
-                var peer = peers.First();
-                
-                if(peer.GetBlocksAsync(blockHash,))
-                
+                while (true)
+                {
+                    var chain = await BlockchainService.GetChainAsync(chainId);
+
+                    var blockHash = chain.LongestChainHash;
+                    var blockHeight = chain.LongestChainHeight;
+
+                    var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > blockHeight);
+
+                    //TODO: change to random request to peer, or maybe we can measure the network speed of nodes
+                    var peer = peers.First();
+
+                    var blocks = await peer.GetBlocksAsync(blockHash, count);
+                    foreach (var block in blocks)
+                    {
+                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                        await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                    }
+
+                    if (chain.LongestChainHeight > args.BlockHeight)
+                        break;
+                }
+
             }
             catch (Exception e)
             {
