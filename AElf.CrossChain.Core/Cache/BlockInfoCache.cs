@@ -12,7 +12,7 @@ namespace AElf.CrossChain.Cache
 
         private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get; } = new Queue<IBlockInfo>();
 
-        private static readonly int CachedBoundedCapacity =
+        private readonly int _cachedBoundedCapacity =
             Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
                 CrossChainConsts.MaximalCountForIndexingParentChainBlock) *
             CrossChainConsts.MinimalBlockInfoCacheThreshold;
@@ -49,7 +49,7 @@ namespace AElf.CrossChain.Cache
         /// </summary>
         /// <param name="height">Height of block info needed</param>
         /// <param name="blockInfo"></param>
-        /// <param name="isCacheSizeLimited">Use <see cref="CachedBoundedCapacity"/> as cache count threshold if true.</param>
+        /// <param name="isCacheSizeLimited">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
         public bool TryTake(ulong height, out IBlockInfo blockInfo, bool isCacheSizeLimited)
         {
@@ -111,13 +111,13 @@ namespace AElf.CrossChain.Cache
         
         /// <summary>
         /// Cache block info lately removed.
-        /// Dequeue one element if the cached count reaches <see cref="CachedBoundedCapacity"/>
+        /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
         /// </summary>                                                   
         /// <param name="blockInfo"></param>
         private void CacheBlockInfo(IBlockInfo blockInfo)
         {
             CachedIndexedBlockInfoQueue.Enqueue(blockInfo);
-            if (CachedIndexedBlockInfoQueue.Count <= CachedBoundedCapacity)
+            if (CachedIndexedBlockInfoQueue.Count <= _cachedBoundedCapacity)
                 return;
             CachedIndexedBlockInfoQueue.Dequeue();
         }
