@@ -46,16 +46,16 @@ namespace AElf.OS.Jobs
                     var peer = peers.First();
 
                     var blocks = await peer.GetBlocksAsync(blockHash, count);
+
                     foreach (var block in blocks)
                     {
                         var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    if (chain.LongestChainHeight > args.BlockHeight)
+                    if (chain.LongestChainHeight > args.BlockHeight || blocks.Count == 0)
                         break;
                 }
-
             }
             catch (Exception e)
             {
