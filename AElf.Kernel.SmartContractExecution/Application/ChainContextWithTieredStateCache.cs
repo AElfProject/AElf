@@ -6,7 +6,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         public ChainContextWithTieredStateCache(IChainContext chainContext, TieredStateCache stateCache)
         {
-            ChainId = chainContext.ChainId;
             BlockHeight = chainContext.BlockHeight;
             BlockHash = chainContext.BlockHash;
             StateCache = stateCache;

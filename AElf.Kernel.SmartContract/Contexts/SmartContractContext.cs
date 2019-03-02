@@ -13,7 +13,6 @@ namespace AElf.Kernel.SmartContract
 {
     public class SmartContractContext : ISmartContractContext
     {
-        public int ChainId { get; set; }
         public Address ContractAddress { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
@@ -49,13 +48,13 @@ namespace AElf.Kernel.SmartContract
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {
-            return SmartContractService.DeployContractAsync(ChainId, contractAddress, registration, isPrivileged);
+            return SmartContractService.DeployContractAsync(contractAddress, registration, isPrivileged);
         }
 
         public Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged)
         {
-            return SmartContractService.UpdateContractAsync(ChainId, contractAddress, registration, isPrivileged);
+            return SmartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged);
         }
 
         public Task<Block> GetBlockByHashAsync(Hash blockId)

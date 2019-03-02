@@ -14,6 +14,8 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockchainService
     {
+        int GetChainId();
+        
         Task<Chain> CreateChainAsync(Block block);
         Task AddBlockAsync(Block block);
         Task<bool> HasBlockAsync(Hash blockId);
@@ -93,8 +95,14 @@ namespace AElf.Kernel.Blockchain.Application
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        public int GetChainId()
+        {
+            return _chainManager.GetChainId();
+        }
+
         public async Task<Chain> CreateChainAsync(Block block)
         {
+            block.Header.ChainId = _chainManager.GetChainId();
             await AddBlockAsync(block);
             var chain = await _chainManager.CreateAsync(block.GetHash());
             await LocalEventBus.PublishAsync(

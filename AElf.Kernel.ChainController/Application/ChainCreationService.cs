@@ -31,12 +31,12 @@ namespace AElf.Kernel.ChainController.Application
         }
 
         /// <summary>
-        /// Creates a new chain with the provided ChainId and Smart Contract Zero.
+        /// Creates a new chain with the provided and Smart Contract Zero.
         /// </summary>
         /// <returns>The new chain async.</returns>
-        /// <param name="chainId">The new chain id which will be derived from the creator address.</param>
+        /// <param name="">The new chain id which will be derived from the creator address.</param>
         /// <param name="genesisTransactions">The transactions to be executed in the genesis block.</param>
-        public async Task<Chain> CreateNewChainAsync(int chainId, IEnumerable<Transaction> genesisTransactions)
+        public async Task<Chain> CreateNewChainAsync(IEnumerable<Transaction> genesisTransactions)
         {
             try
             {
@@ -44,14 +44,13 @@ namespace AElf.Kernel.ChainController.Application
                 {
                     Height = ChainConsts.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Genesis,
-                    ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 };
 
-                var block = await _blockExecutingService.ExecuteBlockAsync(chainId, blockHeader, genesisTransactions);
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
 
-                await _blockchainService.CreateChainAsync(chainId, block);
-                return await _blockchainService.GetChainAsync(chainId);
+                await _blockchainService.CreateChainAsync(block);
+                return await _blockchainService.GetChainAsync();
             }
             catch (Exception e)
             {

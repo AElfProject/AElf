@@ -40,6 +40,8 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
 
         Address GetConsensusContractAddress();
+
+        int GetChainId();
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -285,6 +287,11 @@ namespace AElf.Kernel.Blockchain.Domain
         public Address GetConsensusContractAddress()
         {
             return ContractHelpers.GetConsensusContractAddress(_chainId);
+        }
+
+        public int GetChainId()
+        {
+            return _chainId;
         }
     }
 }

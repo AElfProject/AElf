@@ -35,7 +35,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         /// <inheritdoc/>
-        public async Task DeployContractAsync(int chainId, Address contractAddress,
+        public async Task DeployContractAsync(Address contractAddress,
             SmartContractRegistration registration, bool isPrivileged)
         {
             // get runner
@@ -45,12 +45,12 @@ namespace AElf.Kernel.SmartContract.Application
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);
 //            var contractTemplate = runner.ExtractMetadata(contractType);
-//            await _functionMetadataService.DeployContract(chainId, contractAddress, contractTemplate);
+//            await _functionMetadataService.DeployContract(contractAddress, contractTemplate);
 
             await _smartContractManager.InsertAsync(registration);
         }
 
-        public async Task UpdateContractAsync(int chainId, Address contractAddress,
+        public async Task UpdateContractAsync(Address contractAddress,
             SmartContractRegistration newRegistration, bool isPrivileged)
         {
             // get runner
@@ -58,28 +58,28 @@ namespace AElf.Kernel.SmartContract.Application
             runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged);
 
             //Todo New version metadata handle it
-//            var oldRegistration = await GetContractByAddressAsync(chainId, contractAddress);
+//            var oldRegistration = await GetContractByAddressAsync(contractAddress);
 //            var oldContractType = runner.GetContractType(oldRegistration);
 //            var oldContractTemplate = runner.ExtractMetadata(oldContractType);
 //
 //            var newContractType = runner.GetContractType(newRegistration);
 //            var newContractTemplate = runner.ExtractMetadata(newContractType);
-//            await _functionMetadataService.UpdateContract(chainId, contractAddress, newContractTemplate,
+//            await _functionMetadataService.UpdateContract(contractAddress, newContractTemplate,
 //                oldContractTemplate);
 
             await _smartContractManager.InsertAsync(newRegistration);
         }
 
-//        public async Task<IMessage> GetAbiAsync(int chainId, Address account)
+//        public async Task<IMessage> GetAbiAsync(Address account)
 //        {
-//            var reg = await GetContractByAddressAsync(chainId, account);
+//            var reg = await GetContractByAddressAsync(account);
 //            return GetAbiAsync(reg);
 //        }
 
         /// <inheritdoc/>
-//        public async Task<IEnumerable<string>> GetInvokingParams(Hash chainId, Transaction transaction)
+//        public async Task<IEnumerable<string>> GetInvokingParams(Hash Transaction transaction)
 //        {
-//            var reg = await GetContractByAddressAsync(chainId, transaction.To);
+//            var reg = await GetContractByAddressAsync(transaction.To);
 //            var abi = (Module) GetAbiAsync(reg);
 //            
 //            // method info 
