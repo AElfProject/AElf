@@ -84,7 +84,7 @@ namespace AElf.Kernel.SmartContract.Application
 //            var contractHash = await GetContractHashAsync(chainId, address);
 //            return await _smartContractManager.GetAsync(contractHash);
 //        }
-        private async Task<ConcurrentBag<IExecutive>> GetPoolForAsync(Hash contractHash)
+        private ConcurrentBag<IExecutive> GetPool(Hash contractHash)
         {
             if (!_executivePools.TryGetValue(contractHash, out var pool))
             {
@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             });
             executive.SetDataCache(new NullStateCache());
-            (await GetPoolForAsync(executive.ContractHash)).Add(executive);
+            GetPool(executive.ContractHash).Add(executive);
 
             await Task.CompletedTask;
         }
@@ -139,7 +139,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
         {
-            var pool = await GetPoolForAsync(reg.CodeHash);
+            var pool = GetPool(reg.CodeHash);
 
             if (!pool.TryTake(out var executive))
             {
@@ -211,11 +211,13 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            var codeHash = ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"];
+            var codeHash =
+                ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"];
             if (codeHash == null)
             {
                 throw new NullReferenceException();
             }
+
             return Hash.LoadHex(codeHash.ToString());
         }
 

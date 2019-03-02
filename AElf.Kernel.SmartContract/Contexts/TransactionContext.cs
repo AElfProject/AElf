@@ -28,9 +28,9 @@ using AElf.Common;
         public TransactionTrace Trace { get; set; }
         
         public IBlockchainService BlockchainService { get; set; }
-        public Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
+        public Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            return BlockchainService.GetBlockByHashAsync(chainId,blockId);
+            return BlockchainService.GetBlockByHashAsync(blockId);
         }
     }
 }

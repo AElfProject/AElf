@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract
 
         public Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            return BlockchainService.GetBlockByHashAsync(ChainId, blockId);
+            return BlockchainService.GetBlockByHashAsync(blockId);
         }
     }
 }
