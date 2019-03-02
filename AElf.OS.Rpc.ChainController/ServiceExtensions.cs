@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Google.Protobuf;
@@ -16,6 +17,43 @@ namespace AElf.OS.Rpc.ChainController
 {
     internal static class ServiceExtensions
     {
+        public static async Task<string[]> PublishTransactionsAsync(this ChainControllerRpcService s,
+            string[] rawTransactions)
+        {
+            var txIds = new string[rawTransactions.Length];
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < rawTransactions.Length; i++)
+            {
+                Transaction transaction;
+                try
+                {
+                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    transaction = Transaction.Parser.ParseFrom(hexString);
+                }
+                catch
+                {
+                    throw new JsonRpcServiceException(Error.InvalidTransaction,
+                        Error.Message[Error.InvalidTransaction]);
+                }
+
+                if (!transaction.VerifySignature())
+                {
+                    throw new JsonRpcServiceException(Error.InvalidTransaction,
+                        Error.Message[Error.InvalidTransaction]);
+                }
+
+                transactions.Add(transaction);
+                txIds[i] = transaction.GetHash().ToHex();
+            }
+
+            await s.LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
+            {
+                ChainId = s.ChainId,
+                Transactions = transactions
+            });
+            return txIds;
+        }
+
         internal static IDictionary<string, (JsonRpcRequestContract, MethodInfo, ParameterInfo[], string[])>
             GetRpcMethodContracts(this ChainControllerRpcService s)
         {
@@ -32,7 +70,8 @@ namespace AElf.OS.Rpc.ChainController
                 }
 
                 if (!(method.ReturnType == typeof(Task)) &&
-                    !(method.ReturnType.IsGenericType && (method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))))
+                    !(method.ReturnType.IsGenericType &&
+                      (method.ReturnType.GetGenericTypeDefinition() == typeof(Task<>))))
                 {
                     continue;
                 }
@@ -101,7 +140,8 @@ namespace AElf.OS.Rpc.ChainController
                             continue;
                         }
 
-                        var parametersContract = new Dictionary<string, Type>(parameters.Length, StringComparer.Ordinal);
+                        var parametersContract =
+                            new Dictionary<string, Type>(parameters.Length, StringComparer.Ordinal);
 
                         parametersBindings = new string[parameters.Length];
 
@@ -132,7 +172,8 @@ namespace AElf.OS.Rpc.ChainController
             return contracts;
         }
 
-        internal static async Task<IMessage> GetContractAbi(this ChainControllerRpcService s, int chainId, Address address)
+        internal static async Task<IMessage> GetContractAbi(this ChainControllerRpcService s, int chainId,
+            Address address)
         {
             var chain = await s.BlockchainService.GetChainAsync(chainId);
             var chainContext = new ChainContext()
@@ -150,7 +191,8 @@ namespace AElf.OS.Rpc.ChainController
 //            return await s.TxHub.GetReceiptAsync(txId);
 //        }
 
-        internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s, Hash txHash)
+        internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
+            Hash txHash)
         {
             // in storage
             var res = await s.TransactionResultManager.GetTransactionResultAsync(txHash);
@@ -178,7 +220,8 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        internal static async Task<TransactionTrace> GetTransactionTrace(this ChainControllerRpcService s, int chainId, Hash txHash, ulong height)
+        internal static async Task<TransactionTrace> GetTransactionTrace(this ChainControllerRpcService s, int chainId,
+            Hash txHash, ulong height)
         {
             var b = await s.GetBlockAtHeight(chainId, height);
             if (b == null)
@@ -192,7 +235,8 @@ namespace AElf.OS.Rpc.ChainController
             return res;
         }
 
-        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, int chainId, Transaction tx)
+        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, int chainId,
+            Transaction tx)
         {
             var address = tx.To;
             IExecutive executive = null;
@@ -237,7 +281,8 @@ namespace AElf.OS.Rpc.ChainController
 //            return (ulong) (await s.TxHub.GetExecutableTransactionSetAsync()).Count;
 //        }
 
-        internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s, int chainId, ulong height)
+        internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s,
+            int chainId, ulong height)
         {
             return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(chainId, height);
         }

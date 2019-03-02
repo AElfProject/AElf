@@ -7,14 +7,26 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class TxPoolInterestedEventsHandler : ILocalEventHandler<BestChainFoundEventData>,
-        ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ITransientDependency
+    public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
+        ILocalEventHandler<BlockAcceptedEvent>,
+        ILocalEventHandler<BestChainFoundEventData>, ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+        ITransientDependency
     {
         private readonly IChainRelatedComponentManager<ITxHub> _txHubs;
 
         public TxPoolInterestedEventsHandler(IChainRelatedComponentManager<ITxHub> txHubs)
         {
             _txHubs = txHubs;
+        }
+
+        public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
+        {
+            await _txHubs.Get(eventData.ChainId).HandleTransactionsReceivedAsync(eventData);
+        }
+
+        public async Task HandleEventAsync(BlockAcceptedEvent eventData)
+        {
+            await _txHubs.Get(eventData.ChainId).HandleBlockAcceptedAsync(eventData);
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)

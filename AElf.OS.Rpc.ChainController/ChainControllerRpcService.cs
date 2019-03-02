@@ -11,6 +11,7 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Rpc.ChainController
 {
@@ -42,6 +44,8 @@ namespace AElf.OS.Rpc.ChainController
 
         private readonly ChainOptions _chainOptions;
 
+        public int ChainId => _chainOptions.ChainId;
+        public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
         public ITxHub TxHub => TxHubs.Get(_chainOptions.ChainId);
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
@@ -123,54 +127,19 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            Transaction transaction;
-            try
-            {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
-                transaction = Transaction.Parser.ParseFrom(hexString);
-            }
-            catch
-            {
-                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
-            }
-
-            if (!transaction.VerifySignature())
-            {
-                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
-            }
-
-            var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
-
-            //TODO: Wait validation done
-            transaction.GetTransactionInfo();
-            await TxHub.AddTransactionAsync(_chainOptions.ChainId, transaction);
-
+            var txIds = await this.PublishTransactionsAsync(new string[]{rawTransaction});
+            var response = new JObject {["TransactionId"] = txIds[0]};
             return response;
         }
-
+        
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
         public async Task<JObject> BroadcastTransactions(string rawTransactions)
         {
-            var response = new List<object>();
-
-            foreach (var rawTransaction in rawTransactions.Split(','))
-            {
-                JObject result;
-                try
-                {
-                    result = await BroadcastTransaction(rawTransaction);
-                }
-                catch
-                {
-                    break;
-                }
-
-                response.Add(result["TransactionId"].ToString());
-            }
+            var txIds = await this.PublishTransactionsAsync(rawTransactions.Split(","));
 
             return new JObject
             {
-                JToken.FromObject(response)
+                JToken.FromObject(txIds)
             };
         }
 
