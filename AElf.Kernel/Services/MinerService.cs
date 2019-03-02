@@ -216,7 +216,8 @@ namespace AElf.Kernel.Services
             {
                 ChainId = chainId,
                 PreviousBlockHash = preBlockHash,
-                PreviousBlockHeight = preBlockHeight
+                PreviousBlockHeight = preBlockHeight,
+                BlockTime = DateTime.UtcNow
             });
             return block;
         }

@@ -1,6 +1,8 @@
-namespace AElf.CrossChain
+using Volo.Abp.DependencyInjection;
+
+namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataConsumer : ICrossChainDataConsumer
+    public class CrossChainDataConsumer : ICrossChainDataConsumer, ISingletonDependency
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -157,6 +157,31 @@ namespace AElf.Contracts.TestBase
             return tx;
         }
 
+        /// <summary>
+        /// Generate a transaction and sign it by provided key pair.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="ecKeyPair"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
+        public Transaction GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair, params object[] objects)
+        {
+            var tx = new Transaction
+            {
+                From = GetAddress(CallOwnerKeyPair),
+                To = contractAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock(_chainId).Result.Height
+            };
+
+            var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
+
+            return tx;
+        }
+        
         /// <summary>
         /// Mine a block with given normal txs and system txs.
         /// Normal txs will use tx pool while system txs not.

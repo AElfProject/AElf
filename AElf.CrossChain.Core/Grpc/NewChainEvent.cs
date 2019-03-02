@@ -1,4 +1,4 @@
-namespace AElf.CrossChain.EventMessage
+namespace AElf.CrossChain.Grpc
 {
     public sealed class NewChainEvent
     {
