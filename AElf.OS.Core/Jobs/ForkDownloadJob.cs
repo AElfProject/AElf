@@ -30,13 +30,17 @@ namespace AElf.OS.Jobs
                 var chainId = args.ChainId;
                 var pool = Servers.Get(chainId).PeerPool;
                 var chain = await BlockchainService.GetChainAsync(chainId);
+
+                var blockHash = chain.LongestChainHash;
+                var blockHeight = chain.LongestChainHeight;
                 
-                var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > chain.LongestChainHeight);
+                
+                var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > blockHeight);
 
                 //TODO: change to random request to peer, or maybe we can measure the network speed of nodes
                 var peer = peers.First();
                 
-                if(peer.RequestBlockAsync())
+                if(peer.GetBlocksAsync(blockHash,))
                 
             }
             catch (Exception e)
