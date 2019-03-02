@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class TransactionsReceivedEvent
     {
