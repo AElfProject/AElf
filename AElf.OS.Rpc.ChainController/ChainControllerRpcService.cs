@@ -91,7 +91,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            var abi = await this.GetContractAbi(addressHash);
 
             if (abi == null)
             {
@@ -113,7 +113,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
+                response = await this.CallReadOnly(transaction);
             }
             catch
             {
@@ -126,11 +126,11 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            var txIds = await this.PublishTransactionsAsync(new string[]{rawTransaction});
+            var txIds = await this.PublishTransactionsAsync(new string[] {rawTransaction});
             var response = new JObject {["TransactionId"] = txIds[0]};
             return response;
         }
-        
+
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
         public async Task<JObject> BroadcastTransactions(string rawTransactions)
         {
@@ -184,7 +184,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidBlockHash, Error.Message[Error.InvalidBlockHash]);
             }
 
-            var block = await this.GetBlock(_chainOptions.ChainId, realBlockHash);
+            var block = await this.GetBlock(realBlockHash);
             if (block == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
@@ -285,13 +285,13 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetBlockHeight")]
         public async Task<ulong> GetBlockHeight()
         {
-            return await this.GetCurrentChainHeight(_chainOptions.ChainId);
+            return await this.GetCurrentChainHeight();
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
         public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
         {
-            var blockInfo = await this.GetBlockAtHeight(_chainOptions.ChainId, blockHeight);
+            var blockInfo = await this.GetBlockAtHeight(blockHeight);
             if (blockInfo == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
