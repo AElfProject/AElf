@@ -24,7 +24,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Prepare chain data
             var chainManager = GetRequiredService<ChainManager>();
-            await chainManager.CreateAsync(ChainHelpers.ConvertBase58ToChainId("AELF"), Hash.Genesis);
+            await chainManager.CreateAsync(Hash.Genesis);
 
             // Verify
             var response = await JsonCallAsJObject("/chain", "GetBlockHeight");

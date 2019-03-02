@@ -45,15 +45,15 @@ namespace AElf.CrossChain
         protected ICrossChainContractReader CreateFakeCrossChainContractReader(Dictionary<int, ulong> sideChainIdHeights, Dictionary<int, ulong> parentChainIdHeights)
         {
             Mock<ICrossChainContractReader> mockObject = new Mock<ICrossChainContractReader>();
-            mockObject.Setup(m => m.GetSideChainCurrentHeightAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetSideChainCurrentHeightAsync( It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns<int, int, Hash, ulong>((chainId, sideChainId, preBlockHash, preBlockHeight) => Task.FromResult<ulong>(sideChainIdHeights.ContainsKey(sideChainId) ? sideChainIdHeights[sideChainId] : 0));
-            mockObject.Setup(m => m.GetParentChainCurrentHeightAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetParentChainCurrentHeightAsync( It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns(Task.FromResult<ulong>(parentChainIdHeights.Count > 0 ? parentChainIdHeights.Values.FirstOrDefault() : 0));
-            mockObject.Setup(m => m.GetSideChainIdAndHeightAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetSideChainIdAndHeightAsync( It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns(Task.FromResult(new Dictionary<int, ulong>(sideChainIdHeights)));
-            mockObject.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns(Task.FromResult(new Dictionary<int, ulong>(new Dictionary<int, ulong>(sideChainIdHeights).Concat(parentChainIdHeights))));
-            mockObject.Setup(m => m.GetParentChainIdAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetParentChainIdAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
                 .Returns(Task.FromResult(parentChainIdHeights.Keys.FirstOrDefault()));
             return mockObject.Object;
         }

@@ -75,7 +75,11 @@ namespace AElf.Contracts.TestBase
             _accountService = mockAccountService.Object;
 
             var application =
-                AbpApplicationFactory.Create<ContractTestAElfModule>(options => { options.UseAutofac(); });
+                AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
+                {
+                    options.UseAutofac();
+                    options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
+                });
             application.Initialize();
 
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
@@ -148,7 +152,7 @@ namespace AElf.Contracts.TestBase
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = _blockchainService.GetBestChainLastBlock(_chainId).Result.Height
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(CallOwnerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
@@ -165,7 +169,8 @@ namespace AElf.Contracts.TestBase
         /// <param name="ecKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public Transaction GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair, params object[] objects)
+        public Transaction GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair,
+            params object[] objects)
         {
             var tx = new Transaction
             {
@@ -173,7 +178,7 @@ namespace AElf.Contracts.TestBase
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = _blockchainService.GetBestChainLastBlock(_chainId).Result.Height
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
@@ -181,7 +186,7 @@ namespace AElf.Contracts.TestBase
 
             return tx;
         }
-        
+
         /// <summary>
         /// Mine a block with given normal txs and system txs.
         /// Normal txs will use tx pool while system txs not.
@@ -191,9 +196,9 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<Block> MineABlockAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
         {
-            var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
+            var preBlock = await _blockchainService.GetBestChainLastBlock();
             var minerService = BuildMinerService(txs, systemTxs);
-            return await minerService.MineAsync(_chainId, preBlock.GetHash(), preBlock.Height,
+            return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(4000));
         }
 
@@ -226,10 +231,9 @@ namespace AElf.Contracts.TestBase
             params object[] objects)
         {
             var tx = GenerateTransaction(contractAddress, methodName, objects);
-            var preBlock = await _blockchainService.GetBestChainLastBlock(_chainId);
+            var preBlock = await _blockchainService.GetBestChainLastBlock();
             var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
                 {
-                    ChainId = _chainId,
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
                 },
@@ -258,7 +262,7 @@ namespace AElf.Contracts.TestBase
 
         public async Task<Chain> GetChainAsync()
         {
-            return await _blockchainService.GetChainAsync(_chainId);
+            return await _blockchainService.GetChainAsync();
         }
 
         /// <summary>
@@ -270,24 +274,24 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
-            block = await _blockExecutingService.ExecuteBlockAsync(_chainId, block.Header, systemTxs, txs,
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTxs, txs,
                 new CancellationToken());
-            await _blockchainService.AddBlockAsync(_chainId, block);
-            var chain = await _blockchainService.GetChainAsync(_chainId);
+            await _blockchainService.AddBlockAsync(block);
+            var chain = await _blockchainService.GetChainAsync();
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
             await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
         }
 
         public async Task SetIrreversibleBlock(Hash libHash)
         {
-            var chain = await _blockchainService.GetChainAsync(_chainId);
+            var chain = await _blockchainService.GetChainAsync();
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
         }
 
         public async Task SetIrreversibleBlock(ulong libHeight)
         {
-            var chain = await _blockchainService.GetChainAsync(_chainId);
-            var libHash = (await _blockchainService.GetBlockByHeightAsync(_chainId, libHeight)).GetHash();
+            var chain = await _blockchainService.GetChainAsync();
+            var libHash = (await _blockchainService.GetBlockByHeightAsync(libHeight)).GetHash();
             chain.LastIrreversibleBlockHash = libHash;
             chain.LastIrreversibleBlockHeight = libHeight;
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
@@ -318,32 +322,29 @@ namespace AElf.Contracts.TestBase
 
             var bcs = _blockchainService;
             var mockTxHub = new Mock<ITxHub>();
-            mockTxHub.Setup(h => h.GetExecutableTransactionSetAsync()).ReturnsAsync( () =>
+            mockTxHub.Setup(h => h.GetExecutableTransactionSetAsync()).ReturnsAsync(() =>
             {
-                var chain = bcs.GetChainAsync(_chainId).Result;
+                var chain = bcs.GetChainAsync().Result;
                 return new ExecutableTransactionSet()
                 {
-                    ChainId = _chainId,
                     PreviousBlockHash = chain.BestChainHash,
                     PreviousBlockHeight = chain.BestChainHeight,
                     Transactions = txs
                 };
             });
-            var mockTxHubs = new Mock<IChainRelatedComponentManager<ITxHub>>();
-            mockTxHubs.Setup(h => h.Get(It.IsAny<int>())).Returns(mockTxHub.Object);
 
             if (systemTxs != null)
             {
                 var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>(),
-                        It.IsAny<int>())).Returns(systemTxs);
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>()
+                    )).Returns(systemTxs);
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
 
             return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
-                _blockchainExecutingService, mockTxHubs.Object);
+                _blockchainExecutingService, mockTxHub.Object);
         }
 
         public Address GetAddress(ECKeyPair keyPair)
