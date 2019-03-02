@@ -6,10 +6,12 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -21,7 +23,6 @@ namespace AElf.OS.Handlers
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
         ILocalEventHandler<AnnoucementReceivedEventData>
     {
-        public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
         public IBackgroundJobManager BackgroundJobManager { get; set; }
@@ -32,12 +33,13 @@ namespace AElf.OS.Handlers
 
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
+        public IChainRelatedComponentManager<IAElfNetworkServer> NetworkServers { get; set; }
+
         public PeerConnectedEventHandler()
         {
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
-        private int ChainId => ChainOptions.Value.ChainId;
 
         private int BlockIdRequestCount =>
             NetworkOptions?.Value?.BlockIdRequestCount ?? NetworkConsts.DefaultBlockIdRequestCount;
@@ -52,35 +54,44 @@ namespace AElf.OS.Handlers
             await ProcessNewBlock(eventData.Header, eventData.Peer);
         }
 
-        // todo eventually protect this logic with LIB
-        private async Task ProcessNewBlock(BlockHeader header, string peer)
+        private async Task ProcessNewBlock(BlockHeader header, string peerAddress)
         {
+            var blockHeight = header.Height;
+            var blockHash = header.GetHash();
+            var chainId = header.ChainId;
+
+
+            var peerInPool = NetworkServers.Get(chainId).PeerPool.FindPeer(peerAddress);
+            if (peerInPool != null)
+            {
+                peerInPool.CurrentBlockHash = blockHash;
+                peerInPool.CurrentBlockHeight = blockHeight;
+            }
             
-            var chain = await BlockchainService.GetChainAsync(ChainId);
+            var chain = await BlockchainService.GetChainAsync(chainId);
 
             if (header.Height - chain.LongestChainHeight < 10)
             {
+                //currently: 100
+                //remote: 200
+                //just ignore the block
 
                 return;
             }
-            
+
             try
             {
-                var blockHash = header.GetHash();
-
-                Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {header.Height} }} from {peer}.");
-
+                Logger.LogTrace(
+                    $"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
 
                 var block = await BlockchainService.GetBlockByHashAsync(ChainId, blockHash);
-                
-                
-                if (block==null)
+
+                if (block == null)
                 {
-                    block = (Block)  await NetworkService.GetBlockByHashAsync(blockHash);
+                    block = (Block) await NetworkService.GetBlockByHashAsync(blockHash);
                     Logger.LogDebug($"Block {blockHash} already know.");
                     return;
                 }
-
 
                 var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
 
@@ -88,14 +99,18 @@ namespace AElf.OS.Handlers
 
                 if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
                 {
+                    await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs	
+                    {	
+                        SuggestedPeerAddress = peerAddress,
+                        ChainId = chainId,
+                        
+                    });
                 }
-
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Error during {nameof(ProcessNewBlock)}, peer: {peer}.");
+                Logger.LogError(e, $"Error during {nameof(ProcessNewBlock)}, peer: {peerAddress}.");
             }
         }
-
     }
 }
