@@ -52,9 +52,15 @@ namespace AElf.OS.Network.Grpc
 
         public Hash CurrentBlockHash { get; set; }
         public ulong CurrentBlockHeight { get; set; }
-        public Task<List<Block>> GetBlocksAsync(Hash previousHash, int count)
+        
+        public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
-            throw new System.NotImplementedException();
+            var list = await _client.RequestBlocksAsync(new BlocksRequest { FirstBlockId = firstHash, Count = count });
+            
+            if (list == null)
+                return new List<Block>();
+
+            return list.Blocks.Select(b => b).ToList();
         }
 
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)

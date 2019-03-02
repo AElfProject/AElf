@@ -46,20 +46,19 @@ namespace AElf.OS.Handlers
 
         public async Task HandleEventAsync(AnnoucementReceivedEventData eventData)
         {
-            await ProcessNewBlock(eventData.Announce, eventData.Peer);
+            await ProcessNewBlock(eventData, eventData.Peer);
         }
 
         public async Task HandleEventAsync(PeerConnectedEventData eventData)
         {
-            await ProcessNewBlock(eventData.Header, eventData.Peer);
+            //await ProcessNewBlock(eventData, eventData.Peer);
         }
 
-        private async Task ProcessNewBlock(BlockHeader header, string peerAddress)
+        private async Task ProcessNewBlock(AnnoucementReceivedEventData header, string peerAddress)
         {
-            var blockHeight = header.Height;
-            var blockHash = header.GetHash();
+            var blockHeight = header.Announce.BlockHeight;
+            var blockHash = header.Announce.BlockHash;
             var chainId = header.ChainId;
-
 
             var peerInPool = NetworkServers.Get(chainId).PeerPool.FindPeer(peerAddress);
             if (peerInPool != null)
@@ -70,7 +69,7 @@ namespace AElf.OS.Handlers
             
             var chain = await BlockchainService.GetChainAsync(chainId);
 
-            if (header.Height - chain.LongestChainHeight < 10)
+            if (blockHeight - chain.LongestChainHeight < 10)
             {
                 //currently: 100
                 //remote: 200

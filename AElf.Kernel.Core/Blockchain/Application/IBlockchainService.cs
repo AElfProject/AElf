@@ -26,6 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Block> GetBlockByHeightAsync(int chainId, ulong height);
         Task<List<Hash>> GetReversedBlockHashes(int chainId, Hash lastBlockHash, int count);
+        Task<List<Block>> GetBlocksAsync(int chainId, Hash firstHash, int count);
 
         Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null);
@@ -265,6 +266,23 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
+        public async Task<List<Block>> GetBlocksAsync(int chainId, Hash firstHash, int count)
+        {
+            var first = await _blockManager.GetBlockHeaderAsync(firstHash);
+
+            if (first == null)
+                return null;
+
+            var blockList = new List<Block>();
+            for (int i = 0; i < count; i++)
+            {
+                var block = await GetBlockByHeightAsync(chainId, first.Height + (ulong)i);
+                if (block == null)
+                    break;
+            }
+
+            return blockList;
+        }
 
         public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null)

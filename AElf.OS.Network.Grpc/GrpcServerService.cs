@@ -132,7 +132,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
+                await EventBus.PublishAsync(new AnnoucementReceivedEventData(ChainId, an, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
             {
@@ -176,6 +176,30 @@ namespace AElf.OS.Network.Grpc
             }
             
             return new BlockReply();
+        }
+
+        public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
+        {
+            if (request == null)
+                return new BlockList();
+
+            try
+            {
+                var blocks = await _blockChainService.GetBlocksAsync(ChainId, request.FirstBlockId, request.Count);
+                
+                BlockList blockList = new BlockList();
+
+                if (blocks == null)
+                    return blockList;
+
+                blockList.Blocks.AddRange(blocks);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Error during RequestBlock handle.");
+            }
+            
+            return new BlockList();
         }
 
         public override async Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)

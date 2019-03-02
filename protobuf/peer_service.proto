@@ -4,11 +4,13 @@ option csharp_namespace = "AElf.OS.Network.Grpc";
 
 import "kernel.proto";
 import "network_types.proto";
+import "common.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlockIds (BlockIdsRequest) returns (BlockIdList) {}
-
+    rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
+    
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (Transaction) returns (VoidReply) {}
 
@@ -16,6 +18,15 @@ service PeerService {
     rpc Authentify (Handshake) returns (AuthResponse) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+}
+
+message BlocksRequest {
+    Hash FirstBlockId = 1;
+    int32 Count = 2;
+}
+
+message BlockList {
+    repeated Block Blocks = 1;
 }
 
 message BlockIdsRequest {
