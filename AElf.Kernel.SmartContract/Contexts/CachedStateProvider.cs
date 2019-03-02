@@ -47,10 +47,8 @@ namespace AElf.Kernel.SmartContract.Contexts
             }
 
             var bytes = await _inner.GetAsync(path);
-            if (bytes != null)
-            {
-                Cache[path] = bytes;    
-            }
+
+            Cache[path] = bytes;
 
             return bytes;
         }

@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract
 {
 
     public interface IStateProvider

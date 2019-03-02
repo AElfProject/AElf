@@ -1,8 +1,10 @@
 ﻿﻿using System;
+ using System.Threading.Tasks;
  using AElf.Kernel;
 using AElf.Common;
+ using AElf.Kernel.Blockchain.Application;
 
-namespace AElf.Kernel.SmartContract
+ namespace AElf.Kernel.SmartContract
 {
     public class TransactionContext : ITransactionContext
     {
@@ -24,5 +26,11 @@ namespace AElf.Kernel.SmartContract
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
+        
+        public IBlockchainService BlockchainService { get; set; }
+        public Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
+        {
+            return BlockchainService.GetBlockByHashAsync(chainId,blockId);
+        }
     }
 }
