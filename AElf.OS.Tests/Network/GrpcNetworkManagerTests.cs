@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -247,14 +248,14 @@ namespace AElf.OS.Tests.Network
         [Fact]
         private async Task Transaction_Event_Test()
         {
-            List<TxReceivedEventData> receivedEventDatas = new List<TxReceivedEventData>();
+            List<TransactionsReceivedEvent> receivedEventDatas = new List<TransactionsReceivedEvent>();
 
             void TransferEventCallbackAction(object eventData)
             {
                 // todo use event bus
                 try
                 {
-                    if (eventData is TxReceivedEventData data)
+                    if (eventData is TransactionsReceivedEvent data)
                     {
                         receivedEventDatas.Add(data);
                     }
