@@ -104,7 +104,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 ChainId = chainId,
                 ContractAddress = address,
-                ChainService = _serviceProvider.GetService<IBlockchainService>(),
+                BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
                 SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
                 SmartContractExecutiveService = this,
 #if DEBUG

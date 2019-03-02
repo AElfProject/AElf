@@ -37,7 +37,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
             List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken)
         {
-            chainContext.StateCache = new InmemoryStateCache();
+            var groupStateCache = new TieredStateCache(chainContext.StateCache);
+            var groupChainContext = new ChainContextWithTieredStateCache(chainContext, groupStateCache);
+
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
             {
@@ -46,11 +48,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     break;
                 }
 
-                var trace = await ExecuteOneAsync(0, chainContext, transaction, currentBlockTime,
+                var trace = await ExecuteOneAsync(0, groupChainContext, transaction, currentBlockTime,
                     cancellationToken);
                 if (!trace.IsSuccessful())
                 {
                     trace.SurfaceUpError();
+                }
+                else
+                {
+                    groupStateCache.Update(trace.GetFlattenedWrite()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
 
                 if (trace.StdErr != string.Empty)
@@ -99,7 +106,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 CallDepth = depth,
             };
 
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId, chainContext,
+            var internalStateCache = new TieredStateCache(chainContext.StateCache);
+            var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId,
+                internalChainContext,
                 transaction.To);
 
             try
@@ -115,11 +125,24 @@ namespace AElf.Kernel.SmartContractExecution.Application
 //                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
 //                }
 
-                foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
+                if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
                 {
-                    var inlineTrace = await ExecuteOneAsync(depth + 1, chainContext, inlineTx,
-                        currentBlockTime, cancellationToken);
-                    trace.InlineTraces.Add(inlineTrace);
+                    internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
+                    {
+                        var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
+                            currentBlockTime, cancellationToken);
+                        trace.InlineTraces.Add(inlineTrace);
+                        if (!inlineTrace.IsSuccessful())
+                        {
+                            // Fail already, no need to execute remaining inline transactions
+                            break;
+                        }
+
+                        internalStateCache.Update(inlineTrace.GetFlattenedWrite()
+                            .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    }
                 }
             }
             catch (Exception ex)
@@ -223,9 +246,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.DeferredTransactions.Add(tx);
             }
 
-            foreach (var s in trace.StateSet.Writes)
+            foreach (var s in trace.GetFlattenedWrite())
             {
-                returnSet.StateChanges.Add(s.Key, s.Value);
+                returnSet.StateChanges[s.Key] = s.Value;
             }
 
             if (trace.IsSuccessful())

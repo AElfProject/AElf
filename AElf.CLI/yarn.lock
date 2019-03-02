@@ -61,14 +61,14 @@
   integrity sha512-1w52Nyx4Gq47uuu0EVcsHBxZFJgurQ+rTKS3qMHxR1GY2T8c2AJYd6vZoZ9q1rupaDjU0yT+Jc2XTyXkjeMA+Q==
 
 "@types/node@^10.1.0":
-  version "10.12.27"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.27.tgz#eb3843f15d0ba0986cc7e4d734d2ee8b50709ef8"
-  integrity sha512-e9wgeY6gaY21on3ve0xAjgBVjGDWq/xUteK0ujsE53bUoxycMkqfnkUgMt6ffZtykZ5X12Mg3T7Pw4TRCObDKg==
+  version "10.12.29"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.29.tgz#c2c8d2d27bb55649fbafe8ea1731658421f38acf"
+  integrity sha512-J/tnbnj8HcsBgCe2apZbdUpQ7hs4d7oZNTYA5bekWdP0sr2NGsOpI/HRdDroEi209tEvTcTtxhD0FfED3DhEcw==
 
-aelf-sdk@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.2.tgz#a0706030e12f578efb071522a75307c9a5ddd801"
-  integrity sha512-mQWQ3xaXTBRehqbLrty0z040aYlEcVd+dsxANYKL/VgAJLtT9fwkomxZPsb5HzTFtPhSoW4qQUIS0000Zvh1Vg==
+aelf-sdk@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.3.tgz#0de00848186e5c76540acf60fde85ea91cdeca66"
+  integrity sha512-AL3ebs5M8AsERtHyylpU9eSQMOs4nnNqpuSq9Gki2K/kcroVzcTG0w1v8iRpPOeLTggvO+r2M6XK/Q4Zry3Rxg==
   dependencies:
     bignumber "^1.1.0"
     bignumber.js "^2.0.7"
