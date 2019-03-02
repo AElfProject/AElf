@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Grpc.Core;
@@ -16,21 +18,22 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
-        private readonly NetworkOptions _networkOptions;
-
-        private readonly PeerService.PeerServiceBase _serverService;
+        private readonly NetworksOptions _networksOptions;
 
         private Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
-            GrpcPeerPool peerPool)
+        private readonly IBlockchainService _blockchainService;
+        private readonly IAccountService _accountService;
+
+        public GrpcNetworkServer(IBlockchainService blockchainService, IOptionsSnapshot< NetworksOptions> networksOptions, 
+            IAccountService accountService)
         {
-            _serverService = serverService;
-            PeerPool = peerPool;
-            _networkOptions = options.Value;
+            _blockchainService = blockchainService;
+            _networksOptions = networksOptions.Value;
+            _accountService = accountService;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
             EventBus = NullLocalEventBus.Instance;
@@ -38,21 +41,23 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<IDisposable> StartAsync(int chainId)
         {
+            var options = _networksOptions.GetOrDefault(chainId);
+            PeerPool=new GrpcPeerPool(chainId, options,_accountService,_blockchainService );
             _server = new Server
             {
-                Services = {PeerService.BindService(_serverService)},
+                Services = {PeerService.BindService(new GrpcServerService(chainId, PeerPool, _blockchainService))},
                 Ports =
                 {
-                    new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
+                    new ServerPort(IPAddress.Any.ToString(), options.ListeningPort, ServerCredentials.Insecure)
                 }
             };
 
             await Task.Run(() => _server.Start());
 
             // Add the provided boot nodes
-            if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
+            if (options.BootNodes != null && options.BootNodes.Any())
             {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(PeerPool.AddPeerAsync).ToList();
+                List<Task<bool>> taskList = options.BootNodes.Select(PeerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
@@ -81,7 +86,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public IPeerPool PeerPool { get; }
+        public IPeerPool PeerPool { get; private set; }
 
         public void Dispose()
         {
