@@ -183,7 +183,7 @@ namespace AElf.Contracts.CrossChain
         {
             // side chain disposal should be triggered by multi sig txn from system address.
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            CheckAuthority(Context.Genesis);
+            //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
 

@@ -18,7 +18,7 @@ namespace AElf.Contracts.CrossChain
 
     public class SideChainDisposal : Event
     {
-        public Hash ChainId{ get; set; }
+        public int ChainId{ get; set; }
     }
     
     public class CrossChainIndexingEvent : Event
