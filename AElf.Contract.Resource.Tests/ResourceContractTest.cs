@@ -245,7 +245,7 @@ namespace AElf.Contracts.Resource.Tests
             issueResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Theory(Skip = "https://github.com/AElfProject/AElf/issues/952")]
+        [Theory]
         [InlineData(1000UL)]
         public async Task Buy_Resource_WithEnough_Token(ulong paidElf)
         {
@@ -284,11 +284,11 @@ namespace AElf.Contracts.Resource.Tests
                 "BuyResource",
                 "Cpu", 10_000UL);
             var returnMessage = buyResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("").ShouldBe(true);
+            returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
+        [Fact]
         public async Task Sell_WithEnough_Resource()
         {
             await Buy_Resource_WithEnough_Token(1000UL);
@@ -299,7 +299,7 @@ namespace AElf.Contracts.Resource.Tests
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
+        [Fact]
         public async Task Sell_WithoutEnough_Resource()
         {
             await Buy_Resource_WithEnough_Token(100UL);
@@ -312,7 +312,7 @@ namespace AElf.Contracts.Resource.Tests
             sellResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
 
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/952")]
+        [Fact]
         public async Task Lock_Available_Resource()
         {
             await Buy_Resource_WithEnough_Token(1000UL);
