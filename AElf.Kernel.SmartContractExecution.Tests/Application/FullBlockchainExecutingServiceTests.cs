@@ -14,7 +14,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
         private readonly IFullBlockchainService _fullBlockchainService;
         private readonly ILocalEventBus _localEventBus;
-        private readonly int _chainId = 1;
 
         public FullBlockchainExecutingServiceTests()
         {
@@ -75,7 +74,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Body = new BlockBody()
             };
 
-            await _fullBlockchainService.AddBlockAsync(chain.Id, newBlock);
+            await _fullBlockchainService.AddBlockAsync( newBlock);
             var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
@@ -101,7 +100,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 },
                 Body = new BlockBody()
             };
-            var chain = await _fullBlockchainService.CreateChainAsync(_chainId, genesisBlock);
+            var chain = await _fullBlockchainService.CreateChainAsync( genesisBlock);
             return chain;
         }
     }

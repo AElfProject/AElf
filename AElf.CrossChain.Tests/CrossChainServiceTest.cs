@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using Moq;
 using Xunit;
 
@@ -16,9 +17,9 @@ namespace AElf.CrossChain
             var fakeConsumer = CreateFakeCrossChainDataConsumer(fakeMultiChainBlockInfoCacheProvider);
             var mockContractReader = CreateFakeCrossChainContractReader(sideChainIdHeights, parentCHainIdHeights);
             var crossChainDataProvider = new CrossChainDataProvider(mockContractReader, fakeConsumer);
-            return new CrossChainService(crossChainDataProvider);
+            return new CrossChainService(crossChainDataProvider, GetRequiredService<IChainManager>());
         }
-        
+
         [Fact]
         public async Task GetSideChainBlock_WithoutCache()
         {
@@ -26,10 +27,10 @@ namespace AElf.CrossChain
             var mockSideChainBlockData = new List<SideChainBlockData>();
             var crossChainService = CreateNewCrossChainService(
                 new Dictionary<int, List<IBlockInfo>>(), new Dictionary<int, ulong>(), new Dictionary<int, ulong>());
-            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId, Hash.Default, 1);
+            var actual = await crossChainService.GetSideChainBlockDataAsync(Hash.Default, 1);
             Assert.Equal(mockSideChainBlockData, actual);
         }
-        
+
         [Fact]
         public async Task GetSideChainBlock_WithoutEnoughCache()
         {
@@ -42,16 +43,17 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockSideChainBlockData}};
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockSideChainBlockData}};
             var sideChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 0}
             };
-            var crossChainService = CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
-            var actual = await crossChainService.GetSideChainBlockDataAsync(stubChainId, Hash.Default, 1);
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
+            var actual = await crossChainService.GetSideChainBlockDataAsync(Hash.Default, 1);
             Assert.True(actual.Count == 0);
         }
-        
+
         [Fact]
         public async Task GetParentChainBlock_WithoutCache()
         {
@@ -59,10 +61,10 @@ namespace AElf.CrossChain
             var mockParentChainBlockData = new List<ParentChainBlockData>();
             var crossChainService = CreateNewCrossChainService(
                 new Dictionary<int, List<IBlockInfo>>(), new Dictionary<int, ulong>(), new Dictionary<int, ulong>());
-            var actual = await crossChainService.GetParentChainBlockDataAsync(stubChainId, Hash.Default, 1);
+            var actual = await crossChainService.GetParentChainBlockDataAsync(Hash.Default, 1);
             Assert.Equal(mockParentChainBlockData, actual);
         }
-        
+
         [Fact]
         public async Task GetParentChainBlock_WithoutEnoughCache()
         {
@@ -78,16 +80,17 @@ namespace AElf.CrossChain
                     }
                 }
             };
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockParentChainBlockData}};
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockParentChainBlockData}};
             var parentChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 0}
             };
-            var crossChainService = CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
-            var res = await crossChainService.GetParentChainBlockDataAsync(stubChainId, Hash.Default, 1);
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
+            var res = await crossChainService.GetParentChainBlockDataAsync(Hash.Default, 1);
             Assert.True(res.Count == 0);
         }
-        
+
         [Fact]
         public async Task ValidateSideChainBlock_Success()
         {
@@ -100,17 +103,18 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockSideChainBlockData}};
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockSideChainBlockData}};
             var sideChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 1}
             };
-            var crossChainService = CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
-            var res = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId,
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
+            var res = await crossChainService.ValidateSideChainBlockDataAsync(
                 mockSideChainBlockData.Select(scb => (SideChainBlockData) scb).ToList(), Hash.Default, 1);
             Assert.True(res);
         }
-        
+
         [Fact]
         public async Task ValidateSideChainBlock_Fail_WrongIndex()
         {
@@ -123,7 +127,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            
+
             var newMockSideChainBlockData = new List<SideChainBlockData>
             {
                 new SideChainBlockData
@@ -131,17 +135,19 @@ namespace AElf.CrossChain
                     SideChainId = stubChainId + 1,
                     SideChainHeight = 2
                 }
-            }; 
+            };
             var sideChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 1}
             };
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockSideChainBlockData}};
-            var crossChainService = CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
-            var res = await crossChainService.ValidateSideChainBlockDataAsync(stubChainId, newMockSideChainBlockData, Hash.Default, 1);
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockSideChainBlockData}};
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, sideChainIdHeights, new Dictionary<int, ulong>());
+            var res = await crossChainService.ValidateSideChainBlockDataAsync(newMockSideChainBlockData, Hash.Default,
+                1);
             Assert.False(res);
         }
-        
+
         [Fact]
         public async Task ValidateParentChainBlock_Success()
         {
@@ -157,17 +163,18 @@ namespace AElf.CrossChain
                     }
                 }
             };
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockParentChainBlockData}};
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockParentChainBlockData}};
             var parentChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 1}
             };
-            var crossChainService = CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
-            var res = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId,
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
+            var res = await crossChainService.ValidateParentChainBlockDataAsync(
                 mockParentChainBlockData.Select(pcb => (ParentChainBlockData) pcb).ToList(), Hash.Default, 1);
             Assert.True(res);
         }
-        
+
         [Fact]
         public async Task ValidateParentChainBlock_Fail_WrongIndex()
         {
@@ -194,14 +201,16 @@ namespace AElf.CrossChain
                     }
                 }
             };
-            
-            var fakeCache = new Dictionary<int, List<IBlockInfo> >{{stubChainId, mockParentChainBlockData}};
+
+            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockParentChainBlockData}};
             var parentChainIdHeights = new Dictionary<int, ulong>
             {
                 {stubChainId, 1}
             };
-            var crossChainService = CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
-            var res = await crossChainService.ValidateParentChainBlockDataAsync(stubChainId, newMockParentChainBlockData, Hash.Default, 1);
+            var crossChainService =
+                CreateNewCrossChainService(fakeCache, new Dictionary<int, ulong>(), parentChainIdHeights);
+            var res = await crossChainService.ValidateParentChainBlockDataAsync(newMockParentChainBlockData,
+                Hash.Default, 1);
             Assert.False(res);
         }
     }

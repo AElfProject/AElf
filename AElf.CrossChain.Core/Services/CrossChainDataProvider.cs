@@ -10,14 +10,12 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly IChainManager _chainManager;
 
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer, IChainManager chainManager)
+            ICrossChainDataConsumer crossChainDataConsumer)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
-            _chainManager = chainManager;
         }
 
         public async Task<bool> GetSideChainBlockDataAsync(IList<SideChainBlockData> sideChainBlockData,
@@ -123,9 +121,9 @@ namespace AElf.CrossChain
             return true;
         }
 
-        public void RegisterNewChain()
+        public void RegisterNewChain(int chainId)
         {
-            _crossChainDataConsumer.RegisterNewChainCache(_chainManager.GetChainId(), 0);
+            _crossChainDataConsumer.RegisterNewChainCache(chainId, 0);
         }
     }
 }

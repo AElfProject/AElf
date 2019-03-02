@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -10,11 +11,13 @@ namespace AElf.CrossChain
     public class CrossChainService : ICrossChainService
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly IChainManager _chainManager;
         private ILocalEventBus LocalEventBus { get; }
 
-        public CrossChainService(ICrossChainDataProvider crossChainDataProvider)
+        public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IChainManager chainManager)
         {
             _crossChainDataProvider = crossChainDataProvider;
+            _chainManager = chainManager;
             LocalEventBus = NullLocalEventBus.Instance;
             LocalEventBus.Subscribe<BestChainFoundEventData>(RegisterSideChainAsync);
         }
@@ -51,7 +54,7 @@ namespace AElf.CrossChain
 
         public void CreateNewSideChainBlockInfoCache()
         {
-            _crossChainDataProvider.RegisterNewChain();
+            _crossChainDataProvider.RegisterNewChain(_chainManager.GetChainId());
         }
 
         private async Task RegisterSideChainAsync(BestChainFoundEventData eventData)
