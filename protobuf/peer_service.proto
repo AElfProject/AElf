@@ -9,7 +9,7 @@ service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlockIds (BlockIdsRequest) returns (BlockIdList) {}
 
-    rpc Announce (Announcement) returns (VoidReply) {}
+    rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (Transaction) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (AuthResponse) {}

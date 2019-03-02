@@ -18,7 +18,7 @@ message HandshakeData {
     int32 Version = 3;
 }
 
-message PeerNewBlockAnnouncement{
+message PeerNewBlockAnnouncement {
     Hash BlockHash = 1;
     uint64 BlockHeight = 2;
 }

@@ -46,7 +46,7 @@ namespace AElf.OS.Handlers
 
         public async Task HandleEventAsync(AnnoucementReceivedEventData eventData)
         {
-            await ProcessNewBlock(eventData.Header, eventData.Peer);
+            await ProcessNewBlock(eventData.Announce, eventData.Peer);
         }
 
         public async Task HandleEventAsync(PeerConnectedEventData eventData)

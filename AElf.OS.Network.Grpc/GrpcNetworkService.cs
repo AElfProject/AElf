@@ -44,7 +44,7 @@ namespace AElf.OS.Network.Grpc
             {
                 try
                 {
-                    await peer.AnnounceAsync(blockHeader);
+                    await peer.AnnounceAsync(new PeerNewBlockAnnouncement { BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height });
                 }
                 catch (Exception e)
                 {

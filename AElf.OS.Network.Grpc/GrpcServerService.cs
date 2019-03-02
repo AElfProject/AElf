@@ -121,24 +121,18 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override async Task<VoidReply> Announce(Announcement an, ServerCallContext context)
+        public override async Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            if (an?.Header == null)
+            if (an?.BlockHash == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
-                return new VoidReply();
-            }
-
-            if (an.Header.PreviousBlockHash == null)
-            {
-                Logger.LogError($"Received announcement with null previous hash from {context.Peer}.");
                 return new VoidReply();
             }
                 
             try
             {
-                Logger.LogDebug($"Received announce {an.Header.GetHash().ToHex()} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an.Header, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
+                Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
+                await EventBus.PublishAsync(new AnnoucementReceivedEventData(an, GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
             {

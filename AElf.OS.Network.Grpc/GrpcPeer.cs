@@ -57,9 +57,9 @@ namespace AElf.OS.Network.Grpc
             throw new System.NotImplementedException();
         }
 
-        public async Task AnnounceAsync(BlockHeader header)
+        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            await _client.AnnounceAsync(new Announcement { Header = header});
+            await _client.AnnounceAsync(header);
         }
 
         public async Task SendTransactionAsync(Transaction tx)
