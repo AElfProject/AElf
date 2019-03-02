@@ -118,7 +118,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
         }
 
-        public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation, int chainId)
+        public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation)
         {
             DPoSInformation information;
             try
@@ -138,7 +138,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 {
                     case DPoSBehaviour.InitialTerm:
                         Logger.LogInformation(GetLogStringForOneRound(information.NewTerm.FirstRound));
-                        information.NewTerm.ChainId = chainId;
                         information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
                         return new DPoSExtraInformation
                         {

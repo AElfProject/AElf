@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using Google.Protobuf;
 using Grpc.Core;
@@ -108,7 +110,10 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await EventBus.PublishAsync(new TxReceivedEventData(tx));
+                await EventBus.PublishAsync(new TransactionsReceivedEvent()
+                {
+                    Transactions = new List<Transaction>() {tx}
+                });
             }
             catch (Exception e)
             {
@@ -158,12 +163,12 @@ namespace AElf.OS.Network.Grpc
                 if (request.Id != null && request.Id.Length > 0)
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block with id {request.Id.ToByteArray().ToHex()}.");
-                    block = await _blockChainService.GetBlockByHashAsync(ChainId, Hash.LoadByteArray(request.Id.ToByteArray()));
+                    block = await _blockChainService.GetBlockByHashAsync( Hash.LoadByteArray(request.Id.ToByteArray()));
                 }
                 else
                 {
                     Logger.LogDebug($"Peer {context.Peer} requested block at height {request.Height}.");
-                    block = await _blockChainService.GetBlockByHeightAsync(ChainId, (ulong)request.Height);
+                    block = await _blockChainService.GetBlockByHeightAsync(request.Height);
                 }
                 
                 Logger.LogDebug($"Sending {block} to {context.Peer}.");
@@ -223,7 +228,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogDebug($"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.FirstBlockId.ToByteArray())}, count : {request.Count}.");
                 
-                var headers = await _blockChainService.GetReversedBlockHashes(ChainId, 
+                var headers = await _blockChainService.GetReversedBlockHashes(
                     Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
                 
                 BlockIdList list = new BlockIdList();

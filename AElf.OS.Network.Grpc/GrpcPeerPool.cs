@@ -184,7 +184,7 @@ namespace AElf.OS.Network.Grpc
             {
                 HskData = nd,
                 Sig = ByteString.CopyFrom(sig),
-                Header = await _blockchainService.GetBestChainLastBlock(ChainId)
+                Header = await _blockchainService.GetBestChainLastBlock()
             };
 
             return hsk;

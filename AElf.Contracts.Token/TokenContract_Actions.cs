@@ -36,7 +36,7 @@ namespace AElf.Contracts.Token
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = State.Allowances[from][Context.Sender];
-            Assert(allowance >= amount, $"Insufficient allowance. Allowance={allowance}, Transfer={amount}, From={from.GetFormatted()}, To={to.GetFormatted()}");
+            Assert(allowance >= amount, $"Insufficient allowance.");
 
             DoTransfer(from, to, amount);
             State.Allowances[from][Context.Sender] = allowance.Sub(amount);

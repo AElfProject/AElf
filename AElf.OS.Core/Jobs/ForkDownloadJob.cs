@@ -21,7 +21,7 @@ namespace AElf.OS.Jobs
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
 
-        public IChainRelatedComponentManager<IAElfNetworkServer> Servers { get; set; }
+        public IAElfNetworkServer Server { get; set; }
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
@@ -30,12 +30,12 @@ namespace AElf.OS.Jobs
                 var count = 5;
 
                 var chainId = args.ChainId;
-                var pool = Servers.Get(chainId).PeerPool;
+                var pool = Server.PeerPool;
 
 
                 while (true)
                 {
-                    var chain = await BlockchainService.GetChainAsync(chainId);
+                    var chain = await BlockchainService.GetChainAsync();
 
                     var blockHash = chain.LongestChainHash;
                     var blockHeight = chain.LongestChainHeight;

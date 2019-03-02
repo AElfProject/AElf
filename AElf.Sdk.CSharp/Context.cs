@@ -20,6 +20,8 @@ namespace AElf.Sdk.CSharp
 
         public ISmartContractContext SmartContractContext { get; set; }
 
+        public int ChainId => SmartContractContext.GetChainId();
+
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
@@ -33,7 +35,6 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
-        public int ChainId => SmartContractContext.ChainId;
         public Transaction Transaction => TransactionContext.Transaction.ToReadOnly();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
@@ -63,7 +64,7 @@ namespace AElf.Sdk.CSharp
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = TransactionContext.Transaction.From,
+                From = Self,
                 To = address,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
@@ -101,6 +102,8 @@ namespace AElf.Sdk.CSharp
 
         public void DeployContract(Address address, SmartContractRegistration registration)
         {
+            //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
+            //method SmartContractContext.DeployContract or it's service 
             if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
             {
                 throw new AssertionError("no permission.");

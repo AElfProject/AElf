@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
 using AElf.TestBase;
+using Castle.DynamicProxy.Generators;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -21,7 +22,7 @@ namespace AElf.Kernel.SmartContractExecution
         typeof(SmartContractExecutionAElfModule),
         typeof(TestBaseAElfModule),
         typeof(AbpEventBusModule)
-        )]
+    )]
     public class SmartContractExecutionTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -67,8 +68,11 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IResourceUsageDetectionService>(p =>
             {
                 var mockService = new Mock<IResourceUsageDetectionService>();
-                mockService.Setup(m => m.GetResources(It.IsAny<int>(), It.IsAny<Transaction>()))
-                    .Returns<int, Transaction>((chainId, transaction) =>
+                
+                
+                
+                mockService.Setup(m => m.GetResources(It.IsAny<Transaction>()))
+                    .Returns<Transaction>((transaction) =>
                     {
                         var list = new List<string>()
                         {
@@ -77,6 +81,8 @@ namespace AElf.Kernel.SmartContractExecution
                         };
                         return Task.FromResult(list.Select(a => a));
                     });
+
+                
                 return mockService.Object;
             });
 

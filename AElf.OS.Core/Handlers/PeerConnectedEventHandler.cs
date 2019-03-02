@@ -33,7 +33,7 @@ namespace AElf.OS.Handlers
 
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
-        public IChainRelatedComponentManager<IAElfNetworkServer> NetworkServers { get; set; }
+        public IAElfNetworkServer NetworkServer { get; set; }
 
         public PeerConnectedEventHandler()
         {
@@ -60,14 +60,14 @@ namespace AElf.OS.Handlers
             var blockHash = header.Announce.BlockHash;
             var chainId = header.ChainId;
 
-            var peerInPool = NetworkServers.Get(chainId).PeerPool.FindPeer(peerAddress);
+            var peerInPool = NetworkServer.PeerPool.FindPeer(peerAddress);
             if (peerInPool != null)
             {
                 peerInPool.CurrentBlockHash = blockHash;
                 peerInPool.CurrentBlockHeight = blockHeight;
             }
-            
-            var chain = await BlockchainService.GetChainAsync(chainId);
+
+            var chain = await BlockchainService.GetChainAsync();
 
             if (blockHeight - chain.LongestChainHeight < 10)
             {
@@ -83,7 +83,7 @@ namespace AElf.OS.Handlers
                 Logger.LogTrace(
                     $"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
 
-                var block = await BlockchainService.GetBlockByHashAsync(chainId, blockHash);
+                var block = await BlockchainService.GetBlockByHashAsync(blockHash);
 
                 if (block == null)
                 {
@@ -97,11 +97,10 @@ namespace AElf.OS.Handlers
 
                 if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
                 {
-                    await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs	
-                    {	
+                    await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+                    {
                         SuggestedPeerAddress = peerAddress,
                         ChainId = chainId,
-                        
                     });
                 }
             }

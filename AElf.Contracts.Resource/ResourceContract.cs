@@ -232,7 +232,7 @@ namespace AElf.Contracts.Resource
             Transfer(rca, userAddress, amount, rt);
 
             // Reduce locked amount
-            var key = new UserResourceKey(Context.Sender, rt);
+            var key = new UserResourceKey(userAddress, rt);
             State.LockedUserResources[key] = State.LockedUserResources[key].Sub(amount);
             Context.FireEvent(new ResourceUnlocked()
             {

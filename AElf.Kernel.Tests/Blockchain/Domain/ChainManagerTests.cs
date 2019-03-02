@@ -45,7 +45,7 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task Should_Create_Chain()
         {
-            var chain = await _chainManager.CreateAsync(0, _genesis);
+            var chain = await _chainManager.CreateAsync(_genesis);
             chain.LongestChainHash.ShouldBe(_genesis);
             chain.GenesisBlockHash.ShouldBe(_genesis);
             chain.LongestChainHeight.ShouldBe(0UL.BlockHeight());
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //*10, *11[12] means just added to the chain
 
 
-            var chain = await _chainManager.CreateAsync(0, _genesis);
+            var chain = await _chainManager.CreateAsync(_genesis);
 
 
             //0 -> *1, no branch
@@ -106,9 +106,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
                 //test repeat set
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(0ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(1ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(1ul.BlockHeight());
@@ -137,9 +137,9 @@ namespace AElf.Kernel.Blockchain.Domain
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4])
                     .ShouldThrowAsync<InvalidOperationException>();
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(0ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(1ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[1]);
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(1ul.BlockHeight());
@@ -186,15 +186,15 @@ namespace AElf.Kernel.Blockchain.Domain
 
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(0ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(1ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(2ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[2]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(3ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[3]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(4ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[4]);
 
 
@@ -333,17 +333,17 @@ namespace AElf.Kernel.Blockchain.Domain
 
             {
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[12]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 0ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(0ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 1ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(1ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[1]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 2ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(2ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[2]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 3ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(3ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[3]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 4ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(4ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[4]);
-                (await _chainManager.GetChainBlockIndexAsync(chain.Id, 8ul.BlockHeight())).BlockHash.ShouldBe(
+                (await _chainManager.GetChainBlockIndexAsync(8ul.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[12]);
 
 
@@ -362,7 +362,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //*10, *11[12] means just added to the chain
 
 
-            var chain = await _chainManager.CreateAsync(0, _genesis);
+            var chain = await _chainManager.CreateAsync(_genesis);
 
 
             //0 -> *1, no branch
@@ -601,9 +601,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink,
+            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             var secondBlockLink = new ChainBlockLink
@@ -614,7 +614,7 @@ namespace AElf.Kernel.Blockchain.Domain
             };
 
             _chainManager
-                .SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
+                .SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
                 .ShouldThrow<InvalidOperationException>();
         }
 
@@ -628,9 +628,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
             };
 
-            await _chainManager.SetChainBlockLinkExecutionStatus(0, firstBlockLink,
+            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionFailed);
-            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(0, _blocks[1]);
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
             currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
 
             var secondBlockLink = new ChainBlockLink
@@ -641,17 +641,17 @@ namespace AElf.Kernel.Blockchain.Domain
             };
 
             _chainManager
-                .SetChainBlockLinkExecutionStatus(0, secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
+                .SetChainBlockLinkExecutionStatus( secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
                 .ShouldThrow<InvalidOperationException>();
         }
 
         [Fact]
         public async Task Set_Best_Chain_Test()
         {
-            var chain = await _chainManager.CreateAsync(0, _genesis);
+            var chain = await _chainManager.CreateAsync(_genesis);
 
             await _chainManager.SetBestChainAsync(chain, 1ul.BlockHeight(), _blocks[1]);
-            var currentChain = await _chainManager.GetAsync(chain.Id);
+            var currentChain = await _chainManager.GetAsync();
             currentChain.BestChainHeight.ShouldBe(1ul.BlockHeight());
             currentChain.BestChainHash.ShouldBe(_blocks[1]);
 
@@ -663,7 +663,7 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task Get_Not_ExecutedBlocks_Test()
         {
             // execution success blocks
-            var chain = await _chainManager.CreateAsync(0, _genesis);
+            var chain = await _chainManager.CreateAsync(_genesis);
             await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
             {
                 Height = 1ul.BlockHeight(),
@@ -677,7 +677,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 PreviousBlockHash = _blocks[1]
             });
 
-            var chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[2]);
+            var chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[2]);
             chainBlockLinks.Count.ShouldBe(3);
             chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
             chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
@@ -708,7 +708,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
 
             //when block 3 is the last one, all blocks status is execution none
-            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[3]);
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[3]);
             chainBlockLinks.Count.ShouldBe(4);
             chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
             chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
@@ -717,7 +717,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             //when block 5 is the last one, as block 4 is executed failed, mean all block 4's previous blocks have been
             //executed, and as block 4 is failed, so all block after block 4 is failed. so Count = 0
-            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(0, _blocks[5]);
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[5]);
             chainBlockLinks.Count.ShouldBe(0);
         }
     }

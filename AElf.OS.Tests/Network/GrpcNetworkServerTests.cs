@@ -47,7 +47,7 @@ namespace AElf.OS.Tests.Network
             }
             
             var mockBlockChainService = new Mock<IFullBlockchainService>();
-            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
@@ -70,7 +70,7 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6800
             });
 
-            await server.Item1.StartAsync(0);
+            await server.Item1.StartAsync();
             var peers1 = server.Item2.GetPeers();
 
             Assert.True(peers1.Count == 0);
@@ -89,8 +89,8 @@ namespace AElf.OS.Tests.Network
             var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800 });
             var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801 });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             await m2.Item2.AddPeerAsync("127.0.0.1:6800");
             
@@ -118,8 +118,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var p = m2.Item2.FindPeer("127.0.0.1:6800");
             var p2 = m2.Item2.FindPeer("127.0.0.1:6801");
@@ -150,9 +150,9 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6802
             });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
-            await m3.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            await m3.Item1.StartAsync();
 
             var peers = m3.Item2.GetPeers();
 
@@ -181,8 +181,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
 
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
 
             var p = await m2.Item2.RemovePeerAsync("127.0.0.1:6800");
             var p2 = await m2.Item2.AddPeerAsync("127.0.0.1:6800");
@@ -199,8 +199,8 @@ namespace AElf.OS.Tests.Network
             var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800 });
             var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6801, BootNodes = new List<string> {"127.0.0.1:6800"}});
 
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
 
             var peers = m1.Item2.GetPeers();
             peers.Count.ShouldBe(1);
@@ -250,8 +250,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var p = m2.Item2.FindPeer("127.0.0.1:6800");
 
@@ -282,8 +282,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var p = m2.Item2.FindPeer("127.0.0.1:6800");
 
@@ -314,8 +314,8 @@ namespace AElf.OS.Tests.Network
                 ListeningPort = 6801
             });
             
-            await m1.Item1.StartAsync(0);
-            await m2.Item1.StartAsync(0);
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
             
             var p = m1.Item2.FindPeer("127.0.0.1:6801");
 

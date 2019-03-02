@@ -18,7 +18,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task HandleEventAsync(BlockMiningEventData eventData)
         {
-            await _minerService.MineAsync(eventData.ChainId, eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
+            await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
                 eventData.DueTime);
         }
     }

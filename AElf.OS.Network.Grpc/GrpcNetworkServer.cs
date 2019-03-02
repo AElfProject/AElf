@@ -36,7 +36,7 @@ namespace AElf.OS.Network.Grpc
             EventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task<IDisposable> StartAsync(int chainId)
+        public async Task StartAsync()
         {
             _server = new Server
             {
@@ -60,7 +60,6 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning("Boot nodes list is empty.");
             }
 
-            return this;
         }
 
         public async Task StopAsync()

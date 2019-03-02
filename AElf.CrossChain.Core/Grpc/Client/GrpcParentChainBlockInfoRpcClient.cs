@@ -1,4 +1,5 @@
 using System;
+using AElf.CrossChain.Cache;
 using Grpc.Core;
 
 namespace AElf.CrossChain.Grpc.Client

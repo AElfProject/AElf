@@ -23,13 +23,13 @@ namespace AElf.OS.Node.Application
     public class OsBlockchainNodeContextService : IOsBlockchainNodeContextService
     {
         private IBlockchainNodeContextService _blockchainNodeContextService;
-        private IChainRelatedComponentManager<IAElfNetworkServer> _networkServers;
+        private IAElfNetworkServer _networkServer;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IChainRelatedComponentManager<IAElfNetworkServer> networkServers)
+            IAElfNetworkServer networkServer)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
-            _networkServers = networkServers;
+            _networkServer = networkServer;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -39,7 +39,8 @@ namespace AElf.OS.Node.Application
                 BlockchainNodeContext =
                     await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto)
             };
-            context.AElfNetworkServer = await _networkServers.CreateAsync(dto.BlockchainNodeContextStartDto.ChainId);
+            context.AElfNetworkServer = _networkServer;
+            
             return context;
         }
 
@@ -47,7 +48,6 @@ namespace AElf.OS.Node.Application
         {
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
 
-            await _networkServers.RemoveAsync(blockchainNodeContext.BlockchainNodeContext.ChainId);
         }
     }
 }

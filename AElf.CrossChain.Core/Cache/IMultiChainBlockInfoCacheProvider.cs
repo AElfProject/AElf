@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Cache
 {
     public interface IMultiChainBlockInfoCacheProvider
     {
@@ -16,6 +16,8 @@ namespace AElf.CrossChain
         public int Size => _blockInfoCaches.Count;
         public void AddBlockInfoCache(int chainId, BlockInfoCache blockInfoCache)
         {
+            if (blockInfoCache == null)
+                return;
             if(!_blockInfoCaches.TryGetValue(chainId, out _))
                 _blockInfoCaches.Add(chainId, blockInfoCache);
             _blockInfoCaches[chainId] = blockInfoCache;

@@ -11,8 +11,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly SmartContractService _smartContractService;
         private readonly ISmartContractManager _smartContractManager;
-        private int _chainId = 1;
-        
+
         public SmartContractServiceTests()
         {
             _smartContractService = GetRequiredService<SmartContractService>();
@@ -32,8 +31,8 @@ namespace AElf.Kernel.SmartContract.Application
             var existRegistration = await _smartContractManager.GetAsync(registration.CodeHash);
             existRegistration.ShouldBeNull();
 
-            await _smartContractService.DeployContractAsync(_chainId, Address.Genesis, registration, false);
-            
+            await _smartContractService.DeployContractAsync(Address.Genesis, registration, false);
+
             existRegistration = await _smartContractManager.GetAsync(registration.CodeHash);
             existRegistration.ShouldNotBeNull();
         }
@@ -47,29 +46,29 @@ namespace AElf.Kernel.SmartContract.Application
                 Code = Hash.FromString("TestContractA").ToByteString(),
                 CodeHash = Hash.FromString("TestContractA")
             };
-            
+
             var registrationANew = new SmartContractRegistration
             {
                 Category = 2,
                 Code = Hash.FromString("TestContractA_New").ToByteString(),
                 CodeHash = Hash.FromString("TestContractA")
             };
-            
+
             var registrationB = new SmartContractRegistration
             {
                 Category = 2,
                 Code = Hash.FromString("TestContractB").ToByteString(),
                 CodeHash = Hash.FromString("TestContractB")
             };
-            
-            await _smartContractService.DeployContractAsync(_chainId, Address.Genesis, registrationA, false);
-            await _smartContractService.UpdateContractAsync(_chainId, Address.Genesis, registrationANew, false);
-            
+
+            await _smartContractService.DeployContractAsync(Address.Genesis, registrationA, false);
+            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationANew, false);
+
             var existRegistrationA = await _smartContractManager.GetAsync(registrationA.CodeHash);
             existRegistrationA.Code.ShouldBe(registrationANew.Code);
-            
-            await _smartContractService.UpdateContractAsync(_chainId, Address.Genesis, registrationB, false);
-            
+
+            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationB, false);
+
             existRegistrationA = await _smartContractManager.GetAsync(registrationA.CodeHash);
             existRegistrationA.Code.ShouldBe(registrationANew.Code);
         }
