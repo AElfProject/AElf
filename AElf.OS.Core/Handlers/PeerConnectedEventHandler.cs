@@ -89,7 +89,6 @@ namespace AElf.OS.Handlers
                 {
                     block = (Block) await NetworkService.GetBlockByHashAsync(blockHash);
                     Logger.LogDebug($"Block {blockHash} already know.");
-                    return;
                 }
 
                 var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
