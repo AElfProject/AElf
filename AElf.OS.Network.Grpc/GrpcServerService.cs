@@ -158,17 +158,9 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                Block block;
-                if (request.Id != null && request.Id.Length > 0)
-                {
-                    Logger.LogDebug($"Peer {context.Peer} requested block with id {request.Id.ToByteArray().ToHex()}.");
-                    block = await _blockChainService.GetBlockByHashAsync(Hash.LoadByteArray(request.Id.ToByteArray()));
-                }
-                else
-                {
-                    Logger.LogDebug($"Peer {context.Peer} requested block at height {request.Height}.");
-                    block = await _blockChainService.GetBlockByHeightAsync(request.Height);
-                }
+                Logger.LogDebug($"Peer {context.Peer} requested block {request.Hash}.");
+                var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
+
 
                 Logger.LogDebug($"Sending {block} to {context.Peer}.");
 
@@ -189,7 +181,7 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                var blocks = await _blockChainService.GetBlocksAsync( request.FirstBlockId, request.Count);
+                var blocks = await _blockChainService.GetBlocksAsync(request.PreviousBlockHash, request.Count);
 
                 BlockList blockList = new BlockList();
 
@@ -206,37 +198,22 @@ namespace AElf.OS.Network.Grpc
             return new BlockList();
         }
 
-        public override async Task<BlockIdList> RequestBlockIds(BlockIdsRequest request, ServerCallContext context)
+        public override async Task<BlockIdList> RequestBlockIds(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null)
-                return new BlockIdList();
-
-            if (request.FirstBlockId == ByteString.Empty)
-            {
-                Logger.LogError($"Request ids first block hash is null from {context.Peer}.");
-                return new BlockIdList();
-            }
-
-            if (request.Count <= 0)
-            {
-                Logger.LogError($"Request ids count is invalid from {context.Peer}.");
-                return new BlockIdList();
-            }
-
             try
             {
                 Logger.LogDebug(
-                    $"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.FirstBlockId.ToByteArray())}, count : {request.Count}.");
+                    $"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.PreviousBlockHash.ToByteArray())}, count : {request.Count}.");
 
                 var headers = await _blockChainService.GetReversedBlockHashes(
-                    Hash.LoadByteArray(request.FirstBlockId.ToByteArray()), request.Count);
+                    request.PreviousBlockHash, request.Count);
 
                 BlockIdList list = new BlockIdList();
 
                 if (headers == null || headers.Count <= 0)
                     return list;
 
-                list.Ids.AddRange(headers.Select(h => ByteString.CopyFrom(h.DumpByteArray())).ToList());
+                list.Hashes.AddRange(headers);
 
                 return list;
             }

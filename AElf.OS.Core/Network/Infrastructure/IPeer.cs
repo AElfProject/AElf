@@ -14,8 +14,7 @@ namespace AElf.OS.Network.Infrastructure
         
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
-        //TODO: do not need height
-        Task<Block> RequestBlockAsync(Hash hash, ulong height);
+        Task<Block> RequestBlockAsync(Hash hash);
         Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count);
         
         Hash CurrentBlockHash { get; set; }

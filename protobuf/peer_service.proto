@@ -8,7 +8,7 @@ import "common.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
-    rpc RequestBlockIds (BlockIdsRequest) returns (BlockIdList) {}
+    rpc RequestBlockIds (BlocksRequest) returns (BlockIdList) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
@@ -21,7 +21,7 @@ service PeerService {
 }
 
 message BlocksRequest {
-    Hash FirstBlockId = 1;
+    Hash PreviousBlockHash = 1;
     int32 Count = 2;
 }
 
@@ -29,13 +29,8 @@ message BlockList {
     repeated Block Blocks = 1;
 }
 
-message BlockIdsRequest {
-    bytes FirstBlockId = 1;
-    int32 Count = 2;
-}
-
 message BlockIdList {
-    repeated bytes Ids = 1;
+    repeated Hash Hashes = 1;
 }
 
 message DisconnectReason {
@@ -62,8 +57,7 @@ enum AuthError {
 }
 
 message BlockRequest {
-    uint64 Height = 1;
-    bytes Id = 2;
+    Hash Hash = 1;
 }
 
 message BlockReply {

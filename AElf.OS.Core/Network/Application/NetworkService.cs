@@ -14,13 +14,13 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
-        
+
         public ILogger<NetworkService> Logger { get; set; }
 
         public NetworkService(IPeerPool peerPool)
         {
             _peerPool = peerPool;
-            
+
             Logger = NullLogger<NetworkService>.Instance;
         }
 
@@ -45,7 +45,8 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    await peer.AnnounceAsync(new PeerNewBlockAnnouncement { BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height });
+                    await peer.AnnounceAsync(new PeerNewBlockAnnouncement
+                        {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
                 }
                 catch (Exception e)
                 {
@@ -68,59 +69,55 @@ namespace AElf.OS.Network.Application
                 }
             }
         }
-        
-        public async Task<IBlock> GetBlockByHeightAsync(ulong height, string peer = null, bool tryOthersIfSpecifiedFails = false)
+
+        public Task<Block> GetBlocksAsync(Hash previousBlock, int count, string peer = null,
+            bool tryOthersIfFail = false)
         {
-            Logger.LogDebug($"Getting block by height, height: {height} from {peer}.");
-            return await GetBlockAsync(null, height, peer, tryOthersIfSpecifiedFails);
+            throw new NotImplementedException();
         }
 
-        public async Task<IBlock> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+
+        public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null,
+            bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
-            return await GetBlockAsync(hash, 0, peer, tryOthersIfSpecifiedFails);
+            return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
         }
 
-        /// <summary>
-        /// Requests a block from a peer/peers. The parameter permit the following scenarios:
-        /// (request, null, _ ) :  request from every peer until found (try others ignored).
-        /// (request, peer, false) : request from 'peer' only.
-        /// (request, peer, true) : request first from 'peer' and if fails try others.
-        /// </summary>
-        private async Task<IBlock> GetBlockAsync(Hash hash, ulong height, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        private async Task<Block> GetBlockAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
                 throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
                                                     $"if no fallback peer is specified.");
-            
+
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peer))
             {
                 IPeer p = _peerPool.FindPeer(peer);
-                
+
                 if (p == null)
                 {
                     // if the peer was specified but we can't find it 
                     // we don't try any further.
                     Logger.LogWarning($"Specified peer was not found.");
-                    return null; 
+                    return null;
                 }
-                
-                var blck = await RequestBlockToAsync(hash, height, p);
+
+                var blck = await RequestBlockToAsync(hash, p);
 
                 if (blck != null)
                     return blck;
-                
+
                 if (!tryOthersIfSpecifiedFails)
                 {
                     Logger.LogWarning($"{peer} does not have block {nameof(tryOthersIfSpecifiedFails)} is false.");
                     return null;
                 }
             }
-            
+
             foreach (var p in _peerPool.GetPeers())
             {
-                Block block = await RequestBlockToAsync(hash, height, p);
+                Block block = await RequestBlockToAsync(hash, p);
 
                 if (block != null)
                     return block;
@@ -129,11 +126,11 @@ namespace AElf.OS.Network.Application
             return null;
         }
 
-        private async Task<Block> RequestBlockToAsync(Hash hash, ulong height, IPeer peer)
+        private async Task<Block> RequestBlockToAsync(Hash hash, IPeer peer)
         {
             try
             {
-                return await peer.RequestBlockAsync(hash, height);
+                return await peer.RequestBlockAsync(hash);
             }
             catch (Exception e)
             {

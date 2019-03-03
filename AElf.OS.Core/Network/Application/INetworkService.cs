@@ -10,10 +10,11 @@ namespace AElf.OS.Network.Application
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<string> GetPeers();
-        
-        Task<IBlock> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfFail = false);
+
+        Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfFail = false);
         Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count, string peer);
         Task BroadcastAnnounceAsync(BlockHeader blockHeader);
         Task BroadcastTransactionAsync(Transaction tx);
+        Task<Block> GetBlocksAsync(Hash previousBlock, int count, string peer = null, bool tryOthersIfFail = false);
     }
 }
