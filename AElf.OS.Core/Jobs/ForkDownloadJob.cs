@@ -21,8 +21,6 @@ namespace AElf.OS.Jobs
 
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
-
-        public IAElfNetworkServer Server { get; set; }
         
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
@@ -33,8 +31,6 @@ namespace AElf.OS.Jobs
             {
                 var count = NetworkOptions.Value.BlockIdRequestCount;
 
-                var pool = Server.PeerPool;
-
 
                 while (true)
                 {
@@ -43,12 +39,7 @@ namespace AElf.OS.Jobs
                     var blockHash = chain.LongestChainHash;
                     var blockHeight = chain.LongestChainHeight;
 
-                    var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > blockHeight);
-
-                    //TODO: change to random request to peer, or maybe we can measure the network speed of nodes
-                    var peer = peers.First();
-
-                    var blocks = await peer.GetBlocksAsync(blockHash, count);
+                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
 
                     foreach (var block in blocks)
                     {
