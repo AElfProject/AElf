@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.0" />
+      <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.1" />
       <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
       <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
       <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
