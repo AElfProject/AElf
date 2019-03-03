@@ -7,8 +7,10 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Infrastructure;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
@@ -67,10 +69,10 @@ namespace AElf.OS.Tests.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object,
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object,
                 NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService =
-                new GrpcServerService(_optionsMock, grpcPeerPool, mockBlockService.Object);
+                new GrpcServerService(grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
 
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
@@ -136,20 +138,16 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StartAsync();
             await m3.Item1.StartAsync();
 
-            var service1 = new GrpcNetworkService(m1.Item2);
-            var service2 = new GrpcNetworkService(m2.Item2);
-            var service3 = new GrpcNetworkService(m3.Item2);
+            var service1 = new NetworkService(m1.Item2);
+            var service2 = new NetworkService(m2.Item2);
+            var service3 = new NetworkService(m3.Item2);
 
             IBlock b = await service2.GetBlockByHashAsync(genesis.GetHash());
-            IBlock bbh = await service3.GetBlockByHeightAsync(genesis.Height);
-            IBlock bbh2 = await service3.GetBlockByHeightAsync((ulong) 2);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
             Assert.NotNull(b);
-            Assert.NotNull(bbh);
-            Assert.Equal(bbh2, null);
 
             await m3.Item1.StopAsync();
         }
@@ -190,32 +188,28 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
 
-            var service1 = new GrpcNetworkService(m1.Item2);
-            var service2 = new GrpcNetworkService(m2.Item2);
+            var service1 = new NetworkService(m1.Item2);
+            var service2 = new NetworkService(m2.Item2);
 
-            var block21 = await service2.GetBlockByHeightAsync(2);
             var block22 = await service2.GetBlockByHashAsync(block.GetHash());
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
-            block21.ShouldNotBeNull();
-            block21.Height.ShouldBe((ulong) 2);
             block22.ShouldNotBeNull();
-            block21.ShouldBe(block22);
         }
 
         [Fact]
         private async Task Announcement_Event_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
+            List<AnnouncementReceivedEventData> receivedEventDatas = new List<AnnouncementReceivedEventData>();
 
             void TransferEventCallbackAction(object eventData)
             {
                 // todo use event bus
                 try
                 {
-                    if (eventData is AnnoucementReceivedEventData data)
+                    if (eventData is AnnouncementReceivedEventData data)
                     {
                         receivedEventDatas.Add(data);
                     }
@@ -239,14 +233,14 @@ namespace AElf.OS.Tests.Network
 
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2.Item2);
+            var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastAnnounceAsync(genesis.Header);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Announce.BlockHash == genesis.GetHash());
         }
 
         [Fact]
@@ -283,7 +277,7 @@ namespace AElf.OS.Tests.Network
 
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2.Item2);
+            var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastTransactionAsync(new Transaction());
 
             await m1.Item1.StopAsync();
@@ -295,13 +289,13 @@ namespace AElf.OS.Tests.Network
         [Fact]
         private async Task Announcement_Request_Test()
         {
-            List<AnnoucementReceivedEventData> receivedEventDatas = new List<AnnoucementReceivedEventData>();
+            List<AnnouncementReceivedEventData> receivedEventDatas = new List<AnnouncementReceivedEventData>();
 
             void TransferEventCallbackAction(object eventData)
             {
                 try
                 {
-                    if (eventData is AnnoucementReceivedEventData data)
+                    if (eventData is AnnouncementReceivedEventData data)
                     {
                         receivedEventDatas.Add(data);
                     }
@@ -325,14 +319,14 @@ namespace AElf.OS.Tests.Network
 
             var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
 
-            var servicem2 = new GrpcNetworkService(m2.Item2);
+            var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastAnnounceAsync(genesis.Header);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
             Assert.True(receivedEventDatas.Count == 1);
-            Assert.True(receivedEventDatas.First().Header.GetHash() == genesis.GetHash());
+            Assert.True(receivedEventDatas.First().Announce.BlockHash == genesis.GetHash());
         }
 
         private (List<Transaction>, List<Hash>) GenerateTransactionListInfo(int count)

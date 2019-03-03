@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.Synchronization.Tests;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -34,7 +35,7 @@ namespace AElf.OS.Tests.Network.Sync
         public void Test()
         {
             List<Block> downloadedBlocks = new List<Block>();
-            List<IBlock> initBlocks = new List<IBlock>();
+            List<Block> initBlocks = new List<Block>();
 
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
             var block1 = ChainGenerationHelpers.BuildNext(genesis);
@@ -89,7 +90,7 @@ namespace AElf.OS.Tests.Network.Sync
             var h = new ForkDownloadJob();
             h.NetworkService = _mockNetService.Object;
             h.BlockchainService = blockchainService.Object;
-            h.ChainOptions = optionsMock.Object;
+            //h.ChainOptions = optionsMock.Object;
 
             //_jobManager.EnqueueAsync(h);
             //h.Execute(new ForkDownloadJobArgs { BlockHashes = initBlocks.Select(bl => bl.GetHash()).ToList() });

@@ -1,7 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Application;
-using AElf.OS.Network.Grpc;
+using AElf.Kernel.Node.Domain;
+using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 
 namespace AElf.OS.Node.Application
@@ -10,20 +11,21 @@ namespace AElf.OS.Node.Application
     {
         public BlockchainNodeContextStartDto BlockchainNodeContextStartDto { get; set; }
     }
-    
+
     public interface IOsBlockchainNodeContextService
     {
         Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto);
 
         Task StopAsync(OsBlockchainNodeContext blockchainNodeContext);
     }
-    public class OsBlockchainNodeContextService: IOsBlockchainNodeContextService
-    {
 
+    public class OsBlockchainNodeContextService : IOsBlockchainNodeContextService
+    {
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
 
-        public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService, IAElfNetworkServer networkServer)
+        public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
+            IAElfNetworkServer networkServer)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
@@ -36,14 +38,19 @@ namespace AElf.OS.Node.Application
                 BlockchainNodeContext =
                     await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto)
             };
+            context.AElfNetworkServer = _networkServer;
+
             await _networkServer.StartAsync();
+            
             return context;
         }
 
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)
         {
             await _networkServer.StopAsync();
+            
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
+
         }
     }
 }

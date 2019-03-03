@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
@@ -14,68 +17,52 @@ namespace AElf.OS.Jobs
 {
     public class ForkDownloadJob : AsyncBackgroundJob<ForkDownloadJobArgs>
     {
-        public IOptionsSnapshot<ChainOptions> ChainOptions { get; set; }
-
         public IBlockchainService BlockchainService { get; set; }
 
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
 
-        private int ChainId => ChainOptions.Value.ChainId;
+        public IAElfNetworkServer Server { get; set; }
+        
+        public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
-        public ForkDownloadJob()
-        {
-            Logger = NullLogger<ForkDownloadJob>.Instance;
-        }
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
             try
             {
-                Logger.LogDebug($"Starting download of {args.BlockHashes.Count} blocks from {args.Peer}.");
+                var count = NetworkOptions.Value.BlockIdRequestCount;
 
-                args.BlockHashes.Reverse();
+                var pool = Server.PeerPool;
 
-                foreach (var hash in args.BlockHashes.Select(Hash.LoadByteArray))
+
+                while (true)
                 {
-                    // Check that some other job didn't get this before.
-                    var hasBlock = await BlockchainService.HasBlockAsync(hash);
-
-                    if (hasBlock)
-                    {
-                        Logger.LogDebug($"Block {hash} already know, skipping.");
-                        continue;
-                    }
-
-                    // Query the peer
-                    Block block = (Block) await NetworkService.GetBlockByHashAsync(hash, args.Peer);
-
-                    if (block == null)
-                    {
-                        Logger.LogWarning($"Aborting download, could not get {hash} from {args.Peer}");
-                        continue;
-                    }
-
                     var chain = await BlockchainService.GetChainAsync();
 
-                    if (chain == null)
+                    var blockHash = chain.LongestChainHash;
+                    var blockHeight = chain.LongestChainHeight;
+
+                    var peers = pool.GetPeers().Where(p => p.CurrentBlockHeight > blockHeight);
+
+                    //TODO: change to random request to peer, or maybe we can measure the network speed of nodes
+                    var peer = peers.First();
+
+                    var blocks = await peer.GetBlocksAsync(blockHash, count);
+
+                    foreach (var block in blocks)
                     {
-                        Logger.LogError(
-                            $"Failed to finish download of {args.BlockHashes.Count} blocks from {args.Peer}: chain not found.");
-                        break;
+                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                        await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    // Add to our chain
-                    await BlockchainService.AddBlockAsync(block);
-                    var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-                    await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-
-                    Logger.LogDebug($"Added {block}.");
+                    if (chain.LongestChainHeight > args.BlockHeight || blocks.Count == 0)
+                        break;
                 }
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Failed to finish download job from {args.Peer}");
+                Logger.LogError(e, $"Failed to finish download job");
             }
         }
     }
