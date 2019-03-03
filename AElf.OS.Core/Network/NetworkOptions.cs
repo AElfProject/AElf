@@ -23,11 +23,11 @@ namespace AElf.OS.Network
         /// The white-listed public keys when NetAllowed = Listed.
         /// </summary>
         public List<string> NetWhitelist { get; set; }
-        
+
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
-        public int? PeerDialTimeout { get; set; } 
+        public int PeerDialTimeout { get; set; } = NetworkConsts.DefaultPeerDialTimeout;
         
         /// <summary>
         /// Maximum amount of values used when synchronizing a fork.
