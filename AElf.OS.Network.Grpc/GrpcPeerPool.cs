@@ -169,6 +169,15 @@ namespace AElf.OS.Network.Grpc
             return await BuildHandshakeAsync();
         }
 
+        public IPeer FindPeerByAddressOrAnyoneByPeerAddress(string peerAddress)
+        {
+            if (this._authenticatedPeers.TryGetValue(peerAddress, out var peer))
+            {
+                return peer;
+            }
+            return _authenticatedPeers.FirstOrDefault().Value;
+        }
+
         private async Task<Handshake> BuildHandshakeAsync()
         {
             var nd = new HandshakeData

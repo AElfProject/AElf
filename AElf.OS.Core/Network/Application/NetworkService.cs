@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -70,12 +71,44 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        public Task<Block> GetBlocksAsync(Hash previousBlock, int count, string peer = null,
+        public async Task<List<Block>> GetBlocksAsync(Hash previousBlock, int count, string peerAddress = null,
             bool tryOthersIfFail = false)
         {
-            throw new NotImplementedException();
-        }
+            // try get the block from the specified peer. 
+            if (!string.IsNullOrWhiteSpace(peerAddress))
+            {
+                IPeer p = _peerPool.FindPeer(peerAddress);
 
+                if (p == null)
+                {
+                    // if the peer was specified but we can't find it 
+                    // we don't try any further.
+                    Logger.LogWarning($"Specified peer was not found.");
+                    return null;
+                }
+
+                var blocks = await p.GetBlocksAsync(previousBlock, count);
+
+                if (blocks != null)
+                    return blocks;
+
+                if (!tryOthersIfFail)
+                {
+                    Logger.LogWarning($"{peerAddress} does not have block {nameof(tryOthersIfFail)} is false.");
+                    return null;
+                }
+            }
+
+            foreach (var p in _peerPool.GetPeers())
+            {
+                var blocks = await p.GetBlocksAsync(previousBlock, count);
+
+                if (blocks != null)
+                    return blocks;
+            }
+
+            return null;
+        }
 
         public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null,
             bool tryOthersIfSpecifiedFails = false)
@@ -103,10 +136,10 @@ namespace AElf.OS.Network.Application
                     return null;
                 }
 
-                var blck = await RequestBlockToAsync(hash, p);
+                var block = await RequestBlockToAsync(hash, p);
 
-                if (blck != null)
-                    return blck;
+                if (block != null)
+                    return block;
 
                 if (!tryOthersIfSpecifiedFails)
                 {
