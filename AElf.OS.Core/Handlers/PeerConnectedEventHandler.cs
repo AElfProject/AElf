@@ -24,8 +24,6 @@ namespace AElf.OS.Handlers
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
         ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
-
         public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
@@ -40,10 +38,6 @@ namespace AElf.OS.Handlers
         {
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
-
-
-        private int BlockIdRequestCount =>
-            NetworkOptions?.Value?.BlockIdRequestCount ?? NetworkConsts.DefaultBlockIdRequestCount;
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
@@ -100,7 +94,7 @@ namespace AElf.OS.Handlers
                     await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                     {
                         SuggestedPeerAddress = peerAddress,
-                        BlockHash = header.Announce.BlockHash, 
+                        BlockHash = header.Announce.BlockHash,
                     });
                 }
             }

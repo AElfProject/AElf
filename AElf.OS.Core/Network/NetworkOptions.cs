@@ -28,10 +28,10 @@ namespace AElf.OS.Network
         /// Timeout used when trying to connect to another peer.
         /// </summary>
         public int PeerDialTimeout { get; set; } = NetworkConsts.DefaultPeerDialTimeout;
-        
+
         /// <summary>
         /// Maximum amount of values used when synchronizing a fork.
         /// </summary>
-        public int? BlockIdRequestCount { get; set; }
+        public int BlockIdRequestCount { get; set; } = NetworkConsts.DefaultBlockIdRequestCount;
     }
 }

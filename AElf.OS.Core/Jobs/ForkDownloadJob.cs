@@ -23,12 +23,15 @@ namespace AElf.OS.Jobs
         public INetworkService NetworkService { get; set; }
 
         public IAElfNetworkServer Server { get; set; }
+        
+        public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
+
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
             try
             {
-                var count = 5;
+                var count = NetworkOptions.Value.BlockIdRequestCount;
 
                 var pool = Server.PeerPool;
 
