@@ -51,7 +51,7 @@ namespace AElf.OS.Tests.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool( optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
             
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object);
             serverService.EventBus = mockLocalEventBus.Object;

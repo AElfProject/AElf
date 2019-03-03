@@ -62,7 +62,7 @@ namespace AElf.OS.Tests.Network.Sync
             mockNetService
                 .Setup(ns => ns.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<Hash, string, bool>((hash, peer, tryOther) =>
-                    Task.FromResult<IBlock>(peerChain.FirstOrDefault(b => b.GetHash() == hash)));
+                    Task.FromResult<Block>(peerChain.FirstOrDefault(b => b.GetHash() == hash)));
 
             return mockNetService;
         }

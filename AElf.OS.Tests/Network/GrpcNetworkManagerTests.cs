@@ -69,7 +69,7 @@ namespace AElf.OS.Tests.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(_optionsMock, optionsMock.Object,
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object,
                 NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
             GrpcServerService serverService =
                 new GrpcServerService(grpcPeerPool, mockBlockService.Object);
@@ -143,15 +143,11 @@ namespace AElf.OS.Tests.Network
             var service3 = new NetworkService(m3.Item2);
 
             IBlock b = await service2.GetBlockByHashAsync(genesis.GetHash());
-            IBlock bbh = await service3.GetBlockByHeightAsync(genesis.Height);
-            IBlock bbh2 = await service3.GetBlockByHeightAsync((ulong) 2);
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
             Assert.NotNull(b);
-            Assert.NotNull(bbh);
-            Assert.Equal(bbh2, null);
 
             await m3.Item1.StopAsync();
         }
@@ -195,16 +191,12 @@ namespace AElf.OS.Tests.Network
             var service1 = new NetworkService(m1.Item2);
             var service2 = new NetworkService(m2.Item2);
 
-            var block21 = await service2.GetBlockByHeightAsync(2);
             var block22 = await service2.GetBlockByHashAsync(block.GetHash());
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
-            block21.ShouldNotBeNull();
-            block21.Height.ShouldBe((ulong) 2);
             block22.ShouldNotBeNull();
-            block21.ShouldBe(block22);
         }
 
         [Fact]

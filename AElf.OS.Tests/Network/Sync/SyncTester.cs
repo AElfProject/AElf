@@ -35,7 +35,7 @@ namespace AElf.OS.Tests.Network.Sync
         public void Test()
         {
             List<Block> downloadedBlocks = new List<Block>();
-            List<IBlock> initBlocks = new List<IBlock>();
+            List<Block> initBlocks = new List<Block>();
 
             var genesis = ChainGenerationHelpers.GetGenesisBlock();
             var block1 = ChainGenerationHelpers.BuildNext(genesis);
