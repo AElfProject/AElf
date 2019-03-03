@@ -73,7 +73,6 @@ namespace AElf.OS.Tests.Network.Sync
         {
             return new PeerConnectedEventHandler
             {
-                NetworkOptions = netOptions,
                 BackgroundJobManager = jobManager,
                 NetworkService = netService,
                 BlockchainService = blockChainService
