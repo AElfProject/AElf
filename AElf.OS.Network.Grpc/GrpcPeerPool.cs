@@ -153,6 +153,8 @@ namespace AElf.OS.Network.Grpc
             
             var alreadyConnected = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey));
 
+            //TODO: a reference object's default value is null.
+            //BODY: just alreadyConnected == null. please use alreadyConnectedPeer
             if (!alreadyConnected.Equals(default(KeyValuePair<string, GrpcPeer>)))
                 return false;
              

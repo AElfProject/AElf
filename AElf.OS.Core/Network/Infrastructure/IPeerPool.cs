@@ -8,6 +8,8 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<IPeer> GetPeers();
+        
+        //TODO: in two method, FindPeerByAddress, FindPeerByPubkey.
         IPeer FindPeer(string peerAddress, byte[] pubKey = null);
         
         bool AuthenticatePeer(string peerAddress, Handshake handshake);
