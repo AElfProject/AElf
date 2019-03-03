@@ -70,7 +70,7 @@ namespace AElf.OS.Network.Grpc
                 var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
 
                 // Verify auth
-                bool valid = _peerPool.AuthenticatePeer(peerAddress, handshake);
+                bool valid = _peerPool.IsAuthenticatePeer(peerAddress, handshake);
 
                 if (!valid)
                     return new AuthResponse {Err = AuthError.WrongAuth};

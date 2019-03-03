@@ -141,7 +141,7 @@ namespace AElf.OS.Network.Grpc
             return toFind.FirstOrDefault().Value;
         }
 
-        public bool AuthenticatePeer(string peerAddress, Handshake handshake)
+        public bool IsAuthenticatePeer(string peerAddress, Handshake handshake)
         {
             var pubKey = handshake.HskData.PublicKey.ToByteArray();
             if (pubKey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
