@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Contracts.TestBase;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
@@ -15,6 +16,13 @@ namespace AElf.Contract.CrossChain.Tests
         {
             context.Services.AddTransient<ITransactionResultService, NoBranchTransactionResultService>();
             context.Services.AddTransient<ITransactionResultQueryService, NoBranchTransactionResultService>();
+        }
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.RemoveAll(x =>
+                (x.ServiceType == typeof(ITransactionResultService) ||
+                 x.ServiceType == typeof(ITransactionResultQueryService)) &&
+                x.ImplementationType != typeof(NoBranchTransactionResultService));
         }
     }
 }

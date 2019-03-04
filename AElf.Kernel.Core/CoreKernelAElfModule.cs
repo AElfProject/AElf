@@ -30,6 +30,7 @@ namespace AElf.Kernel
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();
+            services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 

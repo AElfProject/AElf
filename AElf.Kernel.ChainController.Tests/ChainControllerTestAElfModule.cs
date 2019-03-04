@@ -34,5 +34,12 @@ namespace AElf.Kernel.ChainController
 
             services.AddTransient<ChainCreationService>();
         }
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.RemoveAll(x =>
+                (x.ServiceType == typeof(ITransactionResultService) ||
+                 x.ServiceType == typeof(ITransactionResultQueryService)) &&
+                x.ImplementationType != typeof(NoBranchTransactionResultService));
+        }
     }
 }
