@@ -20,12 +20,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex);
     }
 
-    public interface ITransactionResultService : ITransactionResultSettingService, ITransactionResultGettingService,
+    public class TransactionResultService : ITransactionResultSettingService, ITransactionResultGettingService,
         ITransactionBlockIndexSettingService
-    {
-    }
-
-    public class TransactionResultService : ITransactionResultService
     {
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
