@@ -35,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
         }
@@ -44,7 +44,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
         }
@@ -90,7 +90,7 @@ namespace AElf.Contracts.CrossChain
 
             var sideChainInfo = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
-            Assert(sideChainInfo.IsNotEmpty() &&
+            Assert(sideChainInfo != null &&
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
 
@@ -113,7 +113,7 @@ namespace AElf.Contracts.CrossChain
             var request = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
             Assert(
-                request.IsNotEmpty() &&
+                request != null &&
                 request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;
@@ -139,7 +139,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var sideChainInfo = State.SideChainInfos[id];
             Assert(
-                sideChainInfo.IsNotEmpty() &&
+                sideChainInfo != null &&
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
@@ -164,7 +164,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var request = State.SideChainInfos[id];
             Assert(
-                request.IsNotEmpty() &&
+                request != null &&
                 request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
 
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
@@ -185,7 +185,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
 
             // TODO: Only privileged account can trigger this method
             Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
@@ -204,7 +204,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
 
@@ -226,7 +226,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var sideChainInfo = State.SideChainInfos[id];
-            Assert(sideChainInfo.IsNotEmpty(), "Not existed side chain.");
+            Assert(sideChainInfo != null, "Not existed side chain.");
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return State.IndexingBalance[id];
         }
@@ -408,7 +408,7 @@ namespace AElf.Contracts.CrossChain
         {
             var key = new UInt64Value {Value = parentChainHeight};
             var parentChainBlockInfo = State.ParentChainBlockInfo[parentChainHeight];
-            Assert(parentChainBlockInfo.IsNotEmpty(),
+            Assert(parentChainBlockInfo != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = path.ComputeRootWith(tx);
             var parentRoot = parentChainBlockInfo.Root.SideChainTransactionsRoot;

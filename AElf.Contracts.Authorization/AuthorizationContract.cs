@@ -16,7 +16,7 @@ namespace AElf.Contracts.Authorization
         public Proposal GetProposal(Hash proposalHash)
         {
             var proposal = State.Proposals[proposalHash];
-            Assert(proposal.IsNotEmpty(), "Not found proposal.");
+            Assert(proposal != null, "Not found proposal.");
 
             if (proposal.Status == ProposalStatus.Released)
             {
@@ -31,7 +31,7 @@ namespace AElf.Contracts.Authorization
             {
                 var msigAccount = proposal.MultiSigAccount;
                 var auth = GetAuthorization(msigAccount);
-                Assert(auth.IsNotEmpty(), "Not found authorization."); // this should not happen.
+                Assert(auth != null, "Not found authorization."); // this should not happen.
 
                 // check approvals
                 var approved = State.Approved[proposalHash];
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Authorization
             if (!address.Equals(Context.Genesis))
             {
                 var authorization = State.MultiSig[address];
-                Assert(authorization.IsNotEmpty(), "MultiSigAccount not found.");
+                Assert(authorization != null, "MultiSigAccount not found.");
                 return authorization;
             }
 
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Authorization
 
             var proposal = State.Proposals[hash];
             // check authorization and permission 
-            Assert(proposal.IsNotEmpty(), "Proposal not found.");
+            Assert(proposal != null, "Proposal not found.");
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
 
@@ -164,7 +164,7 @@ namespace AElf.Contracts.Authorization
         public byte[] Release(Hash proposalHash)
         {
             var proposal = State.Proposals[proposalHash];
-            Assert(proposal.IsNotEmpty(), "Proposal not found.");
+            Assert(proposal != null, "Proposal not found.");
             // check expired time of proposal
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Authorization
         public bool IsMultiSigAccount(Address address)
         {
             var authorization = State.MultiSig[address];
-            if (address.Equals(Context.Genesis) || authorization.IsNotEmpty())
+            if (address.Equals(Context.Genesis) || authorization != null)
             {
                 return true;
             }
