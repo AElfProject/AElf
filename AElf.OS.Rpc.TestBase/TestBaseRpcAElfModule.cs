@@ -37,7 +37,6 @@ namespace AElf.OS.Rpc
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(KernelAElfModule),
-        typeof(SmartContractExecutionAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(ChainControllerRpcModule),
