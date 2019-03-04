@@ -397,36 +397,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return null;
         }
 
-        private Forwarding GenerateNewForwarding()
-        {
-            if (TryToGetCurrentAge(out var blockAge) &&
-                TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                if (currentRound.RoundNumber != 1 &&
-                    TryToGetPreviousRoundInformation(out var previousRound))
-                {
-                    return new Forwarding
-                    {
-                        CurrentAge = blockAge,
-                        CurrentRound = currentRound.Supplement(previousRound),
-                        NextRound = GenerateNextRound(currentRound)
-                    };
-                }
-
-                if (currentRound.RoundNumber == 1)
-                {
-                    return new Forwarding
-                    {
-                        CurrentAge = blockAge,
-                        CurrentRound = currentRound.SupplementForFirstRound(),
-                        NextRound = new Round {RoundNumber = 0}
-                    };
-                }
-            }
-
-            return new Forwarding();
-        }
-
         private Term GenerateNextTerm()
         {
             if (TryToGetTermNumber(out var termNumber) &&

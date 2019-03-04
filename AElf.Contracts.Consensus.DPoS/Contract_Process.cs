@@ -52,8 +52,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             firstTerm.FirstRound.BlockchainAge = 1;
             TryToAddRoundInformation(firstTerm.FirstRound);
-
-            Console.WriteLine("First term initialized.");
         }
 
         public ActionResult NextTerm(Term term)
@@ -449,8 +447,11 @@ namespace AElf.Contracts.Consensus.DPoS
             roundInformation.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
             roundInformation.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toPackage.PromiseTinyBlocks;
-            
-            roundInformation.RealTimeMinersInformation[publicKey].PreviousInValue = toPackage.PreviousInValue;
+
+            if (toPackage.PreviousInValue != Hash.Default)
+            {
+                roundInformation.RealTimeMinersInformation[publicKey].PreviousInValue = toPackage.PreviousInValue;
+            }
             
             TryToUpdateRoundInformation(roundInformation);
 
@@ -478,10 +479,9 @@ namespace AElf.Contracts.Consensus.DPoS
             if (!TryToGetCurrentRoundInformation(out var currentRound))
                 return false;
 
-            if (currentRound.RealTimeMinersInformation.Values.All(m => m.OutValue == null) &&
-                TryToGetPreviousRoundInformation(out var preRound))
+            if (currentRound.RealTimeMinersInformation.Values.All(m => m.OutValue == null))
             {
-                return preRound.RealExtraBlockProducer != null && preRound.RealExtraBlockProducer == publicKey;
+                return currentRound.ExtraBlockProducerOfPreviousRound != null && currentRound.ExtraBlockProducerOfPreviousRound == publicKey;
             }
 
             return currentRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
@@ -569,7 +569,9 @@ namespace AElf.Contracts.Consensus.DPoS
             SetBlockAge(1);
             AddTermNumberToFirstRoundNumber(1, 1);
             SetBlockchainStartTimestamp(firstRound.GetStartTime());
-            SetMiners(firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners());
+            var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners();
+            miners.TermNumber = 1;
+            SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
         }
 
@@ -588,35 +590,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     {PublicKey = publicKey, CurrentAlias = alias});
                 index++;
             }
-        }
-
-        /// <summary>
-        /// Can only supply signature, out value, in value if one missed his time slot.
-        /// </summary>
-        /// <param name="currentRound"></param>
-        /// <param name="forwardingCurrentRound"></param>
-        private Round SupplyCurrentRoundInfo(Round currentRound, Round forwardingCurrentRound)
-        {
-            foreach (var suppliedMiner in forwardingCurrentRound.RealTimeMinersInformation)
-            {
-                if (suppliedMiner.Value.MissedTimeSlots >
-                    currentRound.RealTimeMinersInformation[suppliedMiner.Key].MissedTimeSlots
-                    && currentRound.RealTimeMinersInformation[suppliedMiner.Key].OutValue == null)
-                {
-                    //currentRound.RealTimeMinersInfo[suppliedMiner.Key].OutValue = suppliedMiner.Value.OutValue;
-                    currentRound.RealTimeMinersInformation[suppliedMiner.Key].InValue = suppliedMiner.Value.InValue;
-                    currentRound.RealTimeMinersInformation[suppliedMiner.Key].Signature = suppliedMiner.Value.Signature;
-
-                    currentRound.RealTimeMinersInformation[suppliedMiner.Key].MissedTimeSlots += 1;
-                    currentRound.RealTimeMinersInformation[suppliedMiner.Key].IsMissed = true;
-                }
-            }
-
-            currentRound.RealExtraBlockProducer = forwardingCurrentRound.RealExtraBlockProducer;
-
-            TryToUpdateRoundInformation(currentRound);
-
-            return currentRound;
         }
 
         #endregion

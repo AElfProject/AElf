@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 "Failed to get blockchain start timestamp.");
             Assert(TryToGetTermNumber(out var termNumber), "Failed to get term number.");
             Assert(TryToGetPreviousRoundInformation(out var previousRound), "Failed to previous round information.");
-            return round.IsTimeToChangeTerm(blockchainStartTimestamp, termNumber)
+            return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber)
                 ? DPoSBehaviour.NextTerm
                 : DPoSBehaviour.NextRound;
         }
@@ -190,7 +190,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.PackageOutValue:
-                    Assert(payload.CurrentInValue != null && payload.CurrentInValue.Value.Any(),
+                    Assert(payload.CurrentInValue != null && payload.CurrentInValue != null,
                         "Current in value should be valid.");
 
                     var inValue = payload.CurrentInValue;
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = round.ApplyNormalConsensusData(publicKey, outValue, signature),
+                        Round = round.ApplyNormalConsensusData(publicKey, outValue, signature, timestamp),
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.NextRound:
@@ -283,7 +283,7 @@ namespace AElf.Contracts.Consensus.DPoS
                             {
                                 OutValue = minerInRound.OutValue,
                                 Signature = minerInRound.Signature,
-                                PreviousInValue = minerInRound.PreviousInValue,
+                                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Default,
                                 RoundId = round.RoundId
                             }}),
                         }
@@ -345,10 +345,6 @@ namespace AElf.Contracts.Consensus.DPoS
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
-                    if (!information.Miners.Contains(publicKey))
-                    {
-                        return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-                    }
                     break;
                 case DPoSBehaviour.PackageOutValue:
                     if (!successToGetCurrentRound)
@@ -373,13 +369,13 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                     
                     // Compare current round information from State Database and next round information from block header.
-                    if (!ValidateMinersList(currentRound, information.Forwarding.NextRound))
+                    if (!ValidateMinersList(currentRound, information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                     }
 
                     // None of in values should be filled.
-                    if (!InValueIsNull(information.Forwarding.NextRound))
+                    if (!InValueIsNull(information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
                     }
@@ -390,20 +386,16 @@ namespace AElf.Contracts.Consensus.DPoS
                         return new ValidationResult {Success = false, Message = "Failed to get current round information."};
                     }
                     
-                    if (!ValidateVictories(information.NewTerm.Miners))
+                    if (!ValidateVictories(information.Round.RealTimeMinersInformation.Keys.ToMiners()))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect miners list."};
                     }
 
-                    if (!OutInValueAreNull(information.NewTerm.FirstRound))
+                    if (!OutInValueAreNull(information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
                     }
 
-                    if (!OutInValueAreNull(information.NewTerm.SecondRound))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect Out Value or In Value."};
-                    }
                     break;
                 case DPoSBehaviour.Invalid:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour."};

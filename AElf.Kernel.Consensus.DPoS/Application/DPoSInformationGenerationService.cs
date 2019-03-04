@@ -130,6 +130,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 throw new InvalidCastException($"Failed to parse byte array to DPoSInformation.\n{e.Message}");
             }
 
+            var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             Logger.LogInformation($"Current behaviour: {Hint.Behaviour.ToString()}.");
 
             try
@@ -137,14 +138,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 switch (Hint.Behaviour)
                 {
                     case DPoSBehaviour.InitialTerm:
-                        Logger.LogInformation(GetLogStringForOneRound(information.NewTerm.FirstRound));
-                        information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
-                        return new DPoSExtraInformation
+                        Logger.LogInformation(GetLogStringForOneRound(information.Round));
+                        information.Round.MiningInterval = _dpoSOptions.MiningInterval;
+                        return new DPoSTriggerInformation
                         {
-                            NewTerm = information.NewTerm
+                            Miners = {_dpoSOptions.InitialMiners},
+                            MiningInterval = DPoSConsensusConsts.MiningInterval,
+                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                            IsBootMiner = _dpoSOptions.IsBootMiner
                         }.ToByteArray();
 
-                    case DPoSBehaviour.PackageOutValue:
+/*                    case DPoSBehaviour.PackageOutValue:
                         var minersInformation = information.Round.RealTimeMinersInformation;
                         if (!minersInformation.Any())
                         {
@@ -185,7 +189,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
                             ChangeTerm = true,
                             NewTerm = information.NewTerm
-                        }.ToByteArray();
+                        }.ToByteArray();*/
 
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -215,12 +219,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     minerInRound.PublicKey == AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex()
                         ? "(This Node)"
                         : "";
-                minerInformation += $"\nAddr:\t {minerInRound.Address}";
                 minerInformation += $"\nOrder:\t {minerInRound.Order}";
                 minerInformation +=
                     $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
                 minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
-                //minerInformation += $"\nIn:\t {minerInRound.InValue?.ToHex()}";
+                minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";

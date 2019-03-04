@@ -176,10 +176,11 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 .AddMilliseconds(miningInterval);
         }
         
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature)
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature, Timestamp timestamp)
         {
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
+                round.RealTimeMinersInformation[publicKey].ActualMiningTime = timestamp;
                 round.RealTimeMinersInformation[publicKey].OutValue = outValue;
                 if (round.RoundNumber != 1)
                 {
@@ -226,7 +227,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             
             // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
             var minersMinedCurrentRound = round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound != 0).ToList();
-            if (minersMinedCurrentRound.Any(m => !m.Signature.Value.Any()))
+            if (minersMinedCurrentRound.Any(m => m.Signature == null))
             {
                 return false;
             }
@@ -268,6 +269,10 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 };
             }
 
+            var extraBlockProducerOrder = round.CalculateNextExtraBlockProducerOrder();
+            nextRound.RealTimeMinersInformation.Values.First(m => m.Order == extraBlockProducerOrder)
+                .IsExtraBlockProducer = true;
+            
             return true;
         }
         
@@ -282,12 +287,11 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return order;
         }
 
-        public static bool IsTimeToChangeTerm(this Round round, Timestamp blockchainStartTimestamp, ulong termNumber)
+        public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, ulong termNumber)
         {
-            // TODO: The miners count should be online miners count -> maybe how many miners produced block during previous round.
-            var minersCount = round.RealTimeMinersInformation.Count;
+            var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
             var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-            var approvalsCount = round.RealTimeMinersInformation.Values.Select(m => m.ActualMiningTime)
+            var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null).Select(m => m.ActualMiningTime)
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
@@ -322,52 +326,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         /// <returns></returns>
         public static MinerInRound GetFirstPlaceMinerInformation(this Round round)
         {
-            return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature.Value.Any());
-        }
-
-        public static Round Supplement(this Round round, Round previousRound)
-        {
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
-            {
-                if (minerInRound.OutValue != null)
-                {
-                    continue;
-                }
-
-                minerInRound.MissedTimeSlots += 1;
-
-                var inValue = Hash.Generate();
-                var outValue = Hash.FromMessage(inValue);
-
-                minerInRound.OutValue = outValue;
-                minerInRound.InValue = inValue;
-
-                var signature = previousRound.CalculateSignature(inValue);
-                minerInRound.Signature = signature;
-            }
-
-            return round;
-        }
-
-        public static Round SupplementForFirstRound(this Round round)
-        {
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
-            {
-                if (minerInRound.InValue != null && minerInRound.OutValue != null)
-                {
-                    continue;
-                }
-
-                minerInRound.MissedTimeSlots += 1;
-
-                var inValue = Hash.Generate();
-                var outValue = Hash.FromMessage(inValue);
-
-                minerInRound.OutValue = outValue;
-                minerInRound.InValue = inValue;
-            }
-
-            return round;
+            return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature != null);
         }
 
         public static Hash CalculateSignature(this Round round, Hash inValue)
@@ -386,37 +345,6 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
-        public static Hash GetMinersHash(this Round round)
-        {
-            return Hash.FromMessage(round.RealTimeMinersInformation.Values.Select(m => m.PublicKey).OrderBy(p => p)
-                .ToMiners());
-        }
-
-        public static ulong GetMinedBlocks(this Round round)
-        {
-            return round.RealTimeMinersInformation.Values.Select(mi => mi.ProducedBlocks)
-                .Aggregate<ulong, ulong>(0, (current, @ulong) => current + @ulong);
-        }
-
-        public static bool CheckWhetherMostMinersMissedTimeSlots(this Round round)
-        {
-            if (Config.GetProducerNumber() == 1)
-            {
-                return false;
-            }
-
-            var missedMinersCount = 0;
-            foreach (var minerInRound in round.RealTimeMinersInformation)
-            {
-                if (minerInRound.Value.LatestMissedTimeSlots == DPoSContractConsts.ForkDetectionRoundNumber)
-                {
-                    missedMinersCount++;
-                }
-            }
-
-            return missedMinersCount >= (Config.GetProducerNumber() - 1) * DPoSContractConsts.ForkDetectionRoundNumber;
-        }
-        
         private static int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));

@@ -29,18 +29,18 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
 
         public static async Task<DPoSInformation> GetNewConsensusInformation(this ContractTester tester,
-            DPoSExtraInformation extraInformation)
+            DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GetNewConsensusInformation, extraInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
             return DPoSInformation.Parser.ParseFrom(bytes);
         }
 
         public static async Task<List<Transaction>> GenerateConsensusTransactions(this ContractTester tester,
-            DPoSExtraInformation extraInformation)
+            DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GenerateConsensusTransactions, extraInformation.ToByteArray());
+                ConsensusConsts.GenerateConsensusTransactions, triggerInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
             return txs;
@@ -55,11 +55,11 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
 
         public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester tester,
-            DPoSExtraInformation extraInformation, params ContractTester[] testersToExecuteBlock)
+            DPoSTriggerInformation triggerInformation, params ContractTester[] testersToExecuteBlock)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
                 ConsensusConsts.GenerateConsensusTransactions,
-                extraInformation.ToByteArray());
+                triggerInformation.ToByteArray());
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);
 
