@@ -18,7 +18,7 @@ namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusService : IConsensusService
     {
-        private readonly ITransactionExecutingService _transactionExecutingService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
@@ -31,13 +31,13 @@ namespace AElf.Kernel.Consensus.Application
         public ILogger<ConsensusService> Logger { get; set; }
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
-            IAccountService accountService, ITransactionExecutingService transactionExecutingService,
+            IAccountService accountService, ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IConsensusScheduler consensusScheduler, IBlockchainService blockchainService,
             ConsensusControlInformation consensusControlInformation)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
-            _transactionExecutingService = transactionExecutingService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
             _consensusControlInformation = consensusControlInformation;
             _consensusScheduler = consensusScheduler;
@@ -152,10 +152,9 @@ namespace AElf.Kernel.Consensus.Application
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
-            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(chainContext,
-                new List<Transaction> {tx},
-                DateTime.UtcNow, new CancellationToken());
-            return executionReturnSets.Last().ReturnValue;
+            var transactionTrace =
+                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            return transactionTrace.RetVal.Data;
         }
     }
 }
