@@ -16,13 +16,14 @@ namespace AElf.Contracts.CrossChain
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
-            Address authorizationContractAddress)
+            Address authorizationContractAddress, int parentChainId)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContract.Value = consensusContractAddress;
             State.TokenContract.Value = tokenContractAddress;
             State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
+            State.ParentChainId.Value = parentChainId;
         }
 
         [View]
@@ -235,12 +236,12 @@ namespace AElf.Contracts.CrossChain
 
         #region Parent chain
 
-        public bool SetParentChainId(int chainId)
-        {
-            Assert(State.ParentChainId.Value == 0, "Already set parent chain Id.");
-            State.ParentChainId.Value = chainId;
-            return true;
-        }
+//        public bool SetParentChainId(int chainId)
+//        {
+//            Assert(State.ParentChainId.Value == 0, "Already set parent chain Id.");
+//            State.ParentChainId.Value = chainId;
+//            return true;
+//        }
 
         #endregion
 
@@ -250,7 +251,7 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(IsMiner(), "Not authorized to do this.");
             var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight + 1];
-            Assert(indexedCrossChainData.IsEmpty()); // This should not happen.
+            Assert(indexedCrossChainData.IsEmpty()); // This should not fail.
             
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
             if (crossChainBlockData.ParentChainBlockData.Count > 0)
@@ -350,8 +351,7 @@ namespace AElf.Contracts.CrossChain
             // only miner can do this.
 //            Api.IsMiner("Not authorized to do this.");
 //            Api.Assert(sideChainBlockData.Length > 0, "Empty side chain block information.");
-            var binaryMerkleTree = new BinaryMerkleTree();
-            var currentHeight = Context.CurrentHeight;
+//            var currentHeight = Context.CurrentHeight;
 //            var height = currentHeight + 1;
 //            var result = State.IndexedSideChainBlockInfoResult[height];
 //            Assert(result.IsEmpty()); // This should not happen.
@@ -361,6 +361,8 @@ namespace AElf.Contracts.CrossChain
 //                Height = height,
 //                Miner = Context.Self
 //            };
+            var binaryMerkleTree = new BinaryMerkleTree();
+
             foreach (var blockInfo in sideChainBlockData)
             {
                 ulong sideChainHeight = blockInfo.SideChainHeight;

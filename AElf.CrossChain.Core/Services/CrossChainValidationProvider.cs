@@ -14,7 +14,7 @@ namespace AElf.CrossChain
         private readonly ICrossChainService _crossChainService;
         private readonly ICrossChainContractReader _crossChainContractReader;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService, 
+        public CrossChainValidationProvider(ICrossChainService crossChainService,
             ICrossChainContractReader crossChainContractReader)
         {
             _crossChainService = crossChainService;
@@ -29,23 +29,19 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            try
-            {
 //                if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var logEvent) ||
 //                    await ValidateCrossChainLogEventInBlock(logEvent, block))
 //                    return true; // no event means no indexing.
 //                throw new Exception();
-                var indexedCrossChainBlockData =
-                    await _crossChainContractReader.GetCrossChainBlockDataAsync(block.GetHash(), block.Height);
-                if (indexedCrossChainBlockData == null)
-                    return true;
-                return await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.BlockExtraData.SideChainTransactionsRoot,
-                    block.GetHash(), block.Height);
-            }
-            catch (Exception e)
-            {
-                throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.", e);
-            }
+            var indexedCrossChainBlockData =
+                await _crossChainContractReader.GetCrossChainBlockDataAsync(block.GetHash(), block.Height);
+            if (indexedCrossChainBlockData == null)
+                return true;
+            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.BlockExtraData.SideChainTransactionsRoot,
+                block.GetHash(), block.Height);
+            if(!res)
+                throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.");
+            return true;
         }
 
 //        private async Task<bool> ValidateCrossChainLogEventInBlock(LogEvent interestedLogEvent, IBlock block)

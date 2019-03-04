@@ -83,7 +83,8 @@ namespace AElf.CrossChain
 
             int i = 0;
             var heightInState =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);ulong targetHeight = isValidation ? heightInState : heightInState + 1;
+                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);
+            ulong targetHeight = isValidation ? heightInState : heightInState + 1;
             var res = true;
             while (i < length)
             {

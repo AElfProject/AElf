@@ -10,40 +10,22 @@ namespace AElf.CrossChain
 {
     public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ICrossChainContractReader _crossChainContractReader;
 
-        public CrossChainBlockExtraDataProvider(ITransactionResultManager transactionResultManager)
+        public CrossChainBlockExtraDataProvider(ICrossChainContractReader crossChainContractReader)
         {
-            _transactionResultManager = transactionResultManager;
+            _crossChainContractReader = crossChainContractReader;
         }
 
         public async Task FillExtraDataAsync(Block block)
         {
-            if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var interestedLogEvent))
-                return;
-            try
-            {
-                foreach (var txId in block.Body.Transactions)
-                {
-                    var res = await _transactionResultManager.GetTransactionResultAsync(txId);
-                    
-                    var sideChainTransactionsRoot =
-                        CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent, out _);
-                    if(sideChainTransactionsRoot == null)
-                        continue;
-                    if (block.Header.BlockExtraData == null)
-                    {
-                        block.Header.BlockExtraData = new BlockExtraData();
-                    }
-                    block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
-                    return;
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-                // Deserialization/NULL value errors
-            }
+            var indexedCrossChainBlockData =
+                await _crossChainContractReader.GetCrossChainBlockDataAsync(block.GetHash(), block.Height);
+            
+            var txRootHashList = indexedCrossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
+            var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
+            
+            block.Header.BlockExtraData.SideChainTransactionsRoot = calculatedSideChainTransactionsRoot;
         }
     }
 }
