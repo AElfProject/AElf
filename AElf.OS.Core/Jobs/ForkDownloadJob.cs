@@ -27,23 +27,26 @@ namespace AElf.OS.Jobs
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
+            Logger.LogDebug($"Enter ForkDownloadJob ...");
             try
             {
                 var count = NetworkOptions.Value.BlockIdRequestCount;
-
 
                 while (true)
                 {
                     var chain = await BlockchainService.GetChainAsync();
 
-                    var blockHash = chain.LongestChainHash;
-                    var blockHeight = chain.LongestChainHeight;
+                    var blockHash = chain.BestChainHash;
 
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
+                    Logger.LogDebug($"Get {blocks.Count} blocks from {args.SuggestedPeerAddress}, request blockHash {blockHash.ToHex()}, count {count} ");
 
                     foreach (var block in blocks)
                     {
+                        chain = await BlockchainService.GetChainAsync();
+                        await BlockchainService.AddBlockAsync(block);
                         var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                        Logger.LogDebug($"AttachBlockToChainAsync Get status {status} for {block.BlockHashToHex}");
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 

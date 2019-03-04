@@ -280,11 +280,13 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
 
             var blockList = new List<Block>();
-            for (int i = 0; i < count; i++)
+            for (var i = 1; i <= count; i++)
             {
                 var block = await GetBlockByHeightAsync(first.Height + (ulong) i);
                 if (block == null)
                     break;
+
+                blockList.Add(block);
             }
 
             return blockList;

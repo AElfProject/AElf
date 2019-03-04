@@ -76,6 +76,8 @@ namespace AElf.OS.Handlers
                     Logger.LogDebug($"Block {blockHash} already know.");
                 }
 
+                await BlockchainService.AddBlockAsync(block);
+
                 var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
 
                 await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
