@@ -175,6 +175,50 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(miningInterval);
         }
+        
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature)
+        {
+            if (round.RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                round.RealTimeMinersInformation[publicKey].OutValue = outValue;
+                if (round.RoundNumber != 1)
+                {
+                    round.RealTimeMinersInformation[publicKey].Signature = signature;
+                }
+                else
+                {
+                    signature = round.RealTimeMinersInformation[publicKey].Signature;
+                }
+
+                var minersCount = round.RealTimeMinersInformation.Count;
+                var sigNum =
+                    BitConverter.ToUInt64(
+                        BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+                var orderOfNextRound = Math.Abs(GetModulus(sigNum, minersCount));
+                
+                // Check the existence of conflicts about OrderOfNextRound.
+                // If so, modify others'.
+                var conflicts = round.RealTimeMinersInformation.Values
+                    .Where(i => i.OrderOfNextRound == orderOfNextRound).ToList();
+
+                foreach (var minerInRound in conflicts)
+                {
+                    // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
+                    
+                    for (var i = minerInRound.Order + 1; i < minersCount * 2 + 1; i++)
+                    {
+                        if (round.RealTimeMinersInformation.Values.All(m => m.OrderOfNextRound != i))
+                        {
+                            round.RealTimeMinersInformation[minerInRound.PublicKey].OrderOfNextRound = i % minersCount;
+                        }
+                    }
+                }
+
+                round.RealTimeMinersInformation[publicKey].OrderOfNextRound = orderOfNextRound;
+            }
+
+            return round;
+        }
 
         public static MinerInRound GetFirstPlaceMinerInfo(this Round round)
         {
@@ -271,6 +315,11 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             }
 
             return missedMinersCount >= (Config.GetProducerNumber() - 1) * DPoSContractConsts.ForkDetectionRoundNumber;
+        }
+        
+        private static int GetModulus(ulong uLongVal, int intVal)
+        {
+            return Math.Abs((int) (uLongVal % (ulong) intVal));
         }
     }
 }

@@ -8,7 +8,7 @@ namespace AElf.Sdk.CSharp
     public interface IConsensusSmartContract : ISmartContract
     {
         ValidationResult ValidateConsensus(byte[] consensusInformation);
-        IMessage GetNewConsensusInformation(byte[] extraInformation);
+        IMessage GetNewConsensusInformation(byte[] requestConsensusExtraData);
 
         TransactionList GenerateConsensusTransactions(byte[] extraInformation);
         IMessage GetConsensusCommand(byte[] consensusTriggerInformation);

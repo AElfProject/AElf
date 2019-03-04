@@ -135,6 +135,9 @@ message MinerInRound {
     Address Address = 15;
     int32 PromisedTinyBlocks = 16;
     string Alias = 17;
+    Hash PreviousInValue = 18;
+    int32 OrderOfNextRound = 19;
+    google.protobuf.Timestamp ActualMiningTime = 20;// Miners must fill actual mining time when they do the mining.
 }
 
 // The information of a candidate.
@@ -184,16 +187,14 @@ enum TicketsHistoryType {
 }
 
 message DPoSInformation {
-    Address Sender = 1;
-    Round CurrentRound = 2;
+    string SenderPublicKey = 1;
+    Round Round = 2;
     Forwarding Forwarding = 3;
     Term NewTerm = 4;
-    bool WillUpdateConsensus = 5;
-    repeated Address MinersList = 6;
+    repeated string Miners = 6;
     bool TimeToChangeTerm = 7;
     DPoSBehaviour Behaviour = 8;
     int32 PromisedTinyBlocks = 9;
-    string SenderPublicKey = 10;
 }
 
 message DPoSExtraInformation {
@@ -238,18 +239,28 @@ message ValidationResult {
 message DPoSTriggerInformation {
     string PublicKey = 1;// A must-have.
     google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    
     bool IsBootMiner = 3;// Only useful when initial one chain.
 }
 
 message RequestDPoSTransactions {
     string PublicKey = 1;// A must-have.
     google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    
     int32 MiningInterval = 3;// For the boot miner to set mining interval, usually it's 4000 (ms).
     repeated string Miners = 4;// For the boot miner or miner gonna commit to change term to set miners of new round.
+    
     Hash CurrentInValue = 5;// To calculate Out Value and generate hash chunks to other online miners.
     Hash PreviousInValue = 6;// Publish In Value of previous round for validating the miner's signature.
 }
 
 message RequestDPoSExtraData {
+    string PublicKey = 1;// A must-have.
+    google.protobuf.Timestamp Timestamp = 2;// A must-have.
     
+    int32 MiningInterval = 3;// For the boot miner to set mining interval, usually it's 4000 (ms).
+    repeated string Miners = 4;// For the boot miner or miner gonna commit to change term to set miners of new round.
+    
+    Hash CurrentInValue = 5;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash PreviousInValue = 6;// Publish In Value of previous round for validating the miner's signature.
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -12,7 +13,7 @@ namespace AElf.Contracts.Consensus.DPoS
     public partial class ConsensusContract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
         // This file contains implementations of IConsensusSmartContract.
-        
+
         public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -60,9 +61,10 @@ namespace AElf.Contracts.Consensus.DPoS
             if (round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound))
             {
                 Context.LogDebug(() => "About to produce a normal block.");
-                
+
                 var expectedMiningTime = round.GetExpectedMiningTime(publicKey);
-                var countingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
+                var countingMilliseconds =
+                    (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
                 return new ConsensusCommand
                 {
                     CountingMilliseconds = countingMilliseconds,
@@ -77,13 +79,14 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 // If this node missed his time slot, a command of terminating current round will be fired,
                 // and the terminate time will based on the order of this node (to avoid conflicts).
-                
+
                 // TODO: Add a test case to test the ability to mine a block even this miner missed his time slot long time ago.
-                
+
                 Context.LogDebug(() => "About to terminate current round.");
 
                 var arrangedMiningTime = round.ArrangeAbnormalMiningTime(publicKey, timestamp);
-                var countingMilliseconds = (int) (arrangedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
+                var countingMilliseconds =
+                    (int) (arrangedMiningTime.ToDateTime() - timestamp.ToDateTime()).TotalMilliseconds;
                 return new ConsensusCommand
                 {
                     CountingMilliseconds = countingMilliseconds,
@@ -95,12 +98,100 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
         }
-        
+
+        [View]
+        public IMessage GetNewConsensusInformation(byte[] requestConsensusExtraData)
+        {
+            return GetNewConsensusInformationPre(requestConsensusExtraData);
+        }
+
+        private IMessage GetNewConsensusInformationPre(byte[] requestConsensusExtraData)
+        {
+            var payload = RequestDPoSExtraData.Parser.ParseFrom(requestConsensusExtraData);
+            
+            // Some basic checks.
+            Assert(payload.PublicKey.Any(), "Data to request consensus information should contain public key.");
+
+            var publicKey = payload.PublicKey;
+
+            // If this node cannot get current round information, he has no choice but initial the chain.
+            if (!TryToGetCurrentRoundInformation(out var round))
+            {
+                var miningInterval = payload.MiningInterval;
+                var initialMiners = payload.Miners;
+                var firstTerm = initialMiners.ToMiners().GenerateNewTerm(miningInterval);
+                return new DPoSInformation
+                {
+                    SenderPublicKey = publicKey,
+                    NewTerm = firstTerm,
+                    Behaviour = DPoSBehaviour.InitialTerm
+                };
+            }
+
+            Assert(payload.Timestamp.IsNotEmpty(), "Need the timestamp to generate consensus information.");
+
+            var timestamp = payload.Timestamp;
+
+            if (round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound))
+            {
+                Assert(payload.CurrentInValue != null && payload.CurrentInValue.Value.Any(),
+                    "Current in value should be valid.");
+                
+                var inValue = payload.CurrentInValue;
+
+                var outValue = Hash.FromMessage(inValue);
+
+                var signature = Hash.Default;
+                if (round.RoundNumber != 1)
+                {
+                    Assert(TryToGetPreviousRoundInformation(out var previousRound),
+                        "Failed to get previous round information.");
+                    signature = previousRound.CalculateSignature(inValue);
+                }
+
+                // To publish Out Value.
+                return new DPoSInformation
+                {
+                    SenderPublicKey = publicKey,
+                    CurrentRound = round.ApplyNormalConsensusData(publicKey, outValue, signature),
+                    Behaviour = DPoSBehaviour.PackageOutValue,
+                };
+            }
+            
+/*            return payload.ChangeTerm
+                ? new DPoSInformation
+                {
+                    SenderPublicKey = publicKey,
+                    WillUpdateConsensus = true,
+                    NewTerm = GenerateNextTerm(),
+                    Behaviour = DPoSBehaviour.NextTerm
+                }
+                : new DPoSInformation
+                {
+                    SenderPublicKey = publicKey,
+                    WillUpdateConsensus = true,
+                    Forwarding = GenerateNewForwarding(),
+                    Behaviour = DPoSBehaviour.NextRound
+                };*/
+
+
+        }
+
         [View]
         public TransactionList GenerateConsensusTransactions(byte[] requestConsensusTransactions)
         {
+            return GenerateConsensusTransactionsPost(requestConsensusTransactions);
+        }
+
+        private TransactionList GenerateConsensusTransactionsPost(byte[] requestConsensusTransactions)
+        {
+            throw new NotImplementedException();
+        }
+
+        private TransactionList GenerateConsensusTransactionsPre(byte[] requestConsensusTransactions)
+        {
             var payload = RequestDPoSTransactions.Parser.ParseFrom(requestConsensusTransactions);
-            
+
             // Some basic checks.
             Assert(payload.PublicKey.Any(), "Data to request consensus txs should contain public key.");
 
@@ -120,7 +211,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 };
             }
-            
+
             Assert(payload.Timestamp.IsNotEmpty(), "Need the timestamp to generate consensus txs.");
 
             var timestamp = payload.Timestamp;
@@ -131,7 +222,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 var forward = new Forwarding
                 {
-                    CurrentRound = round.RoundNumber == 1 ? round.SupplementForFirstRound() : (TryToGetPreviousRoundInformation(out var previousRound) ? round.Supplement(previousRound) : new Round()),
+                    CurrentRound = round.RoundNumber == 1
+                        ? round.SupplementForFirstRound()
+                        : (TryToGetPreviousRoundInformation(out var previousRound)
+                            ? round.Supplement(previousRound)
+                            : new Round()),
                     //NextRound = 
                 };
                 return new TransactionList
@@ -142,9 +237,9 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 };
             }
-            
+
             // Calculate the approvals of changing term, change the term if approvals more than the number of 2 / 3 miners.
-            
+
             return new TransactionList();
             /*
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
@@ -209,7 +304,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ValidationResult ValidateConsensus(byte[] consensusInformation)
         {
             var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-            
+
             var publicKey = information.SenderPublicKey;
 
             // Validate the sender.
@@ -276,66 +371,5 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ValidationResult {Success = true};
         }
-
-        [View]
-        public IMessage GetNewConsensusInformation(byte[] extraInformation)
-        {
-            var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);
-            var publicKey = extra.PublicKey;
-
-            // To initial consensus information.
-            if (!TryToGetRoundNumber(out _))
-            {
-                return new DPoSInformation
-                {
-                    Sender = Context.Sender,
-                    SenderPublicKey = publicKey,
-                    WillUpdateConsensus = true,
-                    NewTerm = extra.InitialMiners.ToMiners().GenerateNewTerm(extra.MiningInterval),
-                    MinersList =
-                        {extra.InitialMiners.Select(m => Address.FromPublicKey(ByteArrayHelpers.FromHexString(m)))},
-                    Behaviour = DPoSBehaviour.InitialTerm
-                };
-            }
-
-            // To terminate current round.
-            if (AllOutValueFilled(publicKey, out _) || (extra.Timestamp != null && TimeOverflow(extra.Timestamp)))
-            {
-                return extra.ChangeTerm
-                    ? new DPoSInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        WillUpdateConsensus = true,
-                        Sender = Context.Sender,
-                        NewTerm = GenerateNextTerm(),
-                        Behaviour = DPoSBehaviour.NextTerm
-                    }
-                    : new DPoSInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        WillUpdateConsensus = true,
-                        Sender = Context.Sender,
-                        Forwarding = GenerateNewForwarding(),
-                        Behaviour = DPoSBehaviour.NextRound
-                    };
-            }
-
-            var signature = Hash.Generate();
-            if (TryToGetPreviousRoundInformation(out var preRoundInformation) && extra.CurrentInValue != null)
-            {
-                signature = preRoundInformation.CalculateSignature(extra.CurrentInValue);
-            }
-
-            // To publish Out Value.
-            return new DPoSInformation
-            {
-                SenderPublicKey = publicKey,
-                CurrentRound = FillOutValueAndSignature(extra.OutValue, signature, publicKey),
-                Behaviour = DPoSBehaviour.PackageOutValue,
-                Sender = Context.Sender
-            };
-        }
-
-        
     }
 }
