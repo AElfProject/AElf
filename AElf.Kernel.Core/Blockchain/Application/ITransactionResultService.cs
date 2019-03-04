@@ -1,7 +1,10 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Events;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -15,13 +18,9 @@ namespace AElf.Kernel.Blockchain.Application
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
     }
 
-    public interface ITransactionBlockIndexSettingService
-    {
-        Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex);
-    }
 
     public class TransactionResultService : ITransactionResultSettingService, ITransactionResultGettingService,
-        ITransactionBlockIndexSettingService
+        ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ITransientDependency
     {
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
@@ -47,13 +46,14 @@ namespace AElf.Kernel.Blockchain.Application
                 await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
             if (transactionBlockIndex != null)
             {
+                // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
                 return await _transactionResultManager.GetTransactionResultAsync(transactionId,
                     transactionBlockIndex.BlockHash);
             }
 
             var chain = await _blockchainService.GetChainAsync();
             var hash = chain.BestChainHash;
-            while (hash != chain.LastIrreversibleBlockHash)
+            while (true)
             {
                 var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
                 if (result != null)
@@ -69,15 +69,62 @@ namespace AElf.Kernel.Blockchain.Application
                     return result;
                 }
 
+                if (header.Height < chain.LastIrreversibleBlockHeight - 1)
+                {
+                    // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
+                    // NewIrreversibleBlockFoundEvent handling
+                    break;
+                }
+
                 hash = header.PreviousBlockHash;
             }
 
             return null;
         }
 
-        public async Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
+        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(transactionId, transactionBlockIndex);
+            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHash);
+            var blockHash = block.GetHash();
+            var preMiningHash = block.Header.GetPreMiningHash();
+            var transactionBlockIndex = new TransactionBlockIndex()
+            {
+                BlockHash = blockHash
+            };
+
+            var firstTransaction = block.Body.Transactions.First();
+            var withBlockHash = await _transactionResultManager.GetTransactionResultAsync(
+                firstTransaction, blockHash);
+            var withPreMiningHash = await _transactionResultManager.GetTransactionResultAsync(
+                firstTransaction, preMiningHash);
+
+            if (withBlockHash == null)
+            {
+                // TransactionResult is not saved with real BlockHash
+                // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
+                foreach (var txId in block.Body.Transactions)
+                {
+                    var result = await _transactionResultManager.GetTransactionResultAsync(txId, preMiningHash);
+                    await _transactionResultManager.AddTransactionResultAsync(result,
+                        transactionBlockIndex.BlockHash);
+                }
+            }
+
+            if (withPreMiningHash != null)
+            {
+                // TransactionResult is saved with PreMiningHash
+                // Remove results saved with PreMiningHash, as it will never be queried
+                foreach (var txId in block.Body.Transactions)
+                {
+                    await _transactionResultManager.RemoveTransactionResultAsync(txId, preMiningHash);
+                }
+            }
+
+            // Add TransactionBlockIndex
+            foreach (var txId in block.Body.Transactions)
+            {
+                await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ namespace AElf.Kernel.Blockchain.Domain
     public interface ITransactionResultManager
     {
         Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash);
+        Task RemoveTransactionResultAsync(Hash txId, Hash disambiguationHash);
         Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash);
     }
 
@@ -23,6 +24,11 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             await _transactionResultStore.SetAsync(transactionResult.TransactionId.Xor(disambiguationHash).ToHex(),
                 transactionResult);
+        }
+
+        public async Task RemoveTransactionResultAsync(Hash txId, Hash disambiguationHash)
+        {
+            await _transactionResultStore.RemoveAsync(txId.Xor(disambiguationHash).ToHex());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)
