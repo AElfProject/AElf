@@ -37,10 +37,10 @@ namespace AElf.OS.Tests.Network
             optionsMock.Setup(m => m.Value).Returns(new NetworkOptions());
             
             var mockBlockChainService = new Mock<IFullBlockchainService>();
-            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            return new GrpcPeerPool(_optionsMock, optionsMock.Object, _accountService, mockBlockChainService.Object);
+            return new GrpcPeerPool( optionsMock.Object, _accountService, mockBlockChainService.Object);
         }
             
         [Fact]

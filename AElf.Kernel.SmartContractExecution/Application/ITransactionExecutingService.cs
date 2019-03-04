@@ -108,7 +108,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId,
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(
                 internalChainContext,
                 transaction.To);
 
@@ -152,7 +152,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(chainContext.ChainId, transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
             }
 
             return trace;
@@ -246,13 +246,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.DeferredTransactions.Add(tx);
             }
 
-            foreach (var s in trace.GetFlattenedWrite())
-            {
-                returnSet.StateChanges[s.Key] = s.Value;
-            }
-
             if (trace.IsSuccessful())
             {
+                foreach (var s in trace.GetFlattenedWrite())
+                {
+                    returnSet.StateChanges[s.Key] = s.Value;
+                }
+
                 if (trace.RetVal == null)
                 {
                     throw new NullReferenceException("RetVal of trace is null.");

@@ -20,7 +20,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
                 IsBootMiner = true,
-                MiningInterval = 4000
             };
             var bytes = await tester.CallContractMethodAsync(
                 tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.

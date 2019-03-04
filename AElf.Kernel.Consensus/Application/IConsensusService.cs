@@ -9,19 +9,17 @@ namespace AElf.Kernel.Consensus.Application
         /// <summary>
         /// To trigger the consensus scheduler at the starting of current node.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <returns></returns>
-        Task TriggerConsensusAsync(int chainId);
+        Task TriggerConsensusAsync();
         
         /// <summary>
         /// To validate the consensus information extracted from block header extra data.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <param name="preBlockHash"></param>
         /// <param name="preBlockHeight"></param>
         /// <param name="consensusExtraData">Extract from block header.</param>
         /// <returns></returns>
-        Task<bool> ValidateConsensusAsync(int chainId, Hash preBlockHash, ulong preBlockHeight,
+        Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
             byte[] consensusExtraData);
         
         /// <summary>
@@ -30,15 +28,13 @@ namespace AElf.Kernel.Consensus.Application
         /// The consensus information will used to fill block header extra
         /// data of new block.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<byte[]> GetNewConsensusInformationAsync(int chainId);
+        Task<byte[]> GetNewConsensusInformationAsync();
         
         /// <summary>
         /// Generate consensus transactions from consensus contract.
         /// </summary>
-        /// <param name="chainId"></param>
         /// <returns></returns>
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(int chainId);
+        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync();
     }
 }

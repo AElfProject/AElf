@@ -37,7 +37,6 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 PublicKey = stubMiner.PublicKey.ToHex(),
                 IsBootMiner = true,
-                MiningInterval = _miningInterval
             };
             var bytes = await tester.CallContractMethodAsync(addresses[1], ConsensusConsts.GetConsensusCommand,
                 firstTriggerInformation.ToByteArray());
@@ -256,7 +255,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             
             // Assert
             Assert.NotNull(newConsensusInformation);
-            Assert.Equal(outValue, newConsensusInformation.CurrentRound.RealTimeMinersInformation[miner2.PublicKey.ToHex()]
+            Assert.Equal(outValue, newConsensusInformation.Round.RealTimeMinersInformation[miner2.PublicKey.ToHex()]
                 .OutValue);
         }
         

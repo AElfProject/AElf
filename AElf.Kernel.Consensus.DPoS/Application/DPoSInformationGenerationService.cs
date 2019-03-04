@@ -118,7 +118,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
         }
 
-        public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation, int chainId)
+        public byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation)
         {
             DPoSInformation information;
             try
@@ -138,7 +138,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 {
                     case DPoSBehaviour.InitialTerm:
                         Logger.LogInformation(GetLogStringForOneRound(information.NewTerm.FirstRound));
-                        information.NewTerm.ChainId = chainId;
                         information.NewTerm.FirstRound.MiningInterval = _dpoSOptions.MiningInterval;
                         return new DPoSExtraInformation
                         {
@@ -146,13 +145,13 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         }.ToByteArray();
 
                     case DPoSBehaviour.PackageOutValue:
-                        var minersInformation = information.CurrentRound.RealTimeMinersInformation;
+                        var minersInformation = information.Round.RealTimeMinersInformation;
                         if (!minersInformation.Any())
                         {
                             Logger.LogError($"Incorrect consensus information.\n{information}");
                         }
 
-                        Logger.LogInformation(GetLogStringForOneRound(information.CurrentRound));
+                        Logger.LogInformation(GetLogStringForOneRound(information.Round));
                         var currentMinerInformation = minersInformation.OrderByDescending(m => m.Value.Order)
                             .First(m => m.Value.OutValue != null).Value;
                         return new DPoSExtraInformation
@@ -160,14 +159,14 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             ToPackage = new ToPackage
                             {
                                 OutValue = currentMinerInformation.OutValue,
-                                RoundId = information.CurrentRound.RoundId,
+                                RoundId = information.Round.RoundId,
                                 Signature = currentMinerInformation.Signature,
                                 PromiseTinyBlocks = currentMinerInformation.PromisedTinyBlocks
                             },
                             ToBroadcast = new ToBroadcast
                             {
                                 InValue = _inValue,
-                                RoundId = information.CurrentRound.RoundId
+                                RoundId = information.Round.RoundId
                             }
                         }.ToByteArray();
 

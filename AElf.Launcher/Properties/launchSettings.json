@@ -2,18 +2,18 @@
     "profiles": {
         "bp1": {
             "commandName": "Project",
-            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp1",
-            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp1"
+            "commandLineArgs": "--config.path /Users/bassett/Programming/aelf/configuration/bp1",
+            "workingDirectory": "/Users/bassett/Programming/aelf/configuration/bp1"
         },
         "bp2": {
             "commandName": "Project",
-            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp2",
-            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp2"
+            "commandLineArgs": "--config.path /Users/bassett/Programming/aelf/configuration/bp2",
+            "workingDirectory": "/Users/bassett/Programming/aelf/configuration/bp2"
         },
         "bp3": {
             "commandName": "Project",
-            "commandLineArgs": "--config.path /Users/eanzhao/AElf/configuration/bp3",
-            "workingDirectory": "/Users/eanzhao/AElf/configuration/bp3"
+            "commandLineArgs": "--config.path /Users/bassett/Programming/aelf/configuration/bp3",
+            "workingDirectory": "/Users/bassett/Programming/aelf/configuration/bp3"
         }
     }
 }

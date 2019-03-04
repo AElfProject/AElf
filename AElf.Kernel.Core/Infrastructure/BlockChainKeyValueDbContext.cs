@@ -1,5 +1,6 @@
 using AElf.Database;
 using Volo.Abp.Data;
+// ReSharper disable All
 
 namespace AElf.Kernel.Infrastructure
 {

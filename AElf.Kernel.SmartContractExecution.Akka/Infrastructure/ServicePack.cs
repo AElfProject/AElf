@@ -11,6 +11,5 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public ISmartContractService SmartContractService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         
-        public IMinersManager MinersManager { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace AElf.Kernel.TransactionPool.Tests
             context.Services.AddSingleton<IBlockchainService>(o =>
             {
                 var chain = new Mock<IBlockchainService>();
-                chain.Setup(x => x.GetChainAsync(It.IsAny<int>())).Returns(Task.FromResult<Chain>(new Chain()
+                chain.Setup(x => x.GetChainAsync()).Returns(Task.FromResult<Chain>(new Chain()
                 {
                     BestChainHeight = 100,
                 }));

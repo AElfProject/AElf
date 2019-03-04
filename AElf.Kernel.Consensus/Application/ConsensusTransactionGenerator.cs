@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Services;
 using AElf.Kernel.Miner.Application;
 using Volo.Abp.Threading;
 
@@ -17,11 +16,11 @@ namespace AElf.Kernel.Consensus.Application
         }
         
         public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
-            int chainId, ref List<Transaction> generatedTransactions)
+            ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
                 AsyncHelper.RunSync(() =>
-                    _consensusService.GenerateConsensusTransactionsAsync(chainId)));
+                    _consensusService.GenerateConsensusTransactionsAsync()));
         }
     }
 }

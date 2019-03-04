@@ -11,6 +11,7 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -19,6 +20,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Rpc.ChainController
 {
@@ -26,7 +28,7 @@ namespace AElf.OS.Rpc.ChainController
     public class ChainControllerRpcService : IJsonRpcService
     {
         public IBlockchainService BlockchainService { get; set; }
-        public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
+        public ITxHub TxHub { get; set; }
         public ITransactionResultManager TransactionResultManager { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
@@ -42,7 +44,8 @@ namespace AElf.OS.Rpc.ChainController
 
         private readonly ChainOptions _chainOptions;
 
-        public ITxHub TxHub => TxHubs.Get(_chainOptions.ChainId);
+        public int ChainId => _chainOptions.ChainId;
+        public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
@@ -88,7 +91,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            var abi = await this.GetContractAbi(addressHash);
 
             if (abi == null)
             {
@@ -110,7 +113,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
+                response = await this.CallReadOnly(transaction);
             }
             catch
             {
@@ -123,54 +126,19 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            Transaction transaction;
-            try
-            {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
-                transaction = Transaction.Parser.ParseFrom(hexString);
-            }
-            catch
-            {
-                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
-            }
-
-            if (!transaction.VerifySignature())
-            {
-                throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
-            }
-
-            var response = new JObject {["TransactionId"] = transaction.GetHash().ToHex()};
-
-            //TODO: Wait validation done
-            transaction.GetTransactionInfo();
-            await TxHub.AddTransactionAsync(_chainOptions.ChainId, transaction);
-
+            var txIds = await this.PublishTransactionsAsync(new string[] {rawTransaction});
+            var response = new JObject {["TransactionId"] = txIds[0]};
             return response;
         }
 
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
         public async Task<JObject> BroadcastTransactions(string rawTransactions)
         {
-            var response = new List<object>();
-
-            foreach (var rawTransaction in rawTransactions.Split(','))
-            {
-                JObject result;
-                try
-                {
-                    result = await BroadcastTransaction(rawTransaction);
-                }
-                catch
-                {
-                    break;
-                }
-
-                response.Add(result["TransactionId"].ToString());
-            }
+            var txIds = await this.PublishTransactionsAsync(rawTransactions.Split(","));
 
             return new JObject
             {
-                JToken.FromObject(response)
+                JToken.FromObject(txIds)
             };
         }
 
@@ -216,7 +184,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidBlockHash, Error.Message[Error.InvalidBlockHash]);
             }
 
-            var block = await this.GetBlock(_chainOptions.ChainId, realBlockHash);
+            var block = await this.GetBlock(realBlockHash);
             if (block == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
@@ -317,13 +285,13 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetBlockHeight")]
         public async Task<ulong> GetBlockHeight()
         {
-            return await this.GetCurrentChainHeight(_chainOptions.ChainId);
+            return await this.GetCurrentChainHeight();
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
         public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
         {
-            var blockInfo = await this.GetBlockAtHeight(_chainOptions.ChainId, blockHeight);
+            var blockInfo = await this.GetBlockAtHeight(blockHeight);
             if (blockInfo == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
@@ -382,7 +350,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetChainStatus")]
         public async Task<JObject> GetChainStatus()
         {
-            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);
+            var chain = await BlockchainService.GetChainAsync();
             var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
             var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
             return new JObject

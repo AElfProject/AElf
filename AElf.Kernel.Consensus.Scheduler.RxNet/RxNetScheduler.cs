@@ -34,23 +34,6 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         {
             _observables?.Dispose();
         }
-
-        public void Dispose()
-        {
-            _observables?.Dispose();
-        }
-
-        public async Task<IDisposable> StartAsync(int chainId)
-        {
-            return this;
-        }
-
-        public Task StopAsync()
-        {
-            _observables?.Dispose();
-            return Task.CompletedTask;
-        }
-
         public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +

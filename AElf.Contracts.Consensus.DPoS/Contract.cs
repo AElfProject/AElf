@@ -153,7 +153,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new DPoSInformation
                 {
                     SenderPublicKey = publicKey,
-                    CurrentRound = round.ApplyNormalConsensusData(publicKey, outValue, signature),
+                    Round = round.ApplyNormalConsensusData(publicKey, outValue, signature),
                     Behaviour = DPoSBehaviour.PackageOutValue,
                 };
             }
@@ -357,12 +357,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 else
                 {
                     // Same Round
-                    if (!RoundIdMatched(information.CurrentRound))
+                    if (!RoundIdMatched(information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
-                    if (!NewOutValueFilled(information.CurrentRound))
+                    if (!NewOutValueFilled(information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }

@@ -4,6 +4,6 @@ namespace AElf.Kernel.Consensus.Application
     {
         byte[] GetTriggerInformation();
         byte[] GenerateExtraInformation();
-        byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation, int chainId);
+        byte[] GenerateExtraInformationForTransaction(byte[] consensusInformation);
     }
 }

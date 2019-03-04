@@ -24,6 +24,8 @@
   <ItemGroup>
     <Folder Include="Miner\Domain" />
     <Folder Include="Node\Application" />
+    <Folder Include="Node\Domain" />
     <Folder Include="SmartContractExecution\Application" />
+    <Folder Include="TransactionPool\Application" />
   </ItemGroup>
 </Project>

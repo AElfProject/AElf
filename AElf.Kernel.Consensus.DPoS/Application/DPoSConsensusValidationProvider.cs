@@ -13,19 +13,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             _consensusService = consensusService;
         }
-        public async Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             if (block.Height == 1)
             {
                 return true;
             }
 
-            var result = await _consensusService.ValidateConsensusAsync(chainId, block.Header.PreviousBlockHash,
+            var result = await _consensusService.ValidateConsensusAsync(block.Header.PreviousBlockHash,
                 block.Height - 1, block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
             return result;
         }
 
-        public Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)
+        public Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             // TODO: Need a new contract method to validate consensus information after block execution.
             return Task.FromResult(true);
