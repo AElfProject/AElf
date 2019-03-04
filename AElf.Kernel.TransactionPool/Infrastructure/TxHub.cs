@@ -13,6 +13,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
@@ -40,25 +41,25 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ulong _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Genesis;
 
-        public int ChainId { get; private set; }
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
         {
-            var chain = await _blockchainService.GetChainAsync(ChainId);
+            var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
                 Logger.LogWarning(
                     $"Attempting to retrieve executable transactions while best chain records don't macth.");
                 return new ExecutableTransactionSet()
                 {
-                    ChainId = ChainId,
                     PreviousBlockHash = _bestChainHash,
                     PreviousBlockHeight = _bestChainHeight
                 };
@@ -66,7 +67,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             var output = new ExecutableTransactionSet()
             {
-                ChainId = ChainId,
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
@@ -81,19 +81,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return Task.FromResult(receipt);
         }
 
-        public void Dispose()
-        {
-        }
-
-        public async Task<IDisposable> StartAsync(int chainId)
-        {
-            ChainId = chainId;
-            return this;
-        }
-
-        public async Task StopAsync()
-        {
-        }
 
 
         #region Private Methods
@@ -144,17 +131,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return hash == null ? null : ByteString.CopyFrom(hash.DumpByteArray().Take(4).ToArray());
         }
 
-        private async Task<ByteString> GetPrefixByHeightAsync(int chainId, ulong height, Hash bestChainHash)
+        private async Task<ByteString> GetPrefixByHeightAsync(ulong height, Hash bestChainHash)
         {
-            var chain = await _blockchainService.GetChainAsync(chainId);
+            var chain = await _blockchainService.GetChainAsync();
             return await GetPrefixByHeightAsync(chain, height, bestChainHash);
         }
 
-        private async Task<Dictionary<ulong, ByteString>> GetPrefixesByHeightAsync(int chainId,
+        private async Task<Dictionary<ulong, ByteString>> GetPrefixesByHeightAsync(
             IEnumerable<ulong> heights, Hash bestChainHash)
         {
             var prefixes = new Dictionary<ulong, ByteString>();
-            var chain = await _blockchainService.GetChainAsync(chainId);
+            var chain = await _blockchainService.GetChainAsync();
             foreach (var h in heights)
             {
                 var prefix = await GetPrefixByHeightAsync(chain, h, bestChainHash);
@@ -197,11 +184,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
-            if (ChainId != eventData.ChainId)
-            {
-                return;
-            }
-
             foreach (var transaction in eventData.Transactions)
             {
                 var receipt = new TransactionReceipt(transaction);
@@ -220,20 +202,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 _allTransactions.Add(receipt.TransactionId, receipt);
                 await _transactionManager.AddTransactionAsync(transaction);
 
-                var prefix = await GetPrefixByHeightAsync(ChainId, receipt.Transaction.RefBlockNumber, _bestChainHash);
+                var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
                 CheckPrefixForOne(receipt, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(receipt);
+                if (receipt.RefBlockStatus == RefBlockStatus.RefBlockValid)
+                {
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                    {
+                        Transaction = transaction
+                    });
+                }
             }
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            if (ChainId != eventData.ChainId)
-            {
-                return;
-            }
-
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.ChainId,
+            var block = await _blockchainService.GetBlockByHashAsync(
                 eventData.BlockHeader.GetHash());
             foreach (var txId in block.Body.Transactions)
             {
@@ -243,13 +227,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
-            if (ChainId != eventData.ChainId)
-            {
-                return;
-            }
 
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
-            var prefixes = await GetPrefixesByHeightAsync(eventData.ChainId, heights, eventData.BlockHash);
+            var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
             foreach (var kv in _allTransactions)
             {
@@ -264,11 +244,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            if (ChainId != eventData.ChainId)
-            {
-                return;
-            }
-
             foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
             {
                 foreach (var txId in txIds.Value.Keys)

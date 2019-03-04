@@ -14,8 +14,8 @@ namespace AElf.Contracts.CrossChain
 
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<Address, ulong> Lock { get; set; }
-        public Action<Address, ulong> Unlock { get; set; }
+        public Action<Address, ulong> Transfer { get; set; }
+        public Action<Address, Address, ulong> TransferFrom { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState

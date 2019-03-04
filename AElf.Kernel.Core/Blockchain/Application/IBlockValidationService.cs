@@ -9,9 +9,9 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockValidationService
     {
-        Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block);
+        Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block);
 
-        Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block);
+        Task<bool> ValidateBlockAfterExecuteAsync(IBlock block);
     }
 
     public class BlockValidationService : IBlockValidationService, ITransientDependency
@@ -26,22 +26,22 @@ namespace AElf.Kernel.Blockchain.Application
             _blockValidationProviders = blockValidationProviders;
         }
 
-        public async Task<bool> ValidateBlockBeforeExecuteAsync(int chainId, IBlock block)
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             foreach (var provider in _blockValidationProviders)
             {
-                if (!await provider.ValidateBlockBeforeExecuteAsync(chainId, block))
+                if (!await provider.ValidateBlockBeforeExecuteAsync(block))
                     return false;
             }
 
             return true;
         }
 
-        public async Task<bool> ValidateBlockAfterExecuteAsync(int chainId, IBlock block)
+        public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             foreach (var provider in _blockValidationProviders)
             {
-                if (!await provider.ValidateBlockAfterExecuteAsync(chainId, block))
+                if (!await provider.ValidateBlockAfterExecuteAsync(block))
                     return false;
             }
 

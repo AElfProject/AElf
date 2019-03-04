@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
 

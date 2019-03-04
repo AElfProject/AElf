@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -18,12 +20,14 @@ namespace AElf.OS.Network.Grpc
         public string RemoteEndpoint { get; }
 
         private byte[] _pubKey;
+
         public byte[] PublicKey
         {
             get { return _pubKey ?? (_pubKey = _handshakeData?.PublicKey?.ToByteArray()); }
         }
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, HandshakeData handshakeData, string peerAddress, string remoteEndpoint)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, HandshakeData handshakeData,
+            string peerAddress, string remoteEndpoint)
         {
             _channel = channel;
             _client = client;
@@ -33,26 +37,37 @@ namespace AElf.OS.Network.Grpc
             PeerAddress = peerAddress;
         }
 
-        public async Task<Block> RequestBlockAsync(Hash hash, ulong height)
+        public async Task<Block> RequestBlockAsync(Hash hash)
         {
-            BlockRequest request = new BlockRequest { Height = height, Id = hash?.Value ?? ByteString.Empty};
+            BlockRequest request = new BlockRequest {Hash = hash};
             var blockReply = await _client.RequestBlockAsync(request);
             return blockReply?.Block;
         }
 
         public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count)
         {
-            var idList = await _client.RequestBlockIdsAsync(new BlockIdsRequest { FirstBlockId = topHash.Value, Count = count});
-            
-            if (idList == null || idList.Ids.Count <= 0)
-                return new List<Hash>();
-            
-            return idList.Ids.Select(id => Hash.LoadByteArray(id.ToByteArray())).ToList();
+            var idList = await _client.RequestBlockIdsAsync(new BlocksRequest
+                {PreviousBlockHash = topHash, Count = count});
+
+            return idList.Hashes.ToList();
         }
 
-        public async Task AnnounceAsync(BlockHeader header)
+        public Hash CurrentBlockHash { get; set; }
+        public ulong CurrentBlockHeight { get; set; }
+
+        public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
-            await _client.AnnounceAsync(new Announcement { Header = header});
+            var list = await _client.RequestBlocksAsync(new BlocksRequest {PreviousBlockHash = firstHash, Count = count});
+
+            if (list == null)
+                return new List<Block>();
+
+            return list.Blocks.Select(b => b).ToList();
+        }
+
+        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        {
+            await _client.AnnounceAsync(header);
         }
 
         public async Task SendTransactionAsync(Transaction tx)
@@ -64,10 +79,10 @@ namespace AElf.OS.Network.Grpc
         {
             await _channel.ShutdownAsync();
         }
-        
+
         public async Task SendDisconnectAsync()
         {
-            await _client.DisconnectAsync(new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown });
+            await _client.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown});
         }
     }
 }

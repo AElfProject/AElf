@@ -8,7 +8,6 @@ namespace AElf.Kernel.SmartContract
 {
     public interface ISmartContractContext
     {
-        int ChainId { get; }
         Address ContractAddress { get; }
 
         void LogDebug(Func<string> func);
@@ -27,5 +26,7 @@ namespace AElf.Kernel.SmartContract
 
         void UpdateContract(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged);
+
+        int GetChainId();
     }
 }

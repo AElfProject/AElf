@@ -19,7 +19,6 @@ namespace AElf.Sdk.CSharp.Tests
         private readonly Context _context;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractService _smartContractService;
-        private int _chainId = 1;
         private readonly ECKeyPair _keyPair;
 
         public ContextTests()
@@ -93,12 +92,11 @@ namespace AElf.Sdk.CSharp.Tests
                 Height = 2,
                 Header = new BlockHeader
                 {
-                    ChainId = _chainId,
                     PreviousBlockHash = Hash.Genesis
                 },
                 Body = new BlockBody()
             };
-            _blockchainService.AddBlockAsync(_chainId, newBlock);
+            _blockchainService.AddBlockAsync(newBlock);
 
             context.TransactionContext.PreviousBlockHash = newBlock.GetHash();
 
@@ -191,8 +189,7 @@ namespace AElf.Sdk.CSharp.Tests
             var context = CreateNewContext();
             var smartContractContext = new SmartContractContext
             {
-                ChainId = _chainId,
-                ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
+                ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_blockchainService.GetChainId()),
                 BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
@@ -221,8 +218,7 @@ namespace AElf.Sdk.CSharp.Tests
             var context = CreateNewContext();
             var smartContractContext = new SmartContractContext
             {
-                ChainId = _chainId,
-                ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_chainId),
+                ContractAddress = ContractHelpers.GetGenesisBasicContractAddress(_blockchainService.GetChainId()),
                 BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService
             };
@@ -244,7 +240,6 @@ namespace AElf.Sdk.CSharp.Tests
 
             var smartContractContext = new SmartContractContext
             {
-                ChainId = _chainId,
                 ContractAddress = Address.Genesis,
                 BlockchainService = _blockchainService,
                 SmartContractService = _smartContractService

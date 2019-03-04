@@ -9,7 +9,7 @@ namespace AElf.Kernel.SmartContractExecution
 {
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        public async Task<IEnumerable<string>> GetResources(int chainId, Transaction transaction)
+        public async Task<IEnumerable<string>> GetResources(Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
             List<Address> addresses = new List<Address>();

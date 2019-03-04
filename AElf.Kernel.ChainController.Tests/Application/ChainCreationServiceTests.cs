@@ -7,11 +7,11 @@ using Xunit;
 
 namespace AElf.Kernel.ChainController.Application
 {
-    public class ChainCreationServiceTests: ChainControllerTestBase
+    public class ChainCreationServiceTests : ChainControllerTestBase
     {
         private readonly ChainCreationService _chainCreationService;
         private readonly IBlockchainService _blockchainService;
-        
+
         public ChainCreationServiceTests()
         {
             _chainCreationService = GetRequiredService<ChainCreationService>();
@@ -22,15 +22,15 @@ namespace AElf.Kernel.ChainController.Application
         public async Task Create_NewChain_Success()
         {
             var chainId = 1;
-            
-            var chain = await _blockchainService.GetChainAsync(chainId);
+
+            var chain = await _blockchainService.GetChainAsync();
             chain.ShouldBeNull();
-            
-            chain = await _chainCreationService.CreateNewChainAsync(chainId, new List<Transaction>());
-            chain = await _blockchainService.GetChainAsync(chainId);
+
+            chain = await _chainCreationService.CreateNewChainAsync(new List<Transaction>());
+            chain = await _blockchainService.GetChainAsync();
             chain.ShouldNotBeNull();
 
-            var block = await _blockchainService.GetBlockByHashAsync(chain.Id, chain.BestChainHash);
+            var block = await _blockchainService.GetBlockByHashAsync(chain.BestChainHash);
             block.Header.Height.ShouldBe(ChainConsts.GenesisBlockHeight);
             block.Header.PreviousBlockHash.ShouldBe(Hash.Genesis);
             block.Header.ChainId.ShouldBe(chain.Id);

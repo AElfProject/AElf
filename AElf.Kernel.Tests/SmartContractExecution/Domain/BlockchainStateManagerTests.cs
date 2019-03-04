@@ -160,7 +160,7 @@ namespace AElf.Kernel
             await check3_2();
 
             int chainId = 1;
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync(chainId);
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
 
             await check1();

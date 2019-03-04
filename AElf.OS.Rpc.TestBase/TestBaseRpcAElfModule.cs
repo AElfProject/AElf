@@ -72,8 +72,8 @@ namespace AElf.OS.Rpc
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
                 mockService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>(),
-                        It.IsAny<int>())).Returns(new List<Transaction>());
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>()))
+                    .Returns(new List<Transaction>());
                 return mockService.Object;
             });
 
@@ -81,7 +81,7 @@ namespace AElf.OS.Rpc
             {
                 var mockService = new Mock<IBlockExtraDataService>();
                 mockService.Setup(s =>
-                    s.FillBlockExtraData(It.IsAny<int>(), It.IsAny<Block>())).Returns(Task.CompletedTask);
+                    s.FillBlockExtraData(It.IsAny<Block>())).Returns(Task.CompletedTask);
                 return mockService.Object;
             });
             
@@ -89,9 +89,9 @@ namespace AElf.OS.Rpc
             {
                 var mockService = new Mock<IBlockValidationService>();
                 mockService.Setup(s =>
-                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<int>(), It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
-                    s.ValidateBlockAfterExecuteAsync(It.IsAny<int>(), It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
         }

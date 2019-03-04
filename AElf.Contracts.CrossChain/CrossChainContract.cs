@@ -56,12 +56,12 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public string ReuqestChainCreation(SideChainInfo request)
+        public string RequestChainCreation(SideChainInfo request)
         {
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
-                Context.Sender.Equals(request.Proposer), "Invalid chain creation request.");
+                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0, "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
@@ -74,22 +74,13 @@ namespace AElf.Contracts.CrossChain
             LockTokenAndResource(request);
 
             // side chain creation proposal
-            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
-                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
+//            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
+//                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
             request.SideChainStatus = SideChainStatus.Review;
-            request.ProposalHash = hash;
+//            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
             
-            //TODO: do not return json in a smart contract
-            /*
-            var res = new JObject
-            {
-                ["proposal_hash"] = hash.ToHex(),
-                ["chain_id"] = ChainHelpers.ConvertChainIdToBase58(chainId)
-            };
-            return res.ToString();*/
-            throw new NotImplementedException();
-
+            return ChainHelpers.ConvertChainIdToBase58(chainId);
         }
 
         public void WithdrawRequest(string chainId)
@@ -103,21 +94,21 @@ namespace AElf.Contracts.CrossChain
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
 
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Not authorized to withdraw request.");
+            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Authentication failed.");
             UnlockTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
             State.SideChainInfos[id] = sideChainInfo;
         }
 
         /// <summary>
-        /// Create side chain. It is a proposal result from system address. 
+        /// Create side chain. It is a proposal result from system address.
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
         public string CreateSideChain(string chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
-            CheckAuthority(Context.Genesis);
+//            CheckAuthority(Context.Genesis);
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var request = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
@@ -159,7 +150,7 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfos[id] = sideChainInfo;
             }
 
-            State.TokenContract.Lock(Context.Sender, amount);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
         }
 
         /// <summary>
@@ -179,9 +170,9 @@ namespace AElf.Contracts.CrossChain
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
-            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Context.Genesis,
-                Context.Self, DisposeSideChainMethodName, chainId);
-            return proposalHash.DumpByteArray();
+//            Hash proposalHash = Propose("DisposeSideChain", RequestChainCreationWaitingPeriod, Context.Genesis,
+//                Context.Self, DisposeSideChainMethodName, chainId);
+            return new byte[0];
         }
 
         /// <summary>
@@ -192,7 +183,7 @@ namespace AElf.Contracts.CrossChain
         {
             // side chain disposal should be triggered by multi sig txn from system address.
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            CheckAuthority(Context.Genesis);
+            //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[id];
             Assert(info.IsNotEmpty(), "Not existed side chain.");
 
@@ -204,7 +195,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[id] = info;
             Context.FireEvent(new SideChainDisposal
             {
-                chainId = id
+                ChainId = id
             });
         }
 
@@ -270,7 +261,8 @@ namespace AElf.Contracts.CrossChain
             Context.FireEvent(new CrossChainIndexingEvent
             {
                 SideChainTransactionsMerkleTreeRoot = calculatedRoot,
-                CrossChainBlockData = crossChainBlockData
+                CrossChainBlockData = crossChainBlockData,
+                Sender = Context.Sender // for validation 
             });
         }
 
@@ -388,7 +380,7 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
-                State.TokenContract.Unlock(Context.Self, indexingPrice);
+                State.TokenContract.Transfer(Context.Sender, indexingPrice);
 
                 State.CurrentSideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
@@ -458,7 +450,7 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
             // update locked token balance
-            State.TokenContract.Lock(Context.Sender, sideChainInfo.LockedTokenAmount);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, sideChainInfo.LockedTokenAmount);
             var chainId = sideChainInfo.SideChainId;
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -476,7 +468,7 @@ namespace AElf.Contracts.CrossChain
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
             if (balance != 0)
-                State.TokenContract.Unlock(sideChainInfo.Proposer, balance);
+                State.TokenContract.Transfer(sideChainInfo.Proposer, balance);
             State.IndexingBalance[chainId] = 0;
 
             // unlock resource 

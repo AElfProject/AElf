@@ -23,21 +23,6 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
             Logger = NullLogger<FluentSchedulerScheduler>.Instance;
         }
-        
-        public void Dispose()
-        {
-            JobManager.Stop();
-        }
-
-        public async Task<IDisposable> StartAsync(int chainId)
-        {
-            return this;
-        }
-
-        public async Task StopAsync()
-        {
-            JobManager.Stop();
-        }
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
