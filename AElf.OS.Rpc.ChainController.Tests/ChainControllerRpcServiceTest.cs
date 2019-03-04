@@ -19,7 +19,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -63,7 +62,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
             // Mined one block
             var chain = await _blockchainService.GetChainAsync();
             var transaction = await GenerateTransferTransaction(chain);
-            await MinedOneBlock(chain, new List<Transaction> {transaction});
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            await MinedOneBlock(chain);
 
             // Get latest height
             response = await JsonCallAsJObject("/chain", "GetBlockHeight");
@@ -95,10 +95,16 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
                 Address.BuildContractAddress(chain.Id, 0), nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location));
-            await MinedOneBlock(chain, new List<Transaction> {transaction});
-
+            var signature =
+                CryptoHelpers.SignWithPrivateKey(_userEcKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            await MinedOneBlock(chain);
+            
             // Get abi
-            var newContractAddress = Address.BuildContractAddress(chain.Id, 1);
+            chain = await _blockchainService.GetChainAsync();
+            var newContractAddress = Address.BuildContractAddress(chain.Id, 3);
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
@@ -217,15 +223,13 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_TransactionResult_Success()
         {
-            // Generate a transaction
+            // Generate a transaction and broadcast
             var chain = await _blockchainService.GetChainAsync();
             var transaction = await GenerateTransferTransaction(chain);
             var transactionHex = transaction.GetHash().ToHex();
+            await BroadcastTransactions(new List<Transaction> {transaction});
 
-            // Broadcast transaction, 
-            await JsonCallAsJObject("/chain", "BroadcastTransaction",
-                new {rawTransaction = transaction.ToByteArray().ToHex()});
-
+            // Before mined
             var response = await JsonCallAsJObject("/chain", "GetTransactionResult",
                 new {transactionId = transactionHex});
             var responseTransactionId = response["result"]["TransactionId"].ToString();
@@ -236,6 +240,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             await MinedOneBlock(chain);
 
+            // After mined
             response = await JsonCallAsJObject("/chain", "GetTransactionResult",
                 new {transactionId = transactionHex});
             responseTransactionId = response["result"]["TransactionId"].ToString();
@@ -269,7 +274,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 transactions.Add(await GenerateTransferTransaction(chain));
             }
 
-            var block = await MinedOneBlock(chain, transactions);
+            await BroadcastTransactions(transactions);
+            var block = await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
                 new {blockHash = block.GetHash().ToHex(), offset = 0, num = 15});
@@ -294,27 +300,33 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 transactions.Add(await GenerateTransferTransaction(chain));
             }
 
-            var block = await MinedOneBlock(chain, transactions);
+            await BroadcastTransactions(transactions);
+            var block = await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
-                new {blockHeight = 3});
-            response["result"]["BlockHash"].ToString().ShouldBe(block.GetHash().ToHex());
-            response["result"]["Header"]["PreviousBlockHash"].ToString()
+                new {blockHeight = 3, includeTransactions = true});
+            var responseResult = response["result"];
+            
+            responseResult["BlockHash"].ToString().ShouldBe(block.GetHash().ToHex());
+            responseResult["Header"]["PreviousBlockHash"].ToString()
                 .ShouldBe(block.Header.PreviousBlockHash.ToHex());
-            response["result"]["Header"]["MerkleTreeRootOfTransactions"].ToString().ShouldBe(
+            responseResult["Header"]["MerkleTreeRootOfTransactions"].ToString().ShouldBe(
                 block.Header.MerkleTreeRootOfTransactions.ToHex
                     ());
-            response["result"]["Header"]["MerkleTreeRootOfWorldState"].ToString()
+            responseResult["Header"]["MerkleTreeRootOfWorldState"].ToString()
                 .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
-            response["result"]["Header"]["SideChainTransactionsRoot"].ToString().ShouldBe(
+            responseResult["Header"]["SideChainTransactionsRoot"].ToString().ShouldBe(
                 block.Header.BlockExtraData == null
                     ? string.Empty
                     : block.Header.BlockExtraData.SideChainTransactionsRoot.ToHex());
-            ((ulong) response["result"]["Header"]["Height"]).ShouldBe(block.Height);
-            Convert.ToDateTime(response["result"]["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
-            response["result"]["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
-            response["result"]["Header"]["Bloom"].ToString().ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
-            ((int) response["result"]["Body"]["TransactionsCount"]).ShouldBe(3);
+            ((ulong) responseResult["Header"]["Height"]).ShouldBe(block.Height);
+            Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
+            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            responseResult["Header"]["Bloom"].ToString().ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            ((int) responseResult["Body"]["TransactionsCount"]).ShouldBe(3);
+
+            var responseTransactions = responseResult["Body"]["Transactions"].ToList();
+            responseTransactions.Count.ShouldBe(3);
         }
 
         [Fact]
@@ -329,15 +341,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseMessage.ShouldBe(Error.Message[Error.NotFound]);
         }
 
-        private async Task<Block> MinedOneBlock(Chain chain, List<Transaction> transactions = null)
+        private async Task<Block> MinedOneBlock(Chain chain)
         {
-            if (transactions != null)
-            {
-                var rawTransactions = string.Join(',', transactions.Select(t => t.ToByteArray().ToHex()));
-                await JsonCallAsJObject("/chain", "BroadcastTransactions",
-                    new {rawTransactions = rawTransactions});
-            }
-
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
 
@@ -359,18 +364,26 @@ namespace AElf.OS.Rpc.ChainController.Tests
             return transaction;
         }
 
+        private async Task BroadcastTransactions(List<Transaction> transactions)
+        {
+            var rawTransactions = string.Join(',', transactions.Select(t => t.ToByteArray().ToHex()));
+            await JsonCallAsJObject("/chain", "BroadcastTransactions",
+                new {rawTransactions = rawTransactions});
+        }
+
         private async Task InitAccountAmount()
         {
             var chain = await _blockchainService.GetChainAsync();
             var account = await _accountService.GetAccountAsync();
 
             var transaction = await GenerateTransaction(chain, account, Address.BuildContractAddress(chain.Id, 2),
-                nameof(TokenContract.Transfer), Address.FromPublicKey(_userEcKeyPair.PublicKey), 1000);
+                nameof(TokenContract.Transfer), Address.FromPublicKey(_userEcKeyPair.PublicKey), 10000);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
 
-            await MinedOneBlock(chain, new List<Transaction> {transaction});
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            await MinedOneBlock(chain);
         }
 
         private async Task<Transaction> GenerateTransaction(Chain chain, Address from, Address to,
