@@ -11,8 +11,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ChainContextWithTieredStateCache(Hash blockHash, ulong blockHeight, TieredStateCache stateCache)
         {
-            BlockHeight = BlockHeight;
-            BlockHash = BlockHash;
+            BlockHeight = blockHeight;
+            BlockHash = blockHash;
             StateCache = stateCache;
         }
 
