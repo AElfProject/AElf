@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain.Cache;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.TestBase;
@@ -15,11 +16,13 @@ namespace AElf.CrossChain
 {
     public class CrossChainTestBase : AElfIntegratedTest<CrossChainTestModule>
     {
-        protected ITransactionResultManager TransactionResultManager;
+        protected ITransactionResultGettingService TransactionResultGettingService;
+        protected ITransactionResultSettingService TransactionResultSettingService;
 
         public CrossChainTestBase()
         {
-            TransactionResultManager = GetRequiredService<ITransactionResultManager>();
+            TransactionResultGettingService = GetRequiredService<ITransactionResultGettingService>();
+            TransactionResultSettingService = GetRequiredService<ITransactionResultSettingService>();
         }
 
         protected IMultiChainBlockInfoCacheProvider CreateFakeMultiChainBlockInfoCacheProvider(

@@ -10,11 +10,11 @@ namespace AElf.CrossChain
 {
     public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionResultGettingService _transactionResultGettingService;
 
-        public CrossChainBlockExtraDataProvider(ITransactionResultManager transactionResultManager)
+        public CrossChainBlockExtraDataProvider(ITransactionResultGettingService transactionResultGettingService)
         {
-            _transactionResultManager = transactionResultManager;
+            _transactionResultGettingService = transactionResultGettingService;
         }
 
         public async Task FillExtraDataAsync(Block block)
@@ -25,7 +25,7 @@ namespace AElf.CrossChain
             {
                 foreach (var txId in block.Body.Transactions)
                 {
-                    var res = await _transactionResultManager.GetTransactionResultAsync(txId);
+                    var res = await _transactionResultGettingService.GetTransactionResultAsync(txId);
                     
                     var sideChainTransactionsRoot =
                         CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent, out _);
