@@ -63,15 +63,6 @@ namespace AElf.OS.Handlers
 
             var chain = await BlockchainService.GetChainAsync();
 
-            if (blockHeight - chain.LongestChainHeight < 10)
-            {
-                //currently: 100
-                //remote: 200
-                //just ignore the block
-
-                return;
-            }
-
             try
             {
                 Logger.LogTrace(
@@ -94,7 +85,8 @@ namespace AElf.OS.Handlers
                     await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                     {
                         SuggestedPeerAddress = peerAddress,
-                        BlockHash = header.Announce.BlockHash,
+                        BlockHash = header.Announce.BlockHash.DumpByteArray(),
+                        BlockHeight = blockHeight
                     });
                 }
             }

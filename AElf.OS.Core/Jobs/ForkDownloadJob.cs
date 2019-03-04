@@ -47,7 +47,7 @@ namespace AElf.OS.Jobs
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    if (chain.LongestChainHeight > args.BlockHeight || blocks.Count == 0)
+                    if (chain.LongestChainHeight >= args.BlockHeight || blocks.Count == 0)
                         break;
                 }
             }
