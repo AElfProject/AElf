@@ -69,7 +69,8 @@ namespace AElf.Kernel.Blockchain.Application
                     return result;
                 }
 
-                if (header.Height < chain.LastIrreversibleBlockHeight - 1)
+                var until = chain.LastIrreversibleBlockHeight > 1 ? chain.LastIrreversibleBlockHeight - 1 : 0;
+                if (header.Height <= until)
                 {
                     // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
                     // NewIrreversibleBlockFoundEvent handling
