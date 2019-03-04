@@ -16,13 +16,13 @@ namespace AElf.CrossChain
 {
     public class CrossChainTestBase : AElfIntegratedTest<CrossChainTestModule>
     {
-        protected ITransactionResultGettingService TransactionResultGettingService;
-        protected ITransactionResultSettingService TransactionResultSettingService;
+        protected ITransactionResultQueryService TransactionResultQueryService;
+        protected ITransactionResultService TransactionResultService;
 
         public CrossChainTestBase()
         {
-            TransactionResultGettingService = GetRequiredService<ITransactionResultGettingService>();
-            TransactionResultSettingService = GetRequiredService<ITransactionResultSettingService>();
+            TransactionResultQueryService = GetRequiredService<ITransactionResultQueryService>();
+            TransactionResultService = GetRequiredService<ITransactionResultService>();
         }
 
         protected IMultiChainBlockInfoCacheProvider CreateFakeMultiChainBlockInfoCacheProvider(

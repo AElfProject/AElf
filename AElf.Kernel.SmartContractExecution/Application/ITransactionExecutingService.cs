@@ -24,13 +24,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ITransactionResultSettingService _transactionResultSettingService;
+        private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
-        public TransactionExecutingService(ITransactionResultSettingService transactionResultSettingService,
+        public TransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _transactionResultSettingService = transactionResultSettingService;
+            _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                 if (result != null)
                 {
-                    await _transactionResultSettingService.AddTransactionResultAsync(result, blockHeader);
+                    await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
                 }
 
                 returnSets.Add(GetReturnSet(trace, result));

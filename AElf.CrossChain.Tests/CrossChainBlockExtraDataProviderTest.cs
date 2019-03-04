@@ -42,7 +42,7 @@ namespace AElf.CrossChain
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
-            var fakeTransactionResultGettingService = TransactionResultGettingService;
+            var fakeTransactionResultGettingService = TransactionResultQueryService;
             //    CrossChainTestHelper.FakeTransactionResultManager(new List<TransactionResult>());
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(fakeTransactionResultGettingService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync( block);
@@ -66,8 +66,8 @@ namespace AElf.CrossChain
                 Body = new BlockBody()
             };
             block.Body.Transactions.AddRange(new []{ txId1});
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes1, block.Header);
-            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultGettingService);
+            await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
+            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }
@@ -105,10 +105,10 @@ namespace AElf.CrossChain
             block.Body.Transactions.AddRange(new []{ txId1, txId2, txId3});
             block.Sign(publicKey, b => Task.FromResult(CrossChainTestHelper.Sign(b)));
 
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes1, block.Header);
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes2, block.Header);
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes3, block.Header);
-            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultGettingService);
+            await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
+            await TransactionResultService.AddTransactionResultAsync(txRes2, block.Header);
+            await TransactionResultService.AddTransactionResultAsync(txRes3, block.Header);
+            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Equal(fakeMerkleTreeRoot, block.Header.BlockExtraData.SideChainTransactionsRoot);
         }
@@ -140,8 +140,8 @@ namespace AElf.CrossChain
             fakeBlock.Body.Transactions.AddRange(new []{ txId});
             fakeBlock.Sign(publicKey, b => Task.FromResult(CrossChainTestHelper.Sign(b)));
 
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes, fakeBlock.Header);
-            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultGettingService);
+            await TransactionResultService.AddTransactionResultAsync(txRes, fakeBlock.Header);
+            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(fakeBlock);
             Assert.Equal(fakeMerkleTreeRoot, fakeBlock.Header.BlockExtraData.SideChainTransactionsRoot);
         }
@@ -167,8 +167,8 @@ namespace AElf.CrossChain
                 Body = new BlockBody()
             };
             block.Body.Transactions.AddRange(new[] {txId1});
-            await TransactionResultSettingService.AddTransactionResultAsync(txRes1, block.Header);
-            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultGettingService);
+            await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
+            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }

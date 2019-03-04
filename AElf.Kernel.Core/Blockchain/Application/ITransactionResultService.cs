@@ -8,18 +8,18 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public interface ITransactionResultSettingService
-    {
-        Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader);
-    }
-
-    public interface ITransactionResultGettingService
+    public interface ITransactionResultQueryService
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
     }
 
+    public interface ITransactionResultService : ITransactionResultQueryService
+    {
+        Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader);
+    }
 
-    public class TransactionResultService : ITransactionResultSettingService, ITransactionResultGettingService,
+
+    public class TransactionResultService : ITransactionResultService,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ITransientDependency
     {
         private readonly ITransactionResultManager _transactionResultManager;

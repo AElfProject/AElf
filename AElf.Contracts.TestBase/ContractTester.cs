@@ -53,7 +53,7 @@ namespace AElf.Contracts.TestBase
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
-        private readonly ITransactionResultGettingService _transactionResultGettingService;
+        private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly IBlockValidationService _blockValidationService;
 
         private readonly IAccountService _accountService;
@@ -91,7 +91,7 @@ namespace AElf.Contracts.TestBase
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
-            _transactionResultGettingService = application.ServiceProvider.GetService<ITransactionResultGettingService>();
+            _transactionResultQueryService = application.ServiceProvider.GetService<ITransactionResultQueryService>();
             _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
         }
@@ -304,7 +304,7 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<TransactionResult> GetTransactionResult(Hash txId)
         {
-            return await _transactionResultGettingService.GetTransactionResultAsync(txId);
+            return await _transactionResultQueryService.GetTransactionResultAsync(txId);
         }
 
         private MinerService BuildMinerService(List<Transaction> txs, List<Transaction> systemTxs = null)

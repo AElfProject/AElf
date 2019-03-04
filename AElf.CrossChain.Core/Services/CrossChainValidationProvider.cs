@@ -12,12 +12,12 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly ITransactionResultGettingService _transactionResultGettingService;
+        private readonly ITransactionResultQueryService _transactionResultQueryService;
 
-        public CrossChainValidationProvider(ITransactionResultGettingService transactionResultGettingService, 
+        public CrossChainValidationProvider(ITransactionResultQueryService transactionResultQueryService, 
             ICrossChainService crossChainService)
         {
-            _transactionResultGettingService = transactionResultGettingService;
+            _transactionResultQueryService = transactionResultQueryService;
             _crossChainService = crossChainService;
         }
 
@@ -46,7 +46,7 @@ namespace AElf.CrossChain
         {
             foreach (var txId in block.Body.Transactions)
             {
-                var res = await _transactionResultGettingService.GetTransactionResultAsync(txId);
+                var res = await _transactionResultQueryService.GetTransactionResultAsync(txId);
                 var sideChainTransactionsRoot =
                     CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent,
                         out var crossChainBlockData);

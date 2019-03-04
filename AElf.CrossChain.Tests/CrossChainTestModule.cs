@@ -14,8 +14,8 @@ namespace AElf.CrossChain
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<ITransactionResultSettingService, NoBranchTransactionResultService>();
-            context.Services.AddTransient<ITransactionResultGettingService, NoBranchTransactionResultService>();
+            context.Services.AddTransient<ITransactionResultService, NoBranchTransactionResultService>();
+            context.Services.AddTransient<ITransactionResultQueryService, NoBranchTransactionResultService>();
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)

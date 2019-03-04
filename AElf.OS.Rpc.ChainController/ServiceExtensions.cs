@@ -193,7 +193,7 @@ namespace AElf.OS.Rpc.ChainController
             Hash txHash)
         {
             // in storage
-            var res = await s.TransactionResultGettingService.GetTransactionResultAsync(txHash);
+            var res = await s.TransactionResultQueryService.GetTransactionResultAsync(txHash);
             if (res != null)
             {
                 return res;
