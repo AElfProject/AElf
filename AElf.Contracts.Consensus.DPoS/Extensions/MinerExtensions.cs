@@ -232,7 +232,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
 
         private static int CalculateNextExtraBlockProducerOrder(Round roundInfo)
         {
-            var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInfo();
+            var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInformation();
             var sig = firstPlaceInfo.Signature;
             if (sig == null)
             {

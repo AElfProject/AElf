@@ -276,7 +276,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool IsMiner(string publicKey)
+        public bool IsMinerOfCurrentTerm(string publicKey)
         {
             if (TryToGetTermNumber(out var termNumber))
             {

@@ -80,8 +80,8 @@ namespace AElf.Contracts.TestBase
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
-                    options.Services.Configure<IAccountService>(o => { o = _accountService;});
-                    options.Services.Configure<NetworkOptions>(o => { o.ListeningPort })
+                    options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
+                    options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
                 });
             application.Initialize();
 

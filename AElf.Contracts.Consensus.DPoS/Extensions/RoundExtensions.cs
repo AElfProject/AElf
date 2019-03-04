@@ -220,9 +220,109 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return round;
         }
 
-        public static MinerInRound GetFirstPlaceMinerInfo(this Round round)
+        public static bool GenerateNextRoundInformation(this Round round, Timestamp timestamp, Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            return round.RealTimeMinersInformation.FirstOrDefault().Value;
+            nextRound = new Round();
+            
+            // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
+            var minersMinedCurrentRound = round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound != 0).ToList();
+            if (minersMinedCurrentRound.Any(m => !m.Signature.Value.Any()))
+            {
+                return false;
+            }
+            
+            // TODO: Check: No order conflicts for next round.
+
+            var miningInterval = round.GetMiningInterval();
+            nextRound.RoundNumber = round.RoundNumber + 1;
+            nextRound.BlockchainAge =
+                (ulong) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalDays;
+            
+            // Set next round miners' information of miners successfully mined during this round.
+            foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
+            {
+                var order = minerInRound.OrderOfNextRound;
+                nextRound.RealTimeMinersInformation[minerInRound.PublicKey] = new MinerInRound
+                {
+                    PublicKey = minerInRound.PublicKey,
+                    Order = order,
+                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order + miningInterval),
+                    PromisedTinyBlocks = 1
+                };
+            }
+            
+            // Set miners' information of miners missed their time slot in this round.
+            var minersNotMinedCurrentRound = round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound == 0).ToList();
+            var minersCount = round.RealTimeMinersInformation.Count;
+            var missedOrders = Enumerable.Range(1, minersCount).Where(i =>
+                !round.RealTimeMinersInformation.Values.Select(m => m.OrderOfNextRound).ToList().Contains(i)).ToList();
+            for (var i = 0; i < minersNotMinedCurrentRound.Count; i++)
+            {
+                var order = missedOrders[i];
+                nextRound.RealTimeMinersInformation[minersNotMinedCurrentRound[i].PublicKey] = new MinerInRound
+                {
+                    PublicKey = minersNotMinedCurrentRound[i].PublicKey,
+                    Order = order,
+                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order + miningInterval),
+                    PromisedTinyBlocks = 1
+                };
+            }
+
+            return true;
+        }
+        
+        private static int CalculateNextExtraBlockProducerOrder(this Round round)
+        {
+            var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
+            var signature = firstPlaceInfo.Signature;
+            var sigNum = BitConverter.ToUInt64(
+                BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+            var blockProducerCount = round.RealTimeMinersInformation.Count;
+            var order = GetModulus(sigNum, blockProducerCount);
+            return order;
+        }
+
+        public static bool IsTimeToChangeTerm(this Round round, Timestamp blockchainStartTimestamp, ulong termNumber)
+        {
+            // TODO: The miners count should be online miners count -> maybe how many miners produced block during previous round.
+            var minersCount = round.RealTimeMinersInformation.Count;
+            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var approvalsCount = round.RealTimeMinersInformation.Values.Select(m => m.ActualMiningTime)
+                .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
+            return approvalsCount >= minimumCount;
+        }
+
+        /// <summary>
+        /// If DaysEachTerm == 7:
+        /// 1, 1, 1 => 0 != 1 - 1 => false
+        /// 1, 2, 1 => 0 != 1 - 1 => false
+        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
+        /// 1, 9, 2 => 1 != 2 - 1 => false
+        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
+        /// </summary>
+        /// <param name="blockchainStartTimestamp"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="blockProducedTimestamp"></param>
+        /// <returns></returns>
+        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
+        {
+            return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
+                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+        }
+        
+        private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
+        {
+            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
+        }
+
+        /// <summary>
+        /// Get the first valid (mined) miner's information, which means this miner's signature shouldn't be empty.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <returns></returns>
+        public static MinerInRound GetFirstPlaceMinerInformation(this Round round)
+        {
+            return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature.Value.Any());
         }
 
         public static Round Supplement(this Round round, Round previousRound)

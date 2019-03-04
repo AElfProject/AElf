@@ -13,7 +13,6 @@ message Term {
     int32 MiningInterval = 4;
     uint64 TermNumber = 5;
     google.protobuf.Timestamp Timestamp = 6;
-    int32 ChainId = 7;
 }
 
 // Just used as parameter of consensus contract method.
@@ -29,6 +28,7 @@ message ToPackage {
     Hash Signature = 2;
     int64 RoundId = 3;
     int32 PromiseTinyBlocks = 4;
+    Hash PreviousInValue = 5;
 }
 
 // Just used as parameter of consensus contract method.
@@ -114,6 +114,7 @@ message Round {
     uint64 MinersTermNumber = 5;
     string Remark = 6;
     string RealExtraBlockProducer = 7;
+    string ExtraBlockProducerOfPreviousRound = 8;
 }
 
 // The information of a miner in a specific round.
@@ -229,6 +230,7 @@ enum DPoSBehaviour {
     PackageOutValue = 1;
     NextRound = 2;
     NextTerm = 3;
+    Invalid = 4;
 }
 
 message ValidationResult {
@@ -241,26 +243,9 @@ message DPoSTriggerInformation {
     google.protobuf.Timestamp Timestamp = 2;// A must-have.
     
     bool IsBootMiner = 3;// Only useful when initial one chain.
-}
+    int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).
+    repeated string Miners = 5;// For the boot miner or miner gonna commit to change term to set miners of new round.
 
-message RequestDPoSTransactions {
-    string PublicKey = 1;// A must-have.
-    google.protobuf.Timestamp Timestamp = 2;// A must-have.
-    
-    int32 MiningInterval = 3;// For the boot miner to set mining interval, usually it's 4000 (ms).
-    repeated string Miners = 4;// For the boot miner or miner gonna commit to change term to set miners of new round.
-    
-    Hash CurrentInValue = 5;// To calculate Out Value and generate hash chunks to other online miners.
-    Hash PreviousInValue = 6;// Publish In Value of previous round for validating the miner's signature.
-}
-
-message RequestDPoSExtraData {
-    string PublicKey = 1;// A must-have.
-    google.protobuf.Timestamp Timestamp = 2;// A must-have.
-    
-    int32 MiningInterval = 3;// For the boot miner to set mining interval, usually it's 4000 (ms).
-    repeated string Miners = 4;// For the boot miner or miner gonna commit to change term to set miners of new round.
-    
-    Hash CurrentInValue = 5;// To calculate Out Value and generate hash chunks to other online miners.
-    Hash PreviousInValue = 6;// Publish In Value of previous round for validating the miner's signature.
+    Hash CurrentInValue = 6;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash PreviousInValue = 7;// Publish In Value of previous round for validating the miner's signature.
 }
