@@ -97,7 +97,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             _blockGenerationService = new BlockGenerationService(
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
-                    {new ConsensusExtraDataProvider(_consensusService)}));
+                    {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
 
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
