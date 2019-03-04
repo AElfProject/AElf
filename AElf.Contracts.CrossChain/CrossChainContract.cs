@@ -249,21 +249,25 @@ namespace AElf.Contracts.CrossChain
         public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             Assert(IsMiner(), "Not authorized to do this.");
+            var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight + 1];
+            Assert(indexedCrossChainData.IsEmpty()); // This should not happen.
+            
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
             if (crossChainBlockData.ParentChainBlockData.Count > 0)
                 IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
-            Hash calculatedRoot = null;
             if (sideChainBlockData.Count > 0)
             {
-                calculatedRoot = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
+                IndexSideChainBlockInfo(sideChainBlockData.ToArray());
             }
 
-            Context.FireEvent(new CrossChainIndexingEvent
-            {
-                SideChainTransactionsMerkleTreeRoot = calculatedRoot,
-                CrossChainBlockData = crossChainBlockData,
-                Sender = Context.Sender // for validation 
-            });
+            State.IndexedCrossChainBlockData[Context.CurrentHeight + 1] = crossChainBlockData;
+
+//            Context.FireEvent(new CrossChainIndexingEvent
+//            {
+//                SideChainTransactionsMerkleTreeRoot = calculatedRoot,
+//                CrossChainBlockData = crossChainBlockData,
+//                Sender = Context.Sender // for validation 
+//            });
         }
 
         [View]
@@ -295,6 +299,14 @@ namespace AElf.Contracts.CrossChain
             return dict;
         }
 
+        [View]
+        public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(ulong height)
+        {
+            var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[height];
+            Assert(indexedCrossChainBlockData.IsNotEmpty());
+            return indexedCrossChainBlockData;
+        }
+
         /// <summary>
         /// Index parent chain blocks.
         /// </summary>
@@ -313,22 +325,18 @@ namespace AElf.Contracts.CrossChain
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
 
-                Console.WriteLine("ParentChainBlockData.Height is correct."); // Todo: only for debug
-
-                var parentInfo = State.ParentChainBlockInfo[parentChainHeight];
-                Assert(parentInfo.IsEmpty(),
+                var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+                Assert(merkleTreeRoot.IsEmpty(),
                     $"Already written parent chain block info at height {parentChainHeight}");
-                Console.WriteLine("Writing ParentChainBlockData..");
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
                     AddIndexedTxRootMerklePathInParentChain(indexedBlockInfo.Key, indexedBlockInfo.Value);
                 }
 
-                State.ParentChainBlockInfo[parentChainHeight] = blockInfo;
+                State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
+                    blockInfo.Root.SideChainTransactionsRoot;
                 State.CurrentParentChainHeight.Value = parentChainHeight;
-
-                Console.WriteLine($"WriteParentChainBlockInfo success at {parentChainHeight}"); // Todo: only for debug
             }
         }
 
@@ -344,18 +352,17 @@ namespace AElf.Contracts.CrossChain
 //            Api.Assert(sideChainBlockData.Length > 0, "Empty side chain block information.");
             var binaryMerkleTree = new BinaryMerkleTree();
             var currentHeight = Context.CurrentHeight;
-            var height = currentHeight + 1;
-            var result = State.IndexedSideChainBlockInfoResult[height];
-            Assert(result.IsEmpty()); // This should not happen.
+//            var height = currentHeight + 1;
+//            var result = State.IndexedSideChainBlockInfoResult[height];
+//            Assert(result.IsEmpty()); // This should not happen.
 
-            var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
-            {
-                Height = height,
-                Miner = Context.Self
-            };
+//            var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
+//            {
+//                Height = height,
+//                Miner = Context.Self
+//            };
             foreach (var blockInfo in sideChainBlockData)
             {
-                //Console.WriteLine("Side chain height: {0}", blockInfo.Height);
                 ulong sideChainHeight = blockInfo.SideChainHeight;
                 var chainId = blockInfo.SideChainId;
                 var info = State.SideChainInfos[chainId];
@@ -384,12 +391,10 @@ namespace AElf.Contracts.CrossChain
 
                 State.CurrentSideChainHeight[chainId] = target;
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
-                indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
-                // Todo: only for debug
-                Console.WriteLine($"Side chain block info at {target}");
+                //indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
             }
 
-            State.IndexedSideChainBlockInfoResult[height] = indexedSideChainBlockInfoResult;
+            //State.IndexedSideChainBlockInfoResult[height] = indexedSideChainBlockInfoResult;
 
             // calculate merkle tree for side chain txn roots
             binaryMerkleTree.ComputeRootHash();
@@ -407,13 +412,13 @@ namespace AElf.Contracts.CrossChain
         public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)
         {
             var key = new UInt64Value {Value = parentChainHeight};
-            var parentChainBlockInfo = State.ParentChainBlockInfo[parentChainHeight];
-            Assert(parentChainBlockInfo.IsNotEmpty(),
+            var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+            Assert(merkleTreeRoot.IsNotEmpty(),
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = path.ComputeRootWith(tx);
-            var parentRoot = parentChainBlockInfo.Root.SideChainTransactionsRoot;
+            
             //Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
-            return (parentRoot ?? Hash.Zero).Equals(rootCalculated);
+            return merkleTreeRoot.Equals(rootCalculated);
         }
 
         #endregion Cross chain actions

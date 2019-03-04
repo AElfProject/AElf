@@ -144,7 +144,6 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.Equal(expectedChainId, actualChainId);
         }
 
-
         [Fact]
         public async Task Withdraw_ChainCreation()
         {
@@ -495,7 +494,6 @@ namespace AElf.Contract.CrossChain.Tests
                 ChainHelpers.ConvertChainIdToBase58(chainId));
             Assert.True(height.DeserializeToInt32() == 0);
         }
-        
         
         [Fact]
         public async Task Get_SideChain_Height_ChainNotExist()

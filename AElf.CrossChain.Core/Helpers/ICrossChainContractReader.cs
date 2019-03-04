@@ -27,6 +27,8 @@ namespace AElf.CrossChain
 
         Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(ulong height);
         Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(Hash blockHash, ulong blockHeight);
+
+        Task<CrossChainBlockData> GetCrossChainBlockDataAsync(Hash previousBlockHash, ulong previousBlockHeight);
     }
 
     public class CrossChainContractReader : ICrossChainContractReader
@@ -96,9 +98,17 @@ namespace AElf.CrossChain
             var dict = await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<SideChainIdAndHeightDict>(
                 CrossChainContractMethodAddress, CrossChainConsts.GetAllChainsIdAndHeight, previousBlockHash,
                 preBlockHeight);
-            return new Dictionary<int, ulong>(dict.IdHeighDict);
+            return dict == null ? null : new Dictionary<int, ulong>(dict.IdHeighDict);
         }
-        
+
+        public async Task<CrossChainBlockData> GetCrossChainBlockDataAsync(Hash previousBlockHash, ulong previousBlockHeight)
+        {
+            var indexedCrossChainBlockData = await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<CrossChainBlockData>(
+                CrossChainContractMethodAddress, CrossChainConsts.GetIndexedCrossChainBlockDataByHeight, previousBlockHash,
+                previousBlockHeight);
+            return indexedCrossChainBlockData;
+        }
+
         Address CrossChainContractMethodAddress => ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId());
 
     }

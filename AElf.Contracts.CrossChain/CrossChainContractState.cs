@@ -31,24 +31,27 @@ namespace AElf.Contracts.CrossChain
         public TokenContractReferenceState TokenContract { get; set; }
         public ConsensusContractReferenceState ConsensusContract { get; set; }
         public UInt64State SideChainSerialNumber { get; set; }
+        
+        public MappedState<ulong, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }
 
         #region side chain
 
         public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
         public MappedState<int, ulong> CurrentSideChainHeight { get; set; }
-        public MappedState<ulong, IndexedSideChainBlockDataResult> IndexedSideChainBlockInfoResult { get; set; }
+        
+        //public MappedState<ulong, IndexedSideChainBlockDataResult> IndexedSideChainBlockInfoResult { get; set; }
         public MappedState<int, ulong> IndexingBalance { get; set; }
 
         #endregion
 
         #region parent chain 
 
-        public MappedState<ulong, ParentChainBlockData> ParentChainBlockInfo { get; set; }
+        public MappedState<ulong, Hash> TransactionMerkleTreeRootRecordedInParentChain { get; set; }
+        //public MappedState<ulong, ParentChainBlockData> ParentChainBlockInfo { get; set; }
         public MappedState<ulong, ulong> ChildHeightToParentChainHeight { get; set; }
         public MappedState<ulong, MerklePath> TxRootMerklePathInParentChain { get; set; }
         public UInt64State CurrentParentChainHeight { get; set; }
         public Int32State ParentChainId { get; set; }
-
         #endregion
     }
 }

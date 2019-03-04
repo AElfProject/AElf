@@ -16,6 +16,7 @@ namespace AElf.CrossChain
         public const string GetSideChainIdAndHeight = "GetSideChainIdAndHeight";
         public const string GetAllChainsIdAndHeight = "GetAllChainsIdAndHeight";
         public const string GetParentChainId = "GetParentChainId";
+        public const string GetIndexedCrossChainBlockDataByHeight = "GetIndexedCrossChainBlockDataByHeight";
         public const ulong GenesisBlockHeight = 1;
     }
 }
