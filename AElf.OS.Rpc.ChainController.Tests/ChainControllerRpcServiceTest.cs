@@ -58,8 +58,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Get current height
             var response = await JsonCallAsJObject("/chain", "GetBlockHeight");
-            var height = (int) response["result"];
-            height.ShouldBe(2);
+            var currentHeight = (int) response["result"];
 
             // Mined one block
             var chain = await _blockchainService.GetChainAsync();
@@ -68,8 +67,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             // Get latest height
             response = await JsonCallAsJObject("/chain", "GetBlockHeight");
-            height = (int) response["result"];
-            height.ShouldBe(3);
+            var height = (int) response["result"];
+            height.ShouldBe(currentHeight + 1);
         }
 
         [Fact]

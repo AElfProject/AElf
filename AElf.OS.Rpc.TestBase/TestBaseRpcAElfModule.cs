@@ -19,6 +19,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
 using AElf.OS.Rpc.Wallet;
+using AElf.OS.Tests;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,7 @@ namespace AElf.OS.Rpc
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
+        typeof(TestsOSAElfModule),
         typeof(TestBaseKernelAElfModule)
     )]
     public class TestBaseRpcAElfModule : AElfModule
@@ -50,24 +52,6 @@ namespace AElf.OS.Rpc
         {
             Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
             
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
-            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
-            var nodeAccountPassword = "123";
-            
-            Configure<AccountOptions>(o =>
-            {
-                o.NodeAccount = nodeAccount;
-                o.NodeAccountPassword = nodeAccountPassword;
-            });
-            
-            context.Services.AddSingleton<IKeyStore>(o =>
-                Mock.Of<IKeyStore>(
-                    c => c.OpenAsync(nodeAccount, nodeAccountPassword,false) ==
-                         Task.FromResult(AElfKeyStore.Errors.None) &&
-                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
-            );
-            context.Services.AddTransient<IAccountService, AccountService>();
-
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
