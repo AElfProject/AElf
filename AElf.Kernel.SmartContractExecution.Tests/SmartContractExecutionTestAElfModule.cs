@@ -35,10 +35,10 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<ITransactionExecutingService>(p =>
             {
                 var mockService = new Mock<ITransactionExecutingService>();
-                mockService.Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<List<Transaction>>(), It
-                        .IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-                    .Returns<IChainContext, List<Transaction>, DateTime,
-                        CancellationToken>((chainContext, transactions, currentBlockTime, cancellationToken) =>
+                mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns<BlockHeader, List<Transaction>,
+                        CancellationToken>((blockHeader, transactions, cancellationToken) =>
                     {
                         var returnSets = new List<ExecutionReturnSet>();
 
