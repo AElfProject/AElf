@@ -92,7 +92,15 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            IMessage abi;
+            try
+            {
+                abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            }
+            catch
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
 
             if (abi == null)
             {
@@ -159,7 +167,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "num")]
-        public async Task<JObject> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
+        public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
         {
             if (offset < 0)
             {
@@ -201,7 +209,7 @@ namespace AElf.OS.Rpc.ChainController
                 }
             }
 
-            return new JObject {transactions};
+            return JArray.FromObject(transactions);
         }
 
         private async Task<JObject> GetTransaction(Hash transactionHash)
@@ -304,7 +312,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData.SideChainTransactionsRoot?.ToHex(),
+                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData?.SideChainTransactionsRoot?.ToHex(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
@@ -344,25 +352,25 @@ namespace AElf.OS.Rpc.ChainController
             var obj = await BlockStateSets.GetAsync(blockHash);
             return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
         }
-        
-        [JsonRpcMethod("GetChainStatus")]	
-        public async Task<JObject> GetChainStatus()	
-        {	
-            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);	
-            var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());	
-            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());	
-            return new JObject	
-            {	
-                ["Branches"] = branches,	
-                ["NotLinkedBlocks"] = notLinkedBlocks,	
-                ["LongestChainHeight"] = chain.LongestChainHeight,	
-                ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),	
-                ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),	
-                ["LastIrreversibleBlockHash"] = chain.LastIrreversibleBlockHash?.ToHex(),	
-                ["LastIrreversibleBlockHeight"] = chain.LastIrreversibleBlockHeight,	
-                ["BestChainHash"] = chain.BestChainHash?.ToHex(),	
-                ["BestChainHeight"] = chain.BestChainHeight	
-            };	
+
+        [JsonRpcMethod("GetChainStatus")]
+        public async Task<JObject> GetChainStatus()
+        {
+            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);
+            var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
+            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
+            return new JObject
+            {
+                ["Branches"] = branches,
+                ["NotLinkedBlocks"] = notLinkedBlocks,
+                ["LongestChainHeight"] = chain.LongestChainHeight,
+                ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),
+                ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),
+                ["LastIrreversibleBlockHash"] = chain.LastIrreversibleBlockHash?.ToHex(),
+                ["LastIrreversibleBlockHeight"] = chain.LastIrreversibleBlockHeight,
+                ["BestChainHash"] = chain.BestChainHash?.ToHex(),
+                ["BestChainHeight"] = chain.BestChainHeight
+            };
         }
 
         /*

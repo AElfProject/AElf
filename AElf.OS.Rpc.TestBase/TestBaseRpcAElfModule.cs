@@ -27,6 +27,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
+using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -96,6 +97,7 @@ namespace AElf.OS.Rpc
             });
         }
         
+        // TODO: After the node module refactor, remove it
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var defaultZero = typeof(BasicContractZero);
