@@ -8,7 +8,7 @@ namespace AElf.CrossChain
         public static int MinimalBlockInfoCacheThreshold = 4; // This is the biggest LIB gap actually.
         public const string IndexingParentChainMethodName = "IndexParentChainBlockInfo";
         public const string IndexingSideChainMethodName = "IndexSideChainBlockInfo";
-        public const string CrossChainIndexingMethodName = "RecordCrossChainInfo";
+        public const string CrossChainIndexingMethodName = "RecordCrossChainData";
         public const string CrossChainIndexingEventName = "CrossChainIndexingEvent";
         public const string SideChainCreationEventName = "CrossChainIndexingEvent";
         public const string GetSideChainHeightMthodName = "GetSideChainHeight";

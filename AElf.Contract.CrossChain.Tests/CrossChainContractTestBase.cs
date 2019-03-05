@@ -75,5 +75,33 @@ namespace AElf.Contract.CrossChain.Tests
             await ContractTester.MineABlockAsync(new List<Transaction> {tx2});
             return chainId;
         }
+
+        protected async Task<Block> MineAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
+        {
+            return await ContractTester.MineABlockAsync(txs, systemTxs);
+        }
+        
+        protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, params object[] objects)
+        {
+            return await ContractTester.ExecuteContractWithMiningAsync(contractAddress, methodName, objects);
+        }
+
+        protected Transaction GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
+        {
+            return ecKeyPair == null
+                ? ContractTester.GenerateTransaction(contractAddress, methodName, objects)
+                : ContractTester.GenerateTransaction(contractAddress, methodName, ecKeyPair, objects);
+        }
+
+        protected async Task<TransactionResult> GetTransactionResult(Hash txId)
+        {
+            return await ContractTester.GetTransactionResult(txId);
+        }
+
+        protected async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
+            params object[] objects)
+        {
+            return await ContractTester.CallContractMethodAsync(contractAddress, methodName, objects);
+        }
     }
 }

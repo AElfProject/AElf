@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.CrossChain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
