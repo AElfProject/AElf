@@ -67,7 +67,7 @@ namespace AElf.Contracts.CrossChain
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelpers.GetChainId(serialNumber);
             var info = State.SideChainInfos[chainId];
-            Assert(info.IsEmpty(), "Chain creation request already exists.");
+            Assert(info == null, "Chain creation request already exists.");
 
             // lock token and resource
             request.SideChainId = chainId;
@@ -316,7 +316,7 @@ namespace AElf.Contracts.CrossChain
                 Console.WriteLine("ParentChainBlockData.Height is correct."); // Todo: only for debug
 
                 var parentInfo = State.ParentChainBlockInfo[parentChainHeight];
-                Assert(parentInfo.IsEmpty(),
+                Assert(parentInfo == null,
                     $"Already written parent chain block info at height {parentChainHeight}");
                 Console.WriteLine("Writing ParentChainBlockData..");
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
@@ -346,7 +346,7 @@ namespace AElf.Contracts.CrossChain
             var currentHeight = Context.CurrentHeight;
             var height = currentHeight + 1;
             var result = State.IndexedSideChainBlockInfoResult[height];
-            Assert(result.IsEmpty()); // This should not happen.
+            Assert(result == null); // This should not happen.
 
             var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
             {
@@ -359,7 +359,7 @@ namespace AElf.Contracts.CrossChain
                 ulong sideChainHeight = blockInfo.SideChainHeight;
                 var chainId = blockInfo.SideChainId;
                 var info = State.SideChainInfos[chainId];
-                if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
+                if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 var target = currentSideChainHeight != 0
@@ -440,7 +440,7 @@ namespace AElf.Contracts.CrossChain
         private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
         {
             var existing = State.TxRootMerklePathInParentChain[height];
-            Assert(existing.IsEmpty(),
+            Assert(existing == null,
                 $"Merkle path already bound at height {height}.");
             State.TxRootMerklePathInParentChain[height] = path;
         }
