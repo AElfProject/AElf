@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Types;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -51,6 +52,7 @@ namespace AElf.Kernel.Blockchain.Domain
         private readonly IBlockchainStore<ChainBlockIndex> _chainBlockIndexes;
 
         private readonly int _chainId;
+        public ILogger<ChainManager> Logger { get; set; }
 
         public ChainManager(IBlockchainStore<Chain> chains,
             IBlockchainStore<ChainBlockLink> chainBlockLinks,
@@ -174,12 +176,10 @@ namespace AElf.Kernel.Blockchain.Domain
                     if (chainBlockLink.Height <= chain.LongestChainHeight)
                     {
                         //check database to ensure whether it can be a branch
-                        var previousChainBlockLink =
-                            await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                        var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                         if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                         {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] =
-                                previousChainBlockLink.Height;
+                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
                             continue;
                         }
                     }
@@ -231,10 +231,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash)
         {
-            var chain = await GetAsync();
-
             var output = new List<ChainBlockLink>();
-
             while (true)
             {
                 var chainBlockLink = await GetChainBlockLinkAsync(blockHash);

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -71,7 +70,7 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash previousBlock, int count, string peerAddress = null,
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerAddress = null,
             bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
@@ -87,7 +86,8 @@ namespace AElf.OS.Network.Application
                     return null;
                 }
 
-                var blocks = await p.GetBlocksAsync(previousBlock, count);
+                var blocks = await p.GetBlocksAsync(blockHash, count);
+
 
                 if (blocks != null)
                     return blocks;
@@ -101,7 +101,7 @@ namespace AElf.OS.Network.Application
 
             foreach (var p in _peerPool.GetPeers())
             {
-                var blocks = await p.GetBlocksAsync(previousBlock, count);
+                var blocks = await p.GetBlocksAsync(blockHash, count);
 
                 if (blocks != null)
                     return blocks;
