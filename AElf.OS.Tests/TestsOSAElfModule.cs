@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
 using AElf.OS.Account;
 using AElf.TestBase;
@@ -28,6 +28,19 @@ namespace AElf.OS.Tests
             {
                 o.NodeAccount = nodeAccount;
                 o.NodeAccountPassword = nodeAccountPassword;
+            });
+
+            Configure<DPoSOptions>(o =>
+            {
+                var miners = new List<string>();
+                for (var i = 0; i < 3; i++)
+                {
+                    miners.Add(CryptoHelpers.GenerateKeyPair().PublicKey.ToHex());
+                }
+
+                o.InitialMiners = miners;
+                o.MiningInterval = 4000;
+                o.IsBootMiner = true;
             });
             
             context.Services.AddSingleton<IKeyStore>(o =>

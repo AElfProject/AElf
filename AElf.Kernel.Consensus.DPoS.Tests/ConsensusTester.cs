@@ -134,8 +134,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync()
         {
-            return await _consensusService.GenerateConsensusTransactionsAsync(Chain.BestChainHeight,
-                Chain.BestChainHash.Value.Take(4).ToArray());
+            return await _consensusService.GenerateConsensusTransactionsAsync();
         }
 
         public async Task<Block> TimeToMineABlock(List<Transaction> txs)

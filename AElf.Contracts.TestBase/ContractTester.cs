@@ -29,6 +29,7 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -64,7 +65,7 @@ namespace AElf.Contracts.TestBase
 
         public List<Address> DeployedContractsAddresses { get; set; }
 
-        public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null)
+        public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
             _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
 
@@ -79,6 +80,8 @@ namespace AElf.Contracts.TestBase
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
+                    options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
+                    options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
                 });
             application.Initialize();
 
@@ -152,7 +155,7 @@ namespace AElf.Contracts.TestBase
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height,
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(CallOwnerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
@@ -272,7 +275,7 @@ namespace AElf.Contracts.TestBase
         /// <param name="txs"></param>
         /// <param name="systemTxs"></param>
         /// <returns></returns>
-        public async Task AddABlockAsync(Block block, List<Transaction> txs, List<Transaction> systemTxs)
+        public async Task ExecuteBlock(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTxs, txs,
                 new CancellationToken());
@@ -389,6 +392,10 @@ namespace AElf.Contracts.TestBase
             list.Add(typeof(FeeReceiverContract));
 
             return list;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

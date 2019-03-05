@@ -5,6 +5,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region Consensus Settings
 
+        public const int BootMinerWaitingMilliseconds = 8000;
         public const ulong DaysEachTerm = 3;
         public const ulong TotalSupply = 100_000_000_000;
         public const int ForkDetectionRoundNumber = 3;
