@@ -492,7 +492,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return DateTime.MaxValue;
         }
 
-        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName,
+        private Transaction GenerateTransaction(long refBlockHeight, byte[] refBlockPrefix, string methodName,
             List<object> parameters)
         {
             refBlockHeight = refBlockHeight > 4 ? refBlockHeight - 4 : 0;

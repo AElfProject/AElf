@@ -56,7 +56,7 @@ namespace AElf.OS.Rpc
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
                 mockService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<Hash>()))
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
                     .Returns(new List<Transaction>());
                 return mockService.Object;
             });

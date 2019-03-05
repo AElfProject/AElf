@@ -14,7 +14,7 @@ namespace AElf.Kernel
     /// </summary>
     public interface IChainContext
     {
-        ulong BlockHeight { get; set; }
+        long BlockHeight { get; set; }
         Hash BlockHash { get; set; }
         IStateCache StateCache { get; set; }
     }

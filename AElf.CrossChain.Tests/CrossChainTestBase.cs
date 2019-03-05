@@ -49,26 +49,26 @@ namespace AElf.CrossChain
         }
 
         protected ICrossChainContractReader CreateFakeCrossChainContractReader(
-            Dictionary<int, ulong> sideChainIdHeights, Dictionary<int, ulong> parentChainIdHeights)
+            Dictionary<int, long> sideChainIdHeights, Dictionary<int, long> parentChainIdHeights)
         {
             Mock<ICrossChainContractReader> mockObject = new Mock<ICrossChainContractReader>();
             mockObject.Setup(
-                    m => m.GetSideChainCurrentHeightAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<ulong>()))
-                .Returns<int, Hash, ulong>((sideChainId, preBlockHash, preBlockHeight) =>
-                    Task.FromResult<ulong>(sideChainIdHeights.ContainsKey(sideChainId)
+                    m => m.GetSideChainCurrentHeightAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<long>()))
+                .Returns<int, Hash, long>((sideChainId, preBlockHash, preBlockHeight) =>
+                    Task.FromResult<long>(sideChainIdHeights.ContainsKey(sideChainId)
                         ? sideChainIdHeights[sideChainId]
                         : 0));
-            mockObject.Setup(m => m.GetParentChainCurrentHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
-                .Returns(Task.FromResult<ulong>(parentChainIdHeights.Count > 0
+            mockObject.Setup(m => m.GetParentChainCurrentHeightAsync(It.IsAny<Hash>(), It.IsAny<long>()))
+                .Returns(Task.FromResult<long>(parentChainIdHeights.Count > 0
                     ? parentChainIdHeights.Values.FirstOrDefault()
                     : 0));
-            mockObject.Setup(m => m.GetSideChainIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
-                .Returns(Task.FromResult(new Dictionary<int, ulong>(sideChainIdHeights)));
-            mockObject.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
+            mockObject.Setup(m => m.GetSideChainIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<long>()))
+                .Returns(Task.FromResult(new Dictionary<int, long>(sideChainIdHeights)));
+            mockObject.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<long>()))
                 .Returns(Task.FromResult(
-                    new Dictionary<int, ulong>(
-                        new Dictionary<int, ulong>(sideChainIdHeights).Concat(parentChainIdHeights))));
-            mockObject.Setup(m => m.GetParentChainIdAsync(It.IsAny<Hash>(), It.IsAny<ulong>()))
+                    new Dictionary<int, long>(
+                        new Dictionary<int, long>(sideChainIdHeights).Concat(parentChainIdHeights))));
+            mockObject.Setup(m => m.GetParentChainIdAsync(It.IsAny<Hash>(), It.IsAny<long>()))
                 .Returns(Task.FromResult(parentChainIdHeights.Keys.FirstOrDefault()));
             return mockObject.Object;
         }

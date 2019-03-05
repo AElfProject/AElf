@@ -61,7 +61,7 @@ namespace AElf.CrossChain
         }
 
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData,
-            Hash preBlockHash, ulong preBlockHeight)
+            Hash preBlockHash, long preBlockHeight)
         {
             return await _crossChainService.ValidateSideChainBlockDataAsync(
                        crossChainBlockData.SideChainBlockData, preBlockHash, preBlockHeight) &&

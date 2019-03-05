@@ -25,7 +25,7 @@ namespace AElf.Contracts.TestBase.Tests
             var chain = await tester.GetChainAsync();
             var longestChainHeight = chain.LongestChainHeight;
 
-            Assert.Equal(1UL, longestChainHeight);
+            Assert.Equal(1, longestChainHeight);
             // One contract deployed.
             Assert.Single(addresses);
         }
@@ -43,7 +43,7 @@ namespace AElf.Contracts.TestBase.Tests
             var chain = await tester.GetChainAsync();
             var longestChainHeight = chain.LongestChainHeight;
 
-            Assert.Equal(1UL, longestChainHeight);
+            Assert.Equal(1, longestChainHeight);
 
             await tester.MineABlockAsync(new List<Transaction> {tx});
 
@@ -51,7 +51,7 @@ namespace AElf.Contracts.TestBase.Tests
             longestChainHeight = chain.LongestChainHeight;
 
             // The longest chain height increased from 1 to 2.
-            Assert.Equal(2UL, longestChainHeight);
+            Assert.Equal(2, longestChainHeight);
         }
 
         [Fact]
@@ -72,8 +72,8 @@ namespace AElf.Contracts.TestBase.Tests
             var chain2 = await tester2.GetChainAsync();
 
             // For different nodes, the chain information are different.
-            Assert.Equal(2UL, chain1.BestChainHeight);
-            Assert.Equal(1UL, chain2.BestChainHeight);
+            Assert.Equal(2, chain1.BestChainHeight);
+            Assert.Equal(1, chain2.BestChainHeight);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var chain2 = await tester2.GetChainAsync();
 
-            Assert.Equal(2UL, chain2.BestChainHeight);
+            Assert.Equal(2, chain2.BestChainHeight);
             
             // Check the executing result of txs in new block.
 
@@ -109,10 +109,10 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester(ChainId);
             await tester.InitialChainAsync(typeof(BasicContractZero));
 
-            await tester.SetIrreversibleBlock(1UL);
+            await tester.SetIrreversibleBlock(1L);
             var chain = await tester.GetChainAsync();
 
-            Assert.Equal(1UL, chain.LastIrreversibleBlockHeight);
+            Assert.Equal(1, chain.LastIrreversibleBlockHeight);
         }
 
         [Fact]
