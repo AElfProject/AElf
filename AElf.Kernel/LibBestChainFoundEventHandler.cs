@@ -5,8 +5,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -75,18 +73,20 @@ namespace AElf.Kernel
 
                             Logger.LogInformation($"Lib height: {libHeight}, Lib Hash: {libHash}");
 
-                            var chainStateInfo =
-                                await _blockchainStateManager.GetChainStateInfoAsync();
+                            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
 
-                            var count = (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
-                            var hashes =
-                                await _blockchainService.GetReversedBlockHashes(libHash, count);
+                            var count = chain.LastIrreversibleBlockHeight == 1 ? 
+                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight : 
+                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
+
+                            var hashes = await _blockchainService.GetReversedBlockHashes(libHash, count);
 
                             hashes.Reverse();
 
                             hashes.Add(libHash);
 
-                            var startHeight = chain.LastIrreversibleBlockHeight + 1;
+                            var startHeight = chain.LastIrreversibleBlockHeight == 1 ? 
+                                chain.LastIrreversibleBlockHeight : chain.LastIrreversibleBlockHeight + 1;
                             foreach (var hash in hashes)
                             {
                                 try
@@ -112,7 +112,7 @@ namespace AElf.Kernel
 
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {
-            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(ulong)});
+            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)});
         }
     }
 }
