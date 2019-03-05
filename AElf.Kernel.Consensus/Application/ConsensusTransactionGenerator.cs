@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
@@ -15,12 +16,13 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
         
-        public void GenerateTransactions(Address from, ulong preBlockHeight, ulong refBlockHeight, byte[] refBlockPrefix,
+        public void GenerateTransactions(Address @from, ulong preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
+            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             generatedTransactions.AddRange(
                 AsyncHelper.RunSync(() =>
-                    _consensusService.GenerateConsensusTransactionsAsync(refBlockHeight, refBlockPrefix)));
+                    _consensusService.GenerateConsensusTransactionsAsync(preBlockHeight, previousBlockPrefix)));
         }
     }
 }
