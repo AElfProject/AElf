@@ -7,17 +7,17 @@ namespace AElf.CrossChain
 {
     public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
-        private readonly ICrossChainContractReader _crossChainContractReader;
+        private readonly ICrossChainService _crossChainService;
 
-        public CrossChainBlockExtraDataProvider(ICrossChainContractReader crossChainContractReader)
+        public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService)
         {
-            _crossChainContractReader = crossChainContractReader;
+            _crossChainService = crossChainService;
         }
 
         public async Task FillExtraDataAsync(Block block)
         {
             var indexedCrossChainBlockData =
-                await _crossChainContractReader.GetCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             
             var txRootHashList = indexedCrossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();

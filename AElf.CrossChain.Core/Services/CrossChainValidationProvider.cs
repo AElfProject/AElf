@@ -9,13 +9,10 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly ICrossChainContractReader _crossChainContractReader;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService,
-            ICrossChainContractReader crossChainContractReader)
+        public CrossChainValidationProvider(ICrossChainService crossChainService)
         {
             _crossChainService = crossChainService;
-            _crossChainContractReader = crossChainContractReader;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -31,7 +28,7 @@ namespace AElf.CrossChain
 //                    return true; // no event means no indexing.
 //                throw new Exception();
             var indexedCrossChainBlockData =
-                await _crossChainContractReader.GetCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             if (indexedCrossChainBlockData == null)
                 return true;
             bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.BlockExtraData.SideChainTransactionsRoot,

@@ -11,11 +11,11 @@ namespace AElf.CrossChain
         public const string CrossChainIndexingMethodName = "RecordCrossChainData";
         public const string CrossChainIndexingEventName = "CrossChainIndexingEvent";
         public const string SideChainCreationEventName = "CrossChainIndexingEvent";
-        public const string GetSideChainHeightMthodName = "GetSideChainHeight";
+        public const string GetSideChainHeightMethodName = "GetSideChainHeight";
         public const string GetParentChainHeightMethodName = "GetParentChainHeight";
-        public const string GetSideChainIdAndHeight = "GetSideChainIdAndHeight";
-        public const string GetAllChainsIdAndHeight = "GetAllChainsIdAndHeight";
-        public const string GetParentChainId = "GetParentChainId";
+        public const string GetSideChainIdAndHeightMethodName = "GetSideChainIdAndHeight";
+        public const string GetAllChainsIdAndHeightMethodName = "GetAllChainsIdAndHeight";
+        public const string GetParentChainIdMethodName = "GetParentChainId";
         public const string GetIndexedCrossChainBlockDataByHeight = "GetIndexedCrossChainBlockDataByHeight";
         public const ulong GenesisBlockHeight = 1;
     }

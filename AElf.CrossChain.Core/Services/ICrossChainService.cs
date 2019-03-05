@@ -16,5 +16,6 @@ namespace AElf.CrossChain
             Hash previousBlockHash, ulong preBlockHeight);
 
         void CreateNewSideChainBlockInfoCache();
+        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, ulong previousBlockHeight);
     }
 }
