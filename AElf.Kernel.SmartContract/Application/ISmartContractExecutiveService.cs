@@ -42,6 +42,10 @@ namespace AElf.Kernel.SmartContract.Application
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+
+        private static readonly ConcurrentDictionary<Address, SmartContractRegistration>
+            _addressSmartContractRegistrationMappingCache =
+                new ConcurrentDictionary<Address, SmartContractRegistration>();
 #if DEBUG
         public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
 #endif
@@ -159,12 +163,19 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
+            if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var smartContractRegistration))
+                return smartContractRegistration;
+
             if (address == Address.BuildContractAddress(_chainManager.GetChainId(), 0))
             {
-                return _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
+                smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
-
-            return await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
+            else
+            {
+                smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
+            }
+            _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
+            return smartContractRegistration;
         }
 
 
