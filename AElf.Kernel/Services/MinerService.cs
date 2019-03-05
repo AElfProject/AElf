@@ -176,12 +176,12 @@ namespace AElf.Kernel.Services
         private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
             ulong previousBlockHeight)
         {
-            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+            //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockPrefix);
+                    previousBlockHash);
 
             foreach (var txn in generatedTxns)
             {

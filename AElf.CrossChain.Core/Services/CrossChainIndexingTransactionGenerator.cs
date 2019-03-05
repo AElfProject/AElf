@@ -55,7 +55,7 @@ namespace AElf.CrossChain
         }
 
         private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber,
-            byte[] refBlockPrefix)
+            Hash previousBlockHash)
         {
             // todo: should use pre block hash here, not prefix
             var crossChainBlockData = new CrossChainBlockData();
@@ -64,20 +64,22 @@ namespace AElf.CrossChain
             var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(null, refBlockNumber);
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
 
+            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+
             var generatedTransactions = new List<Transaction>
             {
                 GenerateNotSignedTransaction(from,
-                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix,
+                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, previousBlockPrefix,
                     new object[] {crossChainBlockData})
             };
             return generatedTransactions;
         }
 
-        public void GenerateTransactions(Address @from, ulong preBlockHeight, ulong refBlockHeight,
-            byte[] refBlockPrefix, ref List<Transaction> generatedTransactions)
+        public void GenerateTransactions(Address @from, ulong preBlockHeight, Hash previousBlockHash,
+            ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
-                AsyncHelper.RunSync(() => GenerateCrossChainIndexingTransaction(from, refBlockHeight, refBlockPrefix)));
+                AsyncHelper.RunSync(() => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
             
         }
 
