@@ -167,11 +167,57 @@ namespace AElf.Kernel.SmartContract.Application
                 return _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
 
-            var hash = await GetContractHashFromZeroAsync(chainContext, address);
-
-            return await _smartContractManager.GetAsync(hash);
+            return await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
         }
 
+
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
+            IChainContext chainContext, Address address)
+        {
+            var transaction = new Transaction()
+            {
+                From = Address.Zero,
+                To = Address.BuildContractAddress(_chainManager.GetChainId(), 0),
+                MethodName = "GetSmartContractRegistrationByAddress",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
+            };
+            var trace = new TransactionTrace()
+            {
+                TransactionId = transaction.GetHash()
+            };
+
+            var txCtxt = new TransactionContext
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                CurrentBlockTime = DateTime.UtcNow,
+                Transaction = transaction,
+                BlockHeight = chainContext.BlockHeight + 1,
+                Trace = trace,
+                CallDepth = 0,
+            };
+
+            var registration = _defaultContractZeroCodeProvider
+                .DefaultContractZeroRegistration;
+
+            IExecutive executiveZero = null;
+            try
+            {
+                executiveZero = await GetExecutiveAsync(registration);
+                executiveZero.SetDataCache(chainContext.StateCache);
+                await executiveZero.SetTransactionContext(txCtxt).Apply();
+            }
+            finally
+            {
+                if (executiveZero != null)
+                {
+                    await PutExecutiveAsync(Address.BuildContractAddress(_chainManager.GetChainId(), 0), executiveZero);
+                }
+            }
+
+            return trace.RetVal.Data.DeserializeToPbMessage<SmartContractRegistration>();
+        }
+
+        /*
         private async Task<Hash> GetContractHashFromZeroAsync(IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
@@ -221,7 +267,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return Hash.LoadHex(codeHash.ToString());
-        }
+        }*/
 
         #endregion
     }

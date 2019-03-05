@@ -49,6 +49,18 @@ namespace AElf.Contracts.Genesis
             return State.CodeAddressMapping[codeHash];
         }
 
+        [View]
+        public SmartContractRegistration GetSmartContractRegistrationByAddress(Address address)
+        {
+            var info = State.ContractInfos[address];
+            if (info == null)
+            {
+                return null;
+            }
+
+            return State.SmartContractRegistrations[info.CodeHash];
+        }
+
         #endregion Views
 
         #region Actions
