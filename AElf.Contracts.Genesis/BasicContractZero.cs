@@ -49,6 +49,18 @@ namespace AElf.Contracts.Genesis
             return State.CodeAddressMapping[codeHash];
         }
 
+        [View]
+        public SmartContractRegistration GetSmartContractRegistrationByAddress(Address address)
+        {
+            var info = State.ContractInfos[address];
+            if (info == null)
+            {
+                return null;
+            }
+
+            return State.SmartContractRegistrations[info.CodeHash];
+        }
+
         #endregion Views
 
         #region Actions
@@ -83,6 +95,8 @@ namespace AElf.Contracts.Genesis
                 Code = ByteString.CopyFrom(code),
                 CodeHash = codeHash
             };
+
+            State.SmartContractRegistrations[reg.CodeHash] = reg;
 
             Context.DeployContract(contractAddress, reg);
 
@@ -119,11 +133,14 @@ namespace AElf.Contracts.Genesis
                 CodeHash = newCodeHash
             };
 
+            State.SmartContractRegistrations[reg.CodeHash] = reg;
+
+
             Context.UpdateContract(contractAddress, reg);
-            
+
             State.CodeAddressMapping[newCodeHash] = contractAddress;
 
-            
+
             Context.FireEvent(new ContractCodeHasBeenUpdated()
             {
                 Address = contractAddress,

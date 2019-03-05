@@ -5,7 +5,7 @@ namespace AElf.OS.Jobs
 {
     public class ForkDownloadJobArgs
     {
-        public ulong BlockHeight { get; set; }
+        public long BlockHeight { get; set; }
         public string BlockHash { get; set; }
         
         /// <summary>

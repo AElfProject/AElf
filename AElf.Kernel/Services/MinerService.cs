@@ -59,8 +59,7 @@ namespace AElf.Kernel.Services
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, ulong previousBlockHeight,
-            DateTime time)
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
         {
             try
             {
@@ -173,7 +172,7 @@ namespace AElf.Kernel.Services
             }
         }
 
-        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash, ulong previousBlockHeight)
+        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash, long previousBlockHeight)
         {
             //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
@@ -201,7 +200,7 @@ namespace AElf.Kernel.Services
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(Hash preBlockHash, ulong preBlockHeight)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {

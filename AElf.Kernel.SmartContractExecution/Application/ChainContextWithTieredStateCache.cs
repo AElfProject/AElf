@@ -9,7 +9,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
         }
 
-        public ChainContextWithTieredStateCache(Hash blockHash, ulong blockHeight, TieredStateCache stateCache)
+        public ChainContextWithTieredStateCache(Hash blockHash, long blockHeight, TieredStateCache stateCache)
         {
             BlockHeight = blockHeight;
             BlockHash = blockHash;
@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public int ChainId { get; set; }
-        public ulong BlockHeight { get; set; }
+        public long BlockHeight { get; set; }
         public Hash BlockHash { get; set; }
 
         IStateCache IChainContext.StateCache

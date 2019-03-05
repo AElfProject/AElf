@@ -6,7 +6,7 @@ namespace AElf.Kernel
 {
     public static class TransactionExtensions
     {
-        public static ulong GetExpiryBlockNumber(this Transaction transaction)
+        public static long GetExpiryBlockNumber(this Transaction transaction)
         {
             // TODO: Add ExpiryBlockNumber to Transaction
 //            if (transaction.ExpiryBlockNumber != 0)

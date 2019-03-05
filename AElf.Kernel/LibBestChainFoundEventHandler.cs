@@ -1,13 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.CrossChain;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -68,7 +65,7 @@ namespace AElf.Kernel
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
                             var indexingEventData = ExtractLibFoundData(contractEvent);
-                            var offset = (ulong) indexingEventData[0];
+                            var offset = (long) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;
 
                             var chain = await _blockchainService.GetChainAsync();
@@ -115,7 +112,7 @@ namespace AElf.Kernel
 
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {
-            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(ulong)});
+            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)});
         }
     }
 }

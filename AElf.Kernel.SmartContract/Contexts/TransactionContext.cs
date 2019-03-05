@@ -21,7 +21,7 @@ using AElf.Common;
         public Address Origin { get; set; }
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
-        public ulong BlockHeight { get; set; }
+        public long BlockHeight { get; set; }
         public DateTime CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }

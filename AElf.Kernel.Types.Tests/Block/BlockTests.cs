@@ -70,7 +70,7 @@ namespace AElf.Kernel.Types.Tests
             serializeData.ShouldNotBe(null);
         }
 
-        private Block CreateBlock(Hash preBlockHash, int chainId, ulong height)
+        private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
 

@@ -288,13 +288,13 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("GetBlockHeight")]
-        public async Task<ulong> GetBlockHeight()
+        public async Task<long> GetBlockHeight()
         {
             return await this.GetCurrentChainHeight();
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
-        public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
+        public async Task<JObject> GetBlockInfo(long blockHeight, bool includeTransactions = false)
         {
             var blockInfo = await this.GetBlockAtHeight(blockHeight);
             if (blockInfo == null)
