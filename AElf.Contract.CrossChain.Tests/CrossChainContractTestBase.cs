@@ -52,10 +52,10 @@ namespace AElf.Contract.CrossChain.Tests
             await ContractTester.MineABlockAsync(new List<Transaction> {tx1, tx2});
         }
 
-        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0)
+        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, ulong lockedTokenAmount = 10)
         {
             await Initialize(1000, parentChainId);
-            ulong lockedTokenAmount = 10;
+            
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {

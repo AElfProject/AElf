@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.CrossChain;
@@ -268,19 +269,17 @@ namespace AElf.Contracts.CrossChain
         public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             //Assert(IsMiner(), "Not authorized to do this.");
-            var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight + 1];
+            var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData.IsEmpty()); // This should not fail.
             
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
-            if (crossChainBlockData.ParentChainBlockData.Count > 0)
-                IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
-            if (sideChainBlockData.Count > 0)
-            {
-                IndexSideChainBlockInfo(sideChainBlockData.ToArray());
-            }
+            IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
+            var indexedSideChainBlockData = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
 
-            State.IndexedCrossChainBlockData[Context.CurrentHeight + 1] = crossChainBlockData;
-
+            var actualCrossChainData = new CrossChainBlockData();
+            actualCrossChainData.ParentChainBlockData.AddRange(crossChainBlockData.ParentChainBlockData);
+            actualCrossChainData.SideChainBlockData.AddRange(indexedSideChainBlockData);
+            State.IndexedCrossChainBlockData[Context.CurrentHeight] = actualCrossChainData;
 //            Context.FireEvent(new CrossChainIndexingEvent
 //            {
 //                SideChainTransactionsMerkleTreeRoot = calculatedRoot,
@@ -305,8 +304,7 @@ namespace AElf.Contracts.CrossChain
         {
             // only miner can do this.
             //Api.IsMiner("Not authorized to do this.");
-            Assert(parentChainBlockData.Length <= 256,
-                "Beyond maximal capacity for once indexing.");
+            Assert(parentChainBlockData.Length <= 256,"Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
             foreach (var blockInfo in parentChainBlockData)
             {
@@ -337,7 +335,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="sideChainBlockData"></param>
         /// <returns>Root of merkle tree created from side chain txn roots.</returns>
-        private void IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData)
+        private List<SideChainBlockData> IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData)
         {
             // only miner can do this.
 //            Api.IsMiner("Not authorized to do this.");
@@ -354,17 +352,19 @@ namespace AElf.Contracts.CrossChain
 //            };
 //            var binaryMerkleTree = new BinaryMerkleTree();
 
+            var indexedSideChainBlockData = new List<SideChainBlockData>();
             foreach (var blockInfo in sideChainBlockData)
             {
-                ulong sideChainHeight = blockInfo.SideChainHeight;
                 var chainId = blockInfo.SideChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
+                
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : CrossChainConsts.GenesisBlockHeight;
+                ulong sideChainHeight = blockInfo.SideChainHeight;
                 if (target != sideChainHeight)
                     continue;
 
@@ -383,10 +383,12 @@ namespace AElf.Contracts.CrossChain
                 State.TokenContract.Transfer(Context.Sender, indexingPrice);
 
                 State.CurrentSideChainHeight[chainId] = target;
+                indexedSideChainBlockData.Add(blockInfo);
                 //binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 //indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
             }
 
+            return indexedSideChainBlockData;
             //State.IndexedSideChainBlockInfoResult[height] = indexedSideChainBlockInfoResult;
 
             // calculate merkle tree for side chain txn roots

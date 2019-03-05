@@ -26,33 +26,33 @@ namespace AElf.CrossChain
             _chainManager = chainManager;
         }
 
-        /// <summary>
-        /// Generate system txs for parent chain block info and broadcast it.
-        /// </summary>
-        /// <returns></returns>
-        private void GenerateTransactionForIndexingSideChain(Address from, ulong refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
-        {
+//        /// <summary>
+//        /// Generate system txs for parent chain block info and broadcast it.
+//        /// </summary>
+//        /// <returns></returns>
+//        private void GenerateTransactionForIndexingSideChain(Address from, ulong refBlockNumber,
+//            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
+//        {
 //            var sideChainBlockInfos = await CollectSideChainIndexedInfo();
 //            if (sideChainBlockInfos.Length == 0)
 //                return;
-            generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                CrossChainConsts.IndexingSideChainMethodName,
-                refBlockNumber, refBlockPrefix, new object[0]));
-        }
-
-        /// <summary>
-        /// Generate system txs for parent chain block info and broadcast it.
-        /// </summary>
-        /// <returns></returns>
-        private void GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
-        {
-            //var parentChainBlockData = await CollectParentChainBlockInfo();
-            //if (parentChainBlockData != null && parentChainBlockData.Length != 0)
-            generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
-        }
+//            generatedTransactions.Append(GenerateNotSignedTransaction(from,
+//                CrossChainConsts.IndexingSideChainMethodName,
+//                refBlockNumber, refBlockPrefix, new object[0]));
+//        }
+//
+//        /// <summary>
+//        /// Generate system txs for parent chain block info and broadcast it.
+//        /// </summary>
+//        /// <returns></returns>
+//        private void GenerateTransactionForIndexingParentChain(Address from, ulong refBlockNumber,
+//            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
+//        {
+//            //var parentChainBlockData = await CollectParentChainBlockInfo();
+//            //if (parentChainBlockData != null && parentChainBlockData.Length != 0)
+//            generatedTransactions.Append(GenerateNotSignedTransaction(from,
+//                CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
+//        }
 
         private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber,
             Hash previousBlockHash)

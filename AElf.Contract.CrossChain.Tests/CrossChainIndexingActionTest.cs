@@ -4,6 +4,7 @@ using AElf.Common;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -45,32 +46,6 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(txRes.Status == TransactionResultStatus.Mined);
         }
         
-        [Fact]
-        public async Task RecordSideChainData()
-        {
-            int parentChainId = 123;
-            var sideChainId = await InitAndCreateSideChain(parentChainId);
-            var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
-            var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
-            var sideChainBlockData = new SideChainBlockData
-            {
-                BlockHeaderHash = fakeSideChainBlockHash,
-                SideChainHeight = 1,
-                SideChainId = sideChainId,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
-            };
-            
-            var crossChainBlockData = new CrossChainBlockData
-            {
-                SideChainBlockData = { sideChainBlockData}
-            };
-
-            var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                CrossChainConsts.CrossChainIndexingMethodName, crossChainBlockData);
-            
-            Assert.True(txRes.Status == TransactionResultStatus.Mined);
-        }
-
         #region Parent chain
 
         [Fact]
@@ -268,8 +243,132 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(parentChainHeight == bytes.DeserializeToUInt64());
         }
         
+        [Fact]
+        public async Task GetParentChainHeight_WithoutIndexing()
+        {
+            int parentChainId = 123;
+            ulong parentChainHeight = 0;
+            await InitAndCreateSideChain(parentChainId);
+            
+            var bytes = await CallContractMethodAsync(CrossChainContractAddress, CrossChainConsts.GetParentChainHeightMethodName);
+            Assert.True(parentChainHeight == bytes.DeserializeToUInt64());
+        }
+        
         #endregion
 
+        #region Side chain
+
+        [Fact]
+        public async Task RecordSideChainData()
+        {
+            int parentChainId = 123;
+            ulong lockedToken = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
+            var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
+            var sideChainBlockData = new SideChainBlockData
+            {
+                BlockHeaderHash = fakeSideChainBlockHash,
+                SideChainHeight = 1,
+                SideChainId = sideChainId,
+                TransactionMKRoot = fakeTxMerkleTreeRoot
+            };
+            
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockData = { sideChainBlockData}
+            };
+
+            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            var block = await MineAsync(new List<Transaction> {indexingTx});
+            var balance = await CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetLockedBalanceMethodName, ChainHelpers.ConvertChainIdToBase58(sideChainId));
+            Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
+
+            var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetIndexedCrossChainBlockDataByHeight, block.Height);
+            var deserializedCrossChainBlockData =
+                indexedCrossChainBlockData.DeserializeToPbMessage<CrossChainBlockData>();
+            Assert.Equal(crossChainBlockData, deserializedCrossChainBlockData);
+        }
         
+        [Fact]
+        public async Task RecordSideChainData_WithChainNotExist()
+        {
+            int parentChainId = 123;
+            ulong lockedToken = 10;
+            var sideChainId1 = await InitAndCreateSideChain(parentChainId, lockedToken);
+            
+            // create second side chain
+            ulong lockedTokenAmount = 10;
+            await ApproveBalance(lockedTokenAmount);
+            var sideChainInfo = new SideChainInfo
+            {
+                SideChainStatus = SideChainStatus.Apply,
+                ContractCode = ByteString.Empty,
+                IndexingPrice = 1,
+                Proposer = CrossChainContractTestHelper.GetAddress(),
+                LockedTokenAmount = lockedTokenAmount
+            };
+            
+            var tx1 = GenerateTransaction(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
+                sideChainInfo);
+            await MineAsync(new List<Transaction> {tx1});
+            var sideChainIdStr2 = (await GetTransactionResult(tx1.GetHash())).RetVal.ToStringUtf8();
+            var tx2 = GenerateTransaction(CrossChainContractAddress, "CreateSideChain", null, sideChainIdStr2);
+            await MineAsync(new List<Transaction> {tx2});
+            
+            var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
+            var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
+            var sideChainBlockData1 = new SideChainBlockData
+            {
+                BlockHeaderHash = fakeSideChainBlockHash,
+                SideChainHeight = 1,
+                SideChainId = sideChainId1,
+                TransactionMKRoot = fakeTxMerkleTreeRoot
+            };
+            
+            var sideChainBlockData2 = new SideChainBlockData
+            {
+                BlockHeaderHash = fakeSideChainBlockHash,
+                SideChainHeight = 2, // wrong height
+                SideChainId = ChainHelpers.ConvertBase58ToChainId(sideChainIdStr2),
+                TransactionMKRoot = fakeTxMerkleTreeRoot
+            };
+
+            int fakeChainId = 124;
+            
+            var sideChainBlockData3 = new SideChainBlockData
+            {
+                BlockHeaderHash = fakeSideChainBlockHash,
+                SideChainHeight = 1,
+                SideChainId = fakeChainId,
+                TransactionMKRoot = fakeTxMerkleTreeRoot
+            };
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockData = { sideChainBlockData1, sideChainBlockData2, sideChainBlockData3}
+            };
+
+            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            var block = await MineAsync(new List<Transaction> {indexingTx});
+            
+            var balance = await CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetLockedBalanceMethodName, ChainHelpers.ConvertChainIdToBase58(sideChainId1));
+            Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
+
+            var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetIndexedCrossChainBlockDataByHeight, block.Height);
+            var deserializedCrossChainBlockData =
+                indexedCrossChainBlockData.DeserializeToPbMessage<CrossChainBlockData>();
+            var expectedCrossChainBlocData = new CrossChainBlockData();
+            expectedCrossChainBlocData.SideChainBlockData.Add(sideChainBlockData1);
+            Assert.Equal(expectedCrossChainBlocData, deserializedCrossChainBlockData);
+        }
+
+        #endregion
+
     }
 }
