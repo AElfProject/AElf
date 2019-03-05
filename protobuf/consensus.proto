@@ -13,7 +13,6 @@ message Term {
     int32 MiningInterval = 4;
     uint64 TermNumber = 5;
     google.protobuf.Timestamp Timestamp = 6;
-    int32 ChainId = 7;
 }
 
 // Just used as parameter of consensus contract method.
@@ -29,6 +28,7 @@ message ToPackage {
     Hash Signature = 2;
     int64 RoundId = 3;
     int32 PromiseTinyBlocks = 4;
+    Hash PreviousInValue = 5;
 }
 
 // Just used as parameter of consensus contract method.
@@ -108,12 +108,12 @@ message CandidateInTerm {
 // The information of a round.
 message Round {
     uint64 RoundNumber = 1;
-    map<string, MinerInRound> RealTimeMinersInfo = 2;
+    map<string, MinerInRound> RealTimeMinersInformation = 2;
     int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
     uint64 MinersTermNumber = 5;
     string Remark = 6;
-    string RealExtraBlockProducer = 7;
+    string ExtraBlockProducerOfPreviousRound = 7;
 }
 
 // The information of a miner in a specific round.
@@ -132,9 +132,11 @@ message MinerInRound {
     uint64 PackagedTxsCount = 12;
     uint64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
-    Address Address = 15;
     int32 PromisedTinyBlocks = 16;
     string Alias = 17;
+    Hash PreviousInValue = 18;
+    int32 OrderOfNextRound = 19;
+    google.protobuf.Timestamp ActualMiningTime = 20;// Miners must fill actual mining time when they do the mining.
 }
 
 // The information of a candidate.
@@ -184,16 +186,9 @@ enum TicketsHistoryType {
 }
 
 message DPoSInformation {
-    Address Sender = 1;
-    Round CurrentRound = 2;
-    Forwarding Forwarding = 3;
-    Term NewTerm = 4;
-    bool WillUpdateConsensus = 5;
-    repeated Address MinersList = 6;
-    bool TimeToChangeTerm = 7;
+    string SenderPublicKey = 1;
+    Round Round = 2;
     DPoSBehaviour Behaviour = 8;
-    int32 PromisedTinyBlocks = 9;
-    string SenderPublicKey = 10;
 }
 
 message DPoSExtraInformation {
@@ -214,9 +209,9 @@ message DPoSExtraInformation {
 }
 
 message ConsensusCommand {
-    int32 CountingMilliseconds = 1;
-    int32 TimeoutMilliseconds = 2;
-    bytes Hint = 3;
+    int32 CountingMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
+    int32 TimeoutMilliseconds = 2;// Time limit of mining next block.
+    bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
 }
 
 message DPoSHint {
@@ -228,9 +223,22 @@ enum DPoSBehaviour {
     PackageOutValue = 1;
     NextRound = 2;
     NextTerm = 3;
+    Invalid = 4;
 }
 
 message ValidationResult {
     bool Success = 1;
     string Message = 2;
+}
+
+message DPoSTriggerInformation {
+    string PublicKey = 1;// A must-have.
+    google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    
+    bool IsBootMiner = 3;// Only useful when initial one chain.
+    int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).
+    repeated string Miners = 5;// For the boot miner or miner gonna commit to change term to set miners of new round.
+
+    Hash CurrentInValue = 6;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash PreviousInValue = 7;// Publish In Value of previous round for validating the miner's signature.
 }
