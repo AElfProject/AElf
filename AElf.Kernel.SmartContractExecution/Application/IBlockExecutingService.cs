@@ -69,7 +69,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
 
-                        Logger.LogInformation(linkedBlock.ToString());
                         // Set the other blocks as bad block if found the first bad block
                         if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
                         {
@@ -98,8 +97,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                             break;
                         }
 
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionSuccess);
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
 
@@ -113,8 +111,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
                 catch (ValidateNextTimeBlockValidationException ex)
                 {
-                    Logger.LogWarning(
-                        $"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
+                    Logger.LogWarning($"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
                 }
 
 

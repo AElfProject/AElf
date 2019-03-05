@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
@@ -13,7 +11,6 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
@@ -179,11 +176,11 @@ namespace AElf.OS.Network.Grpc
             if (request == null)
                 return new BlockList();
 
+            var blockList = new BlockList();
+
             try
             {
                 var blocks = await _blockChainService.GetBlocksAsync(request.PreviousBlockHash, request.Count);
-
-                BlockList blockList = new BlockList();
 
                 if (blocks == null)
                     return blockList;
@@ -195,7 +192,8 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, "Error during RequestBlock handle.");
             }
 
-            return new BlockList();
+            Logger.LogTrace($"Response {blockList.Blocks.Count} blocks for request {request}");
+            return blockList;
         }
 
         public override async Task<BlockIdList> RequestBlockIds(BlocksRequest request, ServerCallContext context)
