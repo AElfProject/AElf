@@ -337,7 +337,7 @@ namespace AElf.Contracts.TestBase
             {
                 var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>()
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<Hash>()
                     )).Returns(systemTxs);
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }

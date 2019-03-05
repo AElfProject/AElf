@@ -16,7 +16,7 @@ namespace AElf.Contracts.Authorization
         public Proposal GetProposal(Hash proposalHash)
         {
             var proposal = State.Proposals[proposalHash];
-            Assert(proposal.IsNotEmpty(), "Not found proposal.");
+            Assert(proposal != null, "Not found proposal.");
 
             if (proposal.Status == ProposalStatus.Released)
             {
@@ -31,7 +31,7 @@ namespace AElf.Contracts.Authorization
             {
                 var msigAccount = proposal.MultiSigAccount;
                 var auth = GetAuthorization(msigAccount);
-                Assert(auth.IsNotEmpty(), "Not found authorization."); // this should not happen.
+                Assert(auth != null, "Not found authorization."); // this should not happen.
 
                 // check approvals
                 var approved = State.Approved[proposalHash];
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Authorization
             if (!address.Equals(Context.Genesis))
             {
                 var authorization = State.MultiSig[address];
-                Assert(authorization.IsNotEmpty(), "MultiSigAccount not found.");
+                Assert(authorization != null, "MultiSigAccount not found.");
                 return authorization;
             }
 
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Authorization
             Address multiSigAccount = authorization.MultiSigAccount ??
                                       Address.FromPublicKey(authorization.ToByteArray().ToArray());
             var existing = State.MultiSig[multiSigAccount];
-            Assert(existing.IsEmpty(), "MultiSigAccount already existed.");
+            Assert(existing == null, "MultiSigAccount already existed.");
             uint accumulatedWeights =
                 authorization.Reviewers.Aggregate<Reviewer, uint>(0, (weights, r) => weights + r.Weight);
 
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Authorization
 
             Hash hash = proposal.GetHash();
             var existing = State.Proposals[hash];
-            Assert(existing.IsEmpty(), "Proposal already created.");
+            Assert(existing == null, "Proposal already created.");
 
             // check authorization of proposer public key
             var auth = GetAuthorization(proposal.MultiSigAccount);
@@ -130,12 +130,12 @@ namespace AElf.Contracts.Authorization
 
             var approved = State.Approved[hash];
             // check approval not existed
-            Assert(approved.IsEmpty() || !approved.Approvals.Contains(approval),
+            Assert(approved == null || !approved.Approvals.Contains(approval),
                 "Approval already existed.");
 
             var proposal = State.Proposals[hash];
             // check authorization and permission 
-            Assert(proposal.IsNotEmpty(), "Proposal not found.");
+            Assert(proposal != null, "Proposal not found.");
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
 
@@ -164,7 +164,7 @@ namespace AElf.Contracts.Authorization
         public byte[] Release(Hash proposalHash)
         {
             var proposal = State.Proposals[proposalHash];
-            Assert(proposal.IsNotEmpty(), "Proposal not found.");
+            Assert(proposal != null, "Proposal not found.");
             // check expired time of proposal
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Authorization
         public bool IsMultiSigAccount(Address address)
         {
             var authorization = State.MultiSig[address];
-            if (address.Equals(Context.Genesis) || authorization.IsNotEmpty())
+            if (address.Equals(Context.Genesis) || authorization != null)
             {
                 return true;
             }
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Authorization
                     r.PubKey.Equals(ByteString.CopyFrom(Context.RecoverPublicKey())));
                 var proposerPerm = reviewer?.Weight ?? 0;
                 Assert(Context.Sender.Equals(proposal.Proposer) &&
-                    proposerPerm >= authorization.ProposerThreshold, "Unable to propose.");
+                       proposerPerm >= authorization.ProposerThreshold, "Unable to propose.");
             }
 
             // No need to check authority if threshold is 0.
