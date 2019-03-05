@@ -2,7 +2,7 @@
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using Xunit;
 
-namespace AElf.Kernel.Tests.Concurrency.Scheduling
+namespace AElf.Kernel.Core.Tests.Concurrency.Scheduling
 {
     public class UnionFindNodeTest
     {

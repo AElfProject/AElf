@@ -9,7 +9,7 @@
 //using Akka.TestKit.Xunit;
 //using AElf.Kernel.SmartContractExecution;
 //using AElf.Kernel.SmartContractExecution.Scheduling;
-//using AElf.Kernel.Tests.Concurrency.Execution;
+//using AElf.Kernel.Core.Tests.Concurrency.Execution;
 //using AElf.SmartContract;
 //using AElf.Types.CSharp;
 //using Google.Protobuf;

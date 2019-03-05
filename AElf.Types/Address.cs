@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
-[assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
+[assembly: InternalsVisibleTo("AElf.Kernel.Core.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
