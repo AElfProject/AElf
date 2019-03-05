@@ -26,7 +26,7 @@ namespace AElf.Kernel.Node.Application
         Task StopAsync(BlockchainNodeContext blockchainNodeContext);
     }
 
-    
+
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
@@ -61,13 +61,11 @@ namespace AElf.Kernel.Node.Application
 
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
         {
-            
         }
 
         private byte[] ReadContractCode(string path)
         {
             return File.ReadAllBytes(Path.GetFullPath(path));
         }
-        
     }
 }

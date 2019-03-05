@@ -178,7 +178,6 @@ namespace AElf.Kernel.SmartContract.Application
             return smartContractRegistration;
         }
 
-
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
         {
