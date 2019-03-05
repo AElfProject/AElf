@@ -192,8 +192,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var txResF = new TransactionResult()
                     {
                         TransactionId = trace.TransactionId,
-                        ReturnValue = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                         Status = TransactionResultStatus.Failed,
+                        Error = trace.StdErr,
                         StateHash = Hash.Default
                     };
                     return txResF;

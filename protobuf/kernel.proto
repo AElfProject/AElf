@@ -95,6 +95,7 @@ message TransactionResult {
     // TODO: Remove DeferredTxnId
     repeated Transaction DeferredTransactions = 10;
     Hash DeferredTxnId = 11;
+    string Error = 12;
 }
 
 // For failed transactions, its status follows the Min of
