@@ -9,11 +9,9 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
+    //TODO: change chainId input as int. a smart contract is more like a backend, so no need user friendly
     public partial class CrossChainContract : CSharpSmartContract<CrossChainContractState>
     {
-        private static string CreateSideChainMethodName { get; } = "CreateSideChain";
-        private static string DisposeSideChainMethodName { get; } = "DisposeSideChain";
-
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
@@ -37,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
         }
@@ -46,7 +44,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
         }
@@ -69,7 +67,7 @@ namespace AElf.Contracts.CrossChain
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelpers.GetChainId(serialNumber);
             var info = State.SideChainInfos[chainId];
-            Assert(info.IsEmpty(), "Chain creation request already exists.");
+            Assert(info == null, "Chain creation request already exists.");
 
             // lock token and resource
             request.SideChainId = chainId;
@@ -92,7 +90,7 @@ namespace AElf.Contracts.CrossChain
 
             var sideChainInfo = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
-            Assert(sideChainInfo.IsNotEmpty() &&
+            Assert(sideChainInfo != null &&
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
                 "Side chain creation request not found.");
 
@@ -115,7 +113,7 @@ namespace AElf.Contracts.CrossChain
             var request = State.SideChainInfos[id];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
             Assert(
-                request.IsNotEmpty() &&
+                request != null &&
                 request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;
@@ -141,7 +139,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var sideChainInfo = State.SideChainInfos[id];
             Assert(
-                sideChainInfo.IsNotEmpty() &&
+                sideChainInfo != null &&
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
@@ -166,7 +164,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var request = State.SideChainInfos[id];
             Assert(
-                request.IsNotEmpty() &&
+                request != null &&
                 request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
 
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
@@ -187,7 +185,7 @@ namespace AElf.Contracts.CrossChain
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
 
             // TODO: Only privileged account can trigger this method
             Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
@@ -206,7 +204,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var info = State.SideChainInfos[id];
-            Assert(info.IsNotEmpty(), "Not existed side chain.");
+            Assert(info != null, "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
 
@@ -228,7 +226,7 @@ namespace AElf.Contracts.CrossChain
         {
             var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             var sideChainInfo = State.SideChainInfos[id];
-            Assert(sideChainInfo.IsNotEmpty(), "Not existed side chain.");
+            Assert(sideChainInfo != null, "Not existed side chain.");
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return State.IndexingBalance[id];
         }
@@ -316,7 +314,7 @@ namespace AElf.Contracts.CrossChain
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
 
                 var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
-                Assert(merkleTreeRoot.IsEmpty(),
+                Assert(merkleTreeRoot == null,
                     $"Already written parent chain block info at height {parentChainHeight}");
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
@@ -343,7 +341,7 @@ namespace AElf.Contracts.CrossChain
 //            var currentHeight = Context.CurrentHeight;
 //            var height = currentHeight + 1;
 //            var result = State.IndexedSideChainBlockInfoResult[height];
-//            Assert(result.IsEmpty()); // This should not happen.
+//            Assert(result == null); // This should not happen.
 
 //            var indexedSideChainBlockInfoResult = new IndexedSideChainBlockDataResult
 //            {
@@ -357,7 +355,7 @@ namespace AElf.Contracts.CrossChain
             {
                 var chainId = blockInfo.SideChainId;
                 var info = State.SideChainInfos[chainId];
-                if (info.IsEmpty() || info.SideChainStatus != SideChainStatus.Active)
+                if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
                 
@@ -408,7 +406,7 @@ namespace AElf.Contracts.CrossChain
         {
             var key = new UInt64Value {Value = parentChainHeight};
             var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
-            Assert(merkleTreeRoot.IsNotEmpty(),
+            Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = path.ComputeRootWith(tx);
             
@@ -440,7 +438,7 @@ namespace AElf.Contracts.CrossChain
         private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
         {
             var existing = State.TxRootMerklePathInParentChain[height];
-            Assert(existing.IsEmpty(),
+            Assert(existing == null,
                 $"Merkle path already bound at height {height}.");
             State.TxRootMerklePathInParentChain[height] = path;
         }

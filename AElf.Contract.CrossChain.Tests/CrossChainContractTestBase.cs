@@ -7,7 +7,6 @@ using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.TestBase;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
