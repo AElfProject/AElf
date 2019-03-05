@@ -68,11 +68,12 @@ namespace AElf.Sdk.CSharp.State
             return null;
         }
 
+        //TODO: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
         public static byte[] Serialize(object value)
         {
             if (value == null)
             {
-                return new byte[0];
+                return null;
             }
 
             var type = value.GetType();
@@ -90,7 +91,7 @@ namespace AElf.Sdk.CSharp.State
             if (type.IsPbMessageType())
             {
                 var v = (IMessage) value;
-                return v?.ToByteArray();
+                return v.ToByteArray();
             }
 
             throw new InvalidOperationException($"Invalid type {type}.");
@@ -98,26 +99,21 @@ namespace AElf.Sdk.CSharp.State
 
         public static T Deserialize<T>(byte[] bytes)
         {
+            if (bytes == null)
+                return default(T);
+
             var type = typeof(T);
             var primitiveDeserializer = GetPrimitiveDeserializer(type);
             if (primitiveDeserializer != null)
             {
-                if (bytes != null && bytes.Length > 0)
+                if (bytes.Length > 0)
                 {
                     return (T) primitiveDeserializer(bytes);
                 }
 
-                if (typeof(T) == typeof(byte[]))
-                {
-                    return (T) (object) new byte[0];
-                }
-                else
-                {
-                    return default(T);
-                }
+                return default(T);
             }
 
-            bytes = bytes ?? new byte[0];
             if (type == typeof(string))
             {
                 return (T) (object) Encoding.UTF8.GetString(bytes);
