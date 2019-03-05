@@ -5,12 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -81,20 +79,18 @@ namespace AElf.Kernel.Services
                 }
                 else
                 {
-                    Logger.LogWarning($@"Transaction pool gives transactions to be appended
- to {executableTransactionSet.PreviousBlockHash}
- which doesn't match the current best chain hash {previousBlockHash}.");
+                    Logger.LogWarning($@"Transaction pool gives transactions to be appended to 
+                        {executableTransactionSet.PreviousBlockHash} which doesn't match the current best chain hash 
+                        {previousBlockHash}.");
                 }
 
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing
                     //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
-                    block =
-                        await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions, pending,
-                            cts.Token);
+                    block = await _blockExecutingService.ExecuteBlockAsync(block.Header, 
+                        transactions, pending, cts.Token);
                 }
-
 
                 stopwatch.Stop();
                 Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
