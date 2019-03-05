@@ -1,30 +1,42 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class TxPoolInterestedEventsHandler : ILocalEventHandler<BestChainFoundEventData>,
-        ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ITransientDependency
+    public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
+        ILocalEventHandler<BlockAcceptedEvent>,
+        ILocalEventHandler<BestChainFoundEventData>, ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+        ITransientDependency
     {
-        private readonly IChainRelatedComponentManager<ITxHub> _txHubs;
+        private readonly ITxHub _txHub;
 
-        public TxPoolInterestedEventsHandler(IChainRelatedComponentManager<ITxHub> txHubs)
+        public TxPoolInterestedEventsHandler(ITxHub txHub)
         {
-            _txHubs = txHubs;
+            _txHub = txHub;
+        }
+
+
+        public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
+        {
+            await _txHub.HandleTransactionsReceivedAsync(eventData);
+        }
+
+        public async Task HandleEventAsync(BlockAcceptedEvent eventData)
+        {
+            await _txHub.HandleBlockAcceptedAsync(eventData);
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _txHubs.Get(eventData.ChainId).HandleBestChainFoundAsync(eventData);
+            await _txHub.HandleBestChainFoundAsync(eventData);
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _txHubs.Get(eventData.ChainId).HandleNewIrreversibleBlockFoundAsync(eventData);
+            await _txHub.HandleNewIrreversibleBlockFoundAsync(eventData);
         }
     }
 }

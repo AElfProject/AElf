@@ -8,6 +8,6 @@ namespace AElf.Kernel.SmartContractExecution
 {
     public interface IResourceUsageDetectionService
     {
-        Task<IEnumerable<string>> GetResources(int chainId, Transaction transaction);
+        Task<IEnumerable<string>> GetResources(Transaction transaction);
     }
 }

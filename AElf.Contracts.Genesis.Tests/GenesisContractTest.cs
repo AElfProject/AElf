@@ -32,17 +32,6 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Init_SmartContract_On_Height1()
-        {
-            var result = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
-                "InitSmartContract", 10, 2,
-                File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.RetVal.ToStringUtf8().Contains("The current height should be less than 1.").ShouldBeTrue();
-        }
-
-        [Fact]
         public async Task Deploy_SmartContracts()
         {
             var resultDeploy = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,

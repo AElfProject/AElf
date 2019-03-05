@@ -42,7 +42,7 @@ namespace AElf.Synchronization.Tests
         /// Builds the genesis block with AElfs builder.
         /// </summary>
         /// <returns></returns>
-        public static IBlock GetGenesisBlock()
+        public static Block GetGenesisBlock()
         {
             var builder = new GenesisBlockBuilder().Build(ChainHelpers.GetRandomChainId());
             return builder.Block;
@@ -54,10 +54,10 @@ namespace AElf.Synchronization.Tests
         /// </summary>
         /// <param name="previous">The block to build upon on.</param>
         /// <returns>The new block</returns>
-        public static IBlock BuildNext(IBlock previous, string producer = null)
+        public static Block BuildNext(Block previous, string producer = null)
         {
             Assert.NotNull(previous);
-            
+
             return new Block
             {
                 Header = new BlockHeader
@@ -79,22 +79,22 @@ namespace AElf.Synchronization.Tests
         /// <param name="start">The start block, if null will create a genesis block.</param>
         /// <param name="count">The amount of extra blocks to create</param>
         /// <returns>return the generated chain</returns>
-//        public static List<IBlock> GenerateChain(int count, Block start = null)
-//        {
-//            Assert.True(count > 0);
-//            
-//            List<IBlock> blocks = new List<IBlock>();
-//            
-//            IBlock current = start ?? GetGenesisBlock();
-//            blocks.Add(current);
-//            
-//            for (int i = 0; i < count; i++)
-//            {
-//                current = BuildNext(current);
-//                blocks.Add(current);
-//            }
-//
-//            return blocks;
-//        }   
+        public static List<Block> GenerateChain(int count, Block start = null)
+        {
+            Assert.True(count > 0);
+
+            List<Block> blocks = new List<Block>();
+
+            Block current = start ?? GetGenesisBlock();
+            blocks.Add(current);
+
+            for (int i = 0; i < count; i++)
+            {
+                current = BuildNext(current);
+                blocks.Add(current);
+            }
+
+            return blocks;
+        }
     }
 }

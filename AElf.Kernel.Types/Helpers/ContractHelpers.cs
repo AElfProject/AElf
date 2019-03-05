@@ -3,6 +3,7 @@ using AElf.Common;
 
 namespace AElf.Kernel.Types
 {
+    //TODO: remove contract helpers
     public static class ContractHelpers
     {
         public static Address GetSystemContractAddress(int chainId, UInt64 serialNumber)

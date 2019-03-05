@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
                 List<string> resources;
                 try
                 {
-                    resources = (await _resourceUsageDetectionService.GetResources(chainId, tx)).ToList();
+                    resources = (await _resourceUsageDetectionService.GetResources(tx)).ToList();
                 }
                 catch (Exception e)
                 {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -16,29 +17,30 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface ITransactionExecutingService
     {
-        Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
-            List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken);
+        Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader, List<Transaction> transactions,
+            CancellationToken cancellationToken);
     }
 
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
-        public TransactionExecutingService(ITransactionResultManager transactionResultManager,
+        public TransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
-            _transactionResultManager = transactionResultManager;
+            _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
-        public async Task<List<ExecutionReturnSet>> ExecuteAsync(IChainContext chainContext,
-            List<Transaction> transactions, DateTime currentBlockTime, CancellationToken cancellationToken)
+        public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
+            List<Transaction> transactions, CancellationToken cancellationToken)
         {
-            var groupStateCache = new TieredStateCache(chainContext.StateCache);
-            var groupChainContext = new ChainContextWithTieredStateCache(chainContext, groupStateCache);
+            var groupStateCache = new TieredStateCache();
+            var groupChainContext = new ChainContextWithTieredStateCache(blockHeader.PreviousBlockHash,
+                blockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactions)
@@ -48,7 +50,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     break;
                 }
 
-                var trace = await ExecuteOneAsync(0, groupChainContext, transaction, currentBlockTime,
+                var trace = await ExecuteOneAsync(0, groupChainContext, transaction, blockHeader.Time.ToDateTime(),
                     cancellationToken);
                 if (!trace.IsSuccessful())
                 {
@@ -65,12 +67,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     Logger.LogError(trace.StdErr);
                 }
 
-                var result = GetTransactionResult(trace, chainContext.BlockHeight + 1);
+                var result = GetTransactionResult(trace, blockHeader.Height);
 
                 if (result != null)
                 {
-                    // TODO: handle transaction executed in multiple blocks
-                    await _transactionResultManager.AddTransactionResultAsync(result);
+                    await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
                 }
 
                 returnSets.Add(GetReturnSet(trace, result));
@@ -108,7 +109,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext.ChainId,
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(
                 internalChainContext,
                 transaction.To);
 
@@ -152,7 +153,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(chainContext.ChainId, transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
             }
 
             return trace;
@@ -246,13 +247,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 returnSet.DeferredTransactions.Add(tx);
             }
 
-            foreach (var s in trace.GetFlattenedWrite())
-            {
-                returnSet.StateChanges[s.Key] = s.Value;
-            }
-
             if (trace.IsSuccessful())
             {
+                foreach (var s in trace.GetFlattenedWrite())
+                {
+                    returnSet.StateChanges[s.Key] = s.Value;
+                }
+
                 if (trace.RetVal == null)
                 {
                     throw new NullReferenceException("RetVal of trace is null.");

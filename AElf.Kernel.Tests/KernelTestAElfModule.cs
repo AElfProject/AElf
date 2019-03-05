@@ -29,11 +29,11 @@ namespace AElf.Kernel
             {
                 var mockBlockValidationService = new Mock<IBlockValidationService>();
                 mockBlockValidationService
-                    .Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<int>(), It.IsAny<Block>()))
+                    .Setup(m => m.ValidateBlockBeforeExecuteAsync( It.IsAny<Block>()))
                     .Returns<int, Block>((chainId, block) =>
                         Task.FromResult(block?.Header != null && block.Body != null));
                 mockBlockValidationService
-                    .Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<int>(), It.IsAny<Block>()))
+                    .Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<Block>()))
                     .Returns<int, Block>((chainId, block) => Task.FromResult(true));
                 return mockBlockValidationService.Object;
             });

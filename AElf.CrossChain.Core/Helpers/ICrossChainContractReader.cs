@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Types;
 
 namespace AElf.CrossChain
@@ -12,27 +13,33 @@ namespace AElf.CrossChain
         Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight);
         Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(ulong height);
         Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight);
-        Task<ulong> GetParentChainCurrentHeightAsync(int chainId, Hash previousBlockHash,
-            ulong preBlockHeight);
-        Task<ulong> GetSideChainCurrentHeightAsync(int chainId, int sideChainId, Hash previousBlockHash,
+
+        Task<ulong> GetParentChainCurrentHeightAsync(Hash previousBlockHash,
             ulong preBlockHeight);
 
-        Task<int> GetParentChainIdAsync(int chainId, Hash previousBlockHash, ulong preBlockHeight);
-        Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(int chainId, Hash previousBlockHash,
+        Task<ulong> GetSideChainCurrentHeightAsync(int sideChainId, Hash previousBlockHash,
             ulong preBlockHeight);
+
+        Task<int> GetParentChainIdAsync(Hash previousBlockHash, ulong preBlockHeight);
+
+        Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(Hash previousBlockHash,
+            ulong preBlockHeight);
+
         Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(ulong height);
-        Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(int chainId, Hash blockHash, ulong blockHeight);
+        Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(Hash blockHash, ulong blockHeight);
     }
-    
+
     public class CrossChainContractReader : ICrossChainContractReader
     {
         private readonly ICrossChainReadOnlyTransactionExecutor _crossChainReadOnlyTransactionExecutor;
+        private IChainManager _chainManager;
 
-        public CrossChainContractReader(ICrossChainReadOnlyTransactionExecutor crossChainReadOnlyTransactionExecutor)
+        public CrossChainContractReader(ICrossChainReadOnlyTransactionExecutor crossChainReadOnlyTransactionExecutor, IChainManager chainManager)
         {
             _crossChainReadOnlyTransactionExecutor = crossChainReadOnlyTransactionExecutor;
+            _chainManager = chainManager;
         }
-        
+
         public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight)
         {
             throw new System.NotImplementedException();
@@ -48,35 +55,32 @@ namespace AElf.CrossChain
             throw new System.NotImplementedException();
         }
 
-        public async Task<ulong> GetParentChainCurrentHeightAsync(int chainId, Hash previousBlockHash, ulong preBlockHeight)
+        public async Task<ulong> GetParentChainCurrentHeightAsync(Hash previousBlockHash, ulong preBlockHeight)
         {
-            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(chainId,
-                crossChainContractMethodAddress, CrossChainConsts.GetParentChainHeightMethodName, previousBlockHash,
+            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(
+                CrossChainContractMethodAddress, CrossChainConsts.GetParentChainHeightMethodName, previousBlockHash,
                 preBlockHeight);
         }
 
-        public async Task<ulong> GetSideChainCurrentHeightAsync(int chainId, int sideChainId, Hash previousBlockHash,
+        public async Task<ulong> GetSideChainCurrentHeightAsync(int sideChainId, Hash previousBlockHash,
             ulong preBlockHeight)
         {
-            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(chainId,
-                crossChainContractMethodAddress, CrossChainConsts.GetSideChainHeightMthodName, previousBlockHash,
+            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<ulong>(
+                CrossChainContractMethodAddress, CrossChainConsts.GetSideChainHeightMthodName, previousBlockHash,
                 preBlockHeight, ChainHelpers.ConvertChainIdToBase58(sideChainId));
         }
 
-        public async Task<int> GetParentChainIdAsync(int chainId, Hash previousBlockHash, ulong preBlockHeight)
+        public async Task<int> GetParentChainIdAsync(Hash previousBlockHash, ulong preBlockHeight)
         {
-            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
-            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<int>(chainId,
-                crossChainContractMethodAddress, CrossChainConsts.GetParentChainId, previousBlockHash, preBlockHeight);
+            return await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<int>(
+                CrossChainContractMethodAddress, CrossChainConsts.GetParentChainId, previousBlockHash, preBlockHeight);
         }
 
-        public async Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(int chainId, Hash previousBlockHash, ulong preBlockHeight)
+        public async Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(Hash previousBlockHash,
+            ulong preBlockHeight)
         {
-            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
             var dict = await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<SideChainIdAndHeightDict>(
-                chainId, crossChainContractMethodAddress, CrossChainConsts.GetSideChainIdAndHeight, previousBlockHash,
+                CrossChainContractMethodAddress, CrossChainConsts.GetSideChainIdAndHeight, previousBlockHash,
                 preBlockHeight);
             return new Dictionary<int, ulong>(dict.IdHeighDict);
         }
@@ -86,13 +90,16 @@ namespace AElf.CrossChain
             throw new System.NotImplementedException();
         }
 
-        public async Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(int chainId, Hash previousBlockHash, ulong preBlockHeight)
+        public async Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(Hash previousBlockHash,
+            ulong preBlockHeight)
         {
-            var crossChainContractMethodAddress = ContractHelpers.GetCrossChainContractAddress(chainId);
             var dict = await _crossChainReadOnlyTransactionExecutor.ReadByTransactionAsync<SideChainIdAndHeightDict>(
-                chainId, crossChainContractMethodAddress, CrossChainConsts.GetAllChainsIdAndHeight, previousBlockHash,
+                CrossChainContractMethodAddress, CrossChainConsts.GetAllChainsIdAndHeight, previousBlockHash,
                 preBlockHeight);
             return new Dictionary<int, ulong>(dict.IdHeighDict);
         }
+        
+        Address CrossChainContractMethodAddress => ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId());
+
     }
 }

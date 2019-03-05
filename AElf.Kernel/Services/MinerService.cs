@@ -5,12 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -23,7 +21,7 @@ namespace AElf.Kernel.Services
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private IChainRelatedComponentManager<ITxHub> _txHubs;
+        private ITxHub _txHub;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
@@ -41,8 +39,7 @@ namespace AElf.Kernel.Services
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService,
-            IChainRelatedComponentManager<ITxHub> txHubs)
+            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService, ITxHub txHub)
         {
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
@@ -50,7 +47,7 @@ namespace AElf.Kernel.Services
             _blockExecutingService = blockExecutingService;
             _consensusService = consensusService;
             _blockchainExecutingService = blockchainExecutingService;
-            _txHubs = txHubs;
+            _txHub = txHub;
             _blockchainService = blockchainService;
             _accountService = accountService;
 
@@ -62,7 +59,7 @@ namespace AElf.Kernel.Services
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight,
+        public async Task<Block> MineAsync(Hash previousBlockHash, ulong previousBlockHeight,
             DateTime time)
         {
             try
@@ -70,33 +67,30 @@ namespace AElf.Kernel.Services
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 // generate block without txns
-                var block = await GenerateBlock(chainId, previousBlockHash, previousBlockHeight);
+                var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
 
-                var transactions = await GenerateSystemTransactions(chainId, previousBlockHash, previousBlockHeight);
+                var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
 
-                var executableTransactionSet = await _txHubs.Get(chainId).GetExecutableTransactionSetAsync();
+                var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
                 var pending = new List<Transaction>();
-                if (chainId == executableTransactionSet.ChainId &&
-                    executableTransactionSet.PreviousBlockHash == previousBlockHash)
+                if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
                 {
                     pending = executableTransactionSet.Transactions;
                 }
                 else
                 {
-                    Logger.LogWarning($@"Transaction pool gives transactions to be appended
- to {executableTransactionSet.PreviousBlockHash}
- which doesn't match the current best chain hash {previousBlockHash}.");
+                    Logger.LogWarning($@"Transaction pool gives transactions to be appended to 
+                        {executableTransactionSet.PreviousBlockHash} which doesn't match the current best chain hash 
+                        {previousBlockHash}.");
                 }
 
                 using (var cts = new CancellationTokenSource())
                 {
                     // Give 400 ms for packing
                     //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
-                    block =
-                        await _blockExecutingService.ExecuteBlockAsync(chainId, block.Header, transactions, pending,
-                            cts.Token);
+                    block = await _blockExecutingService.ExecuteBlockAsync(block.Header, 
+                        transactions, pending, cts.Token);
                 }
-
 
                 stopwatch.Stop();
                 Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
@@ -114,12 +108,12 @@ namespace AElf.Kernel.Services
                     var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
                     _txFilter.Execute(sysTxs);
                     Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(chainId, sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
+                    traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
                     Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
                 }
                 if (txGrp.TryGetValue(false, out var regRcpts))
                 {
-                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
+                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress();
                     var regTxs = new List<Transaction>();
                     var contractTxs = new List<Transaction>();
 
@@ -136,16 +130,16 @@ namespace AElf.Kernel.Services
                     }
                     
                     Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
-                    traces.AddRange(await ExecuteTransactions(chainId, regTxs, currentBlockTime));
+                    traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
                     Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
                     
                     Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
-                    traces.AddRange(await ExecuteTransactions(chainId, contractTxs, currentBlockTime,
+                    traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
                         transactionType: TransactionType.ContractDeployTransaction));
                     Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
                 }
 
-                ExtractTransactionResults(chainId, traces, out var results);
+                ExtractTransactionResults(traces, out var results);
 
                 // complete block
                 await CompleteBlock(block, results);
@@ -161,8 +155,8 @@ namespace AElf.Kernel.Services
                 await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);*/
 
 //                await SignBlockAsync(block);
-                await _blockchainService.AddBlockAsync(chainId, block);
-                var chain = await _blockchainService.GetChainAsync(chainId);
+                await _blockchainService.AddBlockAsync(block);
+                var chain = await _blockchainService.GetChainAsync();
                 var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
@@ -179,15 +173,15 @@ namespace AElf.Kernel.Services
             }
         }
 
-        private async Task<List<Transaction>> GenerateSystemTransactions(int chainId, Hash previousBlockHash,
+        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
             ulong previousBlockHeight)
         {
-            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+            //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
             var generatedTxns =
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockPrefix, chainId);
+                    previousBlockHash);
 
             foreach (var txn in generatedTxns)
             {
@@ -210,13 +204,13 @@ namespace AElf.Kernel.Services
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(int chainId, Hash preBlockHash, ulong preBlockHeight)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, ulong preBlockHeight)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
-                ChainId = chainId,
                 PreviousBlockHash = preBlockHash,
-                PreviousBlockHeight = preBlockHeight
+                PreviousBlockHeight = preBlockHeight,
+                BlockTime = DateTime.UtcNow
             });
             return block;
         }

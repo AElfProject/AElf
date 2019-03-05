@@ -4,11 +4,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class ChainContextWithTieredStateCache : IChainContext<TieredStateCache>
     {
-        public ChainContextWithTieredStateCache(IChainContext chainContext, TieredStateCache stateCache)
+        public ChainContextWithTieredStateCache(IChainContext chainContext, TieredStateCache stateCache) : this(
+            chainContext.BlockHash, chainContext.BlockHeight, stateCache)
         {
-            ChainId = chainContext.ChainId;
-            BlockHeight = chainContext.BlockHeight;
-            BlockHash = chainContext.BlockHash;
+        }
+
+        public ChainContextWithTieredStateCache(Hash blockHash, ulong blockHeight, TieredStateCache stateCache)
+        {
+            BlockHeight = blockHeight;
+            BlockHash = blockHash;
             StateCache = stateCache;
         }
 
