@@ -53,7 +53,9 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chain = await _blockchainService.GetChainAsync();
             var hash = chain.BestChainHash;
-            var until = chain.LastIrreversibleBlockHeight > 1 ? chain.LastIrreversibleBlockHeight - 1 : 1;
+            var until = chain.LastIrreversibleBlockHeight > ChainConsts.GenesisBlockHeight
+                ? chain.LastIrreversibleBlockHeight - 1
+                : ChainConsts.GenesisBlockHeight;
             while (true)
             {
                 var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
