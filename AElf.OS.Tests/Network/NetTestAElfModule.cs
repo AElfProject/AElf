@@ -57,7 +57,7 @@ namespace AElf.OS.Tests.Network
                     {
                         var blk = new Block 
                         {
-                            Header = new BlockHeader { Height = (ulong)i+2, PreviousBlockHash = h }, 
+                            Header = new BlockHeader { Height = (long)i+2, PreviousBlockHash = h }, 
                             Body = new BlockBody()
                         };
                         

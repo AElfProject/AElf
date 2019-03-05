@@ -46,7 +46,7 @@ namespace AElf.OS.Tests
             _job.Execute(new ForkDownloadJobArgs { BlockHash = genHash.DumpByteArray(), BlockHeight = 3 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.LongestChainHeight.ShouldBe<ulong>(6);
+            chain.LongestChainHeight.ShouldBe<long>(6);
         }
     }
 }
