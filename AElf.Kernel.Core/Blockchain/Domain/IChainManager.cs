@@ -173,7 +173,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
                 else
                 {
-                    if (chainBlockLink.Height <= chain.LongestChainHeight)
+                    if (chainBlockLink.Height + 1 <= chain.LongestChainHeight)
                     {
                         //check database to ensure whether it can be a branch
                         var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);

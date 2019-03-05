@@ -30,7 +30,7 @@ namespace AElf.OS.Jobs
                 while (true)
                 {
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
-                    Logger.LogDebug($"Get {blocks.Count} blocks from {args.SuggestedPeerAddress}, request blockHash {blockHash.ToHex()}, count {count} ");
+                    Logger.LogDebug($"Get {blocks.Count} blocks for request {args}");
 
                     foreach (var block in blocks)
                     {

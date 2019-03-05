@@ -79,9 +79,9 @@ namespace AElf.Kernel.Services
                 }
                 else
                 {
-                    Logger.LogWarning($@"Transaction pool gives transactions to be appended to 
-                        {executableTransactionSet.PreviousBlockHash} which doesn't match the current best chain hash 
-                        {previousBlockHash}.");
+                    Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
+                                      $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
+                                      $"best chain hash {previousBlockHash}.");
                 }
 
                 using (var cts = new CancellationTokenSource())
@@ -179,9 +179,7 @@ namespace AElf.Kernel.Services
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
-            var generatedTxns =
-                _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockPrefix);
+            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight, previousBlockPrefix);
 
             foreach (var txn in generatedTxns)
             {
