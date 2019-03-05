@@ -76,18 +76,20 @@ namespace AElf.Kernel
 
                             Logger.LogInformation($"Lib height: {libHeight}, Lib Hash: {libHash}");
 
-                            var chainStateInfo =
-                                await _blockchainStateManager.GetChainStateInfoAsync();
+                            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
 
-                            var count = (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
-                            var hashes =
-                                await _blockchainService.GetReversedBlockHashes(libHash, count);
+                            var count = chain.LastIrreversibleBlockHeight == 1 ? 
+                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight : 
+                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
+
+                            var hashes = await _blockchainService.GetReversedBlockHashes(libHash, count);
 
                             hashes.Reverse();
 
                             hashes.Add(libHash);
 
-                            var startHeight = chain.LastIrreversibleBlockHeight + 1;
+                            var startHeight = chain.LastIrreversibleBlockHeight == 1 ? 
+                                chain.LastIrreversibleBlockHeight : chain.LastIrreversibleBlockHeight + 1;
                             foreach (var hash in hashes)
                             {
                                 try
