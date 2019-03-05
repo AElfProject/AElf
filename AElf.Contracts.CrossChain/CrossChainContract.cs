@@ -8,11 +8,9 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
+    //TODO: change chainId input as int. a smart contract is more like a backend, so no need user friendly
     public partial class CrossChainContract : CSharpSmartContract<CrossChainContractState>
     {
-        private static string CreateSideChainMethodName { get; } = "CreateSideChain";
-        private static string DisposeSideChainMethodName { get; } = "DisposeSideChain";
-
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
