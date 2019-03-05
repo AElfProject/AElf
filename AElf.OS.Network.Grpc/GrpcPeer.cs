@@ -53,7 +53,7 @@ namespace AElf.OS.Network.Grpc
         }
 
         public Hash CurrentBlockHash { get; set; }
-        public ulong CurrentBlockHeight { get; set; }
+        public long CurrentBlockHeight { get; set; }
 
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {

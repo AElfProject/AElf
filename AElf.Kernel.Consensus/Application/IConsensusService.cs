@@ -8,9 +8,9 @@ namespace AElf.Kernel.Consensus.Application
     {
         Task TriggerConsensusAsync();
 
-        Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
+        Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusInformation);
         Task<byte[]> GetNewConsensusInformationAsync();
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ulong refBlockHeight, byte[] refBlockPrefix);
+        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(long refBlockHeight, byte[] refBlockPrefix);
     }
 }

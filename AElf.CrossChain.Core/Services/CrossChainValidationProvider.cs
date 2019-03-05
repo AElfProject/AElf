@@ -57,7 +57,7 @@ namespace AElf.CrossChain
 //        }
 
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, Hash sideChainTransactionsRoot,
-            Hash preBlockHash, ulong preBlockHeight)
+            Hash preBlockHash, long preBlockHeight)
         {
             var txRootHashList = crossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();

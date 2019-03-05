@@ -54,7 +54,7 @@ namespace AElf.CrossChain
 //                CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
 //        }
 
-        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber,
+        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
             // todo: should use pre block hash here, not prefix
@@ -74,7 +74,7 @@ namespace AElf.CrossChain
             return generatedTransactions;
         }
 
-        public void GenerateTransactions(Address @from, ulong preBlockHeight, Hash previousBlockHash,
+        public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
@@ -92,7 +92,7 @@ namespace AElf.CrossChain
         /// <param name="refBlockPrefix"></param>
         /// <param name="params"></param>
         /// <returns></returns>
-        private Transaction GenerateNotSignedTransaction(Address from, string methodName, ulong refBlockNumber,
+        private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
             byte[] refBlockPrefix, params object[] @params)
         {
             return new Transaction

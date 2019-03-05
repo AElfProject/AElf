@@ -15,20 +15,20 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainContractReader
     {
-        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight);
-        Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(ulong height);
-        Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight);
+        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight);
+        Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height);
+        Task<long> GetBoundParentChainHeightAsync(long localChainHeight);
 
-        Task<ulong> GetParentChainCurrentHeightAsync(IChainContext chainContext);
+        Task<long> GetParentChainCurrentHeightAsync(IChainContext chainContext);
 
-        Task<ulong> GetSideChainCurrentHeightAsync(int sideChainId, IChainContext chainContext);
+        Task<long> GetSideChainCurrentHeightAsync(int sideChainId, IChainContext chainContext);
 
         Task<int> GetParentChainIdAsync(IChainContext chainContext);
 
-        Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(IChainContext chainContext);
+        Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(IChainContext chainContext);
 
-        Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(ulong height);
-        Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(IChainContext chainContext);
+        Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(long height);
+        Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(IChainContext chainContext);
 
         Task<CrossChainBlockData> GetCrossChainBlockDataAsync(IChainContext chainContext);
     }
@@ -47,32 +47,32 @@ namespace AElf.CrossChain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-        public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(ulong blockHeight)
+        public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(ulong height)
+        public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<ulong> GetBoundParentChainHeightAsync(ulong localChainHeight)
+        public Task<long> GetBoundParentChainHeightAsync(long localChainHeight)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<ulong> GetParentChainCurrentHeightAsync(IChainContext chainContext)
+        public async Task<long> GetParentChainCurrentHeightAsync(IChainContext chainContext)
         {
             var readOnlyTransaction = await GenerateReadOnlyTransaction(CrossChainConsts.GetParentChainHeightMethodName);
-            return await ReadByTransaction<ulong>(readOnlyTransaction, chainContext);
+            return await ReadByTransaction<long>(readOnlyTransaction, chainContext);
         }
 
-        public async Task<ulong> GetSideChainCurrentHeightAsync(int sideChainId, IChainContext chainContext)
+        public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, IChainContext chainContext)
         {
             var readOnlyTransaction = await GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainHeightMethodName,
                 ChainHelpers.ConvertChainIdToBase58(sideChainId));
-            return await ReadByTransaction<ulong>(readOnlyTransaction, chainContext);
+            return await ReadByTransaction<long>(readOnlyTransaction, chainContext);
         }
 
         public async Task<int> GetParentChainIdAsync(IChainContext chainContext)
@@ -81,23 +81,23 @@ namespace AElf.CrossChain
             return await ReadByTransaction<int>(readOnlyTransaction, chainContext);
         }
 
-        public async Task<Dictionary<int, ulong>> GetSideChainIdAndHeightAsync(IChainContext chainContext)
+        public async Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(IChainContext chainContext)
         {
             var readOnlyTransaction = await GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainIdAndHeightMethodName);
             var dict = await ReadByTransaction<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
-            return new Dictionary<int, ulong>(dict.IdHeighDict);
+            return new Dictionary<int, long>(dict.IdHeighDict);
         }
 
-        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(ulong height)
+        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResultAsync(long height)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<Dictionary<int, ulong>> GetAllChainsIdAndHeightAsync(IChainContext chainContext)
+        public async Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(IChainContext chainContext)
         {
             var readOnlyTransaction = await GenerateReadOnlyTransaction(CrossChainConsts.GetAllChainsIdAndHeightMethodName);
             var dict = await ReadByTransaction<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
-            return dict == null ? null : new Dictionary<int, ulong>(dict.IdHeighDict);
+            return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
         }
 
         public async Task<CrossChainBlockData> GetCrossChainBlockDataAsync(IChainContext chainContext)

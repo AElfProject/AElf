@@ -193,7 +193,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
             mockSystemTransactionGenerationService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<Hash>()))
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
                 .Returns(systemTxs);
 
             return mockSystemTransactionGenerationService.Object;

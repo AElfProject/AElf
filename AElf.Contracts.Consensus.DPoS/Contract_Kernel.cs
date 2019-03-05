@@ -240,7 +240,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public TransactionList GenerateConsensusTransactions(ulong preBlockHeight, byte[] preBlockPrefix,
+        public TransactionList GenerateConsensusTransactions(long preBlockHeight, byte[] preBlockPrefix,
             byte[] extraInformation)
         {
             var extra = DPoSExtraInformation.Parser.ParseFrom(extraInformation);

@@ -199,13 +199,13 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public ulong GetSideChainHeight(int chainId)
+        public long GetSideChainHeight(int chainId)
         {
             return State.CurrentSideChainHeight[chainId];
         }
 
         [View]
-        public ulong GetParentChainHeight()
+        public long GetParentChainHeight()
         {
             return State.CurrentParentChainHeight.Value;
         }
@@ -295,7 +295,7 @@ namespace AElf.Contracts.CrossChain
             foreach (var blockInfo in parentChainBlockData)
             {
                 Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
-                ulong parentChainHeight = blockInfo.Root.ParentChainHeight;
+                long parentChainHeight = blockInfo.Root.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
                 var target = currentHeight != 0 ? currentHeight + 1 : CrossChainConsts.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
@@ -390,9 +390,9 @@ namespace AElf.Contracts.CrossChain
         /// <param name="path"></param>
         /// <param name="parentChainHeight"></param>
         /// <returns></returns>
-        public bool VerifyTransaction(Hash tx, MerklePath path, ulong parentChainHeight)
+        public bool VerifyTransaction(Hash tx, MerklePath path, long parentChainHeight)
         {
-            var key = new UInt64Value {Value = parentChainHeight};
+            var key = new Int64Value {Value = parentChainHeight};
             var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
@@ -411,7 +411,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="childHeight"></param>
         /// <param name="parentHeight"></param>
-        private void BindParentChainHeight(ulong childHeight, ulong parentHeight)
+        private void BindParentChainHeight(long childHeight, long parentHeight)
         {
             Assert(State.ChildHeightToParentChainHeight[childHeight] == 0,
                 $"Already bound at height {childHeight} with parent chain");
@@ -423,7 +423,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="height"></param>
         /// <param name="path"></param>
-        private void AddIndexedTxRootMerklePathInParentChain(ulong height, MerklePath path)
+        private void AddIndexedTxRootMerklePathInParentChain(long height, MerklePath path)
         {
             var existing = State.TxRootMerklePathInParentChain[height];
             Assert(existing == null,
