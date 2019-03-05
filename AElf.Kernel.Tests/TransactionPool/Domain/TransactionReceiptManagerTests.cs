@@ -86,7 +86,7 @@ namespace AElf.Kernel.TransactionPool.Domain
                         MethodName = "TestMethod",
                         IncrementId = (ulong)i
                     },
-                    ExecutedBlockNumber = (ulong)i,
+                    ExecutedBlockNumber = i,
                     IsSystemTxn = false,
                     RefBlockStatus = RefBlockStatus.RefBlockValid
                 };

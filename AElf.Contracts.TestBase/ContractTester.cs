@@ -291,7 +291,7 @@ namespace AElf.Contracts.TestBase
             await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
         }
 
-        public async Task SetIrreversibleBlock(ulong libHeight)
+        public async Task SetIrreversibleBlock(long libHeight)
         {
             var chain = await _blockchainService.GetChainAsync();
             var libHash = (await _blockchainService.GetBlockByHeightAsync(libHeight)).GetHash();
@@ -340,7 +340,7 @@ namespace AElf.Contracts.TestBase
             {
                 var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<Hash>()
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()
                     )).Returns(systemTxs);
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }

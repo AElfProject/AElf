@@ -19,7 +19,7 @@ namespace AElf.Kernel.Consensus.Application
         /// <param name="preBlockHeight"></param>
         /// <param name="consensusExtraData">Extract from block header.</param>
         /// <returns></returns>
-        Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
+        Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusExtraData);
         
         /// <summary>

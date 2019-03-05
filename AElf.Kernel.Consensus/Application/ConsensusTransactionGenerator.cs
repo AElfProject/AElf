@@ -15,7 +15,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
         
-        public void GenerateTransactions(Address @from, ulong preBlockHeight, Hash previousBlockHash,
+        public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(

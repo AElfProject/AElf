@@ -319,7 +319,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 block.Header.BlockExtraData == null
                     ? string.Empty
                     : block.Header.BlockExtraData.SideChainTransactionsRoot.ToHex());
-            ((ulong) responseResult["Header"]["Height"]).ShouldBe(block.Height);
+            ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);
             Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
             responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
             responseResult["Header"]["Bloom"].ToString().ShouldBe(block.Header.Bloom.ToByteArray().ToHex());

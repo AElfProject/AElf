@@ -5,7 +5,6 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -492,7 +491,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        private bool CalculateLIB(out ulong offset)
+        private bool CalculateLIB(out long offset)
         {
             offset = 0;
 
@@ -516,7 +515,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var senderOrder = currentRoundMiners[senderPublicKey].Order;
                 if (validMinersCountOfCurrentRound > minimumCount)
                 {
-                    offset = (ulong) senderOrder;
+                    offset = senderOrder;
                     return true;
                 }
 
@@ -548,7 +547,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                         if (publicKeys.Count >= minimumCount)
                         {
-                            offset = (ulong) validMinersCountOfCurrentRound + (ulong) i;
+                            offset = validMinersCountOfCurrentRound +  i;
                             return true;
                         }
                     }

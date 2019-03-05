@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Chain> GetChainAsync();
 
-        Task<Block> GetBlockByHeightAsync(ulong height);
+        Task<Block> GetBlockByHeightAsync(long height);
         Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
         Task<List<Block>> GetBlocksAsync(Hash firstHash, int count);
 
@@ -34,9 +34,9 @@ namespace AElf.Kernel.Blockchain.Application
             Hash chainBranchBlockHash = null);
 
         Task<BlockHeader> GetBestChainLastBlock();
-        Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash chainBranchBlockHash = null);
+        Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash = null);
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
-        Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
+        Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
     }
 
     public interface ILightBlockchainService : IBlockchainService
@@ -137,7 +137,7 @@ namespace AElf.Kernel.Blockchain.Application
         /// <param name="height">the height of the block</param>
         /// <param name="startBlockHash">the block from which to start the search, by default the head of the best chain.</param>
         /// <returns></returns>
-        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, ulong height, Hash startBlockHash = null)
+        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash startBlockHash = null)
         {
             if (chain.LastIrreversibleBlockHeight >= height)
             {
@@ -175,7 +175,7 @@ namespace AElf.Kernel.Blockchain.Application
             return status;
         }
 
-        public async Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash)
+        public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
         {
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
@@ -217,7 +217,7 @@ namespace AElf.Kernel.Blockchain.Application
             var blockList = new List<Block>();
             for (var i = 1; i <= count; i++)
             {
-                var block = await GetBlockByHeightAsync(first.Height + (ulong) i);
+                var block = await GetBlockByHeightAsync(first.Height + i);
                 if (block == null)
                     break;
 
@@ -235,7 +235,7 @@ namespace AElf.Kernel.Blockchain.Application
             if (first == null)
                 return null;
 
-            var height = first.Height + (ulong) count;
+            var height = first.Height + count;
 
             var last = await GetBlockHashByHeightAsync(chain, height, chainBranchBlockHash);
 
@@ -260,7 +260,7 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        public async Task<Block> GetBlockByHeightAsync(ulong height)
+        public async Task<Block> GetBlockByHeightAsync(long height)
         {
             var chain = await GetChainAsync();
             var hash = await GetBlockHashByHeightAsync(chain, height);
@@ -292,7 +292,7 @@ namespace AElf.Kernel.Blockchain.Application
             return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
-        public async Task<BlockHeader> GetBlockHeaderByHeightAsync(ulong height)
+        public async Task<BlockHeader> GetBlockHeaderByHeightAsync(long height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(height);
             return await _blockManager.GetBlockHeaderAsync(index.BlockHash);

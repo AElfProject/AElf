@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus.Application
                 blockMiningEventData);
         }
 
-        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
+        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusExtraData)
         {
             var address = await _accountService.GetAccountAsync();

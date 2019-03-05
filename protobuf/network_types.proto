@@ -20,5 +20,5 @@ message HandshakeData {
 
 message PeerNewBlockAnnouncement {
     Hash BlockHash = 1;
-    uint64 BlockHeight = 2;
+    int64 BlockHeight = 2;
 }

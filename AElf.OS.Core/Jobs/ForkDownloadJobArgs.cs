@@ -5,8 +5,8 @@ namespace AElf.OS.Jobs
 {
     public class ForkDownloadJobArgs
     {
-        public ulong BlockHeight { get; set; }
-        public byte[] BlockHash { get; set; }
+        public long BlockHeight { get; set; }
+        public string BlockHash { get; set; }
         
         /// <summary>
         /// leave it empty when you do not care get the block from which peer
