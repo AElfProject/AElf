@@ -43,6 +43,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // And to initial DPoS information, we need to generate the information of first round, at least.
             if (!TryToGetCurrentRoundInformation(out round))
             {
+                Console.WriteLine("Round information is null.");
                 return DPoSBehaviour.InitialTerm;
             }
 

@@ -10,6 +10,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
@@ -19,17 +20,10 @@ namespace AElf.CrossChain
 
         private readonly IChainManager _chainManager;
 
-        //TODO: use interface
-        private delegate Task CrossChainTransactionGeneratorDelegate(Address from, ulong refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions);
-
-        private readonly CrossChainTransactionGeneratorDelegate _crossChainTransactionGenerators;
-
         public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService, IChainManager chainManager)
         {
             _crossChainService = crossChainService;
             _chainManager = chainManager;
-            _crossChainTransactionGenerators += GenerateCrossChainIndexingTransaction;
         }
 
         /// <summary>
@@ -60,27 +54,33 @@ namespace AElf.CrossChain
                 CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
         }
 
-        private async Task GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
+        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, ulong refBlockNumber,
+            Hash previousBlockHash)
         {
             // todo: should use pre block hash here, not prefix
             var crossChainBlockData = new CrossChainBlockData();
-
             var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(null, refBlockNumber);
-
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
             var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(null, refBlockNumber);
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-            generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, refBlockPrefix,
-                new object[] {crossChainBlockData}));
+
+            var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
+
+            var generatedTransactions = new List<Transaction>
+            {
+                GenerateNotSignedTransaction(from,
+                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, previousBlockPrefix,
+                    new object[] {crossChainBlockData})
+            };
+            return generatedTransactions;
         }
 
-        public void GenerateTransactions(Address @from, ulong preBlockHeight, ulong refBlockHeight,
-            byte[] refBlockPrefix,
+        public void GenerateTransactions(Address @from, ulong preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
-            _crossChainTransactionGenerators(from, refBlockHeight, refBlockPrefix, generatedTransactions);
+            generatedTransactions.AddRange(
+                AsyncHelper.RunSync(() => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
+            
         }
 
         /// <summary>

@@ -46,7 +46,7 @@ namespace AElf.Contracts.TestBase
     {
         private readonly int _chainId;
         private readonly IBlockchainService _blockchainService;
-        private readonly ITransactionExecutingService _transactionExecutingService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockGenerationService _blockGenerationService;
         private ISystemTransactionGenerationService _systemTransactionGenerationService;
@@ -54,7 +54,7 @@ namespace AElf.Contracts.TestBase
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly IBlockValidationService _blockValidationService;
 
         private readonly IAccountService _accountService;
@@ -86,7 +86,7 @@ namespace AElf.Contracts.TestBase
             application.Initialize();
 
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
-            _transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
+            _transactionReadOnlyExecutionService = application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
             _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
             _systemTransactionGenerationService =
@@ -94,7 +94,7 @@ namespace AElf.Contracts.TestBase
             _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
-            _transactionResultManager = application.ServiceProvider.GetService<ITransactionResultManager>();
+            _transactionResultQueryService = application.ServiceProvider.GetService<ITransactionResultQueryService>();
             _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
         }
@@ -235,15 +235,15 @@ namespace AElf.Contracts.TestBase
         {
             var tx = GenerateTransaction(contractAddress, methodName, objects);
             var preBlock = await _blockchainService.GetBestChainLastBlock();
-            var executionReturnSets = await _transactionExecutingService.ExecuteAsync(new ChainContext
+            var transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
                 },
-                new List<Transaction> {tx},
-                DateTime.UtcNow, new CancellationToken());
+                tx,
+                DateTime.UtcNow);
 
-            return executionReturnSets.Any() ? executionReturnSets.Last().ReturnValue : null;
+            return transactionTrace.RetVal?.Data ?? ByteString.Empty;
         }
 
         public void SignTransaction(ref Transaction transaction, ECKeyPair callerKeyPair)
@@ -307,7 +307,7 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<TransactionResult> GetTransactionResult(Hash txId)
         {
-            return await _transactionResultManager.GetTransactionResultAsync(txId);
+            return await _transactionResultQueryService.GetTransactionResultAsync(txId);
         }
 
         private MinerService BuildMinerService(List<Transaction> txs, List<Transaction> systemTxs = null)
@@ -340,7 +340,7 @@ namespace AElf.Contracts.TestBase
             {
                 var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<byte[]>()
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<ulong>(), It.IsAny<Hash>()
                     )).Returns(systemTxs);
                 _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }

@@ -1,3 +1,4 @@
+using System;
 using AElf.Common;
 
 namespace AElf.Kernel
@@ -12,6 +13,22 @@ namespace AElf.Kernel
         public static bool IsNull(this Hash hash)
         {
             return hash == null || hash.ToHex().RemoveHexPrefix().Length == 0;
+        }
+
+        public static Hash Xor(this Hash hash, Hash another)
+        {
+            if (hash.Value.Length != another.Value.Length)
+            {
+                throw new InvalidOperationException("The two hashes don't have the same length");
+            }
+
+            var newBytes = new byte[hash.Value.Length];
+            for (var i = 0; i < hash.Value.Length; ++i)
+            {
+                newBytes[i] = (byte) (hash.Value[i] ^ another.Value[i]);
+            }
+
+            return Hash.LoadByteArray(newBytes);
         }
     }
 }

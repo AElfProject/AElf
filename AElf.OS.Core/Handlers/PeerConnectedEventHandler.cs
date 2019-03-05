@@ -1,21 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Jobs;
-using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.EventBus;
 
@@ -63,27 +56,20 @@ namespace AElf.OS.Handlers
 
             var chain = await BlockchainService.GetChainAsync();
 
-            if (blockHeight - chain.LongestChainHeight < 10)
-            {
-                //currently: 100
-                //remote: 200
-                //just ignore the block
-
-                return;
-            }
-
             try
             {
-                Logger.LogTrace(
-                    $"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
+                Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
 
                 var block = await BlockchainService.GetBlockByHashAsync(blockHash);
-
-                if (block == null)
+                if (block != null)
                 {
-                    block = (Block) await NetworkService.GetBlockByHashAsync(blockHash);
                     Logger.LogDebug($"Block {blockHash} already know.");
+                    return;
                 }
+
+                block = await NetworkService.GetBlockByHashAsync(blockHash);
+
+                await BlockchainService.AddBlockAsync(block);
 
                 var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
 
@@ -94,7 +80,8 @@ namespace AElf.OS.Handlers
                     await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                     {
                         SuggestedPeerAddress = peerAddress,
-                        BlockHash = header.Announce.BlockHash,
+                        BlockHash = header.Announce.BlockHash.DumpByteArray(),
+                        BlockHeight = blockHeight
                     });
                 }
             }

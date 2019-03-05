@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-                if (!roundInformation.Equals(new Round()))
+                if (roundInformation != null)
                 {
                     return true;
                 }
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 roundInformation = State.RoundsMap[(roundNumber - 1).ToUInt64Value()];
-                if (!roundInformation.Equals(new Round()))
+                if (roundInformation != null)
                 {
                     return true;
                 }
@@ -87,13 +87,13 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
         {
             roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-            return !roundInformation.Equals(new Round());
+            return roundInformation != null;
         }
 
         public bool TryToGetMiners(ulong termNumber, out Miners miners)
         {
             miners = State.MinersMap[termNumber.ToUInt64Value()];
-            return !miners.Equals(new Miners());
+            return miners != null;
         }
 
         public bool TryToGetVictories(out Miners victories)
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var candidatePublicKey in candidates.PublicKeys)
             {
                 var tickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
-                if (!tickets.Equals(new Tickets()))
+                if (tickets != null)
                 {
                     ticketsMap.Add(candidatePublicKey, tickets.ObtainedTickets);
                 }
@@ -142,19 +142,19 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
         {
             historyInformation = State.HistoryMap[publicKey.ToStringValue()];
-            return !historyInformation.Equals(new CandidateInHistory());
+            return historyInformation != null;
         }
 
         public bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot)
         {
             snapshot = State.SnapshotMap[termNumber.ToUInt64Value()];
-            return !snapshot.Equals(new TermSnapshot());
+            return snapshot != null;
         }
 
         public bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
         {
             tickets = State.TicketsMap[publicKey.ToStringValue()];
-            return !tickets.Equals(new Tickets());
+            return tickets != null;
         }
 
         public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
@@ -197,7 +197,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToAddRoundInformation(Round roundInformation)
         {
             var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
-            if (!ri.Equals(new Round()))
+            if (ri != null)
             {
                 return false;
             }
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToUpdateRoundInformation(Round roundInformation)
         {
             var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
-            if (ri.Equals(new Round()))
+            if (ri == null)
             {
                 return false;
             }
@@ -242,7 +242,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
         {
             var ri = State.TermToFirstRoundMap[termNumber.ToUInt64Value()];
-            if (!ri.Equals(new UInt64Value()))
+            if (ri != null)
             {
                 return false;
             }
@@ -255,7 +255,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             // Miners for one specific term should only update once.
             var m = State.MinersMap[miners.TermNumber.ToUInt64Value()];
-            if (gonnaReplaceSomeone || m.Equals(new Miners()))
+            if (gonnaReplaceSomeone || m == null)
             {
                 State.MinersMap[miners.TermNumber.ToUInt64Value()] = miners;
                 return true;
@@ -267,7 +267,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool SetSnapshot(TermSnapshot snapshot)
         {
             var s = State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()];
-            if (!s.Equals(new TermSnapshot()))
+            if (s != null)
             {
                 return false;
             }
