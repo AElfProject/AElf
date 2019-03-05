@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -370,5 +371,89 @@ namespace AElf.Contract.CrossChain.Tests
 
         #endregion
 
+        #region Verification
+
+        [Fact]
+        public async Task CrossChain_MerklePath()
+        {
+            int parentChainId = 123;
+            ulong lockedToken = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            var txHash = Hash.FromString("sideChainBlockHash");
+            var binaryMerkleTree = new BinaryMerkleTree();
+            var fakeHash1 = Hash.FromString("fake1");
+            var fakeHash2 = Hash.FromString("fake2");
+
+            binaryMerkleTree.AddNodes(new[] {txHash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var parentChainBlockData = new ParentChainBlockData
+            {
+                Root = new ParentChainBlockRootInfo
+                {
+                    ParentChainHeight = 1,
+                    ParentChainId = parentChainId,
+                    SideChainTransactionsRoot = merkleTreeRoot
+                }
+            };
+            long sideChainHeight = 1;
+            parentChainBlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                ParentChainBlockData = {parentChainBlockData}
+            };
+            
+            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            var block = await MineAsync(new List<Transaction> {indexingTx});
+            
+            var serializedMerklePath = await CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetMerklePathByHeightMethodName, sideChainHeight);
+            var deserializedMerklePath = serializedMerklePath.DeserializeToPbMessage<MerklePath>();
+            Assert.Equal(merklePath, deserializedMerklePath);
+            Assert.Equal(merkleTreeRoot, deserializedMerklePath.ComputeRootWith(txHash));
+        }
+
+        [Fact]
+        public async Task CrossChain_Verification()
+        {
+            int parentChainId = 123;
+            ulong lockedToken = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            var txHash = Hash.FromString("sideChainBlockHash");
+            var binaryMerkleTree = new BinaryMerkleTree();
+            var fakeHash1 = Hash.FromString("fake1");
+            var fakeHash2 = Hash.FromString("fake2");
+
+            binaryMerkleTree.AddNodes(new[] {txHash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var parentChainHeight = 1;
+            var parentChainBlockData = new ParentChainBlockData
+            {
+                Root = new ParentChainBlockRootInfo
+                {
+                    ParentChainHeight = parentChainHeight,
+                    ParentChainId = parentChainId,
+                    SideChainTransactionsRoot = merkleTreeRoot
+                }
+            };
+            long sideChainHeight = 1;
+            parentChainBlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                ParentChainBlockData = {parentChainBlockData}
+            };
+            
+            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            var block = await MineAsync(new List<Transaction> {indexingTx});
+            
+            var merklePathForFakeHash1 = binaryMerkleTree.GenerateMerklePath(1);
+            var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
+                CrossChainConsts.VerifyTransactionMethodName, fakeHash1, merklePathForFakeHash1, parentChainHeight);
+            Assert.True(BitConverter.ToBoolean(txRes.RetVal.ToByteArray()));
+        }
+        #endregion
     }
 }

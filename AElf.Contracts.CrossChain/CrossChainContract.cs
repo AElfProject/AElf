@@ -252,6 +252,22 @@ namespace AElf.Contracts.CrossChain
 
         #region Cross chain actions
 
+        [View]
+        public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(long height)
+        {
+            var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[height];
+            Assert(indexedCrossChainBlockData != null);
+            return indexedCrossChainBlockData;
+        }
+
+        [View]
+        public MerklePath GetMerklePathByHeight(long selfHeight)
+        {
+            var merklePath = State.TxRootMerklePathInParentChain[selfHeight];
+            Assert(merklePath != null);
+            return merklePath;
+        }
+        
         public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             //Assert(IsMiner(), "Not authorized to do this.");
@@ -272,14 +288,6 @@ namespace AElf.Contracts.CrossChain
 //                CrossChainBlockData = crossChainBlockData,
 //                Sender = Context.Sender // for validation 
 //            });
-        }
-
-        [View]
-        public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(long height)
-        {
-            var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[height];
-            Assert(indexedCrossChainBlockData != null);
-            return indexedCrossChainBlockData;
         }
 
         /// <summary>
