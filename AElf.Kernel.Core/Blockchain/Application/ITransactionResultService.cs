@@ -53,6 +53,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chain = await _blockchainService.GetChainAsync();
             var hash = chain.BestChainHash;
+            var until = chain.LastIrreversibleBlockHeight > 1 ? chain.LastIrreversibleBlockHeight - 1 : 1;
             while (true)
             {
                 var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
@@ -68,8 +69,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     return result;
                 }
-
-                var until = chain.LastIrreversibleBlockHeight > 1 ? chain.LastIrreversibleBlockHeight - 1 : 0;
+                
                 if (header.Height <= until)
                 {
                     // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
