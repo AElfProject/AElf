@@ -4,7 +4,7 @@
     <RootNamespace>AElf.Kernel</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.7.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
