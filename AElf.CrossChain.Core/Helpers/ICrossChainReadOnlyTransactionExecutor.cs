@@ -13,7 +13,7 @@ namespace AElf.CrossChain
     public interface ICrossChainReadOnlyTransactionExecutor
     {
         Task<T> ReadByTransactionAsync<T>(Address toAddress, string methodName, Hash previousBlockHash,
-            ulong preBlockHeight, params object[] @params);
+            long preBlockHeight, params object[] @params);
     }
     
     public class CrossChainReadOnlyTransactionExecutor : ICrossChainReadOnlyTransactionExecutor
@@ -28,13 +28,13 @@ namespace AElf.CrossChain
             _accountService = accountService;
         }
 
-        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(ulong height)
+        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(long height)
         {
             throw new System.NotImplementedException();
         }
 
         public async Task<T> ReadByTransactionAsync<T>(Address toAddress, string methodName, Hash previousBlockHash,
-            ulong preBlockHeight, params object[] @params)
+            long preBlockHeight, params object[] @params)
         {
             var transaction = await GenerateReadOnlyTransaction(toAddress: toAddress, methodName: methodName, @params: @params);
             var trace = await ExecuteReadOnlyTransaction(transaction: transaction, 
@@ -59,7 +59,7 @@ namespace AElf.CrossChain
 
         //TODO: move ExecuteReadOnlyTransaction to smart contract execution project
         private async Task<TransactionTrace> ExecuteReadOnlyTransaction(Transaction transaction,
-            Hash previousBlockHash, ulong preBlockHeight)
+            Hash previousBlockHash, long preBlockHeight)
         {
             var trace = new TransactionTrace()
             {

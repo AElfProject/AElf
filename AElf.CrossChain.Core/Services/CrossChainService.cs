@@ -23,7 +23,7 @@ namespace AElf.CrossChain
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash,
-            ulong preBlockHeight)
+            long preBlockHeight)
         {
             var res = new List<SideChainBlockData>();
             await _crossChainDataProvider.GetSideChainBlockDataAsync(res, previousBlockHash, preBlockHeight);
@@ -31,7 +31,7 @@ namespace AElf.CrossChain
         }
 
         public async Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash,
-            ulong preBlockHeight)
+            long preBlockHeight)
         {
             var res = new List<ParentChainBlockData>();
             await _crossChainDataProvider.GetParentChainBlockDataAsync(res, previousBlockHash, preBlockHeight);
@@ -39,14 +39,14 @@ namespace AElf.CrossChain
         }
 
         public async Task<bool> ValidateSideChainBlockDataAsync(
-            IList<SideChainBlockData> sideChainBlockData, Hash previousBlockHash, ulong preBlockHeight)
+            IList<SideChainBlockData> sideChainBlockData, Hash previousBlockHash, long preBlockHeight)
         {
             return await _crossChainDataProvider.GetSideChainBlockDataAsync(sideChainBlockData, 
                 previousBlockHash, preBlockHeight, true);
         }
         
         public async Task<bool> ValidateParentChainBlockDataAsync(
-            IList<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, ulong preBlockHeight)
+            IList<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, long preBlockHeight)
         {
             return await _crossChainDataProvider.GetParentChainBlockDataAsync(parentChainBlockData, 
                 previousBlockHash, preBlockHeight, true);

@@ -192,7 +192,7 @@ namespace AElf.CrossChain.Grpc.Server
             return Task.FromResult(new IndexingRequestResult{Result = true});
         }
 
-        private async Task<Block> GetIrreversibleBlockByHeightAsync( ulong height)
+        private async Task<Block> GetIrreversibleBlockByHeightAsync( long height)
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.LastIrreversibleBlockHeight < height)

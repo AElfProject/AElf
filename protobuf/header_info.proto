@@ -6,7 +6,7 @@ import "crosschain.proto";
 
 message RequestCrossChainBlockData {
     int32 SideChainId = 1; // parent(own) chain id
-    uint64 NextHeight = 2;
+    int64 NextHeight = 2;
 }
 
 message ResponseSideChainBlockData {
@@ -44,7 +44,7 @@ message MerkleProofMessage {
 
 message VerificationNeededMessage {
     int32 SideChainId = 1;
-    uint64 BlockHeight = 2;
+    int64 BlockHeight = 2;
 }
 
 service MerkleProofInfoRpc {

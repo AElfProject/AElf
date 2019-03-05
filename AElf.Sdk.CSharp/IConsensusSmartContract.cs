@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp
         ValidationResult ValidateConsensus(byte[] consensusInformation);
         IMessage GetNewConsensusInformation(byte[] extraInformation);
 
-        TransactionList GenerateConsensusTransactions(ulong preBlockHeight, byte[] preBlockPrefix,
+        TransactionList GenerateConsensusTransactions(long preBlockHeight, byte[] preBlockPrefix,
             byte[] extraInformation);
         IMessage GetConsensusCommand(byte[] extraInformation);
     }

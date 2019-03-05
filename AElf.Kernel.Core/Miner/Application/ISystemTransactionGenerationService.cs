@@ -5,6 +5,6 @@ namespace AElf.Kernel.Miner.Application
 {
     public interface ISystemTransactionGenerationService
     {
-        List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight, Hash preBlockHash);
+        List<Transaction> GenerateSystemTransactions(Address from, long preBlockHeight, Hash preBlockHash);
     }
 }
