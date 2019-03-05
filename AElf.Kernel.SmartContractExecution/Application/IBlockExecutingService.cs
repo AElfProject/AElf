@@ -131,8 +131,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
 
                     // TODO: Should we let the handler decide whether to await?
-                    _ = LocalEventBus.PublishAsync(
-                        new BestChainFoundEventData()
+                    await LocalEventBus.PublishAsync(
+                        new BestChainFoundEventData
                         {
                             BlockHash = chain.BestChainHash,
                             BlockHeight = chain.BestChainHeight,

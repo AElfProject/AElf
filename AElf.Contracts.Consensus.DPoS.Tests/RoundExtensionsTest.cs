@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
                 var isTimeSlotPassed = round.IsTimeSlotPassed(firstMinerPublicKey, testTimestamp, out _);
 
-                isTimeSlotPassed.ShouldBe(true);
+                isTimeSlotPassed.ShouldBe(false);
             }
 
             // Time slot passed but still in current round.
@@ -163,7 +163,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
-            var roundAfter = round.ApplyNormalConsensusData(publicKey, outValue, Hash.Default, actualMiningTime);
+            var roundAfter =
+                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -192,7 +193,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
-            var roundAfter = round.ApplyNormalConsensusData(publicKey, outValue, Hash.Default, actualMiningTime);
+            var roundAfter =
+                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -220,7 +222,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
-            var roundAfter = round.ApplyNormalConsensusData(publicKey, outValue, Hash.Default, actualMiningTime);
+            var roundAfter =
+                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
 
             var minerInRoundAfter = roundAfter.RealTimeMinersInformation[publicKey];
 

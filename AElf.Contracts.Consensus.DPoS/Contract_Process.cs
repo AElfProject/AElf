@@ -352,19 +352,11 @@ namespace AElf.Contracts.Consensus.DPoS
             nextRound.ExtraBlockProducerOfPreviousRound = senderPublicKey;
 
             // TODO: Miners replacement during one term.
-//            if (TryToGetCurrentRoundInformation(out var currentRoundInformation) &&
-//                forwarding.NextRound.RealTimeMinersInformation.Keys.Count == GetProducerNumber() &&
-//                TryToGetTermNumber(out var termNumber))
-//            {
-//                var miners = forwarding.NextRound.RealTimeMinersInformation.Keys.ToMiners();
-//                miners.TermNumber = termNumber;
-//                SetMiners(miners, true);
-//            }
 
             // Update the age of this blockchain
             SetBlockAge(nextRound.BlockchainAge);
 
-            Assert(TryToGetPreviousRoundInformation(out var currentRound));
+            Assert(TryToGetCurrentRoundInformation(out var currentRound), "Failed to get current round information.");
 
             // Update missed time slots and produced blocks for each miner.
             foreach (var minerInRound in currentRound.RealTimeMinersInformation)
@@ -511,6 +503,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 var minersCount = currentRoundMiners.Count;
 
                 var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+
+                if (minersCount < 3)
+                {
+                    minersCount = minimumCount;
+                }
+                
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
                 var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
 

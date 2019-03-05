@@ -56,6 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetCurrentRoundInformation(out Round roundInformation)
         {
+            roundInformation = null;
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
@@ -65,7 +66,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            roundInformation = new Round();
             return false;
         }
 

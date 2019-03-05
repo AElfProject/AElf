@@ -242,21 +242,61 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             await testers.Testers[0]
                 .GenerateConsensusTransactionsAndMineABlock(triggerInformationForInitialTerm, testers.Testers[1]);
 
-            var inValue = Hash.Generate();
-            var triggerInformationForNormalBlock =
-                GetTriggerInformationForNormalBlock(testers.Testers[1].CallOwnerKeyPair.PublicKey.ToHex(), inValue);
-            await testers.Testers[1]
-                .GenerateConsensusTransactionsAndMineABlock(triggerInformationForNormalBlock, testers.Testers[0]);
-            
             // Act
-            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
-            var actual = await testers.Testers[1].GetConsensusCommand(futureTime);
+            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 1).ToTimestamp();
+            var actual = await testers.Testers[0].GetConsensusCommand(futureTime);
 
             // Assert
             Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
+            Assert.True(actual.CountingMilliseconds > 0);
+            Assert.Equal(4000, actual.TimeoutMilliseconds);
+        }
+        
+        [Fact]
+        public async Task ExtraBlock_GetNewConsensusInformation()
+        {
+            var testers = new ConsensusTesters();
+            testers.InitialTesters();
+
+            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
+
+            await testers.Testers[0]
+                .GenerateConsensusTransactionsAndMineABlock(triggerInformationForInitialTerm, testers.Testers[1]);
+
+            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
+            var triggerInformationForNextRoundOrTerm =
+                GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].CallOwnerKeyPair.PublicKey.ToHex(), futureTime);
+
+            // Act
+            var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformation(triggerInformationForNextRoundOrTerm);
+
+            // Assert
+            Assert.Equal(2UL,  newConsensusInformation.Round.RoundNumber);
+        }
+        
+        [Fact]
+        public async Task ExtraBlock_GenerateConsensusTransactions()
+        {
+            var testers = new ConsensusTesters();
+            testers.InitialTesters();
+
+            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
+
+            await testers.Testers[0]
+                .GenerateConsensusTransactionsAndMineABlock(triggerInformationForInitialTerm, testers.Testers[1]);
+
+            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
+            var triggerInformationForNextRoundOrTerm =
+                GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].CallOwnerKeyPair.PublicKey.ToHex(), futureTime);
+
+            // Act
+            var consensusTransactions = await testers.Testers[1].GenerateConsensusTransactions(triggerInformationForNextRoundOrTerm);
+
+            // Assert
+            Assert.Equal(DPoSBehaviour.NextRound.ToString(),  consensusTransactions.First().MethodName);
         }
 
-        private DPoSTriggerInformation GetTriggerInformationForInitialTerm(List<ECKeyPair> stubMiners)
+        private DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
         {
             return new DPoSTriggerInformation
             {

@@ -99,7 +99,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         }
 
         /// <summary>
-        /// For now, if current time is behind the start of expected mining time slot,
+        /// For now, if current time is behind the end of expected mining time slot,
         /// we can say this node missed his time slot.
         /// </summary>
         /// <param name="round"></param>
@@ -111,10 +111,12 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             out MinerInRound minerInRound)
         {
             minerInRound = null;
+            var miningInterval = round.GetMiningInterval();
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 minerInRound = round.RealTimeMinersInformation[publicKey];
-                return minerInRound.ExpectedMiningTime.ToDateTime() < timestamp.ToDateTime();
+                return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds(miningInterval) <
+                       timestamp.ToDateTime();
             }
 
             return false;
@@ -141,9 +143,18 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 miningInterval = round.GetMiningInterval();
             }
 
-            if (!round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound))
+            if (!round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound) && minerInRound.OutValue == null)
             {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+            }
+
+            if (round.GetExtraBlockProducerInformation().PublicKey == publicKey)
+            {
+                var distance = (round.GetExtraBlockMiningTime() - timestamp.ToDateTime()).TotalMilliseconds;
+                if (distance > 0)
+                {
+                    return timestamp.ToDateTime().AddMilliseconds(distance).ToTimestamp();
+                }
             }
 
             if (round.RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
@@ -175,12 +186,14 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(miningInterval);
         }
-        
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature, Timestamp timestamp)
+
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash PreviousInValue,
+            Hash outValue, Hash signature, Timestamp timestamp)
         {
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 round.RealTimeMinersInformation[publicKey].ActualMiningTime = timestamp;
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = PreviousInValue;
                 round.RealTimeMinersInformation[publicKey].OutValue = outValue;
                 if (round.RoundNumber != 1)
                 {
@@ -194,9 +207,10 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 var minersCount = round.RealTimeMinersInformation.Count;
                 var sigNum =
                     BitConverter.ToUInt64(
-                        BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+                        BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
+                        0);
                 var orderOfNextRound = Math.Abs(GetModulus(sigNum, minersCount));
-                
+
                 // Check the existence of conflicts about OrderOfNextRound.
                 // If so, modify others'.
                 var conflicts = round.RealTimeMinersInformation.Values
@@ -205,7 +219,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 foreach (var minerInRound in conflicts)
                 {
                     // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
-                    
+
                     for (var i = minerInRound.Order + 1; i < minersCount * 2 + 1; i++)
                     {
                         if (round.RealTimeMinersInformation.Values.All(m => m.OrderOfNextRound != i))
@@ -270,8 +284,15 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             }
 
             var extraBlockProducerOrder = round.CalculateNextExtraBlockProducerOrder();
-            nextRound.RealTimeMinersInformation.Values.First(m => m.Order == extraBlockProducerOrder)
-                .IsExtraBlockProducer = true;
+            var expectedExtraBlockProducer = nextRound.RealTimeMinersInformation.Values.FirstOrDefault(m => m.Order == extraBlockProducerOrder);
+            if (expectedExtraBlockProducer == null)
+            {
+                nextRound.RealTimeMinersInformation.Values.First().IsExtraBlockProducer = true;
+            }
+            else
+            {
+                expectedExtraBlockProducer.IsExtraBlockProducer = true;
+            }
             
             return true;
         }
@@ -279,6 +300,11 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
         {
             var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
+            if (firstPlaceInfo == null)
+            {
+                // If no miner produce block during this round, just appoint the first miner to be the extra block producer of next round.
+                return 1;
+            }
             var signature = firstPlaceInfo.Signature;
             var sigNum = BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
