@@ -13,7 +13,6 @@ namespace AElf.Kernel.SmartContract.Application
     //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
     public class SmartContractService : ISmartContractService, ISingletonDependency
     {
-        private readonly ISmartContractManager _smartContractManager;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
@@ -23,11 +22,10 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IBlockchainService _chainService;
 
-        public SmartContractService(ISmartContractManager smartContractManager,
+        public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IFunctionMetadataService functionMetadataService, IBlockchainService chainService)
         {
-            _smartContractManager = smartContractManager;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _functionMetadataService = functionMetadataService;
@@ -40,14 +38,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
-            runner.CodeCheck(registration.Code.ToByteArray(), isPrivileged);
+            await Task.Run(() => runner.CodeCheck(registration.Code.ToByteArray(), isPrivileged));
 
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);
 //            var contractTemplate = runner.ExtractMetadata(contractType);
 //            await _functionMetadataService.DeployContract(contractAddress, contractTemplate);
-
-            await _smartContractManager.InsertAsync(registration);
         }
 
         public async Task UpdateContractAsync(Address contractAddress,
@@ -55,7 +51,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
-            runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged);
+            await Task.Run(() => runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged));
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);
@@ -66,8 +62,6 @@ namespace AElf.Kernel.SmartContract.Application
 //            var newContractTemplate = runner.ExtractMetadata(newContractType);
 //            await _functionMetadataService.UpdateContract(contractAddress, newContractTemplate,
 //                oldContractTemplate);
-
-            await _smartContractManager.InsertAsync(newRegistration);
         }
 
 //        public async Task<IMessage> GetAbiAsync(Address account)
@@ -92,7 +86,7 @@ namespace AElf.Kernel.SmartContract.Application
 //            // deserialize
 //            return method.DeserializeParams(parameters);
 //        }
-        
+
 //        private IMessage GetAbiAsync(SmartContractRegistration reg)
 //        {
 //            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
@@ -118,6 +112,5 @@ namespace AElf.Kernel.SmartContract.Application
 //
 //            return runner.GetContractType(registration);
 //        }
-
     }
 }
