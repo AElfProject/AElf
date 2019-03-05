@@ -34,7 +34,7 @@ namespace AElf.Runtime.CSharp.Tests
             // Test transaction fee
             _contract1.TransferAndGetTrace(Address.Zero, account0, 100, out var trace);
             var feeTxn =
-                trace.InlineTransactions.Single(tr => tr.MethodName == nameof(ITokenCotract.ChargeTransactionFees));
+                trace.InlineTransactions.Single(tr => tr.MethodName == nameof(ITokenContract.ChargeTransactionFees));
             var feeAmount = (ulong) ParamsPacker.Unpack(feeTxn.Params.ToByteArray(), new[] {typeof(ulong)}).First();
             Assert.Equal(100UL, feeAmount);
         }
