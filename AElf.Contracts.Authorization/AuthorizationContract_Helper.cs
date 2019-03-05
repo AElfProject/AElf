@@ -8,7 +8,7 @@ namespace AElf.Contracts.Authorization
         {
             var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
             var round = State.ConsensusContract.GetRoundInfo(roundNumber);
-            return new Miners {PublicKeys = {round.RealTimeMinersInfo.Keys}};
+            return new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
         }
     }
 }
