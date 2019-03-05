@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Shouldly;
@@ -15,6 +17,7 @@ namespace AElf.Kernel.Blockchain.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
+        private readonly ITransactionResultManager _transactionResultManager;
         private readonly ILocalEventBus _localEventBus;
         private Block GenesisBlock { get; }
 
@@ -22,6 +25,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
+            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
             GenesisBlock = new Block()
             {
@@ -146,6 +150,107 @@ namespace AElf.Kernel.Blockchain.Application
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
+        }
+
+        [Fact]
+        public async Task Query_TransactionResult_On_BestChain()
+        {
+            await _blockchainService.CreateChainAsync(GenesisBlock);
+            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
+            var (block11, results11) =
+                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx},
+                    ByteString.CopyFromUtf8("branch_1"));
+            var (block21, results21) =
+                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx},
+                    ByteString.CopyFromUtf8("branch_2"));
+
+            // Add branch 1
+            await AddTransactionResultsWithPostMiningAsync(block11, new[] {results11.First()});
+
+            // Add branch 2
+            await AddTransactionResultsWithPostMiningAsync(block21, new[] {results21.First()});
+
+            Assert.NotEqual(results11.First(), results21.First());
+
+            var chain = await _blockchainService.GetChainAsync();
+
+            // Set BestChain to branch 1
+            await _blockchainService.SetBestChainAsync(chain, block11.Height, block11.Header.GetHash());
+            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
+            queried.ShouldBe(results11.First());
+
+            // Set BestChain to branch 2
+            await _blockchainService.SetBestChainAsync(chain, block21.Height, block21.Header.GetHash());
+            queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
+            queried.ShouldBe(results21.First());
+        }
+
+        [Fact]
+        public async Task Query_TransactionResult_On_Irreversible_Chain()
+        {
+            await _blockchainService.CreateChainAsync(GenesisBlock);
+            var tx1 = GetDummyTransactionWithMethodNameAsId("tx1");
+            var (block11, results11) =
+                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx1});
+
+            var tx2 = GetDummyTransactionWithMethodNameAsId("tx2");
+            var (block12, results12) =
+                GetNextBlockWithTransactionAndResults(block11.Header, new[] {tx2});
+
+            // Add block 1
+            await AddTransactionResultsWithPreMiningAsync(block11, new[] {results11.First()});
+
+            // Add block 2
+            await AddTransactionResultsWithPostMiningAsync(block12, new[] {results12.First()});
+
+
+            #region Before LIB
+
+            // Before LIB, transaction result is saved with PreMiningHash but not with PostMiningHash (normal BlockHash)
+            {
+                var queried = await _transactionResultService.GetTransactionResultAsync(tx2.GetHash());
+                queried.ShouldBe(results12.First());
+                // PreMiningHash
+                var resultWithPreMiningHash =
+                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                        block11.Header.GetPreMiningHash());
+                resultWithPreMiningHash.ShouldBe(results11.First());
+
+                // PostMiningHash
+                var resultWithPostMiningHash =
+                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                        block11.Header.GetHash());
+                resultWithPostMiningHash.ShouldBeNull();
+            }
+
+            #endregion
+
+            await _localEventBus.PublishAsync(new NewIrreversibleBlockFoundEvent()
+            {
+                BlockHash = block11.GetHash(),
+                BlockHeight = block11.Height
+            });
+
+            #region After LIB
+
+            // After LIB, transaction result is re-saved with PostMiningHash (normal BlockHash)
+            {
+                var queried = await _transactionResultService.GetTransactionResultAsync(tx2.GetHash());
+                queried.ShouldBe(results12.First());
+                // PreMiningHash
+                var resultWithPreMiningHash =
+                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                        block11.Header.GetPreMiningHash());
+                resultWithPreMiningHash.ShouldBeNull();
+
+                // PostMiningHash
+                var resultWithPostMiningHash =
+                    await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
+                        block11.Header.GetHash());
+                resultWithPostMiningHash.ShouldBe(results11.First());
+            }
+
+            #endregion
         }
     }
 }
