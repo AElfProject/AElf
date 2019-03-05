@@ -86,7 +86,7 @@ message TransactionResult {
     TransactionResultStatus Status = 2;
     repeated LogEvent Logs = 3;
     bytes Bloom = 4;
-    bytes RetVal = 5;
+    bytes ReturnValue = 5;
     int64 BlockNumber = 6;
     Hash BlockHash = 7;
     int32 Index = 8;

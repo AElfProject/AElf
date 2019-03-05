@@ -93,7 +93,7 @@ namespace AElf.Contracts.Token
             var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Initialize",
                 "ELF", "elf token", 1000_000UL, 2U);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            var returnMessage = result.RetVal.ToStringUtf8();
+            var returnMessage = result.ReturnValue.ToStringUtf8();
             returnMessage.Contains("Already initialized.").ShouldBeTrue();
         }
 
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Token
             var result = Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Transfer",
                 Tester.GetAddress(toAddress), 1000UL);
             result.Result.Status.ShouldBe(TransactionResultStatus.Failed);
-            var returnMessage = result.Result.RetVal.ToStringUtf8();
+            var returnMessage = result.Result.ReturnValue.ToStringUtf8();
             var bytes = await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf",
                 Tester.GetAddress(fromAddress));
             var balance = bytes.DeserializeToUInt64();
@@ -208,7 +208,7 @@ namespace AElf.Contracts.Token
                 await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "TransferFrom", owner, spender,
                     1000UL);
             result2.Status.ShouldBe(TransactionResultStatus.Failed);
-            var returnMessage = result2.RetVal.ToStringUtf8();
+            var returnMessage = result2.ReturnValue.ToStringUtf8();
             returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
 
             var bytes2 = await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance", owner, spender);
@@ -233,7 +233,7 @@ namespace AElf.Contracts.Token
                 await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "TransferFrom", owner, spender,
                     1000UL);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            var returnMessage = result.RetVal.ToStringUtf8();
+            var returnMessage = result.ReturnValue.ToStringUtf8();
             returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
         }
 
@@ -256,7 +256,7 @@ namespace AElf.Contracts.Token
             Tester.SetCallOwner(burnerAddress);
             var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Burn",
                 3000UL);
-            var returnMessage = result.RetVal.ToStringUtf8();
+            var returnMessage = result.ReturnValue.ToStringUtf8();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             returnMessage.Contains("Burner doesn't own enough balance.").ShouldBeTrue();
         }
@@ -282,7 +282,7 @@ namespace AElf.Contracts.Token
             await Initialize_TokenContract();
             var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "ClaimTransactionFees", 1UL);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.RetVal.ToStringUtf8().Contains("Fee pool address is not set.").ShouldBeTrue();
+            result.ReturnValue.ToStringUtf8().Contains("Fee pool address is not set.").ShouldBeTrue();
         }
 
         [Fact]

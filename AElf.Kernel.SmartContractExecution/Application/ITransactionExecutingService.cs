@@ -172,7 +172,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
-                        RetVal = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                        ReturnValue = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
                         BlockNumber = blockHeight,
                         //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
@@ -192,7 +192,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var txResF = new TransactionResult()
                     {
                         TransactionId = trace.TransactionId,
-                        RetVal = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
+                        ReturnValue = ByteString.CopyFromUtf8(trace.StdErr), // Is this needed?
                         Status = TransactionResultStatus.Failed,
                         StateHash = Hash.Default
                     };
@@ -201,7 +201,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var txResITF = new TransactionResult()
                     {
                         TransactionId = trace.TransactionId,
-                        RetVal = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
+                        ReturnValue = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
                         Status = TransactionResultStatus.Failed,
                         StateHash = trace.GetSummarizedStateHash()
                     };
