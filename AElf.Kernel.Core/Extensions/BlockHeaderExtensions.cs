@@ -4,9 +4,18 @@ namespace AElf.Kernel
 {
     public static class BlockHeaderExtensions
     {
-        public static Hash GetDisambiguationHash(this BlockHeader blockHeader)
+        public static bool IsMined(this BlockHeader blockHeader)
         {
-            return HashHelpers.GetDisambiguationHash(blockHeader.Height, Hash.FromRawBytes(blockHeader.P.ToByteArray()));
+            return blockHeader.MerkleTreeRootOfTransactions != null;
+        }
+
+        public static Hash GetPreMiningHash(this BlockHeader blockHeader)
+        {
+            return new BlockHeader()
+            {
+                PreviousBlockHash = blockHeader.PreviousBlockHash,
+                Height = blockHeader.Height
+            }.GetHash();
         }
     }
 }

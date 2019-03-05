@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Domain;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -27,10 +29,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IChainManager _chainManager; 
 
-        public BlockGenerationService(IBlockExtraDataService blockExtraDataService)
+        public BlockGenerationService(IBlockExtraDataService blockExtraDataService, IChainManager chainManager)
         {
             _blockExtraDataService = blockExtraDataService;
+            _chainManager = chainManager;
         }
 
         public async Task<Block> GenerateBlockBeforeExecutionAsync(GenerateBlockDto generateBlockDto)
@@ -39,6 +43,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 Header = new BlockHeader
                 {
+                    ChainId = _chainManager.GetChainId(),
                     Height = generateBlockDto.PreviousBlockHeight + 1,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
                     Time = Timestamp.FromDateTime(generateBlockDto.BlockTime)

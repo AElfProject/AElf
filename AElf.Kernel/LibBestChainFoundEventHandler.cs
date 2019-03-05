@@ -22,7 +22,7 @@ namespace AElf.Kernel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockManager _blockManager;
-        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly IChainManager _chainManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
 
@@ -31,12 +31,12 @@ namespace AElf.Kernel
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService, IBlockManager blockManager,
-            ITransactionResultManager transactionResultManager, IChainManager chainManager,
+            ITransactionResultQueryService transactionResultQueryService, IChainManager chainManager,
             IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockManager = blockManager;
-            _transactionResultManager = transactionResultManager;
+            _transactionResultQueryService = transactionResultQueryService;
             _chainManager = chainManager;
             _blockchainStateManager = blockchainStateManager;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -58,7 +58,7 @@ namespace AElf.Kernel
 
                 foreach (var transactionHash in block.Body.Transactions)
                 {
-                    var result = await _transactionResultManager.GetTransactionResultAsync(transactionHash);
+                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionHash);
                     foreach (var contractEvent in result.Logs)
                     {
                         if (contractEvent.Address ==
