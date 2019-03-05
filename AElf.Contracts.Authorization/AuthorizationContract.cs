@@ -83,7 +83,7 @@ namespace AElf.Contracts.Authorization
             Address multiSigAccount = authorization.MultiSigAccount ??
                                       Address.FromPublicKey(authorization.ToByteArray().ToArray());
             var existing = State.MultiSig[multiSigAccount];
-            Assert(existing.IsEmpty(), "MultiSigAccount already existed.");
+            Assert(existing == null, "MultiSigAccount already existed.");
             uint accumulatedWeights =
                 authorization.Reviewers.Aggregate<Reviewer, uint>(0, (weights, r) => weights + r.Weight);
 
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Authorization
 
             Hash hash = proposal.GetHash();
             var existing = State.Proposals[hash];
-            Assert(existing.IsEmpty(), "Proposal already created.");
+            Assert(existing == null, "Proposal already created.");
 
             // check authorization of proposer public key
             var auth = GetAuthorization(proposal.MultiSigAccount);
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Authorization
 
             var approved = State.Approved[hash];
             // check approval not existed
-            Assert(approved.IsEmpty() || !approved.Approvals.Contains(approval),
+            Assert(approved == null || !approved.Approvals.Contains(approval),
                 "Approval already existed.");
 
             var proposal = State.Proposals[hash];
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Authorization
                     r.PubKey.Equals(ByteString.CopyFrom(Context.RecoverPublicKey())));
                 var proposerPerm = reviewer?.Weight ?? 0;
                 Assert(Context.Sender.Equals(proposal.Proposer) &&
-                    proposerPerm >= authorization.ProposerThreshold, "Unable to propose.");
+                       proposerPerm >= authorization.ProposerThreshold, "Unable to propose.");
             }
 
             // No need to check authority if threshold is 0.
