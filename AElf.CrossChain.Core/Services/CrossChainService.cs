@@ -57,7 +57,7 @@ namespace AElf.CrossChain
             _crossChainDataProvider.RegisterNewChain(_chainManager.GetChainId());
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, ulong previousBlockHeight)
+        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);

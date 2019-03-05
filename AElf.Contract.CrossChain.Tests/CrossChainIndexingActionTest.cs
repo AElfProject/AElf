@@ -219,7 +219,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task GetParentChainHeight()
         {
             int parentChainId = 123;
-            ulong parentChainHeight = 1;
+            long parentChainHeight = 1;
             await InitAndCreateSideChain(parentChainId);
             var parentChainBlockData = new ParentChainBlockData
             {
@@ -240,7 +240,7 @@ namespace AElf.Contract.CrossChain.Tests
             (await GetTransactionResult(tx.GetHash())).Status.ShouldBe(TransactionResultStatus.Mined);
 
             var bytes = await CallContractMethodAsync(CrossChainContractAddress, CrossChainConsts.GetParentChainHeightMethodName);
-            Assert.True(parentChainHeight == bytes.DeserializeToUInt64());
+            Assert.True(parentChainHeight == bytes.DeserializeToInt64());
         }
         
         [Fact]

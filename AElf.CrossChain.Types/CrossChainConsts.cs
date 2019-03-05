@@ -17,6 +17,6 @@ namespace AElf.CrossChain
         public const string GetParentChainIdMethodName = "GetParentChainId";
         public const string GetIndexedCrossChainBlockDataByHeight = "GetIndexedCrossChainBlockDataByHeight";
         public const string GetLockedBalanceMethodName = "LockedBalance";
-        public const ulong GenesisBlockHeight = 1;
+        public const long GenesisBlockHeight = 1;
     }
 }

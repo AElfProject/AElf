@@ -275,7 +275,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(ulong height)
+        public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(long height)
         {
             var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[height];
             Assert(indexedCrossChainBlockData != null);
@@ -350,7 +350,7 @@ namespace AElf.Contracts.CrossChain
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : CrossChainConsts.GenesisBlockHeight;
-                ulong sideChainHeight = blockInfo.SideChainHeight;
+                long sideChainHeight = blockInfo.SideChainHeight;
                 if (target != sideChainHeight)
                     continue;
 

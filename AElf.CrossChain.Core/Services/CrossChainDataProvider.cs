@@ -130,13 +130,13 @@ namespace AElf.CrossChain
             _crossChainDataConsumer.RegisterNewChainCache(chainId, 0);
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, ulong previousBlockHeight)
+        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             var chainContext = GenerateChainContext(previousBlockHash, previousBlockHeight);
             return await _crossChainContractReader.GetCrossChainBlockDataAsync(chainContext);
         }
 
-        private IChainContext GenerateChainContext(Hash blockHash, ulong blockHeight)
+        private IChainContext GenerateChainContext(Hash blockHash, long blockHeight)
         {
             var chainContext = new ChainContext
             {
