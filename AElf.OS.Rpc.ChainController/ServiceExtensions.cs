@@ -219,7 +219,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         internal static async Task<TransactionTrace> GetTransactionTrace(this ChainControllerRpcService s, 
-            Hash txHash, ulong height)
+            Hash txHash, long height)
         {
             var b = await s.GetBlockAtHeight(height);
             if (b == null)
@@ -262,13 +262,13 @@ namespace AElf.OS.Rpc.ChainController
             return output;
         }
 
-        internal static async Task<ulong> GetCurrentChainHeight(this ChainControllerRpcService s)
+        internal static async Task<long> GetCurrentChainHeight(this ChainControllerRpcService s)
         {
             var chainContext = await s.BlockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
         }
 
-        internal static async Task<Block> GetBlockAtHeight(this ChainControllerRpcService s, ulong height)
+        internal static async Task<Block> GetBlockAtHeight(this ChainControllerRpcService s, long height)
         {
             return await s.BlockchainService.GetBlockByHeightAsync(height);
         }

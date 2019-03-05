@@ -2,8 +2,8 @@ namespace AElf.CrossChain.Cache
 {
     public interface ICrossChainDataConsumer
     {
-        IBlockInfo TryTake(int crossChainId, ulong height, bool isCacheSizeLimited);
+        IBlockInfo TryTake(int crossChainId, long height, bool isCacheSizeLimited);
         int GetCachedChainCount();
-        void RegisterNewChainCache(int chainId, ulong chainHeight);
+        void RegisterNewChainCache(int chainId, long chainHeight);
     }
 }

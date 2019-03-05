@@ -68,7 +68,7 @@ namespace AElf.Kernel
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
                             var indexingEventData = ExtractLibFoundData(contractEvent);
-                            var offset = (ulong) indexingEventData[0];
+                            var offset = (long) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;
 
                             var chain = await _blockchainService.GetChainAsync();

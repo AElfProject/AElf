@@ -22,7 +22,7 @@ namespace AElf.Sdk.CSharp
 
         // TODO: Remove genesis
         Address Genesis { get; }
-        ulong CurrentHeight { get; }
+        long CurrentHeight { get; }
 
         DateTime CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
