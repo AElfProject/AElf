@@ -97,8 +97,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                             break;
                         }
 
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionSuccess);
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                         successLinks.Add(blockLink);
 
@@ -112,8 +111,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 }
                 catch (ValidateNextTimeBlockValidationException ex)
                 {
-                    Logger.LogWarning(
-                        $"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
+                    Logger.LogWarning($"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
                 }
 
 

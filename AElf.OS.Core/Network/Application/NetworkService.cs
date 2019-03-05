@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -88,6 +87,7 @@ namespace AElf.OS.Network.Application
                 }
 
                 var blocks = await p.GetBlocksAsync(blockHash, count);
+
 
                 if (blocks != null)
                     return blocks;
