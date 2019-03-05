@@ -10,12 +10,10 @@ namespace AElf.Kernel.SmartContract.Application
     public class SmartContractServiceTests : SmartContractTestBase
     {
         private readonly SmartContractService _smartContractService;
-        private readonly ISmartContractManager _smartContractManager;
 
         public SmartContractServiceTests()
         {
             _smartContractService = GetRequiredService<SmartContractService>();
-            _smartContractManager = GetRequiredService<ISmartContractManager>();
         }
 
         [Fact]
@@ -28,13 +26,9 @@ namespace AElf.Kernel.SmartContract.Application
                 CodeHash = Hash.FromString("TestDeployContract")
             };
 
-            var existRegistration = await _smartContractManager.GetAsync(registration.CodeHash);
-            existRegistration.ShouldBeNull();
 
             await _smartContractService.DeployContractAsync(Address.Genesis, registration, false);
 
-            existRegistration = await _smartContractManager.GetAsync(registration.CodeHash);
-            existRegistration.ShouldNotBeNull();
         }
 
         [Fact]
@@ -64,13 +58,9 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractService.DeployContractAsync(Address.Genesis, registrationA, false);
             await _smartContractService.UpdateContractAsync(Address.Genesis, registrationANew, false);
 
-            var existRegistrationA = await _smartContractManager.GetAsync(registrationA.CodeHash);
-            existRegistrationA.Code.ShouldBe(registrationANew.Code);
 
             await _smartContractService.UpdateContractAsync(Address.Genesis, registrationB, false);
 
-            existRegistrationA = await _smartContractManager.GetAsync(registrationA.CodeHash);
-            existRegistrationA.Code.ShouldBe(registrationANew.Code);
         }
     }
 }

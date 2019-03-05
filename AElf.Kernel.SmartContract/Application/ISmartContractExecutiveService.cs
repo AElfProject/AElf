@@ -34,7 +34,6 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
     {
-        private readonly ISmartContractManager _smartContractManager;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
@@ -49,13 +48,11 @@ namespace AElf.Kernel.SmartContract.Application
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            ISmartContractManager smartContractManager,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IChainManager chainManager)
         {
             _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
-            _smartContractManager = smartContractManager;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _chainManager = chainManager;
 #if DEBUG
