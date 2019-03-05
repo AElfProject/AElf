@@ -11,7 +11,7 @@ namespace AElf.CrossChain.Cache
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
         }
 
-        public IBlockInfo TryTake(int crossChainId, ulong height, bool isCacheSizeLimited)
+        public IBlockInfo TryTake(int crossChainId, long height, bool isCacheSizeLimited)
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(crossChainId);
             if (blockInfoCache == null)
@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Cache
             return _multiChainBlockInfoCacheProvider.Size;
         }
 
-        public void RegisterNewChainCache(int chainId, ulong chainHeight)
+        public void RegisterNewChainCache(int chainId, long chainHeight)
         {
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, new BlockInfoCache(chainHeight));
         }

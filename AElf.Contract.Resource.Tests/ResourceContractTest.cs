@@ -57,7 +57,7 @@ namespace AElf.Contracts.Resource.Tests
 
             await Tester.MineABlockAsync(new List<Transaction> {tokenTx, resourceTx});
             var chain = await Tester.GetChainAsync();
-            chain.LongestChainHeight.ShouldBeGreaterThanOrEqualTo(1UL);
+            chain.LongestChainHeight.ShouldBeGreaterThanOrEqualTo(1);
         }
 
         [Fact]

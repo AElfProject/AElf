@@ -25,7 +25,7 @@ namespace AElf.Kernel
             Body = new BlockBody();
         }
 
-        public ulong Height
+        public long Height
         {
             get => Header?.Height ?? 0;
             set { }

@@ -4,10 +4,10 @@ namespace AElf.Common
 {
     public static class HashHelpers
     {
-        public static Hash GetDisambiguationHash(ulong blockHeight, Hash pubKeyHash)
+        public static Hash GetDisambiguationHash(long blockHeight, Hash pubKeyHash)
         {
             return Hash.Xor(
-                Hash.FromMessage(new UInt64Value()
+                Hash.FromMessage(new Int64Value()
                 {
                     Value = blockHeight
                 }), pubKeyHash);

@@ -19,7 +19,7 @@ namespace AElf.CrossChain
         }
 
         public async Task<bool> GetSideChainBlockDataAsync(IList<SideChainBlockData> sideChainBlockData,
-            Hash previousBlockHash, ulong preBlockHeight, bool isValidation = false)
+            Hash previousBlockHash, long preBlockHeight, bool isValidation = false)
         {
             if (!isValidation)
             {
@@ -63,7 +63,7 @@ namespace AElf.CrossChain
         }
 
         public async Task<bool> GetParentChainBlockDataAsync(
-            IList<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, ulong preBlockHeight,
+            IList<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, long preBlockHeight,
             bool isValidation = false)
         {
             if (!isValidation && parentChainBlockData.Count > 0)
@@ -83,7 +83,8 @@ namespace AElf.CrossChain
 
             int i = 0;
             var heightInState =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);ulong targetHeight = isValidation ? heightInState : heightInState + 1;
+                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);
+            var targetHeight = isValidation ? heightInState : heightInState + 1;
             var res = true;
             while (i < length)
             {
@@ -107,7 +108,7 @@ namespace AElf.CrossChain
             return res;
         }
 
-        public async Task<bool> ActivateCrossChainCacheAsync(Hash blockHash, ulong blockHeight)
+        public async Task<bool> ActivateCrossChainCacheAsync(Hash blockHash, long blockHeight)
         {
             if (_crossChainDataConsumer.GetCachedChainCount() > 0)
                 // caching layer already initialized

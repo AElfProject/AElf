@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         
         Hash CurrentBlockHash { get; set; }
         
-        ulong CurrentBlockHeight { get; set; }
+        long CurrentBlockHeight { get; set; }
 
         //TODO: help me implement it
         Task<List<Block>> GetBlocksAsync(Hash previousHash, int count);

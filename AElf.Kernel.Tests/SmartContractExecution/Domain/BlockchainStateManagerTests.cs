@@ -21,7 +21,7 @@ namespace AElf.Kernel
         {
             _blockchainStateManager = GetRequiredService<BlockchainStateManager>();
             _tv = new List<TestPair>();
-            for (uint i = 0; i < 200; i++)
+            for (var i = 0; i < 200; i++)
             {
                 _tv.Add(new TestPair()
                 {
@@ -37,7 +37,7 @@ namespace AElf.Kernel
         class TestPair
         {
             public Hash BlockHash;
-            public ulong BlockHeight;
+            public long BlockHeight;
             public string Key;
             public ByteString Value;
         }

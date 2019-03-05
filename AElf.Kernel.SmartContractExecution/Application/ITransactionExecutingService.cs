@@ -159,7 +159,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             return trace;
         }
 
-        private TransactionResult GetTransactionResult(TransactionTrace trace, ulong blockHeight)
+        private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
             switch (trace.ExecutionStatus)
             {
