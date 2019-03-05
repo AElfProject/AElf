@@ -13,18 +13,19 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 {
     public static class ContractTesterConsensusExtensions
     {
-        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester)
+        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester,
+            Timestamp timestamp = null)
         {
-            var firstExtraInformation = new DPoSTriggerInformation
+            var triggerInformation = new DPoSTriggerInformation
             {
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                Timestamp = timestamp ?? DateTime.UtcNow.ToTimestamp(),
                 PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
                 IsBootMiner = true,
             };
             var bytes = await tester.CallContractMethodAsync(
                 tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.
                 ConsensusConsts.GetConsensusCommand,
-                firstExtraInformation.ToByteArray());
+                triggerInformation.ToByteArray());
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 
@@ -55,7 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
 
         public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester tester,
-            DPoSTriggerInformation triggerInformation, params ContractTester[] testersToExecuteBlock)
+            DPoSTriggerInformation triggerInformation, params ContractTester[] testersGonnaExecuteThisBlock)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
                 ConsensusConsts.GenerateConsensusTransactions,
@@ -64,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);
 
             var block = await tester.MineABlockAsync(new List<Transaction>(), systemTxs);
-            foreach (var contractTester in testersToExecuteBlock)
+            foreach (var contractTester in testersGonnaExecuteThisBlock)
             {
                 await contractTester.ExecuteBlock(block, new List<Transaction>(), systemTxs);
             }
