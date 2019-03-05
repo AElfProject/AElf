@@ -20,11 +20,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Tests.Network
 {
-    [DependsOn(typeof(TestBaseAElfModule), typeof(AbpEventBusModule), typeof(TestsOSAElfModule), typeof(TestBaseKernelAElfModule))]
+    [DependsOn(typeof(TestBaseAElfModule), typeof(TestsOSAElfModule), typeof(TestBaseKernelAElfModule))]
     public class NetTestAElfModule : AElfModule
     {
-        private static int height = 0;
-        
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient<IBlockchainExecutingService>(p =>
