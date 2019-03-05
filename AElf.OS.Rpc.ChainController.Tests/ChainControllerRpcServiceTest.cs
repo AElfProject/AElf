@@ -220,8 +220,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseTransactionIds[1].ToString().ShouldBe(existTransaction.Transactions[1].GetHash().ToHex());
         }
 
-        //TODO: fix the unit test
-        [Fact(Skip = "fix in next pr")]
+        [Fact]
         public async Task Get_TransactionResult_Success()
         {
             // Generate a transaction and broadcast
