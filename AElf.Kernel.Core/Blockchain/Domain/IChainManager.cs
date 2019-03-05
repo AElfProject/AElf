@@ -94,6 +94,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 PreviousBlockHash = Hash.Genesis,
                 IsLinked = true
             });
+            
+            await SetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight, genesisBlock);
+            
             await _chains.SetAsync(_chainId.ToStorageKey(), chain);
 
             return chain;
