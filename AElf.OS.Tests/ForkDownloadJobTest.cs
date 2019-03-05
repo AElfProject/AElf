@@ -16,19 +16,11 @@ namespace AElf.OS.Tests
     public class ForkDownloadJobTest : NetTestBase
     {
         private IBlockchainService _blockChainService;
-        private IPeerPool _peerPool;
-        private IBlockchainExecutingService _blockExecService;
-        private INetworkService _netService;
-
         private ForkDownloadJob _job;
 
         public ForkDownloadJobTest()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
-            _peerPool = GetRequiredService<IPeerPool>();
-            _blockExecService = GetRequiredService<IBlockchainExecutingService>();
-            _netService = GetRequiredService<INetworkService>();
-
             _job = GetRequiredService<ForkDownloadJob>();
         }
 
