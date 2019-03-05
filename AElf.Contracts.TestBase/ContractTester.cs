@@ -155,7 +155,7 @@ namespace AElf.Contracts.TestBase
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height
+                RefBlockNumber = _blockchainService.GetBestChainLastBlock().Result.Height,
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(CallOwnerKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
@@ -392,6 +392,10 @@ namespace AElf.Contracts.TestBase
             list.Add(typeof(FeeReceiverContract));
 
             return list;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
