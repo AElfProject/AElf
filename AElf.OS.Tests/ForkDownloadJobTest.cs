@@ -38,7 +38,7 @@ namespace AElf.OS.Tests
             var initialState = await _blockChainService.GetChainAsync();
             var genHash = initialState.LongestChainHash;
             
-            _job.Execute(new ForkDownloadJobArgs { BlockHash = genHash.DumpByteArray(), BlockHeight = 3 });
+            _job.Execute(new ForkDownloadJobArgs { BlockHash = genHash.ToHex(), BlockHeight = 3 });
             
             var chain = await _blockChainService.GetChainAsync();
             chain.LongestChainHeight.ShouldBe<long>(6);
