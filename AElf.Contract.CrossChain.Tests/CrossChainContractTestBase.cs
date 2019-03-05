@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.TestBase;
@@ -69,8 +70,7 @@ namespace AElf.Contract.CrossChain.Tests
                 sideChainInfo);
             await ContractTester.MineABlockAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
-            var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
-                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain", chainId);
             await ContractTester.MineABlockAsync(new List<Transaction> {tx2});
             return chainId;
         }
@@ -101,6 +101,14 @@ namespace AElf.Contract.CrossChain.Tests
             params object[] objects)
         {
             return await ContractTester.CallContractMethodAsync(contractAddress, methodName, objects);
+        }
+        
+        protected byte[] GetFriendlyBytes(int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
         }
     }
 }

@@ -9,7 +9,6 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
-    //TODO: change chainId input as int. a smart contract is more like a backend, so no need user friendly
     public partial class CrossChainContract : CSharpSmartContract<CrossChainContractState>
     {
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
@@ -31,19 +30,17 @@ namespace AElf.Contracts.CrossChain
             return State.SideChainSerialNumber.Value;
         }
 
-        public ulong LockedToken(string chainId)
+        public ulong LockedToken(int chainId)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var info = State.SideChainInfos[id];
+            var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.LockedTokenAmount;
         }
 
-        public byte[] LockedAddress(string chainId)
+        public byte[] LockedAddress(int chainId)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var info = State.SideChainInfos[id];
+            var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer.DumpByteArray();
@@ -56,7 +53,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public string RequestChainCreation(SideChainInfo request)
+        public int RequestChainCreation(SideChainInfo request)
         {
             // no need to check authority since invoked in transaction from normal address
             Assert(
@@ -80,15 +77,13 @@ namespace AElf.Contracts.CrossChain
 //            request.ProposalHash = hash;
             State.SideChainInfos[chainId] = request;
             
-            return ChainHelpers.ConvertChainIdToBase58(chainId);
+            return chainId;
         }
 
-        public void WithdrawRequest(string chainId)
+        public void WithdrawRequest(int chainId)
         {
             // no need to check authority since invoked in transaction from normal address
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-
-            var sideChainInfo = State.SideChainInfos[id];
+            var sideChainInfo = State.SideChainInfos[chainId];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address. 
             Assert(sideChainInfo != null &&
                    sideChainInfo.SideChainStatus == SideChainStatus.Review,
@@ -97,7 +92,7 @@ namespace AElf.Contracts.CrossChain
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Authentication failed.");
             UnlockTokenAndResource(sideChainInfo);
             sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[id] = sideChainInfo;
+            State.SideChainInfos[chainId] = sideChainInfo;
         }
 
         /// <summary>
@@ -105,25 +100,24 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        public string CreateSideChain(string chainId)
+        public int CreateSideChain(int chainId)
         {
             // side chain creation should be triggered by multi sig txn from system address.
 //            CheckAuthority(Context.Genesis);
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var request = State.SideChainInfos[id];
+            var request = State.SideChainInfos[chainId];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
             Assert(
                 request != null &&
                 request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             request.SideChainStatus = SideChainStatus.Active;
-            State.SideChainInfos[id] = request;
-            State.CurrentSideChainHeight[id] = 0;
+            State.SideChainInfos[chainId] = request;
+            State.CurrentSideChainHeight[chainId] = 0;
 
             // fire event
             Context.FireEvent(new SideChainCreationRequested
             {
-                ChainId = id,
+                ChainId = chainId,
                 Creator = Context.Sender
             });
             return chainId;
@@ -134,20 +128,19 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="amount"></param>
-        public void Recharge(string chainId, ulong amount)
+        public void Recharge(int chainId, ulong amount)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var sideChainInfo = State.SideChainInfos[id];
+            var sideChainInfo = State.SideChainInfos[chainId];
             Assert(
                 sideChainInfo != null &&
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
-            State.IndexingBalance[id] = State.IndexingBalance[id] + amount;
-            if (State.IndexingBalance[id] > sideChainInfo.IndexingPrice)
+            State.IndexingBalance[chainId] = State.IndexingBalance[chainId] + amount;
+            if (State.IndexingBalance[chainId] > sideChainInfo.IndexingPrice)
             {
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
-                State.SideChainInfos[id] = sideChainInfo;
+                State.SideChainInfos[chainId] = sideChainInfo;
             }
 
             State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
@@ -158,11 +151,10 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
-        public byte[] RequestChainDisposal(string chainId)
+        public byte[] RequestChainDisposal(int chainId)
         {
             // no need to check authority since invoked in transaction from normal address
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var request = State.SideChainInfos[id];
+            var request = State.SideChainInfos[chainId];
             Assert(
                 request != null &&
                 request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
@@ -179,12 +171,11 @@ namespace AElf.Contracts.CrossChain
         /// Dispose side chain. It is a proposal result from system address. 
         /// </summary>
         /// <param name="chainId"></param>
-        public void DisposeSideChain(string chainId)
+        public void DisposeSideChain(int chainId)
         {
             // side chain disposal should be triggered by multi sig txn from system address.
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
             //CheckAuthority(Context.Genesis);
-            var info = State.SideChainInfos[id];
+            var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
 
             // TODO: Only privileged account can trigger this method
@@ -192,27 +183,25 @@ namespace AElf.Contracts.CrossChain
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[id] = info;
+            State.SideChainInfos[chainId] = info;
             Context.FireEvent(new SideChainDisposal
             {
-                ChainId = id
+                ChainId = chainId
             });
         }
 
         [View]
-        public int GetChainStatus(string chainId)
+        public int GetChainStatus(int chainId)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var info = State.SideChainInfos[id];
+            var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
             return (int) info.SideChainStatus;
         }
 
         [View]
-        public ulong GetSideChainHeight(string chainId)
+        public ulong GetSideChainHeight(int chainId)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            return State.CurrentSideChainHeight[id];
+            return State.CurrentSideChainHeight[chainId];
         }
 
         [View]
@@ -222,13 +211,12 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public ulong LockedBalance(string chainId)
+        public ulong LockedBalance(int chainId)
         {
-            var id = ChainHelpers.ConvertBase58ToChainId(chainId);
-            var sideChainInfo = State.SideChainInfos[id];
+            var sideChainInfo = State.SideChainInfos[chainId];
             Assert(sideChainInfo != null, "Not existed side chain.");
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
-            return State.IndexingBalance[id];
+            return State.IndexingBalance[chainId];
         }
 
         [View]
@@ -268,7 +256,7 @@ namespace AElf.Contracts.CrossChain
         {
             //Assert(IsMiner(), "Not authorized to do this.");
             var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight];
-            Assert(indexedCrossChainData.IsEmpty()); // This should not fail.
+            Assert(indexedCrossChainData == null); // This should not fail.
             
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
             IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
@@ -290,7 +278,7 @@ namespace AElf.Contracts.CrossChain
         public CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(ulong height)
         {
             var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[height];
-            Assert(indexedCrossChainBlockData.IsNotEmpty());
+            Assert(indexedCrossChainBlockData != null);
             return indexedCrossChainBlockData;
         }
 

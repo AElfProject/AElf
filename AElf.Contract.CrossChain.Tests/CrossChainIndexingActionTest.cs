@@ -283,7 +283,7 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
-                CrossChainConsts.GetLockedBalanceMethodName, ChainHelpers.ConvertChainIdToBase58(sideChainId));
+                CrossChainConsts.GetLockedBalanceMethodName, sideChainId);
             Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
 
             var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
@@ -315,8 +315,8 @@ namespace AElf.Contract.CrossChain.Tests
             var tx1 = GenerateTransaction(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
                 sideChainInfo);
             await MineAsync(new List<Transaction> {tx1});
-            var sideChainIdStr2 = (await GetTransactionResult(tx1.GetHash())).RetVal.ToStringUtf8();
-            var tx2 = GenerateTransaction(CrossChainContractAddress, "CreateSideChain", null, sideChainIdStr2);
+            var sideChainId2 = ChainHelpers.GetChainId(2);
+            var tx2 = GenerateTransaction(CrossChainContractAddress, "CreateSideChain", null, sideChainId2);
             await MineAsync(new List<Transaction> {tx2});
             
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
@@ -333,7 +333,7 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 2, // wrong height
-                SideChainId = ChainHelpers.ConvertBase58ToChainId(sideChainIdStr2),
+                SideChainId = sideChainId2,
                 TransactionMKRoot = fakeTxMerkleTreeRoot
             };
 
@@ -356,7 +356,7 @@ namespace AElf.Contract.CrossChain.Tests
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
-                CrossChainConsts.GetLockedBalanceMethodName, ChainHelpers.ConvertChainIdToBase58(sideChainId1));
+                CrossChainConsts.GetLockedBalanceMethodName, sideChainId1);
             Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
 
             var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
