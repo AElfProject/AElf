@@ -267,8 +267,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            var codeHash =
-                ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"];
+            var codeHash = ((JObject) JsonConvert.DeserializeObject(trace.RetVal.Data.DeserializeToString()))["CodeHash"];
             if (codeHash == null)
             {
                 throw new NullReferenceException();

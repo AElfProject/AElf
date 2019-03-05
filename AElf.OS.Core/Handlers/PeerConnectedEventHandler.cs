@@ -80,7 +80,7 @@ namespace AElf.OS.Handlers
                     await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
                     {
                         SuggestedPeerAddress = peerAddress,
-                        BlockHash = header.Announce.BlockHash.DumpByteArray(),
+                        BlockHash = header.Announce.BlockHash.ToHex(),
                         BlockHeight = blockHeight
                     });
                 }

@@ -6,6 +6,6 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable once InconsistentNaming
     public class LIBFound : Event
     {
-        public ulong Offset { get; set; }
+        public long Offset { get; set; }
     }
 }
