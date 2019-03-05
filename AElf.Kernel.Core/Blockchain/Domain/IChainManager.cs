@@ -79,6 +79,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 BestChainHeight = ChainConsts.GenesisBlockHeight,
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
+                LastIrreversibleBlockHash = genesisBlock,
+                LastIrreversibleBlockHeight = ChainConsts.GenesisBlockHeight,
                 Branches =
                 {
                     {genesisBlock.ToStorageKey(), ChainConsts.GenesisBlockHeight}
