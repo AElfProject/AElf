@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,7 +27,39 @@ namespace AElf.OS.Node.Application
     {
         public int ChainId { get; set; }
 
-        public GenesisSmartContractDto[] InitializationSmartContracts { get; set; }
+        public List<GenesisSmartContractDto> InitializationSmartContracts { get; set; } =
+            new List<GenesisSmartContractDto>();
+    }
+
+    public static class GenesisSmartContractDtoExtensions
+    {
+        public static void AddGenesisSmartContract(this List<GenesisSmartContractDto> genesisSmartContracts,
+            Type smartContractType)
+        {
+            genesisSmartContracts.Add(new GenesisSmartContractDto()
+            {
+                SmartContractType = smartContractType,
+                SystemSmartContractName = smartContractType.Name
+            });
+        }
+
+        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
+        {
+            genesisSmartContracts.Add(new GenesisSmartContractDto()
+            {
+                SmartContractType = typeof(T),
+                SystemSmartContractName = typeof(T).Name
+            });
+        }
+
+        public static void AddGenesisSmartContracts(this List<GenesisSmartContractDto> genesisSmartContracts,
+            params Type[] smartContractTypes)
+        {
+            foreach (var smartContractType in smartContractTypes)
+            {
+                AddGenesisSmartContract(genesisSmartContracts, smartContractType);
+            }
+        }
     }
 
     public interface IOsBlockchainNodeContextService

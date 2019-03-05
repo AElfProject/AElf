@@ -56,7 +56,7 @@ namespace AElf.Launcher
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-        
+
         public LauncherAElfModule()
         {
             Logger = NullLogger<LauncherAElfModule>.Instance;
@@ -88,22 +88,19 @@ namespace AElf.Launcher
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
-            var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
+            //var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
+            //var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
             var dto = new OsBlockchainNodeContextStartDto()
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
-                {
-                    ChainId = chainOptions.ChainId,
-                    Transactions = transactions
-                }
+                ChainId = chainOptions.ChainId
             };
+            
+            dto.AddGenesisSmartContract<BasicContractZero>();
+            dto.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>();
+            
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
-            AsyncHelper.RunSync(async () =>
-            {
-                that.OsBlockchainNodeContext = await osService.StartAsync(dto);
-            });
+            AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

@@ -45,6 +45,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
@@ -175,15 +176,14 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         private void InitialChain()
         {
-            var transactions = GetGenesisTransactions(ChainId, typeof(BasicContractZero), typeof(ConsensusContract));
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = ChainId,
-                    Transactions = transactions
-                }
+                ChainId = ChainId,
             };
+            
+            dto.InitializationSmartContracts.AddGenesisSmartContracts(typeof(BasicContractZero), typeof(ConsensusContract));
+            
+            
 
             AsyncHelper.RunSync(() => _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto));
         }
