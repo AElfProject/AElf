@@ -70,7 +70,7 @@ namespace AElf.Kernel.Consensus.Application
                 blockMiningEventData);
         }
 
-        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, ulong preBlockHeight,
+        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusInformation)
         {
             Logger.LogInformation("Generating consensus transactions.");
@@ -116,7 +116,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(
-            ulong refBlockHeight, byte[] refBlockPrefix)
+            long refBlockHeight, byte[] refBlockPrefix)
         {
             Logger.LogInformation("Generating consensus transactions.");
 

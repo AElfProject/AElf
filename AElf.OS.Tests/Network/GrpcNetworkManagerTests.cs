@@ -61,8 +61,8 @@ namespace AElf.OS.Tests.Network
                 mockBlockService.Setup(bs => bs.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns<Hash>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
 
-                mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<ulong>()))
-                    .Returns<ulong>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
+                mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<long>()))
+                    .Returns<long>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
             }
 
             var mockBlockChainService = new Mock<IFullBlockchainService>();

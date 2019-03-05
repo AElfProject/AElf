@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<Chain> CreateAsync(Hash genesisBlock);
         Task<Chain> GetAsync();
         Task<ChainBlockLink> GetChainBlockLinkAsync(Hash blockHash);
-        Task<ChainBlockIndex> GetChainBlockIndexAsync(ulong blockHeight);
+        Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
 
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
             ChainBlockLink chainBlockLink);
@@ -38,7 +38,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink,
             ChainBlockLinkExecutionStatus status);
 
-        Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash);
+        Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
 
         Address GetConsensusContractAddress();
 
@@ -124,13 +124,13 @@ namespace AElf.Kernel.Blockchain.Domain
                 chainBlockLink);
         }
 
-        private async Task SetChainBlockIndexAsync(ulong blockHeight, Hash blockHash)
+        private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
         {
             await _chainBlockIndexes.SetAsync(_chainId.ToStorageKey() + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
-        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(ulong blockHeight)
+        public async Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight)
         {
             return await _chainBlockIndexes.GetAsync(_chainId.ToStorageKey() + blockHeight.ToStorageKey());
         }
@@ -273,7 +273,7 @@ namespace AElf.Kernel.Blockchain.Domain
             await SetChainBlockLinkAsync(blockLink);
         }
 
-        public async Task SetBestChainAsync(Chain chain, ulong bestChainHeight, Hash bestChainHash)
+        public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
         {
             if (chain.BestChainHeight > bestChainHeight)
             {
