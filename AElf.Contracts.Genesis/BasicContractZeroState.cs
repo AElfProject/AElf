@@ -13,5 +13,7 @@ namespace AElf.Contracts.Genesis
         public Int32State ChainId { get; set; }
         
         public MappedState<Hash, Address> CodeAddressMapping { get; set; }
+        
+        public MappedState<Hash, SmartContractRegistration> SmartContractRegistrations { get; set; }
     }
 }
