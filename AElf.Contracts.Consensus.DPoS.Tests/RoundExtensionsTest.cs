@@ -127,7 +127,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // If this node just missed his time slot.
             {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(miningInterval / 2 + 1).ToTimestamp();
                 var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTimestamp);
 
                 arrangedMiningTime.ShouldBe(round.GetExpectedEndTime().ToDateTime()

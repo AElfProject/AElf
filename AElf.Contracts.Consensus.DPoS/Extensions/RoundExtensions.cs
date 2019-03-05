@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 minerInRound = round.RealTimeMinersInformation[publicKey];
-                return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds(miningInterval) <
+                return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds((double) miningInterval / 2) <
                        timestamp.ToDateTime();
             }
 
