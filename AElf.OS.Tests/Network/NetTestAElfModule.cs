@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
+using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Infrastructure;
 using AElf.TestBase;
@@ -75,7 +76,8 @@ namespace AElf.OS.Tests.Network
                 .Returns(new List<IPeer> { peerMock.Object });
 
             context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
-            // mock the pool
+
+            context.Services.AddTransient<ForkDownloadJob>();
         }
         
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

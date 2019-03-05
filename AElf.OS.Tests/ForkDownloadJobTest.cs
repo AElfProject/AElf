@@ -28,13 +28,8 @@ namespace AElf.OS.Tests
             _peerPool = GetRequiredService<IPeerPool>();
             _blockExecService = GetRequiredService<IBlockchainExecutingService>();
             _netService = GetRequiredService<INetworkService>();
-            
-            // Build download job because it's difficult to injection for this. 
-            _job = new ForkDownloadJob();
-            _job.BlockchainService = _blockChainService;
-            _job.BlockchainExecutingService = _blockExecService;
-            _job.NetworkService = _netService;
-            _job.NetworkOptions = GetRequiredService<IOptionsSnapshot<NetworkOptions>>();
+
+            _job = GetRequiredService<ForkDownloadJob>();
         }
 
         [Fact]
