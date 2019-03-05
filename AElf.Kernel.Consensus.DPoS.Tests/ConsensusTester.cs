@@ -72,6 +72,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             application.Initialize();
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
+            var transactionReadOnlyExecutionService = application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
             //_blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
             var chainManager = application.ServiceProvider.GetService<IChainManager>();
@@ -92,12 +93,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var consensusControlInformation = new ConsensusControlInformation();
             _consensusService = new ConsensusService(
                 new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation),
-                _accountService, transactionExecutingService, MockConsensusScheduler(), _blockchainService,
+                _accountService, transactionReadOnlyExecutionService, MockConsensusScheduler(), _blockchainService,
                 consensusControlInformation);
 
             _blockGenerationService = new BlockGenerationService(
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
-                    {new ConsensusExtraDataProvider(_consensusService)}));
+                    {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
 
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>

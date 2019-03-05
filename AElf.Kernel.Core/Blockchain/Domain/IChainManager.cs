@@ -167,8 +167,6 @@ namespace AElf.Kernel.Blockchain.Domain
 
                     chainBlockLink = await GetChainBlockLinkAsync(chain.NotLinkedBlocks[blockHash]);
 
-                    Logger.LogDebug($"#### NotLinkedBlocks Remove {blockHash} {chainBlockLink.Height}");
-
                     chain.NotLinkedBlocks.Remove(blockHash);
 
                     status |= BlockAttachOperationStatus.NewBlocksLinked;

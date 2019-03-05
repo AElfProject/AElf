@@ -29,7 +29,7 @@ namespace AElf.OS.Rpc.ChainController
     {
         public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
-        public ITransactionResultManager TransactionResultManager { get; set; }
+        public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
 
@@ -91,7 +91,15 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(addressHash);
+            IMessage abi;
+            try
+            {
+                abi = await this.GetContractAbi(addressHash);
+            }
+            catch
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
 
             if (abi == null)
             {
@@ -132,14 +140,11 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
-        public async Task<JObject> BroadcastTransactions(string rawTransactions)
+        public async Task<JArray> BroadcastTransactions(string rawTransactions)
         {
             var txIds = await this.PublishTransactionsAsync(rawTransactions.Split(","));
 
-            return new JObject
-            {
-                JToken.FromObject(txIds)
-            };
+            return JArray.FromObject(txIds);
         }
 
         [JsonRpcMethod("GetTransactionResult", "transactionId")]
@@ -161,7 +166,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "num")]
-        public async Task<JObject> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
+        public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
         {
             if (offset < 0)
             {
@@ -203,7 +208,7 @@ namespace AElf.OS.Rpc.ChainController
                 }
             }
 
-            return new JObject {transactions};
+            return JArray.FromObject(transactions);
         }
 
         private async Task<JObject> GetTransaction(Hash transactionHash)
@@ -306,7 +311,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData.SideChainTransactionsRoot?.ToHex(),
+                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData?.SideChainTransactionsRoot?.ToHex(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),

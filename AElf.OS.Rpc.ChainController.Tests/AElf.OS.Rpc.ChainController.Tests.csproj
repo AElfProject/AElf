@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.OS.Rpc.TestBase\AElf.OS.Rpc.TestBase.csproj" />
     </ItemGroup>
 
