@@ -68,9 +68,8 @@ namespace AElf.CrossChain
 
             var generatedTransactions = new List<Transaction>
             {
-                GenerateNotSignedTransaction(from,
-                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, previousBlockPrefix,
-                    new object[] {crossChainBlockData})
+                GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                    previousBlockPrefix, crossChainBlockData)
             };
             return generatedTransactions;
         }
@@ -94,7 +93,7 @@ namespace AElf.CrossChain
         /// <param name="params"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, ulong refBlockNumber,
-            byte[] refBlockPrefix, object[] @params)
+            byte[] refBlockPrefix, params object[] @params)
         {
             return new Transaction
             {
