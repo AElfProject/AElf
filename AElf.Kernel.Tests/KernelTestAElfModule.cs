@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -6,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.TestBase;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
