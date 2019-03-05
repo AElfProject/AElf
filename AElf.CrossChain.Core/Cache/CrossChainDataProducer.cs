@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Cache
             return res;
         }
 
-        public ulong GetChainHeightNeededForCache(int chainId)
+        public long GetChainHeightNeededForCache(int chainId)
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)

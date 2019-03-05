@@ -12,7 +12,7 @@ namespace AElf.Kernel.Miner.Application
             _systemTransactionGenerators = systemTransactionGenerators;
         }
 
-        public List<Transaction> GenerateSystemTransactions(Address from, ulong preBlockHeight, Hash preBlockHash)
+        public List<Transaction> GenerateSystemTransactions(Address from, long preBlockHeight, Hash preBlockHash)
         {
             var generatedTxns = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)

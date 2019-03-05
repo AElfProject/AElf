@@ -11,7 +11,7 @@ namespace AElf.Kernel.SmartContract
         Address Origin { get; set; }
         Address Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
-        ulong BlockHeight { get; set;}
+        long BlockHeight { get; set;}
         
         DateTime CurrentBlockTime { get; set; }
         

@@ -96,7 +96,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_BlockHash_ByHeight_ReturnNull()
         {
             var chain = await CreateNewChain();
-            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 2ul);
+            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 2);
             result.ShouldBeNull();
         }
 

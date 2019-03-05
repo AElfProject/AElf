@@ -29,16 +29,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
 
-        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
-            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+        private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
-            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+        private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
+            new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
-            new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+        private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
+            new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private ulong _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
+        private long _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Genesis;
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -87,7 +87,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Private Static Methods
 
-        private static void AddToCollection(Dictionary<ulong, Dictionary<Hash, TransactionReceipt>> collection,
+        private static void AddToCollection(Dictionary<long, Dictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
             if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
@@ -100,7 +100,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         }
 
         private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix,
-            ulong bestChainHeight)
+            long bestChainHeight)
         {
             if (receipt.Transaction.GetExpiryBlockNumber() <= bestChainHeight)
             {
@@ -125,22 +125,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #endregion
 
-        private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, ulong height, Hash bestChainHash)
+        private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, long height, Hash bestChainHash)
         {
             var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
             return hash == null ? null : ByteString.CopyFrom(hash.DumpByteArray().Take(4).ToArray());
         }
 
-        private async Task<ByteString> GetPrefixByHeightAsync(ulong height, Hash bestChainHash)
+        private async Task<ByteString> GetPrefixByHeightAsync(long height, Hash bestChainHash)
         {
             var chain = await _blockchainService.GetChainAsync();
             return await GetPrefixByHeightAsync(chain, height, bestChainHash);
         }
 
-        private async Task<Dictionary<ulong, ByteString>> GetPrefixesByHeightAsync(
-            IEnumerable<ulong> heights, Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(
+            IEnumerable<long> heights, Hash bestChainHash)
         {
-            var prefixes = new Dictionary<ulong, ByteString>();
+            var prefixes = new Dictionary<long, ByteString>();
             var chain = await _blockchainService.GetChainAsync();
             foreach (var h in heights)
             {
@@ -153,9 +153,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void ResetCurrentCollections()
         {
-            _expiredByExpiryBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
-            _invalidatedByBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
-            _futureByBlock = new Dictionary<ulong, Dictionary<Hash, TransactionReceipt>>();
+            _expiredByExpiryBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
+            _invalidatedByBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
+            _futureByBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
             _validated = new Dictionary<Hash, TransactionReceipt>();
         }
 

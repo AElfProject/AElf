@@ -16,15 +16,15 @@ namespace AElf.CrossChain.Cache
             Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
                 CrossChainConsts.MaximalCountForIndexingParentChainBlock) *
             CrossChainConsts.MinimalBlockInfoCacheThreshold;
-        private readonly ulong _initTargetHeight;
+        private readonly long _initTargetHeight;
         
 
-        public BlockInfoCache(ulong chainHeight)
+        public BlockInfoCache(long chainHeight)
         {
             _initTargetHeight = chainHeight;
         }
 
-        public ulong TargetChainHeight()
+        public long TargetChainHeight()
         {
             var lastQueuedHeight = LastOneHeightInQueue();
             if (lastQueuedHeight != 0)
@@ -51,12 +51,12 @@ namespace AElf.CrossChain.Cache
         /// <param name="blockInfo"></param>
         /// <param name="isCacheSizeLimited">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(ulong height, out IBlockInfo blockInfo, bool isCacheSizeLimited)
+        public bool TryTake(long height, out IBlockInfo blockInfo, bool isCacheSizeLimited)
         {
             // clear outdated data
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
-            if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + (ulong) CrossChainConsts.MinimalBlockInfoCacheThreshold))
+            if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + CrossChainConsts.MinimalBlockInfoCacheThreshold))
             {
                 var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, 
                     CrossChainConsts.WaitingIntervalInMillisecond);
@@ -79,13 +79,13 @@ namespace AElf.CrossChain.Cache
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        private IBlockInfo LastBlockInfoInCache(ulong height = 0)
+        private IBlockInfo LastBlockInfoInCache(long height = 0)
         {
             return height == 0 ? CachedIndexedBlockInfoQueue.LastOrDefault() 
                 : CachedIndexedBlockInfoQueue.LastOrDefault(c => c.Height == height);
         }
 
-        private ulong LastOneHeightInQueue()
+        private long LastOneHeightInQueue()
         {
             return ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height ?? 0;
         }
@@ -94,7 +94,7 @@ namespace AElf.CrossChain.Cache
         /// Cache outdated data. The block with height lower than <paramref name="height"/> is outdated.
         /// </summary>
         /// <param name="height"></param>
-        private bool CacheBlockInfoBeforeHeight(ulong height)
+        private bool CacheBlockInfoBeforeHeight(long height)
         {
             while (true)
             {
