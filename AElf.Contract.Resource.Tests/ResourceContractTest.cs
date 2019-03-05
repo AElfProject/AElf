@@ -64,7 +64,7 @@ namespace AElf.Contracts.Resource.Tests
         public async Task Initialize_Resource()
         {
             //init token contract
-            var initResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(ITokenCotract.Initialize),
+            var initResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Initialize),
                 "ELF", "elf token", 1000_000UL, 2U);
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
