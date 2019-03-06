@@ -28,15 +28,15 @@ namespace AElf.Synchronization.Tests
             return keyPairs;
         }
 
-        public static List<string> ToPubKeyStrings(this List<ECKeyPair> keyPairs)
-        {
-            List<string> pubKeyStrings = new List<string>(keyPairs.Count);
-            
-            foreach (var key in keyPairs)
-                pubKeyStrings.Add(key.PublicKey.ToHex());
-
-            return pubKeyStrings;
-        }
+//        public static List<string> ToPubKeyStrings(this List<ECKeyPair> keyPairs)
+//        {
+//            List<string> pubKeyStrings = new List<string>(keyPairs.Count);
+//            
+//            foreach (var key in keyPairs)
+//                pubKeyStrings.Add(key.PublicKey.ToHex());
+//
+//            return pubKeyStrings;
+//        }
         
         /// <summary>
         /// Builds the genesis block with AElfs builder.
@@ -57,7 +57,7 @@ namespace AElf.Synchronization.Tests
         public static Block BuildNext(Block previous, string producer = null)
         {
             Assert.NotNull(previous);
-            
+
             return new Block
             {
                 Header = new BlockHeader
@@ -82,12 +82,12 @@ namespace AElf.Synchronization.Tests
         public static List<Block> GenerateChain(int count, Block start = null)
         {
             Assert.True(count > 0);
-            
+
             List<Block> blocks = new List<Block>();
-            
+
             Block current = start ?? GetGenesisBlock();
             blocks.Add(current);
-            
+
             for (int i = 0; i < count; i++)
             {
                 current = BuildNext(current);
@@ -95,6 +95,6 @@ namespace AElf.Synchronization.Tests
             }
 
             return blocks;
-        }   
+        }
     }
 }

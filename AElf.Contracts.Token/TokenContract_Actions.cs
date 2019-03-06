@@ -6,7 +6,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Token
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>, ITokenCotract
+    public partial class TokenContract : CSharpSmartContract<TokenContractState>, ITokenContract
     {
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
