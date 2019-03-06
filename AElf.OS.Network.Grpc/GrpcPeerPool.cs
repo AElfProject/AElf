@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
@@ -13,7 +12,6 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
@@ -27,28 +25,23 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
-        public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
-
-        public GrpcPeerPool(
-            IOptionsSnapshot<NetworkOptions> networkOptions,
-            IAccountService accountService, IBlockchainService blockChainService)
+        public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
+            IBlockchainService blockChainService)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
+            _blockchainService = blockChainService;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
-            EventBus = NullLocalEventBus.Instance;
-
-            _blockchainService = blockChainService;
         }
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            if (FindPeer(address) != null)
+            if (FindPeerByAddress(address) != null)
                 return false;
 
             return await DialAsync(address);
@@ -124,21 +117,19 @@ namespace AElf.OS.Network.Grpc
             return _authenticatedPeers.Values.Select(p => p as IPeer).ToList();
         }
 
-        public IPeer FindPeer(string peerAddress, byte[] publicKey = null)
+        public IPeer FindPeerByAddress(string peerAddress)
         {
-            if (string.IsNullOrWhiteSpace(peerAddress) && publicKey == null)
-                throw new InvalidOperationException("address and public cannot be both null.");
+            return _authenticatedPeers
+                .Where(p => p.Value.PeerAddress == peerAddress || peerAddress.EndsWith(p.Value.RemoteEndpoint))
+                .Select(p => p.Value)
+                .FirstOrDefault();
+        }
 
-            IEnumerable<KeyValuePair<string, GrpcPeer>> toFind = _authenticatedPeers;
-
-            if (!string.IsNullOrWhiteSpace(peerAddress))
-                toFind = toFind.Where(p =>
-                    p.Value.PeerAddress == peerAddress || peerAddress.EndsWith(p.Value.RemoteEndpoint));
-
-            if (publicKey != null)
-                toFind = toFind.Where(p => publicKey.BytesEqual(p.Value.PublicKey));
-
-            return toFind.FirstOrDefault().Value;
+        public IPeer FindPeerByPublicKey(byte[] publicKey)
+        {
+            return _authenticatedPeers.Where(p => publicKey.BytesEqual(p.Value.PublicKey))
+                .Select(p => p.Value)
+                .FirstOrDefault();
         }
 
         public bool IsAuthenticatePeer(string peerAddress, Handshake handshake)
@@ -147,12 +138,12 @@ namespace AElf.OS.Network.Grpc
             if (pubKey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
                 return false;
 
-            var alreadyConnected = _authenticatedPeers.FirstOrDefault(p =>
-                p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey));
+            var alreadyConnected = _authenticatedPeers
+                .Where(p => p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey))
+                .Select(p => p.Value)
+                .FirstOrDefault();
 
-            //TODO: a reference object's default value is null.
-            //BODY: just alreadyConnected == null. please use alreadyConnectedPeer
-            if (!alreadyConnected.Equals(default(KeyValuePair<string, GrpcPeer>)))
+            if (alreadyConnected != null)
                 return false;
 
             return true;
@@ -167,15 +158,6 @@ namespace AElf.OS.Network.Grpc
         public async Task<Handshake> GetHandshakeAsync()
         {
             return await BuildHandshakeAsync();
-        }
-
-        public IPeer FindPeerByAddressOrAnyoneByPeerAddress(string peerAddress)
-        {
-            if (this._authenticatedPeers.TryGetValue(peerAddress, out var peer))
-            {
-                return peer;
-            }
-            return _authenticatedPeers.FirstOrDefault().Value;
         }
 
         private async Task<Handshake> BuildHandshakeAsync()
