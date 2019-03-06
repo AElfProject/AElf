@@ -191,7 +191,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
 
-            var count = chain.LastIrreversibleBlockHeight == 1 ? 
+            var count = chain.LastIrreversibleBlockHeight == ChainConsts.GenesisBlockHeight ? 
                 (int) irreversibleBlockHeight - (int) chain.LastIrreversibleBlockHeight : 
                 (int) irreversibleBlockHeight - (int) chain.LastIrreversibleBlockHeight - 1;
 
@@ -205,7 +205,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             hashes.Add(irreversibleBlockHash);
 
-            var startHeight = chain.LastIrreversibleBlockHeight == 1 ? 
+            var startHeight = chain.LastIrreversibleBlockHeight == ChainConsts.GenesisBlockHeight ? 
                 chain.LastIrreversibleBlockHeight : chain.LastIrreversibleBlockHeight + 1;
 
             foreach (var hash in hashes)
