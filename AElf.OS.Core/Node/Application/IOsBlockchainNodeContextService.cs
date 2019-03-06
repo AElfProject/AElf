@@ -124,7 +124,7 @@ namespace AElf.OS.Node.Application
         }
 
 
-        private Transaction GetTransactionForDeployment(int chainId, Type contractType, string systemContractName)
+        private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var code = File.ReadAllBytes(contractType.Assembly.Location);
@@ -135,7 +135,7 @@ namespace AElf.OS.Node.Application
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(Hash.FromString(systemContractName), 2, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, 2, code))
             };
         }
 

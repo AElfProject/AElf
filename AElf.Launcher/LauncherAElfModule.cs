@@ -93,7 +93,8 @@ namespace AElf.Launcher
             //var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
             var dto = new OsBlockchainNodeContextStartDto()
             {
-                ChainId = chainOptions.ChainId
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
             dto.InitializationSmartContracts.AddGenesisSmartContract<BasicContractZero>();
             dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>(
