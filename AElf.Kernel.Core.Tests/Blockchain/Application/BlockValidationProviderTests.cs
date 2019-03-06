@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class BlockValidationProviderTests : AElfKernelBlockValidationTestBase
+    public class BlockValidationProviderTests : AElfKernelTestBase
     {
         private readonly BlockValidationProvider _blockValidationProvider;
         

@@ -16,13 +16,13 @@ namespace AElf.Kernel
 {
     [DependsOn(
         typeof(AbpEventBusModule),
-        typeof(CoreKernelAElfModule),
         typeof(TestBaseKernelAElfModule))]
     public class KernelCoreTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+            var services = context.Services;
+            services.AddTransient<BlockValidationProvider>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
