@@ -13,36 +13,35 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 {
     public static class ContractTesterConsensusExtensions
     {
-        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester)
+        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester,
+            Timestamp timestamp = null)
         {
-            var firstExtraInformation = new DPoSExtraInformation
+            var triggerInformation = new DPoSTriggerInformation
             {
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                Timestamp = timestamp ?? DateTime.UtcNow.ToTimestamp(),
                 PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
                 IsBootMiner = true,
-                MiningInterval = 4000
             };
             var bytes = await tester.CallContractMethodAsync(
                 tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.
                 ConsensusConsts.GetConsensusCommand,
-                firstExtraInformation.ToByteArray());
+                triggerInformation.ToByteArray());
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 
         public static async Task<DPoSInformation> GetNewConsensusInformation(this ContractTester tester,
-            DPoSExtraInformation extraInformation)
+            DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GetNewConsensusInformation, extraInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
             return DPoSInformation.Parser.ParseFrom(bytes);
         }
 
         public static async Task<List<Transaction>> GenerateConsensusTransactions(this ContractTester tester,
-            DPoSExtraInformation extraInformation)
+            DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
-                ConsensusConsts.GenerateConsensusTransactions, tester.Chain.LongestChainHeight,
-                tester.Chain.BestChainHash.Value.Take(4).ToArray(), extraInformation.ToByteArray());
+                ConsensusConsts.GenerateConsensusTransactions, triggerInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
             return txs;
@@ -57,19 +56,18 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         }
 
         public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester tester,
-            DPoSExtraInformation extraInformation, params ContractTester[] testersToExecuteBlock)
+            DPoSTriggerInformation triggerInformation, params ContractTester[] testersGonnaExecuteThisBlock)
         {
             var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
                 ConsensusConsts.GenerateConsensusTransactions,
-                tester.Chain.LongestChainHeight, tester.Chain.BestChainHash.Value.Take(4).ToArray(),
-                extraInformation.ToByteArray());
+                triggerInformation.ToByteArray());
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);
 
             var block = await tester.MineABlockAsync(new List<Transaction>(), systemTxs);
-            foreach (var contractTester in testersToExecuteBlock)
+            foreach (var contractTester in testersGonnaExecuteThisBlock)
             {
-                await contractTester.AddABlockAsync(block, new List<Transaction>(), systemTxs);
+                await contractTester.ExecuteBlock(block, new List<Transaction>(), systemTxs);
             }
 
             return block;

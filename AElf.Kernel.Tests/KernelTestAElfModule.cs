@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 

@@ -16,11 +16,12 @@ namespace AElf.OS.Network.Grpc
         private readonly PeerService.PeerServiceClient _client;
         private readonly HandshakeData _handshakeData;
 
+        public Hash CurrentBlockHash { get; set; }
+        public long CurrentBlockHeight { get; set; }
         public string PeerAddress { get; }
         public string RemoteEndpoint { get; }
 
         private byte[] _pubKey;
-
         public byte[] PublicKey
         {
             get { return _pubKey ?? (_pubKey = _handshakeData?.PublicKey?.ToByteArray()); }
@@ -43,17 +44,6 @@ namespace AElf.OS.Network.Grpc
             var blockReply = await _client.RequestBlockAsync(request);
             return blockReply?.Block;
         }
-
-        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count)
-        {
-            var idList = await _client.RequestBlockIdsAsync(new BlocksRequest
-                {PreviousBlockHash = topHash, Count = count});
-
-            return idList.Hashes.ToList();
-        }
-
-        public Hash CurrentBlockHash { get; set; }
-        public long CurrentBlockHeight { get; set; }
 
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {

@@ -76,7 +76,7 @@ namespace AElf.OS.Network.Application
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peerAddress))
             {
-                IPeer p = _peerPool.FindPeer(peerAddress);
+                IPeer p = _peerPool.FindPeerByAddress(peerAddress);
 
                 if (p == null)
                 {
@@ -87,7 +87,6 @@ namespace AElf.OS.Network.Application
                 }
 
                 var blocks = await p.GetBlocksAsync(blockHash, count);
-
 
                 if (blocks != null)
                     return blocks;
@@ -126,7 +125,7 @@ namespace AElf.OS.Network.Application
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peer))
             {
-                IPeer p = _peerPool.FindPeer(peer);
+                IPeer p = _peerPool.FindPeerByAddress(peer);
 
                 if (p == null)
                 {
@@ -170,12 +169,6 @@ namespace AElf.OS.Network.Application
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerAddress}.");
                 return null;
             }
-        }
-
-        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count, string peer)
-        {
-            IPeer grpcPeer = _peerPool.FindPeer(peer);
-            return await grpcPeer.GetBlockIdsAsync(topHash, count);
         }
     }
 }
