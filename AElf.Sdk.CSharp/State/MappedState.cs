@@ -64,7 +64,7 @@ namespace AElf.Sdk.CSharp.State
                 if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
                 {
                     var key = GetSubStatePath(kv.Key.ToString()).ToStateKey();
-                    stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelpers.Serialize(kv.Value.Value));
+                    stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(kv.Value.Value));
                 }
             }
 
@@ -75,7 +75,7 @@ namespace AElf.Sdk.CSharp.State
         {
             var path = GetSubStatePath(key.ToString());
             var bytes = Provider.GetAsync(path).Result;
-            var value = SerializationHelpers.Deserialize<TEntity>(bytes);
+            var value = SerializationHelper.Deserialize<TEntity>(bytes);
 
             return new ValuePair()
             {
@@ -86,7 +86,7 @@ namespace AElf.Sdk.CSharp.State
         private void UpdateToCache(TKey key, TEntity value)
         {
             var path = GetSubStatePath(key.ToString());
-            Provider.Cache[path] = SerializationHelpers.Serialize(value);
+            Provider.Cache[path] = SerializationHelper.Serialize(value);
         }
     }
 
