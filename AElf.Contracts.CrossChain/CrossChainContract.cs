@@ -408,6 +408,7 @@ namespace AElf.Contracts.CrossChain
             
             //Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
             Assert(merkleTreeRoot.Equals(rootCalculated), "Verification Failed.");
+            return true;
         }
 
         #endregion Cross chain actions
