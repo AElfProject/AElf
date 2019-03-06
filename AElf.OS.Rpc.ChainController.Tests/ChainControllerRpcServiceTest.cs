@@ -98,10 +98,10 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var signature =
                 CryptoHelpers.SignWithPrivateKey(_userEcKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
-            
+
             await BroadcastTransactions(new List<Transaction> {transaction});
             await MinedOneBlock(chain);
-            
+
             // Get abi
             chain = await _blockchainService.GetChainAsync();
             var newContractAddress = Address.BuildContractAddress(chain.Id, 3);
@@ -306,7 +306,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
                 new {blockHeight = 3, includeTransactions = true});
             var responseResult = response["result"];
-            
+
             responseResult["BlockHash"].ToString().ShouldBe(block.GetHash().ToHex());
             responseResult["Header"]["PreviousBlockHash"].ToString()
                 .ShouldBe(block.Header.PreviousBlockHash.ToHex());
@@ -386,7 +386,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             await MinedOneBlock(chain);
         }
 
-        private async Task<Transaction> GenerateTransaction(Chain chain, Address from, Address to,
+        private Task<Transaction> GenerateTransaction(Chain chain, Address from, Address to,
             string methodName, params object[] objects)
         {
             var transaction = new Transaction
@@ -399,7 +399,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray())
             };
 
-            return transaction;
+            return Task.FromResult(transaction);
         }
     }
 }
