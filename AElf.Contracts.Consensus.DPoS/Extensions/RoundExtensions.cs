@@ -277,7 +277,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order + miningInterval),
+                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order),
                     PromisedTinyBlocks = 1
                 };
             }
