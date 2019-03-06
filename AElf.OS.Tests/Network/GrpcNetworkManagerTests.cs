@@ -120,7 +120,7 @@ namespace AElf.OS.Tests.Network
 
             var m1 = BuildNetManager(new NetworkOptions {ListeningPort = 6800},
                 null,
-                new List<Block> {(Block) genesis});
+                new List<Block> {genesis});
 
             var m2 = BuildNetManager(new NetworkOptions
             {
@@ -138,9 +138,7 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StartAsync();
             await m3.Item1.StartAsync();
 
-            var service1 = new NetworkService(m1.Item2);
             var service2 = new NetworkService(m2.Item2);
-            var service3 = new NetworkService(m3.Item2);
 
             IBlock b = await service2.GetBlockByHashAsync(genesis.GetHash());
 
@@ -177,7 +175,7 @@ namespace AElf.OS.Tests.Network
 
             var m1 = BuildNetManager(new NetworkOptions {ListeningPort = 6800},
                 null,
-                new List<Block> {(Block) genesis, block});
+                new List<Block> {genesis, block});
 
             var m2 = BuildNetManager(new NetworkOptions
             {
@@ -187,8 +185,7 @@ namespace AElf.OS.Tests.Network
 
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
-
-            var service1 = new NetworkService(m1.Item2);
+            
             var service2 = new NetworkService(m2.Item2);
 
             var block22 = await service2.GetBlockByHashAsync(block.GetHash());
@@ -231,7 +228,7 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
 
-            var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastAnnounceAsync(genesis.Header);
@@ -275,8 +272,6 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
 
-            var genesis = ChainGenerationHelpers.GetGenesisBlock();
-
             var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastTransactionAsync(new Transaction());
 
@@ -317,7 +312,7 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
 
-            var genesis = (Block) ChainGenerationHelpers.GetGenesisBlock();
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
 
             var servicem2 = new NetworkService(m2.Item2);
             await servicem2.BroadcastAnnounceAsync(genesis.Header);
