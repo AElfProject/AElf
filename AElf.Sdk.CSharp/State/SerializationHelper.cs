@@ -8,7 +8,7 @@ using Org.BouncyCastle.Asn1.X509.Qualified;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public static class SerializationHelpers
+    public static class SerializationHelper
     {
         private static readonly Dictionary<Type, Action<CodedOutputStream, object>> _primitiveWriters =
             new Dictionary<Type, Action<CodedOutputStream, object>>()
