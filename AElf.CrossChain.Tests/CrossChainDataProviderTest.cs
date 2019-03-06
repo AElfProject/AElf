@@ -10,6 +10,12 @@ namespace AElf.CrossChain
 {
     public class CrossChainDataProviderTest : CrossChainTestBase
     {
+        private readonly ICrossChainDataProvider _crossChainDataProvider;
+
+        public CrossChainDataProviderTest()
+        {
+            _crossChainDataProvider = GetRequiredService<ICrossChainDataProvider>();
+        }
         private ICrossChainDataProvider CreateNewCrossChainDataProvider(Dictionary<int, List<IBlockInfo>> fakeCache,
             Dictionary<int, long> sideChainIdHeights, Dictionary<int, long> parentCHainIdHeights)
         {
