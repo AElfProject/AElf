@@ -8,7 +8,6 @@ import "common.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
-    rpc RequestBlockIds (BlocksRequest) returns (BlockIdList) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}

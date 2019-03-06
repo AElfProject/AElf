@@ -95,8 +95,8 @@ namespace AElf.OS.Tests.Network
             
             await m2.Item2.AddPeerAsync("127.0.0.1:6800");
             
-            var p = m1.Item2.FindPeer("127.0.0.1:6801");
-            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
+            var p2 = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
             
             Assert.NotNull(p);
             Assert.NotNull(p2);
@@ -122,13 +122,14 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.FindPeer("127.0.0.1:6800");
-            var p2 = m2.Item2.FindPeer("127.0.0.1:6801");
+            var p = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
+            var p2 = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
 
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
             
             Assert.NotNull(p);
+            Assert.NotNull(p2);
         }
 
         [Fact]
@@ -159,8 +160,8 @@ namespace AElf.OS.Tests.Network
 
             Assert.True(peers.Count == 2);
             
-            Assert.True(peers.Select(p => p.PeerAddress).Contains("127.0.0.1:6800"));
-            Assert.True(peers.Select(p => p.PeerAddress).Contains("127.0.0.1:6801"));
+            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerAddress));
+            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerAddress));
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -191,7 +192,8 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
 
-            //Assert.True(!string.IsNullOrWhiteSpace(p));
+            Assert.True(p);
+            Assert.True(p2);
         }
 
         [Fact]
@@ -254,12 +256,12 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
 
             Assert.NotNull(p);
 
             await m2.Item2.RemovePeerAsync("127.0.0.1:6800");
-            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p2 = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
             
             Assert.Null(p2);
 
@@ -286,13 +288,13 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
 
             Assert.NotNull(p);
 
             await m1.Item1.StopAsync();
            
-            var p2 = m2.Item2.FindPeer("127.0.0.1:6800");
+            var p2 = m2.Item2.FindPeerByAddress("127.0.0.1:6800");
             
             Assert.Null(p2);
 
@@ -318,13 +320,13 @@ namespace AElf.OS.Tests.Network
             await m1.Item1.StartAsync();
             await m2.Item1.StartAsync();
             
-            var p = m1.Item2.FindPeer("127.0.0.1:6801");
+            var p = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
 
             Assert.NotNull(p);
 
             await m2.Item1.StopAsync();
            
-            var p2 = m1.Item2.FindPeer("127.0.0.1:6801");
+            var p2 = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
             
             Assert.Null(p2);
 
