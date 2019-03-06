@@ -30,7 +30,6 @@ namespace AElf.OS.Network.Grpc
 
         public ILogger<GrpcServerService> Logger { get; set; }
 
-
         public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService)
         {
             _peerPool = peerPool;
@@ -194,33 +193,6 @@ namespace AElf.OS.Network.Grpc
 
             Logger.LogTrace($"Response {blockList.Blocks.Count} blocks for request {request}");
             return blockList;
-        }
-
-        public override async Task<BlockIdList> RequestBlockIds(BlocksRequest request, ServerCallContext context)
-        {
-            try
-            {
-                Logger.LogDebug(
-                    $"Peer {context.Peer} requested block ids: from {Hash.LoadByteArray(request.PreviousBlockHash.ToByteArray())}, count : {request.Count}.");
-
-                var headers = await _blockChainService.GetReversedBlockHashes(
-                    request.PreviousBlockHash, request.Count);
-
-                BlockIdList list = new BlockIdList();
-
-                if (headers == null || headers.Count <= 0)
-                    return list;
-
-                list.Hashes.AddRange(headers);
-
-                return list;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error during RequestBlock handle.");
-            }
-
-            return new BlockIdList();
         }
 
         /// <summary>

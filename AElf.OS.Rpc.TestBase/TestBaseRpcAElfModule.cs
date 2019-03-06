@@ -15,6 +15,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
 using AElf.OS.Account;
+using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
@@ -60,6 +61,14 @@ namespace AElf.OS.Rpc
                     .Returns(new List<Transaction>());
                 return mockService.Object;
             });
+            
+            Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
+            peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
+                .Returns<string>((adr) => null);
+            peerPoolMock.Setup(p => p.GetPeers())
+                .Returns(new List<IPeer> { });
+
+            context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
 
             context.Services.AddTransient<IBlockExtraDataService>(o =>
             {
