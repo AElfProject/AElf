@@ -94,7 +94,6 @@ namespace AElf.OS.Node.Application
                 Transactions = dto.InitializationSmartContracts
                     .Select(p =>
                         GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName))
-                    .Concat(dto.InitializationTransactions)
                     .ToArray()
             };
 

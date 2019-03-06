@@ -18,9 +18,6 @@ namespace AElf.OS.Rpc
         {
             var transactions = new List<Transaction>
             {
-                //GetTransactionForDeployment(chainId, typeof(BasicContractZero)),
-                //GetTransactionForDeployment(chainId, typeof(ConsensusContract)),
-                //GetTransactionForDeployment(chainId, typeof(TokenContract)),
                 GetTransactionForTokenInitialize(chainId, account)
             };
 

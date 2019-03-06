@@ -61,11 +61,9 @@ namespace AElf.Contracts.TestBase
 
         private readonly IAccountService _accountService;
 
-        public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
-
         public ECKeyPair CallOwnerKeyPair { get; set; }
 
-        public List<Address> DeployedContractsAddresses { get; set; }
+        public Dictionary<Type, Address> DeployedContractsAddresses { get; set; }
 
         public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
@@ -84,7 +82,7 @@ namespace AElf.Contracts.TestBase
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
                     options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
-                    options.Services.AddSingleton<IAccountService>(_accountService);
+                    options.Services.AddSingleton(_accountService);
                 });
             application.Initialize();
 
@@ -102,7 +100,6 @@ namespace AElf.Contracts.TestBase
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
             _osBlockchainNodeContextService =
                 application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-
             _smartContractAddressService =
                 application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
         }
@@ -125,7 +122,6 @@ namespace AElf.Contracts.TestBase
         /// <returns>Return contract addresses as the param order.</returns>
         public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
         {
-            var transactions = GetGenesisTransactions(_chainId, contractTypes);
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = _chainId,
@@ -392,10 +388,6 @@ namespace AElf.Contracts.TestBase
             list.Add(typeof(FeeReceiverContract));
 
             return list;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

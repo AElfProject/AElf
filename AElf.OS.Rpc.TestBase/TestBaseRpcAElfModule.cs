@@ -113,11 +113,11 @@ namespace AElf.OS.Rpc
             var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
                 .Value.NodeAccount);
 
-            var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
+            //var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainId,
-                InitializationTransactions = transactions
+                //InitializationTransactions = transactions
             };
             
             dto.InitializationSmartContracts.AddGenesisSmartContracts();
