@@ -15,8 +15,6 @@ namespace AElf.CrossChain
     [DependsOn(typeof(KernelAElfModule))]
     public class CrossChainAElfModule : AElfModule
     {
-        public static readonly Hash CrossChainContractName =
-            Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract");
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

@@ -106,6 +106,6 @@ namespace AElf.CrossChain
         }
 
         private Address CrossChainContractMethodAddress =>
-            _smartContractAddressService.GetAddressByContractName(CrossChainAElfModule.CrossChainContractName);
+            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
     }
 }

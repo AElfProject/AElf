@@ -107,7 +107,8 @@ namespace AElf.CrossChain
             {
                 From = from,
 
-                To = _smartContractAddressService.GetAddressByContractName(CrossChainAElfModule.CrossChainContractName),
+                To = _smartContractAddressService.GetAddressByContractName(
+                    CrossChainSmartContractAddressNameProvider.Name),
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
