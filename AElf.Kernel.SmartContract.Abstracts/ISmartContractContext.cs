@@ -28,5 +28,8 @@ namespace AElf.Kernel.SmartContract
             bool isPrivileged);
 
         int GetChainId();
+
+        Address GetAddressByContractName(Hash contractName);
+
     }
 }

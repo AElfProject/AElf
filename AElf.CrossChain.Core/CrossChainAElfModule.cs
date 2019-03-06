@@ -1,3 +1,4 @@
+using AElf.Common;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Grpc;
 using AElf.CrossChain.Grpc.Server;
@@ -10,26 +11,29 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
- {
-     [DependsOn(typeof(KernelAElfModule))]
-     public class CrossChainAElfModule : AElfModule
-     {
-         public override void ConfigureServices(ServiceConfigurationContext context)
-         {
-             var services = context.Services;
-             services.AddSingleton<CrossChainBlockDataRpcServer>();
-             
-             var configuration = context.Services.GetConfiguration();
-             Configure<GrpcConfigOption>(configuration.GetSection("CrossChain"));
-             services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-             services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
-             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
-             services.AddSingleton<ICrossChainService, CrossChainService>();
-         }
-         
-         public override void OnApplicationInitialization(ApplicationInitializationContext context)
-         {
+{
+    [DependsOn(typeof(KernelAElfModule))]
+    public class CrossChainAElfModule : AElfModule
+    {
+        public static readonly Hash CrossChainContractName =
+            Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract");
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddSingleton<CrossChainBlockDataRpcServer>();
+
+            var configuration = context.Services.GetConfiguration();
+            Configure<GrpcConfigOption>(configuration.GetSection("CrossChain"));
+            services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
+            services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+            services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
+            services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
+            services.AddSingleton<ICrossChainService, CrossChainService>();
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
 //             var opt = context.ServiceProvider.GetService<IOptionsSnapshot<GrpcConfigOption>>().Value;
 
 //             var clientService = context.ServiceProvider.GetService<GrpcProducerConsumerService>();
@@ -48,6 +52,6 @@ namespace AElf.CrossChain
 //             });
 //             context.ServiceProvider.GetService<CrossChainDataProvider>().ParentChainBlockInfoCache =
 //                 blockInfoCache;
-         }
-     }
- }
+        }
+    }
+}

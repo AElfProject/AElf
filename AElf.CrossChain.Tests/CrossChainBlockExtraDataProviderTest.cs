@@ -16,7 +16,8 @@ namespace AElf.CrossChain
         {
             return new LogEvent
             {
-                Address = ContractHelpers.GetCrossChainContractAddress(0),
+                //TODO: set address in other place
+                //Address = ContractHelpers.GetCrossChainContractAddress(0),
                 Topics =
                 {
                     ByteString.CopyFrom(topic)
@@ -30,10 +31,10 @@ namespace AElf.CrossChain
             return new TransactionResult
             {
                 TransactionId = txId,
-                Logs = { logEvents }
+                Logs = {logEvents}
             };
         }
-        
+
         [Fact]
         public async Task FillExtraData_NoEvent()
         {
@@ -44,19 +45,20 @@ namespace AElf.CrossChain
             };
             var fakeTransactionResultGettingService = TransactionResultQueryService;
             //    CrossChainTestHelper.FakeTransactionResultManager(new List<TransactionResult>());
-            var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(fakeTransactionResultGettingService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync( block);
+            var crossChainBlockExtraDataProvider =
+                new CrossChainBlockExtraDataProvider(fakeTransactionResultGettingService);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }
-        
+
         [Fact]
         public async Task FillExtraData_NotFoundEvent()
-        {            
+        {
             Hash txId1 = Hash.FromString("tx1");
             var txRes1 =
-                CreateFakeTransactionResult(txId1, new []{CreateCrossChainLogEvent(new byte[0], new byte[0])});
+                CreateFakeTransactionResult(txId1, new[] {CreateCrossChainLogEvent(new byte[0], new byte[0])});
             txRes1.UpdateBloom();
-            
+
             var block = new Block
             {
                 Header = new BlockHeader
@@ -65,35 +67,34 @@ namespace AElf.CrossChain
                 },
                 Body = new BlockBody()
             };
-            block.Body.Transactions.AddRange(new []{ txId1});
+            block.Body.Transactions.AddRange(new[] {txId1});
             await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Null(block.Header.BlockExtraData);
         }
-        
+
         [Fact]
         public async Task FillExtraData_OneEvent()
         {
-
             var fakeMerkleTreeRoot = Hash.FromString("SideChainTransactionsMerkleTreeRoot");
             var publicKey = CrossChainTestHelper.GetPubicKey();
             var data = ParamsPacker.Pack(fakeMerkleTreeRoot, new CrossChainBlockData(),
                 Address.FromPublicKey(publicKey));
             var logEvent =
                 CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
-            
+
             Hash txId1 = Hash.FromString("tx1");
-            var txRes1 = CreateFakeTransactionResult(txId1, new []{logEvent});
+            var txRes1 = CreateFakeTransactionResult(txId1, new[] {logEvent});
             txRes1.UpdateBloom();
             Hash txId2 = Hash.FromString("tx2");
             var txRes2 = CreateFakeTransactionResult(txId2,
                 new[] {CreateCrossChainLogEvent(new byte[0], new byte[0])});
-            
+
             Hash txId3 = Hash.FromString("tx3");
             var txRes3 = CreateFakeTransactionResult(txId3,
                 new[] {CreateCrossChainLogEvent(new byte[0], new byte[0])});
-            
+
             var block = new Block
             {
                 Header = new BlockHeader
@@ -102,7 +103,7 @@ namespace AElf.CrossChain
                 },
                 Body = new BlockBody()
             };
-            block.Body.Transactions.AddRange(new []{ txId1, txId2, txId3});
+            block.Body.Transactions.AddRange(new[] {txId1, txId2, txId3});
             block.Sign(publicKey, b => Task.FromResult(CrossChainTestHelper.Sign(b)));
 
             await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
@@ -112,22 +113,22 @@ namespace AElf.CrossChain
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
             Assert.Equal(fakeMerkleTreeRoot, block.Header.BlockExtraData.SideChainTransactionsRoot);
         }
-        
+
         [Fact]
         public async Task FillExtraData_MultiEventsInOneTransaction()
-        {            
+        {
             var fakeMerkleTreeRoot = Hash.FromString("SideChainTransactionsMerkleTreeRoot");
             var publicKey = CrossChainTestHelper.GetPubicKey();
             var data = ParamsPacker.Pack(fakeMerkleTreeRoot, new CrossChainBlockData(),
                 Address.FromPublicKey(publicKey));
             var interestedLogEvent =
                 CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
-            
+
             Hash txId = Hash.FromString("tx1");
             var txRes = CreateFakeTransactionResult(txId,
                 new[] {CreateCrossChainLogEvent(new byte[0], new byte[0]), interestedLogEvent});
             txRes.UpdateBloom();
-            
+
             var fakeBlock = new Block
             {
                 Header = new BlockHeader
@@ -136,8 +137,8 @@ namespace AElf.CrossChain
                 },
                 Body = new BlockBody()
             };
-            
-            fakeBlock.Body.Transactions.AddRange(new []{ txId});
+
+            fakeBlock.Body.Transactions.AddRange(new[] {txId});
             fakeBlock.Sign(publicKey, b => Task.FromResult(CrossChainTestHelper.Sign(b)));
 
             await TransactionResultService.AddTransactionResultAsync(txRes, fakeBlock.Header);
@@ -145,7 +146,7 @@ namespace AElf.CrossChain
             await crossChainBlockExtraDataProvider.FillExtraDataAsync(fakeBlock);
             Assert.Equal(fakeMerkleTreeRoot, fakeBlock.Header.BlockExtraData.SideChainTransactionsRoot);
         }
-        
+
         [Fact]
         public async Task FillExtraData_OneEvent_WithWrongData()
         {
@@ -153,11 +154,11 @@ namespace AElf.CrossChain
             var data = ParamsPacker.Pack(wrongHash, new CrossChainBlockData());
             var logEvent =
                 CreateCrossChainLogEvent(CrossChainConsts.CrossChainIndexingEventName.CalculateHash(), data);
-            
+
             Hash txId1 = Hash.FromString("tx1");
-            var txRes1 = CreateFakeTransactionResult(txId1, new []{logEvent});
+            var txRes1 = CreateFakeTransactionResult(txId1, new[] {logEvent});
             txRes1.UpdateBloom();
-            
+
             var block = new Block
             {
                 Header = new BlockHeader

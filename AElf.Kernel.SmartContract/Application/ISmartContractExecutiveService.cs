@@ -109,6 +109,7 @@ namespace AElf.Kernel.SmartContract.Application
                 ContractAddress = address,
                 BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
                 SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
+                SmartContractAddressService = _serviceProvider.GetService<ISmartContractAddressService>(),
                 SmartContractExecutiveService = this,
 #if DEBUG
                 Logger = SmartContractContextLogger
@@ -174,6 +175,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
             }
+
             _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
             return smartContractRegistration;
         }

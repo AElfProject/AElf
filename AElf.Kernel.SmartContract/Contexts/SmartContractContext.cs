@@ -17,7 +17,9 @@ namespace AElf.Kernel.SmartContract
         public ISmartContractService SmartContractService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
-
+        
+        public ISmartContractAddressService SmartContractAddressService { get; set; }
+       
 #if DEBUG
         public ILogger<ISmartContractContext> Logger { get; set; } = NullLogger<ISmartContractContext>.Instance;
 
@@ -48,6 +50,11 @@ namespace AElf.Kernel.SmartContract
         public int GetChainId()
         {
             return BlockchainService.GetChainId();
+        }
+
+        public Address GetAddressByContractName(Hash contractName)
+        {
+            return SmartContractAddressService.GetAddressByContractName(contractName);
         }
 
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
