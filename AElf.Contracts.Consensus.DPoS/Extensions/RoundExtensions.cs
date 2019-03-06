@@ -17,6 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         {
             if (round.RealTimeMinersInformation.Count < 2)
             {
+                // Just appoint the mining interval for single miner.
                 return 4000;
             }
 
@@ -276,7 +277,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order + miningInterval),
+                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order),
                     PromisedTinyBlocks = 1
                 };
             }
