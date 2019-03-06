@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
         }
 
-        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong roundNumber = 0, ulong termNumber = 0)
+        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
@@ -50,7 +50,6 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                     minerInRound.IsExtraBlockProducer = true;
                 }
                 
-                minerInRound.Address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(enumerable[i]));
                 minerInRound.Order = i + 1;
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
@@ -58,7 +57,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;
 
-                infosOfRound1.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
+                infosOfRound1.RealTimeMinersInformation.Add(enumerable[i], minerInRound);
             }
 
             // Second round
@@ -90,30 +89,29 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                     minerInRound.IsExtraBlockProducer = true;
                 }
 
-                minerInRound.Address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(enumerable[i]));
                 minerInRound.ExpectedMiningTime =
                     GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound + miningInterval);
                 minerInRound.Order = i + 1;
                 minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;
 
-                infosOfRound2.RealTimeMinersInfo.Add(enumerable[i], minerInRound);
+                infosOfRound2.RealTimeMinersInformation.Add(enumerable[i], minerInRound);
             }
 
-            infosOfRound1.RoundNumber = roundNumber + 1;
-            infosOfRound2.RoundNumber = roundNumber + 2;
+            infosOfRound1.RoundNumber = currentRoundNumber + 1;
+            infosOfRound2.RoundNumber = currentRoundNumber + 2;
 
             infosOfRound1.MiningInterval = miningInterval;
             infosOfRound2.MiningInterval = miningInterval;
 
             var term = new Term
             {
-                TermNumber = termNumber + 1,
+                TermNumber = currentTermNumber + 1,
                 FirstRound = infosOfRound1,
                 SecondRound = infosOfRound2,
                 Miners = new Miners
                 {
-                    TermNumber = termNumber + 1,
+                    TermNumber = currentTermNumber + 1,
                     PublicKeys = {miners.PublicKeys}
                 },
                 MiningInterval = miningInterval,
@@ -139,11 +137,11 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             var signatureDict = new Dictionary<Hash, string>();
             var orderDict = new Dictionary<int, string>();
 
-            var blockProducerCount = previousRound.RealTimeMinersInfo.Count;
+            var blockProducerCount = previousRound.RealTimeMinersInformation.Count;
 
-            if (previousRound.RealTimeMinersInfo.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
+            if (previousRound.RealTimeMinersInformation.Keys.Union(miners.PublicKeys).Count() == miners.PublicKeys.Count)
             {
-                foreach (var miner in previousRound.RealTimeMinersInfo.Values)
+                foreach (var miner in previousRound.RealTimeMinersInformation.Values)
                 {
                     var s = miner.Signature;
                     if (s == null)
@@ -204,25 +202,25 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                     PromisedTinyBlocks = 1
                 };
 
-                round.RealTimeMinersInfo[minerPublicKey] = minerInRound;
+                round.RealTimeMinersInformation[minerPublicKey] = minerInRound;
             }
 
             var newEBPOrder = CalculateNextExtraBlockProducerOrder(previousRound);
-            var newEBP = round.RealTimeMinersInfo.Keys.ToList()[newEBPOrder];
-            round.RealTimeMinersInfo[newEBP].IsExtraBlockProducer = true;
+            var newEBP = round.RealTimeMinersInformation.Keys.ToList()[newEBPOrder];
+            round.RealTimeMinersInformation[newEBP].IsExtraBlockProducer = true;
 
             if (Config.GetProducerNumber() != 1)
             {
                 // Exchange
-                var orderOfEBP = round.RealTimeMinersInfo[extraBlockProducer].Order;
-                var expectedMiningTimeOfEBP = round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime;
+                var orderOfEBP = round.RealTimeMinersInformation[extraBlockProducer].Order;
+                var expectedMiningTimeOfEBP = round.RealTimeMinersInformation[extraBlockProducer].ExpectedMiningTime;
 
-                round.RealTimeMinersInfo[extraBlockProducer].Order = 1;
-                round.RealTimeMinersInfo[extraBlockProducer].ExpectedMiningTime =
-                    round.RealTimeMinersInfo.First().Value.ExpectedMiningTime;
+                round.RealTimeMinersInformation[extraBlockProducer].Order = 1;
+                round.RealTimeMinersInformation[extraBlockProducer].ExpectedMiningTime =
+                    round.RealTimeMinersInformation.First().Value.ExpectedMiningTime;
 
-                round.RealTimeMinersInfo.First().Value.Order = orderOfEBP;
-                round.RealTimeMinersInfo.First().Value.ExpectedMiningTime = expectedMiningTimeOfEBP;
+                round.RealTimeMinersInformation.First().Value.Order = orderOfEBP;
+                round.RealTimeMinersInformation.First().Value.ExpectedMiningTime = expectedMiningTimeOfEBP;
             }
 
             round.MiningInterval = previousRound.MiningInterval;
@@ -232,7 +230,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
 
         private static int CalculateNextExtraBlockProducerOrder(Round roundInfo)
         {
-            var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInfo();
+            var firstPlaceInfo = roundInfo.GetFirstPlaceMinerInformation();
             var sig = firstPlaceInfo.Signature;
             if (sig == null)
             {
@@ -241,7 +239,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
 
             var sigNum = BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? sig.Value.Reverse().ToArray() : sig.Value.ToArray(), 0);
-            var blockProducerCount = roundInfo.RealTimeMinersInfo.Count;
+            var blockProducerCount = roundInfo.RealTimeMinersInformation.Count;
             var order = GetModulus(sigNum, blockProducerCount);
 
             return order;

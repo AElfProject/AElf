@@ -26,8 +26,6 @@ namespace AElf.Kernel.Consensus.Application
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
 
-        private byte[] _latestGeneratedConsensusInformation;
-
         public ILogger<ConsensusService> Logger { get; set; }
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
@@ -47,42 +45,42 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task TriggerConsensusAsync()
         {
+            // Prepare data for executing contract.
+            var address = await _accountService.GetAccountAsync();
             var chain = await _blockchainService.GetChainAsync();
-
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
+            var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
+            
+            // Upload the consensus command.
+            var commandBytes = await ExecuteContractAsync(address, chainContext, ConsensusConsts.GetConsensusCommand,
+                triggerInformation);
+            _consensusControlInformation.ConsensusCommand =
+                ConsensusCommand.Parser.ParseFrom(commandBytes.ToByteArray());
 
-            _consensusControlInformation.ConsensusCommand = ConsensusCommand.Parser.ParseFrom(
-                (await ExecuteContractAsync(
-                    await _accountService.GetAccountAsync(), chainContext, ConsensusConsts.GetConsensusCommand,
-                    _consensusInformationGenerationService.GetFirstExtraInformation()))
-                .ToByteArray());
-
+            // Initial consensus scheduler.
             var blockMiningEventData = new BlockMiningEventData(chain.BestChainHash, chain.BestChainHeight,
                 _consensusControlInformation.ConsensusCommand.TimeoutMilliseconds);
-
-            // Initial or reload consensus scheduler.
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.CountingMilliseconds,
                 blockMiningEventData);
         }
 
         public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
-            byte[] consensusInformation)
+            byte[] consensusExtraData)
         {
-            Logger.LogInformation("Generating consensus transactions.");
-
+            var address = await _accountService.GetAccountAsync();
             var chainContext = new ChainContext
             {
                 BlockHash = preBlockHash,
                 BlockHeight = preBlockHeight
             };
 
-            var validationResult = (await ExecuteContractAsync(await _accountService.GetAccountAsync(),
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusInformation))
+            var validationResult = (await ExecuteContractAsync(address,
+                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData))
                 .DeserializeToPbMessage<ValidationResult>();
 
             if (!validationResult.Success)
@@ -95,48 +93,41 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<byte[]> GetNewConsensusInformationAsync()
         {
-            Logger.LogInformation("Getting new consensus information.");
-
-            return _latestGeneratedConsensusInformation;
-/*            var chain = await _blockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var address = await _accountService.GetAccountAsync();
             var chainContext = new ChainContext
             {
-                = 
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-
-            var newConsensusInformation = (await ExecuteContractAsync(await _accountService.GetAccountAsync(),
-                chainContext, ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GenerateExtraInformation())).ToByteArray();
-
-            _latestGeneratedConsensusInformation = newConsensusInformation;
-
-            return newConsensusInformation;*/
+            
+            return (await ExecuteContractAsync(address, chainContext,
+                ConsensusConsts.GetNewConsensusInformation,
+                _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();
         }
 
-        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(
-            long refBlockHeight, byte[] refBlockPrefix)
+        public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync()
         {
-            Logger.LogInformation("Generating consensus transactions.");
-
             var chain = await _blockchainService.GetChainAsync();
+            var address = await _accountService.GetAccountAsync();
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
 
-            _latestGeneratedConsensusInformation = (await ExecuteContractAsync(await _accountService.GetAccountAsync(),
-                chainContext, ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GenerateExtraInformation())).ToByteArray();
-
-            var generatedTransactions = (await ExecuteContractAsync(await _accountService.GetAccountAsync(),
-                    chainContext, ConsensusConsts.GenerateConsensusTransactions, refBlockHeight, refBlockPrefix,
-                    _consensusInformationGenerationService.GenerateExtraInformationForTransaction(
-                        _latestGeneratedConsensusInformation))).DeserializeToPbMessage<TransactionList>()
+            var generatedTransactions =
+                (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
+                    _consensusInformationGenerationService.GetTriggerInformation()))
+                .DeserializeToPbMessage<TransactionList>()
                 .Transactions
                 .ToList();
+
+            foreach (var generatedTransaction in generatedTransactions)
+            {
+                generatedTransaction.RefBlockNumber = chain.BestChainHeight;
+                generatedTransaction.RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray());
+            }
 
             return generatedTransactions;
         }
@@ -154,6 +145,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var transactionTrace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            Console.WriteLine(transactionTrace.StdErr);
             return transactionTrace.RetVal.Data;
         }
     }
