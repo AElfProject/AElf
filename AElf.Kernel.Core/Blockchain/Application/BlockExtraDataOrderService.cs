@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class ExtraDataOrderService : IExtraDataOrderService
+    public class BlockExtraDataOrderService : IBlockExtraDataOrderService
     {
         private readonly Dictionary<Type, int> _ordersDictionary = new Dictionary<Type, int>();
 

@@ -101,7 +101,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
                     {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
 
-            var mockExtraDataOrderInformation = new Mock<IExtraDataOrderService>();
+            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
             mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>

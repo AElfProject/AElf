@@ -43,7 +43,7 @@ namespace AElf.OS
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
             
-            context.Services.AddSingleton<IExtraDataOrderService, ExtraDataOrderService>();
+            context.Services.AddSingleton<IBlockExtraDataOrderService, BlockExtraDataOrderService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -77,7 +77,7 @@ namespace AElf.OS
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            var extraDataOrderInformation = context.ServiceProvider.GetService<ExtraDataOrderService>();
+            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
             var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
             foreach (var blockExtraDataProvider in blockExtraDataProviders)
             {

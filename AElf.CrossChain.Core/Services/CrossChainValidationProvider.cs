@@ -13,15 +13,15 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly IExtraDataOrderService _extraDataOrderService;
+        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
 
         public CrossChainValidationProvider(ITransactionResultQueryService transactionResultQueryService, 
-            ICrossChainService crossChainService, IExtraDataOrderService extraDataOrderService)
+            ICrossChainService crossChainService, IBlockExtraDataOrderService blockExtraDataOrderService)
         {
             _transactionResultQueryService = transactionResultQueryService;
             _crossChainService = crossChainService;
-            _extraDataOrderService = extraDataOrderService;
+            _blockExtraDataOrderService = blockExtraDataOrderService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -57,7 +57,7 @@ namespace AElf.CrossChain
                 if (sideChainTransactionsRoot == null
                     || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(block.Header
                         .BlockExtraDatas[
-                            _extraDataOrderService.GetExtraDataProviderOrder(
+                            _blockExtraDataOrderService.GetExtraDataProviderOrder(
                                 typeof(CrossChainBlockExtraDataProvider))].ToByteArray())))
                     continue;
                 return await ValidateCrossChainBlockDataAsync(crossChainBlockData,
