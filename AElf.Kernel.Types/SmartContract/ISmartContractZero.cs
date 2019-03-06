@@ -8,5 +8,6 @@ namespace AElf.Kernel.KernelAccount
     {        
         string GetContractInfo(Address address);
         byte[] DeploySmartContract(int category, byte[] code);
+        byte[] DeploySystemSmartContract(Hash name, int category, byte[] code);
     }
 }

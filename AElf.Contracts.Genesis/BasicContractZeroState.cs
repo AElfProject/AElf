@@ -15,5 +15,7 @@ namespace AElf.Contracts.Genesis
         public MappedState<Hash, Address> CodeAddressMapping { get; set; }
         
         public MappedState<Hash, SmartContractRegistration> SmartContractRegistrations { get; set; }
+        
+        public MappedState<Hash, Address> NameAddressMapping { get; set; }
     }
 }

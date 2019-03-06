@@ -29,8 +29,8 @@ namespace AElf.OS.Node.Application
 
         public List<GenesisSmartContractDto> InitializationSmartContracts { get; set; } =
             new List<GenesisSmartContractDto>();
-        
-       public Transaction[] InitializationTransactions { get; set; }
+
+        public Transaction[] InitializationTransactions { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -41,7 +41,7 @@ namespace AElf.OS.Node.Application
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
                 SmartContractType = smartContractType,
-                SystemSmartContractName = smartContractType.Name
+                SystemSmartContractName = smartContractType.FullName
             });
         }
 
@@ -50,7 +50,7 @@ namespace AElf.OS.Node.Application
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
                 SmartContractType = typeof(T),
-                SystemSmartContractName = typeof(T).Name
+                SystemSmartContractName = typeof(T).FullName
             });
         }
 
@@ -75,15 +75,12 @@ namespace AElf.OS.Node.Application
     {
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
-        private ISystemSmartContractNameToCodeHashService _systemSmartContractNameToCodeHashService;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer,
-            ISystemSmartContractNameToCodeHashService systemSmartContractNameToCodeHashService)
+            IAElfNetworkServer networkServer)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
-            _systemSmartContractNameToCodeHashService = systemSmartContractNameToCodeHashService;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -115,15 +112,13 @@ namespace AElf.OS.Node.Application
             var zeroAddress = Address.BuildContractAddress(chainId, 0);
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
-            _systemSmartContractNameToCodeHashService.Register(systemContractName, Hash.FromRawBytes(code));
-
             return new Transaction()
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
+                MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(2, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(Hash.FromString(systemContractName), 2, code))
             };
         }
 

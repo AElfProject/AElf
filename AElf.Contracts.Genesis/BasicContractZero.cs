@@ -44,9 +44,15 @@ namespace AElf.Contracts.Genesis
         }
 
         [View]
-        public Address GetContractAddress(Hash codeHash)
+        public Address GetContractAddressByCodeHash(Hash codeHash)
         {
             return State.CodeAddressMapping[codeHash];
+        }
+
+        [View]
+        public Address GetContractAddressByName(Hash name)
+        {
+            return State.NameAddressMapping[name];
         }
 
         [View]
@@ -64,6 +70,20 @@ namespace AElf.Contracts.Genesis
         #endregion Views
 
         #region Actions
+
+        public byte[] DeploySystemSmartContract(Hash name, int category, byte[] code)
+        {
+            Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+
+            var addressBytes = DeploySmartContract(category, code);
+
+
+            var address = Address.FromBytes(addressBytes);
+
+            State.NameAddressMapping[name] = address;
+
+            return addressBytes;
+        }
 
         public byte[] DeploySmartContract(int category, byte[] code)
         {
