@@ -31,17 +31,19 @@ namespace AElf.Kernel.Node.Application
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
-        private ITxHub _txHub;
-        private IBlockchainService _blockchainService;
-        private IChainCreationService _chainCreationService;
-        private ISmartContractAddressUpdateService _smartContractAddressUpdateService;
+        private readonly ITxHub _txHub;
+        private readonly IBlockchainService _blockchainService;
+        private readonly IChainCreationService _chainCreationService;
+        private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
 
         public BlockchainNodeContextService(
-            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub)
+            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
+            ISmartContractAddressUpdateService smartContractAddressUpdateService)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
             _txHub = txHub;
+            _smartContractAddressUpdateService = smartContractAddressUpdateService;
         }
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
