@@ -250,6 +250,23 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseStatus.ShouldBe(TransactionResultStatus.Mined.ToString());
         }
 
+        [Fact(Skip="https://github.com/AElfProject/AElf/issues/1083")]
+        public async Task Get_NotExisted_TransactionResult()
+        {
+            // Generate a transaction
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await GenerateTransferTransaction(chain);
+            var transactionHex = transaction.GetHash().ToHex();
+
+            var response = await JsonCallAsJObject("/chain", "GetTransactionResult",
+                new {transactionId = transactionHex});
+            var responseTransactionId = response["result"]["TransactionId"].ToString();
+            var responseStatus = response["result"]["Status"].ToString();
+
+            responseTransactionId.ShouldBe(transactionHex);
+            responseStatus.ShouldBe(TransactionResultStatus.NotExisted.ToString());
+        }
+
         [Fact]
         public async Task Get_TransactionResult_ReturnInvalidTransactionId()
         {
@@ -288,6 +305,25 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             responseTransactionResults = response["result"].ToList();
             responseTransactionResults.Count.ShouldBe(5);
+        }
+
+        [Fact]
+        public async Task Get_NotExisted_TransactionsResult()
+        {
+            var block = new Block
+            {
+                Header = new BlockHeader(),
+                BlockHashToHex = "Test"
+            };
+            var blockHash = block.GetHash().ToHex();
+            var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
+                new {blockHash, offset = 0, num = 10});
+
+            var returnCode = response["error"]["code"].ToString();
+            returnCode.ShouldBe("20001");
+
+            var message = response["error"]["message"].ToString();
+            message.ShouldBe("Not found");
         }
 
         [Fact]
