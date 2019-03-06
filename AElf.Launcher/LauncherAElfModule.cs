@@ -94,10 +94,10 @@ namespace AElf.Launcher
             {
                 ChainId = chainOptions.ChainId
             };
-            
-            dto.AddGenesisSmartContract<BasicContractZero>();
-            dto.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>();
-            
+
+            dto.InitializationSmartContracts.AddGenesisSmartContract<BasicContractZero>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>();
+
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

@@ -119,10 +119,7 @@ namespace AElf.OS.Rpc
             dto.InitializationSmartContracts.AddGenesisSmartContracts();
 
             var osBlockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async () =>
-            {
-                await osBlockchainNodeContextService.StartAsync(dto);
-            });
+            AsyncHelper.RunSync( () => osBlockchainNodeContextService.StartAsync(dto));
         }
     }
 }
