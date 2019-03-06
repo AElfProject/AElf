@@ -4,6 +4,7 @@ using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.EventMessages;
@@ -95,8 +96,9 @@ namespace AElf.Launcher
                 ChainId = chainOptions.ChainId
             };
             dto.InitializationSmartContracts.AddGenesisSmartContract<BasicContractZero>();
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>();
-            
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
+
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
