@@ -112,17 +112,16 @@ namespace AElf.OS.Rpc
             var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = chainId,
-                    Transactions = transactions
-                }
+                ChainId = chainId,
+                InitializationTransactions = transactions
             };
+            
+            dto.InitializationSmartContracts.AddGenesisSmartContracts();
 
-            var blockchainNodeContextService = context.ServiceProvider.GetService<IBlockchainNodeContextService>();
+            var osBlockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             AsyncHelper.RunSync(async () =>
             {
-                blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
+                await osBlockchainNodeContextService.StartAsync(dto);
             });
         }
     }

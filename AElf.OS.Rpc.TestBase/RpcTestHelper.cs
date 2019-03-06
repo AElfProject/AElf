@@ -18,26 +18,13 @@ namespace AElf.OS.Rpc
         {
             var transactions = new List<Transaction>
             {
-                GetTransactionForDeployment(chainId, typeof(BasicContractZero)),
-                GetTransactionForDeployment(chainId, typeof(ConsensusContract)),
-                GetTransactionForDeployment(chainId, typeof(TokenContract)),
+                //GetTransactionForDeployment(chainId, typeof(BasicContractZero)),
+                //GetTransactionForDeployment(chainId, typeof(ConsensusContract)),
+                //GetTransactionForDeployment(chainId, typeof(TokenContract)),
                 GetTransactionForTokenInitialize(chainId, account)
             };
 
             return transactions.ToArray();
-        }
-
-        public static Transaction GetTransactionForDeployment(int chainId, Type contractType)
-        {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
-            var code = File.ReadAllBytes(contractType.Assembly.Location);
-            return new Transaction()
-            {
-                From = zeroAddress,
-                To = zeroAddress,
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(2, code))
-            };
         }
 
         public static Transaction GetTransactionForTokenInitialize(int chainId, Address account)

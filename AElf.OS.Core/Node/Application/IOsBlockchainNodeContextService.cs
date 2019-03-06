@@ -29,6 +29,8 @@ namespace AElf.OS.Node.Application
 
         public List<GenesisSmartContractDto> InitializationSmartContracts { get; set; } =
             new List<GenesisSmartContractDto>();
+        
+       public Transaction[] InitializationTransactions { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions

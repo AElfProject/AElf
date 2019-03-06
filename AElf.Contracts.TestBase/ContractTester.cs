@@ -55,7 +55,7 @@ namespace AElf.Contracts.TestBase
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly IBlockValidationService _blockValidationService;
+        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
 
         private readonly IAccountService _accountService;
 
@@ -95,8 +95,9 @@ namespace AElf.Contracts.TestBase
             _consensusService = application.ServiceProvider.GetService<IConsensusService>();
             _chainManager = application.ServiceProvider.GetService<IChainManager>();
             _transactionResultQueryService = application.ServiceProvider.GetService<ITransactionResultQueryService>();
-            _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
+            _osBlockchainNodeContextService =
+                application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
         }
 
         public void SetCallOwner(ECKeyPair caller)
@@ -120,14 +121,12 @@ namespace AElf.Contracts.TestBase
             var transactions = GetGenesisTransactions(_chainId, contractTypes);
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = _chainId,
-                    Transactions = transactions
-                }
+                ChainId = _chainId,
             };
+            
+            dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
-            await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
+            await _osBlockchainNodeContextService.StartAsync(dto);
 
             var addresses = new List<Address>();
             for (var i = 0UL; i < (ulong) contractTypes.Length; i++)
