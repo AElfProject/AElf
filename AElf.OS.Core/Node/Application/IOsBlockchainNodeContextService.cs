@@ -47,8 +47,7 @@ namespace AElf.OS.Node.Application
                 SystemSmartContractName = Hash.FromString(smartContractType.FullName)
             });
         }
-        
-        
+
 
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
         {
@@ -58,8 +57,9 @@ namespace AElf.OS.Node.Application
                 SystemSmartContractName = Hash.FromString(typeof(T).FullName)
             });
         }
-        
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts, Hash name)
+
+        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            Hash name)
         {
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
@@ -104,6 +104,7 @@ namespace AElf.OS.Node.Application
             BlockchainNodeContextStartDto blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
                 ChainId = dto.ChainId,
+                ZeroSmartContractType = dto.ZeroSmartContract,
                 Transactions = dto.InitializationSmartContracts
                     .Select(p =>
                         GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName))
