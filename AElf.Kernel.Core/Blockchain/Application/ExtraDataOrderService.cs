@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace AElf.Kernel.Blockchain.Infrastructure
+namespace AElf.Kernel.Blockchain.Application
 {
-    public class ExtraDataOrderInformation
+    public class ExtraDataOrderService : IExtraDataOrderService
     {
         private readonly Dictionary<Type, int> _ordersDictionary = new Dictionary<Type, int>();
 

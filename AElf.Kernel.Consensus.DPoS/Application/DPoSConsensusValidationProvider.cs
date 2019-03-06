@@ -9,12 +9,12 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     public class DPoSConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
-        private readonly ExtraDataOrderInformation _extraDataOrderInformation;
+        private readonly IExtraDataOrderService _extraDataOrderService;
 
-        public DPoSConsensusValidationProvider(IConsensusService consensusService, ExtraDataOrderInformation extraDataOrderInformation)
+        public DPoSConsensusValidationProvider(IConsensusService consensusService, IExtraDataOrderService extraDataOrderService)
         {
             _consensusService = consensusService;
-            _extraDataOrderInformation = extraDataOrderInformation;
+            _extraDataOrderService = extraDataOrderService;
         }
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
@@ -32,7 +32,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 block.Height - 1,
                 block.Header
                     .BlockExtraDatas[
-                        _extraDataOrderInformation.GetExtraDataProviderOrder(typeof(ConsensusExtraDataProvider))]
+                        _extraDataOrderService.GetExtraDataProviderOrder(typeof(ConsensusExtraDataProvider))]
                     .ToByteArray());
             return result;
         }

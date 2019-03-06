@@ -42,7 +42,6 @@ namespace AElf.CrossChain
             }
 
             return null;*/
-
             throw new NotImplementedException();
         }
     }

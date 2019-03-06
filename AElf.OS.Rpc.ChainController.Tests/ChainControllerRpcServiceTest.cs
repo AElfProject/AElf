@@ -316,7 +316,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseResult["Header"]["MerkleTreeRootOfWorldState"].ToString()
                 .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             responseResult["Header"]["SideChainTransactionsRoot"].ToString().ShouldBe(
-                block.Header.BlockExtraDatas == null
+                !block.Header.BlockExtraDatas.Any()
                     ? string.Empty
                     : Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()).ToHex());
             ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);

@@ -311,7 +311,9 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex(),
+                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraDatas.Any()
+                        ? Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex()
+                        : "",
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
