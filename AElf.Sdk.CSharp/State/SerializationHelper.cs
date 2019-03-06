@@ -68,7 +68,7 @@ namespace AElf.Sdk.CSharp.State
             return null;
         }
 
-        //TODO: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
+        //Done: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
         public static byte[] Serialize(object value)
         {
             if (value == null)
