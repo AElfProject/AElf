@@ -20,73 +20,13 @@ namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(
         typeof(SmartContractExecutionAElfModule),
-        typeof(TestBaseAElfModule),
-        typeof(AbpEventBusModule)
+        typeof(KernelCoreTestAElfModule)
     )]
     public class SmartContractExecutionTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var services = context.Services;
 
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-
-            services.AddTransient<ITransactionExecutingService>(p =>
-            {
-                var mockService = new Mock<ITransactionExecutingService>();
-                mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
-                        It.IsAny<CancellationToken>()))
-                    .Returns<BlockHeader, List<Transaction>,
-                        CancellationToken>((blockHeader, transactions, cancellationToken) =>
-                    {
-                        var returnSets = new List<ExecutionReturnSet>();
-
-                        var count = 0;
-                        foreach (var tx in transactions)
-                        {
-                            if (cancellationToken.IsCancellationRequested && count >= 3)
-                            {
-                                break;
-                            }
-
-                            var returnSet = new ExecutionReturnSet
-                            {
-                                TransactionId = tx.GetHash()
-                            };
-                            returnSet.StateChanges.Add(tx.GetHash().ToHex(), tx.ToByteString());
-                            returnSets.Add(returnSet);
-                            count++;
-                        }
-
-                        return Task.FromResult(returnSets);
-                    });
-
-                return mockService.Object;
-            });
-
-            services.AddTransient<IResourceUsageDetectionService>(p =>
-            {
-                var mockService = new Mock<IResourceUsageDetectionService>();
-                
-                
-                
-                mockService.Setup(m => m.GetResources(It.IsAny<Transaction>()))
-                    .Returns<Transaction>((transaction) =>
-                    {
-                        var list = new List<string>()
-                        {
-                            transaction.From.GetFormatted(),
-                            transaction.To.GetFormatted()
-                        };
-                        return Task.FromResult(list.Select(a => a));
-                    });
-
-                
-                return mockService.Object;
-            });
-
-            services.AddTransient<Grouper>();
         }
     }
 }
