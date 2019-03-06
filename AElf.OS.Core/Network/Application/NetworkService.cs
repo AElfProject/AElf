@@ -88,7 +88,6 @@ namespace AElf.OS.Network.Application
 
                 var blocks = await p.GetBlocksAsync(blockHash, count);
 
-
                 if (blocks != null)
                     return blocks;
 
@@ -170,12 +169,6 @@ namespace AElf.OS.Network.Application
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerAddress}.");
                 return null;
             }
-        }
-
-        public async Task<List<Hash>> GetBlockIdsAsync(Hash topHash, int count, string peer)
-        {
-            IPeer grpcPeer = _peerPool.FindPeerByAddress(peer);
-            return await grpcPeer.GetBlockIdsAsync(topHash, count);
         }
     }
 }
