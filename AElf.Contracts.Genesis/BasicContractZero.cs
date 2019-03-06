@@ -189,5 +189,23 @@ namespace AElf.Contracts.Genesis
         }
 
         #endregion Actions
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contractName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        {
+            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            return Address.FromBytes(Address.TakeByAddressLength(hash.DumpByteArray()));
+        }
+
+        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        {
+            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
+        }
     }
 }

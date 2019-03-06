@@ -5,6 +5,7 @@ using AElf.CrossChain.Grpc.Server;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -19,6 +20,8 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+
+            services.AddAssemblyOf<CrossChainAElfModule>();
             services.AddSingleton<CrossChainBlockDataRpcServer>();
 
             var configuration = context.Services.GetConfiguration();
@@ -28,6 +31,7 @@ namespace AElf.CrossChain
             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
             services.AddSingleton<ICrossChainService, CrossChainService>();
+
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
