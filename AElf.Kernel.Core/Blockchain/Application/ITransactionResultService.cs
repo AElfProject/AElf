@@ -98,6 +98,11 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     BlockHash = blockHash
                 };
+                if (block.Body.Transactions.Count == 0)
+                {
+                    // This will only happen during test environment
+                    return;
+                }
 
                 var firstTransaction = block.Body.Transactions.First();
                 var withBlockHash = await _transactionResultManager.GetTransactionResultAsync(
