@@ -8,7 +8,7 @@ using Org.BouncyCastle.Asn1.X509.Qualified;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public static class SerializationHelpers
+    public static class SerializationHelper
     {
         private static readonly Dictionary<Type, Action<CodedOutputStream, object>> _primitiveWriters =
             new Dictionary<Type, Action<CodedOutputStream, object>>()
@@ -68,7 +68,7 @@ namespace AElf.Sdk.CSharp.State
             return null;
         }
 
-        //TODO: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
+        //Done: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
         public static byte[] Serialize(object value)
         {
             if (value == null)

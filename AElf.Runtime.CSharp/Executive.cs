@@ -101,7 +101,7 @@ namespace AElf.Runtime.CSharp
                 //TODO: set in constant
                 To = _currentSmartContractContext.GetAddressByContractName(
                     Hash.FromString("AElf.Contracts.Token.TokenContract")),
-                MethodName = nameof(ITokenCotract.ChargeTransactionFees),
+                MethodName = nameof(ITokenContract.ChargeTransactionFees),
                 Params = ByteString.CopyFrom(
                     ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
             });
