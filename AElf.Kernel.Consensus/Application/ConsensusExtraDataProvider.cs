@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -24,12 +23,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var consensusInformation = await _consensusService.GetNewConsensusInformationAsync();
 
-            if (consensusInformation == null)
-            {
-                return null;
-            }
-
-            return ByteString.CopyFrom(consensusInformation);
+            return consensusInformation == null ? null : ByteString.CopyFrom(consensusInformation);
         }
     }
 }
