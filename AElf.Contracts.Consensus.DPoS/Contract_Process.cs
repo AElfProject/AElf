@@ -503,9 +503,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
 
-                if (minersCount < 3)
+                if (minersCount == 1)
                 {
-                    minersCount = minimumCount;
+                    offset = 1;
+                    return true;
                 }
                 
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
