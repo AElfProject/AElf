@@ -14,6 +14,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Node.Application
 {
@@ -71,7 +72,7 @@ namespace AElf.OS.Node.Application
         Task StopAsync(OsBlockchainNodeContext blockchainNodeContext);
     }
 
-    public class OsBlockchainNodeContextService : IOsBlockchainNodeContextService
+    public class OsBlockchainNodeContextService : IOsBlockchainNodeContextService, ITransientDependency
     {
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;

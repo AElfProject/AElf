@@ -8,9 +8,12 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
+using AElf.OS;
+using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -19,7 +22,8 @@ namespace AElf.Contracts.TestBase
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
         typeof(DatabaseAElfModule),
-        typeof(KernelAElfModule)
+        typeof(KernelAElfModule),
+        typeof(CoreOSAElfModule)
     )]
     public class ContractTestAElfModule : AElfModule
     {
@@ -35,6 +39,8 @@ namespace AElf.Contracts.TestBase
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+
+            context.Services.AddSingleton<IAElfNetworkServer>(c => Mock.Of<IAElfNetworkServer>());
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

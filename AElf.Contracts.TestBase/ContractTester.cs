@@ -82,11 +82,13 @@ namespace AElf.Contracts.TestBase
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
                     options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
+                    options.Services.AddSingleton<IAccountService>(_accountService);
                 });
             application.Initialize();
 
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
-            _transactionReadOnlyExecutionService = application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
+            _transactionReadOnlyExecutionService =
+                application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
             _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
             _systemTransactionGenerationService =
@@ -123,7 +125,7 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = _chainId,
             };
-            
+
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
