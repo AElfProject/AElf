@@ -42,7 +42,7 @@ namespace AElf.Kernel
                 MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
                 MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
                 Bloom = Bloom,
-                BlockExtraData = BlockExtraData?.Clone()
+                BlockExtraDatas = {BlockExtraDatas}
             };
             if (Height > ChainConsts.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
