@@ -72,9 +72,5 @@ namespace AElf.Kernel.Node.Application
         {
         }
 
-        private byte[] ReadContractCode(string path)
-        {
-            return File.ReadAllBytes(Path.GetFullPath(path));
-        }
     }
 }
