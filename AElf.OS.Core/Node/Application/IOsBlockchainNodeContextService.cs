@@ -76,12 +76,14 @@ namespace AElf.OS.Node.Application
     {
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
+        private ISmartContractAddressService _smartContractAddressService;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer)
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
+            _smartContractAddressService = smartContractAddressService;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -110,7 +112,7 @@ namespace AElf.OS.Node.Application
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType, string systemContractName)
         {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
             return new Transaction()

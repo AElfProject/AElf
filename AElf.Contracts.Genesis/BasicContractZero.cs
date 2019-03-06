@@ -90,7 +90,7 @@ namespace AElf.Contracts.Genesis
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
-            var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
+            var contractAddress = BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
 

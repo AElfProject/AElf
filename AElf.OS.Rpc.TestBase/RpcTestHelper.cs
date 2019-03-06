@@ -29,7 +29,11 @@ namespace AElf.OS.Rpc
 
         public static Transaction GetTransactionForTokenInitialize(int chainId, Address account)
         {
-            var tokenAddress = Address.BuildContractAddress(chainId, 2);
+
+            throw new NotImplementedException();
+            //TODO: should fix
+
+            /*var tokenAddress = Address.BuildContractAddress(chainId, 2);
 
             return new Transaction()
             {
@@ -37,7 +41,7 @@ namespace AElf.OS.Rpc
                 To = tokenAddress,
                 MethodName = "Initialize",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack("ELF", "ELF_Token", 100000, 8))
-            };
+            };*/
         }
     }
 }

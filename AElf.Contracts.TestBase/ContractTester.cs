@@ -27,6 +27,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
@@ -56,6 +57,7 @@ namespace AElf.Contracts.TestBase
         private readonly IChainManager _chainManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
         private readonly IAccountService _accountService;
 
@@ -100,6 +102,9 @@ namespace AElf.Contracts.TestBase
             _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
             _osBlockchainNodeContextService =
                 application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+
+            _smartContractAddressService =
+                application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
         }
 
         public void SetCallOwner(ECKeyPair caller)
@@ -133,7 +138,6 @@ namespace AElf.Contracts.TestBase
             var addresses = new List<Address>();
             for (var i = 0UL; i < (ulong) contractTypes.Length; i++)
             {
-                addresses.Add(GetContractAddress(i));
             }
 
             DeployedContractsAddresses = addresses;
@@ -363,7 +367,7 @@ namespace AElf.Contracts.TestBase
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType)
         {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var code = File.ReadAllBytes(contractType.Assembly.Location);
             return new Transaction
@@ -373,11 +377,6 @@ namespace AElf.Contracts.TestBase
                 MethodName = nameof(ISmartContractZero.DeploySmartContract),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(2, code))
             };
-        }
-
-        private Address GetContractAddress(ulong serialNumber)
-        {
-            return Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), serialNumber);
         }
 
         public List<Type> GetDefaultContractTypes()

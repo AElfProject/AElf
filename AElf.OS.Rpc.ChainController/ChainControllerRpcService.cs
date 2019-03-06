@@ -39,6 +39,9 @@ namespace AElf.OS.Rpc.ChainController
         // public IBlockSynchronizer BlockSynchronizer { get; set; }
 
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
+        
+        
+        public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
@@ -67,7 +70,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
-            var basicContractZero = Address.BuildContractAddress(_chainOptions.ChainId, 0);
+            var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
 
             var response = new JObject
             {

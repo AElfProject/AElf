@@ -9,7 +9,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         int ChainId { get; }
         Address ZeroSmartContractAddress { get; }
     }
-    
+
     public class StaticChainInformationProvider : IStaticChainInformationProvider, ISingletonDependency
     {
         public int ChainId { get; }
@@ -18,7 +18,24 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
         {
             ChainId = chainOptions.Value.ChainId;
-            ZeroSmartContractAddress = Address.BuildContractAddress(ChainId, 0);
+            ZeroSmartContractAddress = BuildContractAddress(ChainId, 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contractName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        {
+            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            return Address.FromBytes(Address.TakeByAddressLength(hash.DumpByteArray()));
+        }
+
+        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        {
+            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
         }
     }
 }

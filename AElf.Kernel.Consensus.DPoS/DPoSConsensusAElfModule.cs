@@ -18,6 +18,11 @@ namespace AElf.Kernel.Consensus.DPoS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
+            
+            //TODO: change to module
+            context.Services.AddAssemblyOf<ConsensusSmartContractAddressNameProvider>();
+
+            
 
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();

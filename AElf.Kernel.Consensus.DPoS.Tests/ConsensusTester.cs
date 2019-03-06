@@ -22,6 +22,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -50,6 +51,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
@@ -80,7 +82,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var blockManager = application.ServiceProvider.GetService<IBlockManager>();
             var blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
             var txHub = application.ServiceProvider.GetService<ITxHub>();
-
+            _smartContractAddressService =
+                application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
 
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
@@ -96,7 +99,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             _consensusService = new ConsensusService(
                 new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation),
                 _accountService, transactionReadOnlyExecutionService, MockConsensusScheduler(), _blockchainService,
-                consensusControlInformation);
+                consensusControlInformation, _smartContractAddressService);
 
             _blockGenerationService = new BlockGenerationService(
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
@@ -243,7 +246,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType)
         {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var code = File.ReadAllBytes(contractType.Assembly.Location);
             return new Transaction

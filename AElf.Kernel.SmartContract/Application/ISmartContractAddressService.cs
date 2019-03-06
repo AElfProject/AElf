@@ -9,9 +9,9 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Address GetAddressByContractName(Hash name);
 
-        Address GetConsensusContractAddress();
-
         void SetAddress(Hash name, Address address);
+
+        Address GetZeroSmartContractAddress();
     }
 
     public class SmartContractAddressService : ISmartContractAddressService, ISingletonDependency
@@ -19,7 +19,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
 
 
-        private readonly ConcurrentDictionary<Hash, Address> _hashToAddressMap = new ConcurrentDictionary<Hash, Address>();
+        private readonly ConcurrentDictionary<Hash, Address> _hashToAddressMap =
+            new ConcurrentDictionary<Hash, Address>();
 
         public SmartContractAddressService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
         {
@@ -33,14 +34,15 @@ namespace AElf.Kernel.SmartContract.Application
             return address;
         }
 
-        public Address GetConsensusContractAddress()
-        {
-            return _defaultContractZeroCodeProvider.ContractZeroAddress;
-        }
 
         public void SetAddress(Hash name, Address address)
         {
             _hashToAddressMap.TryAdd(name, address);
+        }
+
+        public Address GetZeroSmartContractAddress()
+        {
+            return _defaultContractZeroCodeProvider.ContractZeroAddress;
         }
     }
 }

@@ -70,7 +70,6 @@ namespace AElf.Launcher
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<GenesisTransactionsGenerator, GenesisTransactionsGenerator>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
@@ -112,7 +111,7 @@ namespace AElf.Launcher
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
-            AsyncHelper.RunSync(async () => { await osService.StopAsync(that.OsBlockchainNodeContext); });
+            AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
     }
 }
