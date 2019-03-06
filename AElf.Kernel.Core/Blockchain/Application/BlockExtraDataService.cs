@@ -12,11 +12,11 @@ namespace AElf.Kernel.Blockchain.Application
             _blockExtraDataProviders = blockExtraDataProviders;
         }
 
-        public async Task FillBlockExtraData(Block block)
+        public async Task FillBlockExtraData(BlockHeader blockHeader)
         {
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                await blockExtraDataProvider.FillExtraDataAsync(block);
+                blockHeader.BlockExtraDatas.Add(await blockExtraDataProvider.FillExtraDataAsync(blockHeader));
             }
         }
     }

@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
 
             var result = await _consensusService.ValidateConsensusAsync(block.Header.PreviousBlockHash,
-                block.Height - 1, block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
+                block.Height - 1, block.Header.BlockExtraDatas[1].ToByteArray());
             return result;
         }
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -13,34 +15,21 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
 
-        public async Task FillExtraDataAsync(Block block)
+        public async Task<ByteString> FillExtraDataAsync(BlockHeader blockHeader)
         {
-            if (block.Header.BlockExtraData == null)
+            if (blockHeader.Height == 1 || !blockHeader.BlockExtraDatas.Any())
             {
-                block.Header.BlockExtraData = new BlockExtraData();
-            }
-
-            if (block.Height == 1 || !block.Header.BlockExtraData.ConsensusInformation.IsEmpty)
-            {
-                return;
+                return null;
             }
 
             var consensusInformation = await _consensusService.GetNewConsensusInformationAsync();
 
             if (consensusInformation == null)
             {
-                return;
+                return null;
             }
 
-            block.Header.BlockExtraData.ConsensusInformation = ByteString.CopyFrom(consensusInformation);
-        }
-
-        public async Task<bool> ValidateExtraDataAsync(Block block)
-        {
-            var consensusInformation = block.Header.BlockExtraData.ConsensusInformation;
-
-            return await _consensusService.ValidateConsensusAsync(block.GetHash(), block.Height,
-                consensusInformation.ToByteArray());
+            return ByteString.CopyFrom(consensusInformation);
         }
     }
 }

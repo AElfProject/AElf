@@ -52,7 +52,7 @@ namespace AElf.CrossChain
                         out var crossChainBlockData);
                 // first check equality with the root in header
                 if(sideChainTransactionsRoot == null 
-                   || !sideChainTransactionsRoot.Equals(block.Header.BlockExtraData.SideChainTransactionsRoot))
+                   || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray())))
                     continue;
                 return await ValidateCrossChainBlockDataAsync(crossChainBlockData,
                     block.Header.GetHash(), block.Header.Height);

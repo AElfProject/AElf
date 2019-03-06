@@ -65,7 +65,7 @@ namespace AElf.OS.Rpc
             {
                 var mockService = new Mock<IBlockExtraDataService>();
                 mockService.Setup(s =>
-                    s.FillBlockExtraData(It.IsAny<Block>())).Returns(Task.CompletedTask);
+                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
                 return mockService.Object;
             });
             

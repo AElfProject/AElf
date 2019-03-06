@@ -45,8 +45,8 @@ namespace AElf.CrossChain
             var fakeTransactionResultGettingService = TransactionResultQueryService;
             //    CrossChainTestHelper.FakeTransactionResultManager(new List<TransactionResult>());
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(fakeTransactionResultGettingService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync( block);
-            Assert.Null(block.Header.BlockExtraData);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block.Header);
+            Assert.Null(block.Header.BlockExtraDatas);
         }
         
         [Fact]
@@ -68,8 +68,8 @@ namespace AElf.CrossChain
             block.Body.Transactions.AddRange(new []{ txId1});
             await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
-            Assert.Null(block.Header.BlockExtraData);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block.Header);
+            Assert.Null(block.Header.BlockExtraDatas);
         }
         
         [Fact]
@@ -109,8 +109,8 @@ namespace AElf.CrossChain
             await TransactionResultService.AddTransactionResultAsync(txRes2, block.Header);
             await TransactionResultService.AddTransactionResultAsync(txRes3, block.Header);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
-            Assert.Equal(fakeMerkleTreeRoot, block.Header.BlockExtraData.SideChainTransactionsRoot);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block.Header);
+            Assert.Equal(fakeMerkleTreeRoot, Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()));
         }
         
         [Fact]
@@ -142,8 +142,8 @@ namespace AElf.CrossChain
 
             await TransactionResultService.AddTransactionResultAsync(txRes, fakeBlock.Header);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(fakeBlock);
-            Assert.Equal(fakeMerkleTreeRoot, fakeBlock.Header.BlockExtraData.SideChainTransactionsRoot);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(fakeBlock.Header);
+            Assert.Equal(fakeMerkleTreeRoot, Hash.LoadByteArray(fakeBlock.Header.BlockExtraDatas[0].ToByteArray()));
         }
         
         [Fact]
@@ -169,8 +169,8 @@ namespace AElf.CrossChain
             block.Body.Transactions.AddRange(new[] {txId1});
             await TransactionResultService.AddTransactionResultAsync(txRes1, block.Header);
             var crossChainBlockExtraDataProvider = new CrossChainBlockExtraDataProvider(TransactionResultQueryService);
-            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block);
-            Assert.Null(block.Header.BlockExtraData);
+            await crossChainBlockExtraDataProvider.FillExtraDataAsync(block.Header);
+            Assert.Null(block.Header.BlockExtraDatas);
         }
     }
 }

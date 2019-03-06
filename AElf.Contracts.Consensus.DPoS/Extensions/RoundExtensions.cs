@@ -17,9 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         {
             if (round.RealTimeMinersInformation.Count < 2)
             {
-                // TODO: Consider using assertion if mining interval is invalid.
-                // 0 is supposed to be an invalid mining interval.
-                return 0;
+                return 4000;
             }
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
