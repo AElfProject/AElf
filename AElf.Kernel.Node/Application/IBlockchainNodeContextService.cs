@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
 using Google.Protobuf;
@@ -33,6 +34,7 @@ namespace AElf.Kernel.Node.Application
         private ITxHub _txHub;
         private IBlockchainService _blockchainService;
         private IChainCreationService _chainCreationService;
+        private ISmartContractAddressUpdateService _smartContractAddressUpdateService;
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub)
@@ -49,12 +51,11 @@ namespace AElf.Kernel.Node.Application
                 ChainId = dto.ChainId,
                 TxHub = _txHub,
             };
-            var chain = await _blockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync() ??
+                        await _chainCreationService.CreateNewChainAsync(dto.Transactions);
 
-            if (chain == null)
-            {
-                await _chainCreationService.CreateNewChainAsync(dto.Transactions);
-            }
+            await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
+                await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));
 
             return context;
         }

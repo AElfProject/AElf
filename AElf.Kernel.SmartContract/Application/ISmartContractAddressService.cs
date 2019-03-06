@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -8,11 +10,16 @@ namespace AElf.Kernel.SmartContract.Application
         Address GetAddressByContractName(Hash name);
 
         Address GetConsensusContractAddress();
+
+        void SetAddress(Hash name, Address address);
     }
 
-    public class SmartContractAddressService : ISmartContractAddressService
+    public class SmartContractAddressService : ISmartContractAddressService, ISingletonDependency
     {
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
+
+
+        private readonly ConcurrentDictionary<Hash, Address> _hashToAddressMap = new ConcurrentDictionary<Hash, Address>();
 
         public SmartContractAddressService(IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
         {
@@ -22,12 +29,18 @@ namespace AElf.Kernel.SmartContract.Application
 
         public Address GetAddressByContractName(Hash name)
         {
-            throw new System.NotImplementedException();
+            _hashToAddressMap.TryGetValue(name, out var address);
+            return address;
         }
 
         public Address GetConsensusContractAddress()
         {
             return _defaultContractZeroCodeProvider.ContractZeroAddress;
+        }
+
+        public void SetAddress(Hash name, Address address)
+        {
+            _hashToAddressMap.TryAdd(name, address);
         }
     }
 }
