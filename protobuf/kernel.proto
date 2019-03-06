@@ -293,7 +293,7 @@ enum ChainStateMergingStatus {
 }
 
 message ChainStateInfo{
-    int64 ChainId = 1;
+    int32 ChainId = 1;
     Hash BlockHash = 2;
     int64 BlockHeight = 3;
     Hash MergingBlockHash = 4;
