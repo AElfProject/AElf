@@ -47,7 +47,7 @@ namespace AElf.OS.Handlers
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
 
-            var peerInPool = NetworkServer.PeerPool.FindPeer(peerAddress);
+            var peerInPool = NetworkServer.PeerPool.FindPeerByAddress(peerAddress);
             if (peerInPool != null)
             {
                 peerInPool.CurrentBlockHash = blockHash;

@@ -9,9 +9,9 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<IPeer> GetPeers();
-
-        //TODO: in two method, FindPeerByAddress, FindPeerByPubkey.
-        IPeer FindPeer(string peerAddress, byte[] pubKey = null);
+        
+        IPeer FindPeerByAddress(string peerAddress);
+        IPeer FindPeerByPublicKey(byte[] publicKey);
 
         //TODO: it seems it only cares about pubKey in Handshake?
         bool IsAuthenticatePeer(string peerAddress, Handshake handshake);

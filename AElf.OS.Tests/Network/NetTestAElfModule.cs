@@ -67,8 +67,8 @@ namespace AElf.OS.Tests.Network
                 });
             
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
-            peerPoolMock.Setup(p => p.FindPeer(It.IsAny<string>(), It.IsAny<byte[]>()))
-                .Returns<string, byte[]>((adr, pubkey) => peerMock.Object);
+            peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
+                .Returns<string>((adr) => peerMock.Object);
             peerPoolMock.Setup(p => p.GetPeers())
                 .Returns(new List<IPeer> { peerMock.Object });
 
