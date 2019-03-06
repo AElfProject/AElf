@@ -28,7 +28,7 @@ namespace AElf.CrossChain.Cache
             {
                 {chainIdA, new BlockInfoCache(1)}
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             int chainIdB = 124;
             var blockInfo = _crossChainDataConsumer.TryTake(chainIdB, 1, false);
             Assert.Null(blockInfo);
@@ -48,7 +48,7 @@ namespace AElf.CrossChain.Cache
             {
                 {chainId, blockInfoCache}
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             var blockInfo = _crossChainDataConsumer.TryTake(chainId, 2, false);
             Assert.Null(blockInfo);
         }
@@ -68,7 +68,7 @@ namespace AElf.CrossChain.Cache
             {
                 {chainId, new BlockInfoCache(1)}
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             var count = _crossChainDataConsumer.GetCachedChainCount();
             Assert.True(1 == count);
         }

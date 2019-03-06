@@ -4,6 +4,6 @@ namespace AElf.CrossChain.Cache
     {
         IBlockInfo TryTake(int crossChainId, long height, bool isCacheSizeLimited);
         int GetCachedChainCount();
-        void RegisterNewChainCache(int chainId, long chainHeight);
+        void RegisterNewChainCache(int chainId, long chainHeight = CrossChainConsts.GenesisBlockHeight);
     }
 }

@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             var neededHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId);
             Assert.True(neededHeight == 1);
         }
@@ -63,7 +63,7 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
             {
                 SideChainId = chainId,
@@ -82,7 +82,7 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            CreateFakeCacheData(dict);
+            CreateFakeCache(dict);
             var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
             {
                 SideChainId = chainId,

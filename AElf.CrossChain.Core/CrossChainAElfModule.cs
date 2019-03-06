@@ -26,6 +26,7 @@ namespace AElf.CrossChain
              services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
              services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
+             services.AddSingleton<ICrossChainContractReader, CrossChainContractReader>();
          }
          
          public override void OnApplicationInitialization(ApplicationInitializationContext context)

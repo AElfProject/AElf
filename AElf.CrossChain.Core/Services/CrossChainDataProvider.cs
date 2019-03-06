@@ -127,7 +127,7 @@ namespace AElf.CrossChain
 
         public void RegisterNewChain(int chainId)
         {
-            _crossChainDataConsumer.RegisterNewChainCache(chainId, 0);
+            _crossChainDataConsumer.RegisterNewChainCache(chainId);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)

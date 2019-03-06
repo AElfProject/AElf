@@ -201,6 +201,8 @@ namespace AElf.Contracts.CrossChain
         [View]
         public long GetSideChainHeight(int chainId)
         {
+            var height = State.CurrentSideChainHeight[chainId];
+            Assert(height != 0);
             return State.CurrentSideChainHeight[chainId];
         }
 

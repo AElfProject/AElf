@@ -71,7 +71,7 @@ namespace AElf.CrossChain
         public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, IChainContext chainContext)
         {
             var readOnlyTransaction = await GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainHeightMethodName,
-                ChainHelpers.ConvertChainIdToBase58(sideChainId));
+                sideChainId);
             return await ReadByTransaction<long>(readOnlyTransaction, chainContext);
         }
 
