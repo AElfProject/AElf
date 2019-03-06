@@ -52,8 +52,8 @@ namespace AElf.OS.Tests.Network
             
             pool.AddPeer(new GrpcPeer(null, null, new HandshakeData { PublicKey = ByteString.CopyFrom(0x01, 0x02) }, remoteEndpoint, "6800"));
             
-            Assert.NotNull(pool.FindPeer(remoteEndpoint, null));
-            Assert.NotNull(pool.FindPeer(null, ByteString.CopyFrom(0x01, 0x02).ToByteArray()));
+            Assert.NotNull(pool.FindPeerByAddress(remoteEndpoint));
+            Assert.NotNull(pool.FindPeerByPublicKey(ByteString.CopyFrom(0x01, 0x02).ToByteArray()));
         }
 
         [Fact]
