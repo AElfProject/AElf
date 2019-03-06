@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA.Exceptions;
-using Xunit;
 using Shouldly;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.Cryptography.Tests
 {
@@ -13,7 +12,7 @@ namespace AElf.Cryptography.Tests
     {
         private AElfKeyStore _keyStore;
 
-        public AElfKeyStoreTests()
+        public AElfKeyStoreTests(ITestOutputHelper testOutputHelper)
         {
             InitKeyStore();
         }
@@ -24,76 +23,69 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void Account_Create_And_Open()
+        public async Task Account_Create_And_Open()
         {
-            var keyPair = _keyStore.CreateAsync("123", "AELF").Result;
+            var keyPair = await _keyStore.CreateAsync("123", "AELF");
             keyPair.ShouldNotBe(null);
             _keyStore.ListAccountsAsync().Result.Count.ShouldBeGreaterThanOrEqualTo(1);
 
             var address = Address.FromPublicKey(keyPair.PublicKey);
-            string addString = address.GetFormatted();
+            var addString = address.GetFormatted();
             address.ShouldNotBe(null);
 
             //Open account
-            var errResult = _keyStore.OpenAsync(addString, "12", true).Result;
+            var errResult = await _keyStore.OpenAsync(addString, "12", true);
             errResult.ShouldBe(AElfKeyStore.Errors.WrongPassword);
 
-            errResult = _keyStore.OpenAsync(addString, "123").Result;
+            errResult = await _keyStore.OpenAsync(addString, "123");
             errResult.ShouldBe(AElfKeyStore.Errors.None);
 
-            errResult = _keyStore.OpenAsync(addString, "123").Result;
+            errResult = await _keyStore.OpenAsync(addString, "123");
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
-            errResult = _keyStore.OpenAsync(addString, "123", false).Result;
+            errResult = await _keyStore.OpenAsync(addString, "123", false);
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
             Directory.Delete("/tmp/keys", true);
-            Should.ThrowAsync<KeyStoreNotFoundException>(() =>
-            {
-                return _keyStore.ReadKeyPairAsync(addString + "_fake", "123");
-            });
+
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
         }
 
         [Fact]
-        public void Account_Create_And_Read_Compare()
+        public async Task Account_Create_And_Read_Compare()
         {
-            //Create
-            var keyPair = _keyStore.CreateAsync("123", "AELF").Result;
-            keyPair.ShouldNotBe(null);
-            var address = Address.FromPublicKey(keyPair.PublicKey);
-            var publicKey = keyPair.PublicKey.ToHex();
-            string addString = address.GetFormatted();
-
-            //Read
-            var keyPair1 = _keyStore.ReadKeyPairAsync(addString, "123").Result;
-            var address1 = Address.FromPublicKey(keyPair1.PublicKey);
-            var publicKey1 = keyPair1.PublicKey.ToHex();
-
-            //Compare
-            if (keyPair.PrivateKey[0] == byte.MinValue)
+            for (var i = 0; i < 1000; i++)
             {
-                var newKeyArray = new byte[31];
-                Buffer.BlockCopy(keyPair.PrivateKey, 1, newKeyArray, 0, 31);
-                newKeyArray.ShouldBe(keyPair1.PrivateKey);
+                //Create
+                var keyPair = await _keyStore.CreateAsync("123", "AELF");
+                keyPair.ShouldNotBe(null);
+                var address = Address.FromPublicKey(keyPair.PublicKey);
+                var publicKey = keyPair.PublicKey.ToHex();
+                var addString = address.GetFormatted();
+
+                //Read
+                var keyPair1 = await _keyStore.ReadKeyPairAsync(addString, "123");
+                var address1 = Address.FromPublicKey(keyPair1.PublicKey);
+                var publicKey1 = keyPair1.PublicKey.ToHex();
+
+                // keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
+
+                publicKey.ShouldBe(publicKey1);
+                address.ShouldBe(address1);
+
+                Directory.Delete("/tmp/keys", true);
             }
-            else
-                keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
-
-            address.ShouldBe(address1);
-            publicKey.ShouldBe(publicKey1);
-
-            Directory.Delete("/tmp/keys", true);
         }
 
         [Fact]
-        public void Open_NotExist_Account()
+        public async Task Open_NotExist_Account()
         {
             var address = Address.FromString("test account");
             var addString = address.GetFormatted();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
             keyPair.ShouldBe(null);
 
-            var errResult = _keyStore.OpenAsync(addString, "123").Result;
+            var errResult = await _keyStore.OpenAsync(addString, "123");
             errResult.ShouldBe(AElfKeyStore.Errors.AccountFileNotFound);
         }
     }
