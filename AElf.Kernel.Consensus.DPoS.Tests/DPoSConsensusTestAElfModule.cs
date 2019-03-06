@@ -7,10 +7,13 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
+using AElf.OS;
+using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -20,7 +23,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         typeof(TestBaseAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
-        typeof(CSharpRuntimeAElfModule)
+        typeof(CSharpRuntimeAElfModule),
+        typeof(CoreOSAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -38,6 +42,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            
+            context.Services.AddSingleton<IAElfNetworkServer>(c => Mock.Of<IAElfNetworkServer>());
+
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

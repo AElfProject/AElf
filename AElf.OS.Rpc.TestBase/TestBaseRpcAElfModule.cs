@@ -87,6 +87,9 @@ namespace AElf.OS.Rpc
                     s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
+            
+            context.Services.AddSingleton<IAElfNetworkServer>(c => Mock.Of<IAElfNetworkServer>());
+
         }
         
         // TODO: After the node module refactor, remove it
