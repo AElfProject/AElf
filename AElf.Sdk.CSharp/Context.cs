@@ -20,7 +20,7 @@ namespace AElf.Sdk.CSharp
 
         public ISmartContractContext SmartContractContext { get; set; }
 
-        public int ChainId => SmartContractContext.GetChainId();
+        public int ChainId =>  SmartContractContext.GetChainId();
 
         public void LogDebug(Func<string> func)
         {

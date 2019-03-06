@@ -166,7 +166,7 @@ namespace AElf.Kernel.SmartContract.Application
             if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var smartContractRegistration))
                 return smartContractRegistration;
 
-            if (address == Address.BuildContractAddress(_chainManager.GetChainId(), 0))
+            if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
             {
                 smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
@@ -184,7 +184,7 @@ namespace AElf.Kernel.SmartContract.Application
             var transaction = new Transaction()
             {
                 From = Address.Zero,
-                To = Address.BuildContractAddress(_chainManager.GetChainId(), 0),
+                To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
             };
@@ -217,7 +217,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executiveZero != null)
                 {
-                    await PutExecutiveAsync(Address.BuildContractAddress(_chainManager.GetChainId(), 0), executiveZero);
+                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
                 }
             }
 

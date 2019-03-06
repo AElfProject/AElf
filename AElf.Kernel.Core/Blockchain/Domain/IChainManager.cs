@@ -39,6 +39,8 @@ namespace AElf.Kernel.Blockchain.Domain
             ChainBlockLinkExecutionStatus status);
 
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
+
+        int GetChainId();
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -287,5 +289,10 @@ namespace AElf.Kernel.Blockchain.Domain
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
 
+
+        public int GetChainId()
+        {
+            return ChainId;
+        }
     }
 }

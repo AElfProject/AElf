@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,7 @@ namespace AElf.Kernel
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly IChainManager _chainManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
 
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
@@ -60,7 +62,7 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         if (contractEvent.Address ==
-                            _chainManager.GetConsensusContractAddress() &&
+                            _defaultContractZeroCodeProvider.ContractZeroAddress &&
                             contractEvent.Topics.Contains(
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
@@ -75,9 +77,9 @@ namespace AElf.Kernel
 
                             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
 
-                            var count = chain.LastIrreversibleBlockHeight == 1 ? 
-                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight : 
-                                (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
+                            var count = chain.LastIrreversibleBlockHeight == 1
+                                ? (int) libHeight - (int) chain.LastIrreversibleBlockHeight
+                                : (int) libHeight - (int) chain.LastIrreversibleBlockHeight - 1;
 
                             var hashes = await _blockchainService.GetReversedBlockHashes(libHash, count);
 
@@ -85,8 +87,9 @@ namespace AElf.Kernel
 
                             hashes.Add(libHash);
 
-                            var startHeight = chain.LastIrreversibleBlockHeight == 1 ? 
-                                chain.LastIrreversibleBlockHeight : chain.LastIrreversibleBlockHeight + 1;
+                            var startHeight = chain.LastIrreversibleBlockHeight == 1
+                                ? chain.LastIrreversibleBlockHeight
+                                : chain.LastIrreversibleBlockHeight + 1;
                             foreach (var hash in hashes)
                             {
                                 try

@@ -30,14 +30,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly IChainManager _chainManager;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
 
-        public BlockGenerationService(IBlockExtraDataService blockExtraDataService, IChainManager chainManager,
+        public BlockGenerationService(IBlockExtraDataService blockExtraDataService,
             IStaticChainInformationProvider staticChainInformationProvider)
         {
             _blockExtraDataService = blockExtraDataService;
-            _chainManager = chainManager;
             _staticChainInformationProvider = staticChainInformationProvider;
         }
 
