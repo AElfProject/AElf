@@ -11,6 +11,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
 using AElf.OS.Rpc.Net;

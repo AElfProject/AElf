@@ -6,6 +6,7 @@ using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Infrastructure;
