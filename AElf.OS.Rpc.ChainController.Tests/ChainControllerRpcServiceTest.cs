@@ -319,11 +319,11 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
                 new {blockHash, offset = 0, num = 10});
 
-            var returnCode = response["error"]["code"].ToString();
-            returnCode.ShouldBe("20001");
+            var returnCode = (long)response["error"]["code"];
+            returnCode.ShouldBe(Error.NotFound);
 
             var message = response["error"]["message"].ToString();
-            message.ShouldBe("Not found");
+            message.ShouldBe(Error.Message[Error.NotFound]);
         }
 
         [Fact]
