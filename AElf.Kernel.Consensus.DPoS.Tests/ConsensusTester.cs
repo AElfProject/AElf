@@ -45,7 +45,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IConsensusService _consensusService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
@@ -113,9 +112,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             _blockExecutingService = new BlockExecutingService(transactionExecutingService, blockManager,
                 blockchainStateManager, _blockGenerationService);
-
-            _blockchainNodeContextService = new BlockchainNodeContextService(_blockchainService,
-                new ChainCreationService(_blockchainService, _blockExecutingService), txHub);
 
             _osBlockchainNodeContextService =
                 application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
