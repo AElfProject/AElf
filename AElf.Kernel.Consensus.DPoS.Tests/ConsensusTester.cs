@@ -72,6 +72,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
                 });
             application.Initialize();
+            
+            
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             var transactionReadOnlyExecutionService =

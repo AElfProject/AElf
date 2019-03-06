@@ -94,9 +94,9 @@ namespace AElf.Launcher
             {
                 ChainId = chainOptions.ChainId
             };
-
             dto.InitializationSmartContracts.AddGenesisSmartContract<BasicContractZero>();
             dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>();
+            
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
