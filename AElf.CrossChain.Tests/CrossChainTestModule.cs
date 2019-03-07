@@ -22,20 +22,6 @@ namespace AElf.CrossChain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var keyPair = CryptoHelpers.GenerateKeyPair();
-            var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(m => m.GetPublicKeyAsync()).Returns(Task.FromResult(keyPair.PublicKey));
-            mockAccountService.Setup(m => m.GetAccountAsync())
-                .Returns(Task.FromResult(Address.FromPublicKey(keyPair.PublicKey)));
-            context.Services.AddTransient(provider =>  mockAccountService.Object);
-            
-//            var extraDataOrderInformation = context.Services.GetRequiredServiceLazy<IBlockExtraDataOrderService>().Value;
-//            var blockExtraDataProviders = context.Services.GetRequiredServiceLazy<IEnumerable<IBlockExtraDataProvider>>().Value;
-//            foreach (var blockExtraDataProvider in blockExtraDataProviders)
-//            {
-//                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
-//            }
-
             context.Services.AddSingleton<CrossChainTestHelper>();
             context.Services.AddTransient(provider =>
             {
