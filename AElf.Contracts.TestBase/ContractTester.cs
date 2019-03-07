@@ -243,7 +243,7 @@ namespace AElf.Contracts.TestBase
                 tx,
                 DateTime.UtcNow);
 
-            return transactionTrace.RetVal?.Data ?? ByteString.Empty;
+            return transactionTrace.RetVal?.Data;
         }
 
         public void SignTransaction(ref Transaction transaction, ECKeyPair callerKeyPair)

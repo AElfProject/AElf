@@ -1,5 +1,3 @@
-using System.Reflection;
-
 namespace AElf.Kernel
 {
     public partial class TransactionReceipt

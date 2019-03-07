@@ -41,7 +41,7 @@ namespace AElf.CrossChain
             {
                 Height = 1
             };
-            await _crossChainBlockExtraDataProvider.FillExtraDataAsync(header);
+            await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(header.BlockExtraDatas);
         }
         
@@ -80,7 +80,8 @@ namespace AElf.CrossChain
                 Height = 1
             };
 
-            var sideChainTxMerkleTreeRoot = await _crossChainBlockExtraDataProvider.FillExtraDataAsync(header);
+            var sideChainTxMerkleTreeRoot =
+                await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             var expected = new BinaryMerkleTree()
                 .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMKRoot))
                 .ComputeRootHash().ToByteString();

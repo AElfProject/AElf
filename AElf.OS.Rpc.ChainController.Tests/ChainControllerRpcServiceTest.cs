@@ -218,6 +218,9 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
             responseTransactionIds[0].ToString().ShouldBe(existTransaction.Transactions[0].GetHash().ToHex());
             responseTransactionIds[1].ToString().ShouldBe(existTransaction.Transactions[1].GetHash().ToHex());
+            
+            response = await JsonCallAsJObject("/chain", "GetTransactionPoolStatus");
+            response["result"]["Queued"].ShouldBe(2);
         }
 
         [Fact]
@@ -295,13 +298,13 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var block = await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
-                new {blockHash = block.GetHash().ToHex(), offset = 0, num = 15});
+                new {blockHash = block.GetHash().ToHex(), offset = 0, limit = 15});
 
             var responseTransactionResults = response["result"].ToList();
             responseTransactionResults.Count.ShouldBe(15);
 
             response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
-                new {blockHash = block.GetHash().ToHex(), offset = 15, num = 15});
+                new {blockHash = block.GetHash().ToHex(), offset = 15, limit = 15});
 
             responseTransactionResults = response["result"].ToList();
             responseTransactionResults.Count.ShouldBe(5);

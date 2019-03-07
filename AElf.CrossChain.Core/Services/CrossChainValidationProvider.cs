@@ -1,4 +1,5 @@
 using System.Linq;
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -10,12 +11,12 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider, ITransientDependency
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataOrderService blockExtraDataOrderService)
+        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainService = crossChainService;
-            _blockExtraDataOrderService = blockExtraDataOrderService;
+            _blockExtraDataService = blockExtraDataService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -30,10 +31,8 @@ namespace AElf.CrossChain
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             if (indexedCrossChainBlockData == null)
                 return true;
-            var sideChainTransactionRootInExtraData = Hash.LoadByteArray(block.Header
-                .BlockExtraDatas[
-                    _blockExtraDataOrderService.GetExtraDataProviderOrder(typeof(CrossChainBlockExtraDataProvider))]
-                .ToByteArray());
+            var sideChainTransactionRootInExtraData = Hash.LoadByteArray(_blockExtraDataService
+                .GetExtraDataFromBlockHeader("CrossChain", block.Header).ToByteArray());
             bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, sideChainTransactionRootInExtraData,
                 block.GetHash(), block.Height);
             if(!res)

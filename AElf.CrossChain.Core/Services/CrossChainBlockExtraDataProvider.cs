@@ -16,7 +16,7 @@ namespace AElf.CrossChain
             _crossChainService = crossChainService;
         }
 
-        public async Task<ByteString> FillExtraDataAsync(BlockHeader blockHeader)
+        public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
             var indexedCrossChainBlockData =
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.GetHash(), blockHeader.Height);

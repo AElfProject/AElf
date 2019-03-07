@@ -65,7 +65,7 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
-        public byte[] DeploySmartContract(int category, byte[] code)
+        public Address DeploySmartContract(int category, byte[] code)
         {
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
@@ -109,7 +109,7 @@ namespace AElf.Contracts.Genesis
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
-            return contractAddress.DumpByteArray();
+            return contractAddress;
         }
 
         public byte[] UpdateSmartContract(Address contractAddress, byte[] code)

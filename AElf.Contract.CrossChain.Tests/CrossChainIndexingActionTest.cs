@@ -452,7 +452,7 @@ namespace AElf.Contract.CrossChain.Tests
             var merklePathForFakeHash1 = binaryMerkleTree.GenerateMerklePath(1);
             var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 CrossChainConsts.VerifyTransactionMethodName, fakeHash1, merklePathForFakeHash1, parentChainHeight);
-            Assert.True(BitConverter.ToBoolean(txRes.RetVal.ToByteArray()));
+            Assert.True(BitConverter.ToBoolean(txRes.ReturnValue.ToByteArray()));
         }
         #endregion
     }
