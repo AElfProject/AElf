@@ -32,7 +32,9 @@ namespace AElf.Contracts.TestBase
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
+            services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+            services.AddSingleton(o => Mock.Of<IPeerPool>());
+
         }
     }
 }
