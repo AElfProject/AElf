@@ -19,7 +19,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                var extraData = await blockExtraDataProvider.GetExtraDataAsync(blockHeader);
+                var extraData = await blockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(blockHeader);
                 if (extraData != null)
                 {
                     blockHeader.BlockExtraDatas.Add(extraData);
@@ -27,11 +27,12 @@ namespace AElf.Kernel.Blockchain.Application
             }
         }
 
-        public ByteString GetBlockExtraData(Type blockExtraDataProviderType, BlockHeader blockHeader)
+        public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
-                if (_blockExtraDataProviders[i].GetType() == blockExtraDataProviderType)
+                var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
+                if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol))
                 {
                     return blockHeader.BlockExtraDatas[i];
                 }

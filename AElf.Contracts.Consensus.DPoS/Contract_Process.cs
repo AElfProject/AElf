@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable InconsistentNaming
     public partial class ConsensusContract : IMainChainDPoSConsensusSmartContract
     {
-        public void InitialDPoS(Round firstRound)
+        public void InitialConsensus(Round firstRound)
         {
             Assert(firstRound.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             firstRound.BlockchainAge = 1;
-            TryToAddRoundInformation(firstRound);
+            Assert(TryToAddRoundInformation(firstRound), "Failed to add round information.");
         }
 
         public void NextTerm(Round round)
@@ -121,7 +121,7 @@ namespace AElf.Contracts.Consensus.DPoS
             round.BlockchainAge = blockAge;
 
             // Update rounds information of next two rounds.
-            TryToAddRoundInformation(round);
+            Assert(TryToAddRoundInformation(round), "Failed to add round information.");
 
             Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -411,7 +411,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 AddOrUpdateMinerHistoryInformation(historyInformation);
             }
 
-            TryToAddRoundInformation(nextRound);
+            Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
             TryToUpdateRoundNumber(nextRound.RoundNumber);
 
             TryToFindLIB();
@@ -443,7 +443,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
             }
             
-            TryToAddRoundInformation(round);
+            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
         }
@@ -573,7 +573,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 }
 
-                TryToAddRoundInformation(currentRound);
+                TryToUpdateRoundInformation(currentRound);
             }
         }
     }

@@ -5,7 +5,7 @@ namespace AElf.Sdk.CSharp
     // ReSharper disable InconsistentNaming
     public interface IMainChainDPoSConsensusSmartContract
     {
-        void InitialDPoS(Round firstRound);
+        void InitialConsensus(Round firstRound);
         void UpdateValue(ToUpdate toUpdate);
         void NextRound(Round round);
         void NextTerm(Round round);
@@ -13,7 +13,7 @@ namespace AElf.Sdk.CSharp
     
     public interface ISideChainDPoSConsensusSmartContract
     {
-        void InitialDPoS(Round firstRound);
+        void InitialConsensus(Round firstRound);
         void UpdateValue(ToUpdate toUpdate);
         void NextRound(Round round);
     }

@@ -51,7 +51,11 @@ namespace AElf.OS.Rpc
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+            Configure<ChainOptions>(o =>
+            {
+                o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
+                o.IsMainChain = true;
+            });
             
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {

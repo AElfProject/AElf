@@ -188,10 +188,22 @@ namespace AElf.Contracts.Consensus.DPoS
             State.HistoryMap[historyInformation.PublicKey.ToStringValue()] = historyInformation;
         }
 
-        public bool TryToAddRoundInformation(Round round)
+        private bool TryToAddRoundInformation(Round round)
         {
             var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
             if (ri != null)
+            {
+                return false;
+            }
+
+            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
+            return true;
+        }
+
+        private bool TryToUpdateRoundInformation(Round round)
+        {
+            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
+            if (ri == null)
             {
                 return false;
             }

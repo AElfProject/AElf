@@ -24,7 +24,7 @@ namespace AElf.CrossChain
              services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
              services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
              services.AddScoped<IBlockExtraDataProvider, CrossChainExtraDataProvider>();
-             services.AddScoped<IBlockValidationProvider, CrossChainExtraDataProvider>();
+             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
          }
          

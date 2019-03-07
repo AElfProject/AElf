@@ -24,7 +24,7 @@ namespace AElf.Kernel.Consensus.DPoS
 
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-            context.Services.AddTransient<IBlockValidationProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
 
             context.Services.AddSingleton<ConsensusControlInformation>();

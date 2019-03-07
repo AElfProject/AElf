@@ -15,6 +15,7 @@ using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -29,16 +30,17 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            Configure<ChainOptions>(option =>
-                {
-                    option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
-                    option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
-                });
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
             
+//            Configure<ChainOptions>(option =>
+//            {
+//                option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
+//                option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
+//            });
+
             context.Services.AddSingleton<INetworkService, NetworkService>();
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();

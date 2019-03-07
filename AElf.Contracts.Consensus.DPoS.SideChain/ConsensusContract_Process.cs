@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     {
         #region InitialDPoS
         
-        public void InitialDPoS(Round firstRound)
+        public void InitialConsensus(Round firstRound)
         {
             Assert(firstRound.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
             }
             
-            TryToAddRoundInformation(round);
+            TryToUpdateRoundInformation(round);
 
             TryToFindLIB();
         }
@@ -203,10 +203,22 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
         
-        public bool TryToAddRoundInformation(Round round)
+        private bool TryToAddRoundInformation(Round round)
         {
             var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
             if (ri != null)
+            {
+                return false;
+            }
+
+            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
+            return true;
+        }
+
+        private bool TryToUpdateRoundInformation(Round round)
+        {
+            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
+            if (ri == null)
             {
                 return false;
             }

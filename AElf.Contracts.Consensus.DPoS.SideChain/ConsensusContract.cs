@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialTerm:
+                case DPoSBehaviour.InitialConsensus:
                     Context.LogDebug(() => "About to initial DPoS information.");
                     return new ConsensusCommand
                     {
@@ -52,7 +52,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                             Behaviour = behaviour
                         }.ToByteString()
                     };
-                case DPoSBehaviour.PackageOutValue:
+                case DPoSBehaviour.UpdateValue:
                     Assert(miningInterval != 0, "Failed to get mining interval.");
 
                     Context.LogDebug(() => "About to produce a normal block.");
@@ -116,7 +116,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialTerm:
+                case DPoSBehaviour.InitialConsensus:
                     var miningInterval = payload.MiningInterval;
                     var initialMiners = payload.Miners;
                     var firstRound = initialMiners.ToMiners().GenerateFirstRoundOfNewTerm(miningInterval);
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                         Round = firstRound,
                         Behaviour = behaviour
                     };
-                case DPoSBehaviour.PackageOutValue:
+                case DPoSBehaviour.UpdateValue:
                     Assert(payload.CurrentInValue != null && payload.CurrentInValue != null,
                         "Current in value should be valid.");
 
@@ -194,16 +194,16 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialTerm:
+                case DPoSBehaviour.InitialConsensus:
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.InitialDPoS),
+                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.InitialConsensus),
                                 new List<object> {round})
                         }
                     };
-                case DPoSBehaviour.PackageOutValue:
+                case DPoSBehaviour.UpdateValue:
                     var minerInRound = round.RealTimeMinersInformation[publicKey];
                     return new TransactionList
                     {
@@ -259,9 +259,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialTerm:
+                case DPoSBehaviour.InitialConsensus:
                     break;
-                case DPoSBehaviour.PackageOutValue:
+                case DPoSBehaviour.UpdateValue:
                     if (!successToGetCurrentRound)
                     {
                         return new ValidationResult
@@ -322,12 +322,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // And to initial DPoS information, we need to generate the information of first round, at least.
             if (!TryToGetCurrentRoundInformation(out round))
             {
-                return DPoSBehaviour.InitialTerm;
+                return DPoSBehaviour.InitialConsensus;
             }
 
             if (!round.IsTimeSlotPassed(publicKey, timestamp, out minerInRound) && minerInRound.OutValue == null)
             {
-                return minerInRound != null ? DPoSBehaviour.PackageOutValue : DPoSBehaviour.Invalid;
+                return minerInRound != null ? DPoSBehaviour.UpdateValue : DPoSBehaviour.Invalid;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
@@ -357,7 +357,10 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 minerInformation +=
                     $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
                 minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
-                minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
+                if (round.RoundNumber != 1)
+                {
+                    minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
+                }
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
