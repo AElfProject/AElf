@@ -11,77 +11,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public partial class ConsensusContract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
-        /// <summary>
-        /// Get next consensus behaviour of the caller based on current state.
-        /// This method can be tested by testing GetConsensusCommand.
-        /// </summary>
-        /// <param name="publicKey"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="round"></param>
-        /// <param name="minerInRound"></param>
-        /// <returns></returns>
-        private DPoSBehaviour GetBehaviour(string publicKey, Timestamp timestamp, out Round round,
-            out MinerInRound minerInRound)
-        {
-            round = null;
-            minerInRound = null;
-
-            // If we can't get current round information from state db, it means this chain hasn't initialized yet,
-            // so the context of current command is to initial a new chain via creating the consensus initial information.
-            // And to initial DPoS information, we need to generate the information of first round, at least.
-            if (!TryToGetCurrentRoundInformation(out round))
-            {
-                return DPoSBehaviour.InitialTerm;
-            }
-
-            if (!round.IsTimeSlotPassed(publicKey, timestamp, out minerInRound) && minerInRound.OutValue == null)
-            {
-                return minerInRound != null ? DPoSBehaviour.PackageOutValue : DPoSBehaviour.Invalid;
-            }
-
-            // If this node missed his time slot, a command of terminating current round will be fired,
-            // and the terminate time will based on the order of this node (to avoid conflicts).
-            return DPoSBehaviour.NextRound;
-        }
-
-        /// <summary>
-        /// Format the log.
-        /// </summary>
-        /// <param name="publicKey"></param>
-        /// <returns></returns>
-        private string GetLogStringForOneRound(string publicKey)
-        {
-            if (!TryToGetCurrentRoundInformation(out var round))
-            {
-                return "";
-            }
-
-            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
-            {
-                var minerInformation = "\n";
-                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
-                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
-                minerInformation +=
-                    minerInRound.PublicKey == publicKey
-                        ? "(This Node)"
-                        : "";
-                minerInformation += $"\nOrder:\t {minerInRound.Order}";
-                minerInformation +=
-                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
-                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
-                minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
-                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
-                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
-                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
-
-                logs += minerInformation;
-            }
-
-            return logs;
-        }
-
         [View]
         public IMessage GetConsensusCommand(byte[] consensusTriggerInformation)
         {
@@ -93,6 +22,11 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             var publicKey = payload.PublicKey;
             var timestamp = payload.Timestamp;
+
+            if (timestamp == null)
+            {
+                return null;
+            }
 
             Context.LogDebug(() => GetLogStringForOneRound(publicKey));
 
@@ -178,18 +112,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var publicKey = payload.PublicKey;
             var timestamp = payload.Timestamp;
 
-            var behaviour = GetBehaviour(publicKey, timestamp, out var round, out var minerInRound);
+            var behaviour = GetBehaviour(publicKey, timestamp, out var round, out _);
 
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialTerm:
                     var miningInterval = payload.MiningInterval;
                     var initialMiners = payload.Miners;
-                    var firstTerm = initialMiners.ToMiners().GenerateNewTerm(miningInterval);
+                    var firstRound = initialMiners.ToMiners().GenerateFirstRoundOfNewTerm(miningInterval);
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = firstTerm.FirstRound,
+                        Round = firstRound,
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.PackageOutValue:
@@ -265,13 +199,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     {
                         Transactions =
                         {
-                            GenerateTransaction("InitialTerm", new List<object>
-                            {
-                                new Term
-                                {
-                                    FirstRound = round
-                                }
-                            })
+                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.InitialDPoS),
+                                new List<object> {round})
                         }
                     };
                 case DPoSBehaviour.PackageOutValue:
@@ -280,17 +209,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     {
                         Transactions =
                         {
-                            GenerateTransaction("PackageOutValue", new List<object>
-                            {
-                                new ToPackage
+                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.UpdateValue),
+                                new List<object>
                                 {
-                                    OutValue = minerInRound.OutValue,
-                                    Signature = minerInRound.Signature,
-                                    PreviousInValue = minerInRound.PreviousInValue ?? Hash.Default,
-                                    RoundId = round.RoundId,
-                                    PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
-                                }
-                            }),
+                                    new ToUpdate
+                                    {
+                                        OutValue = minerInRound.OutValue,
+                                        Signature = minerInRound.Signature,
+                                        PreviousInValue = minerInRound.PreviousInValue ?? Hash.Default,
+                                        RoundId = round.RoundId,
+                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
+                                    }
+                                }),
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -298,13 +228,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     {
                         Transactions =
                         {
-                            GenerateTransaction("NextRound", new List<object>
-                            {
-                                new Forwarding
-                                {
-                                    NextRound = round
-                                }
-                            })
+                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.NextRound),
+                                new List<object> {round})
                         }
                     };
                 case DPoSBehaviour.Invalid:
@@ -322,14 +247,15 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var publicKey = information.SenderPublicKey;
 
             // Validate the sender.
-            if (TryToGetCurrentRoundInformation(out _) && !IsMinerOfCurrentTerm(publicKey))
+            if (TryToGetCurrentRoundInformation(out var currentRound) &&
+                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
 
             var behaviour = information.Behaviour;
 
-            var successToGetCurrentRound = TryToGetCurrentRoundInformation(out var currentRound);
+            var successToGetCurrentRound = currentRound != null;
 
             switch (behaviour)
             {
@@ -360,16 +286,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                             {Success = false, Message = "Failed to get current round information."};
                     }
 
-                    // Compare current round information from State Database and next round information from block header.
-                    if (!ValidateMinersList(currentRound, information.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect miners list."};
-                    }
-
                     // None of in values should be filled.
                     if (!InValueIsNull(information.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
+                    }
+
+                    break;
+                case DPoSBehaviour.NextTerm:
+                    if (!successToGetCurrentRound)
+                    {
+                        return new ValidationResult
+                            {Success = false, Message = "Failed to get current round information."};
                     }
 
                     break;
@@ -380,6 +308,73 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             }
 
             return new ValidationResult {Success = true};
+        }
+        
+        /// <summary>
+        /// Get next consensus behaviour of the caller based on current state.
+        /// This method can be tested by testing GetConsensusCommand.
+        /// </summary>
+        /// <param name="publicKey"></param>
+        /// <param name="timestamp"></param>
+        /// <param name="round"></param>
+        /// <param name="minerInRound"></param>
+        /// <returns></returns>
+        private DPoSBehaviour GetBehaviour(string publicKey, Timestamp timestamp, out Round round,
+            out MinerInRound minerInRound)
+        {
+            round = null;
+            minerInRound = null;
+
+            // If we can't get current round information from state db, it means this chain hasn't initialized yet,
+            // so the context of current command is to initial a new chain via creating the consensus initial information.
+            // And to initial DPoS information, we need to generate the information of first round, at least.
+            if (!TryToGetCurrentRoundInformation(out round))
+            {
+                return DPoSBehaviour.InitialTerm;
+            }
+
+            if (!round.IsTimeSlotPassed(publicKey, timestamp, out minerInRound) && minerInRound.OutValue == null)
+            {
+                return minerInRound != null ? DPoSBehaviour.PackageOutValue : DPoSBehaviour.Invalid;
+            }
+
+            // If this node missed his time slot, a command of terminating current round will be fired,
+            // and the terminate time will based on the order of this node (to avoid conflicts).
+
+            return DPoSBehaviour.NextRound;
+        }
+
+        private string GetLogStringForOneRound(string publicKey)
+        {
+            if (!TryToGetCurrentRoundInformation(out var round))
+            {
+                return "";
+            }
+
+            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
+            {
+                var minerInformation = "\n";
+                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
+                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
+                minerInformation +=
+                    minerInRound.PublicKey == publicKey
+                        ? "(This Node)"
+                        : "";
+                minerInformation += $"\nOrder:\t {minerInRound.Order}";
+                minerInformation +=
+                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
+                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
+                minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
+                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
+                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
+                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
+                minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
+
+                logs += minerInformation;
+            }
+
+            return logs;
         }
     }
 }

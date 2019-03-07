@@ -354,6 +354,14 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature != null);
         }
 
+        /// <summary>
+        /// Normally, signature should calculate from current in value and signatures of previous round.
+        /// But in case of someone failed to publish his signature during previous round,
+        /// for now, we use the hash value of this miner's public key in stead of his signature.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <param name="inValue"></param>
+        /// <returns></returns>
         public static Hash CalculateSignature(this Round round, Hash inValue)
         {
             // Check the signatures

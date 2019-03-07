@@ -366,104 +366,49 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return value >= min && value <= max;
         }
         
-        public static Term GenerateNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
+        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
-            // First round
             foreach (var miner in miners.PublicKeys)
             {
                 dict.Add(miner, miner[0]);
             }
 
-            var sortedMiningNodes =
-                from obj in dict
-                orderby obj.Value descending
-                select obj.Key;
+            var sortedMiners =
+                (from obj in dict
+                    orderby obj.Value descending
+                    select obj.Key).ToList();
 
-            var enumerable = sortedMiningNodes.ToList();
+            var round = new Round();
 
-            var infosOfRound1 = new Round();
-
+            // The extra block producer of first round is totally randomized.
             var selected = new Random().Next(0, miners.PublicKeys.Count);
-            for (var i = 0; i < enumerable.Count; i++)
+            
+            for (var i = 0; i < sortedMiners.Count; i++)
             {
-                var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
+                var minerInRound = new MinerInRound();
 
                 if (i == selected)
                 {
                     minerInRound.IsExtraBlockProducer = true;
                 }
                 
+                minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
+                // Signatures totally randomized.
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
                     GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
-                minerInRound.PublicKey = enumerable[i];
                 minerInRound.PromisedTinyBlocks = 1;
 
-                infosOfRound1.RealTimeMinersInformation.Add(enumerable[i], minerInRound);
+                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
             }
 
-            // Second round
-            dict = new Dictionary<string, int>();
+            round.RoundNumber = currentRoundNumber + 1;
+            round.TermNumber = currentTermNumber + 1;
 
-            foreach (var miner in miners.PublicKeys)
-            {
-                dict.Add(miner, miner[0]);
-            }
-
-            sortedMiningNodes =
-                from obj in dict
-                orderby obj.Value descending
-                select obj.Key;
-
-            enumerable = sortedMiningNodes.ToList();
-
-            var infosOfRound2 = new Round();
-
-            var totalSecondsOfFirstRound = (enumerable.Count + 1) * miningInterval;
-
-            selected = new Random().Next(0, miners.PublicKeys.Count);
-            for (var i = 0; i < enumerable.Count; i++)
-            {
-                var minerInRound = new MinerInRound {IsExtraBlockProducer = false};
-
-                if (i == selected)
-                {
-                    minerInRound.IsExtraBlockProducer = true;
-                }
-
-                minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow((i * miningInterval) + totalSecondsOfFirstRound + miningInterval);
-                minerInRound.Order = i + 1;
-                minerInRound.PublicKey = enumerable[i];
-                minerInRound.PromisedTinyBlocks = 1;
-
-                infosOfRound2.RealTimeMinersInformation.Add(enumerable[i], minerInRound);
-            }
-
-            infosOfRound1.RoundNumber = currentRoundNumber + 1;
-            infosOfRound2.RoundNumber = currentRoundNumber + 2;
-
-            infosOfRound1.MiningInterval = miningInterval;
-            infosOfRound2.MiningInterval = miningInterval;
-
-            var term = new Term
-            {
-                TermNumber = currentTermNumber + 1,
-                FirstRound = infosOfRound1,
-                SecondRound = infosOfRound2,
-                Miners = new Miners
-                {
-                    TermNumber = currentTermNumber + 1,
-                    PublicKeys = {miners.PublicKeys}
-                },
-                MiningInterval = miningInterval,
-                Timestamp = DateTime.UtcNow.ToTimestamp()
-            };
-
-            return term;
+            return round;
         }
 
         public static Miners ToMiners(this IEnumerable<string> minerPublicKeys)

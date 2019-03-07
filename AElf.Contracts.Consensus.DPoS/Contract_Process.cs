@@ -5,19 +5,28 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.Extensions;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
-    public partial class ConsensusContract
+    public partial class ConsensusContract : IMainChainDPoSConsensusSmartContract
     {
-        public void InitialTerm(Term firstTerm)
+        public void InitialDPoS(Round firstRound)
         {
-            Assert(firstTerm.FirstRound.RoundNumber == 1,
+            Assert(firstRound.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
 
-            var firstRound = firstTerm.FirstRound;
-            InitialBlockchain(firstRound);
+            // Do some initializations.
+            SetTermNumber(1);
+            SetRoundNumber(1);
+            SetBlockAge(1);
+            AddTermNumberToFirstRoundNumber(1, 1);
+            SetBlockchainStartTimestamp(firstRound.GetStartTime());
+            var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners();
+            miners.TermNumber = 1;
+            SetMiners(miners);
+            SetMiningInterval(firstRound.GetMiningInterval());
 
             SetAliases(firstRound);
 
@@ -49,11 +58,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 AddOrUpdateMinerHistoryInformation(historyInformation);
             }
 
-            firstTerm.FirstRound.BlockchainAge = 1;
-            TryToAddRoundInformation(firstTerm.FirstRound);
+            firstRound.BlockchainAge = 1;
+            TryToAddRoundInformation(firstRound);
         }
 
-        public ActionResult NextTerm(Term term)
+        public void NextTerm(Round round)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -65,17 +74,11 @@ namespace AElf.Contracts.Consensus.DPoS
             State.DividendContract.KeepWeights(termNumber);
 
             // Update current term number and current round number.
-            Assert(TryToUpdateTermNumber(term.TermNumber), "Failed to update term number.");
-            Assert(TryToUpdateRoundNumber(term.FirstRound.RoundNumber), "Failed to update round number.");
+            Assert(TryToUpdateTermNumber(round.TermNumber), "Failed to update term number.");
+            Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
 
             // Reset some fields of first two rounds of next term.
-            foreach (var minerInRound in term.FirstRound.RealTimeMinersInformation.Values)
-            {
-                minerInRound.MissedTimeSlots = 0;
-                minerInRound.ProducedBlocks = 0;
-            }
-
-            foreach (var minerInRound in term.SecondRound.RealTimeMinersInformation.Values)
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
@@ -84,9 +87,9 @@ namespace AElf.Contracts.Consensus.DPoS
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
             // Update produced block number of this node.
-            if (term.FirstRound.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
             {
-                term.FirstRound.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
+                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
             }
             else
             {
@@ -108,25 +111,21 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Update miners list.
-            SetMiners(term.Miners);
+            SetMiners(round.RealTimeMinersInformation.Keys.ToMiners(round.TermNumber));
 
             // Update term number lookup. (Using term number to get first round number of related term.)
-            AddTermNumberToFirstRoundNumber(term.TermNumber, term.FirstRound.RoundNumber);
+            AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);
 
             Assert(TryToGetCurrentAge(out var blockAge), "Block age not found.");
             // Update blockchain age of next two rounds.
-            term.FirstRound.BlockchainAge = blockAge;
-            term.SecondRound.BlockchainAge = blockAge;
+            round.BlockchainAge = blockAge;
 
             // Update rounds information of next two rounds.
-            TryToAddRoundInformation(term.FirstRound);
-            TryToAddRoundInformation(term.SecondRound);
+            TryToAddRoundInformation(round);
 
             Console.WriteLine($"Term changing duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             TryToFindLIB();
-
-            return new ActionResult {Success = true};
         }
 
         /// <summary>
@@ -334,12 +333,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public void NextRound(Forwarding forwarding)
+        public void NextRound(Round round)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var nextRound = forwarding.NextRound;
+            var nextRound = round;
 
             if (TryToGetRoundNumber(out var roundNumber))
             {
@@ -418,65 +417,35 @@ namespace AElf.Contracts.Consensus.DPoS
             TryToFindLIB();
         }
 
-        public void PackageOutValue(ToPackage toPackage)
+        public void UpdateValue(ToUpdate toUpdate)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   toPackage.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
+                   toUpdate.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
 
-            Assert(TryToGetCurrentRoundInformation(out var roundInformation),
-                "Round information not found.");
+            Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            if (roundInformation.RoundNumber != 1)
+            if (round.RoundNumber != 1)
             {
-                roundInformation.RealTimeMinersInformation[publicKey].Signature = toPackage.Signature;
+                round.RealTimeMinersInformation[publicKey].Signature = toUpdate.Signature;
             }
 
-            roundInformation.RealTimeMinersInformation[publicKey].OutValue = toPackage.OutValue;
+            round.RealTimeMinersInformation[publicKey].OutValue = toUpdate.OutValue;
 
-            roundInformation.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
-            roundInformation.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toPackage.PromiseTinyBlocks;
+            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
 
-            if (toPackage.PreviousInValue != Hash.Default)
+            // One cannot publish his in value sometime, like in his first round.
+            if (toUpdate.PreviousInValue != Hash.Default)
             {
-                roundInformation.RealTimeMinersInformation[publicKey].PreviousInValue = toPackage.PreviousInValue;
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
             }
             
-            TryToUpdateRoundInformation(roundInformation);
+            TryToAddRoundInformation(round);
 
             TryToFindLIB();
-        }
-
-        public void BroadcastInValue(ToBroadcast toBroadcast)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                toBroadcast.RoundId != currentRound.RoundId)
-            {
-                return;
-            }
-
-            Assert(TryToGetCurrentRoundInformation(out var roundInformation),
-                "Round information not found.");
-
-            roundInformation.RealTimeMinersInformation[Context.RecoverPublicKey().ToHex()].InValue = toBroadcast.InValue;
-
-            TryToAddRoundInformation(roundInformation);
-        }
-
-        public bool IsCurrentMiner(string publicKey)
-        {
-            if (!TryToGetCurrentRoundInformation(out var currentRound))
-                return false;
-
-            if (currentRound.RealTimeMinersInformation.Values.All(m => m.OutValue == null))
-            {
-                return currentRound.ExtraBlockProducerOfPreviousRound != null && currentRound.ExtraBlockProducerOfPreviousRound == publicKey;
-            }
-
-            return currentRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
-                       .First(m => m.OutValue != null).PublicKey == publicKey;
         }
 
         public void TryToFindLIB()
@@ -560,19 +529,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #region Vital Steps
 
-        private void InitialBlockchain(Round firstRound)
-        {
-            SetTermNumber(1);
-            SetRoundNumber(1);
-            SetBlockAge(1);
-            AddTermNumberToFirstRoundNumber(1, 1);
-            SetBlockchainStartTimestamp(firstRound.GetStartTime());
-            var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners();
-            miners.TermNumber = 1;
-            SetMiners(miners);
-            SetMiningInterval(firstRound.GetMiningInterval());
-        }
-
         private void SetAliases(Round round)
         {
             var index = 0;
@@ -617,7 +573,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 }
 
-                TryToUpdateRoundInformation(currentRound);
+                TryToAddRoundInformation(currentRound);
             }
         }
     }

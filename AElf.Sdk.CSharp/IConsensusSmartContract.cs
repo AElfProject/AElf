@@ -9,7 +9,6 @@ namespace AElf.Sdk.CSharp
     {
         ValidationResult ValidateConsensus(byte[] consensusInformation);
         IMessage GetNewConsensusInformation(byte[] consensusTriggerInformation);
-
         TransactionList GenerateConsensusTransactions(byte[] extraInformation);
         IMessage GetConsensusCommand(byte[] consensusTriggerInformation);
     }

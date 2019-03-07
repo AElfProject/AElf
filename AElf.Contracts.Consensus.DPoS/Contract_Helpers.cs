@@ -194,27 +194,15 @@ namespace AElf.Contracts.Consensus.DPoS
             State.HistoryMap[historyInformation.PublicKey.ToStringValue()] = historyInformation;
         }
 
-        public bool TryToAddRoundInformation(Round roundInformation)
+        public bool TryToAddRoundInformation(Round round)
         {
-            var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
+            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
             if (ri != null)
             {
                 return false;
             }
 
-            State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()] = roundInformation;
-            return true;
-        }
-
-        public bool TryToUpdateRoundInformation(Round roundInformation)
-        {
-            var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
-            if (ri == null)
-            {
-                return false;
-            }
-
-            State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()] = roundInformation;
+            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
             return true;
         }
 
@@ -387,27 +375,17 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Round GenerateNextRound(Round currentRound)
-        {
-            if (TryToGetChainId(out var chainId))
-            {
-                return currentRound.RealTimeMinersInformation.Keys.ToMiners().GenerateNextRound(chainId, currentRound);
-            }
-
-            return null;
-        }
-
-        private Term GenerateNextTerm()
+        private Round GenerateFirstRoundOfNextTerm()
         {
             if (TryToGetTermNumber(out var termNumber) &&
                 TryToGetRoundNumber(out var roundNumber) &&
                 TryToGetVictories(out var victories) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return victories.GenerateNewTerm(miningInterval, roundNumber, termNumber);
+                return victories.GenerateFirstRoundOfNewTerm(miningInterval, roundNumber, termNumber);
             }
 
-            return new Term();
+            return null;
         }
 
         private Round FillOutValueAndSignature(Hash outValue, Hash signature, string publicKey)
@@ -477,11 +455,6 @@ namespace AElf.Contracts.Consensus.DPoS
         public ulong GetDividendsForVoters(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
-        }
-
-        public static ulong GetDividendsForAll(ulong minedBlocks)
-        {
-            return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
 
         public int GetProducerNumber()
