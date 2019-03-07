@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
@@ -68,6 +69,15 @@ namespace AElf.OS.Node.Application
             });
         }
 
+        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
+        {
+            genesisSmartContracts.Add(new GenesisSmartContractDto()
+            {
+                SmartContractType = typeof(T),
+                SystemSmartContractName = ConsensusSmartContractAddressNameProvider.Name
+            });
+        }
+
         public static void AddGenesisSmartContracts(this List<GenesisSmartContractDto> genesisSmartContracts,
             params Type[] smartContractTypes)
         {
@@ -101,14 +111,19 @@ namespace AElf.OS.Node.Application
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
         {
-            BlockchainNodeContextStartDto blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
+            var transactions = new List<Transaction>();
+
+            transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty));
+
+            transactions.AddRange(dto.InitializationSmartContracts
+                .Select(p =>
+                    GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName)));
+
+            var blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
                 ChainId = dto.ChainId,
                 ZeroSmartContractType = dto.ZeroSmartContract,
-                Transactions = dto.InitializationSmartContracts
-                    .Select(p =>
-                        GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName))
-                    .ToArray()
+                Transactions = transactions.ToArray()
             };
 
             var context = new OsBlockchainNodeContext

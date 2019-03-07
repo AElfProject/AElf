@@ -128,6 +128,7 @@ namespace AElf.Contracts.TestBase
                 ZeroSmartContract = typeof(BasicContractZero)
             };
             
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
@@ -385,8 +386,8 @@ namespace AElf.Contracts.TestBase
         {
             return new List<Type>
             {
-                typeof(BasicContractZero),
-                typeof(ConsensusContract),
+                //typeof(BasicContractZero),
+                //typeof(ConsensusContract),
                 typeof(TokenContract),
                 typeof(CrossChainContract),
                 typeof(AuthorizationContract),
