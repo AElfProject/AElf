@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Application
 //        Task<SmartContractRegistration> GetContractByAddressAsync(Address address);
     }
 
-    public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
+    public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
     {
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
