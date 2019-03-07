@@ -1,44 +1,29 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.TestBase;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.Tests;
 using AElf.Modularity;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
-    [DependsOn(typeof(AbpEventBusModule),
+    [DependsOn(
         typeof(ContractTestAElfModule),
-        typeof(CrossChainAElfModule))]
+        typeof(CrossChainAElfModule),
+        typeof(KernelTestAElfModule))]
     public class CrossChainTestModule : AElfModule
     {
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var services = context.Services;
-
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            
-            // todo: Remove this
-            context.Services.AddTransient<ITransactionResultQueryService, NoBranchTransactionResultService>();
-            context.Services.AddTransient<ITransactionResultService, NoBranchTransactionResultService>();
-            
             var keyPair = CrossChainTestHelper.EcKeyPair;
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(m => m.GetPublicKeyAsync()).Returns(Task.FromResult(keyPair.PublicKey));

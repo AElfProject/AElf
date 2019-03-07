@@ -17,7 +17,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBaseAElfModule),
+        typeof(TestBaseKernelAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule)
@@ -26,26 +26,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DPoSConsensusTestAElfModule : AElfModule
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient<ITransactionResultService, NoBranchTransactionResultService>();
-            context.Services.AddTransient<ITransactionResultQueryService, NoBranchTransactionResultService>();
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<DPoSConsensusTestAElfModule>();
-
-            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
-        }
-
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.RemoveAll(x =>
-                (x.ServiceType == typeof(ITransactionResultService) ||
-                 x.ServiceType == typeof(ITransactionResultQueryService)) &&
-                x.ImplementationType != typeof(NoBranchTransactionResultService));
+            
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

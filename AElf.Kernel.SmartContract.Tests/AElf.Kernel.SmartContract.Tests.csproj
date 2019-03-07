@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
