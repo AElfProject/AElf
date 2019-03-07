@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
@@ -17,10 +18,10 @@ namespace AElf.CrossChain
             _transactionResultQueryService = transactionResultQueryService;
         }
 
-        public async Task FillExtraDataAsync(Block block)
+        public async Task<ByteString> FillExtraDataAsync(BlockHeader block)
         {
-            if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var interestedLogEvent))
-                return;
+            /*if (!CrossChainEventHelper.TryGetLogEventInBlock(block, out var interestedLogEvent))
+                return null;
             try
             {
                 foreach (var txId in block.Body.Transactions)
@@ -31,12 +32,7 @@ namespace AElf.CrossChain
                         CrossChainEventHelper.TryGetValidateCrossChainBlockData(res, block, interestedLogEvent, out _);
                     if(sideChainTransactionsRoot == null)
                         continue;
-                    if (block.Header.BlockExtraData == null)
-                    {
-                        block.Header.BlockExtraData = new BlockExtraData();
-                    }
-                    block.Header.BlockExtraData.SideChainTransactionsRoot = sideChainTransactionsRoot;
-                    return;
+                    return sideChainTransactionsRoot.ToByteString();
                 }
             }
             catch (Exception)
@@ -44,6 +40,10 @@ namespace AElf.CrossChain
                 // ignored
                 // Deserialization/NULL value errors
             }
+
+            return null;*/
+            throw new NotImplementedException();
         }
+
     }
 }

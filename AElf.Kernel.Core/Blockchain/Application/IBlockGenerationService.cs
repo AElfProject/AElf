@@ -83,7 +83,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = blockBody
             };
             // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
-            await _blockExtraDataService.FillBlockExtraData(block);
+            await _blockExtraDataService.FillBlockExtraData(block.Header);
             blockBody.BlockHeader = blockHeader.GetHash();
 
             return block;

@@ -352,9 +352,9 @@
 //            responseResult["Header"]["MerkleTreeRootOfWorldState"].ToString()
 //                .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
 //            responseResult["Header"]["SideChainTransactionsRoot"].ToString().ShouldBe(
-//                block.Header.BlockExtraData == null
+//                !block.Header.BlockExtraDatas.Any()
 //                    ? string.Empty
-//                    : block.Header.BlockExtraData.SideChainTransactionsRoot.ToHex());
+//                    : Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()).ToHex());
 //            ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);
 //            Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
 //            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
