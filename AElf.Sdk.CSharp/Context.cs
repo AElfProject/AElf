@@ -100,7 +100,7 @@ namespace AElf.Sdk.CSharp
             TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
         }
 
-        public void DeployContract(Address address, SmartContractRegistration registration, Hash name = null)
+        public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
             //method SmartContractContext.DeployContract or it's service 
@@ -110,10 +110,10 @@ namespace AElf.Sdk.CSharp
             }
 
             SmartContractContext.DeployContract(address, registration,
-                false);
+                false, name);
         }
 
-        public void UpdateContract(Address address, SmartContractRegistration registration, Hash name = null)
+        public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
         {
             if (!Self.Equals(SmartContractContext.GetZeroSmartContractAddress()))
             {
@@ -121,7 +121,7 @@ namespace AElf.Sdk.CSharp
             }
 
             SmartContractContext.UpdateContract(address, registration,
-                false);
+                false, null);
         }
     }
 }

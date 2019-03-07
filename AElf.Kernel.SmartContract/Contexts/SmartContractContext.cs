@@ -65,13 +65,13 @@ namespace AElf.Kernel.SmartContract
         }
 
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name = null)
+            bool isPrivileged, Hash name)
         {
             return SmartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
         public Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name = null)
+            bool isPrivileged, Hash name)
         {
             return SmartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
         }

@@ -33,7 +33,8 @@ namespace AElf.Runtime.CSharp
 
             _contractInstance = contractInstance;
             foreach (var m in contractInstance.GetType().GetRuntimeMethods().Where(m => m.IsPublic && !m.IsStatic))
-            {;
+            {
+                ;
                 _methodInfos[m.Name] = m;
             }
         }
@@ -158,7 +159,7 @@ namespace AElf.Runtime.CSharp
                 return await Task.FromResult(new RetVal()
                 {
                     Type = retType,
-                    Data = msg.ToByteString()
+                    Data = msg?.ToByteString() ?? ByteString.Empty
                 });
             };
             _handlersCache[methodAbi] = handler;

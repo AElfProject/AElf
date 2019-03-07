@@ -38,7 +38,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         /// <inheritdoc/>
         public async Task DeployContractAsync(Address contractAddress,
-            SmartContractRegistration registration, bool isPrivileged, Hash name = null)
+            SmartContractRegistration registration, bool isPrivileged, Hash name)
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task UpdateContractAsync(Address contractAddress,
-            SmartContractRegistration newRegistration, bool isPrivileged, Hash name = null)
+            SmartContractRegistration newRegistration, bool isPrivileged, Hash name)
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);

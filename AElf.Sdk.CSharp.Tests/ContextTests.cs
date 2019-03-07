@@ -17,7 +17,6 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public class ContextTests : SdkCSharpTestBase
     {
-        private readonly Context _context;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractService _smartContractService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
@@ -189,7 +188,7 @@ namespace AElf.Sdk.CSharp.Tests
             var context = CreateNewContext();
             Assert.Throws<AssertionError>(() =>
                 context.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration()));
+                    new SmartContractRegistration(), null));
         }
 
         [Fact]
@@ -211,7 +210,7 @@ namespace AElf.Sdk.CSharp.Tests
                 CodeHash = Hash.Zero
             };
 
-            context.DeployContract(Address.Zero, registration);
+            context.DeployContract(Address.Zero, registration, null);
         }
 
         [Fact]
@@ -220,7 +219,7 @@ namespace AElf.Sdk.CSharp.Tests
             var context = CreateNewContext();
             Assert.Throws<AssertionError>(() =>
                 context.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration()));
+                    new SmartContractRegistration(), null));
         }
 
         [Fact]
@@ -242,7 +241,7 @@ namespace AElf.Sdk.CSharp.Tests
                 CodeHash = Hash.Zero
             };
 
-            context.UpdateContract(Address.Zero, registration);
+            context.UpdateContract(Address.Zero, registration, null);
         }
 
         private Context CreateNewContext()

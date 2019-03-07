@@ -96,7 +96,7 @@ namespace AElf.Contracts.Genesis
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-            Context.DeployContract(contractAddress, reg);
+            Context.DeployContract(contractAddress, reg, name);
 
             Context.FireEvent(new ContractHasBeenDeployed()
             {
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Genesis
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-            Context.UpdateContract(contractAddress, reg);
+            Context.UpdateContract(contractAddress, reg, null);
 
             Context.FireEvent(new ContractCodeHasBeenUpdated()
             {

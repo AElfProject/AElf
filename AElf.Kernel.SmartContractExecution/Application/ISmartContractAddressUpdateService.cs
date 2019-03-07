@@ -58,7 +58,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var address = transactionResult.ReturnValue.DeserializeToPbMessage<Address>();
 
-            _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);
+            if (address != null)
+                _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);
         }
     }
 }
