@@ -107,6 +107,8 @@ namespace AElf.OS
                     s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
+
+            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
 
 

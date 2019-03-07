@@ -199,7 +199,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ContractAddress = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 BlockchainService = _blockchainService,
-                SmartContractService = _smartContractService
+                SmartContractService = _smartContractService,
+                SmartContractAddressService = _smartContractAddressService
             };
             context.SmartContractContext = smartContractContext;
 
@@ -230,7 +231,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ContractAddress = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 BlockchainService = _blockchainService,
-                SmartContractService = _smartContractService
+                SmartContractService = _smartContractService,
+                SmartContractAddressService = _smartContractAddressService
             };
             context.SmartContractContext = smartContractContext;
 
