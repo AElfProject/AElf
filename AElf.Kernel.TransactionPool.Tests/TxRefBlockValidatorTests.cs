@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Threading.Tasks;
-using AElf.Common;
-using Moq;
 using Shouldly;
 using Xunit;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.TransactionPool.RefBlockExceptions;
-using Moq.Language.Flow;
 
 namespace AElf.Kernel.TransactionPool.Tests
 {
-    public class TxRefBlockValidatorTests : TransactionPoolTestBase
+    public class TxRefBlockValidatorTests : TransactionPoolValidatorTestBase
     {
         private readonly ITxRefBlockValidator _validator;
 

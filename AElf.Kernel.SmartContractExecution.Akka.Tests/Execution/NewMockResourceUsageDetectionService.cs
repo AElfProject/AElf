@@ -10,7 +10,7 @@
 //using AElf.Common;
 
 /*
-namespace AElf.Kernel.Tests.Concurrency.Scheduling
+namespace AElf.Kernel.Core.Tests.Concurrency.Scheduling
 {
     public class NewMockResourceUsageDetectionService : IResourceUsageDetectionService
     {
