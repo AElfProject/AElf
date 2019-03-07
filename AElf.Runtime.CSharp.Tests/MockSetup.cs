@@ -4,7 +4,7 @@
 //using System.Threading.Tasks;
 //using AElf.Kernel;
 //using AElf.Kernel.Managers;
-//using AElf.Kernel.Tests;
+//using AElf.Kernel.Core.Tests;
 //using Google.Protobuf;
 //using AElf.Common;
 //using AElf.Kernel.SmartContract.Domain;

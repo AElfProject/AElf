@@ -8,7 +8,7 @@
 //using AElf.ChainController;
 //using AElf.SmartContract;
 //using AElf.Kernel.SmartContractExecution;
-//using AElf.Kernel.Tests.Concurrency.Scheduling;
+//using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
 //using AElf.Types.CSharp;
 //using Akka.Actor;
 //using Google.Protobuf.WellKnownTypes;

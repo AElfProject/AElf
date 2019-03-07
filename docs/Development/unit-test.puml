@@ -1,0 +1,35 @@
+@startuml Unit Test
+digraph G {
+    "TestBaseKernelAElfModule" -> "TestBaseAElfModule";
+
+    "KernelCoreTestAElfModule" -> "TestBaseKernelAElfModule";
+
+    "SmartContractTestAElfModule" -> "KernelCoreTestAElfModule";
+    "SmartContractRunnerTestAElfModule" -> "SmartContractTestAElfModule";
+
+    "SmartContractExecutionTestAElfModule" -> "KernelCoreTestAElfModule";
+    "SmartContractExecutionGrouperTestAElfModule" -> "SmartContractExecutionTestAElfModule";
+    "SmartContractExecutionExecutingTestAElfModule" -> "SmartContractExecutionTestAElfModule";
+
+    "TransactionPoolTestAElfModule" -> "KernelCoreTestAElfModule";
+    "TransactionPoolValidatorTestAElfModule" -> "TransactionPoolTestAElfModule";
+
+    "ChainControllerTestAElfModule" -> "KernelCoreTestAElfModule";
+
+    "DPoSConsensusTestAElfModule" -> "KernelCoreTestAElfModule";
+
+    "NodeTestAElfModule" -> "KernelCoreTestAElfModule";
+
+    "KernelTestAElfModule" -> {"SmartContractTestAElfModule";"SmartContractExecutionTestAElfModule";"TransactionPoolTestAElfModule";"ChainControllerTestAElfModule";"NodeTestAElfModule"};
+
+    "TestCSharpRuntimeAElfModule" -> "SmartContractTestAElfModule";
+
+    "TestsOSAElfModule" -> {"KernelTestAElfModule";"DPoSConsensusTestAElfModule"};
+    "NetTestAElfModule" -> "TestsOSAElfModule";
+
+    "TestBaseRpcAElfModule" -> "TestsOSAElfModule";
+
+    "CrossChainTestModule" -> "KernelTestAElfModule";
+
+  }
+@enduml

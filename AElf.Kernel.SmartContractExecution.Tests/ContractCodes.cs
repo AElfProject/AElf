@@ -5,7 +5,7 @@ namespace AElf.Kernel.Tests
 {
     public static class ContractCodes
     {
-        public static readonly string TestContractName = "AElf.Kernel.Tests.TestContract";
+        public static readonly string TestContractName = "AElf.Kernel.Core.Tests.TestContract";
 
         public static readonly string TestContractZeroName = "AElf.Contracts.Genesis";
 

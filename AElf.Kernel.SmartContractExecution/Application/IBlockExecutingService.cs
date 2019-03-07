@@ -132,7 +132,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             stopwatch.Stop();
-            Logger.LogInformation($"Attaching block duration: {stopwatch.ElapsedMilliseconds} ms, status {status}");
+            Logger.LogInformation($"Longest chain execution duration: {stopwatch.ElapsedMilliseconds} ms, status {status}, best chain {chain.BestChainHash}");
 
             return blockLinks;
         }
