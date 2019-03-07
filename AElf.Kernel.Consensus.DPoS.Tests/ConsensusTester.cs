@@ -11,6 +11,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
@@ -100,9 +101,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
                     {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
 
+            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
+            mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService)}), _blockExecutingService);
+                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}), _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
