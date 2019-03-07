@@ -13,23 +13,22 @@ namespace AElf.Kernel.SmartContract
         void LogDebug(Func<string> func);
 
         Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged);
+            bool isPrivileged, Hash name = null);
 
         Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged);
+            bool isPrivileged, Hash name = null);
 
         Task<Block> GetBlockByHashAsync(Hash blockId);
         Block GetBlockByHash(Hash blockId);
 
         void DeployContract(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged);
+            bool isPrivileged, Hash name = null);
 
         void UpdateContract(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged);
+            bool isPrivileged, Hash name = null);
 
         int GetChainId();
 
         Address GetAddressByContractName(Hash contractName);
-
     }
 }

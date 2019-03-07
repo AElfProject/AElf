@@ -43,9 +43,9 @@ namespace AElf.Sdk.CSharp
         /// <param name="deferredTxn"></param>
         void SendDeferredTransaction(Transaction deferredTxn);
 
-        void DeployContract(Address address, SmartContractRegistration registration);
+        void DeployContract(Address address, SmartContractRegistration registration, Hash name = null);
 
-        void UpdateContract(Address address, SmartContractRegistration registration);
+        void UpdateContract(Address address, SmartContractRegistration registration, Hash name = null);
 //        Hash ChainId { get; }
 //        Address ContractZeroAddress { get; }
 //
