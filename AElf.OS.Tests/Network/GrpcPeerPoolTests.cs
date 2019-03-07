@@ -37,10 +37,10 @@ namespace AElf.OS.Tests.Network
             optionsMock.Setup(m => m.Value).Returns(new NetworkOptions());
             
             var mockBlockChainService = new Mock<IFullBlockchainService>();
-            mockBlockChainService.Setup(m => m.GetBestChainLastBlock(It.IsAny<int>()))
+            mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            return new GrpcPeerPool(_optionsMock, optionsMock.Object, _accountService, mockBlockChainService.Object);
+            return new GrpcPeerPool( optionsMock.Object, _accountService, mockBlockChainService.Object);
         }
             
         [Fact]
@@ -52,8 +52,8 @@ namespace AElf.OS.Tests.Network
             
             pool.AddPeer(new GrpcPeer(null, null, new HandshakeData { PublicKey = ByteString.CopyFrom(0x01, 0x02) }, remoteEndpoint, "6800"));
             
-            Assert.NotNull(pool.FindPeer(remoteEndpoint, null));
-            Assert.NotNull(pool.FindPeer(null, ByteString.CopyFrom(0x01, 0x02).ToByteArray()));
+            Assert.NotNull(pool.FindPeerByAddress(remoteEndpoint));
+            Assert.NotNull(pool.FindPeerByPublicKey(ByteString.CopyFrom(0x01, 0x02).ToByteArray()));
         }
 
         [Fact]

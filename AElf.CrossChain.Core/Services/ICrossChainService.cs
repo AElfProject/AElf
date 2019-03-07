@@ -6,15 +6,15 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainService
     {
-        Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(int chainId, Hash previousBlockHash,
-            ulong preBlockHeight);
-        Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(int chainId, Hash previousBlockHash,
-            ulong preBlockHeight);
-        Task<bool> ValidateSideChainBlockDataAsync(int chainId, IList<SideChainBlockData> sideChainBlockInfo,
-            Hash previousBlockHash, ulong preBlockHeight);
-        Task<bool> ValidateParentChainBlockDataAsync(int chainId, IList<ParentChainBlockData> parentChainBlockInfo,
-            Hash previousBlockHash, ulong preBlockHeight);
+        Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash,
+            long preBlockHeight);
+        Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash,
+            long preBlockHeight);
+        Task<bool> ValidateSideChainBlockDataAsync(IList<SideChainBlockData> sideChainBlockInfo,
+            Hash previousBlockHash, long preBlockHeight);
+        Task<bool> ValidateParentChainBlockDataAsync(IList<ParentChainBlockData> parentChainBlockInfo,
+            Hash previousBlockHash, long preBlockHeight);
 
-        void CreateNewSideChainBlockInfoCache(int chainId);
+        void CreateNewSideChainBlockInfoCache();
     }
 }

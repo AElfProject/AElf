@@ -21,16 +21,16 @@ using AElf.Common;
         public Address Origin { get; set; }
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
-        public ulong BlockHeight { get; set; }
+        public long BlockHeight { get; set; }
         public DateTime CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
         
         public IBlockchainService BlockchainService { get; set; }
-        public Task<Block> GetBlockByHashAsync(int chainId, Hash blockId)
+        public Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            return BlockchainService.GetBlockByHashAsync(chainId,blockId);
+            return BlockchainService.GetBlockByHashAsync(blockId);
         }
     }
 }

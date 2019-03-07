@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Scheduling
 {
-    public class GrouperTests : SmartContractExecutionTestBase
+    public class GrouperTests : SmartContractExecutionGrouperTestBase
     {
         private readonly Grouper _grouper;
 

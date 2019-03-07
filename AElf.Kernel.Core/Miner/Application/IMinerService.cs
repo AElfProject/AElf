@@ -10,6 +10,6 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(int chainId, Hash previousBlockHash, ulong previousBlockHeight, DateTime time);
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time);
     }
 }

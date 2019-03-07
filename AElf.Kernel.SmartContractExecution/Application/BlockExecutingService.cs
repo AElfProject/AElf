@@ -30,14 +30,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockGenerationService = blockGenerationService;
         }
 
-        public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
+        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions)
         {
-            return await ExecuteBlockAsync(chainId, blockHeader, nonCancellableTransactions, new List<Transaction>(),
+            return await ExecuteBlockAsync(blockHeader, nonCancellableTransactions, new List<Transaction>(),
                 CancellationToken.None);
         }
 
-        public async Task<Block> ExecuteBlockAsync(int chainId, BlockHeader blockHeader,
+        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
@@ -48,7 +48,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var chainContext = new ChainContext()
             {
-                ChainId = blockHeader.ChainId,
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             };
@@ -58,10 +57,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHeight = blockHeader.Height,
                 PreviousHash = blockHeader.PreviousBlockHash
             };
-            var nonCancellableReturnSets = await _executingService.ExecuteAsync( chainContext, nonCancellable,
-                blockHeader.Time.ToDateTime(), CancellationToken.None);
-            var cancellableReturnSets = await _executingService.ExecuteAsync( chainContext, cancellable,
-                blockHeader.Time.ToDateTime(), cancellationToken);
+            var nonCancellableReturnSets =
+                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None);
+            var cancellableReturnSets =
+                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken);
 
             foreach (var returnSet in nonCancellableReturnSets)
             {
@@ -82,14 +81,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
             // TODO: Insert deferredTransactions to TxPool
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
-            var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+            var allExecutedTransactions =
+                nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
             var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 merkleTreeRootOfWorldState);
-            
+
             blockStateSet.BlockHash = blockHeader.GetHash();
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-            
+
             return block;
         }
 
@@ -111,7 +111,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 {
                     hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
                 }
-                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);                
+
+                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
                 return Hash.LoadByteArray(hashAlgorithm.Hash);
             }
         }

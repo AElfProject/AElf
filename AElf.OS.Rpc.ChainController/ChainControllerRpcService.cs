@@ -28,8 +28,8 @@ namespace AElf.OS.Rpc.ChainController
     public class ChainControllerRpcService : IJsonRpcService
     {
         public IBlockchainService BlockchainService { get; set; }
-        public IChainRelatedComponentManager<ITxHub> TxHubs { get; set; }
-        public ITransactionResultManager TransactionResultManager { get; set; }
+        public ITxHub TxHub { get; set; }
+        public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
 
@@ -46,7 +46,6 @@ namespace AElf.OS.Rpc.ChainController
 
         public int ChainId => _chainOptions.ChainId;
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
-        public ITxHub TxHub => TxHubs.Get(_chainOptions.ChainId);
 
         public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
         {
@@ -92,7 +91,15 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
             }
 
-            var abi = await this.GetContractAbi(_chainOptions.ChainId, addressHash);
+            IMessage abi;
+            try
+            {
+                abi = await this.GetContractAbi(addressHash);
+            }
+            catch
+            {
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            }
 
             if (abi == null)
             {
@@ -114,7 +121,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
-                response = await this.CallReadOnly(_chainOptions.ChainId, transaction);
+                response = await this.CallReadOnly(transaction);
             }
             catch
             {
@@ -127,20 +134,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            var txIds = await this.PublishTransactionsAsync(new string[]{rawTransaction});
+            var txIds = await this.PublishTransactionsAsync(new string[] {rawTransaction});
             var response = new JObject {["TransactionId"] = txIds[0]};
             return response;
         }
-        
+
         [JsonRpcMethod("BroadcastTransactions", "rawTransactions")]
-        public async Task<JObject> BroadcastTransactions(string rawTransactions)
+        public async Task<JArray> BroadcastTransactions(string rawTransactions)
         {
             var txIds = await this.PublishTransactionsAsync(rawTransactions.Split(","));
 
-            return new JObject
-            {
-                JToken.FromObject(txIds)
-            };
+            return JArray.FromObject(txIds);
         }
 
         [JsonRpcMethod("GetTransactionResult", "transactionId")]
@@ -162,7 +166,7 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "num")]
-        public async Task<JObject> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
+        public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
         {
             if (offset < 0)
             {
@@ -185,7 +189,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidBlockHash, Error.Message[Error.InvalidBlockHash]);
             }
 
-            var block = await this.GetBlock(_chainOptions.ChainId, realBlockHash);
+            var block = await this.GetBlock(realBlockHash);
             if (block == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
@@ -204,7 +208,7 @@ namespace AElf.OS.Rpc.ChainController
                 }
             }
 
-            return new JObject {transactions};
+            return JArray.FromObject(transactions);
         }
 
         private async Task<JObject> GetTransaction(Hash transactionHash)
@@ -284,15 +288,15 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("GetBlockHeight")]
-        public async Task<ulong> GetBlockHeight()
+        public async Task<long> GetBlockHeight()
         {
-            return await this.GetCurrentChainHeight(_chainOptions.ChainId);
+            return await this.GetCurrentChainHeight();
         }
 
         [JsonRpcMethod("GetBlockInfo", "blockHeight", "includeTransactions")]
-        public async Task<JObject> GetBlockInfo(ulong blockHeight, bool includeTransactions = false)
+        public async Task<JObject> GetBlockInfo(long blockHeight, bool includeTransactions = false)
         {
-            var blockInfo = await this.GetBlockAtHeight(_chainOptions.ChainId, blockHeight);
+            var blockInfo = await this.GetBlockAtHeight(blockHeight);
             if (blockInfo == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
@@ -307,7 +311,9 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData.SideChainTransactionsRoot?.ToHex(),
+                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraDatas.Any()
+                        ? Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex()
+                        : "",
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
@@ -351,13 +357,26 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetChainStatus")]
         public async Task<JObject> GetChainStatus()
         {
-            var chain = await BlockchainService.GetChainAsync(_chainOptions.ChainId);
+            var chain = await BlockchainService.GetChainAsync();
             var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
-            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
+            var formattedNotLinkedBlocks = new JArray();
+
+            foreach (var notLinkedBlock in chain.NotLinkedBlocks)
+            {
+                var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
+                formattedNotLinkedBlocks.Add(new JObject
+                    {
+                        ["BlockHash"] = block.BlockHashToHex,
+                        ["Height"] = block.Height,
+                        ["PreviousBlockHash"] = block.Header.PreviousBlockHash.ToHex()
+                    }
+                );
+            }
+
             return new JObject
             {
                 ["Branches"] = branches,
-                ["NotLinkedBlocks"] = notLinkedBlocks,
+                ["NotLinkedBlocks"] = formattedNotLinkedBlocks,
                 ["LongestChainHeight"] = chain.LongestChainHeight,
                 ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),
                 ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),

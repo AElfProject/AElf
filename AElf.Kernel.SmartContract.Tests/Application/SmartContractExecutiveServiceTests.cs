@@ -10,10 +10,9 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class SmartContractExecutiveServiceTests : SmartContractTestBase
+    public class SmartContractExecutiveServiceTests : SmartContractRunnerTestBase
     {
         private readonly SmartContractExecutiveService _smartContractExecutiveService;
-        private int _chainId = 1;
 
         public SmartContractExecutiveServiceTests()
         {
@@ -29,7 +28,7 @@ namespace AElf.Kernel.SmartContract.Application
                 Code = Hash.FromString("TestPutExecutive").ToByteString(),
                 CodeHash = Hash.FromString("TestPutExecutive")
             };
-            
+
             var mockExecutive = new Mock<IExecutive>();
             mockExecutive.SetupProperty(e => e.ContractHash);
             mockExecutive.Setup(e => e.SetTransactionContext(It.IsAny<TransactionContext>()))
@@ -38,9 +37,9 @@ namespace AElf.Kernel.SmartContract.Application
 
             mockExecutive.Object.ContractHash = registration.CodeHash;
 
-            await _smartContractExecutiveService.PutExecutiveAsync(_chainId, Address.Genesis, mockExecutive.Object);
+            await _smartContractExecutiveService.PutExecutiveAsync(Address.Genesis, mockExecutive.Object);
         }
-        
+
         [Fact]
         public async Task Get_Executive_BySmartContractRegistration_ReturnExecutive()
         {

@@ -18,7 +18,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _consensusService.TriggerConsensusAsync(eventData.ChainId);
+            await _consensusService.TriggerConsensusAsync();
         }
     }
 }

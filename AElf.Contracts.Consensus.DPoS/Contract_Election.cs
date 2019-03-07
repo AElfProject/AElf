@@ -18,12 +18,12 @@ namespace AElf.Contracts.Consensus.DPoS
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
-            if (tickets.IsNotEmpty())
+            if (tickets!=null)
             {
                 foreach (var voteToTransaction in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[voteToTransaction];
-                    if (votingRecord.IsNotEmpty())
+                    if (votingRecord!=null)
                     {
                         Assert(votingRecord.IsWithdrawn, DPoSContractConsts.VoterCannotAnnounceElection);
                     }
@@ -45,7 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var publicKeyOfThisAlias = State.AliasesLookupMap[alias.ToStringValue()];
-            if (publicKeyOfThisAlias.IsNotEmpty() &&
+            if (publicKeyOfThisAlias!=null &&
                 publicKey == publicKeyOfThisAlias.Value)
             {
                 return new ActionResult {Success = true};
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Add this alias to history information of this candidate.
             var candidateHistoryInformation = State.HistoryMap[publicKey.ToStringValue()];
-            if (candidateHistoryInformation.IsNotEmpty())
+            if (candidateHistoryInformation!=null)
             {
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Add the transaction id of this voting record to the tickets information of the voter.
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
-            if (tickets.IsNotEmpty())
+            if (tickets != null)
             {
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Add the transaction id of this voting record to the tickets information of the candidate.
             var candidateTickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
-            if (candidateTickets.IsNotEmpty())
+            if (candidateTickets != null)
             {
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
@@ -183,7 +183,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
-            if (votingRecord.IsNotEmpty() &&
+            if (votingRecord != null &&
                 votingRecord.From == Context.RecoverPublicKey().ToHex())
             {
                 State.DividendContract.TransferDividends(votingRecord);
@@ -196,7 +196,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ActionResult ReceiveAllDividends()
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
-            if (tickets.IsNotEmpty())
+            if (tickets != null)
             {
                 if (!tickets.VoteToTransactions.Any())
                 {
@@ -206,7 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 foreach (var transactionId in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[transactionId];
-                    if (votingRecord.IsNotEmpty())
+                    if (votingRecord != null)
                     {
                         State.DividendContract.TransferDividends(votingRecord);
                     }
@@ -219,7 +219,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
-            if (votingRecord.IsNotEmpty())
+            if (votingRecord != null)
             {
                 if (votingRecord.IsWithdrawn)
                 {
@@ -244,14 +244,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     State.TicketsCountField.Value = ticketsCount;
 
                     var ticketsOfVoter = State.TicketsMap[votingRecord.From.ToStringValue()];
-                    if (ticketsOfVoter.IsNotEmpty())
+                    if (ticketsOfVoter != null)
                     {
                         ticketsOfVoter.VotedTickets -= votingRecord.Count;
                         State.TicketsMap[votingRecord.From.ToStringValue()] = ticketsOfVoter;
                     }
 
                     var ticketsOfCandidate = State.TicketsMap[votingRecord.To.ToStringValue()];
-                    if (ticketsOfCandidate.IsNotEmpty())
+                    if (ticketsOfCandidate != null)
                     {
                         ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
                         State.TicketsMap[votingRecord.To.ToStringValue()] = ticketsOfCandidate;
@@ -274,12 +274,12 @@ namespace AElf.Contracts.Consensus.DPoS
             var candidatesVotesDict = new Dictionary<string, ulong>();
 
             var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
-            if (tickets.IsNotEmpty())
+            if (tickets != null)
             {
                 foreach (var transactionId in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[transactionId];
-                    if (votingRecord.IsNotEmpty())
+                    if (votingRecord != null)
                     {
                         if (votingRecord.UnlockAge > CurrentAge && !withoutLimitation)
                         {
@@ -317,7 +317,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 foreach (var candidateVote in candidatesVotesDict)
                 {
                     var ticketsOfCandidate = State.TicketsMap[candidateVote.Key.ToStringValue()];
-                    if (ticketsOfCandidate.IsNotEmpty())
+                    if (ticketsOfCandidate != null)
                     {
                         ticketsOfCandidate.ObtainedTickets -= candidateVote.Value;
                         State.TicketsMap[candidateVote.Key.ToStringValue()] = ticketsOfCandidate;

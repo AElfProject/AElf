@@ -12,33 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-//        public Round TryToGetCurrentRoundInformation()
-//        {
-//            var roundNumber = TryToGetRoundNumber();
-//            return roundNumber != 0 ? State.RoundsMap[roundNumber.ToUInt64Value()] : new Round();
-//        }
-//
-//        public ulong TryToGetTermNumber()
-//        {
-//            termNumber = _dataStructures.CurrentTermNumberField.GetValue();
-//        }
-//        public ulong TryToGetRoundNumber()
-//        {
-//            return State.CurrentRoundNumberField.Value;
-//        }
-//        public bool IsMiner(Address address)
-//        {
-//            if (TryToGetTermNumber(out var termNumber))
-//            {
-//                if (TryToGetMiners(termNumber, out var miners))
-//                {
-//                    return miners.Addresses.Contains(address);
-//                }
-//            }
-//
-//            return false;
-//        }
-
         public bool TryToUpdateRoundNumber(ulong roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumberField.Value;
@@ -83,16 +56,16 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool TryToGetCurrentRoundInformation(out Round roundInformation)
         {
+            roundInformation = null;
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-                if (!roundInformation.Equals(new Round()))
+                if (roundInformation != null)
                 {
                     return true;
                 }
             }
 
-            roundInformation = new Round();
             return false;
         }
 
@@ -101,7 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 roundInformation = State.RoundsMap[(roundNumber - 1).ToUInt64Value()];
-                if (!roundInformation.Equals(new Round()))
+                if (roundInformation != null)
                 {
                     return true;
                 }
@@ -114,13 +87,13 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
         {
             roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-            return !roundInformation.Equals(new Round());
+            return roundInformation != null;
         }
 
         public bool TryToGetMiners(ulong termNumber, out Miners miners)
         {
             miners = State.MinersMap[termNumber.ToUInt64Value()];
-            return !miners.Equals(new Miners());
+            return miners != null;
         }
 
         public bool TryToGetVictories(out Miners victories)
@@ -130,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var candidatePublicKey in candidates.PublicKeys)
             {
                 var tickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
-                if (!tickets.Equals(new Tickets()))
+                if (tickets != null)
                 {
                     ticketsMap.Add(candidatePublicKey, tickets.ObtainedTickets);
                 }
@@ -169,19 +142,19 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
         {
             historyInformation = State.HistoryMap[publicKey.ToStringValue()];
-            return !historyInformation.Equals(new CandidateInHistory());
+            return historyInformation != null;
         }
 
         public bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot)
         {
             snapshot = State.SnapshotMap[termNumber.ToUInt64Value()];
-            return !snapshot.Equals(new TermSnapshot());
+            return snapshot != null;
         }
 
         public bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
         {
             tickets = State.TicketsMap[publicKey.ToStringValue()];
-            return !tickets.Equals(new Tickets());
+            return tickets != null;
         }
 
         public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
@@ -224,7 +197,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToAddRoundInformation(Round roundInformation)
         {
             var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
-            if (!ri.Equals(new Round()))
+            if (ri != null)
             {
                 return false;
             }
@@ -236,7 +209,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToUpdateRoundInformation(Round roundInformation)
         {
             var ri = State.RoundsMap[roundInformation.RoundNumber.ToUInt64Value()];
-            if (ri.Equals(new Round()))
+            if (ri == null)
             {
                 return false;
             }
@@ -269,7 +242,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
         {
             var ri = State.TermToFirstRoundMap[termNumber.ToUInt64Value()];
-            if (!ri.Equals(new UInt64Value()))
+            if (ri != null)
             {
                 return false;
             }
@@ -282,7 +255,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             // Miners for one specific term should only update once.
             var m = State.MinersMap[miners.TermNumber.ToUInt64Value()];
-            if (gonnaReplaceSomeone || m.Equals(new Miners()))
+            if (gonnaReplaceSomeone || m == null)
             {
                 State.MinersMap[miners.TermNumber.ToUInt64Value()] = miners;
                 return true;
@@ -294,7 +267,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool SetSnapshot(TermSnapshot snapshot)
         {
             var s = State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()];
-            if (!s.Equals(new TermSnapshot()))
+            if (s != null)
             {
                 return false;
             }
@@ -303,7 +276,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool IsMiner(string publicKey)
+        public bool IsMinerOfCurrentTerm(string publicKey)
         {
             if (TryToGetTermNumber(out var termNumber))
             {
@@ -329,13 +302,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private bool OutInValueAreNull(Round round)
         {
-            return round.RealTimeMinersInfo.Values.Any(minerInRound =>
+            return round.RealTimeMinersInformation.Values.Any(minerInRound =>
                 minerInRound.OutValue != null || minerInRound.InValue != null);
         }
 
         private bool InValueIsNull(Round round)
         {
-            return round.RealTimeMinersInfo.Values.All(m => m.InValue == null);
+            return round.RealTimeMinersInformation.Values.All(m => m.InValue == null);
         }
 
         private bool ValidateVictories(Miners miners)
@@ -362,8 +335,8 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                return currentRoundInStateDB.RealTimeMinersInfo.Values.Count(info => info.OutValue != null) + 1 ==
-                       round.RealTimeMinersInfo.Values.Count(info => info.OutValue != null);
+                return currentRoundInStateDB.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
+                       round.RealTimeMinersInformation.Values.Count(info => info.OutValue != null);
             }
 
             return false;
@@ -374,12 +347,12 @@ namespace AElf.Contracts.Consensus.DPoS
             minerInformation = null;
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
+                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
                 {
-                    minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
+                    minerInformation = currentRoundInStateDB.RealTimeMinersInformation[publicKey];
                 }
 
-                return currentRoundInStateDB.RealTimeMinersInfo.Values.Count(info => info.OutValue != null) ==
+                return currentRoundInStateDB.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) ==
                        GetProducerNumber();
             }
 
@@ -391,11 +364,12 @@ namespace AElf.Contracts.Consensus.DPoS
             minerInformation = null;
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
+                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
                 {
-                    minerInformation = currentRoundInStateDB.RealTimeMinersInfo[publicKey];
+                    minerInformation = currentRoundInStateDB.RealTimeMinersInformation[publicKey];
                 }
-                return currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue != null;
+
+                return currentRoundInStateDB.RealTimeMinersInformation[publicKey].OutValue != null;
             }
 
             return false;
@@ -417,40 +391,10 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (TryToGetChainId(out var chainId))
             {
-                return currentRound.RealTimeMinersInfo.Keys.ToMiners().GenerateNextRound(chainId, currentRound);
+                return currentRound.RealTimeMinersInformation.Keys.ToMiners().GenerateNextRound(chainId, currentRound);
             }
 
             return null;
-        }
-
-        private Forwarding GenerateNewForwarding()
-        {
-            if (TryToGetCurrentAge(out var blockAge) &&
-                TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                if (currentRound.RoundNumber != 1 &&
-                    TryToGetPreviousRoundInformation(out var previousRound))
-                {
-                    return new Forwarding
-                    {
-                        CurrentAge = blockAge,
-                        CurrentRound = currentRound.Supplement(previousRound),
-                        NextRound = GenerateNextRound(currentRound)
-                    };
-                }
-
-                if (currentRound.RoundNumber == 1)
-                {
-                    return new Forwarding
-                    {
-                        CurrentAge = blockAge,
-                        CurrentRound = currentRound.SupplementForFirstRound(),
-                        NextRound = new Round {RoundNumber = 0}
-                    };
-                }
-            }
-
-            return new Forwarding();
         }
 
         private Term GenerateNextTerm()
@@ -470,10 +414,10 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
             {
-                if (currentRoundInStateDB.RealTimeMinersInfo.ContainsKey(publicKey))
+                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
                 {
-                    currentRoundInStateDB.RealTimeMinersInfo[publicKey].OutValue = outValue;
-                    currentRoundInStateDB.RealTimeMinersInfo[publicKey].Signature = signature;
+                    currentRoundInStateDB.RealTimeMinersInformation[publicKey].OutValue = outValue;
+                    currentRoundInStateDB.RealTimeMinersInformation[publicKey].Signature = signature;
                 }
 
                 return currentRoundInStateDB;
@@ -492,17 +436,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return DateTime.MaxValue;
         }
 
-        private Transaction GenerateTransaction(ulong refBlockHeight, byte[] refBlockPrefix, string methodName,
-            List<object> parameters)
+        private Transaction GenerateTransaction(string methodName, List<object> parameters)
         {
-            refBlockHeight = refBlockHeight > 4 ? refBlockHeight - 4 : 0;
-
             var tx = new Transaction
             {
                 From = Context.Sender,
                 To = Context.Self,
-                RefBlockNumber = refBlockHeight,
-                RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
                 Type = TransactionType.DposTransaction,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
@@ -512,7 +451,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         #endregion
-        
+
         public ulong GetDividendsForEveryMiner(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
@@ -523,12 +462,13 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
         }
-        
+
         public ulong GetDividendsForReappointment(ulong minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersReappointmentRatio);
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock *
+                            DPoSContractConsts.MinersReappointmentRatio);
         }
-        
+
         public ulong GetDividendsForBackupNodes(ulong minedBlocks)
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
@@ -538,12 +478,12 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
-        
+
         public static ulong GetDividendsForAll(ulong minedBlocks)
         {
             return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
-        
+
         public int GetProducerNumber()
         {
             return 17 + (DateTime.UtcNow.Year - 2019) * 2;

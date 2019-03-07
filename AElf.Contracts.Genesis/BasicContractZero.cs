@@ -9,7 +9,6 @@ namespace AElf.Contracts.Genesis
 {
     public class BasicContractZero : CSharpSmartContract<BasicContractZeroState>, ISmartContractZero
     {
-
         #region Views
 
         [View]
@@ -44,40 +43,27 @@ namespace AElf.Contracts.Genesis
             return info?.CodeHash;
         }
 
+        [View]
+        public Address GetContractAddress(Hash codeHash)
+        {
+            return State.CodeAddressMapping[codeHash];
+        }
+
+        [View]
+        public SmartContractRegistration GetSmartContractRegistrationByAddress(Address address)
+        {
+            var info = State.ContractInfos[address];
+            if (info == null)
+            {
+                return null;
+            }
+
+            return State.SmartContractRegistrations[info.CodeHash];
+        }
+
         #endregion Views
 
         #region Actions
-
-        public byte[] InitSmartContract(ulong serialNumber, int category, byte[] code)
-        {
-            Assert(Context.CurrentHeight < 1, "The current height should be less than 1.");
-            Assert(Context.Sender.Equals(Context.Genesis));
-
-            var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
-
-            var contractHash = Hash.FromRawBytes(code);
-
-            var info = new ContractInfo
-            {
-                SerialNumber = serialNumber,
-                Category = category,
-                Owner = Address.Genesis,
-                CodeHash = contractHash
-            };
-            State.ContractInfos[contractAddress] = info;
-
-            var reg = new SmartContractRegistration
-            {
-                Category = category,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = contractHash
-            };
-
-            Context.DeployContract(contractAddress, reg);
-
-            Context.LogDebug(()=>"InitSmartContract - Deployment success: " + contractAddress.GetFormatted());
-            return contractAddress.DumpByteArray();
-        }
 
         public byte[] DeploySmartContract(int category, byte[] code)
         {
@@ -87,6 +73,12 @@ namespace AElf.Contracts.Genesis
             var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
+
+            var address = State.CodeAddressMapping[codeHash];
+
+            //Assert(address == null || address.Value.Length == 0, "should only deploy one smart contract once");
+
+            State.CodeAddressMapping[codeHash] = contractAddress;
 
             var info = new ContractInfo
             {
@@ -104,6 +96,8 @@ namespace AElf.Contracts.Genesis
                 CodeHash = codeHash
             };
 
+            State.SmartContractRegistrations[reg.CodeHash] = reg;
+
             Context.DeployContract(contractAddress, reg);
 
             Context.FireEvent(new ContractHasBeenDeployed()
@@ -113,8 +107,8 @@ namespace AElf.Contracts.Genesis
                 Creator = Context.Sender
             });
 
-            Context.LogDebug(()=>"BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
-            Context.LogDebug(()=>"BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
+            Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 
@@ -139,7 +133,14 @@ namespace AElf.Contracts.Genesis
                 CodeHash = newCodeHash
             };
 
+            State.SmartContractRegistrations[reg.CodeHash] = reg;
+
+
             Context.UpdateContract(contractAddress, reg);
+
+            State.CodeAddressMapping[newCodeHash] = contractAddress;
+
+
             Context.FireEvent(new ContractCodeHasBeenUpdated()
             {
                 Address = contractAddress,
@@ -147,7 +148,7 @@ namespace AElf.Contracts.Genesis
                 NewCodeHash = newCodeHash
             });
 
-            Context.LogDebug(()=>"BasicContractZero - update success: " + contractAddress.GetFormatted());
+            Context.LogDebug(() => "BasicContractZero - update success: " + contractAddress.GetFormatted());
             return contractAddress.DumpByteArray();
         }
 

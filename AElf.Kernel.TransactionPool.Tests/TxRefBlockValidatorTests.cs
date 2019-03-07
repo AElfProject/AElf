@@ -1,21 +1,14 @@
 ﻿using System;
-using System.Threading.Tasks;
-using AElf.Common;
-using Moq;
 using Shouldly;
 using Xunit;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.TransactionPool.RefBlockExceptions;
-using Moq.Language.Flow;
 
 namespace AElf.Kernel.TransactionPool.Tests
 {
-    public class TxRefBlockValidatorTests:TransactionPoolTestBase
+    public class TxRefBlockValidatorTests : TransactionPoolValidatorTestBase
     {
         private readonly ITxRefBlockValidator _validator;
-        private const int ChainId = 1234;
 
         public TxRefBlockValidatorTests()
         {
@@ -26,19 +19,19 @@ namespace AElf.Kernel.TransactionPool.Tests
         public void Validate_All_Status()
         {
             var transaction = FakeTransaction.Generate();
-            _validator.ValidateAsync(ChainId, transaction).ShouldNotThrow();
+            _validator.ValidateAsync(transaction).ShouldNotThrow();
 
             transaction.RefBlockNumber = 102;
-            _validator.ValidateAsync(ChainId, transaction).ShouldThrow<FutureRefBlockException>();
+            _validator.ValidateAsync(transaction).ShouldThrow<FutureRefBlockException>();
 
             transaction.RefBlockNumber = 30;
-            _validator.ValidateAsync(ChainId, transaction).ShouldThrow<RefBlockExpiredException>();
+            _validator.ValidateAsync(transaction).ShouldThrow<RefBlockExpiredException>();
 
             transaction.RefBlockNumber = 90;
-            _validator.ValidateAsync(ChainId, transaction).ShouldThrow<Exception>();
+            _validator.ValidateAsync(transaction).ShouldThrow<Exception>();
 
             transaction.RefBlockNumber = 80;
-            _validator.ValidateAsync(ChainId, transaction).ShouldNotThrow();
+            _validator.ValidateAsync(transaction).ShouldNotThrow();
         }
     }
 }

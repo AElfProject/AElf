@@ -30,16 +30,16 @@ namespace AElf.Kernel.Node.Application
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
-        private IChainRelatedComponentManager<ITxHub> _txHubs;
+        private ITxHub _txHub;
         private IBlockchainService _blockchainService;
         private IChainCreationService _chainCreationService;
 
-        public BlockchainNodeContextService(IChainRelatedComponentManager<ITxHub> txHubs,
-            IBlockchainService blockchainService, IChainCreationService chainCreationService)
+        public BlockchainNodeContextService(
+            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub)
         {
-            _txHubs = txHubs;
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
+            _txHub = txHub;
         }
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
@@ -47,13 +47,13 @@ namespace AElf.Kernel.Node.Application
             var context = new BlockchainNodeContext
             {
                 ChainId = dto.ChainId,
-                TxHub = await _txHubs.CreateAsync(dto.ChainId)
+                TxHub = _txHub,
             };
-            var chain = await _blockchainService.GetChainAsync(dto.ChainId);
+            var chain = await _blockchainService.GetChainAsync();
 
             if (chain == null)
             {
-                await _chainCreationService.CreateNewChainAsync(dto.ChainId, dto.Transactions);
+                await _chainCreationService.CreateNewChainAsync(dto.Transactions);
             }
 
             return context;
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Node.Application
 
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
         {
-            await _txHubs.RemoveAsync(blockchainNodeContext.ChainId);
+            
         }
 
         private byte[] ReadContractCode(string path)

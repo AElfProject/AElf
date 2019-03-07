@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -20,50 +21,53 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractExecutiveService
     {
-        Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address);
+        Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg);
 
-        Task PutExecutiveAsync(int chainId, Address address, IExecutive executive);
+        Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address);
+        Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address);
 //
-//        Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address);
+//        Task<SmartContractRegistration> GetContractByAddressAsync(Address address);
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
     {
-        private readonly ISmartContractManager _smartContractManager;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IChainManager _chainManager;
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+
+        private static readonly ConcurrentDictionary<Address, SmartContractRegistration>
+            _addressSmartContractRegistrationMappingCache =
+                new ConcurrentDictionary<Address, SmartContractRegistration>();
 #if DEBUG
         public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
 #endif
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            ISmartContractManager smartContractManager,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IChainManager chainManager)
         {
             _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
-            _smartContractManager = smartContractManager;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+            _chainManager = chainManager;
 #if DEBUG
             SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
 #endif
         }
 
-//        private async Task<Hash> GetContractHashAsync(int chainId, Address address)
+//        private async Task<Hash> GetContractHashAsync(Address address)
 //        {
 //            Hash contractHash;
-//            var zeroContractAddress = ContractHelpers.GetGenesisBasicContractAddress(chainId);
+//            var zeroContractAddress = ContractHelpers.GetGenesisBasicContractAddress();
 //
 //            if (address == zeroContractAddress)
 //            {
@@ -71,7 +75,7 @@ namespace AElf.Kernel.SmartContract.Application
 //            }
 //            else
 //            {
-//                var result = await CallContractAsync(true, chainId, zeroContractAddress, "GetContractHash", address);
+//                var result = await CallContractAsync(true, zeroContractAddress, "GetContractHash", address);
 //
 //                contractHash = result.DeserializeToPbMessage<Hash>();
 //            }
@@ -79,12 +83,12 @@ namespace AElf.Kernel.SmartContract.Application
 //            return contractHash;
 //        }
 
-//        public async Task<SmartContractRegistration> GetContractByAddressAsync(int chainId, Address address)
+//        public async Task<SmartContractRegistration> GetContractByAddressAsync(Address address)
 //        {
-//            var contractHash = await GetContractHashAsync(chainId, address);
+//            var contractHash = await GetContractHashAsync(address);
 //            return await _smartContractManager.GetAsync(contractHash);
 //        }
-        private async Task<ConcurrentBag<IExecutive>> GetPoolForAsync(Hash contractHash)
+        private ConcurrentBag<IExecutive> GetPool(Hash contractHash)
         {
             if (!_executivePools.TryGetValue(contractHash, out var pool))
             {
@@ -95,14 +99,13 @@ namespace AElf.Kernel.SmartContract.Application
             return pool;
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(int chainId, IChainContext chainContext, Address address)
+        public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
         {
-            var reg = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
+            var reg = await GetSmartContractRegistrationAsync(chainContext, address);
             var executive = await GetExecutiveAsync(reg);
 
             executive.SetSmartContractContext(new SmartContractContext()
             {
-                ChainId = chainId,
                 ContractAddress = address,
                 BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
                 SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
@@ -115,7 +118,7 @@ namespace AElf.Kernel.SmartContract.Application
             return executive;
         }
 
-        public async Task PutExecutiveAsync(int chainId, Address address, IExecutive executive)
+        public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
             executive.SetTransactionContext(new TransactionContext()
             {
@@ -125,21 +128,21 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             });
             executive.SetDataCache(new NullStateCache());
-            (await GetPoolForAsync(executive.ContractHash)).Add(executive);
+            GetPool(executive.ContractHash).Add(executive);
 
             await Task.CompletedTask;
         }
 
-        public async Task<IMessage> GetAbiAsync(int chainId, IChainContext chainContext, Address address)
+        public async Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address)
         {
-            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainId, chainContext, address);
+            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
             var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
             return runner.GetAbi(smartContractRegistration);
         }
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
         {
-            var pool = await GetPoolForAsync(reg.CodeHash);
+            var pool = GetPool(reg.CodeHash);
 
             if (!pool.TryTake(out var executive))
             {
@@ -157,25 +160,78 @@ namespace AElf.Kernel.SmartContract.Application
 
         #region private methods
 
-        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(int chainId,
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationAsync(
             IChainContext chainContext, Address address)
         {
-            if (address == Address.BuildContractAddress(chainId, 0))
+            if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var smartContractRegistration))
+                return smartContractRegistration;
+
+            if (address == Address.BuildContractAddress(_chainManager.GetChainId(), 0))
             {
-                return _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
+                smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
-
-            var hash = await GetContractHashFromZeroAsync(chainId, chainContext, address);
-
-            return await _smartContractManager.GetAsync(hash);
+            else
+            {
+                smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
+            }
+            _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
+            return smartContractRegistration;
         }
 
-        private async Task<Hash> GetContractHashFromZeroAsync(int chainId, IChainContext chainContext, Address address)
+
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
+            IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
             {
                 From = Address.Zero,
-                To = Address.BuildContractAddress(chainId, 0),
+                To = Address.BuildContractAddress(_chainManager.GetChainId(), 0),
+                MethodName = "GetSmartContractRegistrationByAddress",
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
+            };
+            var trace = new TransactionTrace()
+            {
+                TransactionId = transaction.GetHash()
+            };
+
+            var txCtxt = new TransactionContext
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                CurrentBlockTime = DateTime.UtcNow,
+                Transaction = transaction,
+                BlockHeight = chainContext.BlockHeight + 1,
+                Trace = trace,
+                CallDepth = 0,
+            };
+
+            var registration = _defaultContractZeroCodeProvider
+                .DefaultContractZeroRegistration;
+
+            IExecutive executiveZero = null;
+            try
+            {
+                executiveZero = await GetExecutiveAsync(registration);
+                executiveZero.SetDataCache(chainContext.StateCache);
+                await executiveZero.SetTransactionContext(txCtxt).Apply();
+            }
+            finally
+            {
+                if (executiveZero != null)
+                {
+                    await PutExecutiveAsync(Address.BuildContractAddress(_chainManager.GetChainId(), 0), executiveZero);
+                }
+            }
+
+            return trace.RetVal.Data.DeserializeToPbMessage<SmartContractRegistration>();
+        }
+
+        /*
+        private async Task<Hash> GetContractHashFromZeroAsync(IChainContext chainContext, Address address)
+        {
+            var transaction = new Transaction()
+            {
+                From = Address.Zero,
+                To = Address.BuildContractAddress(_chainManager.GetChainId(), 0),
                 MethodName = "GetContractInfo",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
             };
@@ -207,7 +263,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executiveZero != null)
                 {
-                    await PutExecutiveAsync(chainId, Address.BuildContractAddress(chainId, 0), executiveZero);
+                    await PutExecutiveAsync(Address.BuildContractAddress(_chainManager.GetChainId(), 0), executiveZero);
                 }
             }
 
@@ -216,8 +272,9 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 throw new NullReferenceException();
             }
+
             return Hash.LoadHex(codeHash.ToString());
-        }
+        }*/
 
         #endregion
     }

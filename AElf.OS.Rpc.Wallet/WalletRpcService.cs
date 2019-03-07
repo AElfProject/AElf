@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.OS;
 using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;

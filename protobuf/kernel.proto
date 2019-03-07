@@ -8,7 +8,7 @@ import "common.proto";
 message Transaction {
     Address From = 1;
     Address To = 2;
-    uint64 RefBlockNumber = 3;
+    int64 RefBlockNumber = 3;
     bytes RefBlockPrefix = 4;
     uint64 IncrementId = 5;
     string MethodName = 6;
@@ -46,7 +46,7 @@ message TransactionReceipt {
     RefBlockStatus RefBlockStatus = 4;
     TransactionStatus TransactionStatus = 5;
     bool IsSystemTxn = 6;
-    uint64 ExecutedBlockNumber = 7;
+    int64 ExecutedBlockNumber = 7;
 }
 
 message StatePath {
@@ -87,7 +87,7 @@ message TransactionResult {
     repeated LogEvent Logs = 3;
     bytes Bloom = 4;
     bytes RetVal = 5;
-    uint64 BlockNumber = 6;
+    int64 BlockNumber = 6;
     Hash BlockHash = 7;
     int32 Index = 8;
     Hash StateHash = 9;
@@ -186,12 +186,12 @@ message BlockHeader {
     Hash MerkleTreeRootOfTransactions = 3;
     Hash MerkleTreeRootOfWorldState = 4;
     bytes Bloom = 5;
-    uint64 Height = 6;
+    int64 Height = 6;
     bytes Sig = 7;
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    BlockExtraData BlockExtraData = 11;
+    repeated bytes BlockExtraDatas = 11;
 }
 
 message BlockBody {
@@ -267,7 +267,7 @@ enum BlockValidationResult {
 message VersionedState{
     string Key = 1;
     bytes Value = 2;
-    uint64 BlockHeight = 3;
+    int64 BlockHeight = 3;
     Hash BlockHash = 4;
     Hash OriginBlockHash = 5;
 }
@@ -275,7 +275,7 @@ message VersionedState{
 message BlockStateSet{
     Hash BlockHash = 1;
     Hash PreviousHash = 2;
-    uint64 BlockHeight = 3;
+    int64 BlockHeight = 3;
     map<string, bytes> Changes = 4;
 }
 
@@ -293,9 +293,9 @@ enum ChainStateMergingStatus {
 }
 
 message ChainStateInfo{
-    int64 ChainId = 1;
+    int32 ChainId = 1;
     Hash BlockHash = 2;
-    uint64 BlockHeight = 3;
+    int64 BlockHeight = 3;
     Hash MergingBlockHash = 4;
     ChainStateMergingStatus Status = 5;
 }
@@ -313,7 +313,7 @@ enum ChainBlockLinkExecutionStatus{
 
 message ChainBlockLink{
     Hash BlockHash = 1;
-    uint64 Height = 2;
+    int64 Height = 2;
     Hash PreviousBlockHash = 3;
     ChainBlockLinkExecutionStatus ExecutionStatus = 4;
     bool IsIrreversibleBlock = 5;
@@ -325,16 +325,20 @@ message Chain {
     int32 Id = 1;
     Hash GenesisBlockHash = 2;
     Hash LongestChainHash = 3;
-    uint64 LongestChainHeight = 4;
-    map<string, uint64> Branches = 5;
+    int64 LongestChainHeight = 4;
+    map<string, int64> Branches = 5;
     map<string, string> NotLinkedBlocks = 6;
     Hash LastIrreversibleBlockHash = 7;
-    uint64 LastIrreversibleBlockHeight = 8;
+    int64 LastIrreversibleBlockHeight = 8;
     Hash BestChainHash = 9;
-    uint64 BestChainHeight = 10;
+    int64 BestChainHeight = 10;
 }
 
 message ChainBlockIndex{
+    Hash BlockHash = 1;
+}
+
+message TransactionBlockIndex{
     Hash BlockHash = 1;
 }
 

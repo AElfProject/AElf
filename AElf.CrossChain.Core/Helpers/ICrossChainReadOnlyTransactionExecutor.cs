@@ -12,8 +12,8 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainReadOnlyTransactionExecutor
     {
-        Task<T> ReadByTransactionAsync<T>(int chainId, Address toAddress, string methodName, Hash previousBlockHash,
-            ulong preBlockHeight, params object[] @params);
+        Task<T> ReadByTransactionAsync<T>(Address toAddress, string methodName, Hash previousBlockHash,
+            long preBlockHeight, params object[] @params);
     }
     
     public class CrossChainReadOnlyTransactionExecutor : ICrossChainReadOnlyTransactionExecutor
@@ -28,16 +28,16 @@ namespace AElf.CrossChain
             _accountService = accountService;
         }
 
-        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(ulong height)
+        public Task<IndexedSideChainBlockDataResult> GetIndexedSideChainBlockInfoResult(long height)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<T> ReadByTransactionAsync<T>(int chainId, Address toAddress, string methodName, Hash previousBlockHash,
-            ulong preBlockHeight, params object[] @params)
+        public async Task<T> ReadByTransactionAsync<T>(Address toAddress, string methodName, Hash previousBlockHash,
+            long preBlockHeight, params object[] @params)
         {
             var transaction = await GenerateReadOnlyTransaction(toAddress: toAddress, methodName: methodName, @params: @params);
-            var trace = await ExecuteReadOnlyTransaction(chainId: chainId, transaction: transaction, 
+            var trace = await ExecuteReadOnlyTransaction(transaction: transaction, 
                 previousBlockHash: previousBlockHash, preBlockHeight: preBlockHeight);
             if(trace.IsSuccessful())
                 return (T) trace.RetVal.Data.DeserializeToType(type: typeof(T));
@@ -57,8 +57,9 @@ namespace AElf.CrossChain
             return transaction;
         }
 
-        private async Task<TransactionTrace> ExecuteReadOnlyTransaction(int chainId, Transaction transaction,
-            Hash previousBlockHash, ulong preBlockHeight)
+        //TODO: move ExecuteReadOnlyTransaction to smart contract execution project
+        private async Task<TransactionTrace> ExecuteReadOnlyTransaction(Transaction transaction,
+            Hash previousBlockHash, long preBlockHeight)
         {
             var trace = new TransactionTrace()
             {
@@ -72,12 +73,11 @@ namespace AElf.CrossChain
             };
             var chainContext = new ChainContext()
             {
-                ChainId = chainId,
                 BlockHash = previousBlockHash,
                 BlockHeight = preBlockHeight
             };
             var executive =
-                await _smartContractExecutiveService.GetExecutiveAsync(chainId, chainContext, transaction.To);
+                await _smartContractExecutiveService.GetExecutiveAsync( chainContext, transaction.To);
             await executive.SetTransactionContext(txCtxt).Apply();
             return trace;
         }

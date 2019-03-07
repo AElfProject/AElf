@@ -7,12 +7,12 @@ namespace AElf.Sdk.CSharp
 {
     public interface IContext
     {
+        int ChainId { get; }
+
         void LogDebug(Func<string> func);
 
         void FireEvent<TEvent>(TEvent logEvent) where TEvent : Event;
         Hash TransactionId { get; }
-
-        int ChainId { get; }
         
         // TODO: Remove Transaction
         Transaction Transaction { get; }
@@ -22,7 +22,7 @@ namespace AElf.Sdk.CSharp
 
         // TODO: Remove genesis
         Address Genesis { get; }
-        ulong CurrentHeight { get; }
+        long CurrentHeight { get; }
 
         DateTime CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }

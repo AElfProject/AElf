@@ -15,51 +15,49 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class BlockExecutingServiceTests : SmartContractExecutionTestBase
+    public class BlockExecutingServiceTests : SmartContractExecutionExecutingGrouperTestBase
     {
         private readonly BlockExecutingService _blockExecutingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockchainStateManager _blockchainStateManager;
-        private int _chainId;
+
         public BlockExecutingServiceTests()
         {
             _blockExecutingService = GetRequiredService<BlockExecutingService>();
             _blockManager = GetRequiredService<IBlockManager>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
         }
-        
+
         [Fact]
         public async Task Execute_Block_NonCancellable()
         {
             var blockHeader = new BlockHeader
             {
-                ChainId = _chainId,
                 Height = 2,
                 PreviousBlockHash = Hash.Genesis,
                 Time = DateTime.UtcNow.ToTimestamp()
             };
             var txs = BuildTransactions(5);
-            
-            var block = await _blockExecutingService.ExecuteBlockAsync(_chainId, blockHeader, txs);
+
+            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
             var allTxIds = txs.Select(x => x.GetHash()).ToList();
-            
+
             block.Body.TransactionsCount.ShouldBe(txs.Count);
 
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(allTxIds);
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
-            
+
             block.Body.Transactions.ShouldBe(allTxIds);
             block.Body.TransactionList.ShouldBe(txs);
         }
-        
+
         [Fact]
         public async Task Execute_Block_Cancellable()
         {
             var blockHeader = new BlockHeader
             {
-                ChainId = _chainId,
                 Height = 2,
                 PreviousBlockHash = Hash.Genesis,
                 Time = DateTime.UtcNow.ToTimestamp()
@@ -69,9 +67,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var cancelToken = new CancellationTokenSource();
             cancelToken.Cancel();
 
-            var block = await _blockExecutingService.ExecuteBlockAsync(_chainId, blockHeader, nonCancellableTxs,
+            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
                 cancellableTxs, cancelToken.Token);
-            
+
             var allTxIds = nonCancellableTxs.Select(x => x.GetHash()).ToList();
             allTxIds.Add(cancellableTxs[0].GetHash());
             allTxIds.Add(cancellableTxs[1].GetHash());
@@ -82,14 +80,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             allTxs.Add(cancellableTxs[0]);
             allTxs.Add(cancellableTxs[1]);
             allTxs.Add(cancellableTxs[2]);
-            
+
             block.Body.TransactionsCount.ShouldBe(allTxs.Count);
-            
+
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(allTxIds);
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
-            
+
             block.Body.Transactions.ShouldBe(allTxIds);
             block.Body.TransactionList.ShouldBe(allTxs);
         }

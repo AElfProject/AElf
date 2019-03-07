@@ -98,8 +98,8 @@ namespace AElf.Runtime.CSharp
             _currentTransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
                 From = _currentTransactionContext.Transaction.From,
-                To = ContractHelpers.GetTokenContractAddress(_currentSmartContractContext.ChainId),
-                MethodName = nameof(ITokenCotract.ChargeTransactionFees),
+                To = ContractHelpers.GetTokenContractAddress(_currentSmartContractContext.GetChainId()),
+                MethodName = nameof(ITokenContract.ChargeTransactionFees),
                 Params = ByteString.CopyFrom(
                     ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
             });

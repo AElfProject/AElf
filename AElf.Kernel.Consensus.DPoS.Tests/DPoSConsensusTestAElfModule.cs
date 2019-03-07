@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.IO;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Database;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -15,21 +17,18 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBaseAElfModule),
+        typeof(TestBaseKernelAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule)
-        )]
+    )]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
     public class DPoSConsensusTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<DPoSConsensusTestAElfModule>();
             
-            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
