@@ -86,19 +86,6 @@ namespace AElf.OS.Rpc
 
         }
         
-        // TODO: After the node module refactor, remove it
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var defaultZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
-        }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

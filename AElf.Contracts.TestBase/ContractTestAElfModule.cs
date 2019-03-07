@@ -52,17 +52,5 @@ namespace AElf.Contracts.TestBase
                 x.ImplementationType != typeof(NoBranchTransactionResultService));
         }
 
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var contractZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(contractZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
-        }
     }
 }
