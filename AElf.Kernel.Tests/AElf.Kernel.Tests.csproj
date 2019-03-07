@@ -2,23 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-
-        <IsPackable>false</IsPackable>
-
         <RootNamespace>AElf.Kernel</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.6.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     </ItemGroup>
 
 </Project>

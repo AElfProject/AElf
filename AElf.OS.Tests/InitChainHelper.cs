@@ -10,9 +10,9 @@ using AElf.Kernel.KernelAccount;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
-namespace AElf.OS.Rpc
+namespace AElf.OS
 {
-    public class RpcTestHelper
+    public class InitChainHelper
     {
         public static Transaction[] GetGenesisTransactions(int chainId, Address account)
         {

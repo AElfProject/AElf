@@ -1,7 +1,7 @@
 ﻿//using System.Collections.Generic;
 //using System.Threading.Tasks;
 //using AElf.SmartContract;
-//using AElf.Kernel.Tests.Concurrency.Scheduling;
+//using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
 //using Google.Protobuf;
 //using Microsoft.Extensions.Logging;
 //using Xunit;

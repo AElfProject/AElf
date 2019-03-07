@@ -6,4 +6,14 @@ namespace AElf.Kernel.SmartContractExecution
     {
         
     }
+    
+    public class SmartContractExecutionExecutingGrouperTestBase : AElfIntegratedTest<SmartContractExecutionExecutingTestAElfModule>
+    {
+        
+    }
+    
+    public class SmartContractExecutionGrouperTestBase : AElfIntegratedTest<SmartContractExecutionGrouperTestAElfModule>
+    {
+        
+    }
 }
