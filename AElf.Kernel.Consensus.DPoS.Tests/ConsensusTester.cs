@@ -72,8 +72,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
                 });
             application.Initialize();
-            
-            
+
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             var transactionReadOnlyExecutionService =
@@ -112,7 +111,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}), _blockExecutingService);
+                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}),
+                _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
@@ -188,10 +188,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContracts(typeof(BasicContractZero),
-                typeof(ConsensusContract));
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
 
 
             AsyncHelper.RunSync(() => _osBlockchainNodeContextService.StartAsync(dto));
