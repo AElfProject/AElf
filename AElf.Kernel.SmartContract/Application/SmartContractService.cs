@@ -44,7 +44,8 @@ namespace AElf.Kernel.SmartContract.Application
             var runner = _smartContractRunnerContainer.GetRunner(registration.Category);
             await Task.Run(() => runner.CodeCheck(registration.Code.ToByteArray(), isPrivileged));
 
-            _smartContractAddressService.SetAddress(name, contractAddress);
+            if (name != null)
+                _smartContractAddressService.SetAddress(name, contractAddress);
 
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);

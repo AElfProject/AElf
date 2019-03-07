@@ -44,12 +44,6 @@ namespace AElf.Contracts.Genesis
         }
 
         [View]
-        public Address GetContractAddressByCodeHash(Hash codeHash)
-        {
-            return State.CodeAddressMapping[codeHash];
-        }
-
-        [View]
         public Address GetContractAddressByName(Hash name)
         {
             return State.NameAddressMapping[name];
@@ -73,32 +67,16 @@ namespace AElf.Contracts.Genesis
 
         public byte[] DeploySystemSmartContract(Hash name, int category, byte[] code)
         {
-            Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+            if (name != null)
+                Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
-            var addressBytes = DeploySmartContract(category, code);
 
-
-            var address = Address.FromBytes(addressBytes);
-
-            State.NameAddressMapping[name] = address;
-
-            return addressBytes;
-        }
-
-        public byte[] DeploySmartContract(int category, byte[] code)
-        {
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
-
-            var address = State.CodeAddressMapping[codeHash];
-
-            //Assert(address == null || address.Value.Length == 0, "should only deploy one smart contract once");
-
-            State.CodeAddressMapping[codeHash] = contractAddress;
 
             var info = new ContractInfo
             {
@@ -129,7 +107,18 @@ namespace AElf.Contracts.Genesis
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
+
+
+            if (name != null)
+                State.NameAddressMapping[name] = contractAddress;
+
+
             return contractAddress.DumpByteArray();
+        }
+
+        public byte[] DeploySmartContract(int category, byte[] code)
+        {
+            return DeploySystemSmartContract(null, category, code);
         }
 
         public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
@@ -189,9 +178,6 @@ namespace AElf.Contracts.Genesis
         }
 
         #endregion Actions
-
-
-  
     }
 
     public static class AddressHelper
