@@ -15,6 +15,7 @@ using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -74,16 +75,6 @@ namespace AElf.OS
             {
                 throw new Exception("Load keystore failed.", e);
             }*/
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
-            var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
-            foreach (var blockExtraDataProvider in blockExtraDataProviders)
-            {
-                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
-            }
         }
 
         /*

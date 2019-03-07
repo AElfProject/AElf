@@ -65,7 +65,7 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
-        public byte[] DeploySystemSmartContract(Hash name, int category, byte[] code)
+        public Address DeploySystemSmartContract(Hash name, int category, byte[] code)
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
@@ -113,10 +113,10 @@ namespace AElf.Contracts.Genesis
                 State.NameAddressMapping[name] = contractAddress;
 
 
-            return contractAddress.DumpByteArray();
+            return contractAddress;
         }
 
-        public byte[] DeploySmartContract(int category, byte[] code)
+        public Address DeploySmartContract(int category, byte[] code)
         {
             return DeploySystemSmartContract(null, category, code);
         }

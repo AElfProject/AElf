@@ -1,5 +1,8 @@
+using AElf.Common;
+
 namespace AElf
 {
+    //TODO: should move it
     public static class ContractConsts
     {
         public const ulong GenesisBasicContract = 0;
@@ -9,6 +12,11 @@ namespace AElf
         public const ulong AuthorizationContract = 4;
         public const ulong ResourceContract = 5;
         public const ulong DividendsContract = 6;
+        
+        
+        public static Hash TokenContractHash = Hash.FromString("AElf.Contracts.Token.TokenContract");
+        public static Hash CrossChainHash = Hash.FromString("AElf.Contracts.Token.CrossChainContract");
+
     }
 
     public static class ChainConsts

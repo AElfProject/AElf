@@ -18,21 +18,17 @@ namespace AElf.Kernel.Consensus.DPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
-
-            context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
-
-            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-
-            context.Services.AddSingleton<ConsensusControlInformation>();
-            
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
-            
+
+            context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 
-            context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+            context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-            context.Services.AddTransient<IBlockValidationProvider, DPoSConsensusValidationProvider>();
+
+            context.Services.AddSingleton<ConsensusControlInformation>();
         }
     }
 }

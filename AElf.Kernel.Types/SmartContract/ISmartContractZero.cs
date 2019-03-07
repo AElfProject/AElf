@@ -7,8 +7,8 @@ namespace AElf.Kernel.KernelAccount
     public interface ISmartContractZero : ISmartContract
     {
         string GetContractInfo(Address address);
-        byte[] DeploySmartContract(int category, byte[] code);
-        byte[] DeploySystemSmartContract(Hash name, int category, byte[] code);
+        Address DeploySmartContract(int category, byte[] code);
+        Address DeploySystemSmartContract(Hash name, int category, byte[] code);
 
         Address GetContractAddressByName(Hash name);
         SmartContractRegistration GetSmartContractRegistrationByAddress(Address address);

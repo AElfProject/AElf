@@ -207,11 +207,17 @@ namespace AElf.Kernel.SmartContract.Application
                 .DefaultContractZeroRegistration;
 
             IExecutive executiveZero = null;
+            SmartContractRegistration result = null;
             try
             {
                 executiveZero = await GetExecutiveAsync(registration);
                 executiveZero.SetDataCache(chainContext.StateCache);
                 await executiveZero.SetTransactionContext(txCtxt).Apply();
+                var returnBytes = txCtxt.Trace?.RetVal?.Data;
+                if (returnBytes != null)
+                {
+                    result = SmartContractRegistration.Parser.ParseFrom(returnBytes);
+                }
             }
             finally
             {
@@ -221,7 +227,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            return trace.RetVal.Data.DeserializeToPbMessage<SmartContractRegistration>();
+            return result;
         }
 
         /*

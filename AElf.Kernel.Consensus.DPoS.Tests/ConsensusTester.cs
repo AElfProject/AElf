@@ -85,7 +85,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var txHub = application.ServiceProvider.GetService<ITxHub>();
             _smartContractAddressService =
                 application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
 
@@ -107,13 +106,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {new ConsensusExtraDataProvider(_consensusService)}),
                 application.ServiceProvider.GetRequiredService<IStaticChainInformationProvider>());
 
-            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
-            mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
-            _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
-                new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}),
-                _blockExecutingService);
-
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
 
@@ -133,7 +125,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
         {
-            return await _consensusService.ValidateConsensusAsync(Chain.BestChainHash, Chain.BestChainHeight,
+            return await _consensusService.ValidateConsensusBeforeExecutionAsync(Chain.BestChainHash, Chain.BestChainHeight,
                 consensusInformation);
         }
 

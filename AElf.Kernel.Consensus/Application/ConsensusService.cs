@@ -72,7 +72,7 @@ namespace AElf.Kernel.Consensus.Application
                 blockMiningEventData);
         }
 
-        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
+        public async Task<bool> ValidateConsensusBeforeExecutionAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusExtraData)
         {
             var address = await _accountService.GetAccountAsync();
@@ -92,6 +92,12 @@ namespace AElf.Kernel.Consensus.Application
             }
 
             return validationResult.Success;
+        }
+
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight, byte[] consensusExtraData)
+        {
+            // TODO: Need to implement a contract method.
+            return true;
         }
 
         public async Task<byte[]> GetNewConsensusInformationAsync()

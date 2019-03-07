@@ -30,22 +30,12 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return value >= min && value <= max;
         }
 
-        public static Candidates ToCandidates(this IEnumerable<string> candidatesList)
+        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 1)
         {
-            return new Candidates {PublicKeys = {candidatesList}};
-        }
-
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys)
-        {
-            return new Miners {PublicKeys = {minerPublicKeys}};
-        }
-
-        public static BlockAbstract GetAbstract(this IBlock block)
-        {
-            return new BlockAbstract
+            return new Miners
             {
-                MinerPublicKey = block.Header.P.ToByteArray().ToHex(),
-                Time = block.Header.Time
+                PublicKeys = {minerPublicKeys},
+                TermNumber = termNumber
             };
         }
     }
