@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.Application;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
@@ -8,10 +9,12 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     public class DPoSConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
+        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
 
-        public DPoSConsensusValidationProvider(IConsensusService consensusService)
+        public DPoSConsensusValidationProvider(IConsensusService consensusService, IBlockExtraDataOrderService blockExtraDataOrderService)
         {
             _consensusService = consensusService;
+            _blockExtraDataOrderService = blockExtraDataOrderService;
         }
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
@@ -20,8 +23,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return true;
             }
 
+            if (block.Header.BlockExtraDatas.Count == 0)
+            {
+                return true;
+            }
+
             var result = await _consensusService.ValidateConsensusAsync(block.Header.PreviousBlockHash,
-                block.Height - 1, block.Header.BlockExtraData.ConsensusInformation.ToByteArray());
+                block.Height - 1,
+                block.Header
+                    .BlockExtraDatas[
+                        _blockExtraDataOrderService.GetExtraDataProviderOrder(typeof(ConsensusExtraDataProvider))]
+                    .ToByteArray());
             return result;
         }
 

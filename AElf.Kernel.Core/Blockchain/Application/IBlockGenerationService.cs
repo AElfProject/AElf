@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Infrastructure;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -29,7 +30,7 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly IChainManager _chainManager; 
+        private readonly IChainManager _chainManager;
 
         public BlockGenerationService(IBlockExtraDataService blockExtraDataService, IChainManager chainManager)
         {
@@ -81,7 +82,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = blockBody
             };
             // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
-            await _blockExtraDataService.FillBlockExtraData(block);
+            await _blockExtraDataService.FillBlockExtraData(block.Header);
             blockBody.BlockHeader = blockHeader.GetHash();
 
             return block;

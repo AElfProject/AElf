@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -12,11 +13,15 @@ namespace AElf.Kernel.Blockchain.Application
             _blockExtraDataProviders = blockExtraDataProviders;
         }
 
-        public async Task FillBlockExtraData(Block block)
+        public async Task FillBlockExtraData(BlockHeader blockHeader)
         {
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
-                await blockExtraDataProvider.FillExtraDataAsync(block);
+                var extraData = await blockExtraDataProvider.FillExtraDataAsync(blockHeader);
+                if (extraData != null)
+                {
+                    blockHeader.BlockExtraDatas.Add(extraData);
+                }
             }
         }
     }

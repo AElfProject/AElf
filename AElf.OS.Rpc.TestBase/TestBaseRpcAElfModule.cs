@@ -50,7 +50,6 @@ namespace AElf.OS.Rpc
             
         }
         
-        // TODO: After the node module refactor, remove it
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var defaultZero = typeof(BasicContractZero);
