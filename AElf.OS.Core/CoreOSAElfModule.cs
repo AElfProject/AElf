@@ -38,7 +38,14 @@ namespace AElf.OS
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
+            
+//            Configure<ChainOptions>(option =>
+//            {
+//                option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
+//                option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
+//            });
 
+            context.Services.AddSingleton<INetworkService, NetworkService>();
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
 
@@ -75,17 +82,6 @@ namespace AElf.OS
                 throw new Exception("Load keystore failed.", e);
             }*/
         }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
-            var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
-            foreach (var blockExtraDataProvider in blockExtraDataProviders)
-            {
-                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
-            }
-        }
-
         /*
         private static string AskInvisible()
         {

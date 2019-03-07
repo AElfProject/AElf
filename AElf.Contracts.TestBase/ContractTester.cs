@@ -65,8 +65,6 @@ namespace AElf.Contracts.TestBase
 
         public ECKeyPair CallOwnerKeyPair { get; set; }
 
-        public List<Address> DeployedContractsAddresses { get; set; }
-
         public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
             _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
@@ -135,7 +133,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
+        public async Task InitialChainAsync(params Type[] contractTypes)
         {
             var dto = new OsBlockchainNodeContextStartDto
             {
@@ -147,27 +145,16 @@ namespace AElf.Contracts.TestBase
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
+        }
 
-            var systemSmartContractNames =
-                dto.InitializationSmartContracts.Select(p => p.SystemSmartContractName).ToList();
-
-            var addresses = new List<Address>();
-
-            addresses.Add(_smartContractAddressService.GetAddressByContractName(Hash.Empty));
-            addresses.Add(
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name));
-
-            foreach (var systemSmartContractName in systemSmartContractNames)
+        public Address GetSmartContractAddress(Type contractType)
+        {
+            if (contractType == typeof(BasicContractZero))
             {
-                addresses.Add(_smartContractAddressService.GetAddressByContractName(systemSmartContractName));
+                return _smartContractAddressService.GetAddressByContractName(Hash.Empty);
             }
-
-            DeployedContractsAddresses = addresses;
-
-            if (_smartContractAddressService.GetZeroSmartContractAddress() != addresses[0])
-                throw new Exception("zero address not equal");
-
-            return addresses;
+            
+            return _smartContractAddressService.GetAddressByContractName(Hash.FromString(contractType.FullName));
         }
 
         /// <summary>

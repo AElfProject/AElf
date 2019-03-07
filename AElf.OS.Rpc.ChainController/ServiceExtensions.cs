@@ -12,6 +12,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 
 namespace AElf.OS.Rpc.ChainController
 {
@@ -184,11 +185,6 @@ namespace AElf.OS.Rpc.ChainController
             return await s.SmartContractExecutiveService.GetAbiAsync(chainContext, address);
         }
 
-//        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
-//        {
-//            return await s.TxHub.GetReceiptAsync(txId);
-//        }
-
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
             Hash txHash)
         {
@@ -273,10 +269,13 @@ namespace AElf.OS.Rpc.ChainController
             return await s.BlockchainService.GetBlockByHeightAsync(height);
         }
 
-//        internal static async Task<ulong> GetTransactionPoolSize(this ChainControllerRpcService s)
-//        {
-//            return (ulong) (await s.TxHub.GetExecutableTransactionSetAsync()).Count;
-//        }
+        internal static async Task<JObject> GetTransactionPoolStatusAsync(this ChainControllerRpcService s)
+        {
+            return new JObject
+            {
+                ["Queued"] = await s.TxHub.GetTransactionPoolSizeAsync()
+            };
+        }
 
         internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s,
             ulong height)

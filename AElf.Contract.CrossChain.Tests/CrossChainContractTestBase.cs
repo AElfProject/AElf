@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Authorization;
+using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.TestBase;
+using AElf.Contracts.Token;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -25,11 +29,10 @@ namespace AElf.Contract.CrossChain.Tests
         {
             ContractTester = new ContractTester(0, CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() => ContractTester.InitialChainAsync(ContractTester.GetDefaultContractTypes().ToArray()));
-            CrossChainContractAddress = ContractTester.DeployedContractsAddresses[(int) ContractConsts.CrossChainContract];
-            TokenContractAddress = ContractTester.DeployedContractsAddresses[(int) ContractConsts.TokenContract];
-            ConsensusContractAddress = ContractTester.DeployedContractsAddresses[(int) ContractConsts.ConsensusContract];
-            AuthorizationContractAddress =
-                ContractTester.DeployedContractsAddresses[(int) ContractConsts.ConsensusContract];
+            CrossChainContractAddress = ContractTester.GetSmartContractAddress(typeof(CrossChainContract));
+            TokenContractAddress = ContractTester.GetSmartContractAddress(typeof(TokenContract));
+            ConsensusContractAddress = ContractTester.GetSmartContractAddress(typeof(ConsensusContract));
+            AuthorizationContractAddress = ContractTester.GetSmartContractAddress(typeof(AuthorizationContract));
         }
 
         protected async Task ApproveBalance(ulong amount)
@@ -48,7 +51,8 @@ namespace AElf.Contract.CrossChain.Tests
             var tx1 = ContractTester.GenerateTransaction(TokenContractAddress, "Initialize",
                 "ELF", "elf token", tokenAmount, 2U);
             var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "Initialize",
-                ConsensusContractAddress, TokenContractAddress, AuthorizationContractAddress, parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
+                ConsensusContractAddress, TokenContractAddress, AuthorizationContractAddress,
+                parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
             await ContractTester.MineABlockAsync(new List<Transaction> {tx1, tx2});
         }
 

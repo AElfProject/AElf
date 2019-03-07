@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.Contracts.Consensus.DPoS</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="ConsensusContract.cs" />
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\BasicExtensions.cs">
+        <Link>BasicExtensions.cs</Link>
+      </Compile>
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\ConsensusContract.cs">
+        <Link>ConsensusContract.cs</Link>
+      </Compile>
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\ConsensusContract_Process.cs">
+        <Link>ConsensusContract_Process.cs</Link>
+      </Compile>
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\DPoSContractConsts.cs">
+        <Link>DPoSContractConsts.cs</Link>
+      </Compile>
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\DPoSContractState.cs">
+        <Link>DPoSContractState.cs</Link>
+      </Compile>
+      <Compile Include="..\AElf.Contracts.Consensus.DPoS\Events.cs">
+        <Link>Events.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>

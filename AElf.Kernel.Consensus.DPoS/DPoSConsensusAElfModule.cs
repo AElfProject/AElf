@@ -32,7 +32,7 @@ namespace AElf.Kernel.Consensus.DPoS
 
             context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-            context.Services.AddTransient<IBlockValidationProvider, DPoSConsensusValidationProvider>();
+            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
         }
     }
 }

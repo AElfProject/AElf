@@ -52,6 +52,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
@@ -85,6 +86,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var txHub = application.ServiceProvider.GetService<ITxHub>();
             _smartContractAddressService =
                 application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+            _blockExtraDataService = application.ServiceProvider.GetService<IBlockExtraDataService>();
 
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
@@ -107,11 +109,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {new ConsensusExtraDataProvider(_consensusService)}),
                 application.ServiceProvider.GetRequiredService<IStaticChainInformationProvider>());
 
-            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
-            mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}),
+                    {new ConsensusValidationProvider(_consensusService, _blockExtraDataService)}),
                 _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
@@ -131,9 +131,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             await _consensusService.TriggerConsensusAsync();
         }
 
-        public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
+        public async Task<bool> ValidateConsensusBeforeExecutionAsync(byte[] consensusInformation)
         {
-            return await _consensusService.ValidateConsensusAsync(Chain.BestChainHash, Chain.BestChainHeight,
+            return await _consensusService.ValidateConsensusBeforeExecutionAsync(Chain.BestChainHash, Chain.BestChainHeight,
+                consensusInformation);
+        }
+        
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(byte[] consensusInformation)
+        {
+            return await _consensusService.ValidateConsensusAfterExecutionAsync(Chain.BestChainHash, Chain.BestChainHeight,
                 consensusInformation);
         }
 
