@@ -28,11 +28,6 @@ namespace AElf.Types.CSharp
 
         private static T DecodeByProtobuf<T>(byte[] bytes, Func<CodedInputStream, T> decoder)
         {
-            if (bytes == null)
-            {
-                return default(T);
-            }
-
             using (var stream = new CodedInputStream(bytes))
             {
                 return decoder(stream);
@@ -148,52 +143,96 @@ namespace AElf.Types.CSharp
             var type = typeof(T);
             if (type == typeof(bool))
             {
-                return bytes => DecodeByProtobuf(bytes,
-                    s =>
+                return bytes =>
+                {
+                    if (bytes == null)
                     {
-                        dynamic o = s.ReadBool();
-                        return o;
-                    });
+                        dynamic d = false;
+                        return d;
+                    }
+
+                    return DecodeByProtobuf(bytes,
+                        s =>
+                        {
+                            dynamic o = s.ReadBool();
+                            return o;
+                        });
+                };
             }
 
             if (type == typeof(int))
             {
-                return bytes => DecodeByProtobuf(bytes,
-                    s =>
+                return bytes =>
+                {
+                    if (bytes == null)
                     {
-                        dynamic o = s.ReadSInt32();
-                        return o;
-                    });
+                        dynamic d = 0;
+                        return d;
+                    }
+
+                    return DecodeByProtobuf(bytes,
+                        s =>
+                        {
+                            dynamic o = s.ReadSInt32();
+                            return o;
+                        });
+                };
             }
 
             if (type == typeof(uint))
             {
-                return bytes => DecodeByProtobuf(bytes,
-                    s =>
+                return bytes =>
+                {
+                    if (bytes == null)
                     {
-                        dynamic o = s.ReadUInt32();
-                        return o;
-                    });
+                        dynamic d = 0U;
+                        return d;
+                    }
+
+                    return DecodeByProtobuf(bytes,
+                        s =>
+                        {
+                            dynamic o = s.ReadUInt32();
+                            return o;
+                        });
+                };
             }
 
             if (type == typeof(long))
             {
-                return bytes => DecodeByProtobuf(bytes,
-                    s =>
+                return bytes =>
+                {
+                    if (bytes == null)
                     {
-                        dynamic o = s.ReadSInt64();
-                        return o;
-                    });
+                        dynamic d = 0L;
+                        return d;
+                    }
+
+                    return DecodeByProtobuf(bytes,
+                        s =>
+                        {
+                            dynamic o = s.ReadSInt64();
+                            return o;
+                        });
+                };
             }
 
             if (type == typeof(ulong))
             {
-                return bytes => DecodeByProtobuf(bytes,
-                    s =>
+                return bytes =>
+                {
+                    if (bytes == null)
+                    {
+                        dynamic d = 0UL;
+                        return d;
+                    }
+
+                    return DecodeByProtobuf(bytes, s =>
                     {
                         dynamic o = s.ReadUInt64();
                         return o;
                     });
+                };
             }
 
             if (type == typeof(string))
