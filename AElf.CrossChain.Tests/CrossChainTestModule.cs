@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
-    [DependsOn(typeof(AbpEventBusModule),
+    [DependsOn(
         typeof(CrossChainAElfModule),
         typeof(KernelTestAElfModule))]
     public class CrossChainTestModule : AElfModule

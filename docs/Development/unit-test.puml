@@ -24,10 +24,12 @@ digraph G {
 
     "TestCSharpRuntimeAElfModule" -> "SmartContractTestAElfModule";
 
-    "TestsOSAElfModule" -> "KernelTestAElfModule";
+    "TestsOSAElfModule" -> {"KernelTestAElfModule";"DPoSConsensusTestAElfModule"};
     "NetTestAElfModule" -> "TestsOSAElfModule";
 
     "TestBaseRpcAElfModule" -> "TestsOSAElfModule";
+
+    "CrossChainTestModule" -> "KernelTestAElfModule";
 
   }
 @enduml
