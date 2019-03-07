@@ -44,12 +44,16 @@ namespace AElf.CrossChain
             mockAccountService.Setup(m => m.GetAccountAsync())
                 .Returns(Task.FromResult(Address.FromPublicKey(keyPair.PublicKey)));
             context.Services.AddTransient(provider =>  mockAccountService.Object);
+            context.Services.AddSingleton<CrossChainTestHelper>();
             
-            var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
-            mockTransactionReadOnlyExecutionService
+            context.Services.AddTransient(provider =>
+            {
+                var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
+                mockTransactionReadOnlyExecutionService
                 .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
                 .Returns<IChainContext, Transaction, DateTime>((chainContext, transaction, dateTime) =>
                 {
+                    var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
                     string methodName = transaction.MethodName;
                     var trace = new TransactionTrace
                     {
@@ -59,7 +63,7 @@ namespace AElf.CrossChain
                     };
                     if (methodName == CrossChainConsts.GetParentChainIdMethodName)
                     {
-                        var parentChainId = CrossChainTestHelper.ParentChainIdHeight.Keys.FirstOrDefault();
+                        var parentChainId = crossChainTestHelper.ParentChainIdHeight.Keys.FirstOrDefault();
                         if(parentChainId == 0)
                             trace.ExecutionStatus = ExecutionStatus.ContractError;
                         else
@@ -67,14 +71,14 @@ namespace AElf.CrossChain
                     }
                     else if (methodName == CrossChainConsts.GetParentChainHeightMethodName)
                     {
-                        trace.RetVal.Data = CrossChainTestHelper.ParentChainIdHeight.Values.First().ToPbMessage()
+                        trace.RetVal.Data = crossChainTestHelper.ParentChainIdHeight.Values.First().ToPbMessage()
                             .ToByteString();
                     }
                     else if (methodName == CrossChainConsts.GetSideChainHeightMethodName)
                     {
                         int sideChainId =
                             (int) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(int)})[0];
-                        var exist = CrossChainTestHelper.SideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
+                        var exist = crossChainTestHelper.SideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
                         if (!exist)
                             trace.ExecutionStatus = ExecutionStatus.ContractError;
                         else
@@ -83,21 +87,22 @@ namespace AElf.CrossChain
                     else if (methodName == CrossChainConsts.GetAllChainsIdAndHeightMethodName)
                     {
                         var dict = new SideChainIdAndHeightDict();
-                        dict.IdHeighDict.Add(CrossChainTestHelper.SideChainIdHeights);
-                        dict.IdHeighDict.Add(CrossChainTestHelper.ParentChainIdHeight);
+                        dict.IdHeighDict.Add(crossChainTestHelper.SideChainIdHeights);
+                        dict.IdHeighDict.Add(crossChainTestHelper.ParentChainIdHeight);
                         trace.RetVal.Data = dict.ToByteString();
                     }
                     else if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
                     {
                         var dict = new SideChainIdAndHeightDict();
                         dict = new SideChainIdAndHeightDict();
-                        dict.IdHeighDict.Add(CrossChainTestHelper.SideChainIdHeights);
+                        dict.IdHeighDict.Add(crossChainTestHelper.SideChainIdHeights);
                         trace.RetVal.Data = dict.ToByteString();
                     }
 
                     return Task.FromResult(trace);
                 });
-            context.Services.AddTransient(provider => mockTransactionReadOnlyExecutionService.Object);
+                return mockTransactionReadOnlyExecutionService.Object;
+            });
         }
     }
 }

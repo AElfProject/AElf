@@ -15,8 +15,8 @@ namespace AElf.CrossChain
     {
         public static readonly ECKeyPair EcKeyPair = CryptoHelpers.GenerateKeyPair();
         
-        public static Dictionary<int, long> SideChainIdHeights;
-        public static Dictionary<int, long> ParentChainIdHeight;
+        public readonly Dictionary<int, long> SideChainIdHeights = new Dictionary<int, long>();
+        public readonly Dictionary<int, long> ParentChainIdHeight = new Dictionary<int, long>();
         public static byte[] Sign(byte[] data)
         {
             return CryptoHelpers.SignWithPrivateKey(EcKeyPair.PrivateKey, data);
@@ -30,6 +30,16 @@ namespace AElf.CrossChain
         public static Address GetAddress()
         {
             return Address.FromPublicKey(GetPubicKey());
+        }
+
+        public void AddSideChainIdHeight(int sideChainId, long height)
+        {
+            SideChainIdHeights.Add(sideChainId, height);
+        }
+
+        public void AddParentChainIdHeight(int parentChainId, long height)
+        {
+            ParentChainIdHeight.Add(parentChainId, height);
         }
     }
 }

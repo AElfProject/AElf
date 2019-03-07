@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
@@ -14,15 +15,15 @@ namespace AElf.CrossChain
             _crossChainService = crossChainService;
         }
 
-        public async Task<ByteString> FillExtraDataAsync(BlockHeader block)
+        public async Task<ByteString> FillExtraDataAsync(BlockHeader blockHeader)
         {
             var indexedCrossChainBlockData =
-                await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.GetHash(), blockHeader.Height);
             
             var txRootHashList = indexedCrossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
-            block.Header.BlockExtraData.SideChainTransactionsRoot = calculatedSideChainTransactionsRoot;
+            return calculatedSideChainTransactionsRoot.ToByteString();
         }
     }
 }
