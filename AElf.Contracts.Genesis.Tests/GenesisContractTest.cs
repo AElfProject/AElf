@@ -38,7 +38,7 @@ namespace AElf.Contracts.Genesis
                 "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             var contractAddressArray = resultDeploy.ReturnValue.ToByteArray();
-            _contractAddress = Address.FromBytes(contractAddressArray);
+            _contractAddress = Address.Parser.ParseFrom(contractAddressArray);
             _contractAddress.ShouldNotBeNull();
         }
 
