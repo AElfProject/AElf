@@ -41,9 +41,7 @@ namespace AElf.OS
 
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
-            context.Services.AddTransient<IAccountService, AccountService>();
             
-            context.Services.AddSingleton<IBlockExtraDataOrderService, BlockExtraDataOrderService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

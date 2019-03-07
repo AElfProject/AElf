@@ -81,7 +81,7 @@ namespace AElf.Contracts.TestBase
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
-                    options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
+                    //options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
                     options.Services.AddSingleton(_accountService);
                 });
@@ -149,8 +149,8 @@ namespace AElf.Contracts.TestBase
             }
 
             DeployedContractsAddresses = addresses;
-            
-            if(_smartContractAddressService.GetZeroSmartContractAddress() != addresses[0])
+
+            if (_smartContractAddressService.GetZeroSmartContractAddress() != addresses[0])
                 throw new Exception("zero address not equal");
 
             return addresses;

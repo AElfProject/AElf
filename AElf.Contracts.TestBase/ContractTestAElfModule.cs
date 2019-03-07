@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
@@ -30,6 +32,9 @@ namespace AElf.Contracts.TestBase
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+
+
+            var list = services.Where(p => p.ServiceType == typeof(IAccountService)).ToList();
             services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class BlockExtraDataOrderService : IBlockExtraDataOrderService
+    public class BlockExtraDataOrderService : IBlockExtraDataOrderService, ISingletonDependency
     {
         private readonly Dictionary<Type, int> _ordersDictionary = new Dictionary<Type, int>();
 
