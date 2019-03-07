@@ -70,7 +70,7 @@ namespace AElf.OS.Tests.Network
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
                 .Returns<string>((adr) => peerMock.Object);
-            peerPoolMock.Setup(p => p.GetPeers())
+            peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
                 .Returns(new List<IPeer> { peerMock.Object });
 
             context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);

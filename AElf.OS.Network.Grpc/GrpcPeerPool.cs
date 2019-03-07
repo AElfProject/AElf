@@ -99,7 +99,10 @@ namespace AElf.OS.Network.Grpc
                 if (resp.Success != true)
                     return false;
 
-                _authenticatedPeers[address] = new GrpcPeer(channel, client, null, address, resp.Port);
+                var peer = new GrpcPeer(channel, client, null, address, resp.Port);
+                
+                peer.DisconnectionEvent += PeerOnDisconnectionEvent;
+                _authenticatedPeers[address] = peer;
 
                 Logger.LogTrace($"Connected to {address}.");
 
@@ -112,9 +115,23 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public List<IPeer> GetPeers()
+        private void PeerOnDisconnectionEvent(object sender, EventArgs e)
         {
-            return _authenticatedPeers.Values.Select(p => p as IPeer).ToList();
+            if (sender is GrpcPeer p && _authenticatedPeers.TryRemove(p.PeerAddress, out GrpcPeer removed))
+            {
+                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
+                Logger.LogDebug($"Removed peer {removed.PublicKey.ToHex()} - {removed}");
+            }
+        }
+
+        public List<IPeer> GetPeers(bool includeFailing = false)
+        {
+            var peers = _authenticatedPeers.Select(p => p.Value);
+
+            if (!includeFailing)
+                peers = peers.Where(p => p.IsReady);
+
+            return peers.Select(p => p as IPeer).ToList();
         }
 
         public IPeer FindPeerByAddress(string peerAddress)
@@ -151,7 +168,12 @@ namespace AElf.OS.Network.Grpc
 
         public bool AddPeer(IPeer peer)
         {
-            _authenticatedPeers[peer.PeerAddress] = peer as GrpcPeer;
+            if (!(peer is GrpcPeer p)) 
+                return false;
+            
+            _authenticatedPeers[peer.PeerAddress] = p;
+            p.DisconnectionEvent += PeerOnDisconnectionEvent;
+            
             return true;
         }
 

@@ -8,7 +8,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
-        List<IPeer> GetPeers();
+        List<IPeer> GetPeers(bool includeFailing = false);
         
         IPeer FindPeerByAddress(string peerAddress);
         IPeer FindPeerByPublicKey(byte[] publicKey);

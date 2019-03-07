@@ -65,7 +65,7 @@ namespace AElf.OS.Network.Grpc
         {
             await _server.KillAsync();
 
-            foreach (var peer in PeerPool.GetPeers())
+            foreach (var peer in PeerPool.GetPeers(true))
             {
                 try
                 {

@@ -131,7 +131,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
+                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
                     GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
