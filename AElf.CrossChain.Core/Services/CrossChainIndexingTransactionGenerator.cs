@@ -10,11 +10,12 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
+    public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator, ITransientDependency
     {
         private readonly ICrossChainService _crossChainService;
 

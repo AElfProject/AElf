@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainValidationProvider : IBlockValidationProvider
+    public class CrossChainValidationProvider : IBlockValidationProvider, ITransientDependency
     {
         private readonly ICrossChainService _crossChainService;
         private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;

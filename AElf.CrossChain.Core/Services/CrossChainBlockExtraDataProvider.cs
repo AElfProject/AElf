@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
+    public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider, ITransientDependency
     {
         private readonly ICrossChainService _crossChainService;
 

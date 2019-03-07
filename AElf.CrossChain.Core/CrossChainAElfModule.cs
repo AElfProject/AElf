@@ -13,13 +13,6 @@ namespace AElf.CrossChain
      {
          public override void ConfigureServices(ServiceConfigurationContext context)
          {
-             var services = context.Services;
-             services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-             services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
-             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
-             services.AddSingleton<ICrossChainService, CrossChainService>();
-             services.AddSingleton<ICrossChainContractReader, CrossChainContractReader>();
          }        
      }
  }

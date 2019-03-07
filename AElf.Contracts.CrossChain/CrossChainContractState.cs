@@ -38,7 +38,6 @@ namespace AElf.Contracts.CrossChain
 
         public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
-        //public MappedState<ulong, IndexedSideChainBlockDataResult> IndexedSideChainBlockInfoResult { get; set; }
         public MappedState<int, ulong> IndexingBalance { get; set; }
 
         #endregion
@@ -46,7 +45,6 @@ namespace AElf.Contracts.CrossChain
         #region parent chain 
 
         public MappedState<long, Hash> TransactionMerkleTreeRootRecordedInParentChain { get; set; }
-        //public MappedState<ulong, ParentChainBlockData> ParentChainBlockInfo { get; set; }
         public MappedState<long, long> ChildHeightToParentChainHeight { get; set; }
         public MappedState<long, MerklePath> TxRootMerklePathInParentChain { get; set; }
         public Int64State CurrentParentChainHeight { get; set; }

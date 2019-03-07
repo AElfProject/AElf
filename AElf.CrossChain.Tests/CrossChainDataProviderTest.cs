@@ -1,11 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.TestBase;
-using AElf.CrossChain.Cache;
-using Moq;
-using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.CrossChain
@@ -26,10 +21,8 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetSideChainBlock_WithoutCache()
         {
-            var list = new List<SideChainBlockData>();
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.False(res);
-            Assert.True(list.Count == 0);
+            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
+            Assert.Empty(res);
         }
 
         [Fact]
@@ -50,10 +43,8 @@ namespace AElf.CrossChain
             };
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
-            var list = new List<SideChainBlockData>();
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.False(res);
-            Assert.True(list.Count == 0);
+            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
+            Assert.Empty(res);
         }
 
         [Fact]
@@ -65,18 +56,16 @@ namespace AElf.CrossChain
             {
                 blockInfoCache.Add(new SideChainBlockData
                 {
-                    SideChainHeight = (1 + i),
+                    SideChainHeight = 1 + i,
                     SideChainId = chainId
                 });
             }
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
-
-            var list = new List<SideChainBlockData>();
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
-            Assert.True(list.Count == 1);
+            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
+            Assert.True(res.Count == 1);
+            Assert.Equal(blockInfoCache[0], res[0]);
         }
 
         [Fact]
@@ -98,7 +87,7 @@ namespace AElf.CrossChain
             AddFakeCacheData(fakeCache);
 
             var list = new List<SideChainBlockData>();
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.True(res);
         }
 
@@ -106,13 +95,11 @@ namespace AElf.CrossChain
         public async Task ValidateSideChainBlock_WithCaching()
         {
             int chainId = 123;
-            var blockInfoCache = new List<IBlockInfo>();
-
-            blockInfoCache.Add(new SideChainBlockData
+            var blockInfoCache = new List<IBlockInfo>
             {
-                SideChainId = chainId,
-                SideChainHeight = 1
-            });
+                new SideChainBlockData {SideChainId = chainId, SideChainHeight = 1}
+            };
+
 
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
 
@@ -127,7 +114,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.True(res);
             Assert.True(list.Count == 1);
         }
@@ -145,7 +132,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
         }
 
@@ -153,13 +140,11 @@ namespace AElf.CrossChain
         public async Task ValidateSideChainBlock_WithWrongBlockIndex()
         {
             int chainId = 123;
-            var blockInfoCache = new List<IBlockInfo>();
-
-            blockInfoCache.Add(new SideChainBlockData
+            var blockInfoCache = new List<IBlockInfo>
             {
-                SideChainId = chainId,
-                SideChainHeight = 1
-            });
+                new SideChainBlockData {SideChainId = chainId, SideChainHeight = 1}
+            };
+
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
@@ -171,7 +156,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 2
                 }
             };
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
             Assert.True(list.Count == 1);
         }
@@ -190,7 +175,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
             Assert.True(list.Count == 1);
         }
@@ -206,19 +191,16 @@ namespace AElf.CrossChain
                 blockInfoCache.Add(new SideChainBlockData
                 {
                     SideChainId = chainId,
-                    SideChainHeight = (1 + i)
+                    SideChainHeight = 1 + i
                 });
             }
 
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
-            var list = new List<SideChainBlockData>();
-            await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1);
-            list = new List<SideChainBlockData>();
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
-            Assert.True(list.Count == 1);
+            await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
+            var secondResult = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
+            Assert.True(secondResult.Count == 1);
         }
 
         #endregion
@@ -230,10 +212,8 @@ namespace AElf.CrossChain
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
-            var list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
-            Assert.True(list.Count == 0);
+            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
+            Assert.Empty(res);
         }
 
         [Fact]
@@ -243,7 +223,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
 
             var list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateParentChainBlockDataAsync(list, Hash.Default, 1);
             Assert.True(res);
         }
 
@@ -266,7 +246,7 @@ namespace AElf.CrossChain
                 });
             }
 
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateParentChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
         }
 
@@ -296,7 +276,7 @@ namespace AElf.CrossChain
                 new ParentChainBlockData
                     {Root = new ParentChainBlockRootInfo {ParentChainId = chainId, ParentChainHeight = 2}}
             };
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateParentChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
         }
 
@@ -321,14 +301,8 @@ namespace AElf.CrossChain
 
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
-
-            var list = new List<ParentChainBlockData>
-            {
-                new ParentChainBlockData
-                    {Root = new ParentChainBlockRootInfo {ParentChainId = chainId, ParentChainHeight = 1}}
-            };
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.False(res);
+            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
+            Assert.Empty(res);
         }
 
         [Fact]
@@ -353,11 +327,9 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
+            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
             var expectedResultCount = cachingCount - CrossChainConsts.MinimalBlockInfoCacheThreshold;
-            Assert.True(list.Count == expectedResultCount);
+            Assert.True(res.Count == expectedResultCount);
         }
 
         [Fact]
@@ -383,11 +355,9 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
+            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
             var expectedResultCount = cachingCount - CrossChainConsts.MinimalBlockInfoCacheThreshold;
-            Assert.True(list.Count == expectedResultCount);
+            Assert.True(res.Count == expectedResultCount);
         }
 
         [Fact]
@@ -414,11 +384,9 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
+            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
             var expectedResultCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
-            Assert.True(list.Count == expectedResultCount);
+            Assert.True(res.Count == expectedResultCount);
         }
 
         [Fact]
@@ -445,13 +413,10 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var list = new List<ParentChainBlockData>();
-            await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            list = new List<ParentChainBlockData>();
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1);
-            Assert.True(res);
+            await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
+            var secondResult = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
             var expectedResultCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
-            Assert.True(list.Count == expectedResultCount);
+            Assert.True(secondResult.Count == expectedResultCount);
         }
 
         [Fact]
@@ -491,7 +456,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1, true);
+            await _crossChainDataProvider.ValidateParentChainBlockDataAsync(list, Hash.Default, 1);
             list = new List<ParentChainBlockData>();
             for (int i = 0; i < CrossChainConsts.MaximalCountForIndexingParentChainBlock; i++)
             {
@@ -500,12 +465,12 @@ namespace AElf.CrossChain
                     Root = new ParentChainBlockRootInfo
                     {
                         ParentChainId = chainId,
-                        ParentChainHeight = (i + 1)
+                        ParentChainHeight = i + 1
                     }
                 });
             }
 
-            var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(list, Hash.Default, 1, true);
+            var res = await _crossChainDataProvider.ValidateParentChainBlockDataAsync(list, Hash.Default, 2);
             Assert.True(res);
             var expectedResultCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
             Assert.True(list.Count == expectedResultCount);
@@ -523,16 +488,31 @@ namespace AElf.CrossChain
             };
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
-            var res = await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
-            Assert.False(res);
+            int fakeChainId = 124;
+            _crossChainTestHelper.AddFakeParentChainIdHeight(fakeChainId, 1);
+
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
+            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 2);
         }
 
 
         [Fact]
         public async Task Activate_Cache_WithoutChainExist()
         {
-            var res = await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
-            Assert.True(res);
+            int chainId = 123;
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
+            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 1);
+        }
+        
+        [Fact]
+        public async Task Activate_Cache_Twice()
+        {
+            int chainId = 123;
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
+            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Default, 1);
+            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 1);
         }
     }
 }
