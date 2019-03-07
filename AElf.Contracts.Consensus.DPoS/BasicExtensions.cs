@@ -411,6 +411,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return round;
         }
 
+        public static Hash GetMinersHash(this Miners miners)
+        {
+            return Hash.FromString(miners.PublicKeys.OrderBy(p => p.Take(1))
+                .Aggregate("", (current, publicKey) => current + publicKey));
+        }
+
         public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, ulong termNumber)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
@@ -438,7 +444,7 @@ namespace AElf.Contracts.Consensus.DPoS
                    DPoSContractConsts.DaysEachTerm != termNumber - 1;
         }
         
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber)
+        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 0)
         {
             return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
         }

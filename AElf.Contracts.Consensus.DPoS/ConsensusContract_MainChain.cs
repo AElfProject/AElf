@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -16,7 +17,13 @@ namespace AElf.Contracts.Consensus.DPoS
             State.DividendContract.Value = dividendsContractAddress;
             State.Initialized.Value = true;
         }
-        
+
+        private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
+            Timestamp blockchainStartTimestamp, out Round nextRound)
+        {
+            return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
+        }
+
         private void InitialSettings(Round firstRound)
         {
             // Do some initializations.

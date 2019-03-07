@@ -173,7 +173,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
-                    Assert(round.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out var nextRound),
+                    Assert(GenerateNextRoundInformation(round, timestamp, blockchainStartTimestamp, out var nextRound),
                         "Failed to generate next round information.");
                     return new DPoSInformation
                     {

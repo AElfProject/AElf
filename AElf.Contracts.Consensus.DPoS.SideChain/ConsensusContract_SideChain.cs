@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -13,6 +14,18 @@ namespace AElf.Contracts.Consensus.DPoS
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.CurrentMiners.Value = minersKeys.ToMiners(1);
+        }
+        
+        private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
+            Timestamp blockchainStartTimestamp, out Round nextRound)
+        {
+            if (currentRound.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() == State.CurrentMiners.Value.GetMinersHash())
+            {
+                return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
+            }
+
+            nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval());
+            return true;
         }
 
         private void InitialSettings(Round firstRound)
