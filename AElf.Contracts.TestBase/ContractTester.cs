@@ -22,6 +22,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
@@ -81,9 +82,22 @@ namespace AElf.Contracts.TestBase
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
+                    options.Services.Configure<DPoSOptions>(o =>
+                    {
+                        var minersKeyPairs = new List<ECKeyPair> {CallOwnerKeyPair};
+                        for (var i = 0; i < 2; i++)
+                        {
+                            minersKeyPairs.Add(CryptoHelpers.GenerateKeyPair());
+                        }
+
+                        o.InitialMiners = minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList();
+                        o.MiningInterval = 4000;
+                        o.IsBootMiner = true;
+                    });
                     //options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
-                    options.Services.AddSingleton(Mock.Of<IAccountService>(s => s.GetPublicKeyAsync()==Task.FromResult( CallOwnerKeyPair.PublicKey ) ));
+                    options.Services.AddSingleton(Mock.Of<IAccountService>(s =>
+                        s.GetPublicKeyAsync() == Task.FromResult(CallOwnerKeyPair.PublicKey)));
                 });
             application.Initialize();
 
