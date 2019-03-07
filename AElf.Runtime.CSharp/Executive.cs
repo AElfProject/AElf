@@ -184,7 +184,8 @@ namespace AElf.Runtime.CSharp
         {
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
             var retVal = handler.Execute(ParamsPacker.Pack(methodName));
-            return ulong.Parse(handler.BytesToString(retVal));
+            handler.BytesToReturnType(retVal);
+            return (ulong)handler.BytesToReturnType(retVal);
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
