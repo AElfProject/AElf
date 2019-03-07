@@ -20,6 +20,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.KernelAccount;
@@ -127,7 +128,7 @@ namespace AElf.Contracts.TestBase
                 ChainId = _chainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
+
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
@@ -138,12 +139,19 @@ namespace AElf.Contracts.TestBase
 
             var addresses = new List<Address>();
 
+            addresses.Add(_smartContractAddressService.GetAddressByContractName(Hash.Empty));
+            addresses.Add(
+                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name));
+
             foreach (var systemSmartContractName in systemSmartContractNames)
             {
                 addresses.Add(_smartContractAddressService.GetAddressByContractName(systemSmartContractName));
             }
 
             DeployedContractsAddresses = addresses;
+            
+            if(_smartContractAddressService.GetZeroSmartContractAddress() != addresses[0])
+                throw new Exception("zero address not equal");
 
             return addresses;
         }
