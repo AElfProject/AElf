@@ -1,6 +1,6 @@
 @startuml Unit Test
 digraph G {
-    "TestBaseKernelAElfModule" -> {"TestBaseAElfModule";"CoreKernelAElfModule"};
+    "TestBaseKernelAElfModule" -> "TestBaseAElfModule";
 
     "KernelCoreTestAElfModule" -> "TestBaseKernelAElfModule";
 
@@ -23,7 +23,7 @@ digraph G {
     "KernelTestAElfModule" -> {"SmartContractTestAElfModule";"SmartContractExecutionTestAElfModule";"TransactionPoolTestAElfModule";"ChainControllerTestAElfModule";"NodeTestAElfModule"};
 
     "TestCSharpRuntimeAElfModule" -> "SmartContractTestAElfModule";
-    
+
     "TestsOSAElfModule" -> "KernelTestAElfModule";
     "NetTestAElfModule" -> "TestsOSAElfModule";
 

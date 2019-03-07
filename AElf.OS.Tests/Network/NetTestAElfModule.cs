@@ -20,7 +20,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Tests.Network
 {
-    [DependsOn(typeof(TestBaseAElfModule), typeof(TestsOSAElfModule), typeof(TestBaseKernelAElfModule))]
+    [DependsOn(typeof(TestsOSAElfModule))]
     public class NetTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -34,8 +34,6 @@ namespace AElf.OS.Tests.Network
                     .Returns<Chain, BlockAttachOperationStatus>((c, a) => Task.FromResult(new List<ChainBlockLink>()));
                 return mockExec.Object;
             });
-
-            Configure<NetworkOptions>(m => new NetworkOptions());
             
             // mock a peer
             Mock<IPeer> peerMock = new Mock<IPeer>();

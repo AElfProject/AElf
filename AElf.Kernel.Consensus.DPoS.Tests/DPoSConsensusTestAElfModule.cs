@@ -17,7 +17,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBaseAElfModule),
+        typeof(TestBaseKernelAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule)
@@ -28,10 +28,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<DPoSConsensusTestAElfModule>();
-
-            context.Services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
-            context.Services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
+            
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
