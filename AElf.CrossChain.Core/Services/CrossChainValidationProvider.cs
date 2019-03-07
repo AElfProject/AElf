@@ -9,10 +9,12 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
+        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService)
+        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataOrderService blockExtraDataOrderService)
         {
             _crossChainService = crossChainService;
+            _blockExtraDataOrderService = blockExtraDataOrderService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -63,7 +65,11 @@ namespace AElf.CrossChain
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
             // first check equality with the root in header
-            if (sideChainTransactionsRoot != null && !calculatedSideChainTransactionsRoot.Equals(sideChainTransactionsRoot))
+            if (sideChainTransactionsRoot != null && !calculatedSideChainTransactionsRoot.Equals(sideChainTransactionsRoot)
+            || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(block.Header
+                                       .BlockExtraDatas[
+                                           _blockExtraDataOrderService.GetExtraDataProviderOrder(
+                                               typeof(CrossChainBlockExtraDataProvider))].ToByteArray())))
                 return false;
             
             return await _crossChainService.ValidateSideChainBlockDataAsync(

@@ -6,6 +6,8 @@ using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
 using AElf.OS.Account;
@@ -40,6 +42,8 @@ namespace AElf.OS
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
+            
+            context.Services.AddSingleton<IBlockExtraDataOrderService, BlockExtraDataOrderService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -68,6 +72,16 @@ namespace AElf.OS
             catch (Exception e)
             {
                 throw new Exception("Load keystore failed.", e);
+            }
+        }
+
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
+            var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
+            foreach (var blockExtraDataProvider in blockExtraDataProviders)
+            {
+                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
             }
         }
 

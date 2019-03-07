@@ -191,7 +191,7 @@ message BlockHeader {
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    BlockExtraData BlockExtraData = 11;
+    repeated bytes BlockExtraDatas = 11;
 }
 
 message BlockBody {
