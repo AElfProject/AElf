@@ -21,6 +21,7 @@ namespace AElf.Sdk.CSharp.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractService _smartContractService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ECKeyPair _keyPair;
 
         public ContextTests()
@@ -28,6 +29,7 @@ namespace AElf.Sdk.CSharp.Tests
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractService = GetRequiredService<ISmartContractService>();
             _defaultContractZeroCodeProvider = GetRequiredService<IDefaultContractZeroCodeProvider>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _keyPair = CryptoHelpers.GenerateKeyPair();
         }
 
@@ -185,7 +187,9 @@ namespace AElf.Sdk.CSharp.Tests
         public void Deploy_Contract_ThrowAssertionError()
         {
             var context = CreateNewContext();
-            Assert.Throws<AssertionError>(() => context.DeployContract(Address.Zero, new SmartContractRegistration()));
+            Assert.Throws<AssertionError>(() =>
+                context.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
+                    new SmartContractRegistration()));
         }
 
         [Fact]
@@ -214,7 +218,9 @@ namespace AElf.Sdk.CSharp.Tests
         public void Update_Contract_ThrowAssertionError()
         {
             var context = CreateNewContext();
-            Assert.Throws<AssertionError>(() => context.UpdateContract(Address.Zero, new SmartContractRegistration()));
+            Assert.Throws<AssertionError>(() =>
+                context.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
+                    new SmartContractRegistration()));
         }
 
         [Fact]
@@ -247,7 +253,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 ContractAddress = Address.Genesis,
                 BlockchainService = _blockchainService,
-                SmartContractService = _smartContractService
+                SmartContractService = _smartContractService,
+                SmartContractAddressService = _smartContractAddressService
             };
             context.SmartContractContext = smartContractContext;
 
