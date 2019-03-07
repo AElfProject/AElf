@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,13 @@ namespace AElf.CrossChain
                 .Returns(Task.FromResult(Address.FromPublicKey(keyPair.PublicKey)));
             context.Services.AddTransient(provider =>  mockAccountService.Object);
             context.Services.AddSingleton<CrossChainTestHelper>();
+            
+//            var extraDataOrderInformation = context.Services.GetRequiredServiceLazy<IBlockExtraDataOrderService>().Value;
+//            var blockExtraDataProviders = context.Services.GetRequiredServiceLazy<IEnumerable<IBlockExtraDataProvider>>().Value;
+//            foreach (var blockExtraDataProvider in blockExtraDataProviders)
+//            {
+//                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
+//            }
             
             context.Services.AddTransient(provider =>
             {
