@@ -314,7 +314,9 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraData?.SideChainTransactionsRoot?.ToHex(),
+                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraDatas.Any()
+                        ? Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex()
+                        : "",
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
@@ -360,11 +362,24 @@ namespace AElf.OS.Rpc.ChainController
         {
             var chain = await BlockchainService.GetChainAsync();
             var branches = (JObject) JsonConvert.DeserializeObject(chain.Branches.ToString());
-            var notLinkedBlocks = (JObject) JsonConvert.DeserializeObject(chain.NotLinkedBlocks.ToString());
+            var formattedNotLinkedBlocks = new JArray();
+
+            foreach (var notLinkedBlock in chain.NotLinkedBlocks)
+            {
+                var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
+                formattedNotLinkedBlocks.Add(new JObject
+                    {
+                        ["BlockHash"] = block.BlockHashToHex,
+                        ["Height"] = block.Height,
+                        ["PreviousBlockHash"] = block.Header.PreviousBlockHash.ToHex()
+                    }
+                );
+            }
+
             return new JObject
             {
                 ["Branches"] = branches,
-                ["NotLinkedBlocks"] = notLinkedBlocks,
+                ["NotLinkedBlocks"] = formattedNotLinkedBlocks,
                 ["LongestChainHeight"] = chain.LongestChainHeight,
                 ["LongestChainHash"] = chain.LongestChainHash?.ToHex(),
                 ["GenesisBlockHash"] = chain.GenesisBlockHash.ToHex(),

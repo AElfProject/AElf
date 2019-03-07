@@ -194,7 +194,7 @@ message BlockHeader {
     bytes P = 8;
     google.protobuf.Timestamp Time = 9;
     int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    BlockExtraData BlockExtraData = 11;
+    repeated bytes BlockExtraDatas = 11;
 }
 
 message BlockBody {
@@ -296,7 +296,7 @@ enum ChainStateMergingStatus {
 }
 
 message ChainStateInfo{
-    int64 ChainId = 1;
+    int32 ChainId = 1;
     Hash BlockHash = 2;
     int64 BlockHeight = 3;
     Hash MergingBlockHash = 4;

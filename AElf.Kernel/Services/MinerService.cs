@@ -59,8 +59,7 @@ namespace AElf.Kernel.Services
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
-            DateTime time)
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
         {
             try
             {
@@ -79,15 +78,14 @@ namespace AElf.Kernel.Services
                 }
                 else
                 {
-                    Logger.LogWarning($@"Transaction pool gives transactions to be appended to 
-                        {executableTransactionSet.PreviousBlockHash} which doesn't match the current best chain hash 
-                        {previousBlockHash}.");
+                    Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
+                                      $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
+                                      $"best chain hash {previousBlockHash}.");
                 }
 
                 using (var cts = new CancellationTokenSource())
                 {
-                    // Give 400 ms for packing
-                    //cts.CancelAfter(time - DateTime.UtcNow - TimeSpan.FromMilliseconds(400));
+                    cts.CancelAfter(time - DateTime.UtcNow);
                     block = await _blockExecutingService.ExecuteBlockAsync(block.Header, 
                         transactions, pending, cts.Token);
                 }
@@ -173,15 +171,12 @@ namespace AElf.Kernel.Services
             }
         }
 
-        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
-            long previousBlockHeight)
+        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash, long previousBlockHeight)
         {
             //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
-            var generatedTxns =
-                _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockHash);
+            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight, previousBlockHash);
 
             foreach (var txn in generatedTxns)
             {

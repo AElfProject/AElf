@@ -16,7 +16,6 @@ namespace AElf.Sdk.CSharp.Tests
 {
     [DependsOn(
         typeof(SmartContractAElfModule),
-        typeof(TestBaseAElfModule),
         typeof(TestBaseKernelAElfModule))]
     public class TestSdkCSharpAElfModule : AElfModule
     {

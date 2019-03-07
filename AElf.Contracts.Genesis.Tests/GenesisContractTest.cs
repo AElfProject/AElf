@@ -7,6 +7,7 @@ using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.KernelAccount;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -35,7 +36,7 @@ namespace AElf.Contracts.Genesis
         public async Task Deploy_SmartContracts()
         {
             var resultDeploy = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
-                "DeploySmartContract", 2,
+                nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             var contractAddressArray = resultDeploy.ReturnValue.ToByteArray();
             _contractAddress = Address.Parser.ParseFrom(contractAddressArray);
@@ -49,22 +50,22 @@ namespace AElf.Contracts.Genesis
 
             var resultSerialNumber =
                 await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                    "CurrentContractSerialNumber");
+                    nameof(BasicContractZero.CurrentContractSerialNumber));
             resultSerialNumber.ShouldNotBeNull();
 
             var resultInfo = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                "GetContractInfo", _contractAddress);
+                nameof(BasicContractZero.GetContractInfo), _contractAddress);
             resultInfo.ShouldNotBeNull();
 
             var resultHashByteString = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                "GetContractHash", _contractAddress);
+                nameof(BasicContractZero.GetContractHash), _contractAddress);
             var resultHash = Hash.Parser.ParseFrom(resultHashByteString);
             var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
             var contractHash = Hash.FromRawBytes(contractCode);
             resultHash.ShouldBe(contractHash);
 
             var resultOwner = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                "GetContractOwner", _contractAddress);
+                nameof(BasicContractZero.GetContractOwner), _contractAddress);
             var ownerAddressArray = resultOwner.ToByteArray();
             var ownerAddress = Address.Parser.ParseFrom(ownerAddressArray);
             ownerAddress.ShouldBe(Tester.GetCallOwnerAddress());
@@ -76,7 +77,7 @@ namespace AElf.Contracts.Genesis
             await Deploy_SmartContracts();
 
             var resultUpdate =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, "UpdateSmartContract",
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
                     _contractAddress, File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             resultUpdate.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -85,7 +86,7 @@ namespace AElf.Contracts.Genesis
             updateAddress.ShouldBe(_contractAddress);
 
             var resultHashByteString = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                "GetContractHash", updateAddress);
+                nameof(BasicContractZero.GetContractHash), updateAddress);
             var resultHash = Hash.Parser.ParseFrom(resultHashByteString);
             var contractCode = File.ReadAllBytes(typeof(ResourceContract).Assembly.Location);
             var contractHash = Hash.FromRawBytes(contractCode);
@@ -96,7 +97,7 @@ namespace AElf.Contracts.Genesis
         public async Task Update_SmartContract_Without_Owner()
         {
             var result =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, "UpdateSmartContract",
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
                     TokenContractAddress,
                     File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -109,7 +110,7 @@ namespace AElf.Contracts.Genesis
             await Deploy_SmartContracts();
 
             var result =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, "UpdateSmartContract",
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
                     _contractAddress, File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Code is not changed.").ShouldBeTrue();
@@ -121,11 +122,11 @@ namespace AElf.Contracts.Genesis
             await Deploy_SmartContracts();
 
             var resultChange = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
-                "ChangeContractOwner", _contractAddress, Tester.GetAddress(otherOwnerKeyPair));
+                nameof(BasicContractZero.ChangeContractOwner), _contractAddress, Tester.GetAddress(otherOwnerKeyPair));
             resultChange.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var resultOwner = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                "GetContractOwner", _contractAddress);
+                nameof(BasicContractZero.GetContractOwner), _contractAddress);
             var ownerAddressArray = resultOwner.ToByteArray();
             var ownerAddress = Address.Parser.ParseFrom(ownerAddressArray);
             ownerAddress.ShouldBe(Tester.GetAddress(otherOwnerKeyPair));
@@ -135,7 +136,7 @@ namespace AElf.Contracts.Genesis
         public async Task Change_Contract_Owner_Without_Permission()
         {
             var resultChangeFailed = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
-                "ChangeContractOwner", TokenContractAddress, Tester.GetAddress(otherOwnerKeyPair));
+                nameof(BasicContractZero.ChangeContractOwner), TokenContractAddress, Tester.GetAddress(otherOwnerKeyPair));
             resultChangeFailed.Status.ShouldBe(TransactionResultStatus.Failed);
             resultChangeFailed.Error.Contains("no permission.").ShouldBeTrue();
         }

@@ -2,7 +2,7 @@ using AElf.Common;
 
 namespace AElf.Kernel.Types.SmartContract
 {
-    public interface ITokenCotract
+    public interface ITokenContract
     {
         void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals);
 

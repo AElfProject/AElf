@@ -19,29 +19,38 @@ namespace AElf.OS.Jobs
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
-            Logger.LogDebug($"Enter ForkDownloadJob ...");
+            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerAddress} }}");
+
             try
             {
                 var count = NetworkOptions.Value.BlockIdRequestCount;
 
                 var chain = await BlockchainService.GetChainAsync();
                 var blockHash = chain.LongestChainHash;
-
+                
                 while (true)
                 {
+                    Logger.LogDebug($"Current job hash : {blockHash}");
+                    
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
-                    Logger.LogDebug($"Get {blocks.Count} blocks from {args.SuggestedPeerAddress}, request blockHash {blockHash.ToHex()}, count {count} ");
+                    
+                    Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
 
                     foreach (var block in blocks)
                     {
                         chain = await BlockchainService.GetChainAsync();
+                        Logger.LogDebug($"Processing {block}. Chain is {{ longest: {chain.LongestChainHash}, best: {chain.BestChainHash} }} ");
+
                         await BlockchainService.AddBlockAsync(block);
-                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
                     if (chain.LongestChainHeight >= args.BlockHeight || blocks.Count == 0)
+                    {
+                        Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight}, block-count: {blocks.Count} }}");
                         break;
+                    }
 
                     blockHash = blocks.Last().GetHash();
                 }

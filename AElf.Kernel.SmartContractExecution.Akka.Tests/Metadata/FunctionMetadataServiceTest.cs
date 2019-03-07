@@ -6,7 +6,7 @@
 //using AElf.Kernel.SmartContract;
 //using AElf.Kernel.SmartContract.Domain;
 //using AElf.SmartContract;
-//using AElf.Kernel.Tests.Concurrency.Scheduling;
+//using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
 //using AElf.Sdk.CSharp;
 //using AElf.TestBase;
 //using AElf.Types.CSharp.MetadataAttribute;

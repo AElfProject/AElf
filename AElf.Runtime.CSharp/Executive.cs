@@ -100,7 +100,7 @@ namespace AElf.Runtime.CSharp
             {
                 From = _currentTransactionContext.Transaction.From,
                 To = ContractHelpers.GetTokenContractAddress(_currentSmartContractContext.GetChainId()),
-                MethodName = nameof(ITokenCotract.ChargeTransactionFees),
+                MethodName = nameof(ITokenContract.ChargeTransactionFees),
                 Params = ByteString.CopyFrom(
                     ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
             });

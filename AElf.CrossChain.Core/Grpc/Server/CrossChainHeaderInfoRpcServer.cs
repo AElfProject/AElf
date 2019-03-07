@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Grpc.Core;
@@ -81,7 +82,7 @@ namespace AElf.CrossChain.Grpc.Server
                             {
                                 ParentChainHeight = requestedHeight,
                                 SideChainTransactionsRoot =
-                                    block.Header.BlockExtraData.SideChainTransactionsRoot,
+                                    Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()),
                                 ParentChainId = block.Header.ChainId
                             }
                         }
