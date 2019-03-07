@@ -32,9 +32,6 @@ namespace AElf.Contracts.TestBase
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-
-
-            var list = services.Where(p => p.ServiceType == typeof(IAccountService)).ToList();
             services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }

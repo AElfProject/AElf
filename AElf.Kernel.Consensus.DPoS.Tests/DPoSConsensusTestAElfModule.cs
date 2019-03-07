@@ -33,7 +33,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }
 }

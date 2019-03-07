@@ -29,19 +29,21 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+
+            context.Services.AddAssemblyOf<CoreOSAElfModule>();
+
+
             //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
 
-            context.Services.AddSingleton<INetworkService, NetworkService>();
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
 
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
-            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
