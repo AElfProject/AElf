@@ -33,9 +33,9 @@ namespace AElf.Cryptography.Tests.Certificate
         public void Certificate_Verification()
         {
             var keyPair = _certStore.WriteKeyAndCertificate("aelf", "192.168.197.39");
-            var certificate = _certStore.GetCertificate("aelf");
+            var certificate = _certStore.LoadCertificate("aelf");
             certificate.ShouldNotBe(string.Empty);
-            var privateKey = _certStore.GetPrivateKey("aelf");
+            var privateKey = _certStore.LoadKeyStore("aelf");
             privateKey.ShouldNotBe(null);
             privateKey.ShouldNotBe(string.Empty);
 
