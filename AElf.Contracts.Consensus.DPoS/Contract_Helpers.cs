@@ -36,12 +36,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetChainId(out int chainId)
-        {
-            chainId = State.ChainIdField.Value;
-            return chainId >= 0;
-        }
-
         public bool TryToGetRoundNumber(out ulong roundNumber)
         {
             roundNumber = State.CurrentRoundNumberField.Value;

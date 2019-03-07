@@ -23,8 +23,8 @@ namespace AElf.CrossChain
              Configure<GrpcConfigOption>(configuration.GetSection("CrossChain"));
              services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
              services.AddScoped<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
-             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
+             services.AddScoped<IBlockExtraDataProvider, CrossChainExtraDataProvider>();
+             services.AddScoped<IBlockValidationProvider, CrossChainExtraDataProvider>();
              services.AddSingleton<ICrossChainService, CrossChainService>();
          }
          

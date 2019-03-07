@@ -1,27 +1,24 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Infrastructure;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainValidationProvider : IBlockValidationProvider
+    public class CrossChainExtraDataProvider : IBlockValidationProvider, IBlockExtraDataProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
 
-        public CrossChainValidationProvider(ITransactionResultQueryService transactionResultQueryService, 
-            ICrossChainService crossChainService, IBlockExtraDataOrderService blockExtraDataOrderService)
+        public CrossChainExtraDataProvider(ITransactionResultQueryService transactionResultQueryService, 
+            ICrossChainService crossChainService, IBlockExtraDataService blockExtraDataService)
         {
             _transactionResultQueryService = transactionResultQueryService;
             _crossChainService = crossChainService;
-            _blockExtraDataOrderService = blockExtraDataOrderService;
+            _blockExtraDataService = blockExtraDataService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -55,10 +52,8 @@ namespace AElf.CrossChain
                         out var crossChainBlockData);
                 // first check equality with the root in header
                 if (sideChainTransactionsRoot == null
-                    || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(block.Header
-                        .BlockExtraDatas[
-                            _blockExtraDataOrderService.GetExtraDataProviderOrder(
-                                typeof(CrossChainBlockExtraDataProvider))].ToByteArray())))
+                    || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(
+                        _blockExtraDataService.GetBlockExtraData(GetType(), block.Header).ToByteArray())))
                     continue;
                 return await ValidateCrossChainBlockDataAsync(crossChainBlockData,
                     block.Header.GetHash(), block.Header.Height);
@@ -73,6 +68,11 @@ namespace AElf.CrossChain
                        crossChainBlockData.SideChainBlockData, preBlockHash, preBlockHeight) &&
                    await _crossChainService.ValidateParentChainBlockDataAsync(
                        crossChainBlockData.ParentChainBlockData, preBlockHash, preBlockHeight);
+        }
+
+        public Task<ByteString> GetExtraDataAsync(BlockHeader blockHeader)
+        {
+            throw new NotImplementedException();
         }
     }
 }

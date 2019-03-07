@@ -50,6 +50,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
@@ -80,7 +81,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var blockManager = application.ServiceProvider.GetService<IBlockManager>();
             var blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
             var txHub = application.ServiceProvider.GetService<ITxHub>();
-
+            _blockExtraDataService = application.ServiceProvider.GetService<IBlockExtraDataService>();
+            
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
 
@@ -99,13 +101,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             _blockGenerationService = new BlockGenerationService(
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
-                    {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
-
-            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
-            mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
-            _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
-                new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}), _blockExecutingService);
+                    {new ConsensusExtraDataProvider(_consensusService, _blockExtraDataService)}),chainManager);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});

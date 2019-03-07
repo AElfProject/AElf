@@ -293,14 +293,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     }
 
                     break;
-                case DPoSBehaviour.NextTerm:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
-                    break;
                 case DPoSBehaviour.Invalid:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour."};
                 default:

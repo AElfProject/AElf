@@ -29,7 +29,11 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
+            Configure<ChainOptions>(option =>
+                {
+                    option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
+                    option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
+                });
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
@@ -42,8 +46,6 @@ namespace AElf.OS
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
-            
-            context.Services.AddSingleton<IBlockExtraDataOrderService, BlockExtraDataOrderService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -72,16 +74,6 @@ namespace AElf.OS
             catch (Exception e)
             {
                 throw new Exception("Load keystore failed.", e);
-            }
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
-            var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
-            foreach (var blockExtraDataProvider in blockExtraDataProviders)
-            {
-                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
             }
         }
 

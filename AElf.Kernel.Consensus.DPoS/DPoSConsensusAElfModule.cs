@@ -22,13 +22,13 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 
-            context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
-            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient<IBlockValidationProvider, ConsensusExtraDataProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
 
             context.Services.AddSingleton<ConsensusControlInformation>();
 
-            context.Services.AddTransient<IBlockValidationProvider, DPoSConsensusValidationProvider>();
         }
     }
 }
