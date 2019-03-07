@@ -39,7 +39,7 @@ namespace AElf.Contract.CrossChain.Tests
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
             var expectedChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetChainId(1));
-            var actualChainId = txResult.RetVal.ToStringUtf8();
+            var actualChainId = txResult.ReturnValue.ToStringUtf8();
             Assert.Equal(expectedChainId, actualChainId);
         }
         
@@ -140,7 +140,7 @@ namespace AElf.Contract.CrossChain.Tests
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, "RequestChainCreation",
                 sideChainInfo);
             var expectedChainId = ChainHelpers.ConvertChainIdToBase58(ChainHelpers.GetChainId(2));
-            var actualChainId = txResult.RetVal.ToStringUtf8();
+            var actualChainId = txResult.ReturnValue.ToStringUtf8();
             Assert.Equal(expectedChainId, actualChainId);
         }
 
@@ -465,7 +465,7 @@ namespace AElf.Contract.CrossChain.Tests
             var chainId = ChainHelpers.GetChainId(1);
             var status = await CallContractMethodAsync(CrossChainContractAddress, "GetChainStatus",
                 ChainHelpers.ConvertChainIdToBase58(chainId));
-            Assert.Empty(status);
+            Assert.Null(status);
         }
 
         [Fact]
@@ -504,7 +504,7 @@ namespace AElf.Contract.CrossChain.Tests
             var chainId = ChainHelpers.GetChainId(1);
             var height = await CallContractMethodAsync(CrossChainContractAddress, "GetSideChainHeight",
                 ChainHelpers.ConvertChainIdToBase58(chainId));
-            Assert.Empty(height);
+            Assert.Equal(0L, height.DeserializeToInt64());
         }
     }
 }
