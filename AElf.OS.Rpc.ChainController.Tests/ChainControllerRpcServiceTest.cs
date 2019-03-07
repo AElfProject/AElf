@@ -250,6 +250,23 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseStatus.ShouldBe(TransactionResultStatus.Mined.ToString());
         }
 
+        [Fact(Skip="https://github.com/AElfProject/AElf/issues/1083")]
+        public async Task Get_NotExisted_TransactionResult()
+        {
+            // Generate a transaction
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await GenerateTransferTransaction(chain);
+            var transactionHex = transaction.GetHash().ToHex();
+
+            var response = await JsonCallAsJObject("/chain", "GetTransactionResult",
+                new {transactionId = transactionHex});
+            var responseTransactionId = response["result"]["TransactionId"].ToString();
+            var responseStatus = response["result"]["Status"].ToString();
+
+            responseTransactionId.ShouldBe(transactionHex);
+            responseStatus.ShouldBe(TransactionResultStatus.NotExisted.ToString());
+        }
+
         [Fact]
         public async Task Get_TransactionResult_ReturnInvalidTransactionId()
         {
@@ -291,6 +308,25 @@ namespace AElf.OS.Rpc.ChainController.Tests
         }
 
         [Fact]
+        public async Task Get_NotExisted_TransactionsResult()
+        {
+            var block = new Block
+            {
+                Header = new BlockHeader(),
+                BlockHashToHex = "Test"
+            };
+            var blockHash = block.GetHash().ToHex();
+            var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
+                new {blockHash, offset = 0, num = 10});
+
+            var returnCode = (long)response["error"]["code"];
+            returnCode.ShouldBe(Error.NotFound);
+
+            var message = response["error"]["message"].ToString();
+            message.ShouldBe(Error.Message[Error.NotFound]);
+        }
+
+        [Fact]
         public async Task Get_BlockInfo_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -316,9 +352,9 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseResult["Header"]["MerkleTreeRootOfWorldState"].ToString()
                 .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             responseResult["Header"]["SideChainTransactionsRoot"].ToString().ShouldBe(
-                block.Header.BlockExtraData == null
+                !block.Header.BlockExtraDatas.Any()
                     ? string.Empty
-                    : block.Header.BlockExtraData.SideChainTransactionsRoot.ToHex());
+                    : Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()).ToHex());
             ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);
             Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
             responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
