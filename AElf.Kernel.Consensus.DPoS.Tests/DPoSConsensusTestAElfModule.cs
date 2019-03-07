@@ -22,7 +22,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
         typeof(TestBaseAElfModule),
-        typeof(ConsensusAElfModule),
+        typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule)

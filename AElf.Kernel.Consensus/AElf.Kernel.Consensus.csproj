@@ -14,10 +14,4 @@
       <Folder Include="Domain" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="AElf.Kernel.Consensus.DPoS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\AElf.Contracts.Genesis.Tests\bin\Debug\netcoreapp2.2\AElf.Kernel.Consensus.DPoS.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

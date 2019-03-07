@@ -45,7 +45,7 @@ namespace AElf.Launcher
         typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(ConsensusAElfModule),
+        typeof(DPoSConsensusAElfModule),
         typeof(GrpcNetworkModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),

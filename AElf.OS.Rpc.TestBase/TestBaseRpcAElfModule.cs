@@ -6,6 +6,7 @@ using AElf.Contracts.Genesis;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -32,7 +33,7 @@ namespace AElf.OS.Rpc
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(KernelAElfModule),
-        typeof(ConsensusAElfModule),
+        typeof(DPoSConsensusAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
