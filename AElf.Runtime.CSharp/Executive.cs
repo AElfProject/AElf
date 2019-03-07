@@ -135,7 +135,7 @@ namespace AElf.Runtime.CSharp
                     var retVal = handler.Execute(tx.Params.ToByteArray());
                     _currentTransactionContext.Trace.RetVal = new RetVal()
                     {
-                        Data = ByteString.CopyFrom(retVal)
+                        Data = retVal == null ? null : ByteString.CopyFrom(retVal)
                     };
                     _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);
                     _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
