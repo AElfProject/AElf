@@ -465,7 +465,7 @@ namespace AElf.Contract.CrossChain.Tests
             var chainId = ChainHelpers.GetChainId(1);
             var status = await CallContractMethodAsync(CrossChainContractAddress, "GetChainStatus",
                 ChainHelpers.ConvertChainIdToBase58(chainId));
-            Assert.Empty(status);
+            Assert.Null(status);
         }
 
         [Fact]
