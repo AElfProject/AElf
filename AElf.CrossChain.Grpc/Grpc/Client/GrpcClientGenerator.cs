@@ -2,40 +2,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Grpc.Exceptions;
 using AElf.Cryptography.Certificate;
 using Grpc.Core;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain.Grpc.Client
 {
     public class GrpcClientGenerator : ISingletonDependency, ILocalEventHandler<GrpcServeNewChainReceivedEvent>
     {
-        private readonly Dictionary<int, GrpcSideChainBlockInfoRpcClient> _clientsToSideChains =
-            new Dictionary<int, GrpcSideChainBlockInfoRpcClient>();
-
-        private GrpcParentChainBlockInfoRpcClient _grpcParentChainBlockInfoRpcClient;
-        private CertificateStore _certificateStore;
-        private CancellationTokenSource _tokenSourceToSideChain;
-        private CancellationTokenSource _tokenSourceToParentChain;
+        private CancellationTokenSource TokenSourceToSideChain { get; } = new CancellationTokenSource();
+        private CancellationTokenSource TokenSourceToParentChain { get; } = new CancellationTokenSource();
         private readonly CrossChainDataProducer _crossChainDataProducer;
+        private readonly ICertificateStore _certificateStore;
+        private ILocalEventBus LocalEventBus { get; }
 
-        public GrpcClientGenerator(CrossChainDataProducer crossChainDataProducer)
+        public GrpcClientGenerator(CrossChainDataProducer crossChainDataProducer, ICertificateStore certificateStore)
         {
             _crossChainDataProducer = crossChainDataProducer;
-        }
-
-        /// <summary>
-        /// Initialize client manager.
-        /// </summary>
-        /// <param name="dir"></param>
-        public void Init(string dir)
-        {
-            _certificateStore = new CertificateStore(dir);
-            _tokenSourceToSideChain = new CancellationTokenSource();
-            _tokenSourceToParentChain = new CancellationTokenSource();
+            _certificateStore = certificateStore;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         /// <summary>
@@ -43,19 +33,22 @@ namespace AElf.CrossChain.Grpc.Client
         /// </summary>
         public void UpdateRequestInterval(int interval)
         {
-            _grpcParentChainBlockInfoRpcClient?.UpdateRequestInterval(interval);
-            _clientsToSideChains.AsParallel().ToList().ForEach(kv => { kv.Value.UpdateRequestInterval(interval); });
+            // no wait
+            LocalEventBus.PublishAsync(new GrpcClientRequestIntervalUpdateEvent
+            {
+                Interval = interval
+            });
         }
 
         #region Create client
 
-        public void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
+        private void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
         {
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
             client.StartDuplexStreamingCall(crossChainCommunicationContext.ChainId, crossChainCommunicationContext.IsSideChain
-                ? _tokenSourceToSideChain.Token
-                : _tokenSourceToParentChain.Token);
+                ? TokenSourceToSideChain.Token
+                : TokenSourceToParentChain.Token);
         }
 
         /// <summary>
@@ -65,17 +58,15 @@ namespace AElf.CrossChain.Grpc.Client
         /// </returns>    
         private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase)
         {
-            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.ChainId);
+            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.RemoteChainId);
 
             if (grpcClientBase.IsSideChain)
             {
-                var clientToSideChain = new GrpcSideChainBlockInfoRpcClient(channel, _crossChainDataProducer);
-                _clientsToSideChains.Add(grpcClientBase.ChainId, clientToSideChain);
+                var clientToSideChain = new SideChainGrpcClient(channel, _crossChainDataProducer);
                 return clientToSideChain;
             }
 
-            _grpcParentChainBlockInfoRpcClient = new GrpcParentChainBlockInfoRpcClient(channel, _crossChainDataProducer);
-            return _grpcParentChainBlockInfoRpcClient;
+            return new ParentChainGrpcClient(channel, _crossChainDataProducer);
         }
 
         /// <summary>
@@ -87,7 +78,7 @@ namespace AElf.CrossChain.Grpc.Client
         /// <exception cref="CertificateException"></exception>
         private Channel CreateChannel(string uriStr, int targetChainId)
         {
-            string crt = _certificateStore.GetCertificate(targetChainId.ToString());
+            string crt = _certificateStore.LoadCertificate(ChainHelpers.ConvertChainIdToBase58(targetChainId));
             if (crt == null)
                 throw new CertificateException("Unable to load Certificate.");
             var channelCredentials = new SslCredentials(crt);
@@ -99,18 +90,6 @@ namespace AElf.CrossChain.Grpc.Client
 
         public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
         {
-//            var dto = new CommunicationContextDto
-//            {
-//                CrossChainCommunicationContext = eventData.CrossChainCommunicationContext,
-//                BlockInfoCache = blockInfoCache,
-//                TargetHeight = await _crossChainContractReader.GetSideChainCurrentHeightAsync(eventData.LocalChainId, 
-//                    eventData.CrossChainCommunicationContext.ChainId, TODO, TODO)
-//            };
-//            var (consumer, _) = _crossChainDataProducerConsumerService.CreateConsumerProducer(dto);
-//            if (eventData.CrossChainCommunicationContext.IsSideChain)
-//                _consumers.Add(eventData.CrossChainDataProducer.ChainId, consumer);
-//            else
-//                ParentChainBlockDataConsumer = consumer;
             CreateClient(receivedEventData.CrossChainCommunicationContext);
             return Task.CompletedTask;
         }
@@ -120,10 +99,8 @@ namespace AElf.CrossChain.Grpc.Client
         /// </summary>
         public void CloseClientsToSideChain()
         {
-            _tokenSourceToSideChain?.Cancel();
-            _tokenSourceToSideChain?.Dispose();
-
-            _clientsToSideChains.Clear();
+            TokenSourceToSideChain?.Cancel();
+            TokenSourceToSideChain?.Dispose();
         }
 
         /// <summary>
@@ -131,10 +108,8 @@ namespace AElf.CrossChain.Grpc.Client
         /// </summary>
         public void CloseClientToParentChain()
         {
-            _tokenSourceToParentChain?.Cancel();
-            _tokenSourceToParentChain?.Dispose();
-
-            _grpcParentChainBlockInfoRpcClient = null;
+            TokenSourceToParentChain?.Cancel();
+            TokenSourceToParentChain?.Dispose();
         }
     }
 }
