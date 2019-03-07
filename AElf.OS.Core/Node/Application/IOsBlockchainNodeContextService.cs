@@ -47,8 +47,6 @@ namespace AElf.OS.Node.Application
                 SystemSmartContractName = Hash.FromString(smartContractType.FullName)
             });
         }
-        
-        
 
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
         {

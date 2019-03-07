@@ -5,12 +5,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Domain" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="AElf.Kernel.Consensus.DPoS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\AElf.Contracts.Genesis.Tests\bin\Debug\netcoreapp2.2\AElf.Kernel.Consensus.DPoS.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

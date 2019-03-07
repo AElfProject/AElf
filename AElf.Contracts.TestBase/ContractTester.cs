@@ -63,7 +63,7 @@ namespace AElf.Contracts.TestBase
 
         public ECKeyPair CallOwnerKeyPair { get; set; }
 
-        public Dictionary<Type, Address> DeployedContractsAddresses { get; set; }
+        public List<Address> DeployedContractsAddresses { get; set; }
 
         public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
@@ -126,14 +126,19 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = _chainId,
             };
-
+            
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
 
+            var systemSmartContractNames =
+                dto.InitializationSmartContracts.Select(p => p.SystemSmartContractName).ToList();
+
             var addresses = new List<Address>();
-            for (var i = 0UL; i < (ulong) contractTypes.Length; i++)
+
+            foreach (var systemSmartContractName in systemSmartContractNames)
             {
+                addresses.Add(_smartContractAddressService.GetAddressByContractName(systemSmartContractName));
             }
 
             DeployedContractsAddresses = addresses;
@@ -377,17 +382,17 @@ namespace AElf.Contracts.TestBase
 
         public List<Type> GetDefaultContractTypes()
         {
-            var list = new List<Type>();
-            list.Add(typeof(BasicContractZero));
-            list.Add(typeof(ConsensusContract));
-            list.Add(typeof(TokenContract));
-            list.Add(typeof(CrossChainContract));
-            list.Add(typeof(AuthorizationContract));
-            list.Add(typeof(ResourceContract));
-            list.Add(typeof(DividendsContract));
-            list.Add(typeof(FeeReceiverContract));
-
-            return list;
+            return new List<Type>
+            {
+                typeof(BasicContractZero),
+                typeof(ConsensusContract),
+                typeof(TokenContract),
+                typeof(CrossChainContract),
+                typeof(AuthorizationContract),
+                typeof(ResourceContract),
+                typeof(DividendsContract),
+                typeof(FeeReceiverContract)
+            };
         }
     }
 }

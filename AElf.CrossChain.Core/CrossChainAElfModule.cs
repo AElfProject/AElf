@@ -31,7 +31,8 @@ namespace AElf.CrossChain
             services.AddScoped<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
             services.AddScoped<IBlockValidationProvider, CrossChainValidationProvider>();
             services.AddSingleton<ICrossChainService, CrossChainService>();
-
+            
+            services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

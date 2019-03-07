@@ -3,19 +3,12 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Genesis;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Application;
-using AElf.Kernel.Services;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
-using AElf.OS.Account;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Rpc.ChainController;
@@ -30,7 +23,6 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.TestBase;
 using Volo.Abp.Autofac;
-using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -40,7 +32,7 @@ namespace AElf.OS.Rpc
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(KernelAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(ConsensusAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),

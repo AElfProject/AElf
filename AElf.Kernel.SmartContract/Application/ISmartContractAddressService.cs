@@ -27,13 +27,11 @@ namespace AElf.Kernel.SmartContract.Application
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         }
 
-
         public Address GetAddressByContractName(Hash name)
         {
             _hashToAddressMap.TryGetValue(name, out var address);
             return address;
         }
-
 
         public void SetAddress(Hash name, Address address)
         {

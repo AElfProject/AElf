@@ -5,6 +5,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Consensus.Scheduler.FluentScheduler;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -19,20 +20,10 @@ namespace AElf.Kernel.Consensus.DPoS
         {
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
             
-            //TODO: change to module
-            context.Services.AddAssemblyOf<ConsensusSmartContractAddressNameProvider>();
-
-            
-
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 
             context.Services.AddScoped<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
-            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-
-            context.Services.AddSingleton<ConsensusControlInformation>();
-
             context.Services.AddTransient<IBlockValidationProvider, DPoSConsensusValidationProvider>();
         }
     }
