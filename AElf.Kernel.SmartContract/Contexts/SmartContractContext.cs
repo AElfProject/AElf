@@ -59,6 +59,11 @@ namespace AElf.Kernel.SmartContract
             return SmartContractAddressService.GetAddressByContractName(contractName);
         }
 
+        public Address GetZeroSmartContractAddress()
+        {
+            return SmartContractAddressService.GetZeroSmartContractAddress();
+        }
+
         public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged, Hash name = null)
         {

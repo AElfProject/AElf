@@ -30,5 +30,7 @@ namespace AElf.Kernel.SmartContract
         int GetChainId();
 
         Address GetAddressByContractName(Hash contractName);
+
+        Address GetZeroSmartContractAddress();
     }
 }

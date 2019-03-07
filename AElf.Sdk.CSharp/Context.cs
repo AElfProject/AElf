@@ -20,7 +20,7 @@ namespace AElf.Sdk.CSharp
 
         public ISmartContractContext SmartContractContext { get; set; }
 
-        public int ChainId =>  SmartContractContext.GetChainId();
+        public int ChainId => SmartContractContext.GetChainId();
 
         public void LogDebug(Func<string> func)
         {
@@ -102,13 +102,13 @@ namespace AElf.Sdk.CSharp
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name = null)
         {
-            
+            SmartContractContext.GetAddressByContractName(null);
             //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
             //method SmartContractContext.DeployContract or it's service 
-//            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
-//            {
-//                throw new AssertionError("no permission.");
-//            }
+            if (!Self.Equals(SmartContractContext.GetZeroSmartContractAddress()))
+            {
+                throw new AssertionError("no permission.");
+            }
 
             SmartContractContext.DeployContract(address, registration,
                 false);
@@ -116,10 +116,10 @@ namespace AElf.Sdk.CSharp
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name = null)
         {
-//            if (!Self.Equals(ContractHelpers.GetGenesisBasicContractAddress(ChainId)))
-//            {
-//                throw new AssertionError("no permission.");
-//            }
+            if (!Self.Equals(SmartContractContext.GetZeroSmartContractAddress()))
+            {
+                throw new AssertionError("no permission.");
+            }
 
             SmartContractContext.UpdateContract(address, registration,
                 false);
