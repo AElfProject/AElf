@@ -184,11 +184,6 @@ namespace AElf.OS.Rpc.ChainController
             return await s.SmartContractExecutiveService.GetAbiAsync(chainContext, address);
         }
 
-//        internal static async Task<TransactionReceipt> GetTransactionReceipt(this ChainControllerRpcService s, Hash txId)
-//        {
-//            return await s.TxHub.GetReceiptAsync(txId);
-//        }
-
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
             Hash txHash)
         {
