@@ -49,41 +49,5 @@ namespace AElf.OS.Rpc
         {
             
         }
-        
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var defaultZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var chainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
-                .Value.NodeAccount);
-
-            var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = chainId,
-                    Transactions = transactions
-                }
-            };
-
-            var blockchainNodeContextService = context.ServiceProvider.GetService<IBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async () =>
-            {
-                blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
-            });
-        }
     }
 }
