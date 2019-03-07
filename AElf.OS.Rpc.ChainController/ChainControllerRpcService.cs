@@ -7,11 +7,9 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Domain;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -156,15 +154,15 @@ namespace AElf.OS.Rpc.ChainController
             return await BuildTransactionResult(transactionHash);
         }
 
-        [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "num")]
-        public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int num = 10)
+        [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
+        public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {
             if (offset < 0)
             {
                 throw new JsonRpcServiceException(Error.InvalidOffset, Error.Message[Error.InvalidOffset]);
             }
 
-            if (num <= 0 || num > 100)
+            if (limit <= 0 || limit > 100)
             {
                 throw new JsonRpcServiceException(Error.InvalidNum, Error.Message[Error.InvalidNum]);
             }
@@ -188,8 +186,8 @@ namespace AElf.OS.Rpc.ChainController
             var transactions = new JArray();
             if (offset <= block.Body.Transactions.Count - 1)
             {
-                num = Math.Min(num, block.Body.Transactions.Count - offset);
-                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, num);
+                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
+                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
                     transactions.Add(await BuildTransactionResult(hash));
@@ -245,7 +243,6 @@ namespace AElf.OS.Rpc.ChainController
                 ["Body"] = new JObject
                 {
                     ["TransactionsCount"] = blockInfo.Body.TransactionsCount,
-                    // ["IndexedSideChainBlockInfo"] = await this.GetIndexedSideChainBlockInfo(_chainId, blockInfo.Header.Height)
                 }
             };
 
@@ -263,18 +260,11 @@ namespace AElf.OS.Rpc.ChainController
 
             return response;
         }
-//
-//        [JsonRpcMethod("GetTransactionPoolSize")]
-//        public async Task<ulong> GetTxPoolSize()
-//        {
-//            return await this.GetTransactionPoolSize();
-//        }
 
-        [JsonRpcMethod("GetBlockStateSet", "blockHash")]
-        public async Task<JObject> GetBlockStateSet(string blockHash)
+        [JsonRpcMethod("GetTransactionPoolStatus")]
+        public async Task<JObject> GetTransactionPoolStatus()
         {
-            var obj = await BlockStateSets.GetAsync(blockHash);
-            return JObject.FromObject(JsonConvert.DeserializeObject(obj.ToString()));
+            return await this.GetTransactionPoolStatusAsync();
         }
 
         [JsonRpcMethod("GetChainStatus")]
@@ -308,6 +298,15 @@ namespace AElf.OS.Rpc.ChainController
                 ["BestChainHash"] = chain.BestChainHash?.ToHex(),
                 ["BestChainHeight"] = chain.BestChainHeight
             };
+        }
+
+        [JsonRpcMethod("GetBlockState", "blockHash")]
+        public async Task<JObject> GetBlockState(string blockHash)
+        {
+            var blockState = await BlockStateSets.GetAsync(blockHash);
+            if (blockState == null)
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
+            return JObject.FromObject(JsonConvert.DeserializeObject(blockState.ToString()));
         }
 
         /*
