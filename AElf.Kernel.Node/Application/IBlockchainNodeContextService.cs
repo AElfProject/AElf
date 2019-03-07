@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types;
@@ -18,6 +19,8 @@ namespace AElf.Kernel.Node.Application
         public int ChainId { get; set; }
 
         public Transaction[] Transactions { get; set; }
+
+        public Type ZeroSmartContractType { get; set; }
     }
 
     public interface IBlockchainNodeContextService
@@ -35,6 +38,7 @@ namespace AElf.Kernel.Node.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
         private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
+        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
@@ -48,6 +52,8 @@ namespace AElf.Kernel.Node.Application
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
         {
+            _defaultContractZeroCodeProvider.SetDefaultContractZeroRegistrationByType(dto.ZeroSmartContractType);
+
             var context = new BlockchainNodeContext
             {
                 ChainId = dto.ChainId,
@@ -66,9 +72,5 @@ namespace AElf.Kernel.Node.Application
         {
         }
 
-        private byte[] ReadContractCode(string path)
-        {
-            return File.ReadAllBytes(Path.GetFullPath(path));
-        }
     }
 }
