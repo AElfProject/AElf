@@ -16,6 +16,7 @@
       <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
       <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
       <ProjectReference Include="..\AElf.OS.Tests\AElf.OS.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
