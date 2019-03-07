@@ -1,9 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Web;
 using AElf.Common;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Types.CSharp
@@ -12,6 +11,11 @@ namespace AElf.Types.CSharp
     {
         private static byte[] EncodeByProtobuf<T>(T value, Action<CodedOutputStream, T> encoder)
         {
+            if (EqualityComparer<T>.Default.Equals(value, default(T)))
+            {
+                return null;
+            }
+
             using (var mm = new MemoryStream())
             using (var stream = new CodedOutputStream(mm))
             {
@@ -24,6 +28,11 @@ namespace AElf.Types.CSharp
 
         private static T DecodeByProtobuf<T>(byte[] bytes, Func<CodedInputStream, T> decoder)
         {
+            if (bytes == null)
+            {
+                return default(T);
+            }
+
             using (var stream = new CodedInputStream(bytes))
             {
                 return decoder(stream);
@@ -85,7 +94,15 @@ namespace AElf.Types.CSharp
 
             if (type == typeof(string))
             {
-                return value => Encoding.UTF8.GetBytes(value.ToString());
+                return value =>
+                {
+                    if (value == null)
+                    {
+                        return null;
+                    }
+
+                    return Encoding.UTF8.GetBytes(value.ToString());
+                };
             }
 
             if (type == typeof(byte[]))
@@ -99,12 +116,28 @@ namespace AElf.Types.CSharp
 
             if (type.IsPbMessageType())
             {
-                return value => (value as IMessage)?.ToByteArray();
+                return value =>
+                {
+                    if (value == null)
+                    {
+                        return null;
+                    }
+
+                    return (value as IMessage)?.ToByteArray();
+                };
             }
 
             if (type.IsUserType())
             {
-                return value => (value as UserType)?.Pack()?.ToByteArray();
+                return value =>
+                {
+                    if (value == null)
+                    {
+                        return null;
+                    }
+
+                    return (value as UserType)?.Pack()?.ToByteArray();
+                };
             }
 
             throw new NotSupportedException($"Return type {type} is not supported.");
@@ -167,6 +200,11 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
+                    if (bytes == null)
+                    {
+                        return default(T);
+                    }
+
                     dynamic o = Encoding.UTF8.GetString(bytes);
                     return o;
                 };
@@ -185,6 +223,11 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
+                    if (bytes == null)
+                    {
+                        return default(T);
+                    }
+
                     dynamic o = Activator.CreateInstance<T>();
                     (o as IMessage).MergeFrom(bytes);
                     return o;
@@ -195,6 +238,11 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
+                    if (bytes == null)
+                    {
+                        return default(T);
+                    }
+
                     dynamic o = Activator.CreateInstance<T>();
                     var holder = new UserTypeHolder();
                     holder.MergeFrom(bytes);
@@ -218,13 +266,21 @@ namespace AElf.Types.CSharp
                 };
             }
 
-            if (type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) ||
-                type == typeof(string))
+            if (type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong))
             {
                 return v =>
                 {
                     dynamic vv = v;
-                    return $@"""{HttpUtility.JavaScriptStringEncode(vv.ToString())}""";
+                    return vv.ToString();
+                };
+            }
+
+            if (type == typeof(string))
+            {
+                return v =>
+                {
+                    dynamic vv = v;
+                    return vv;
                 };
             }
 
@@ -232,8 +288,13 @@ namespace AElf.Types.CSharp
             {
                 return v =>
                 {
+                    if (v == null)
+                    {
+                        return null;
+                    }
+
                     dynamic vv = v;
-                    return $@"""{HttpUtility.JavaScriptStringEncode(((byte[]) vv).ToHex())}""";
+                    return ((byte[]) vv).ToHex();
                 };
             }
 
@@ -241,6 +302,11 @@ namespace AElf.Types.CSharp
             {
                 return v =>
                 {
+                    if (v == null)
+                    {
+                        return null;
+                    }
+
                     dynamic vv = v;
                     return vv.ToString();
                 };
@@ -250,6 +316,11 @@ namespace AElf.Types.CSharp
             {
                 return v =>
                 {
+                    if (v == null)
+                    {
+                        return null;
+                    }
+
                     dynamic vv = v;
                     return ((UserType) vv).Pack().ToString();
                 };
