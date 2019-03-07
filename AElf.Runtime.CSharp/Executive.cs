@@ -137,6 +137,7 @@ namespace AElf.Runtime.CSharp
                     {
                         Data = ByteString.CopyFrom(retVal)
                     };
+                    _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);
                     _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
                 }
                 catch (TargetInvocationException ex)

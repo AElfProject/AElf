@@ -96,6 +96,7 @@ message TransactionResult {
     repeated Transaction DeferredTransactions = 10;
     Hash DeferredTxnId = 11;
     string Error = 12;
+    string ReadableReturnValue = 13;
 }
 
 // For failed transactions, its status follows the Min of
@@ -133,6 +134,7 @@ message TransactionTrace {
     bytes DeferredTransaction = 12;
     TransactionTrace FeeTransactionTrace = 13;
     TransactionExecutingStateSet StateSet = 14;
+    string ReadableReturnValue = 15;
 }
 
 message ExecutionReturnSet {
