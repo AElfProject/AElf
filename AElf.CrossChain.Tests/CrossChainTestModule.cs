@@ -13,12 +13,6 @@ namespace AElf.CrossChain
         typeof(CrossChainAElfModule))]
     public class CrossChainTestModule : AElfModule
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient<ITransactionResultService, NoBranchTransactionResultService>();
-            context.Services.AddTransient<ITransactionResultQueryService, NoBranchTransactionResultService>();
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
@@ -28,13 +22,6 @@ namespace AElf.CrossChain
 
             //TODO: please mock data here, do not directly new object, if you have multiple dependency, you should have 
             //different modules, like  AElfIntegratedTest<AAACrossChainTestModule>,  AElfIntegratedTest<BBBCrossChainTestModule>
-        }
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.RemoveAll(x =>
-                (x.ServiceType == typeof(ITransactionResultService) ||
-                 x.ServiceType == typeof(ITransactionResultQueryService)) &&
-                x.ImplementationType != typeof(NoBranchTransactionResultService));
         }
     }
 }

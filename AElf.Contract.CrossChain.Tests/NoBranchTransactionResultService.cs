@@ -6,7 +6,7 @@ using AElf.Kernel.Blockchain.Domain;
 
 namespace AElf.Contract.CrossChain.Tests
 {
-    public class NoBranchTransactionResultService : ITransactionResultService
+    public class NoBranchTransactionResultService// : ITransactionResultService
     {
         private readonly Hash _nullDisambiguationHash = Hash.Ones;
         private readonly ITransactionResultManager _transactionResultManager;

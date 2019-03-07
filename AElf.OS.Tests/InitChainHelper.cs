@@ -10,7 +10,7 @@ using AElf.Kernel.KernelAccount;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
-namespace AElf.OS.Tests
+namespace AElf.OS
 {
     public class InitChainHelper
     {

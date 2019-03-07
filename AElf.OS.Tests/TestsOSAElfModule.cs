@@ -5,7 +5,6 @@ using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Consensus.DPoS.Tests;
@@ -14,10 +13,8 @@ using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
-using AElf.OS.Account;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
-using AElf.Runtime.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -26,7 +23,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Tests
+namespace AElf.OS
 {
     [DependsOn(
         typeof(CoreOSAElfModule),
