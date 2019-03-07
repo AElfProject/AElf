@@ -27,8 +27,13 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
+            context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
+
+            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
 
             context.Services.AddSingleton<ConsensusControlInformation>();
+              
+            context.Services.AddSingleton<BestChainFoundEventHandler>();
         }
     }
 }

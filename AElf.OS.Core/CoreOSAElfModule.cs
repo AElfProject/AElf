@@ -15,7 +15,6 @@ using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;

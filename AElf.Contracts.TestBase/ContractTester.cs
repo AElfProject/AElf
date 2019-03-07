@@ -22,6 +22,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
@@ -64,8 +65,6 @@ namespace AElf.Contracts.TestBase
 
         public ECKeyPair CallOwnerKeyPair { get; set; }
 
-        public List<Address> DeployedContractsAddresses { get; set; }
-
         public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
             _chainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
@@ -73,7 +72,7 @@ namespace AElf.Contracts.TestBase
             CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
 
             var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey) ;
+            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
             _accountService = mockAccountService.Object;
 
             var application =
@@ -81,9 +80,22 @@ namespace AElf.Contracts.TestBase
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
+                    options.Services.Configure<DPoSOptions>(o =>
+                    {
+                        var minersKeyPairs = new List<ECKeyPair> {CallOwnerKeyPair};
+                        for (var i = 0; i < 2; i++)
+                        {
+                            minersKeyPairs.Add(CryptoHelpers.GenerateKeyPair());
+                        }
+
+                        o.InitialMiners = minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList();
+                        o.MiningInterval = 4000;
+                        o.IsBootMiner = true;
+                    });
                     //options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
-                    options.Services.AddSingleton(Mock.Of<IAccountService>(s => s.GetPublicKeyAsync()==Task.FromResult( CallOwnerKeyPair.PublicKey ) ));
+                    options.Services.AddSingleton(Mock.Of<IAccountService>(s =>
+                        s.GetPublicKeyAsync() == Task.FromResult(CallOwnerKeyPair.PublicKey)));
                 });
             application.Initialize();
 
@@ -110,6 +122,11 @@ namespace AElf.Contracts.TestBase
             CallOwnerKeyPair = caller;
         }
 
+        public Address GetContractAddress(Hash name)
+        {
+            return _smartContractAddressService.GetAddressByContractName(name);
+        }
+
         public Address GetCallOwnerAddress()
         {
             return GetAddress(CallOwnerKeyPair);
@@ -121,7 +138,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
+        public async Task InitialChainAsync(params Type[] contractTypes)
         {
             var dto = new OsBlockchainNodeContextStartDto
             {
@@ -133,27 +150,22 @@ namespace AElf.Contracts.TestBase
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
+        }
 
-            var systemSmartContractNames =
-                dto.InitializationSmartContracts.Select(p => p.SystemSmartContractName).ToList();
-
-            var addresses = new List<Address>();
-
-            addresses.Add(_smartContractAddressService.GetAddressByContractName(Hash.Empty));
-            addresses.Add(
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name));
-
-            foreach (var systemSmartContractName in systemSmartContractNames)
+        public Address GetSmartContractAddress(Type contractType)
+        {
+            if (contractType == typeof(BasicContractZero))
             {
-                addresses.Add(_smartContractAddressService.GetAddressByContractName(systemSmartContractName));
+                return _smartContractAddressService.GetAddressByContractName(Hash.Empty);
             }
 
-            DeployedContractsAddresses = addresses;
+            return _smartContractAddressService.GetAddressByContractName(Hash.FromString(contractType.FullName));
+        }
 
-            if (_smartContractAddressService.GetZeroSmartContractAddress() != addresses[0])
-                throw new Exception("zero address not equal");
-
-            return addresses;
+        public Address GetConsensusContractAddress()
+        {
+            return _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
+                .Name);
         }
 
         /// <summary>
