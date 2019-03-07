@@ -504,7 +504,7 @@ namespace AElf.Contract.CrossChain.Tests
             var chainId = ChainHelpers.GetChainId(1);
             var height = await CallContractMethodAsync(CrossChainContractAddress, "GetSideChainHeight",
                 ChainHelpers.ConvertChainIdToBase58(chainId));
-            Assert.Empty(height);
+            Assert.Equal(0L, height.DeserializeToInt64());
         }
     }
 }

@@ -6,7 +6,7 @@ using AElf.Common;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Types.CSharp
 {
     public static class ReturnTypeHelper
     {

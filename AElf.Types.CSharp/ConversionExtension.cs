@@ -83,7 +83,7 @@ namespace AElf.Types.CSharp
 
         public static bool DeserializeToBool(this ByteString bs)
         {
-            return BoolValue.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<bool>()(bs.ToByteArray());
         }
 
         public static IMessage ToPbMessage(this bool value)
@@ -107,7 +107,7 @@ namespace AElf.Types.CSharp
 
         public static int DeserializeToInt32(this ByteString bs)
         {
-            return SInt32Value.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<int>()(bs.ToByteArray());
         }
 
         public static IMessage ToPbMessage(this int value)
@@ -131,7 +131,7 @@ namespace AElf.Types.CSharp
 
         public static uint DeserializeToUInt32(this ByteString bs)
         {
-            return UInt32Value.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<uint>()(bs.ToByteArray());
         }
 
         public static byte[] ToFriendlyBytes(this uint value)
@@ -163,7 +163,7 @@ namespace AElf.Types.CSharp
 
         public static long DeserializeToInt64(this ByteString bs)
         {
-            return SInt64Value.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<long>()(bs.ToByteArray());
         }
 
         public static byte[] ToFriendlyBytes(this long value)
@@ -195,7 +195,7 @@ namespace AElf.Types.CSharp
 
         public static ulong DeserializeToUInt64(this ByteString bs)
         {
-            return UInt64Value.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<ulong>()(bs.ToByteArray());
         }
 
         public static byte[] ToFriendlyBytes(this ulong value)
@@ -227,7 +227,7 @@ namespace AElf.Types.CSharp
 
         public static string DeserializeToString(this ByteString bs)
         {
-            return StringValue.Parser.ParseFrom(bs).Value;
+            return ReturnTypeHelper.GetDecoder<string>()(bs.ToByteArray());
         }
 
         public static byte[] ToFriendlyBytes(this string value)
