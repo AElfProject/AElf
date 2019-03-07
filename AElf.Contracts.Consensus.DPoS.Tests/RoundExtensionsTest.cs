@@ -130,8 +130,10 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(miningInterval / 2 + 1).ToTimestamp();
                 var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTimestamp);
 
-                arrangedMiningTime.ShouldBe(round.GetExpectedEndTime().ToDateTime()
-                    .AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp());
+                arrangedMiningTime.ShouldBeOneOf(
+                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp(),
+                    // If this node is EBP.
+                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval).ToTimestamp());
             }
 
             // If this node noticed he missed his time slot several rounds later.
