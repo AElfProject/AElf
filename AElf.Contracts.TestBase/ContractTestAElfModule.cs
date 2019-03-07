@@ -12,12 +12,14 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
 using AElf.OS;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.TestBase
@@ -35,6 +37,9 @@ namespace AElf.Contracts.TestBase
             services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
             services.AddSingleton(o => Mock.Of<IPeerPool>());
 
+            services.AddSingleton(o => Mock.Of<INetworkService>());
+
+            //services.AddSingleton<ILocalEventBus, NullLocalEventBus>();
         }
     }
 }

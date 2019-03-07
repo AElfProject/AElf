@@ -73,7 +73,7 @@ namespace AElf.Contracts.TestBase
             CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
 
             var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
+            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey) ;
             _accountService = mockAccountService.Object;
 
             var application =
@@ -83,7 +83,7 @@ namespace AElf.Contracts.TestBase
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
                     //options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
                     options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
-                    options.Services.AddSingleton(_accountService);
+                    options.Services.AddSingleton(Mock.Of<IAccountService>(s => s.GetPublicKeyAsync()==Task.FromResult( CallOwnerKeyPair.PublicKey ) ));
                 });
             application.Initialize();
 

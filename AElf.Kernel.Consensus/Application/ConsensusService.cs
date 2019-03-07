@@ -149,7 +149,6 @@ namespace AElf.Kernel.Consensus.Application
 
             var transactionTrace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
-            Console.WriteLine(transactionTrace.StdErr);
             return transactionTrace.RetVal.Data;
         }
     }

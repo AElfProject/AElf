@@ -224,8 +224,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
-            mockAccountService.Setup(s => s.GetAccountAsync())
-                .ReturnsAsync(Address.FromPublicKey(CallOwnerKeyPair.PublicKey));
 
             return mockAccountService.Object;
         }

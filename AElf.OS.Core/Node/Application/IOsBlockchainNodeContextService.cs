@@ -119,6 +119,9 @@ namespace AElf.OS.Node.Application
                 .Select(p =>
                     GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName)));
 
+            if (dto.InitializationTransactions != null)
+                transactions.AddRange(dto.InitializationTransactions);
+
             var blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
                 ChainId = dto.ChainId,
