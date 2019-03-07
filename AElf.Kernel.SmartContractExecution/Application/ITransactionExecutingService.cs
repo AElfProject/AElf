@@ -172,7 +172,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
-                        ReturnValue = ByteString.CopyFrom(trace.RetVal.ToFriendlyBytes()),
+                        ReturnValue = trace.RetVal.Data,
                         BlockNumber = blockHeight,
                         //StateHash = trace.GetSummarizedStateHash(),
                         Logs = {trace.FlattenedLogs}
