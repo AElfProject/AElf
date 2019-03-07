@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.Extensions
+namespace AElf.Contracts.Consensus.DPoS
 {
-    public static class RoundExtensions
+    public static class BasicExtensions
     {
         /// <summary>
         /// This method is only executable when the miners of this round is more than 1.
@@ -312,6 +313,110 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return order;
         }
 
+        private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
+        {
+            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
+        }
+
+        /// <summary>
+        /// Get the first valid (mined) miner's information, which means this miner's signature shouldn't be empty.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <returns></returns>
+        public static MinerInRound GetFirstPlaceMinerInformation(this Round round)
+        {
+            return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature != null);
+        }
+
+        public static Hash CalculateSignature(this Round round, Hash inValue)
+        {
+            // Check the signatures
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                if (minerInRound.Value.Signature == null)
+                {
+                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
+                }
+            }
+
+            return Hash.FromTwoHashes(inValue,
+                round.RealTimeMinersInformation.Values.Aggregate(Hash.Default,
+                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+        }
+        
+        public static UInt64Value ToUInt64Value(this ulong value)
+        {
+            return new UInt64Value {Value = value};
+        }
+
+        public static StringValue ToStringValue(this string value)
+        {
+            return new StringValue {Value = value};
+        }
+
+        /// <summary>
+        /// Include both min and max value.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static bool InRange(this int value, int min, int max)
+        {
+            return value >= min && value <= max;
+        }
+        
+        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
+        {
+            var dict = new Dictionary<string, int>();
+
+            foreach (var miner in miners.PublicKeys)
+            {
+                dict.Add(miner, miner[0]);
+            }
+
+            var sortedMiners =
+                (from obj in dict
+                    orderby obj.Value descending
+                    select obj.Key).ToList();
+
+            var round = new Round();
+
+            // The extra block producer of first round is totally randomized.
+            var selected = new Random().Next(0, miners.PublicKeys.Count);
+            
+            for (var i = 0; i < sortedMiners.Count; i++)
+            {
+                var minerInRound = new MinerInRound();
+
+                if (i == selected)
+                {
+                    minerInRound.IsExtraBlockProducer = true;
+                }
+                
+                minerInRound.PublicKey = sortedMiners[i];
+                minerInRound.Order = i + 1;
+                // Signatures totally randomized.
+                minerInRound.Signature = Hash.Generate();
+                minerInRound.ExpectedMiningTime =
+                    GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
+                minerInRound.PromisedTinyBlocks = 1;
+
+                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
+            }
+
+            round.RoundNumber = currentRoundNumber + 1;
+            round.TermNumber = currentTermNumber + 1;
+
+            return round;
+        }
+
+        public static Hash GetMinersHash(this Miners miners)
+        {
+            return Hash.FromString(miners.PublicKeys.OrderBy(p => p.Take(1))
+                .Aggregate("", (current, publicKey) => current + publicKey));
+        }
+
         public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, ulong termNumber)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
@@ -320,7 +425,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
-
+        
         /// <summary>
         /// If DaysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
@@ -339,48 +444,25 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                    DPoSContractConsts.DaysEachTerm != termNumber - 1;
         }
         
-        private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
+        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 0)
         {
-            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
-        }
-
-        /// <summary>
-        /// Get the first valid (mined) miner's information, which means this miner's signature shouldn't be empty.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <returns></returns>
-        public static MinerInRound GetFirstPlaceMinerInformation(this Round round)
-        {
-            return round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m => m.Signature != null);
-        }
-
-        /// <summary>
-        /// Normally, signature should calculate from current in value and signatures of previous round.
-        /// But in case of someone failed to publish his signature during previous round,
-        /// for now, we use the hash value of this miner's public key in stead of his signature.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <param name="inValue"></param>
-        /// <returns></returns>
-        public static Hash CalculateSignature(this Round round, Hash inValue)
-        {
-            // Check the signatures
-            foreach (var minerInRound in round.RealTimeMinersInformation)
-            {
-                if (minerInRound.Value.Signature == null)
-                {
-                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
-                }
-            }
-
-            return Hash.FromTwoHashes(inValue,
-                round.RealTimeMinersInformation.Values.Aggregate(Hash.Default,
-                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+            return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
         }
 
         private static int GetModulus(ulong uLongVal, int intVal)
         {
             return Math.Abs((int) (uLongVal % (ulong) intVal));
+        }
+        
+        /// <summary>
+        /// Get local time
+        /// </summary>
+        /// <param name="offset">minutes</param>
+        /// <returns></returns>
+        private static Timestamp GetTimestampOfUtcNow(int offset = 0)
+        {
+            var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
+            return now;
         }
     }
 }

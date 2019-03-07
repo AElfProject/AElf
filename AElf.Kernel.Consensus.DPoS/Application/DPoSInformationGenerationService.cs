@@ -49,7 +49,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             
             switch (Hint.Behaviour)
             {
-                case DPoSBehaviour.InitialTerm:
+                case DPoSBehaviour.InitialConsensus:
                     return new DPoSTriggerInformation
                     {
                         PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         Miners = {_dpoSOptions.InitialMiners},
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
                     }.ToByteArray();
-                case DPoSBehaviour.PackageOutValue:
+                case DPoSBehaviour.UpdateValue:
                     if (_inValue == null)
                     {
                         // First Round.
