@@ -215,6 +215,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Test", "AElf.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Abstracts", "AElf.Kernel.SmartContract.Abstracts\AElf.Kernel.SmartContract.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc", "AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -533,6 +535,10 @@ Global
 		{35636A23-C51F-4B05-8F1B-AFA435332C46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35636A23-C51F-4B05-8F1B-AFA435332C46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35636A23-C51F-4B05-8F1B-AFA435332C46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -609,5 +615,6 @@ Global
 		{1AB21B04-6593-4F63-B2BB-5C6939A764FE} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{2A442741-0593-415F-B801-3AA553E547AB} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{35636A23-C51F-4B05-8F1B-AFA435332C46} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{A2B97AF5-E03F-4C37-B44B-3B73C489BF89} = {89AC0402-38F7-405C-B244-31C5F13FD364}
 	EndGlobalSection
 EndGlobal
