@@ -2,10 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
@@ -113,12 +116,23 @@ namespace AElf.OS
             var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
                 .Value.NodeAccount);
 
-            var transactions = InitChainHelper.GetGenesisTransactions(chainId, account);
+            var info = context.ServiceProvider.GetService<IStaticChainInformationProvider>();
+
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ZeroSmartContract = typeof(BasicContractZero),
                 ChainId = chainId,
             };
+
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>();
+
+            var transactions =
+                InitChainHelper.GetGenesisTransactions(chainId, account,
+                    info.GetSystemContractAddressInGenesisBlock(2));
+
+            dto.InitializationTransactions = transactions;
 
             var blockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             AsyncHelper.RunSync(() => blockchainNodeContextService.StartAsync(dto));

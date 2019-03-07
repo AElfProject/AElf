@@ -8,12 +8,19 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     {
         int ChainId { get; }
         Address ZeroSmartContractAddress { get; }
+
+        Address GetSystemContractAddressInGenesisBlock(ulong i);
     }
 
     public class StaticChainInformationProvider : IStaticChainInformationProvider, ISingletonDependency
     {
         public int ChainId { get; }
         public Address ZeroSmartContractAddress { get; }
+
+        public Address GetSystemContractAddressInGenesisBlock(ulong i)
+        {
+            return BuildContractAddress(ChainId, i);
+        }
 
         public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
         {

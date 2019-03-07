@@ -12,6 +12,7 @@ namespace AElf.Kernel.SmartContract.Application
         void SetAddress(Hash name, Address address);
 
         Address GetZeroSmartContractAddress();
+
     }
 
     public class SmartContractAddressService : ISmartContractAddressService, ISingletonDependency
