@@ -19,8 +19,9 @@ namespace AElf.CrossChain
         {
             var indexedCrossChainBlockData =
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.GetHash(), blockHeader.Height);
-            
-            var txRootHashList = indexedCrossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
+            if (indexedCrossChainBlockData == null)
+                return null;
+            var txRootHashList = indexedCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
             return calculatedSideChainTransactionsRoot.ToByteString();

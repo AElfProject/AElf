@@ -98,6 +98,18 @@ namespace AElf.CrossChain
                         dict.IdHeighDict.Add(crossChainTestHelper.SideChainIdHeights);
                         trace.RetVal.Data = dict.ToByteString();
                     }
+                    else if(methodName == CrossChainConsts.GetIndexedCrossChainBlockDataByHeight)
+                    {
+                        long height =
+                            (long) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(long)})[0];
+                        if (!crossChainTestHelper.IndexedCrossChainBlockData.TryGetValue(height,
+                            out var crossChainBlockData))
+                        {
+                            trace.ExecutionStatus = ExecutionStatus.ContractError;
+                        }
+                        else
+                            trace.RetVal.Data = crossChainBlockData.ToByteString();
+                    }
 
                     return Task.FromResult(trace);
                 });
