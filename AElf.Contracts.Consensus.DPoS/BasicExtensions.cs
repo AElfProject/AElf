@@ -5,9 +5,9 @@ using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace AElf.Contracts.Consensus.DPoS
 {
-    public static class Exetensions
+    public static class BasicExtensions
     {
         /// <summary>
         /// This method is only executable when the miners of this round is more than 1.
@@ -411,9 +411,36 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return round;
         }
 
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys)
+        public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, ulong termNumber)
         {
-            return new Miners {PublicKeys = {minerPublicKeys}};
+            var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
+            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null).Select(m => m.ActualMiningTime)
+                .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
+            return approvalsCount >= minimumCount;
+        }
+        
+        /// <summary>
+        /// If DaysEachTerm == 7:
+        /// 1, 1, 1 => 0 != 1 - 1 => false
+        /// 1, 2, 1 => 0 != 1 - 1 => false
+        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
+        /// 1, 9, 2 => 1 != 2 - 1 => false
+        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
+        /// </summary>
+        /// <param name="blockchainStartTimestamp"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="blockProducedTimestamp"></param>
+        /// <returns></returns>
+        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
+        {
+            return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
+                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+        }
+        
+        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber)
+        {
+            return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
         }
 
         private static int GetModulus(ulong uLongVal, int intVal)

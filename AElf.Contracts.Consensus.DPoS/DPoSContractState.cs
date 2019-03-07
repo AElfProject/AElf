@@ -8,11 +8,10 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class DPoSContractState : ContractState
+    public partial class DPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        public DividendContractReferenceState DividendContract { get; set; }
-        public TokenContractReferenceState TokenContract { get; set; }
+
 
         /// <summary>
         /// Current round number.

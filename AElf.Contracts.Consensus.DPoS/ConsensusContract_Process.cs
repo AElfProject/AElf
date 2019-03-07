@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
@@ -8,10 +8,10 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
-    public partial class ConsensusContract : ISideChainDPoSConsensusSmartContract
+    public partial class ConsensusContract
     {
         #region InitialDPoS
         
@@ -20,16 +20,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(firstRound.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
 
-            // Do some initializations.
-            State.CurrentRoundNumberField.Value = 1;
-            State.AgeField.Value = 1;
-            State.BlockchainStartTimestamp.Value = firstRound.GetStartTime();
-            State.MiningIntervalField.Value = firstRound.GetMiningInterval();
+            InitialSettings(firstRound);
 
             SetAliases(firstRound);
 
             firstRound.BlockchainAge = 1;
-            TryToAddRoundInformation(firstRound);
+            Assert(TryToAddRoundInformation(firstRound), "Failed to add round information.");
         }
 
         private void SetAliases(Round round)
@@ -54,9 +50,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         }
         
         #endregion
-
+        
         #region UpdateValue
-
+        
         public void UpdateValue(ToUpdate toUpdate)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
@@ -83,13 +79,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
             }
             
-            TryToUpdateRoundInformation(round);
+            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
         }
-
         #endregion
-        
+
+        #region NextRound
+
         public void NextRound(Round round)
         {
             if (TryToGetRoundNumber(out var roundNumber))
@@ -106,13 +103,15 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             Assert(TryToGetCurrentRoundInformation(out var currentRound), "Failed to get current round information.");
 
-            TryToAddRoundInformation(round);
+            UpdateHistoryInformation(round);
+
+            Assert(TryToAddRoundInformation(round), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
         }
         
-        public bool TryToUpdateRoundNumber(ulong roundNumber)
+        private bool TryToUpdateRoundNumber(ulong roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumberField.Value;
             if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
@@ -124,6 +123,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return true;
         }
 
+
+        #endregion
+        
         public void TryToFindLIB()
         {
             if (CalculateLIB(out var offset))
@@ -202,8 +204,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             return false;
         }
-        
-        private bool TryToAddRoundInformation(Round round)
+
+         private bool TryToAddRoundInformation(Round round)
         {
             var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
             if (ri != null)

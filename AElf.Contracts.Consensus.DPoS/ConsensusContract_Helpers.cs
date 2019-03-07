@@ -12,18 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public bool TryToUpdateRoundNumber(ulong roundNumber)
-        {
-            var oldRoundNumber = State.CurrentRoundNumberField.Value;
-            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
-            {
-                return false;
-            }
-
-            State.CurrentRoundNumberField.Value = roundNumber;
-            return true;
-        }
-
         public bool TryToUpdateTermNumber(ulong termNumber)
         {
             var oldTermNumber = State.CurrentTermNumberField.Value;
@@ -36,52 +24,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetRoundNumber(out ulong roundNumber)
-        {
-            roundNumber = State.CurrentRoundNumberField.Value;
-            return roundNumber != 0;
-        }
-
         public bool TryToGetTermNumber(out ulong termNumber)
         {
             termNumber = State.CurrentTermNumberField.Value;
             return termNumber != 0;
-        }
-
-        public bool TryToGetCurrentRoundInformation(out Round roundInformation)
-        {
-            roundInformation = null;
-            if (TryToGetRoundNumber(out var roundNumber))
-            {
-                roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-                if (roundInformation != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public bool TryToGetPreviousRoundInformation(out Round roundInformation)
-        {
-            if (TryToGetRoundNumber(out var roundNumber))
-            {
-                roundInformation = State.RoundsMap[(roundNumber - 1).ToUInt64Value()];
-                if (roundInformation != null)
-                {
-                    return true;
-                }
-            }
-
-            roundInformation = new Round();
-            return false;
-        }
-
-        public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
-        {
-            roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
-            return roundInformation != null;
         }
 
         public bool TryToGetMiners(ulong termNumber, out Miners miners)
@@ -115,22 +61,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetMiningInterval(out int miningInterval)
-        {
-            miningInterval = State.MiningIntervalField.Value;
-            return miningInterval > 0;
-        }
-
         public bool TryToGetCurrentAge(out ulong blockAge)
         {
             blockAge = State.AgeField.Value;
             return blockAge > 0;
-        }
-
-        public bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
-        {
-            timestamp = State.BlockchainStartTimestamp.Value;
-            return timestamp != null;
         }
 
         public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
@@ -188,30 +122,6 @@ namespace AElf.Contracts.Consensus.DPoS
             State.HistoryMap[historyInformation.PublicKey.ToStringValue()] = historyInformation;
         }
 
-        private bool TryToAddRoundInformation(Round round)
-        {
-            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
-            if (ri != null)
-            {
-                return false;
-            }
-
-            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
-            return true;
-        }
-
-        private bool TryToUpdateRoundInformation(Round round)
-        {
-            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
-            if (ri == null)
-            {
-                return false;
-            }
-
-            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
-            return true;
-        }
-
         public void AddOrUpdateTicketsInformation(Tickets tickets)
         {
             State.TicketsMap[tickets.PublicKey.ToStringValue()] = tickets;
@@ -220,12 +130,6 @@ namespace AElf.Contracts.Consensus.DPoS
         public void SetTermSnapshot(TermSnapshot snapshot)
         {
             State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()] = snapshot;
-        }
-
-        public void SetAlias(string publicKey, string alias)
-        {
-            State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
-            State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
         }
 
         public void SetMiningInterval(int miningInterval)
@@ -300,37 +204,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 minerInRound.OutValue != null || minerInRound.InValue != null);
         }
 
-        private bool InValueIsNull(Round round)
-        {
-            return round.RealTimeMinersInformation.Values.All(m => m.InValue == null);
-        }
-
         private bool ValidateVictories(Miners miners)
         {
             if (TryToGetVictories(out var victories))
             {
                 return victories.GetMinersHash() == miners.GetMinersHash();
-            }
-
-            return false;
-        }
-
-        private bool RoundIdMatched(Round round)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                return currentRoundInStateDB.RoundId == round.RoundId;
-            }
-
-            return false;
-        }
-
-        private bool NewOutValueFilled(Round round)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                return currentRoundInStateDB.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
-                       round.RealTimeMinersInformation.Values.Count(info => info.OutValue != null);
             }
 
             return false;
@@ -418,20 +296,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return DateTime.MaxValue;
-        }
-
-        private Transaction GenerateTransaction(string methodName, List<object> parameters)
-        {
-            var tx = new Transaction
-            {
-                From = Context.Sender,
-                To = Context.Self,
-                MethodName = methodName,
-                Type = TransactionType.DposTransaction,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
-            };
-
-            return tx;
         }
 
         #endregion

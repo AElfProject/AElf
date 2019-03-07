@@ -1,8 +1,9 @@
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract
+    public partial class ConsensusContract : ISideChainDPoSConsensusSmartContract
     {
         public void UpdateMainChainConsensus(byte[] consensusInformationBytes)
         {
@@ -11,7 +12,31 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
-            State.CurrentMiners.Value = minersKeys.ToMiners();
+            State.CurrentMiners.Value = minersKeys.ToMiners(1);
+        }
+
+        private void InitialSettings(Round firstRound)
+        {
+            // Do some initializations.
+            State.CurrentRoundNumberField.Value = 1;
+            State.AgeField.Value = 1;
+            State.BlockchainStartTimestamp.Value = firstRound.GetStartTime();
+            State.MiningIntervalField.Value = firstRound.GetMiningInterval();
+        }
+
+        private void UpdateHistoryInformation(Round round)
+        {
+        }
+
+        private bool TryToGetTermNumber(out ulong termNumber)
+        {
+            termNumber = 0;
+            return true;
+        }
+
+        private Round GenerateFirstRoundOfNextTerm()
+        {
+            return null;
         }
     }
 }

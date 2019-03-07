@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -7,10 +7,13 @@ using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace AElf.Contracts.Consensus.DPoS
 {
+    // ReSharper disable UnusedMember.Global
     public partial class ConsensusContract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
     {
+        // This file contains implementations of IConsensusSmartContract.
+        
         [View]
         public IMessage GetConsensusCommand(byte[] consensusTriggerInformation)
         {
@@ -85,6 +88,22 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                             Behaviour = behaviour
                         }.ToByteString()
                     };
+                case DPoSBehaviour.NextTerm:
+                    Assert(miningInterval != 0, "Failed to get mining interval.");
+
+                    Context.LogDebug(() => "About to terminate current term.");
+
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds =
+                            (int) (round.ArrangeAbnormalMiningTime(publicKey, timestamp).ToDateTime() -
+                                   timestamp.ToDateTime()).TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
                 case DPoSBehaviour.Invalid:
                     return new ConsensusCommand
                     {
@@ -119,7 +138,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 case DPoSBehaviour.InitialConsensus:
                     var miningInterval = payload.MiningInterval;
                     var initialMiners = payload.Miners;
-                    var firstRound = initialMiners.ToMiners().GenerateFirstRoundOfNewTerm(miningInterval);
+                    var firstRound = initialMiners.ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
@@ -160,6 +179,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     {
                         SenderPublicKey = publicKey,
                         Round = nextRound,
+                        Behaviour = behaviour
+                    };
+                case DPoSBehaviour.NextTerm:
+                    return new DPoSInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = GenerateFirstRoundOfNextTerm(),
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.Invalid:
@@ -232,6 +258,20 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                                 new List<object> {round})
                         }
                     };
+                case DPoSBehaviour.NextTerm:
+                    Assert(TryToGetRoundNumber(out var roundNumber), "Failed to get current round number.");
+                    Assert(TryToGetTermNumber(out var termNumber), "Failed to get current term number.");
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.NextTerm),
+                                new List<object> {round}),
+                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
+                        }
+                    };
                 case DPoSBehaviour.Invalid:
                     return new TransactionList();
                 default:
@@ -293,6 +333,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     }
 
                     break;
+                case DPoSBehaviour.NextTerm:
+                    if (!successToGetCurrentRound)
+                    {
+                        return new ValidationResult
+                            {Success = false, Message = "Failed to get current round information."};
+                    }
+
+                    break;
                 case DPoSBehaviour.Invalid:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour."};
                 default:
@@ -333,7 +381,19 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // If this node missed his time slot, a command of terminating current round will be fired,
             // and the terminate time will based on the order of this node (to avoid conflicts).
 
-            return DPoSBehaviour.NextRound;
+            // Calculate the approvals and make the judgement of changing term.
+            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
+                "Failed to get blockchain start timestamp.");
+            Assert(TryToGetTermNumber(out var termNumber), "Failed to get term number.");
+            if (round.RoundNumber == 1)
+            {
+                return DPoSBehaviour.NextRound;
+            }
+
+            Assert(TryToGetPreviousRoundInformation(out var previousRound), "Failed to previous round information.");
+            return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber)
+                ? DPoSBehaviour.NextTerm
+                : DPoSBehaviour.NextRound;
         }
 
         private string GetLogStringForOneRound(string publicKey)
