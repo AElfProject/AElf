@@ -14,6 +14,7 @@ using Module = AElf.Kernel.ABI.Module;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Runtime.CSharp.Core;
 
 namespace AElf.Runtime.CSharp
 {
@@ -131,8 +132,11 @@ namespace AElf.Runtime.CSharp
 
                 try
                 {
-                    var retVal = await handler(tx.Params.ToByteArray());
-                    _currentTransactionContext.Trace.RetVal = retVal;
+                    var retVal = handler.Execute(tx.Params.ToByteArray());
+                    _currentTransactionContext.Trace.RetVal = new RetVal()
+                    {
+                        Data = ByteString.CopyFrom(retVal)
+                    };
                     _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
                 }
                 catch (TargetInvocationException ex)
@@ -179,8 +183,8 @@ namespace AElf.Runtime.CSharp
         public ulong GetFee(string methodName)
         {
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
-            var retVal = handler(ParamsPacker.Pack(methodName)).Result;
-            return retVal.Data.DeserializeToUInt64();
+            var retVal = handler.Execute(ParamsPacker.Pack(methodName));
+            return ulong.Parse(handler.BytesToString(retVal));
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
@@ -194,6 +198,18 @@ namespace AElf.Runtime.CSharp
 
             // deserialize
             return string.Join(",", method.DeserializeParams(parameters));
+        }
+
+        public object GetReturnValue(string methodName, byte[] bytes)
+        {
+            var handler = _cache.GetHandler(methodName);
+
+            if (handler == null)
+            {
+                throw new RuntimeException($"Failed to find handler for {methodName}.");
+            }
+
+            return handler.BytesToReturnType(bytes);
         }
     }
 }

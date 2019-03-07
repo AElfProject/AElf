@@ -213,6 +213,8 @@ namespace AElf.Kernel.SmartContract.Application
                 executiveZero = await GetExecutiveAsync(registration);
                 executiveZero.SetDataCache(chainContext.StateCache);
                 await executiveZero.SetTransactionContext(txCtxt).Apply();
+                return executiveZero.GetReturnValue("GetSmartContractRegistrationByAddress",
+                    txCtxt.Trace.RetVal.Data.ToByteArray()) as SmartContractRegistration;
             }
             finally
             {
@@ -222,7 +224,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            return trace.RetVal.Data.DeserializeToPbMessage<SmartContractRegistration>();
+            return null;
         }
 
         /*
