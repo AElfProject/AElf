@@ -125,6 +125,7 @@ namespace AElf.Contracts.TestBase
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = _chainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
             
             dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);

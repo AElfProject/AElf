@@ -38,7 +38,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IChainManager _chainManager;
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
@@ -52,13 +51,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IChainManager chainManager)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
         {
             _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
-            _chainManager = chainManager;
 #if DEBUG
             SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
 #endif

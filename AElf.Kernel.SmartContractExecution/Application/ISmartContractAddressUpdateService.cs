@@ -19,19 +19,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class SmartContractAddressUpdateService : ISmartContractAddressUpdateService
     {
         private readonly ITransactionExecutingService _transactionExecutingService;
-        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
 
         private readonly IEnumerable<ISmartContractAddressNameProvider> _smartContractAddressNameProviders;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public SmartContractAddressUpdateService(ITransactionExecutingService transactionExecutingService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             IEnumerable<ISmartContractAddressNameProvider> smartContractAddressNameProviders,
             ISmartContractAddressService smartContractAddressService)
         {
             _transactionExecutingService = transactionExecutingService;
-            _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _smartContractAddressNameProviders = smartContractAddressNameProviders;
             _smartContractAddressService = smartContractAddressService;
         }
@@ -49,8 +46,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var t = new Transaction()
             {
-                From = _defaultContractZeroCodeProvider.ContractZeroAddress,
-                To = _defaultContractZeroCodeProvider.ContractZeroAddress,
+                From = _smartContractAddressService.GetZeroSmartContractAddress(),
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(ISmartContractZero.GetContractAddressByName),
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(smartContractAddressNameProvider.ContractName))
             };

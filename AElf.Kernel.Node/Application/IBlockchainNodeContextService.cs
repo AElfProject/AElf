@@ -42,12 +42,14 @@ namespace AElf.Kernel.Node.Application
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
-            ISmartContractAddressUpdateService smartContractAddressUpdateService)
+            ISmartContractAddressUpdateService smartContractAddressUpdateService,
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
             _txHub = txHub;
             _smartContractAddressUpdateService = smartContractAddressUpdateService;
+            _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
         }
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
@@ -71,6 +73,5 @@ namespace AElf.Kernel.Node.Application
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
         {
         }
-
     }
 }
