@@ -32,78 +32,16 @@ namespace AElf.OS.Rpc
     [DependsOn(
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
-        typeof(KernelAElfModule),
-        typeof(DPoSConsensusAElfModule),
-        typeof(CSharpRuntimeAElfModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
-        typeof(TestsOSAElfModule),
-        typeof(TestBaseKernelAElfModule)
+        typeof(TestsOSAElfModule)
     )]
     public class TestBaseRpcAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
             
-            context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
-            {
-                var mockService = new Mock<ISystemTransactionGenerationService>();
-                mockService.Setup(s =>
-                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(new List<Transaction>());
-                return mockService.Object;
-            });
-            
-            Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
-            peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
-                .Returns<string>((adr) => null);
-            peerPoolMock.Setup(p => p.GetPeers())
-                .Returns(new List<IPeer> { });
-
-            context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
-
-            context.Services.AddTransient<IBlockExtraDataService>(o =>
-            {
-                var mockService = new Mock<IBlockExtraDataService>();
-                mockService.Setup(s =>
-                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
-                return mockService.Object;
-            });
-            
-            context.Services.AddTransient<IBlockValidationService>(o =>
-            {
-                var mockService = new Mock<IBlockValidationService>();
-                mockService.Setup(s =>
-                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
-                mockService.Setup(s =>
-                    s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
-                return mockService.Object;
-            });
-            
-            context.Services.AddSingleton<IAElfNetworkServer>(c => Mock.Of<IAElfNetworkServer>());
-
-        }
-        
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var chainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
-                .Value.NodeAccount);
-
-            //var transactions = RpcTestHelper.GetGenesisTransactions(chainId, account);
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ChainId = chainId,
-                //InitializationTransactions = transactions
-            };
-            
-            dto.InitializationSmartContracts.AddGenesisSmartContracts();
-
-            var osBlockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync( () => osBlockchainNodeContextService.StartAsync(dto));
         }
     }
 }

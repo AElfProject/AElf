@@ -1,17 +1,17 @@
-using AElf.Modularity;
+﻿using AElf.Modularity;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.SmartContractExecution
+namespace AElf.Kernel.TransactionPool.Tests
 {
     [DependsOn(
-        typeof(SmartContractExecutionAElfModule),
+        typeof(TransactionPoolAElfModule),
         typeof(KernelCoreTestAElfModule)
     )]
-    public class SmartContractExecutionTestAElfModule : AElfModule
+    public class TransactionPoolTestAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            
         }
     }
 }

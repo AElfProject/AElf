@@ -204,6 +204,7 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+            Logger.LogDebug($"Attached {chainBlockLink.BlockHash}, status: {status}, new longest: {chain.LongestChainHash}");
 
             return status;
         }

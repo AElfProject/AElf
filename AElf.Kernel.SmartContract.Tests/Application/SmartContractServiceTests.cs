@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class SmartContractServiceTests : SmartContractTestBase
+    public class SmartContractServiceTests : SmartContractRunnerTestBase
     {
         private readonly SmartContractService _smartContractService;
 
