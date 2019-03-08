@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Application
 //        Task<SmartContractRegistration> GetContractByAddressAsync(Address address);
     }
 
-    public class SmartContractExecutiveService : ISmartContractExecutiveService, ITransientDependency
+    public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
     {
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
@@ -42,7 +42,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
 
-        private static readonly ConcurrentDictionary<Address, SmartContractRegistration>
+        private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 #if DEBUG
