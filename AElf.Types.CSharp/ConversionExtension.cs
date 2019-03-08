@@ -13,12 +13,6 @@ namespace AElf.Types.CSharp
 {
     public static class ConversionExtension
     {
-        private static byte[] TrimLeadingZeros(this byte[] bytes)
-        {
-            // TODO: Maybe improve performance
-            return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
-        }
-
         #region generic
 
         public static object DeserializeToType(this ByteString bs, Type type)
@@ -134,14 +128,6 @@ namespace AElf.Types.CSharp
             return ReturnTypeHelper.GetDecoder<uint>()(bs?.ToByteArray());
         }
 
-        public static byte[] ToFriendlyBytes(this uint value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return bytes.TrimLeadingZeros();
-        }
-
         public static IMessage ToPbMessage(this uint value)
         {
             return new UInt32Value() {Value = value};
@@ -164,14 +150,6 @@ namespace AElf.Types.CSharp
         public static long DeserializeToInt64(this ByteString bs)
         {
             return ReturnTypeHelper.GetDecoder<long>()(bs?.ToByteArray());
-        }
-
-        public static byte[] ToFriendlyBytes(this long value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return bytes.TrimLeadingZeros();
         }
 
         public static IMessage ToPbMessage(this long value)
@@ -198,14 +176,6 @@ namespace AElf.Types.CSharp
             return ReturnTypeHelper.GetDecoder<ulong>()(bs?.ToByteArray());
         }
 
-        public static byte[] ToFriendlyBytes(this ulong value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return bytes.TrimLeadingZeros();
-        }
-
         public static IMessage ToPbMessage(this ulong value)
         {
             return new UInt64Value() {Value = value};
@@ -230,11 +200,6 @@ namespace AElf.Types.CSharp
             return ReturnTypeHelper.GetDecoder<string>()(bs?.ToByteArray());
         }
 
-        public static byte[] ToFriendlyBytes(this string value)
-        {
-            return Encoding.UTF8.GetBytes(value);
-        }
-
         public static IMessage ToPbMessage(this string value)
         {
             return new StringValue() {Value = value};
@@ -257,11 +222,6 @@ namespace AElf.Types.CSharp
         public static byte[] DeserializeToBytes(this ByteString bs)
         {
             return bs?.ToByteArray();
-        }
-
-        public static byte[] ToFriendlyBytes(this byte[] value)
-        {
-            return value;
         }
 
         public static IMessage ToPbMessage(this byte[] value)
@@ -298,11 +258,6 @@ namespace AElf.Types.CSharp
                 return default(T);
             
             return ReturnTypeHelper.GetDecoder<T>()(bs?.ToByteArray());
-        }
-
-        public static byte[] ToFriendlyBytes(this IMessage value)
-        {
-            return value.ToByteArray();
         }
 
         public static IMessage ToPbMessage(this IMessage value)
@@ -355,11 +310,6 @@ namespace AElf.Types.CSharp
         public static T DeserializeToUserType<T>(this ByteString bs) where T : UserType, new()
         {
             return ReturnTypeHelper.GetDecoder<T>()(bs?.ToByteArray());
-        }
-
-        public static byte[] ToFriendlyBytes(this UserType value)
-        {
-            return value.ToPbMessage().ToByteArray();
         }
 
         public static IMessage ToPbMessage(this UserType value)
