@@ -15,6 +15,7 @@ using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -29,12 +30,17 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
             
+//            Configure<ChainOptions>(option =>
+//            {
+//                option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
+//                option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
+//            });
+
             context.Services.AddSingleton<INetworkService, NetworkService>();
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
@@ -42,8 +48,6 @@ namespace AElf.OS
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
             context.Services.AddTransient<IAccountService, AccountService>();
-            
-            context.Services.AddSingleton<IBlockExtraDataOrderService, BlockExtraDataOrderService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -72,16 +76,6 @@ namespace AElf.OS
             catch (Exception e)
             {
                 throw new Exception("Load keystore failed.", e);
-            }
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var extraDataOrderInformation = context.ServiceProvider.GetService<BlockExtraDataOrderService>();
-            var blockExtraDataProviders = context.ServiceProvider.GetServices<IBlockExtraDataProvider>();
-            foreach (var blockExtraDataProvider in blockExtraDataProviders)
-            {
-                extraDataOrderInformation.AddExtraDataProvider(blockExtraDataProvider.GetType());
             }
         }
 

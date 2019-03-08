@@ -14,36 +14,38 @@ namespace AElf.Types.CSharp
         public void Deserialize_To_Bool()
         {
             //true value
-            var stream = new MemoryStream(true.ToPbMessage().ToByteArray());
-            var boolByteString = ByteString.FromStream(stream);
-            var value1 = boolByteString.DeserializeToBool();
-            value1.ShouldBe(true);
+            {
+                var bytes = ReturnTypeHelper.GetEncoder<bool>()(true);
+                var decoded = ReturnTypeHelper.GetDecoder<bool>()(bytes);
+                decoded.ShouldBe(true);
+            }
+
 
             //false value
-            stream = new MemoryStream(false.ToPbMessage().ToByteArray());
-            var boolByteString1 = ByteString.FromStream(stream);
-            var value2 = boolByteString1.DeserializeToBool();
-            value2.ShouldBe(false);
+            {
+                var bytes = ReturnTypeHelper.GetEncoder<bool>()(false);
+                var decoded = ReturnTypeHelper.GetDecoder<bool>()(bytes);
+                decoded.ShouldBe(false);      
+            }
+
         }
 
         [Fact]
         public void Deserialize_To_Int()
         {
             var randomInt = new Random(DateTime.Now.Millisecond).Next(10_000, 80_000);
-            var stream = new MemoryStream(randomInt.ToPbMessage().ToByteArray());
-            var intByteString = ByteString.FromStream(stream);
-            var serializedValue = intByteString.DeserializeToInt32();
-            serializedValue.ShouldBe(randomInt);
+            var bytes = ReturnTypeHelper.GetEncoder<int>()(randomInt);
+            var decoded = ReturnTypeHelper.GetDecoder<int>()(bytes);
+            decoded.ShouldBe(randomInt);
         }
 
         [Fact]
         public void Deserialize_To_UInt()
         {
             var randomUInt = Convert.ToUInt32(new Random(DateTime.Now.Millisecond).Next());
-            var stream = new MemoryStream(randomUInt.ToPbMessage().ToByteArray());
-            var uintByteString = ByteString.FromStream(stream);
-            var serializedValue = uintByteString.DeserializeToUInt32();
-            serializedValue.ShouldBe(randomUInt);
+            var bytes = ReturnTypeHelper.GetEncoder<uint>()(randomUInt);
+            var decoded = ReturnTypeHelper.GetDecoder<uint>()(bytes);
+            decoded.ShouldBe(randomUInt);
         }
 
         [Fact]
@@ -64,9 +66,9 @@ namespace AElf.Types.CSharp
                 125, 33, 27, 37, 202, 102, 171, 207, 118, 196, 214, 99, 224, 148, 157, 25, 230, 96, 125, 28, 227, 78, 1, 228,
                 24, 161, 56, 125, 186, 214
             };
-            var byteString = ByteString.CopyFrom(bytes);
-            var newBytes = byteString.DeserializeToBytes();
-            newBytes.ShouldBe(bytes);
+            var encoded = ReturnTypeHelper.GetEncoder<byte[]>()(bytes);
+            var decoded = ReturnTypeHelper.GetEncoder<byte[]>()(encoded);
+            decoded.ShouldBe(bytes);
         }
     }
 }

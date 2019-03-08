@@ -28,7 +28,6 @@ namespace AElf.OS.Rpc.ChainController
         public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
-        public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
@@ -201,10 +200,8 @@ namespace AElf.OS.Rpc.ChainController
         {
             var transactionResult = await this.GetTransactionResult(transactionHash);
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-
-            var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
-            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
-
+            var transaction = await this.TransactionManager.GetTransaction(transactionHash);
+            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
             return response;
         }
 

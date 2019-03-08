@@ -214,21 +214,6 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        internal static async Task<TransactionTrace> GetTransactionTrace(this ChainControllerRpcService s, 
-            Hash txHash, long height)
-        {
-            var b = await s.GetBlockAtHeight(height);
-            if (b == null)
-            {
-                return null;
-            }
-
-            var prodAddr = Hash.FromRawBytes(b.Header.P.ToByteArray());
-            var res = await s.TransactionTraceManager.GetTransactionTraceAsync(txHash,
-                HashHelpers.GetDisambiguationHash(height, prodAddr));
-            return res;
-        }
-
         internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, 
             Transaction tx)
         {
