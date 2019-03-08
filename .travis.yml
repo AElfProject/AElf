@@ -15,6 +15,7 @@ before_script:
 script:
   - bash scripts/build.sh
   - bash scripts/test.sh
+after_script:
   - curl -s https://codecov.io/bash > codecov
   - chmod +x codecov
   - ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN

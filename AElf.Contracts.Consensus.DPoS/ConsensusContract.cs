@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.DPoS
         // This file contains implementations of IConsensusSmartContract.
         
         [View]
-        public IMessage GetConsensusCommand(byte[] consensusTriggerInformation)
+        public byte[] GetConsensusCommand(byte[] consensusTriggerInformation)
         {
             var payload = DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
 
@@ -54,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             Behaviour = behaviour
                         }.ToByteString()
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.UpdateValue:
                     Assert(miningInterval != 0, "Failed to get mining interval.");
 
@@ -71,7 +71,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             Behaviour = behaviour
                         }.ToByteString()
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.NextRound:
                     Assert(miningInterval != 0, "Failed to get mining interval.");
 
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             Behaviour = behaviour
                         }.ToByteString()
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.NextTerm:
                     Assert(miningInterval != 0, "Failed to get mining interval.");
 
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             Behaviour = behaviour
                         }.ToByteString()
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.Invalid:
                     return new ConsensusCommand
                     {
@@ -113,14 +113,14 @@ namespace AElf.Contracts.Consensus.DPoS
                         {
                             Behaviour = behaviour
                         }.ToByteString()
-                    };
+                    }.ToByteArray();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         [View]
-        public IMessage GetNewConsensusInformation(byte[] consensusTriggerInformation)
+        public byte[] GetNewConsensusInformation(byte[] consensusTriggerInformation)
         {
             var payload = DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
 
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         SenderPublicKey = publicKey,
                         Round = firstRound,
                         Behaviour = behaviour
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.UpdateValue:
                     Assert(payload.CurrentInValue != null && payload.CurrentInValue != null,
                         "Current in value should be valid.");
@@ -170,7 +170,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Round = round.ApplyNormalConsensusData(publicKey, previousInValue, outValue, signature,
                             timestamp),
                         Behaviour = behaviour
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
                     Assert(GenerateNextRoundInformation(round, timestamp, blockchainStartTimestamp, out var nextRound),
@@ -180,20 +180,20 @@ namespace AElf.Contracts.Consensus.DPoS
                         SenderPublicKey = publicKey,
                         Round = nextRound,
                         Behaviour = behaviour
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.NextTerm:
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = GenerateFirstRoundOfNextTerm(),
                         Behaviour = behaviour
-                    };
+                    }.ToByteArray();
                 case DPoSBehaviour.Invalid:
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
                         Behaviour = behaviour
-                    };
+                    }.ToByteArray();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -210,7 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var publicKey = payload.PublicKey;
 
-            var consensusInformationBytes = GetNewConsensusInformation(consensusTriggerInformation).ToByteArray();
+            var consensusInformationBytes = GetNewConsensusInformation(consensusTriggerInformation);
 
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
 
