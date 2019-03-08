@@ -34,7 +34,7 @@ namespace AElf.CrossChain
             {
                 TransactionId = transaction.GetHash(),
                 ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted,
-                RetVal = new RetVal()
+                RetVal = new RetVal{}
             };
             trace.RetVal.Data = CreateFakeReturnValue(trace, transaction, methodName);
             
@@ -47,15 +47,16 @@ namespace AElf.CrossChain
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
                 if (parentChainId != 0) 
-                    return parentChainId.ToPbMessage().ToByteString();
+                    return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<int>()(parentChainId));
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return ByteString.Empty;
             }
             
             if (methodName == CrossChainConsts.GetParentChainHeightMethodName)
             {
-                return _parentChainIdHeight.Values.First().ToPbMessage()
-                    .ToByteString();
+                return _parentChainIdHeight.Values.First() == 0
+                    ? null
+                    : ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<long>()(_parentChainIdHeight.Values.First()));
             }
 
             if (methodName == CrossChainConsts.GetSideChainHeightMethodName)
@@ -64,7 +65,9 @@ namespace AElf.CrossChain
                     (int) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(int)})[0];
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
                 if (exist)
-                    return sideChainHeight.ToPbMessage().ToByteString();
+                    return sideChainHeight == 0
+                        ? null
+                        : ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<long>()(sideChainHeight));
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return ByteString.Empty;
             }
@@ -74,7 +77,7 @@ namespace AElf.CrossChain
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
                 dict.IdHeighDict.Add(_parentChainIdHeight);
-                return dict.ToByteString();
+                return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict));
             }
 
             if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
@@ -82,7 +85,7 @@ namespace AElf.CrossChain
                 var dict = new SideChainIdAndHeightDict();
                 dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
-                return dict.ToByteString();
+                return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict));
             }
             
             if (methodName == CrossChainConsts.GetIndexedCrossChainBlockDataByHeight)
@@ -90,7 +93,7 @@ namespace AElf.CrossChain
                 long height =
                     (long) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(long)})[0];
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return trace.RetVal.Data = crossChainBlockData.ToByteString();
+                    return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<CrossChainBlockData>()(crossChainBlockData));
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return ByteString.Empty;
             }

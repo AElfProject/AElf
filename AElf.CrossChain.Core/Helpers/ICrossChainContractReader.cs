@@ -64,7 +64,7 @@ namespace AElf.CrossChain
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetParentChainHeightMethodName);
-            return await ReadByTransaction<long>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<long>(readOnlyTransaction, chainContext);
         }
 
         public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, Hash blockHash, long blockHeight)
@@ -72,21 +72,21 @@ namespace AElf.CrossChain
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainHeightMethodName,
                 sideChainId);
-            return await ReadByTransaction<long>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<long>(readOnlyTransaction, chainContext);
         }
 
         public async Task<int> GetParentChainIdAsync(Hash blockHash, long blockHeight)
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetParentChainIdMethodName);
-            return await ReadByTransaction<int>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<int>(readOnlyTransaction, chainContext);
         }
 
         public async Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainIdAndHeightMethodName);
-            var dict = await ReadByTransaction<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
             return new Dictionary<int, long>(dict.IdHeighDict);
         }
 
@@ -94,7 +94,7 @@ namespace AElf.CrossChain
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetAllChainsIdAndHeightMethodName);
-            var dict = await ReadByTransaction<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
             return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
         }
 
@@ -104,7 +104,7 @@ namespace AElf.CrossChain
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(CrossChainConsts.GetIndexedCrossChainBlockDataByHeight,
                     blockHeight);
-            return await ReadByTransaction<CrossChainBlockData>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, chainContext);
         }
 
         Address CrossChainContractMethodAddress => ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId());
@@ -121,18 +121,13 @@ namespace AElf.CrossChain
             return transaction;
         }
 
-        private async Task<T> ReadByTransaction<T>(Transaction readOnlyTransaction, IChainContext chainContext)
-        {
-            return await ReadByTransactionAsync<T>(readOnlyTransaction, chainContext);
-        }
-        
         private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, IChainContext chainContext)
         {
             var trace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, readOnlyTransaction, DateTime.UtcNow);
             
             if(trace.IsSuccessful())
-                return (T) trace.RetVal.Data.DeserializeToType(type: typeof(T));
+                return (T)trace.RetVal.Data.DeserializeToType(typeof(T));
             return default(T);
         }
         

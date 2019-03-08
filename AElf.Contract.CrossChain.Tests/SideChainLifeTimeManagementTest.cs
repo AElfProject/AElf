@@ -41,7 +41,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Mined);
             var expectedChainId = ChainHelpers.GetChainId(1);
             var actualChainIdBytes = txResult.ReturnValue.ToByteArray();
-            Assert.True(GetFriendlyBytes(expectedChainId).SequenceEqual(actualChainIdBytes));
+            Assert.Equal(expectedChainId, ReturnTypeHelper.GetDecoder<int>()(actualChainIdBytes));
         }
         
         [Fact]
@@ -142,7 +142,7 @@ namespace AElf.Contract.CrossChain.Tests
                 sideChainInfo);
             var expectedChainId = ChainHelpers.GetChainId(2);
             var actualChainIdBytes = txResult.ReturnValue.ToByteArray();
-            Assert.True(GetFriendlyBytes(expectedChainId).SequenceEqual(actualChainIdBytes));
+            Assert.Equal(expectedChainId, ReturnTypeHelper.GetDecoder<int>()(actualChainIdBytes));
         }
 
         [Fact]
