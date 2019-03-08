@@ -39,11 +39,12 @@ namespace AElf.Types.CSharp
 
         private List<UserFieldInfo> GetFieldInfos()
         {
-            if (!_fieldInfosByType.TryGetValue(GetType(), out var fieldInfos))
+            var type = GetType();
+            if (!_fieldInfosByType.TryGetValue(type, out var fieldInfos))
             {
-                fieldInfos = GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                fieldInfos = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                                       .Select(x => new UserFieldInfo(x)).ToList();
-                _fieldInfosByType.Add(GetType(), fieldInfos);
+                _fieldInfosByType.Add(type, fieldInfos);
             }
             return fieldInfos;
         }
