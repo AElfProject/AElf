@@ -1,10 +1,7 @@
 # AElf - A Decentralized Cloud Computing Blockchain Network
-[![Build Status][1]][2]
-
-[1]: https://travis-ci.org/AElfProject/AElf.svg?branch=master
-[2]: https://travis-ci.org/AElfProject/AElf
-
+[![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=Next,In%20Progress,Done)](https://waffle.io/AElfProject/AElf)
+[![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
 
 Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to 
 improve its quality and functionality.
