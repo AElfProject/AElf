@@ -39,10 +39,10 @@ namespace AElf.Contracts.Resource.Tests
             contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
 
-            BasicZeroContractAddress = Tester.GetSmartContractAddress(typeof(BasicContractZero));
-            TokenContractAddress = Tester.GetSmartContractAddress(typeof(TokenContract));
-            ResourceContractAddress = Tester.GetSmartContractAddress(typeof(ResourceContract));
-            FeeReceiverContractAddress = Tester.GetSmartContractAddress(typeof(FeeReceiverContract));
+            BasicZeroContractAddress = Tester.GetZeroContractAddress();
+            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
+            ResourceContractAddress = Tester.GetContractAddress(typeof(ResourceContract));
+            FeeReceiverContractAddress = Tester.GetContractAddress(typeof(FeeReceiverContract));
 
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
             FoundationKeyPair = CryptoHelpers.GenerateKeyPair();

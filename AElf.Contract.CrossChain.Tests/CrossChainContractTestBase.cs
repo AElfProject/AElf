@@ -29,10 +29,10 @@ namespace AElf.Contract.CrossChain.Tests
         {
             ContractTester = new ContractTester(0, CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() => ContractTester.InitialChainAsync(ContractTester.GetDefaultContractTypes().ToArray()));
-            CrossChainContractAddress = ContractTester.GetSmartContractAddress(typeof(CrossChainContract));
-            TokenContractAddress = ContractTester.GetSmartContractAddress(typeof(TokenContract));
-            ConsensusContractAddress = ContractTester.GetSmartContractAddress(typeof(ConsensusContract));
-            AuthorizationContractAddress = ContractTester.GetSmartContractAddress(typeof(AuthorizationContract));
+            CrossChainContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(CrossChainContract).FullName));
+            TokenContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
+            ConsensusContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(ConsensusContract).FullName));
+            AuthorizationContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
         }
 
         protected async Task ApproveBalance(ulong amount)

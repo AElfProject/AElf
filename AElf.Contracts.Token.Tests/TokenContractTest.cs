@@ -28,8 +28,8 @@ namespace AElf.Contracts.Token
         {
             Tester = new ContractTester();
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
-            BasicZeroContractAddress = Tester.GetSmartContractAddress(typeof(BasicContractZero));
-            TokenContractAddress = Tester.GetSmartContractAddress(typeof(TokenContract));
+            BasicZeroContractAddress = Tester.GetContractAddress(typeof(BasicContractZero));
+            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
             spenderKeyPair = CryptoHelpers.GenerateKeyPair();
         }
 
