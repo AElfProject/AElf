@@ -98,7 +98,8 @@ namespace AElf.CrossChain
         public async Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData, 
             Hash previousBlockHash, long preBlockHeight)
         {
-            
+            if (parentChainBlockData.Count == 0)
+                return true;
             var parentChainId = await _crossChainContractReader.GetParentChainIdAsync(previousBlockHash, preBlockHeight);
             if (parentChainId == 0)
                 // no configured parent chain

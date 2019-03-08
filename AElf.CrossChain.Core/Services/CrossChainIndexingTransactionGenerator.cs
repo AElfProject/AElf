@@ -15,7 +15,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator, ITransientDependency
+    public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ICrossChainService _crossChainService;
 

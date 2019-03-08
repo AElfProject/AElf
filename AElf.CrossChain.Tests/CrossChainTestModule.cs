@@ -1,27 +1,25 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Contracts.TestBase;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
     [DependsOn(
-        typeof(ContractTestAElfModule),
         typeof(CrossChainAElfModule),
         typeof(KernelTestAElfModule))]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<CrossChainTestHelper>();
             context.Services.AddTransient(provider =>
             {

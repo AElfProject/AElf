@@ -34,29 +34,32 @@ namespace AElf.CrossChain
             {
                 TransactionId = transaction.GetHash(),
                 ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted,
-                RetVal = new RetVal{}
             };
-            trace.RetVal.Data = CreateFakeReturnValue(trace, transaction, methodName);
+            var returnValue = CreateFakeReturnValue(trace, transaction, methodName);
+            trace.RetVal = new RetVal
+            {
+                Data = returnValue == null ? null : ByteString.CopyFrom(returnValue)
+            };
             
             return trace;
         }
 
-        private ByteString CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
+        private byte[] CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
         {
             if (methodName == CrossChainConsts.GetParentChainIdMethodName)
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
                 if (parentChainId != 0) 
-                    return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<int>()(parentChainId));
+                    return ReturnTypeHelper.GetEncoder<int>()(parentChainId);
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return ByteString.Empty;
+                return null;
             }
             
             if (methodName == CrossChainConsts.GetParentChainHeightMethodName)
             {
                 return _parentChainIdHeight.Values.First() == 0
                     ? null
-                    : ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<long>()(_parentChainIdHeight.Values.First()));
+                    : ReturnTypeHelper.GetEncoder<long>()(_parentChainIdHeight.Values.First());
             }
 
             if (methodName == CrossChainConsts.GetSideChainHeightMethodName)
@@ -67,9 +70,9 @@ namespace AElf.CrossChain
                 if (exist)
                     return sideChainHeight == 0
                         ? null
-                        : ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<long>()(sideChainHeight));
+                        : ReturnTypeHelper.GetEncoder<long>()(sideChainHeight);
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return ByteString.Empty;
+                return null;
             }
 
             if (methodName == CrossChainConsts.GetAllChainsIdAndHeightMethodName)
@@ -77,15 +80,14 @@ namespace AElf.CrossChain
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
                 dict.IdHeighDict.Add(_parentChainIdHeight);
-                return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict));
+                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
             }
 
             if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
             {
                 var dict = new SideChainIdAndHeightDict();
-                dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
-                return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict));
+                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
             }
             
             if (methodName == CrossChainConsts.GetIndexedCrossChainBlockDataByHeight)
@@ -93,12 +95,12 @@ namespace AElf.CrossChain
                 long height =
                     (long) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(long)})[0];
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return ByteString.CopyFrom(ReturnTypeHelper.GetEncoder<CrossChainBlockData>()(crossChainBlockData));
+                    return ReturnTypeHelper.GetEncoder<CrossChainBlockData>()(crossChainBlockData);
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return ByteString.Empty;
+                return null;
             }
 
-            return ByteString.Empty;
+            return null;
         }
     }
 }

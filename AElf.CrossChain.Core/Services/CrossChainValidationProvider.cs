@@ -8,7 +8,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainValidationProvider : IBlockValidationProvider, ITransientDependency
+    public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
         private readonly IBlockExtraDataService _blockExtraDataService;
@@ -29,10 +29,13 @@ namespace AElf.CrossChain
         {
             var indexedCrossChainBlockData =
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            if (indexedCrossChainBlockData == null)
+            var extraData = _blockExtraDataService
+                .GetExtraDataFromBlockHeader("CrossChain", block.Header);
+            if (indexedCrossChainBlockData == null && extraData == null)
                 return true;
-            var sideChainTransactionRootInExtraData = Hash.LoadByteArray(_blockExtraDataService
-                .GetExtraDataFromBlockHeader("CrossChain", block.Header).ToByteArray());
+            
+            var sideChainTransactionRootInExtraData = Hash.LoadByteArray(extraData.ToByteArray());
+            
             bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, sideChainTransactionRootInExtraData,
                 block.GetHash(), block.Height);
             if(!res)
@@ -43,13 +46,14 @@ namespace AElf.CrossChain
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, Hash sideChainTransactionsRoot,
             Hash preBlockHash, long preBlockHeight)
         {
-            var txRootHashList = crossChainBlockData.ParentChainBlockData.Select(pcb => pcb.Root.SideChainTransactionsRoot).ToList();
+            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
-            // first check equality with the root in header
+            // first check identity with the root in header
             if (sideChainTransactionsRoot != null && !calculatedSideChainTransactionsRoot.Equals(sideChainTransactionsRoot))
                 return false;
             
+            // check cache identity
             return await _crossChainService.ValidateSideChainBlockDataAsync(
                        crossChainBlockData.SideChainBlockData, preBlockHash, preBlockHeight) &&
                    await _crossChainService.ValidateParentChainBlockDataAsync(

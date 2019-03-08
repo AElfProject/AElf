@@ -62,49 +62,43 @@ namespace AElf.CrossChain
 
         public async Task<long> GetParentChainCurrentHeightAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetParentChainHeightMethodName);
-            return await ReadByTransactionAsync<long>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<long>(readOnlyTransaction, blockHash, blockHeight);
         }
 
         public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainHeightMethodName,
                 sideChainId);
-            return await ReadByTransactionAsync<long>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<long>(readOnlyTransaction, blockHash, blockHeight);
         }
 
         public async Task<int> GetParentChainIdAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetParentChainIdMethodName);
-            return await ReadByTransactionAsync<int>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<int>(readOnlyTransaction, blockHash, blockHeight);
         }
 
         public async Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainIdAndHeightMethodName);
-            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
             return new Dictionary<int, long>(dict.IdHeighDict);
         }
 
         public async Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetAllChainsIdAndHeightMethodName);
-            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, chainContext);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
             return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
-            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(CrossChainConsts.GetIndexedCrossChainBlockDataByHeight,
                     blockHeight);
-            return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, chainContext);
+            return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, blockHash, blockHeight);
         }
 
         Address CrossChainContractMethodAddress => ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId());
@@ -121,8 +115,9 @@ namespace AElf.CrossChain
             return transaction;
         }
 
-        private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, IChainContext chainContext)
+        private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, Hash blockHash, long blockHeight)
         {
+            var chainContext = GenerateChainContext(blockHash, blockHeight);
             var trace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, readOnlyTransaction, DateTime.UtcNow);
             

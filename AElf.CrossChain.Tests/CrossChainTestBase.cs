@@ -1,21 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Contracts.TestBase;
 using AElf.CrossChain.Cache;
-using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract.Application;
 using AElf.TestBase;
-using Google.Protobuf;
-using Moq;
-using Shouldly;
-using Volo.Abp;
-using Volo.Abp.EventBus.Local;
-using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
@@ -25,7 +11,6 @@ namespace AElf.CrossChain
         protected ITransactionResultService TransactionResultService;
         protected IMultiChainBlockInfoCacheProvider MultiChainBlockInfoCacheProvider;
         protected ICrossChainDataProducer CrossChainDataProducer;
-        protected ContractTester ContractTester;
         protected ICrossChainDataConsumer CrossChainDataConsumer;
 
         public CrossChainTestBase()

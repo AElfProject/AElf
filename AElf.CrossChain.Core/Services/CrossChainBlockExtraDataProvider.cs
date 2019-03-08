@@ -7,7 +7,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider, ITransientDependency
+    public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly ICrossChainService _crossChainService;
 
