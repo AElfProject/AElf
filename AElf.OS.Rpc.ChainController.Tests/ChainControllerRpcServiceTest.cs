@@ -403,6 +403,39 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseMessage.ShouldBe(Error.Message[Error.NotFound]);
         }
 
+        [Fact]
+        public async Task Get_Chain_Status_Success()
+        {
+            var response = await JsonCallAsJObject("/chain", "GetChainStatus");
+            response["result"]["Branches"].ShouldNotBeNull();
+            Convert.ToInt32(response["result"]["BestChainHeight"]).ShouldBe(2);
+        }
+        
+        [Fact]
+        public async Task Get_Block_State_Success()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < 3; i++)
+            {
+                transactions.Add(await GenerateTransferTransaction(chain));
+            }
+
+            await BroadcastTransactions(transactions);
+            var block = await MinedOneBlock(chain);
+            
+            var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
+                new {blockHeight = 3, includeTransactions = true});
+            var responseResult = response["result"];
+            var blockHash = responseResult["BlockHash"].ToString();
+            
+            var response1 = await JsonCallAsJObject("/chain", "GetBlockState",
+                blockHash);
+            response1["result"].ShouldNotBeNull();
+            
+
+        }
+        
         private async Task<Block> MinedOneBlock(Chain chain)
         {
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
