@@ -28,7 +28,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var generateBlockDto = new GenerateBlockDto
             {
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 PreviousBlockHeight = 1
             };
 
