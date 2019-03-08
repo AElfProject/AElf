@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
@@ -13,13 +15,12 @@ using Volo.Abp.Modularity;
 namespace AElf.CrossChain
 {
     [DependsOn(
-        typeof(CrossChainAElfModule),
-        typeof(KernelTestAElfModule))]
+        typeof(CrossChainAElfModule), typeof(KernelCoreTestAElfModule))]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
+            //context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<CrossChainTestHelper>();
             context.Services.AddTransient(provider =>
             {
@@ -32,6 +33,13 @@ namespace AElf.CrossChain
                     return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));
                 });
                 return mockTransactionReadOnlyExecutionService.Object;
+            });
+            context.Services.AddTransient(provider =>
+            {
+                var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
+                    .Returns(Address.Generate);
+                return mockSmartContractAddressService.Object;
             });
         }
     }

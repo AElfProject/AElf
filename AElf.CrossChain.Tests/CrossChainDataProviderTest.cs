@@ -132,6 +132,7 @@ namespace AElf.CrossChain
                     SideChainHeight = 1
                 }
             };
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
             var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Default, 1);
             Assert.False(res);
         }
@@ -186,7 +187,7 @@ namespace AElf.CrossChain
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
 
-            for (int i = 0; i <= CrossChainConsts.MinimalBlockInfoCacheThreshold; i++)
+            for (int i = 1; i <= CrossChainConsts.MinimalBlockInfoCacheThreshold + 1; i++)
             {
                 blockInfoCache.Add(new SideChainBlockData
                 {
@@ -195,7 +196,7 @@ namespace AElf.CrossChain
                 });
             }
 
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Default, 1);
@@ -211,7 +212,7 @@ namespace AElf.CrossChain
         public async Task GetParentChainBLock_WithEmptyCache()
         {
             int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
             var res = await _crossChainDataProvider.GetParentChainBlockDataAsync(Hash.Default, 1);
             Assert.Empty(res);
         }
@@ -287,7 +288,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
             var blockInfoCache = new List<IBlockInfo>();
             var cachingCount = CrossChainConsts.MinimalBlockInfoCacheThreshold;
-            for (int i = 0; i < cachingCount + 1; i++)
+            for (int i = 0; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData
                 {
@@ -309,10 +310,10 @@ namespace AElf.CrossChain
         public async Task GetParentBlock_Single()
         {
             int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
             var blockInfoCache = new List<IBlockInfo>();
             var cachingCount = CrossChainConsts.MinimalBlockInfoCacheThreshold + 1;
-            for (int i = 0; i < cachingCount; i++)
+            for (int i = 1; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData
                 {
@@ -336,11 +337,11 @@ namespace AElf.CrossChain
         public async Task GetParentChainBlock_Multiple()
         {
             int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
             var blockInfoCache = new List<IBlockInfo>();
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
-            for (int i = 0; i < cachingCount; i++)
+            for (int i = 1; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData
                 {
@@ -365,11 +366,11 @@ namespace AElf.CrossChain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock +
                                CrossChainConsts.MinimalBlockInfoCacheThreshold;
-            for (int i = 0; i < cachingCount; i++)
+            for (int i = 1; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData
                 {
@@ -394,11 +395,11 @@ namespace AElf.CrossChain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock +
                                CrossChainConsts.MinimalBlockInfoCacheThreshold;
-            for (int i = 0; i <= cachingCount; i++)
+            for (int i = 1; i <= cachingCount + 1; i++)
             {
                 blockInfoCache.Add(new ParentChainBlockData
                 {

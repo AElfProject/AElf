@@ -50,6 +50,8 @@ namespace AElf.CrossChain
         public async Task GetParentChainBlock_WithoutCache()
         {
             var mockParentChainBlockData = new List<ParentChainBlockData>();
+            int parentChainId = 1;
+            _crossChainTestHelper.AddFakeParentChainIdHeight(parentChainId, 1);
             var actual = await _crossChainService.GetParentChainBlockDataAsync(Hash.Default, 1);
             Assert.Equal(mockParentChainBlockData, actual);
         }
@@ -65,13 +67,13 @@ namespace AElf.CrossChain
                     Root = new ParentChainBlockRootInfo
                     {
                         ParentChainId = stubChainId,
-                        ParentChainHeight = 1
+                        ParentChainHeight = 2
                     }
                 }
             };
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockParentChainBlockData}};
             AddFakeCacheData(fakeCache);
-            _crossChainTestHelper.AddFakeSideChainIdHeight(stubChainId, 0);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(stubChainId, 1);
 
             var res = await _crossChainService.GetParentChainBlockDataAsync(Hash.Default, 1);
             Assert.True(res.Count == 0);
@@ -115,7 +117,7 @@ namespace AElf.CrossChain
             {
                 new SideChainBlockData
                 {
-                    SideChainId = stubChainId + 1,
+                    SideChainId = stubChainId,
                     SideChainHeight = 2
                 }
             };

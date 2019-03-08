@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.CrossChain.Cache;
 using AElf.Kernel.Blockchain.Application;
 using AElf.TestBase;
@@ -22,23 +23,6 @@ namespace AElf.CrossChain
             CrossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
         }
 
-        protected IMultiChainBlockInfoCacheProvider CreateFakeMultiChainBlockInfoCacheProvider(
-            Dictionary<int, List<IBlockInfo>> fakeCache)
-        {
-            var multiChainBlockInfoCacheProvider = new MultiChainBlockInfoCacheProvider();
-            foreach (var (chainId, blockInfos) in fakeCache)
-            {
-                var blockInfoCache = new BlockInfoCache(1);
-                multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache);
-                foreach (var blockInfo in blockInfos)
-                {
-                    blockInfoCache.TryAdd(blockInfo);
-                }
-            }
-
-            return multiChainBlockInfoCacheProvider;
-        }
-
         protected void CreateFakeCache(Dictionary<int, BlockInfoCache> cachingData)
         {
             foreach (var (key, value) in cachingData)
@@ -51,7 +35,7 @@ namespace AElf.CrossChain
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
-                CrossChainDataConsumer.RegisterNewChainCache(crossChainId);
+                CrossChainDataConsumer.RegisterNewChainCache(crossChainId, blockInfos.First().Height);
                 foreach (var blockInfo in blockInfos)
                 {
                     CrossChainDataProducer.AddNewBlockInfo(blockInfo);

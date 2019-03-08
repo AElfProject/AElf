@@ -39,22 +39,24 @@ namespace AElf.CrossChain
         public async Task Validate_WithoutCache()
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
-            
+            int chainId = 123;
             var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
             var fakeSideChainBlockDataList = new List<SideChainBlockData>
             {
                 new SideChainBlockData
                 {
                     SideChainHeight = 1,
-                    TransactionMKRoot = fakeMerkleTreeRoot1
+                    TransactionMKRoot = fakeMerkleTreeRoot1,
+                    SideChainId = chainId
                 }
             };
             fakeIndexedCrossChainBlockData.SideChainBlockData.AddRange(fakeSideChainBlockDataList);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(1, fakeIndexedCrossChainBlockData);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(fakeSideChainBlockDataList);
 
             var block = CreateFilledBlock(ByteString.CopyFrom(sideChainTxMerkleTreeRoot.DumpByteArray()));
-            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
                 _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
         }
         

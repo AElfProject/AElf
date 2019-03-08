@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain;
@@ -40,8 +38,7 @@ namespace AElf.Contract.CrossChain.Tests
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
             var expectedChainId = ChainHelpers.GetChainId(1);
-            var actualChainIdBytes = txResult.ReturnValue.ToByteArray();
-            Assert.Equal(expectedChainId, ReturnTypeHelper.GetDecoder<int>()(actualChainIdBytes));
+            Assert.Equal(expectedChainId, txResult.ReturnValue.DeserializeToInt32());
         }
         
         [Fact]
@@ -141,8 +138,7 @@ namespace AElf.Contract.CrossChain.Tests
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
                 sideChainInfo);
             var expectedChainId = ChainHelpers.GetChainId(2);
-            var actualChainIdBytes = txResult.ReturnValue.ToByteArray();
-            Assert.Equal(expectedChainId, ReturnTypeHelper.GetDecoder<int>()(actualChainIdBytes));
+            Assert.Equal(expectedChainId, txResult.ReturnValue.DeserializeToInt32());
         }
 
         [Fact]
