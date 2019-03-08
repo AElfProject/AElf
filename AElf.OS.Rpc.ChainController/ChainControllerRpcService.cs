@@ -151,7 +151,15 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            return await BuildTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
+            var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
+
+            var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+            response["BlockHash"] = block.BlockHashToHex;
+            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
+
+            return response;
         }
 
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
@@ -183,29 +191,23 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
 
-            var transactions = new JArray();
+            var response = new JArray();
             if (offset <= block.Body.Transactions.Count - 1)
             {
                 limit = Math.Min(limit, block.Body.Transactions.Count - offset);
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    transactions.Add(await BuildTransactionResult(hash));
+                    var transactionResult = await this.GetTransactionResult(hash);
+                    var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+                    var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
+                    jObjectResult["BlockHash"] = block.BlockHashToHex;
+                    jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
+                    response.Add(jObjectResult);
                 }
             }
 
-            return JArray.FromObject(transactions);
-        }
-
-        private async Task<JObject> BuildTransactionResult(Hash transactionHash)
-        {
-            var transactionResult = await this.GetTransactionResult(transactionHash);
-            var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-
-            var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
-            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
-
-            return response;
+            return JArray.FromObject(response);
         }
 
         [JsonRpcMethod("GetBlockHeight")]
