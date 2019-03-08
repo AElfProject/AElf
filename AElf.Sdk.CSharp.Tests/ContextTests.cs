@@ -96,7 +96,7 @@ namespace AElf.Sdk.CSharp.Tests
                 Height = 2,
                 Header = new BlockHeader
                 {
-                    PreviousBlockHash = Hash.Genesis
+                    PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
             };
@@ -268,7 +268,7 @@ namespace AElf.Sdk.CSharp.Tests
                 },
                 BlockHeight = 3,
                 CurrentBlockTime = DateTime.Now,
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 Trace = new TransactionTrace()
             };
             var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction

@@ -23,7 +23,7 @@ namespace AElf.Kernel.TransactionPool
         public async Task ValidateAsync( Transaction tx)
         {
 
-            if (tx.RefBlockNumber < ChainConsts.GenesisBlockHeight && CheckPrefix(Hash.Genesis, tx.RefBlockPrefix))
+            if (tx.RefBlockNumber < ChainConsts.GenesisBlockHeight && CheckPrefix(Hash.Empty, tx.RefBlockPrefix))
             {
                 return;
             }

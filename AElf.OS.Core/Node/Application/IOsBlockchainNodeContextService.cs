@@ -134,6 +134,7 @@ namespace AElf.OS.Node.Application
                 BlockchainNodeContext =
                     await _blockchainNodeContextService.StartAsync(blockchainNodeContextStartDto)
             };
+            
             context.AElfNetworkServer = _networkServer;
 
             await _networkServer.StartAsync();

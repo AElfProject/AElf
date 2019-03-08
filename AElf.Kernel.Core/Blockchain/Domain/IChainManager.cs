@@ -92,7 +92,7 @@ namespace AElf.Kernel.Blockchain.Domain
             {
                 BlockHash = genesisBlock,
                 Height = ChainConsts.GenesisBlockHeight,
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 IsLinked = true
             });
 
