@@ -6,6 +6,8 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -19,12 +21,13 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainService _crossChainService;
 
-        private readonly IChainManager _chainManager;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService, IChainManager chainManager)
+        public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService,
+            ISmartContractAddressService smartContractAddressService)
         {
             _crossChainService = crossChainService;
-            _chainManager = chainManager;
+            _smartContractAddressService = smartContractAddressService;
         }
 
         private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
@@ -51,8 +54,8 @@ namespace AElf.CrossChain
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
-                AsyncHelper.RunSync(() => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
-            
+                AsyncHelper.RunSync(
+                    () => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
         }
 
         /// <summary>
@@ -71,8 +74,8 @@ namespace AElf.CrossChain
             return new Transaction
             {
                 From = from,
-                
-                To = ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId()),
+                To = _smartContractAddressService.GetAddressByContractName(
+                    CrossChainSmartContractAddressNameProvider.Name),
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,

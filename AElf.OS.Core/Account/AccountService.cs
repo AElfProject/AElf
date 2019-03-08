@@ -7,9 +7,11 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Account
 {
+    [Dependency(TryRegister = true)]
     public class AccountService : IAccountService
     {
         private readonly IKeyStore _keyStore;
@@ -29,8 +31,8 @@ namespace AElf.OS.Account
         }
 
         public async Task<bool> VerifySignatureAsync(byte[] signature, byte[] data, byte[] publicKey)
-        {          
-            var recoverResult =  CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+        {
+            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
 
             return recoverResult && publicKey.BytesEqual(recoverPublicKey);
         }

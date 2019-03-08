@@ -18,6 +18,8 @@ namespace AElf.Kernel.SmartContract
         public IBlockchainService BlockchainService { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
 
+        public ISmartContractAddressService SmartContractAddressService { get; set; }
+
 #if DEBUG
         public ILogger<ISmartContractContext> Logger { get; set; } = NullLogger<ISmartContractContext>.Instance;
 
@@ -35,14 +37,16 @@ namespace AElf.Kernel.SmartContract
             return AsyncHelper.RunSync(() => GetBlockByHashAsync(blockId));
         }
 
-        public void DeployContract(Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        public void DeployContract(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
+            Hash name = null)
         {
-            AsyncHelper.RunSync(() => DeployContractAsync(contractAddress, registration, isPrivileged));
+            AsyncHelper.RunSync(() => DeployContractAsync(contractAddress, registration, isPrivileged, name));
         }
 
-        public void UpdateContract(Address contractAddress, SmartContractRegistration registration, bool isPrivileged)
+        public void UpdateContract(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
+            Hash name = null)
         {
-            AsyncHelper.RunSync(() => UpdateContractAsync(contractAddress, registration, isPrivileged));
+            AsyncHelper.RunSync(() => UpdateContractAsync(contractAddress, registration, isPrivileged, name));
         }
 
         public int GetChainId()
@@ -50,16 +54,26 @@ namespace AElf.Kernel.SmartContract
             return BlockchainService.GetChainId();
         }
 
-        public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged)
+        public Address GetAddressByContractName(Hash contractName)
         {
-            return SmartContractService.DeployContractAsync(contractAddress, registration, isPrivileged);
+            return SmartContractAddressService.GetAddressByContractName(contractName);
+        }
+
+        public Address GetZeroSmartContractAddress()
+        {
+            return SmartContractAddressService.GetZeroSmartContractAddress();
+        }
+
+        public Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
+            bool isPrivileged, Hash name)
+        {
+            return SmartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
         public Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged)
+            bool isPrivileged, Hash name)
         {
-            return SmartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged);
+            return SmartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
         public Task<Block> GetBlockByHashAsync(Hash blockId)

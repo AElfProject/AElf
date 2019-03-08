@@ -27,13 +27,6 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var eventMessage = new BestChainFoundEventData();
-            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
-            {
-                eventMessage = message;
-                return Task.CompletedTask;
-            });
-
             var block = new Block
             {
                 Header = new BlockHeader
@@ -48,12 +41,10 @@ namespace AElf.Kernel.Blockchain.Application
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();
 
-            await _fullBlockchainService.CreateChainAsync( block);
+            await _fullBlockchainService.CreateChainAsync(block);
 
             chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldNotBeNull();
-
-            eventMessage.BlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
         }
 
         [Fact]
@@ -115,8 +106,7 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldBeNull();
         }
 
-        
-        
+
         [Fact]
         public async Task Get_GetBlockHashes_ReturnNull()
         {
@@ -135,18 +125,17 @@ namespace AElf.Kernel.Blockchain.Application
             result[0].ShouldBe(blockList[1].GetHash());
             result[1].ShouldBe(blockList[0].GetHash());
         }
-        
+
         [Fact]
         public async Task Get_GetBlockHashes_ReturnHashes()
         {
-            
             var (chain, blockList) = await CreateNewChainWithBlock(3);
 
             var result = await _fullBlockchainService.GetBlockHashes(chain, blockList[0].GetHash(), 2);
             result.Count.ShouldBe(2);
             result[0].ShouldBe(blockList[1].GetHash()); //6c56
             result[1].ShouldBe(blockList[2].GetHash()); //
-            
+
             result = await _fullBlockchainService.GetBlockHashes(chain, blockList[1].GetHash(), 1);
             result.Count.ShouldBe(1);
             result[0].ShouldBe(blockList[2].GetHash()); //

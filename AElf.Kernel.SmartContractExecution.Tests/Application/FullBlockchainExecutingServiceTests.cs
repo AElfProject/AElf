@@ -25,13 +25,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
         [Fact]
         public async Task Attach_Block_To_Chain_ReturnNull()
         {
-            var eventMessage = new BestChainFoundEventData();
-            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
-            {
-                eventMessage = message;
-                return Task.CompletedTask;
-            });
-
             var chain = await CreateNewChain();
 
             var newBlock = new Block
@@ -49,7 +42,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             attachResult.ShouldBeNull();
-            eventMessage.BlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
         }
 
         [Fact]
@@ -81,7 +73,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             attachResult.Count.ShouldBe(2);
 
             attachResult.Last().Height.ShouldBe(2u);
-
 
             //event was async, wait
             await Task.Delay(10);

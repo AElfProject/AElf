@@ -13,6 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
         <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     </ItemGroup>
