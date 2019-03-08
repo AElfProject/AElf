@@ -87,7 +87,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Header = new BlockHeader
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis
+                    PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
             };
