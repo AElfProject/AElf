@@ -220,22 +220,22 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
         
-//        [Fact]
-//        public async Task GetPeers_NotExist_Test()
-//        {
-//            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6802"}});
-//            var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 4801 });
-//
-//            await m1.Item1.StartAsync();
-//            await m2.Item1.StartAsync();
-//
-//            var peers = m1.Item2.GetPeers();
-//
-//            await m1.Item1.StopAsync();
-//            await m2.Item1.StopAsync();
-//
-//            peers.Count.ShouldBe(0);
-//        }
+        [Fact]
+        public async Task GetPeers_NotExist_Test()
+        {
+            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6802"}});
+            var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 4801 });
+
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+
+            var peers = m1.Item2.GetPeers();
+
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
+
+            peers.Count.ShouldBe(0);
+        }
 
         [Fact]
         public async Task RemovePeer_Test()

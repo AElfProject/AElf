@@ -90,13 +90,23 @@ namespace AElf.OS.Network.Grpc
                         DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
                 }
 
-                var resp = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                AuthResponse resp = null;
+                
+                try
+                {
+                    resp = await client.ConnectAsync(hsk,
+                        new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                }
+                catch (Exception e)
+                {
+                    // cleanup essentially for testing
+                    await channel.ShutdownAsync();
+                }
 
                 // todo refactor so that connect returns the handshake and we'll check here 
                 // todo if not correct we kill the channel. 
 
-                if (resp.Success != true)
+                if (resp == null || resp.Success != true)
                     return false;
 
                 var peer = new GrpcPeer(channel, client, null, address, resp.Port);
