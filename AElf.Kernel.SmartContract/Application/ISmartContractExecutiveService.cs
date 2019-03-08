@@ -38,7 +38,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IChainManager _chainManager;
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
@@ -52,13 +51,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IChainManager chainManager)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
         {
             _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
-            _chainManager = chainManager;
 #if DEBUG
             SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
 #endif
@@ -109,6 +107,7 @@ namespace AElf.Kernel.SmartContract.Application
                 ContractAddress = address,
                 BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
                 SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
+                SmartContractAddressService = _serviceProvider.GetService<ISmartContractAddressService>(),
                 SmartContractExecutiveService = this,
 #if DEBUG
                 Logger = SmartContractContextLogger
@@ -166,7 +165,7 @@ namespace AElf.Kernel.SmartContract.Application
             if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var smartContractRegistration))
                 return smartContractRegistration;
 
-            if (address == Address.BuildContractAddress(_chainManager.GetChainId(), 0))
+            if (address == _defaultContractZeroCodeProvider.ContractZeroAddress)
             {
                 smartContractRegistration = _defaultContractZeroCodeProvider.DefaultContractZeroRegistration;
             }
@@ -179,14 +178,13 @@ namespace AElf.Kernel.SmartContract.Application
             return smartContractRegistration;
         }
 
-
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
             {
                 From = Address.Zero,
-                To = Address.BuildContractAddress(_chainManager.GetChainId(), 0),
+                To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
             };
@@ -225,7 +223,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executiveZero != null)
                 {
-                    await PutExecutiveAsync(Address.BuildContractAddress(_chainManager.GetChainId(), 0), executiveZero);
+                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
                 }
             }
 

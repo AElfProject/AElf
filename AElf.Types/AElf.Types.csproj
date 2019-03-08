@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="Google.Protobuf" Version="3.6.1" />

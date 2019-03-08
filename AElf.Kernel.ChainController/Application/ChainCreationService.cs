@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Helpers;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract.Application;
@@ -13,6 +14,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 using Type = System.Type;
 
 namespace AElf.Kernel.ChainController.Application
@@ -23,11 +25,14 @@ namespace AElf.Kernel.ChainController.Application
         private readonly IBlockExecutingService _blockExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         /// <summary>
@@ -43,7 +48,7 @@ namespace AElf.Kernel.ChainController.Application
                 var blockHeader = new BlockHeader
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis,
+                    PreviousBlockHash = Hash.Empty,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     ChainId = _blockchainService.GetChainId()
                 };
@@ -51,6 +56,13 @@ namespace AElf.Kernel.ChainController.Application
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
 
                 await _blockchainService.CreateChainAsync(block);
+
+                await LocalEventBus.PublishAsync(new BestChainFoundEventData
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = 1
+                });
+                    
                 return await _blockchainService.GetChainAsync();
             }
             catch (Exception e)

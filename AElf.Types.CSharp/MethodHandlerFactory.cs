@@ -1,8 +1,7 @@
 using System;
 using System.Reflection;
-using AElf.Types.CSharp;
 
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Types.CSharp
 {
     public static class MethodHandlerFactory
     {

@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 IsBootMiner = true,
             };
             var bytes = await tester.CallContractMethodAsync(
-                tester.DeployedContractsAddresses[1], // Usually the second contract is consensus contract.
+                tester.GetConsensusContractAddress(), // Usually the second contract is consensus contract.
                 ConsensusConsts.GetConsensusCommand,
                 triggerInformation.ToByteArray());
             return ConsensusCommand.Parser.ParseFrom(bytes);
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public static async Task<DPoSInformation> GetNewConsensusInformation(this ContractTester tester,
             DPoSTriggerInformation triggerInformation)
         {
-            var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
             return DPoSInformation.Parser.ParseFrom(bytes);
         }
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public static async Task<List<Transaction>> GenerateConsensusTransactions(this ContractTester tester,
             DPoSTriggerInformation triggerInformation)
         {
-            var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GenerateConsensusTransactions, triggerInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public static async Task<ValidationResult> ValidateConsensus(this ContractTester tester,
             DPoSInformation information)
         {
-            var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.ValidateConsensus, information.ToByteArray());
             return ValidationResult.Parser.ParseFrom(bytes);
         }
@@ -58,7 +58,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester tester,
             DPoSTriggerInformation triggerInformation, params ContractTester[] testersGonnaExecuteThisBlock)
         {
-            var bytes = await tester.CallContractMethodAsync(tester.DeployedContractsAddresses[1],
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GenerateConsensusTransactions,
                 triggerInformation.ToByteArray());
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();

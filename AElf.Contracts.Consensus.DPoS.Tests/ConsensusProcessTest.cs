@@ -357,19 +357,19 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 var tester = new ContractTester(ChainId, keyPair);
 
                 AsyncHelper.RunSync(
-                    () => tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract)));
+                    () => tester.InitialChainAsync());
                 Testers.Add(tester);
             }
 
-            ConsensusContractAddress = Testers[0].DeployedContractsAddresses[1];
+            ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }
         
         public void InitialSingleTester()
         {
             SingleTester = new ContractTester(ChainId, CryptoHelpers.GenerateKeyPair());
             AsyncHelper.RunSync(
-                () => SingleTester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract)));
-            ConsensusContractAddress = SingleTester.DeployedContractsAddresses[1];
+                () => SingleTester.InitialChainAsync());
+            ConsensusContractAddress = SingleTester.GetConsensusContractAddress();
         }
     }
 }

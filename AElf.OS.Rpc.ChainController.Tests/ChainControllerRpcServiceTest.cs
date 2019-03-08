@@ -36,6 +36,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly IAccountService _accountService;
         private readonly ECKeyPair _userEcKeyPair;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ChainControllerRpcServiceServerTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -47,6 +48,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             _minerService = GetRequiredService<IMinerService>();
             _smartContractExecutiveService = GetRequiredService<ISmartContractExecutiveService>();
             _accountService = GetRequiredService<IAccountService>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
 
             _userEcKeyPair = CryptoHelpers.GenerateKeyPair();
 
@@ -85,7 +87,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         public async Task Connect_Chain_Success()
         {
             var chainId = _blockchainService.GetChainId();
-            var basicContractZero = Address.BuildContractAddress(chainId, 0);
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var response = await JsonCallAsJObject("/chain", "ConnectChain");
 
@@ -103,7 +105,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             // Deploy a new contact and mined
             var chain = await _blockchainService.GetChainAsync();
             var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
-                Address.BuildContractAddress(chain.Id, 0), nameof(ISmartContractZero.DeploySmartContract), 2,
+                _smartContractAddressService.GetZeroSmartContractAddress(), nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location));
             var signature =
                 CryptoHelpers.SignWithPrivateKey(_userEcKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
@@ -114,7 +116,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             
             // Get abi
             chain = await _blockchainService.GetChainAsync();
-            var newContractAddress = Address.BuildContractAddress(chain.Id, 3);
+            var newContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var chainContext = new ChainContext
             {
                 BlockHash = chain.BestChainHash,
@@ -449,7 +451,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
             var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
-                Address.BuildContractAddress(chain.Id, 2), nameof(TokenContract.Transfer),
+                _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)), nameof(TokenContract.Transfer),
                 Address.FromPublicKey(newUserKeyPair.PublicKey), 10);
 
             var signature =
@@ -482,7 +484,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var chain = await _blockchainService.GetChainAsync();
             var account = await _accountService.GetAccountAsync();
 
-            var transaction = await GenerateTransaction(chain, account, Address.BuildContractAddress(chain.Id, 2),
+            var transaction = await GenerateTransaction(chain, account, _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
                 nameof(TokenContract.Transfer), Address.FromPublicKey(_userEcKeyPair.PublicKey), 10000);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());

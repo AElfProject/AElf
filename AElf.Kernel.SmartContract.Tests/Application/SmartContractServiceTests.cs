@@ -27,7 +27,7 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
 
-            await _smartContractService.DeployContractAsync(Address.Genesis, registration, false);
+            await _smartContractService.DeployContractAsync(Address.Genesis, registration, false, null);
 
         }
 
@@ -55,11 +55,11 @@ namespace AElf.Kernel.SmartContract.Application
                 CodeHash = Hash.FromString("TestContractB")
             };
 
-            await _smartContractService.DeployContractAsync(Address.Genesis, registrationA, false);
-            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationANew, false);
+            await _smartContractService.DeployContractAsync(Address.Genesis, registrationA, false, null);
+            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationANew, false, null);
 
 
-            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationB, false);
+            await _smartContractService.UpdateContractAsync(Address.Genesis, registrationB, false, null);
 
         }
     }
