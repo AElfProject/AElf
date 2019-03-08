@@ -3,6 +3,8 @@ using System;
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
+
+    //TODO: move out VotingRecord from AElf.Kernel.Types
     public partial class VotingRecord
     {
         public ulong Weight => CalculateWeight(Count, LockDaysList[0]);
