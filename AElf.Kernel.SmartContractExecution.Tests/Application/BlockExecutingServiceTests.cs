@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockHeader = new BlockHeader
             {
                 Height = 2,
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 Time = DateTime.UtcNow.ToTimestamp()
             };
             var txs = BuildTransactions(5);
@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var blockHeader = new BlockHeader
             {
                 Height = 2,
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 Time = DateTime.UtcNow.ToTimestamp()
             };
             var nonCancellableTxs = BuildTransactions(5);
