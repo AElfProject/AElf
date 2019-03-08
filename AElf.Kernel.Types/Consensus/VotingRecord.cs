@@ -11,6 +11,7 @@ namespace AElf.Kernel
 
         public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
         {
+            //TODO: use extend method
             return (ulong) (((double) lockTime / 270 + 2.0 / 3.0) * ticketsAmount);
         }
     }
