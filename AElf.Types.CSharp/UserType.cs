@@ -50,7 +50,12 @@ namespace AElf.Types.CSharp
 
         protected bool Equals(UserType other)
         {
-            
+            if (ReferenceEquals(other, null)) {
+                return false;
+            }
+            if (ReferenceEquals(other, this)) {
+                return true;
+            }
             return this.Pack().Equals(other.Pack());
         }
 
