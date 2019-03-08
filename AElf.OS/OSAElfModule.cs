@@ -1,7 +1,5 @@
-﻿using AElf.Common;
-using AElf.Common.Application;
+﻿using AElf.Common.Application;
 using AElf.Cryptography;
-using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
@@ -20,9 +18,8 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddAssemblyOf<CoreOSAElfModule>();
+            context.Services.AddAssemblyOf<OSAElfModule>();
 
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
             Configure<AccountOptions>(configuration.GetSection("Account"));
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();

@@ -1,17 +1,7 @@
-using System;
-using System.Runtime.InteropServices;
-using System.Security;
-using AElf.Common;
-using AElf.Common.Application;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
 using AElf.OS.Network;
-using AElf.OS.Network.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -28,6 +18,8 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             context.Services.AddAssemblyOf<CoreOSAElfModule>();
+            
+            //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
