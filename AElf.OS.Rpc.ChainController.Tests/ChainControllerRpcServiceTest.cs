@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Volo.Abp.Threading;
+using Volo.Abp.Validation;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,6 +51,15 @@ namespace AElf.OS.Rpc.ChainController.Tests
             _userEcKeyPair = CryptoHelpers.GenerateKeyPair();
 
             AsyncHelper.RunSync(async () => await InitAccountAmount());
+        }
+
+        [Fact]
+        public async Task Get_Commands_Success()
+        {
+            //Get commands
+            var response = await JsonCallAsJObject("/chain", "GetCommands");
+            var commands = response["result"].ToList();
+            commands.Count.ShouldBeGreaterThan(1);
         }
 
         [Fact]
@@ -164,6 +174,19 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
+        }
+
+        [Fact]
+        public async Task Call_ReadOnly_Success()
+        {
+            // Generate a transaction
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await GenerateViewTransaction(chain, "Symbol");
+            var transactionHash = transaction.GetHash();
+
+            var response = await JsonCallAsJObject("/chain", "Call",
+                new {rawTransaction = transaction.ToByteArray().ToHex()});
+            response["result"].ToString().ShouldBe("");
         }
 
         [Fact]
@@ -399,6 +422,17 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var signature =
                 CryptoHelpers.SignWithPrivateKey(_userEcKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
+
+            return transaction;
+        }
+
+        private async Task<Transaction> GenerateViewTransaction(Chain chain, string method, params object[] paramArray)
+        {
+            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+
+            var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
+                Address.BuildContractAddress(chain.Id, 2), nameof(TokenContract.BalanceOf),
+                paramArray);
 
             return transaction;
         }
