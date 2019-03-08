@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Google.Protobuf.Reflection;
@@ -14,8 +15,8 @@ namespace AElf.Types.CSharp
 {
     public class UserType
     {
-        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
-            = new Dictionary<System.Type, List<UserFieldInfo>>();
+        private static ConcurrentDictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
+            = new ConcurrentDictionary<System.Type, List<UserFieldInfo>>();
 
         public UserTypeHolder Pack()
         {
@@ -44,7 +45,7 @@ namespace AElf.Types.CSharp
             {
                 fieldInfos = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                                       .Select(x => new UserFieldInfo(x)).ToList();
-                _fieldInfosByType.Add(type, fieldInfos);
+                _fieldInfosByType.TryAdd(type, fieldInfos);
             }
             return fieldInfos;
         }
