@@ -113,7 +113,7 @@ namespace AElf.CrossChain
         {
             var transaction =  new Transaction
             {
-                From = Address.Generate(),
+                From = Address.Generate(), // this is not good enough, only used for temporary.
                 To = CrossChainContractMethodAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(@params))

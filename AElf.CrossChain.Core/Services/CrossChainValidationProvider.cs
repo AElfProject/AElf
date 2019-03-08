@@ -55,9 +55,9 @@ namespace AElf.CrossChain
             
             // check cache identity
             return await _crossChainService.ValidateSideChainBlockDataAsync(
-                       crossChainBlockData.SideChainBlockData, preBlockHash, preBlockHeight) &&
+                       crossChainBlockData.SideChainBlockData.ToList(), preBlockHash, preBlockHeight) &&
                    await _crossChainService.ValidateParentChainBlockDataAsync(
-                       crossChainBlockData.ParentChainBlockData, preBlockHash, preBlockHeight);
+                       crossChainBlockData.ParentChainBlockData.ToList(), preBlockHash, preBlockHeight);
         }
     }
 }

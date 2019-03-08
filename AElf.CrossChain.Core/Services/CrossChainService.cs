@@ -37,16 +37,16 @@ namespace AElf.CrossChain
         }
 
         public async Task<bool> ValidateSideChainBlockDataAsync(
-            IEnumerable<SideChainBlockData> sideChainBlockData, Hash previousBlockHash, long preBlockHeight)
+            List<SideChainBlockData> sideChainBlockData, Hash previousBlockHash, long preBlockHeight)
         {
-            return await _crossChainDataProvider.ValidateSideChainBlockDataAsync(sideChainBlockData.ToList(), 
+            return await _crossChainDataProvider.ValidateSideChainBlockDataAsync(sideChainBlockData, 
                 previousBlockHash, preBlockHeight);
         }
         
         public async Task<bool> ValidateParentChainBlockDataAsync(
-            IEnumerable<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, long preBlockHeight)
+            List<ParentChainBlockData> parentChainBlockData, Hash previousBlockHash, long preBlockHeight)
         {
-            return await _crossChainDataProvider.ValidateParentChainBlockDataAsync(parentChainBlockData.ToList(), 
+            return await _crossChainDataProvider.ValidateParentChainBlockDataAsync(parentChainBlockData, 
                 previousBlockHash, preBlockHeight);
         }
 
