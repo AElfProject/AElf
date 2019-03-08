@@ -13,12 +13,6 @@ namespace AElf.Types.CSharp
 {
     public static class ConversionExtension
     {
-        private static byte[] TrimLeadingZeros(this byte[] bytes)
-        {
-            // TODO: Maybe improve performance
-            return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
-        }
-
         #region generic
 
         public static object DeserializeToType(this ByteString bs, Type type)
