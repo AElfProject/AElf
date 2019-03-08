@@ -2,23 +2,6 @@ using AElf.Common;
 
 namespace AElf
 {
-    //TODO: should move it
-    public static class ContractConsts
-    {
-        public const ulong GenesisBasicContract = 0;
-        public const ulong ConsensusContract = 1;
-        public const ulong TokenContract = 2;
-        public const ulong CrossChainContract = 3;
-        public const ulong AuthorizationContract = 4;
-        public const ulong ResourceContract = 5;
-        public const ulong DividendsContract = 6;
-        
-        
-        public static Hash TokenContractHash = Hash.FromString("AElf.Contracts.Token.TokenContract");
-        public static Hash CrossChainHash = Hash.FromString("AElf.Contracts.Token.CrossChainContract");
-
-    }
-
     public static class ChainConsts
     {
         public const long GenesisBlockHeight = 1;
