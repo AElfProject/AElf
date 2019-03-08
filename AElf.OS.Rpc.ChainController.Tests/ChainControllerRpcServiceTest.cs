@@ -176,7 +176,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1105")]
         public async Task Call_ReadOnly_Success()
         {
             // Generate a transaction
