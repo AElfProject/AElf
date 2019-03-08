@@ -5,7 +5,6 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractService
     {
-        
         /// <summary>
         /// Deploys a contract to the specified chain and account.
         /// </summary>
@@ -14,11 +13,13 @@ namespace AElf.Kernel.SmartContract.Application
         /// <param name="registration">The contract registration info.</param>
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
-        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
+            Hash name = null);
 
-        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged);
+        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
+            Hash name = null);
 
-        
+
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, );
 //        Task PutExecutiveAsync(Address account, IExecutive executive);
 //
@@ -27,7 +28,5 @@ namespace AElf.Kernel.SmartContract.Application
 //        Task<IMessage> GetAbiAsync(Address account);
 //
 //        Task<SmartContractRegistration> GetContractByAddressAsync(Address address);
-
-
     }
 }

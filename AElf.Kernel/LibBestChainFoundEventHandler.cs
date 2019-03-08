@@ -2,9 +2,8 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -19,21 +18,20 @@ namespace AElf.Kernel
     public class LibBestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly IBlockManager _blockManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly IChainManager _chainManager;
 
+        private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public LibBestChainFoundEventHandler(IBlockchainService blockchainService, IBlockManager blockManager,
-            ITransactionResultQueryService transactionResultQueryService, IChainManager chainManager)
+        public LibBestChainFoundEventHandler(IBlockchainService blockchainService,
+            ITransactionResultQueryService transactionResultQueryService,
+            ISmartContractAddressService smartContractAddressService)
         {
             _blockchainService = blockchainService;
-            _blockManager = blockManager;
             _transactionResultQueryService = transactionResultQueryService;
-            _chainManager = chainManager;
+            _smartContractAddressService = smartContractAddressService;
             LocalEventBus = NullLocalEventBus.Instance;
 
             Logger = NullLogger<LibBestChainFoundEventHandler>.Instance;
@@ -49,7 +47,7 @@ namespace AElf.Kernel
 
             foreach (var executedBlock in eventData.ExecutedBlocks)
             {
-                var block = await _blockManager.GetBlockAsync(executedBlock);
+                var block = await _blockchainService.GetBlockByHashAsync(executedBlock);
 
                 foreach (var transactionHash in block.Body.Transactions)
                 {
@@ -57,7 +55,7 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         if (contractEvent.Address ==
-                            _chainManager.GetConsensusContractAddress() &&
+                            _smartContractAddressService.GetZeroSmartContractAddress() &&
                             contractEvent.Topics.Contains(
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {

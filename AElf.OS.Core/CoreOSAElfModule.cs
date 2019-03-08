@@ -15,7 +15,6 @@ using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -31,29 +30,27 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
+            context.Services.AddAssemblyOf<CoreOSAElfModule>();
+
+
+            //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
+
             Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
-            
-//            Configure<ChainOptions>(option =>
-//            {
-//                option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration.GetSection("ChainId").Value);
-//                option.IsMainChain = configuration.GetSection("IsMainChain").Value.ToLower() != "false";
-//            });
 
-            context.Services.AddSingleton<INetworkService, NetworkService>();
             context.Services.AddSingleton<PeerConnectedEventHandler>();
             context.Services.AddTransient<ForkDownloadJob>();
 
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
-            context.Services.AddTransient<IAccountService, AccountService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var accountOptions = context.ServiceProvider.GetService<IOptions<AccountOptions>>().Value;
-            var keyStore = context.ServiceProvider.GetService<IKeyStore>();
+
+            /*var keyStore = context.ServiceProvider.GetService<IKeyStore>();
 
             if (string.IsNullOrWhiteSpace(accountOptions.NodeAccount))
             {
@@ -76,9 +73,10 @@ namespace AElf.OS
             catch (Exception e)
             {
                 throw new Exception("Load keystore failed.", e);
-            }
+            }*/
         }
 
+        /*
         private static string AskInvisible()
         {
             Console.Write("Node account password: ");
@@ -121,6 +119,6 @@ namespace AElf.OS
                 if (intPtr != IntPtr.Zero)
                     Marshal.ZeroFreeGlobalAllocUnicode(intPtr);
             }
-        }
+        }*/
     }
 }

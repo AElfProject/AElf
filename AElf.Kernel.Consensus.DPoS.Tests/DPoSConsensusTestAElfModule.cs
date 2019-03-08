@@ -6,11 +6,15 @@ using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
+using AElf.OS;
+using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -20,7 +24,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         typeof(TestBaseKernelAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
-        typeof(CSharpRuntimeAElfModule)
+        typeof(CSharpRuntimeAElfModule),
+        typeof(CoreOSAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -28,20 +33,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var contractZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(contractZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
+            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }
 }
