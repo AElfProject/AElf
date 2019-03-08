@@ -22,6 +22,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -45,11 +46,13 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         private readonly IConsensusService _consensusService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
 
@@ -68,18 +71,22 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
-
                 });
             application.Initialize();
 
+
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
-            var transactionReadOnlyExecutionService = application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
+            var transactionReadOnlyExecutionService =
+                application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
             //_blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
             _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
             var chainManager = application.ServiceProvider.GetService<IChainManager>();
             var blockManager = application.ServiceProvider.GetService<IBlockManager>();
             var blockchainStateManager = application.ServiceProvider.GetService<IBlockchainStateManager>();
             var txHub = application.ServiceProvider.GetService<ITxHub>();
+            _smartContractAddressService =
+                application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+            _blockExtraDataService = application.ServiceProvider.GetService<IBlockExtraDataService>();
 
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
@@ -95,17 +102,17 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             _consensusService = new ConsensusService(
                 new DPoSInformationGenerationService(consensusOptions, _accountService, consensusControlInformation),
                 _accountService, transactionReadOnlyExecutionService, MockConsensusScheduler(), _blockchainService,
-                consensusControlInformation);
+                consensusControlInformation, _smartContractAddressService);
 
             _blockGenerationService = new BlockGenerationService(
                 new BlockExtraDataService(new List<IBlockExtraDataProvider>
-                    {new ConsensusExtraDataProvider(_consensusService)}),chainManager);
+                    {new ConsensusExtraDataProvider(_consensusService)}),
+                application.ServiceProvider.GetRequiredService<IStaticChainInformationProvider>());
 
-            var mockExtraDataOrderInformation = new Mock<IBlockExtraDataOrderService>();
-            mockExtraDataOrderInformation.Setup(m => m.GetExtraDataProviderOrder(It.IsAny<Type>())).Returns(0);
             _blockchainExecutingService = new FullBlockchainExecutingService(chainManager, _blockchainService,
                 new BlockValidationService(new List<IBlockValidationProvider>
-                    {new DPoSConsensusValidationProvider(_consensusService, mockExtraDataOrderInformation.Object)}), _blockExecutingService);
+                    {new ConsensusValidationProvider(_consensusService, _blockExtraDataService)}),
+                _blockExecutingService);
 
             _systemTransactionGenerationService = new SystemTransactionGenerationService(
                 new List<ISystemTransactionGenerator> {new ConsensusTransactionGenerator(_consensusService)});
@@ -113,8 +120,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             _blockExecutingService = new BlockExecutingService(transactionExecutingService, blockManager,
                 blockchainStateManager, _blockGenerationService);
 
-            _blockchainNodeContextService = new BlockchainNodeContextService(_blockchainService,
-                new ChainCreationService(_blockchainService, _blockExecutingService), txHub);
+            _osBlockchainNodeContextService =
+                application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
 
             InitialChain();
         }
@@ -124,9 +131,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             await _consensusService.TriggerConsensusAsync();
         }
 
-        public async Task<bool> ValidateConsensusAsync(byte[] consensusInformation)
+        public async Task<bool> ValidateConsensusBeforeExecutionAsync(byte[] consensusInformation)
         {
-            return await _consensusService.ValidateConsensusAsync(Chain.BestChainHash, Chain.BestChainHeight,
+            return await _consensusService.ValidateConsensusBeforeExecutionAsync(Chain.BestChainHash, Chain.BestChainHeight,
+                consensusInformation);
+        }
+        
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(byte[] consensusInformation)
+        {
+            return await _consensusService.ValidateConsensusAfterExecutionAsync(Chain.BestChainHash, Chain.BestChainHeight,
                 consensusInformation);
         }
 
@@ -178,17 +191,16 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         private void InitialChain()
         {
-            var transactions = GetGenesisTransactions(ChainId, typeof(BasicContractZero), typeof(ConsensusContract));
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = ChainId,
-                    Transactions = transactions
-                }
+                ChainId = ChainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            AsyncHelper.RunSync(() => _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto));
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+
+
+            AsyncHelper.RunSync(() => _osBlockchainNodeContextService.StartAsync(dto));
         }
 
         private ISystemTransactionGenerationService MockSystemTransactionGenerationService(List<Transaction> systemTxs)
@@ -218,8 +230,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         {
             var mockAccountService = new Mock<IAccountService>();
             mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
-            mockAccountService.Setup(s => s.GetAccountAsync())
-                .ReturnsAsync(Address.FromPublicKey(CallOwnerKeyPair.PublicKey));
 
             return mockAccountService.Object;
         }
@@ -244,7 +254,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType)
         {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var code = File.ReadAllBytes(contractType.Assembly.Location);
             return new Transaction

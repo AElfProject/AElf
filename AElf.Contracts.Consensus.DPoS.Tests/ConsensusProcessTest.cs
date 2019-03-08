@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             // Assert
             Assert.True(8000 >= actual.CountingMilliseconds); //For now the 8000 is hard coded in contract code.
             Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
-            Assert.Equal(DPoSBehaviour.InitialTerm, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
+            Assert.Equal(DPoSBehaviour.InitialConsensus, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             // Assert
             Assert.True(8000 >= actual.CountingMilliseconds);
             Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
-            Assert.Equal(DPoSBehaviour.InitialTerm, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
+            Assert.Equal(DPoSBehaviour.InitialConsensus, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Assert
             Assert.Equal(testers.Testers[0].CallOwnerKeyPair.PublicKey.ToHex(), information.SenderPublicKey);
-            Assert.Equal(DPoSBehaviour.InitialTerm, information.Behaviour);
+            Assert.Equal(DPoSBehaviour.InitialConsensus, information.Behaviour);
             // Check the basic information of first round.
             Assert.True(1 == round.RoundNumber);
             Assert.Equal(testers.MinersCount,
@@ -94,7 +94,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Assert
             Assert.Equal(testers.Testers[0].CallOwnerKeyPair.PublicKey.ToHex(), information.SenderPublicKey);
-            Assert.Equal(DPoSBehaviour.InitialTerm, information.Behaviour);
+            Assert.Equal(DPoSBehaviour.InitialConsensus, information.Behaviour);
             // Check the basic information of first round.
             Assert.True(1 == round.RoundNumber);
             Assert.Equal(testers.MinersCount,
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.InitialTerm.ToString(), initialTransactions.Transactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(), initialTransactions.Transactions.First().MethodName);
             Assert.Equal(Address.FromPublicKey(testers.Testers[0].CallOwnerKeyPair.PublicKey),
                 initialTransactions.Transactions.First().From);
         }
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 await testers.Testers[0].GenerateConsensusTransactions(stubInitialExtraInformation);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.InitialTerm.ToString(), initialTransactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(), initialTransactions.First().MethodName);
             Assert.Equal(Address.FromPublicKey(testers.Testers[0].CallOwnerKeyPair.PublicKey),
                 initialTransactions.First().From);
         }
@@ -154,7 +154,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var actual = await testers.Testers[1].GetConsensusCommand();
 
             // Assert
-            Assert.Equal(DPoSBehaviour.PackageOutValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
+            Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
             Assert.True(actual.CountingMilliseconds != _miningInterval);
         }
 
@@ -229,7 +229,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
             // Assert
             Assert.NotNull(consensusTransactions);
-            Assert.Equal(DPoSBehaviour.PackageOutValue.ToString(), consensusTransactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.UpdateValue.ToString(), consensusTransactions.First().MethodName);
         }
 
         [Fact]
@@ -357,19 +357,19 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
                 var tester = new ContractTester(ChainId, keyPair);
 
                 AsyncHelper.RunSync(
-                    () => tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract)));
+                    () => tester.InitialChainAsync());
                 Testers.Add(tester);
             }
 
-            ConsensusContractAddress = Testers[0].DeployedContractsAddresses[1];
+            ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }
         
         public void InitialSingleTester()
         {
             SingleTester = new ContractTester(ChainId, CryptoHelpers.GenerateKeyPair());
             AsyncHelper.RunSync(
-                () => SingleTester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract)));
-            ConsensusContractAddress = SingleTester.DeployedContractsAddresses[1];
+                () => SingleTester.InitialChainAsync());
+            ConsensusContractAddress = SingleTester.GetConsensusContractAddress();
         }
     }
 }

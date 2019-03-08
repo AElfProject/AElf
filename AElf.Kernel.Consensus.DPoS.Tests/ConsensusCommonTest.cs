@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         }
 
         [Fact]
-        public async Task ValidateConsensusTest()
+        public async Task ValidateConsensusBeforeExecutionTest()
         {
             var tester = ConsensusTestHelper.CreateABootMiner();
 
@@ -74,7 +74,23 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             var consensusInformation = await tester.GetNewConsensusInformationAsync();
 
-            var validateResult = await tester.ValidateConsensusAsync(consensusInformation);
+            var validateResult = await tester.ValidateConsensusBeforeExecutionAsync(consensusInformation);
+
+            Assert.True(validateResult);
+        }
+        
+        [Fact]
+        public async Task ValidateConsensusAfterExecutionTest()
+        {
+            var tester = ConsensusTestHelper.CreateABootMiner();
+
+            await tester.TriggerConsensusAsync();
+            
+            await tester.GenerateConsensusTransactionsAsync();
+
+            var consensusInformation = await tester.GetNewConsensusInformationAsync();
+
+            var validateResult = await tester.ValidateConsensusAfterExecutionAsync(consensusInformation);
 
             Assert.True(validateResult);
         }

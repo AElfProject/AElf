@@ -5,6 +5,11 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockExtraDataProvider
     {
-        Task<ByteString> FillExtraDataAsync(BlockHeader blockHeader);
+        /// <summary>
+        /// Get extra data from corresponding services.
+        /// </summary>
+        /// <param name="blockHeader"></param>
+        /// <returns></returns>
+        Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader);
     }
 }

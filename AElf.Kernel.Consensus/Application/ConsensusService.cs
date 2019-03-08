@@ -8,6 +8,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -25,19 +26,21 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
-
+        private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<ConsensusService> Logger { get; set; }
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IConsensusScheduler consensusScheduler, IBlockchainService blockchainService,
-            ConsensusControlInformation consensusControlInformation)
+            ConsensusControlInformation consensusControlInformation,
+            ISmartContractAddressService smartContractAddressService)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _accountService = accountService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
             _consensusControlInformation = consensusControlInformation;
+            _smartContractAddressService = smartContractAddressService;
             _consensusScheduler = consensusScheduler;
 
             Logger = NullLogger<ConsensusService>.Instance;
@@ -54,7 +57,7 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
             var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
-            
+
             // Upload the consensus command.
             var commandBytes = await ExecuteContractAsync(address, chainContext, ConsensusConsts.GetConsensusCommand,
                 triggerInformation);
@@ -69,7 +72,7 @@ namespace AElf.Kernel.Consensus.Application
                 blockMiningEventData);
         }
 
-        public async Task<bool> ValidateConsensusAsync(Hash preBlockHash, long preBlockHeight,
+        public async Task<bool> ValidateConsensusBeforeExecutionAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusExtraData)
         {
             var address = await _accountService.GetAccountAsync();
@@ -91,6 +94,12 @@ namespace AElf.Kernel.Consensus.Application
             return validationResult.Success;
         }
 
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight, byte[] consensusExtraData)
+        {
+            // TODO: Need to implement a contract method.
+            return true;
+        }
+
         public async Task<byte[]> GetNewConsensusInformationAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -100,7 +109,7 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            
+
             return (await ExecuteContractAsync(address, chainContext,
                 ConsensusConsts.GetNewConsensusInformation,
                 _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();
@@ -138,14 +147,14 @@ namespace AElf.Kernel.Consensus.Application
             var tx = new Transaction
             {
                 From = fromAddress,
-                To = Address.BuildContractAddress(_blockchainService.GetChainId(), 1),
+                To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
+                    .Name),
                 MethodName = consensusMethodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
             var transactionTrace =
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
-            Console.WriteLine(transactionTrace.StdErr);
             return transactionTrace.RetVal.Data;
         }
     }

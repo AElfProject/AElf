@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.TransactionPool.Application;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
@@ -21,5 +20,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
         Task<TransactionReceipt> GetTransactionReceiptAsync(Hash transactionId);
+        Task<int> GetTransactionPoolSizeAsync();
     }
 }

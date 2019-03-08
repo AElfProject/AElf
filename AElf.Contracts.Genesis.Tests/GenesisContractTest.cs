@@ -28,8 +28,8 @@ namespace AElf.Contracts.Genesis
             Tester = new ContractTester();
             otherOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
-            BasicZeroContractAddress = Tester.DeployedContractsAddresses[(int) ContractConsts.GenesisBasicContract];
-            TokenContractAddress = Tester.DeployedContractsAddresses[(int) ContractConsts.TokenContract];
+            BasicZeroContractAddress = Tester.GetZeroContractAddress();
+            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
         }
 
         [Fact]
@@ -38,8 +38,8 @@ namespace AElf.Contracts.Genesis
             var resultDeploy = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
                 nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-            var contractAddressArray = resultDeploy.RetVal.ToByteArray();
-            _contractAddress = Address.FromBytes(contractAddressArray);
+            var contractAddressArray = resultDeploy.ReturnValue.ToByteArray();
+            _contractAddress = Address.Parser.ParseFrom(contractAddressArray);
             _contractAddress.ShouldNotBeNull();
         }
 
@@ -81,7 +81,7 @@ namespace AElf.Contracts.Genesis
                     _contractAddress, File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             resultUpdate.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var updateAddressArray = resultUpdate.RetVal.ToByteArray();
+            var updateAddressArray = resultUpdate.ReturnValue.ToByteArray();
             var updateAddress = Address.FromBytes(updateAddressArray);
             updateAddress.ShouldBe(_contractAddress);
 
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Genesis
                     TokenContractAddress,
                     File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.RetVal.ToStringUtf8().Contains("Only owner is allowed to update code.").ShouldBeTrue();
+            result.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
         }
 
         [Fact]
@@ -113,7 +113,7 @@ namespace AElf.Contracts.Genesis
                 await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
                     _contractAddress, File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.RetVal.ToStringUtf8().Contains("Code is not changed.").ShouldBeTrue();
+            result.Error.Contains("Code is not changed.").ShouldBeTrue();
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace AElf.Contracts.Genesis
             var resultChangeFailed = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
                 nameof(BasicContractZero.ChangeContractOwner), TokenContractAddress, Tester.GetAddress(otherOwnerKeyPair));
             resultChangeFailed.Status.ShouldBe(TransactionResultStatus.Failed);
-            resultChangeFailed.RetVal.ToStringUtf8().Contains("no permission.").ShouldBeTrue();
+            resultChangeFailed.Error.Contains("no permission.").ShouldBeTrue();
         }
     }
 }

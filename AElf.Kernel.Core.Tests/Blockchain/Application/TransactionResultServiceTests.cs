@@ -32,7 +32,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = new BlockHeader()
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis
+                    PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
             };
@@ -106,7 +106,7 @@ namespace AElf.Kernel.Blockchain.Application
                 results.Add(new TransactionResult()
                 {
                     TransactionId = transaction.GetHash(),
-                    RetVal = ByteString.CopyFromUtf8(block.GetHash().ToHex())
+                    ReturnValue = ByteString.CopyFromUtf8(block.GetHash().ToHex())
                 });
             }
 

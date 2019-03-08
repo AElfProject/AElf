@@ -44,9 +44,9 @@ namespace AElf.Contracts.Genesis
         }
 
         [View]
-        public Address GetContractAddress(Hash codeHash)
+        public Address GetContractAddressByName(Hash name)
         {
-            return State.CodeAddressMapping[codeHash];
+            return State.NameAddressMapping[name];
         }
 
         [View]
@@ -65,20 +65,18 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
-        public byte[] DeploySmartContract(int category, byte[] code)
+        public Address DeploySystemSmartContract(Hash name, int category, byte[] code)
         {
+            if (name != null)
+                Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+
+
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
-            var contractAddress = Address.BuildContractAddress(Context.ChainId, serialNumber);
+            var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
 
             var codeHash = Hash.FromRawBytes(code);
-
-            var address = State.CodeAddressMapping[codeHash];
-
-            //Assert(address == null || address.Value.Length == 0, "should only deploy one smart contract once");
-
-            State.CodeAddressMapping[codeHash] = contractAddress;
 
             var info = new ContractInfo
             {
@@ -98,7 +96,7 @@ namespace AElf.Contracts.Genesis
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-            Context.DeployContract(contractAddress, reg);
+            Context.DeployContract(contractAddress, reg, name);
 
             Context.FireEvent(new ContractHasBeenDeployed()
             {
@@ -109,7 +107,18 @@ namespace AElf.Contracts.Genesis
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
-            return contractAddress.DumpByteArray();
+
+
+            if (name != null)
+                State.NameAddressMapping[name] = contractAddress;
+
+
+            return contractAddress;
+        }
+
+        public Address DeploySmartContract(int category, byte[] code)
+        {
+            return DeploySystemSmartContract(null, category, code);
         }
 
         public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
@@ -135,11 +144,7 @@ namespace AElf.Contracts.Genesis
 
             State.SmartContractRegistrations[reg.CodeHash] = reg;
 
-
-            Context.UpdateContract(contractAddress, reg);
-
-            State.CodeAddressMapping[newCodeHash] = contractAddress;
-
+            Context.UpdateContract(contractAddress, reg, null);
 
             Context.FireEvent(new ContractCodeHasBeenUpdated()
             {
@@ -169,5 +174,25 @@ namespace AElf.Contracts.Genesis
         }
 
         #endregion Actions
+    }
+
+    public static class AddressHelper
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contractName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
+        {
+            var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
+            return Address.FromBytes(Address.TakeByAddressLength(hash.DumpByteArray()));
+        }
+
+        public static Address BuildContractAddress(int chainId, ulong serialNumber)
+        {
+            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
+        }
     }
 }

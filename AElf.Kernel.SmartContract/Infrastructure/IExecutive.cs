@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Task Apply();
         ulong GetFee(string methodName);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
+        object GetReturnValue(string methodName, byte[] bytes);
 
     }
 }

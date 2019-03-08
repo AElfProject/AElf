@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.TransactionPool.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -39,7 +35,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
         private long _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
-        private Hash _bestChainHash = Hash.Genesis;
+        private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
 
@@ -81,8 +77,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return Task.FromResult(receipt);
         }
 
-
-
         #region Private Methods
 
         #region Private Static Methods
@@ -99,8 +93,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             receipts.Add(receipt.TransactionId, receipt);
         }
 
-        private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix,
-            long bestChainHeight)
+        private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix, long bestChainHeight)
         {
             if (receipt.Transaction.GetExpiryBlockNumber() <= bestChainHeight)
             {
@@ -137,8 +130,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return await GetPrefixByHeightAsync(chain, height, bestChainHash);
         }
 
-        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(
-            IEnumerable<long> heights, Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights, Hash bestChainHash)
         {
             var prefixes = new Dictionary<long, ByteString>();
             var chain = await _blockchainService.GetChainAsync();
@@ -187,7 +179,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var transaction in eventData.Transactions)
             {
                 var receipt = new TransactionReceipt(transaction);
-
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
                     continue;
@@ -217,8 +208,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(
-                eventData.BlockHeader.GetHash());
+            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             foreach (var txId in block.Body.Transactions)
             {
                 _allTransactions.Remove(txId);
@@ -227,7 +217,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
-
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
             var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
@@ -256,5 +245,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         }
 
         #endregion
+
+        public async Task<int> GetTransactionPoolSizeAsync()
+        {
+            return await Task.FromResult(_allTransactions.Count);
+        }
     }
 }

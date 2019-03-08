@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,18 +14,17 @@ using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Infrastructure;
-using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Application;
-using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Services;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
@@ -34,7 +32,6 @@ using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
@@ -47,7 +44,6 @@ namespace AElf.Contracts.TestBase
         private readonly int _chainId;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockGenerationService _blockGenerationService;
         private ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockExecutingService _blockExecutingService;
@@ -55,15 +51,14 @@ namespace AElf.Contracts.TestBase
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IChainManager _chainManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly IBlockValidationService _blockValidationService;
+        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionManager _transactionManager;
 
+        private IAbpApplicationWithInternalServiceProvider Application { get; set; }
         private readonly IAccountService _accountService;
 
-        public Chain Chain => AsyncHelper.RunSync(GetChainAsync);
-
         public ECKeyPair CallOwnerKeyPair { get; set; }
-
-        public List<Address> DeployedContractsAddresses { get; set; }
 
         public ContractTester(int chainId = 0, ECKeyPair callOwnerKeyPair = null, int portNumber = 0)
         {
@@ -75,28 +70,50 @@ namespace AElf.Contracts.TestBase
             mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
             _accountService = mockAccountService.Object;
 
-            var application =
+            Application =
                 AbpApplicationFactory.Create<ContractTestAElfModule>(options =>
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => { o.ChainId = _chainId; });
-                    options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
-                    options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
-                });
-            application.Initialize();
+                    options.Services.Configure<DPoSOptions>(o =>
+                    {
+                        var minersKeyPairs = new List<ECKeyPair> {CallOwnerKeyPair};
+                        for (var i = 0; i < 2; i++)
+                        {
+                            minersKeyPairs.Add(CryptoHelpers.GenerateKeyPair());
+                        }
 
-            _blockchainService = application.ServiceProvider.GetService<IBlockchainService>();
-            _transactionReadOnlyExecutionService = application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
-            _blockchainNodeContextService = application.ServiceProvider.GetService<IBlockchainNodeContextService>();
-            _blockGenerationService = application.ServiceProvider.GetService<IBlockGenerationService>();
-            _systemTransactionGenerationService =
-                application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
-            _blockExecutingService = application.ServiceProvider.GetService<IBlockExecutingService>();
-            _consensusService = application.ServiceProvider.GetService<IConsensusService>();
-            _chainManager = application.ServiceProvider.GetService<IChainManager>();
-            _transactionResultQueryService = application.ServiceProvider.GetService<ITransactionResultQueryService>();
-            _blockValidationService = application.ServiceProvider.GetService<IBlockValidationService>();
-            _blockchainExecutingService = application.ServiceProvider.GetService<IBlockchainExecutingService>();
+                        o.InitialMiners = minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList();
+                        o.MiningInterval = 4000;
+                        o.IsBootMiner = true;
+                    });
+                    //options.Services.AddSingleton(new ServiceDescriptor(typeof(IAccountService), _accountService));
+                    options.Services.Configure<NetworkOptions>(o => { o.ListeningPort = portNumber; });
+                    options.Services.AddSingleton(Mock.Of<IAccountService>(s =>
+                        s.GetPublicKeyAsync() == Task.FromResult(CallOwnerKeyPair.PublicKey)));
+
+                    var mockTxHub = new Mock<ITxHub>();
+                    mockTxHub.Setup(h => h.HandleBlockAcceptedAsync(It.IsAny<BlockAcceptedEvent>()))
+                        .Returns(Task.CompletedTask);
+                    options.Services.AddSingleton(new ServiceDescriptor(typeof(ITxHub), mockTxHub.Object));
+                });
+
+            Application.Initialize();
+
+            _blockchainService = Application.ServiceProvider.GetService<IBlockchainService>();
+            _transactionReadOnlyExecutionService =
+                Application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
+            _blockGenerationService = Application.ServiceProvider.GetService<IBlockGenerationService>();
+            _blockExecutingService = Application.ServiceProvider.GetService<IBlockExecutingService>();
+            _consensusService = Application.ServiceProvider.GetService<IConsensusService>();
+            _chainManager = Application.ServiceProvider.GetService<IChainManager>();
+            _transactionResultQueryService = Application.ServiceProvider.GetService<ITransactionResultQueryService>();
+            _blockchainExecutingService = Application.ServiceProvider.GetService<IBlockchainExecutingService>();
+            _osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            _smartContractAddressService =
+                Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+            _transactionManager = Application.ServiceProvider.GetRequiredService<ITransactionManager>();
         }
 
         public void SetCallOwner(ECKeyPair caller)
@@ -104,9 +121,28 @@ namespace AElf.Contracts.TestBase
             CallOwnerKeyPair = caller;
         }
 
+        public Address GetContractAddress(Hash name)
+        {
+            return name == Hash.FromString(typeof(BasicContractZero).FullName)
+                ? _smartContractAddressService.GetZeroSmartContractAddress()
+                : _smartContractAddressService.GetAddressByContractName(name);
+        }
+
+        public Address GetContractAddress(Type contractType)
+        {
+            return contractType == typeof(BasicContractZero)
+                ? _smartContractAddressService.GetZeroSmartContractAddress()
+                : _smartContractAddressService.GetAddressByContractName(Hash.FromString(contractType.FullName));
+        }
+
+        public Address GetZeroContractAddress()
+        {
+            return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
         public Address GetCallOwnerAddress()
         {
-            return GetAddress(CallOwnerKeyPair);
+            return Address.FromPublicKey(CallOwnerKeyPair.PublicKey);
         }
 
         /// <summary>
@@ -115,29 +151,24 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task<List<Address>> InitialChainAsync(params Type[] contractTypes)
+        public async Task InitialChainAsync(params Type[] contractTypes)
         {
-            var transactions = GetGenesisTransactions(_chainId, contractTypes);
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = _chainId,
-                    Transactions = transactions
-                }
+                ChainId = _chainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            await _blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
-            var addresses = new List<Address>();
-            for (var i = 0UL; i < (ulong) contractTypes.Length; i++)
-            {
-                addresses.Add(GetContractAddress(i));
-            }
+            await _osBlockchainNodeContextService.StartAsync(dto);
+        }
 
-            DeployedContractsAddresses = addresses;
-
-            return addresses;
+        public Address GetConsensusContractAddress()
+        {
+            return _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
+                .Name);
         }
 
         /// <summary>
@@ -151,7 +182,7 @@ namespace AElf.Contracts.TestBase
         {
             var tx = new Transaction
             {
-                From = GetAddress(CallOwnerKeyPair),
+                From = Address.FromPublicKey(CallOwnerKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
@@ -177,7 +208,7 @@ namespace AElf.Contracts.TestBase
         {
             var tx = new Transaction
             {
-                From = GetAddress(CallOwnerKeyPair),
+                From = Address.FromPublicKey(CallOwnerKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
@@ -243,14 +274,7 @@ namespace AElf.Contracts.TestBase
                 tx,
                 DateTime.UtcNow);
 
-            return transactionTrace.RetVal?.Data ?? ByteString.Empty;
-        }
-
-        public void SignTransaction(ref Transaction transaction, ECKeyPair callerKeyPair)
-        {
-            var signature =
-                CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            return transactionTrace.RetVal?.Data;
         }
 
         public void SignTransaction(ref List<Transaction> transactions, ECKeyPair callerKeyPair)
@@ -277,27 +301,12 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task ExecuteBlock(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTxs, txs,
-                new CancellationToken());
+            txs.ForEach(tx => AsyncHelper.RunSync(() => _transactionManager.AddTransactionAsync(tx)));
+            systemTxs.ForEach(tx => AsyncHelper.RunSync(() => _transactionManager.AddTransactionAsync(tx)));
             await _blockchainService.AddBlockAsync(block);
             var chain = await _blockchainService.GetChainAsync();
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
             await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-        }
-
-        public async Task SetIrreversibleBlock(Hash libHash)
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
-        }
-
-        public async Task SetIrreversibleBlock(long libHeight)
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var libHash = (await _blockchainService.GetBlockByHeightAsync(libHeight)).GetHash();
-            chain.LastIrreversibleBlockHash = libHash;
-            chain.LastIrreversibleBlockHeight = libHeight;
-            await _chainManager.SetIrreversibleBlockAsync(chain, libHash);
         }
 
         /// <summary>
@@ -335,15 +344,25 @@ namespace AElf.Contracts.TestBase
                     Transactions = txs
                 };
             });
+            mockTxHub.Setup(h => h.HandleBlockAcceptedAsync(It.IsAny<BlockAcceptedEvent>()))
+                .Returns(Task.CompletedTask);
+
+            var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
 
             if (systemTxs != null)
             {
-                var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
                     s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()
                     )).Returns(systemTxs);
-                _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
+            else
+            {
+                mockSystemTransactionGenerationService.Setup(s =>
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()
+                    )).Returns(new List<Transaction>());
+            }
+            
+            _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
 
             return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
@@ -355,47 +374,21 @@ namespace AElf.Contracts.TestBase
             return Address.FromPublicKey(keyPair.PublicKey);
         }
 
-        private Transaction[] GetGenesisTransactions(int chainId, params Type[] contractTypes)
-        {
-            return contractTypes.Select(contractType => GetTransactionForDeployment(chainId, contractType)).ToArray();
-        }
-
-        private Transaction GetTransactionForDeployment(int chainId, Type contractType)
-        {
-            var zeroAddress = Address.BuildContractAddress(chainId, 0);
-
-            var code = File.ReadAllBytes(contractType.Assembly.Location);
-            return new Transaction
-            {
-                From = zeroAddress,
-                To = zeroAddress,
-                MethodName = nameof(ISmartContractZero.DeploySmartContract),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(2, code))
-            };
-        }
-
-        private Address GetContractAddress(ulong serialNumber)
-        {
-            return Address.BuildContractAddress(ChainHelpers.ConvertBase58ToChainId("AELF"), serialNumber);
-        }
-
+        /// <summary>
+        /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
+        /// </summary>
+        /// <returns></returns>
         public List<Type> GetDefaultContractTypes()
         {
-            var list = new List<Type>();
-            list.Add(typeof(BasicContractZero));
-            list.Add(typeof(ConsensusContract));
-            list.Add(typeof(TokenContract));
-            list.Add(typeof(CrossChainContract));
-            list.Add(typeof(AuthorizationContract));
-            list.Add(typeof(ResourceContract));
-            list.Add(typeof(DividendsContract));
-            list.Add(typeof(FeeReceiverContract));
-
-            return list;
-        }
-
-        public void Dispose()
-        {
+            return new List<Type>
+            {
+                typeof(TokenContract),
+                typeof(CrossChainContract),
+                typeof(AuthorizationContract),
+                typeof(ResourceContract),
+                typeof(DividendsContract),
+                typeof(FeeReceiverContract)
+            };
         }
     }
 }

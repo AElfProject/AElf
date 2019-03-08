@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.Token;
@@ -38,10 +39,10 @@ namespace AElf.Contracts.Resource.Tests
             contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
 
-            BasicZeroContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.GenesisBasicContract];
-            TokenContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.TokenContract];
-            ResourceContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.ResourceContract];
-            FeeReceiverContractAddress = Tester.DeployedContractsAddresses[contractArray.Count - 1];
+            BasicZeroContractAddress = Tester.GetZeroContractAddress();
+            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
+            ResourceContractAddress = Tester.GetContractAddress(typeof(ResourceContract));
+            FeeReceiverContractAddress = Tester.GetContractAddress(typeof(FeeReceiverContract));
 
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
             FoundationKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -108,8 +109,7 @@ namespace AElf.Contracts.Resource.Tests
             var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Withdraw),
                 100);
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            var retValue = withdrawResult.RetVal.ToStringUtf8();
-            retValue.Contains("Only foundation can withdraw token.").ShouldBeTrue();
+            withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
         }
 
         [Fact]
@@ -121,8 +121,7 @@ namespace AElf.Contracts.Resource.Tests
             var withdrawResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Withdraw),
                 100);
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            var retValue = withdrawResult.RetVal.ToStringUtf8();
-            retValue.Contains("Too much to withdraw.").ShouldBeTrue();
+            withdrawResult.Error.Contains("Too much to withdraw.").ShouldBeTrue();
         }
 
         [Fact]
@@ -151,8 +150,8 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Burn));
-            var returnMessage = burnResult.RetVal.ToStringUtf8();
+            var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Burn");
+            var returnMessage = burnResult.ReturnValue.ToStringUtf8();
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -239,9 +238,8 @@ namespace AElf.Contracts.Resource.Tests
             var issueResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.IssueResource),
                 "CPU", 100_000UL);
-            var returnMessage = issueResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("Only resource controller is allowed to perform this action.").ShouldBe(true);
             issueResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            issueResult.Error.Contains("Only resource controller is allowed to perform this action.").ShouldBe(true);
         }
 
         [Theory]
@@ -261,7 +259,7 @@ namespace AElf.Contracts.Resource.Tests
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.BuyResource),
                 "Cpu", paidElf);
-            var returnMessage = buyResult.RetVal.ToStringUtf8();
+            var returnMessage = buyResult.ReturnValue.ToStringUtf8();
             returnMessage.ShouldBe(string.Empty);
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -285,9 +283,8 @@ namespace AElf.Contracts.Resource.Tests
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.BuyResource),
                 "Cpu", 10_000UL);
-            var returnMessage = buyResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("Insufficient allowance.").ShouldBeTrue();
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            buyResult.Error.Contains("Insufficient allowance.").ShouldBeTrue();
         }
 
         [Fact]
@@ -299,9 +296,8 @@ namespace AElf.Contracts.Resource.Tests
             var buyResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.BuyResource),
                 "TestResource", 100UL);
-            var returnMessage = buyResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("Incorrect resource type.").ShouldBeTrue();
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            buyResult.Error.Contains("Incorrect resource type.").ShouldBeTrue();
         }
 
         [Fact]
@@ -323,9 +319,8 @@ namespace AElf.Contracts.Resource.Tests
             var sellResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.SellResource),
                 "Cpu", 1000UL);
-            var returnMessage = sellResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("Insufficient CPU balance.").ShouldBe(true);
             sellResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            sellResult.Error.Contains("Insufficient CPU balance.").ShouldBe(true);
         }
 
         [Fact]
@@ -336,9 +331,8 @@ namespace AElf.Contracts.Resource.Tests
             var sellResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.SellResource),
                 "TestResource", 100UL);
-            var returnMessage = sellResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("Incorrect resource type.").ShouldBeTrue();
             sellResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            sellResult.Error.Contains("Incorrect resource type.").ShouldBeTrue();
         }
 
         [Fact]
@@ -381,9 +375,8 @@ namespace AElf.Contracts.Resource.Tests
 
             var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
                 1000UL, "Cpu");
-            var returnMessage = lockResult.RetVal.ToStringUtf8();
-            returnMessage.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.").ShouldBe(true);
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            lockResult.Error.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.").ShouldBe(true);
         }
 
         [Fact]
@@ -436,9 +429,8 @@ namespace AElf.Contracts.Resource.Tests
 
             var unlockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.UnlockResource),
                 ownerAddress, 50UL, "Cpu");
-            var retMessage = unlockResult.RetVal.ToStringUtf8();
-            retMessage.Contains("Only the resource controller can perform this action.").ShouldBeTrue();
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.Contains("Only the resource controller can perform this action.").ShouldBeTrue();
         }
 
         [Fact]
@@ -455,9 +447,8 @@ namespace AElf.Contracts.Resource.Tests
             Tester.SetCallOwner(FeeKeyPair);
             var unlockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.UnlockResource),
                 ownerAddress, 200UL, "Cpu");
-            string retMessage = unlockResult.RetVal.ToStringUtf8();
-            retMessage.Contains("Arithmetic operation resulted in an overflow.").ShouldBeTrue();
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.Contains("Arithmetic operation resulted in an overflow.").ShouldBeTrue();
         }
 
         private async Task ApproveBalance(ulong amount)

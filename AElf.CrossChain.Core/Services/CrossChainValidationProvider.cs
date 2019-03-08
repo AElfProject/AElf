@@ -1,27 +1,23 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Infrastructure;
 
 namespace AElf.CrossChain
 {
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
-        private readonly ICrossChainService _crossChainService;
-        private readonly IBlockExtraDataOrderService _blockExtraDataOrderService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
+        private readonly ICrossChainService _crossChainService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
-        public CrossChainValidationProvider(ITransactionResultQueryService transactionResultQueryService, 
-            ICrossChainService crossChainService, IBlockExtraDataOrderService blockExtraDataOrderService)
+        public CrossChainValidationProvider(ITransactionResultQueryService transactionResultQueryService,
+            ICrossChainService crossChainService, IBlockExtraDataService blockExtraDataService)
         {
             _transactionResultQueryService = transactionResultQueryService;
             _crossChainService = crossChainService;
-            _blockExtraDataOrderService = blockExtraDataOrderService;
+            _blockExtraDataService = blockExtraDataService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -44,7 +40,7 @@ namespace AElf.CrossChain
                 throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.", e);
             }
         }
-
+        
         private async Task<bool> ValidateCrossChainLogEventInBlock(LogEvent interestedLogEvent, IBlock block)
         {
             foreach (var txId in block.Body.Transactions)
@@ -55,10 +51,8 @@ namespace AElf.CrossChain
                         out var crossChainBlockData);
                 // first check equality with the root in header
                 if (sideChainTransactionsRoot == null
-                    || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(block.Header
-                        .BlockExtraDatas[
-                            _blockExtraDataOrderService.GetExtraDataProviderOrder(
-                                typeof(CrossChainBlockExtraDataProvider))].ToByteArray())))
+                    || !sideChainTransactionsRoot.Equals(Hash.LoadByteArray(
+                        _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", block.Header).ToByteArray())))
                     continue;
                 return await ValidateCrossChainBlockDataAsync(crossChainBlockData,
                     block.Header.GetHash(), block.Header.Height);

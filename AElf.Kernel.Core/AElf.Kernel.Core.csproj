@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>AElf.Kernel</RootNamespace>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>
@@ -25,7 +26,9 @@
     <Folder Include="Miner\Domain" />
     <Folder Include="Node\Application" />
     <Folder Include="Node\Domain" />
+    <Folder Include="Node\Infrastructure" />
     <Folder Include="SmartContractExecution\Application" />
+    <Folder Include="SmartContract\Application" />
     <Folder Include="TransactionPool\Application" />
   </ItemGroup>
 </Project>
