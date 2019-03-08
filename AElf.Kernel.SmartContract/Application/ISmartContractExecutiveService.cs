@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
 
-        private static readonly ConcurrentDictionary<Address, SmartContractRegistration>
+        private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 #if DEBUG
