@@ -35,6 +35,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.Contracts.TestBase
 {
@@ -103,8 +104,6 @@ namespace AElf.Contracts.TestBase
             _transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetService<ITransactionReadOnlyExecutionService>();
             _blockGenerationService = Application.ServiceProvider.GetService<IBlockGenerationService>();
-            _systemTransactionGenerationService =
-                Application.ServiceProvider.GetService<ISystemTransactionGenerationService>();
             _blockExecutingService = Application.ServiceProvider.GetService<IBlockExecutingService>();
             _consensusService = Application.ServiceProvider.GetService<IConsensusService>();
             _chainManager = Application.ServiceProvider.GetService<IChainManager>();
@@ -302,11 +301,8 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task ExecuteBlock(Block block, List<Transaction> txs, List<Transaction> systemTxs)
         {
-            foreach (var transaction in block.Body.TransactionList)
-            {
-                await _transactionManager.AddTransactionAsync(transaction);
-            }
-            
+            txs.ForEach(tx => AsyncHelper.RunSync(() => _transactionManager.AddTransactionAsync(tx)));
+            systemTxs.ForEach(tx => AsyncHelper.RunSync(() => _transactionManager.AddTransactionAsync(tx)));
             await _blockchainService.AddBlockAsync(block);
             var chain = await _blockchainService.GetChainAsync();
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
@@ -351,14 +347,22 @@ namespace AElf.Contracts.TestBase
             mockTxHub.Setup(h => h.HandleBlockAcceptedAsync(It.IsAny<BlockAcceptedEvent>()))
                 .Returns(Task.CompletedTask);
 
+            var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
+
             if (systemTxs != null)
             {
-                var mockSystemTransactionGenerationService = new Mock<ISystemTransactionGenerationService>();
                 mockSystemTransactionGenerationService.Setup(s =>
                     s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()
                     )).Returns(systemTxs);
-                _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
             }
+            else
+            {
+                mockSystemTransactionGenerationService.Setup(s =>
+                    s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()
+                    )).Returns(new List<Transaction>());
+            }
+            
+            _systemTransactionGenerationService = mockSystemTransactionGenerationService.Object;
 
             return new MinerService(_accountService, _blockGenerationService,
                 _systemTransactionGenerationService, _blockchainService, _blockExecutingService, _consensusService,
