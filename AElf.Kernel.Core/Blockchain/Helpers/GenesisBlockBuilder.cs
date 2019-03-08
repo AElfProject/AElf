@@ -10,12 +10,12 @@ namespace AElf.Kernel.Blockchain.Helpers
 
         public GenesisBlockBuilder Build(int chainId)
         {
-            var block = new Block(Hash.Genesis)
+            var block = new Block(Hash.Empty)
             {
                 Header = new BlockHeader
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis,
+                    PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     MerkleTreeRootOfWorldState = Hash.Default

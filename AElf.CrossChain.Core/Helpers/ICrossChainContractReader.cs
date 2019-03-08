@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Types;
 
 namespace AElf.CrossChain
@@ -33,11 +36,14 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainReadOnlyTransactionExecutor _crossChainReadOnlyTransactionExecutor;
         private IChainManager _chainManager;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public CrossChainContractReader(ICrossChainReadOnlyTransactionExecutor crossChainReadOnlyTransactionExecutor, IChainManager chainManager)
+        public CrossChainContractReader(ICrossChainReadOnlyTransactionExecutor crossChainReadOnlyTransactionExecutor,
+            IChainManager chainManager, ISmartContractAddressService smartContractAddressService)
         {
             _crossChainReadOnlyTransactionExecutor = crossChainReadOnlyTransactionExecutor;
             _chainManager = chainManager;
+            _smartContractAddressService = smartContractAddressService;
         }
 
         public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight)
@@ -98,8 +104,8 @@ namespace AElf.CrossChain
                 preBlockHeight);
             return new Dictionary<int, long>(dict.IdHeighDict);
         }
-        
-        Address CrossChainContractMethodAddress => ContractHelpers.GetCrossChainContractAddress(_chainManager.GetChainId());
 
+        private Address CrossChainContractMethodAddress =>
+            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
     }
 }

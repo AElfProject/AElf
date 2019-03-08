@@ -3,7 +3,7 @@ using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public partial class StatePath
+    public partial class StatePath : IHashProvider
     {
         public Hash GetHash()
         {

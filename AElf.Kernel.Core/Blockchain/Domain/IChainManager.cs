@@ -40,8 +40,6 @@ namespace AElf.Kernel.Blockchain.Domain
 
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
 
-        Address GetConsensusContractAddress();
-
         int GetChainId();
     }
 
@@ -51,29 +49,32 @@ namespace AElf.Kernel.Blockchain.Domain
         private readonly IBlockchainStore<ChainBlockLink> _chainBlockLinks;
         private readonly IBlockchainStore<ChainBlockIndex> _chainBlockIndexes;
 
-        private readonly int _chainId;
+        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+
+        private int ChainId => _staticChainInformationProvider.ChainId;
+        
         public ILogger<ChainManager> Logger { get; set; }
 
         public ChainManager(IBlockchainStore<Chain> chains,
             IBlockchainStore<ChainBlockLink> chainBlockLinks,
             IBlockchainStore<ChainBlockIndex> chainBlockIndexes,
-            IOptionsSnapshot<ChainOptions> options)
+            IStaticChainInformationProvider staticChainInformationProvider)
         {
             _chains = chains;
             _chainBlockLinks = chainBlockLinks;
             _chainBlockIndexes = chainBlockIndexes;
-            _chainId = options.Value.ChainId;
+            _staticChainInformationProvider = staticChainInformationProvider;
         }
 
         public async Task<Chain> CreateAsync(Hash genesisBlock)
         {
-            var chain = await _chains.GetAsync(_chainId.ToStorageKey());
+            var chain = await _chains.GetAsync(ChainId.ToStorageKey());
             if (chain != null)
                 throw new InvalidOperationException("chain already exists");
 
             chain = new Chain()
             {
-                Id = _chainId,
+                Id = ChainId,
                 LongestChainHeight = ChainConsts.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
                 BestChainHeight = ChainConsts.GenesisBlockHeight,
@@ -91,20 +92,20 @@ namespace AElf.Kernel.Blockchain.Domain
             {
                 BlockHash = genesisBlock,
                 Height = ChainConsts.GenesisBlockHeight,
-                PreviousBlockHash = Hash.Genesis,
+                PreviousBlockHash = Hash.Empty,
                 IsLinked = true
             });
-            
+
             await SetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight, genesisBlock);
-            
-            await _chains.SetAsync(_chainId.ToStorageKey(), chain);
+
+            await _chains.SetAsync(ChainId.ToStorageKey(), chain);
 
             return chain;
         }
 
         public async Task<Chain> GetAsync()
         {
-            var chain = await _chains.GetAsync(_chainId.ToStorageKey());
+            var chain = await _chains.GetAsync(ChainId.ToStorageKey());
             return chain;
         }
 
@@ -115,24 +116,24 @@ namespace AElf.Kernel.Blockchain.Domain
 
         protected async Task<ChainBlockLink> GetChainBlockLinkAsync(string blockHash)
         {
-            return await _chainBlockLinks.GetAsync(_chainId.ToStorageKey() + blockHash);
+            return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + blockHash);
         }
 
         public async Task SetChainBlockLinkAsync(ChainBlockLink chainBlockLink)
         {
-            await _chainBlockLinks.SetAsync(_chainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(),
+            await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(),
                 chainBlockLink);
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
         {
-            await _chainBlockIndexes.SetAsync(_chainId.ToStorageKey() + blockHeight.ToStorageKey(),
+            await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
         public async Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight)
         {
-            return await _chainBlockIndexes.GetAsync(_chainId.ToStorageKey() + blockHeight.ToStorageKey());
+            return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey());
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
@@ -181,10 +182,12 @@ namespace AElf.Kernel.Blockchain.Domain
                     if (chainBlockLink.Height <= chain.LongestChainHeight)
                     {
                         //check database to ensure whether it can be a branch
-                        var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                        var previousChainBlockLink =
+                            await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                         if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                         {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
+                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] =
+                                previousChainBlockLink.Height;
                             continue;
                         }
                     }
@@ -287,14 +290,10 @@ namespace AElf.Kernel.Blockchain.Domain
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
 
-        public Address GetConsensusContractAddress()
-        {
-            return ContractHelpers.GetConsensusContractAddress(_chainId);
-        }
 
         public int GetChainId()
         {
-            return _chainId;
+            return ChainId;
         }
     }
 }

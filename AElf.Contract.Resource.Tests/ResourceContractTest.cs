@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.Token;
@@ -38,10 +39,10 @@ namespace AElf.Contracts.Resource.Tests
             contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
 
-            BasicZeroContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.GenesisBasicContract];
-            TokenContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.TokenContract];
-            ResourceContractAddress = Tester.DeployedContractsAddresses[(int)ContractConsts.ResourceContract];
-            FeeReceiverContractAddress = Tester.DeployedContractsAddresses[contractArray.Count - 1];
+            BasicZeroContractAddress = Tester.GetZeroContractAddress();
+            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
+            ResourceContractAddress = Tester.GetContractAddress(typeof(ResourceContract));
+            FeeReceiverContractAddress = Tester.GetContractAddress(typeof(FeeReceiverContract));
 
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
             FoundationKeyPair = CryptoHelpers.GenerateKeyPair();

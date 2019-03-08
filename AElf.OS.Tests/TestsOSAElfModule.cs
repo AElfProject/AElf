@@ -2,10 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
@@ -77,7 +80,7 @@ namespace AElf.OS
                 context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
                 return peerPoolMock.Object;
             });
-                        
+
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
@@ -94,7 +97,7 @@ namespace AElf.OS
                     s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
                 return mockService.Object;
             });
-            
+
             context.Services.AddTransient<IBlockValidationService>(o =>
             {
                 var mockService = new Mock<IBlockValidationService>();
@@ -104,20 +107,10 @@ namespace AElf.OS
                     s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
+
+            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
-        
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var defaultZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
-        }
+
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
@@ -125,21 +118,26 @@ namespace AElf.OS
             var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
                 .Value.NodeAccount);
 
-            var transactions = InitChainHelper.GetGenesisTransactions(chainId, account);
+            var info = context.ServiceProvider.GetService<IStaticChainInformationProvider>();
+
             var dto = new OsBlockchainNodeContextStartDto
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto
-                {
-                    ChainId = chainId,
-                    Transactions = transactions
-                }
+                ZeroSmartContract = typeof(BasicContractZero),
+                ChainId = chainId,
             };
 
-            var blockchainNodeContextService = context.ServiceProvider.GetService<IBlockchainNodeContextService>();
-            AsyncHelper.RunSync(async () =>
-            {
-                blockchainNodeContextService.StartAsync(dto.BlockchainNodeContextStartDto);
-            });
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>();
+
+            var transactions =
+                InitChainHelper.GetGenesisTransactions(chainId, account,
+                    info.GetSystemContractAddressInGenesisBlock(2));
+
+            dto.InitializationTransactions = transactions;
+
+            var blockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+            AsyncHelper.RunSync(() => blockchainNodeContextService.StartAsync(dto));
         }
     }
 }

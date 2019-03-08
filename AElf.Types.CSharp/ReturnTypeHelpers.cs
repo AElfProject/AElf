@@ -131,7 +131,8 @@ namespace AElf.Types.CSharp
                         return null;
                     }
 
-                    return (value as UserType)?.Pack()?.ToByteArray();
+                    var holder = (UserTypeHolder) type.GetMethod("Pack").Invoke(value, new object[0]);
+                    return holder.ToByteArray();
                 };
             }
 
@@ -285,8 +286,8 @@ namespace AElf.Types.CSharp
                     dynamic o = Activator.CreateInstance<T>();
                     var holder = new UserTypeHolder();
                     holder.MergeFrom(bytes);
-                    ((UserType) o).Unpack(holder);
-                    return o;
+                    typeof(T).GetMethod("Unpack").Invoke(o,new object[]{holder});
+                    return (T) o;
                 };
             }
 

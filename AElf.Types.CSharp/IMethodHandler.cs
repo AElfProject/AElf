@@ -1,4 +1,4 @@
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Types.CSharp
 {
     public interface IMethodHandler
     {
