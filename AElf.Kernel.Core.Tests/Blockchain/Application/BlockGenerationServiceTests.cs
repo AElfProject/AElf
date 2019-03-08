@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Blockchain.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Asn1.Cms;
 using Shouldly;
@@ -13,10 +14,13 @@ namespace AElf.Kernel.Blockchain.Application
 
         private readonly IBlockchainService _blockchainService;
 
+        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+
         public BlockGenerationServiceTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockGenerationService = GetRequiredService<BlockGenerationService>();
+            _staticChainInformationProvider = GetRequiredService<IStaticChainInformationProvider>();
         }
 
         [Fact]
@@ -30,7 +34,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(generateBlockDto);
 
-            block.Header.ChainId.ShouldBe(_blockchainService.GetChainId());
+            block.Header.ChainId.ShouldBe(_staticChainInformationProvider.ChainId);
             block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
             block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
             block.Header.Time.ShouldBe(Timestamp.FromDateTime(generateBlockDto.BlockTime));

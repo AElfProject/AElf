@@ -245,6 +245,8 @@ namespace AElf.Types.CSharp
 
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
+            if (bytes.Length==0)
+                return default(T);
             var obj = new T();
             ((IMessage) obj).MergeFrom(bytes);
             return obj;
@@ -252,6 +254,9 @@ namespace AElf.Types.CSharp
 
         public static T DeserializeToPbMessage<T>(this ByteString bs) where T : IMessage, new()
         {
+            if (bs.Length==0)
+                return default(T);
+            
             return ReturnTypeHelper.GetDecoder<T>()(bs?.ToByteArray());
         }
 

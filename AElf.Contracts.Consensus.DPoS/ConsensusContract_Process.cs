@@ -20,6 +20,8 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(firstRound.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
 
+            Assert(firstRound.RealTimeMinersInformation.Any(), "No miners in round information.");
+            
             InitialSettings(firstRound);
 
             SetAliases(firstRound);

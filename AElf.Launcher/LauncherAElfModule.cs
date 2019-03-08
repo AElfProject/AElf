@@ -4,6 +4,7 @@ using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.EventMessages;
@@ -11,6 +12,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Modularity;
 using AElf.OS.Rpc.Net;
@@ -56,7 +58,7 @@ namespace AElf.Launcher
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-        
+
         public LauncherAElfModule()
         {
             Logger = NullLogger<LauncherAElfModule>.Instance;
@@ -69,41 +71,31 @@ namespace AElf.Launcher
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<GenesisTransactionsGenerator, GenesisTransactionsGenerator>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            var defaultZero = typeof(BasicContractZero);
-            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
-            var provider = context.ServiceProvider.GetService<IDefaultContractZeroCodeProvider>();
-            provider.DefaultContractZeroRegistration = new SmartContractRegistration()
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(code),
-                CodeHash = Hash.FromRawBytes(code)
-            };
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
-            var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
+            //var generator = context.ServiceProvider.GetService<GenesisTransactionsGenerator>();
+            //var transactions = generator.GetGenesisTransactions(chainOptions.ChainId);
             var dto = new OsBlockchainNodeContextStartDto()
             {
-                BlockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
-                {
-                    ChainId = chainOptions.ChainId,
-                    Transactions = transactions
-                }
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero)
             };
+            dto.InitializationSmartContracts.AddGenesisSmartContract<BasicContractZero>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
+
+
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
-            AsyncHelper.RunSync(async () =>
-            {
-                that.OsBlockchainNodeContext = await osService.StartAsync(dto);
-            });
+            AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
@@ -114,7 +106,7 @@ namespace AElf.Launcher
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
-            AsyncHelper.RunSync(async () => { await osService.StopAsync(that.OsBlockchainNodeContext); });
+            AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
     }
 }

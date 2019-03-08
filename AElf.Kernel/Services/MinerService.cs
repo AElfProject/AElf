@@ -61,122 +61,117 @@ namespace AElf.Kernel.Services
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
         {
-            try
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            // generate block without txns
+            var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
+
+            var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
+
+            var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
+            var pending = new List<Transaction>();
+            if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
-                // generate block without txns
-                var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
+                pending = executableTransactionSet.Transactions;
+            }
+            else
+            {
+                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
+                                  $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
+                                  $"best chain hash {previousBlockHash}.");
+            }
 
-                var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(time - DateTime.UtcNow);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
+                    transactions, pending, cts.Token);
+            }
 
-                var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
-                var pending = new List<Transaction>();
-                if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-                {
-                    pending = executableTransactionSet.Transactions;
-                }
-                else
-                {
-                    Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
-                                      $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
-                                      $"best chain hash {previousBlockHash}.");
-                }
+            stopwatch.Stop();
+            Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
+                                  $"height: {block.Header.Height}, " +
+                                  $"previous: {block.Header.PreviousBlockHash}, " +
+                                  $"tx-count: {block.Body.TransactionsCount}," +
+                                  $"duration: {stopwatch.ElapsedMilliseconds} ms. }}");
 
-                using (var cts = new CancellationTokenSource())
-                {
-                    cts.CancelAfter(time - DateTime.UtcNow);
-                    block = await _blockExecutingService.ExecuteBlockAsync(block.Header, 
-                        transactions, pending, cts.Token);
-                }
+            /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
+            var txs = await _txHub.GetReceiptsOfExecutablesAsync();
+            var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
+            var traces = new List<TransactionTrace>();
+            if (txGrp.TryGetValue(true, out var sysRcpts))
+            {
+                var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
+                _txFilter.Execute(sysTxs);
+                Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
+                traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
+                Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
+            }
+            if (txGrp.TryGetValue(false, out var regRcpts))
+            {
+                var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress();
+                var regTxs = new List<Transaction>();
+                var contractTxs = new List<Transaction>();
 
-                stopwatch.Stop();
-                Logger.LogInformation($"Generated {{ hash: {block.BlockHashToHex}, " +
-                                      $"height: {block.Header.Height}, " +
-                                      $"previous: {block.Header.PreviousBlockHash}, " +
-                                      $"tx-count: {block.Body.TransactionsCount}," +
-                                      $"duration: {stopwatch.ElapsedMilliseconds} ms. }}");
-                
-                /*DateTime currentBlockTime = block.Header.Time.ToDateTime();
-                var txs = await _txHub.GetReceiptsOfExecutablesAsync();
-                var txGrp = txs.GroupBy(tr => tr.IsSystemTxn).ToDictionary(x => x.Key, x => x.ToList());
-                var traces = new List<TransactionTrace>();
-                if (txGrp.TryGetValue(true, out var sysRcpts))
+                foreach (var regRcpt in regRcpts)
                 {
-                    var sysTxs = sysRcpts.Select(x => x.Transaction).ToList();
-                    _txFilter.Execute(sysTxs);
-                    Logger.LogTrace($"Start executing {sysTxs.Count} system transactions.");
-                    traces = await ExecuteTransactions(sysTxs, currentBlockTime,true, TransactionType.DposTransaction);
-                    Logger.LogTrace($"Finish executing {sysTxs.Count} system transactions.");
-                }
-                if (txGrp.TryGetValue(false, out var regRcpts))
-                {
-                    var contractZeroAddress = ContractHelpers.GetGenesisBasicContractAddress();
-                    var regTxs = new List<Transaction>();
-                    var contractTxs = new List<Transaction>();
-
-                    foreach (var regRcpt in regRcpts)
+                    if (regRcpt.Transaction.To.Equals(contractZeroAddress))
                     {
-                        if (regRcpt.Transaction.To.Equals(contractZeroAddress))
-                        {
-                            contractTxs.Add(regRcpt.Transaction);
-                        }
-                        else
-                        {
-                            regTxs.Add(regRcpt.Transaction);
-                        }
+                        contractTxs.Add(regRcpt.Transaction);
                     }
-                    
-                    Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
-                    traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
-                    Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
-                    
-                    Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
-                    traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
-                        transactionType: TransactionType.ContractDeployTransaction));
-                    Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
+                    else
+                    {
+                        regTxs.Add(regRcpt.Transaction);
+                    }
                 }
+                
+                Logger.LogTrace($"Start executing {regTxs.Count} regular transactions.");
+                traces.AddRange(await ExecuteTransactions(regTxs, currentBlockTime));
+                Logger.LogTrace($"Finish executing {regTxs.Count} regular transactions.");
+                
+                Logger.LogTrace($"Start executing {contractTxs.Count} contract transactions.");
+                traces.AddRange(await ExecuteTransactions(contractTxs, currentBlockTime,
+                    transactionType: TransactionType.ContractDeployTransaction));
+                Logger.LogTrace($"Finish executing {contractTxs.Count} contract transactions.");
+            }
 
-                ExtractTransactionResults(traces, out var results);
+            ExtractTransactionResults(traces, out var results);
 
-                // complete block
-                await CompleteBlock(block, results);
-                Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Height} with {block.Body.TransactionsCount} txs.");
+            // complete block
+            await CompleteBlock(block, results);
+            Logger.LogInformation($"Generated block {block.BlockHashToHex} at height {block.Header.Height} with {block.Body.TransactionsCount} txs.");
 
-                var blockStateSet = new BlockStateSet()
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Header.Height,
-                    PreviousHash = block.Header.PreviousBlockHash
-                };
-                FillBlockStateSet(blockStateSet, traces); 
-                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);*/
+            var blockStateSet = new BlockStateSet()
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Header.Height,
+                PreviousHash = block.Header.PreviousBlockHash
+            };
+            FillBlockStateSet(blockStateSet, traces); 
+            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);*/
 
 //                await SignBlockAsync(block);
-                await _blockchainService.AddBlockAsync(block);
-                var chain = await _blockchainService.GetChainAsync();
-                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            await _blockchainService.AddBlockAsync(block);
+            var chain = await _blockchainService.GetChainAsync();
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
-                await SignBlockAsync(block);
-                // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-                //await _txHub.OnNewBlock(block);
+            await SignBlockAsync(block);
+            // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
+            //await _txHub.OnNewBlock(block);
 
-                return block;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Mining failed with exception.");
-                return null;
-            }
+            return block;
         }
 
-        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash, long previousBlockHeight)
+        private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
+            long previousBlockHeight)
         {
             //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
-            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight, previousBlockHash);
+            var generatedTxns =
+                _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
+                    previousBlockHash);
 
             foreach (var txn in generatedTxns)
             {

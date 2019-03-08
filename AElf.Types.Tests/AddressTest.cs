@@ -33,12 +33,6 @@ namespace AElf.Types.Tests
             var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
             address5.ShouldNotBe(null);
-
-            //Build Contract address
-            var chainId = 1234;
-            var serialNumber = (ulong) 10;
-            var address6 = Address.BuildContractAddress(chainId, serialNumber);
-            address6.ShouldNotBe(null);
         }
 
         [Fact]
