@@ -151,12 +151,21 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             var transactionResult = await this.GetTransactionResult(transactionHash);
-            var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
-            var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
+            var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
 
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-            response["BlockHash"] = block.BlockHashToHex;
-            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
+            if (transactionResult.Status == TransactionResultStatus.Mined 
+                || transactionResult.Status == TransactionResultStatus.Failed)
+            {
+                var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
+                response["BlockHash"] = block.BlockHashToHex;
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+                response["Error"] = transactionResult.Error;
+
+            // response["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+            response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
 
             return response;
         }
@@ -199,9 +208,14 @@ namespace AElf.OS.Rpc.ChainController
                 {
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-                    var transaction = TransactionManager.GetTransaction(transactionResult.TransactionId);
+                    var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
                     jObjectResult["BlockHash"] = block.BlockHashToHex;
-                    jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.Result.ToString());
+
+                    if (transactionResult.Status == TransactionResultStatus.Failed)
+                        jObjectResult["Error"] = transactionResult.Error;
+
+                    // jObjectResult["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+                    jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
                     response.Add(jObjectResult);
                 }
             }
