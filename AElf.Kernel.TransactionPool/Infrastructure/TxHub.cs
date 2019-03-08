@@ -35,7 +35,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
         private long _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
-        private Hash _bestChainHash = Hash.Genesis;
+        private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
 

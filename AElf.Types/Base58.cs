@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
+using Google.Protobuf;
 
 namespace AElf.Common
 {
@@ -54,6 +55,35 @@ namespace AElf.Common
 
             return result;
         }
+
+        /// <summary>
+        /// Encodes data in plain Base58, without any checksum.
+        /// </summary>
+        /// <param name="data">The data to be encoded</param>
+        /// <returns></returns>
+        public static string EncodePlain(ByteString data)
+        {
+            // Decode byte[] to BigInteger
+            var intData = data.Aggregate<byte, BigInteger>(0, (current, t) => current * 256 + t);
+
+            // Encode BigInteger to Base58 string
+            var result = string.Empty;
+            while (intData > 0)
+            {
+                var remainder = (int) (intData % 58);
+                intData /= 58;
+                result = Digits[remainder] + result;
+            }
+
+            // Append `1` for each leading 0 byte
+            for (var i = 0; i < data.Length && data[i] == 0; i++)
+            {
+                result = '1' + result;
+            }
+
+            return result;
+        }
+
 
         /// <summary>
         /// Decodes data in Base58Check format (with 4 byte checksum)

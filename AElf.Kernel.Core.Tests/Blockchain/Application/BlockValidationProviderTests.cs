@@ -36,7 +36,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeFalse();
             
-            block.Body.Transactions.Add(Hash.Genesis);
+            block.Body.Transactions.Add(Hash.Empty);
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeFalse();
 

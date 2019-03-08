@@ -32,7 +32,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = new BlockHeader
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis,
+                    PreviousBlockHash = Hash.Empty,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 },
                 Body = new BlockBody()
@@ -234,7 +234,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = new BlockHeader
                 {
                     Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Genesis
+                    PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
             };
