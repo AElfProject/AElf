@@ -7,6 +7,6 @@ namespace AElf.Kernel.KernelAccount
     public interface ISmartContractZero : ISmartContract
     {        
         string GetContractInfo(Address address);
-        byte[] DeploySmartContract(int category, byte[] code);
+        Address DeploySmartContract(int category, byte[] code);
     }
 }

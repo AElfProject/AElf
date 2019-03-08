@@ -16,34 +16,19 @@ message Term {
 }
 
 // Just used as parameter of consensus contract method.
-message Forwarding {
-    Round CurrentRound = 1;
-    Round NextRound = 2;
-    uint64 CurrentAge = 3;
-}
-
-// Just used as parameter of consensus contract method.
-message ToPackage {
-    Hash OutValue = 1;
-    Hash Signature = 2;
-    int64 RoundId = 3;
-    int32 PromiseTinyBlocks = 4;
-    Hash PreviousInValue = 5;
-}
-
-// Just used as parameter of consensus contract method.
-message ToBroadcast {
-    Hash InValue = 1;
-    int64 RoundId = 2;
+message ToUpdate {
+    Hash OutValue = 1;// Calculated from current in value.
+    Hash Signature = 2;// Calculated from current in value and 
+    int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
+    int32 PromiseTinyBlocks = 4;// By default, this value is 1, except this miner wanna produce tiny blocks in one time slot.
+    Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
 }
 
 // The miners public key list for each term.
 message Miners {
     uint64 TermNumber = 1;
     repeated string PublicKeys = 2;
-    uint64 MainchainLatestTermNumber = 3;// Shouldn't be updated if TermNumber > 1
-    string Remark = 4;
-    repeated Address Addresses = 5;
+    repeated Address Addresses = 3;
 }
 
 // To query to first round number of each term.
@@ -109,11 +94,9 @@ message CandidateInTerm {
 message Round {
     uint64 RoundNumber = 1;
     map<string, MinerInRound> RealTimeMinersInformation = 2;
-    int32 MiningInterval = 3;
     uint64 BlockchainAge = 4;
-    uint64 MinersTermNumber = 5;
-    string Remark = 6;
     string ExtraBlockProducerOfPreviousRound = 7;
+    uint64 TermNumber = 8;
 }
 
 // The information of a miner in a specific round.
@@ -191,23 +174,6 @@ message DPoSInformation {
     DPoSBehaviour Behaviour = 8;
 }
 
-message DPoSExtraInformation {
-    bool ChangeTerm = 1;
-    Hash OutValue = 2;
-    int32 MiningInterval = 3;
-    Term NewTerm = 4;
-    Forwarding Forwarding = 5;
-    ToPackage ToPackage = 6;
-    ToBroadcast ToBroadcast = 7;
-    google.protobuf.Timestamp Timestamp = 8;
-    repeated string InitialMiners = 9;
-    Hash InValue = 10;
-    string PublicKey = 11;
-    bool IsBootMiner = 12;
-    Hash Signature = 13;
-    Hash CurrentInValue = 14;
-}
-
 message ConsensusCommand {
     int32 CountingMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
     int32 TimeoutMilliseconds = 2;// Time limit of mining next block.
@@ -219,8 +185,8 @@ message DPoSHint {
 }
 
 enum DPoSBehaviour {
-    InitialTerm = 0;
-    PackageOutValue = 1;
+    InitialConsensus = 0;
+    UpdateValue = 1;
     NextRound = 2;
     NextTerm = 3;
     Invalid = 4;

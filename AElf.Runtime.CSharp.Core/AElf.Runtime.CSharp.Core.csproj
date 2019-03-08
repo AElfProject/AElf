@@ -14,4 +14,10 @@
       <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Hyperion, Version=0.9.8.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\..\..\.nuget\packages\hyperion\0.9.8\lib\netstandard1.6\Hyperion.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

@@ -28,7 +28,6 @@ namespace AElf.OS.Rpc.ChainController
         public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
-        public ITransactionTraceManager TransactionTraceManager { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
