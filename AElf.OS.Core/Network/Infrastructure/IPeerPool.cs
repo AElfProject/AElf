@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         bool AddPeer(IPeer peer);
 
         //TODO: is it equal to address?
-        void ProcessDisconnection(string peerEndpoint);
+        Task ProcessDisconnection(string peerEndpoint);
 
         Task<Handshake> GetHandshakeAsync();
     }

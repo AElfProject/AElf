@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task StopAsync()
+        public async Task StopAsync(bool gracefulDisconnect = true)
         {
             await _server.KillAsync();
 
@@ -69,7 +69,9 @@ namespace AElf.OS.Network.Grpc
             {
                 try
                 {
-                    await peer.SendDisconnectAsync();
+                    if (gracefulDisconnect)
+                        await peer.SendDisconnectAsync();
+                    
                     await peer.StopAsync();
                 }
                 catch (Exception e)

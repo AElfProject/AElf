@@ -203,9 +203,14 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public void ProcessDisconnection(string peerEndpoint)
+        public async Task ProcessDisconnection(string peerEndpoint)
         {
-            _authenticatedPeers.RemoveAll(p => p.Value.RemoteEndpoint == peerEndpoint);
+            var p = _authenticatedPeers.FirstOrDefault(pr => pr.Value.RemoteEndpoint == peerEndpoint);
+            
+            if (_authenticatedPeers.TryRemove(p.Key, out GrpcPeer peer))
+            {
+                await peer.StopAsync();
+            }
         }
     }
 }

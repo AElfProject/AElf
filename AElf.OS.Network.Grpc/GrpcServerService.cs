@@ -198,18 +198,18 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
-        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             try
             {
-                _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
+                await _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during Disconnect handle.");
             }
 
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
     }
 }

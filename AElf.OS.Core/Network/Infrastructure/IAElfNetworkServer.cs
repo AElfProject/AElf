@@ -8,6 +8,6 @@ namespace AElf.OS.Network.Infrastructure
         IPeerPool PeerPool { get; }
 
         Task StartAsync();
-        Task StopAsync();
+        Task StopAsync(bool gracefulDisconnect = true);
     }
 }
