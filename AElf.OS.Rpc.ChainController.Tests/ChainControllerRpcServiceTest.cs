@@ -412,7 +412,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             response["result"]["Branches"].ShouldNotBeNull();
             Convert.ToInt32(response["result"]["BestChainHeight"]).ShouldBe(2);
         }
-        
+
         [Fact]
         public async Task Get_Block_State_Success()
         {
@@ -432,12 +432,23 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var blockHash = responseResult["BlockHash"].ToString();
             
             var response1 = await JsonCallAsJObject("/chain", "GetBlockState",
-                blockHash);
+                new{ blockHash = blockHash });
             response1["result"].ShouldNotBeNull();
-            
-
+            response1["result"]["BlockHash"].ToString().ShouldBe(blockHash);
+            response1["result"]["BlockHeight"].To<int>().ShouldBe(3);
+            response1["result"]["Changes"].ShouldNotBeNull();
         }
         
+        [Fact]
+        public async Task Query_NonExist_Api_Failed()
+        {
+            var response = await JsonCallAsJObject("/chain", "TestMethod",
+                new { Test = "testParameter" });
+            response.ShouldNotBeNull();
+            response["error"]["code"].To<int>().ShouldBe(-32601);
+            response["error"]["message"].ToString().ShouldBe("The specified method does not exist or is not available");
+        }
+
         private async Task<Block> MinedOneBlock(Chain chain)
         {
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
@@ -466,7 +477,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
             var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
-                Address.BuildContractAddress(chain.Id, 2), nameof(TokenContract.BalanceOf),
+                _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)), nameof(TokenContract.BalanceOf),
                 paramArray);
 
             return transaction;
@@ -507,7 +518,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray())
             };
 
-            return transaction;
+            return await Task.FromResult(transaction);
         }
     }
 }
