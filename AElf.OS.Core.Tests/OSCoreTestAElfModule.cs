@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
@@ -7,18 +6,16 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -33,19 +30,19 @@ namespace AElf.OS
         typeof(KernelTestAElfModule),
         typeof(DPoSConsensusTestAElfModule)
     )]
-    public class TestsOSAElfModule : AElfModule
+    public class OSCoreTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
-            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
+            var nodeAccountAddress = Address.FromPublicKey(ecKeyPair.PublicKey);
             var nodeAccountPassword = "123";
 
             Configure<AccountOptions>(o =>
             {
-                o.NodeAccount = nodeAccount;
+                o.NodeAccount = nodeAccountAddress.GetFormatted();
                 o.NodeAccountPassword = nodeAccountPassword;
             });
 
@@ -61,13 +58,27 @@ namespace AElf.OS
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
+            
+            context.Services.AddTransient<IAccountService>(o =>
+            {
+                var mockService = new Mock<IAccountService>();
+                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
+                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+                
+                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
+                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
+                {
+                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
+                });
 
-            context.Services.AddSingleton<IKeyStore>(o =>
-                Mock.Of<IKeyStore>(
-                    c => c.OpenAsync(nodeAccount, nodeAccountPassword, false) ==
-                         Task.FromResult(AElfKeyStore.Errors.None) &&
-                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
-            );
+                mockService.Setup(a => a.GetPublicKeyAsync()).Returns(Task.FromResult(ecKeyPair.PublicKey));
+
+//                mockService.Setup(a => a.GetAccountAsync())
+//                    .Returns(Task.FromResult(nodeAccountAddress));
+
+                return mockService.Object;
+            });
 
             context.Services.AddSingleton<IPeerPool>(o =>
             {
