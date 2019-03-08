@@ -200,7 +200,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(lastBlockHash);
 
-            if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
+            if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                 return null;
 
             hashes.Add(chainBlockLink.PreviousBlockHash);
@@ -209,7 +209,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
 
-                if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Genesis)
+                if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                     break;
 
                 hashes.Add(chainBlockLink.PreviousBlockHash);
