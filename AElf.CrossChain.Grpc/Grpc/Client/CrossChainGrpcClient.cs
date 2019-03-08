@@ -7,29 +7,37 @@ using AElf.CrossChain.Cache;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc.Client
 {
-    public abstract class GrpcCrossChainClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
+    public abstract class CrossChainGrpcClient<TResponse> : ILocalEventHandler<GrpcClientRequestIntervalUpdateEvent>, 
+        IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
-        public ILogger<GrpcCrossChainClient<TResponse>> Logger { get; }
+        private ILogger<CrossChainGrpcClient<TResponse>> Logger { get; }
         private int _initInterval;
         private int _adjustedInterval;
         private const int UnavailableConnectionInterval = 1_000;
-        private Channel _channel;
+        private readonly Channel _channel;
         private readonly ICrossChainDataProducer _crossChainDataProducer;
-        protected GrpcCrossChainClient(Channel channel, ICrossChainDataProducer crossChainDataProducer)
+        protected CrossChainGrpcClient(Channel channel, ICrossChainDataProducer crossChainDataProducer)
         {
             _channel = channel;
-            Logger = NullLogger<GrpcCrossChainClient<TResponse>>.Instance;
+            Logger = NullLogger<CrossChainGrpcClient<TResponse>>.Instance;
             _crossChainDataProducer = crossChainDataProducer;
             _adjustedInterval = _initInterval;
         }
 
-        public void UpdateRequestInterval(int initInterval)
+        private void UpdateRequestInterval(int initInterval)
         {
             _initInterval = initInterval;
             _adjustedInterval = _initInterval;
+        }
+
+        public Task HandleEventAsync(GrpcClientRequestIntervalUpdateEvent receivedEventData)
+        {
+            UpdateRequestInterval(receivedEventData.Interval);
+            return Task.CompletedTask;
         }
         
         /// <summary>
@@ -136,7 +144,40 @@ namespace AElf.CrossChain.Grpc.Client
         }
 
         protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> Call(int milliSeconds = 0);
-        protected abstract AsyncServerStreamingCall<TResponse> Call(RequestCrossChainBlockData requestCrossChainBlockData);
+    }
+    
+    public class SideChainGrpcClient : CrossChainGrpcClient<ResponseSideChainBlockData>
+    {
+        private readonly CrossChainRpc.CrossChainRpcClient _client;
+
+        public SideChainGrpcClient(Channel channel, CrossChainDataProducer crossChainDataProducer) : base(channel, crossChainDataProducer)
+        {
+            _client = new CrossChainRpc.CrossChainRpcClient(channel);
+        }
+
+        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> Call(int milliSeconds = 0)
+        {
+            return milliSeconds == 0
+                ? _client.RequestSideChainDuplexStreaming()
+                : _client.RequestSideChainDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
+        }
+    }
+    
+    public class ParentChainGrpcClient : CrossChainGrpcClient<ResponseParentChainBlockData>
+    {
+        private readonly CrossChainRpc.CrossChainRpcClient _client;
+
+        public ParentChainGrpcClient(Channel channel, CrossChainDataProducer crossChainDataProducer) : base(channel, crossChainDataProducer)
+        {
+            _client = new CrossChainRpc.CrossChainRpcClient(channel);
+        }
+
+        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> Call(int milliSeconds = 0)
+        {
+            return milliSeconds == 0
+                ? _client.RequestParentChainDuplexStreaming()
+                : _client.RequestParentChainDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
+        }
     }
 
     public interface IGrpcCrossChainClient
