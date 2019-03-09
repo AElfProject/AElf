@@ -194,8 +194,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Failed,
-                        Error = trace.StdErr,
-                        StateHash = Hash.Default
+                        Error = trace.StdErr
                     };
                     return txResF;
                 case ExecutionStatus.InsufficientTransactionFees:
@@ -203,8 +202,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         TransactionId = trace.TransactionId,
                         ReturnValue = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
-                        Status = TransactionResultStatus.Failed,
-                        StateHash = trace.GetSummarizedStateHash()
+                        Status = TransactionResultStatus.Failed
                     };
                     return txResITF;
                 case ExecutionStatus.Undefined:
