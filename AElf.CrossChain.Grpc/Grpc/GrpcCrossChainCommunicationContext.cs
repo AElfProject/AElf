@@ -8,6 +8,8 @@ namespace AElf.CrossChain.Grpc
         public int SelfChainId { get; set; }
         public bool RemoteIsSideChain { get; set; }
         
+        public string CertificateFileName { get; set; }
+        
         public string ToUriStr()
         {
             return string.Join(":",TargetIp, TargetPort);

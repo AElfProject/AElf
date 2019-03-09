@@ -24,6 +24,7 @@ message ParentChainBlockData {
 
     // Indexed block height from side chain and merkle path for this side chain block
     map<int64, MerklePath> IndexedMerklePath = 2;
+    map<string, bytes> ExtraData = 3;
 }
 
 message ParentChainBlockRootInfo

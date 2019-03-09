@@ -20,9 +20,9 @@ message ResponseParentChainBlockData {
 }
 
 message IndexingRequestMessage {
-    uint32 Port = 1;
-    string Ip = 2;
-    int32 SideChainId = 3;
+    int32 ListeningPort = 1;
+    int32 SideChainId = 2;
+    string CertificateFileName = 3;
 }
 
 message IndexingRequestResult {
