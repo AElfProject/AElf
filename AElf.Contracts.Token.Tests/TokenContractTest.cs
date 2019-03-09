@@ -121,13 +121,13 @@ namespace AElf.Contracts.Token
 
             var toAddress = CryptoHelpers.GenerateKeyPair();
             var fromAddress = CryptoHelpers.GenerateKeyPair();
-            //Tester.SetCallOwner(fromAddress);
+            var from = Tester.CreateNewContractTester(fromAddress);
 
-            var result = Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Transfer),
-                Tester.GetAddress(toAddress), 1000UL);
+            var result = from.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Transfer),
+                from.GetAddress(toAddress), 1000UL);
             result.Result.Status.ShouldBe(TransactionResultStatus.Failed);
-            var bytes = await Tester.CallContractMethodAsync(TokenContractAddress, "BalanceOf",
-                Tester.GetAddress(fromAddress));
+            var bytes = await from.CallContractMethodAsync(TokenContractAddress, "BalanceOf",
+                from.GetAddress(fromAddress));
             var balance = bytes.DeserializeToUInt64();
             result.Result.Error.Contains($"Insufficient balance. Current balance: {balance}").ShouldBeTrue();
         }
@@ -181,17 +181,17 @@ namespace AElf.Contracts.Token
             await Approve_TokenContract();
             
             var owner = Tester.GetCallOwnerAddress();
-            var spender = Tester.GetAddress(spenderKeyPair);
+            var spenderAddress = Tester.GetAddress(spenderKeyPair);
 
-            //Tester.SetCallOwner(spenderKeyPair);
+            var spender = Tester.CreateNewContractTester(spenderKeyPair);
             var result2 =
-                await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.TransferFrom), owner, spender,
+                await spender.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.TransferFrom), owner, spenderAddress,
                     1000UL);
             result2.Status.ShouldBe(TransactionResultStatus.Mined);
-            var bytes2 = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.Allowance), owner, spender);
+            var bytes2 = await spender.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.Allowance), owner, spenderAddress);
             bytes2.DeserializeToUInt64().ShouldBe(2000UL - 1000UL);
 
-            var bytes3 = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.BalanceOf), spender);
+            var bytes3 = await spender.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.BalanceOf), spenderAddress);
             bytes3.DeserializeToUInt64().ShouldBe(1000UL);
         }
 
@@ -250,8 +250,8 @@ namespace AElf.Contracts.Token
         {
             await Initialize_TokenContract();
             var burnerAddress = CryptoHelpers.GenerateKeyPair();
-            //Tester.SetCallOwner(burnerAddress);
-            var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Burn),
+            var burner = Tester.CreateNewContractTester(burnerAddress);
+            var result = await burner.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Burn),
                 3000UL);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Burner doesn't own enough balance.").ShouldBeTrue();
