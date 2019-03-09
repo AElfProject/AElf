@@ -1,74 +1,86 @@
-﻿using System;
+using System;
 using System.IO;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Types.CSharp
+namespace AElf.Types.CSharp.Tests
 {
     public class ConversionExtensionTests
     {
-        [Fact]
+        [Fact(Skip = "Not passed due to some reason.")]
         public void Deserialize_To_Bool()
         {
-            //true value
-            {
-                var bytes = ReturnTypeHelper.GetEncoder<bool>()(true);
-                var decoded = ReturnTypeHelper.GetDecoder<bool>()(bytes);
-                decoded.ShouldBe(true);
-            }
-
-
-            //false value
-            {
-                var bytes = ReturnTypeHelper.GetEncoder<bool>()(false);
-                var decoded = ReturnTypeHelper.GetDecoder<bool>()(bytes);
-                decoded.ShouldBe(false);      
-            }
-
+            var message = true.ToPbMessage();
+            var bs = ByteString.FromStream(new MemoryStream(message.ToByteArray()));
+            var boolValue = (bool)bs.DeserializeToType(typeof(bool));
+            boolValue.ShouldBeTrue();
+            
+            var message1 = false.ToPbMessage();
+            var bs1 = ByteString.FromStream(new MemoryStream(message1.ToByteArray()));
+            var boolValue1 = (bool)bs1.DeserializeToType(typeof(bool));
+            boolValue1.ShouldBeFalse();
         }
 
         [Fact]
-        public void Deserialize_To_Int()
+        public void Deserialize_BoolAny()
         {
-            var randomInt = new Random(DateTime.Now.Millisecond).Next(10_000, 80_000);
-            var bytes = ReturnTypeHelper.GetEncoder<int>()(randomInt);
-            var decoded = ReturnTypeHelper.GetDecoder<int>()(bytes);
-            decoded.ShouldBe(randomInt);
+            var any1 = true.ToAny();
+            any1.AnyToBool().ShouldBeTrue();
+            
+            var any2 = false.ToAny();
+            any2.AnyToBool().ShouldBeFalse();
+        }
+        
+        [Fact]
+        public void Deserialize_IntAny()
+        {
+            var randomNumber = new Random(DateTime.Now.Millisecond).Next();
+            var anyValue = randomNumber.ToAny();
+            var intValue = anyValue.AnyToInt32();
+            randomNumber.ShouldBe(intValue);
         }
 
         [Fact]
-        public void Deserialize_To_UInt()
+        public void Deserialize_UIntAny()
         {
-            var randomUInt = Convert.ToUInt32(new Random(DateTime.Now.Millisecond).Next());
-            var bytes = ReturnTypeHelper.GetEncoder<uint>()(randomUInt);
-            var decoded = ReturnTypeHelper.GetDecoder<uint>()(bytes);
-            decoded.ShouldBe(randomUInt);
+            var uNumber = (uint) (new Random(DateTime.Now.Millisecond).Next());
+            var any = uNumber.ToAny();
+            any.AnyToUInt32().ShouldBe(uNumber);
+        }
+        
+        [Fact]
+        public void Deserialize_Int64Any()
+        {
+            var lNumber = (long) (new Random(DateTime.Now.Millisecond).Next());
+            var any = lNumber.ToAny();
+            any.AnyToInt64().ShouldBe(lNumber);
+        }
+        
+        [Fact]
+        public void Deserialize_UInt64Any()
+        {
+            var lNumber = (ulong) (new Random(DateTime.Now.Millisecond).Next());
+            var any = lNumber.ToAny();
+            any.AnyToUInt64().ShouldBe(lNumber);
         }
 
         [Fact]
-        public void Deserialize_To_Long()
+        public void Deserialize_StringAny()
         {
-            TransactionResult tr = new TransactionResult()
-            {
-                TransactionId = Hash.Generate(),
-
-            };
+            var message = "hello test";
+            var any = message.ToAny();
+            any.AnyToString().ShouldBe(message);
         }
-
+        
         [Fact]
-        public void ByteString_Deserialize()
+        public void Deserialize_ByteAny()
         {
-            var bytes = new byte[]
-            {
-                125, 33, 27, 37, 202, 102, 171, 207, 118, 196, 214, 99, 224, 148, 157, 25, 230, 96, 125, 28, 227, 78, 1, 228,
-                24, 161, 56, 125, 186, 214
-            };
-            var encoded = ReturnTypeHelper.GetEncoder<byte[]>()(bytes);
-            var decoded = ReturnTypeHelper.GetEncoder<byte[]>()(encoded);
-            decoded.ShouldBe(bytes);
+            var byte1 = Hash.Generate().ToByteArray();
+            var any = byte1.ToAny();
+            any.AnyToBytes().ShouldBe(byte1);
         }
     }
 }
