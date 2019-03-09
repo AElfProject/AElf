@@ -1,4 +1,6 @@
 using System;
+using AElf.Common;
+using AElf.CrossChain.Cache.Exception;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
@@ -28,7 +30,7 @@ namespace AElf.CrossChain.Cache
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)
-                throw new Exception("Chain data cache not found.");
+                throw new ChainCacheNotFoundException($"Chain {ChainHelpers.ConvertChainIdToBase58(chainId)} cache not found.");
             return blockInfoCache.TargetChainHeight();
         }
     }

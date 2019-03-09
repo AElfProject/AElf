@@ -11,12 +11,12 @@ namespace AElf.CrossChain
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataService blockExtraDataService)
+        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataExtractor blockExtraDataExtractor)
         {
             _crossChainService = crossChainService;
-            _blockExtraDataService = blockExtraDataService;
+            _blockExtraDataExtractor = blockExtraDataExtractor;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -29,8 +29,7 @@ namespace AElf.CrossChain
         {
             var indexedCrossChainBlockData =
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            var extraData = _blockExtraDataService
-                .GetExtraDataFromBlockHeader("CrossChain", block.Header);
+            var extraData = _blockExtraDataExtractor.ExtractExtraData("CrossChain", block.Header);
             if (indexedCrossChainBlockData == null && extraData == null)
                 return true;
             
