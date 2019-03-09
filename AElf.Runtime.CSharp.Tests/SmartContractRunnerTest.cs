@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.ABI;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -15,39 +17,33 @@ namespace AElf.Runtime.CSharp.Tests
     public class SmartContractRunnerTest: CSharpRuntimeTestBase
     {
         private ISmartContractRunner Runner { get; set; }
+        private SmartContractRegistration Reg { get; set; }
 
         public SmartContractRunnerTest()
         {
-            Runner = GetRequiredService<ISmartContractRunner>();
-        }
-
-        [Fact]
-        public void Get_IExcutive()
-        {
             var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
-            var reg = new SmartContractRegistration()
+            Runner = GetRequiredService<ISmartContractRunner>();
+            Reg = new SmartContractRegistration()
             {
                 Category = 2,
                 Code = ByteString.CopyFrom(contractCode),
                 CodeHash = Hash.FromRawBytes(contractCode)
             };
+        }
 
-            var executive = Runner.RunAsync(reg);
+        [Fact]
+        public async Task Get_IExecutive()
+        {
+            var executive = await Runner.RunAsync(Reg);
             executive.ShouldNotBe(null);
+
+            executive.SetMaxCallDepth(3);
         }
 
         [Fact]
         public void Get_AbiModule()
         {
-            var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
-            var reg = new SmartContractRegistration()
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(contractCode),
-                CodeHash = Hash.FromRawBytes(contractCode)
-            };
-
-            var message = Runner.GetAbi(reg) as Module;
+            var message = Runner.GetAbi(Reg) as Module;
             message.ShouldNotBe(null);
 
             var eventList = message.Events.Select(o => o.Name).ToList();
@@ -71,17 +67,35 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void Get_Contract_Type()
         {
-            var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
-            var reg = new SmartContractRegistration()
-            {
-                Category = 2,
-                Code = ByteString.CopyFrom(contractCode),
-                CodeHash = Hash.FromRawBytes(contractCode)
-            };
-
-            var contractType = Runner.GetContractType(reg);
+            var contractType = Runner.GetContractType(Reg);
             var fullName = contractType.FullName;
             fullName.ShouldBe("AElf.Contracts.Token.TokenContractState");
+        }
+
+        [Fact]
+        public async Task Get_JsonStringParameter()
+        {
+            var executive = await Runner.RunAsync(Reg);
+            //TransferFrom parameter
+            var addressFrom = Address.Generate();
+            var addressTo = Address.Generate();
+            var byteString = ByteString.CopyFrom(ParamsPacker.Pack(addressFrom, addressTo, 1000UL));
+            var parameterObj = executive.GetJsonStringOfParameters(nameof(TokenContract.TransferFrom), byteString.ToByteArray());
+            parameterObj.ShouldNotBeNull();
+            var parameterArray = parameterObj.Replace("\"", "").Split(',');
+            parameterArray.Length.ShouldBe(3);
+            var addressString = parameterArray[0];
+            addressString.ShouldBe(addressFrom.GetFormatted());
+            parameterArray[2].To<ulong>().ShouldBe(1000UL);
+        }
+
+        [Fact]
+        public async Task Get_ReturnValue()
+        {
+            var executive = await Runner.RunAsync(Reg);
+            var resultArray = "ELF".GetBytes();
+            var returnObj = executive.GetReturnValue(nameof(TokenContract.TokenName), resultArray);
+            returnObj.ToString().ShouldBe("ELF");
         }
     }
 }
