@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.CrossChain.Grpc.Server;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,8 @@ namespace AElf.CrossChain
             var services = context.Services;
             services.AddSingleton<CrossChainGrpcServer>();
             var configuration = context.Services.GetConfiguration();
-            Configure<CrossChainGrpcConfigOption>(configuration.GetSection("CrossChainGrpc"));
+            Configure<GrpcCrossChainConfigOption>(configuration.GetSection("CrossChain").GetChildren()
+                .FirstOrDefault(child => child.Key.Equals("Grpc")));
         }
     }
 }
