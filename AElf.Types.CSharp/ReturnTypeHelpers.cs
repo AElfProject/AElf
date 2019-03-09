@@ -11,11 +11,6 @@ namespace AElf.Types.CSharp
     {
         private static byte[] EncodeByProtobuf<T>(T value, Action<CodedOutputStream, T> encoder)
         {
-            if (EqualityComparer<T>.Default.Equals(value, default(T)))
-            {
-                return null;
-            }
-
             using (var mm = new MemoryStream())
             using (var stream = new CodedOutputStream(mm))
             {
@@ -146,7 +141,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         dynamic d = false;
                         return d;
@@ -165,7 +160,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         dynamic d = 0;
                         return d;
@@ -184,7 +179,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         dynamic d = 0U;
                         return d;
@@ -203,7 +198,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         dynamic d = 0L;
                         return d;
@@ -222,7 +217,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         dynamic d = 0UL;
                         return d;
@@ -240,7 +235,7 @@ namespace AElf.Types.CSharp
             {
                 return bytes =>
                 {
-                    if (bytes == null)
+                    if (bytes == null || bytes.Length == 0)
                     {
                         return default(T);
                     }

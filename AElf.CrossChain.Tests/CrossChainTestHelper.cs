@@ -36,10 +36,7 @@ namespace AElf.CrossChain
                 ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted,
             };
             var returnValue = CreateFakeReturnValue(trace, transaction, methodName);
-            trace.RetVal = new RetVal
-            {
-                Data = ByteString.CopyFrom(returnValue)
-            };
+            trace.ReturnValue = returnValue == null ? ByteString.Empty : ByteString.CopyFrom(returnValue);
             
             return trace;
         }

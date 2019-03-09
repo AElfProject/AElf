@@ -172,7 +172,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     {
                         TransactionId = trace.TransactionId,
                         Status = TransactionResultStatus.Mined,
-                        ReturnValue = trace.RetVal.Data,
+                        ReturnValue = trace.ReturnValue,
                         ReadableReturnValue = trace.ReadableReturnValue,
                         BlockNumber = blockHeight,
                         //StateHash = trace.GetSummarizedStateHash(),
@@ -255,12 +255,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     returnSet.StateChanges[s.Key] = s.Value;
                 }
 
-                if (trace.RetVal == null)
-                {
-                    throw new NullReferenceException("RetVal of trace is null.");
-                }
-
-                returnSet.ReturnValue = trace.RetVal.Data;
+                returnSet.ReturnValue = trace.ReturnValue;
             }
 
             return returnSet;

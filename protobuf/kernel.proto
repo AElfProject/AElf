@@ -120,7 +120,7 @@ enum ExecutionStatus {
 
 message TransactionTrace {
     Hash TransactionId = 1;
-    RetVal RetVal = 2;
+    bytes ReturnValue = 2;
     string StdOut = 3;
     string StdErr = 4;
     Hash StateHash = 5;
@@ -155,23 +155,6 @@ message LogEvent {
 message TransactionLogEvent{
     Hash Transaction = 1;
     LogEvent LogEvent = 2;
-}
-
-message RetVal {
-    RetType Type = 1;
-    bytes Data = 2;
-    enum RetType {
-        Void = 0;
-        Bool = 1;
-        Int32 = 2;
-        UInt32 = 3;
-        Int64 = 4;
-        UInt64 = 5;
-        String = 6;
-        Bytes = 7;
-        PbMessage = 8;
-        UserType = 9;
-    }
 }
 
 message BlockHeaderList {
