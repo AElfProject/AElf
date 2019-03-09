@@ -2,7 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using AElf.Common;
 using AElf.Contracts.Genesis;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Database;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
@@ -33,6 +36,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            ECKeyPair CallOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
+
+            context.Services.AddTransient<IAccountService>(o =>
+            {
+                var mockAccountService = new Mock<IAccountService>();
+                mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
+                
+                return mockAccountService.Object;
+            });
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }
