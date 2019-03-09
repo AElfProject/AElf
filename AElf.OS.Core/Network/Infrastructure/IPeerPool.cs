@@ -8,7 +8,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
-        List<IPeer> GetPeers();
+        List<IPeer> GetPeers(bool includeFailing = false);
         
         IPeer FindPeerByAddress(string peerAddress);
         IPeer FindPeerByPublicKey(byte[] publicKey);
@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         bool AddPeer(IPeer peer);
 
         //TODO: is it equal to address?
-        void ProcessDisconnection(string peerEndpoint);
+        Task ProcessDisconnection(string peerEndpoint);
 
         Task<Handshake> GetHandshakeAsync();
     }
