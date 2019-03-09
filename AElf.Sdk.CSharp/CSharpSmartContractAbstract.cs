@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractBridge;
 
 namespace AElf.Sdk.CSharp
 {

@@ -1,4 +1,4 @@
-using AElf.Kernel.SmartContractBridge;
+using AElf.Kernel.SmartContract;
 
 namespace AElf.Sdk.CSharp
 {

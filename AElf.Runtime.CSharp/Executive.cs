@@ -15,6 +15,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractBridge;
 using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
+using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.Contexts.IHostSmartContractBridgeContext;
 
 namespace AElf.Runtime.CSharp
 {
@@ -32,10 +33,9 @@ namespace AElf.Runtime.CSharp
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
 
-        public Executive(Module abiModule, IHostSmartContractBridgeContext hostSmartContractBridgeContext)
+        public Executive(Module abiModule)
         {
             _abi = abiModule;
-            _hostSmartContractBridgeContext = hostSmartContractBridgeContext;
         }
 
         public Hash ContractHash { get; set; }
@@ -45,6 +45,13 @@ namespace AElf.Runtime.CSharp
             _maxCallDepth = maxCallDepth;
             return this;
         }
+
+        public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
+        {
+            _hostSmartContractBridgeContext = smartContractBridgeContext;
+            return this;
+        }
+
 
         public IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
@@ -104,9 +111,11 @@ namespace AElf.Runtime.CSharp
             {
                 From = _currentTransactionContext.Transaction.From,
                 //TODO: set in constant
-                To = _hostSmartContractBridgeContext.GetContractAddressByName(Hash.FromString("AElf.Contracts.Token.TokenContract")),
+                To = _hostSmartContractBridgeContext.GetContractAddressByName(
+                    Hash.FromString("AElf.Contracts.Token.TokenContract")),
                 MethodName = nameof(ITokenContract.ChargeTransactionFees),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
+                Params = ByteString.CopyFrom(
+                    ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
             });
         }
 

@@ -1,4 +1,6 @@
-namespace AElf.Kernel.SmartContractBridge
+using AElf.Kernel.SmartContract.Contexts;
+
+namespace AElf.Kernel.SmartContract.Application
 {
     public class HostSmartContractBridgeContextService : IHostSmartContractBridgeContextService
     {
@@ -10,9 +12,12 @@ namespace AElf.Kernel.SmartContractBridge
         }
 
 
-        public IHostSmartContractBridgeContext Create()
+        public IHostSmartContractBridgeContext Create(ISmartContractContext smartContractContext)
         {
-            return new HostSmartContractBridgeContext(_smartContractBridgeService);
+            var context = new HostSmartContractBridgeContext(_smartContractBridgeService);
+
+            context.SmartContractContext = smartContractContext;
+            return context;
         }
     }
 }

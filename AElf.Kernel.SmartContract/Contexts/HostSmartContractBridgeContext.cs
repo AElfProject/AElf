@@ -2,14 +2,12 @@ using System;
 using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractBridge;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 
-namespace AElf.Kernel.SmartContractBridge
+namespace AElf.Kernel.SmartContract.Contexts
 {
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext
     {

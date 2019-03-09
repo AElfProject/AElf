@@ -1,8 +1,6 @@
 using AElf.Common;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContractBridge;
 
-namespace AElf.Kernel.SmartContractBridge
+namespace AElf.Kernel.SmartContract.Contexts
 {
     public interface IHostSmartContractBridgeContext : ISmartContractBridgeContext
     {

@@ -1,13 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.SmartContractBridge
+namespace AElf.Kernel.SmartContract.Application
 {
     public interface ISmartContractBridgeService
     {

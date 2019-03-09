@@ -38,6 +38,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
         private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
@@ -51,12 +52,14 @@ namespace AElf.Kernel.SmartContract.Application
 
         public SmartContractExecutiveService(IServiceProvider serviceProvider,
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
+            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService)
         {
             _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+            _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
 #if DEBUG
             SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
 #endif
@@ -102,17 +105,8 @@ namespace AElf.Kernel.SmartContract.Application
             var reg = await GetSmartContractRegistrationAsync(chainContext, address);
             var executive = await GetExecutiveAsync(reg);
 
-            executive.SetSmartContractContext(new SmartContractContext()
-            {
-                ContractAddress = address,
-                BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
-                SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
-                SmartContractAddressService = _serviceProvider.GetService<ISmartContractAddressService>(),
-                SmartContractExecutiveService = this,
-#if DEBUG
-                Logger = SmartContractContextLogger
-#endif
-            });
+            executive.SetHostSmartContractBridgeContext(
+                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address}));
 
             return executive;
         }

@@ -34,10 +34,7 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        private IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
-
         public SmartContractRunnerForCategoryTwo(
-            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService,
             string sdkDir,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
@@ -45,7 +42,6 @@ namespace AElf.Runtime.CSharp
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
             _assemblyChecker = new AssemblyChecker(blackList, whiteList);
-            _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
         }
 
         /// <summary>
@@ -97,7 +93,7 @@ namespace AElf.Runtime.CSharp
 //            }
 
             Executive executive =
-                new Executive(abiModule, _hostSmartContractBridgeContextService.Create())
+                new Executive(abiModule)
                     .SetSmartContract(instance); //.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);

@@ -1,7 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContractBridge;
+using AElf.Kernel.SmartContract;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
 

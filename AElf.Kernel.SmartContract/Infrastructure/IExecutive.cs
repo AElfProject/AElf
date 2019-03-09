@@ -9,7 +9,8 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         Hash ContractHash { get; set; }
         IExecutive SetMaxCallDepth(int maxCallDepth);
-        IExecutive SetSmartContractContext(ISmartContractContext contractContext);
+ 
+        IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
         IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
         void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
