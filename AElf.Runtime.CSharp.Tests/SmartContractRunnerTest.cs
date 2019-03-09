@@ -83,6 +83,7 @@ namespace AElf.Runtime.CSharp.Tests
             var addressTo = Address.Generate();
             var byteString = ByteString.CopyFrom(ParamsPacker.Pack(addressFrom, addressTo, 1000UL));
             var parameterObj = executive.GetJsonStringOfParameters(nameof(TokenContract.TransferFrom), byteString.ToByteArray());
+            
             parameterObj.ShouldNotBeNull();
             var jsonParameter = (JObject) JsonConvert.DeserializeObject(parameterObj);
             jsonParameter.Count.ShouldBe(3);

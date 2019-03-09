@@ -55,5 +55,23 @@ namespace AElf.Runtime.CSharp.Tests
         {
             Should.Throw<InvalidMethodNameException>(() => Cache.GetHandler("TestMethod"));
         }
+
+        [Fact]
+        public void Serialize_Method_Parameter()
+        {
+            var address = Address.Generate().GetFormatted();
+            var transferArgs = new[] { address, "1000" };
+            var method = Cache.GetMethodAbi(nameof(TokenContract.Transfer));
+            var parameterArray = method.SerializeParams(transferArgs);
+            parameterArray.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void Serialize_Method_Parameter_WithNotCorrect_Count()
+        {
+            var methodArgs = new[] { "test1", "test2" };
+            var method = Cache.GetMethodAbi(nameof(TokenContract.TransferFrom));
+            Should.Throw<InvalidInputException>(()=> method.SerializeParams(methodArgs));
+        }
     }
 }
