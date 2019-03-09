@@ -61,15 +61,17 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public async Task StopAsync()
+        public async Task StopAsync(bool gracefulDisconnect = true)
         {
             await _server.KillAsync();
 
-            foreach (var peer in PeerPool.GetPeers())
+            foreach (var peer in PeerPool.GetPeers(true))
             {
                 try
                 {
-                    await peer.SendDisconnectAsync();
+                    if (gracefulDisconnect)
+                        await peer.SendDisconnectAsync();
+                    
                     await peer.StopAsync();
                 }
                 catch (Exception e)
