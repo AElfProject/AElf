@@ -6,7 +6,9 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
@@ -31,8 +33,7 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public IBinaryMerkleTreeManager BinaryMerkleTreeManager { get; set; }
-        
-        
+
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
@@ -61,10 +62,18 @@ namespace AElf.OS.Rpc.ChainController
         public Task<JObject> GetChainInfo()
         {
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
-
+            var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
+            var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
+            var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            
             var response = new JObject
             {
                 [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress.GetFormatted(),
+                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
