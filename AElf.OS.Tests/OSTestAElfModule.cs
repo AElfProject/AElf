@@ -33,6 +33,7 @@ namespace AElf.OS
         typeof(OSAElfModule),
         typeof(OSCoreTestAElfModule)
     )]
+    // ReSharper disable once InconsistentNaming
     public class OSTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

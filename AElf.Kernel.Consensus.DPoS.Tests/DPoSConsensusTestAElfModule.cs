@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     )]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class DPoSConsensusTestAElfModule : AElfModule
+    public class DPoSConsensusTestAElfModule : TestBaseAElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

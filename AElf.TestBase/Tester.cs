@@ -1,6 +1,6 @@
 namespace AElf.TestBase
 {
-    public class Tester
+    public class Tester<TTestAElfModule> where TTestAElfModule : TestBaseAElfModule
     {
         
     }
