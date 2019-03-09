@@ -10,11 +10,12 @@ namespace AElf.CrossChain
             long preBlockHeight);
         Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash,
             long preBlockHeight);
-        Task<bool> ValidateSideChainBlockDataAsync(IList<SideChainBlockData> sideChainBlockInfo,
+        Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockInfo,
             Hash previousBlockHash, long preBlockHeight);
-        Task<bool> ValidateParentChainBlockDataAsync(IList<ParentChainBlockData> parentChainBlockInfo,
+        Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockInfo,
             Hash previousBlockHash, long preBlockHeight);
 
         void CreateNewSideChainBlockInfoCache();
+        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
     }
 }

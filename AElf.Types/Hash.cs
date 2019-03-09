@@ -226,8 +226,7 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadByteArray(byte[] bytes)
         {
-            //TODO: remove && bytes.Length != 3 && bytes.Length!=4
-            if (bytes.Length != TypeConsts.HashByteArrayLength && bytes.Length != 3 && bytes.Length!=4)
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }
@@ -246,8 +245,7 @@ namespace AElf.Common
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadByteArray(ByteString bytes)
         {
-            //TODO: remove && bytes.Length != 3 && bytes.Length!=4
-            if (bytes.Length != TypeConsts.HashByteArrayLength && bytes.Length != 3 && bytes.Length!=4)
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
             {
                 throw new ArgumentOutOfRangeException(nameof(bytes));
             }

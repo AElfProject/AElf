@@ -6,19 +6,22 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainDataProvider
     {
-        //TODO: return the list, not the boolean. do not change the parameters,
-        //or it will be hard to read by other people
-        Task<bool> GetSideChainBlockDataAsync(IList<SideChainBlockData> sideChainBlockData,
-            Hash previousBlockHash, long preBlockHeight, bool isValidation = false);
+        Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight);
 
-        Task<bool> GetParentChainBlockDataAsync(IList<ParentChainBlockData> parentChainBlockData,
-            Hash previousBlockHash, long preBlockHeight, bool isValidation = false);
+        Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockData,
+            Hash previousBlockHash, long preBlockHeight);
 
-        Task<bool> ActivateCrossChainCacheAsync(Hash blockHash, long blockHeight);
+        Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight);
+
+        Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData,
+            Hash previousBlockHash, long preBlockHeight);
+
+        Task ActivateCrossChainCacheAsync(Hash blockHash, long blockHeight);
 
         void RegisterNewChain(int chainId);
         //void AddNewSideChainDataConsumer(ICrossChainDataConsumer crossChainDataConsumer);
         //int GetCachedChainCount();
         //void CreateNewSideChain();
+        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
     }
 }
