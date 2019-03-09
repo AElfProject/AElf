@@ -12,6 +12,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -27,6 +28,7 @@ namespace AElf.OS.Network
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+        private LoggerFactory _loggerFactory;
 
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
@@ -35,6 +37,57 @@ namespace AElf.OS.Network
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
             optionsMock.Setup(m => m.Value).Returns(new ChainOptions {ChainId = ChainHelpers.GetRandomChainId()});
             _optionsMock = optionsMock.Object;
+            
+            _loggerFactory = new LoggerFactory();
+            _loggerFactory.AddProvider(new XunitLoggerProvider(testOutputHelper));
+        }
+        
+        public class XunitLoggerProvider : ILoggerProvider
+        {
+            private readonly ITestOutputHelper _testOutputHelper;
+
+            public XunitLoggerProvider(ITestOutputHelper testOutputHelper)
+            {
+                _testOutputHelper = testOutputHelper;
+            }
+
+            public ILogger CreateLogger(string categoryName)
+                => new XunitLogger(_testOutputHelper, categoryName);
+
+            public void Dispose()
+            { }
+        }
+
+        public class XunitLogger : ILogger
+        {
+            private readonly ITestOutputHelper _testOutputHelper;
+            private readonly string _categoryName;
+
+            public XunitLogger(ITestOutputHelper testOutputHelper, string categoryName)
+            {
+                _testOutputHelper = testOutputHelper;
+                _categoryName = categoryName;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+                => NoopDisposable.Instance;
+
+            public bool IsEnabled(LogLevel logLevel)
+                => true;
+
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                _testOutputHelper.WriteLine($"{_categoryName} [{eventId}] {formatter(state, exception)}");
+                if (exception != null)
+                    _testOutputHelper.WriteLine(exception.ToString());
+            }
+
+            private class NoopDisposable : IDisposable
+            {
+                public static NoopDisposable Instance = new NoopDisposable();
+                public void Dispose()
+                { }
+            }
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions,
@@ -68,14 +121,16 @@ namespace AElf.OS.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object,
-                NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
-            GrpcServerService serverService =
-                new GrpcServerService(grpcPeerPool, mockBlockService.Object);
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
+            grpcPeerPool.Logger = _loggerFactory.CreateLogger<GrpcPeerPool>();
+                
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object);
             serverService.EventBus = mockLocalEventBus.Object;
+            serverService.Logger = _loggerFactory.CreateLogger<GrpcServerService>();
 
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
             netServer.EventBus = mockLocalEventBus.Object;
+            netServer.Logger = _loggerFactory.CreateLogger<GrpcNetworkServer>();
 
             return (netServer, grpcPeerPool);
         }

@@ -216,10 +216,18 @@ namespace AElf.OS.Network.Grpc
         public async Task ProcessDisconnection(string peerEndpoint)
         {
             var p = _authenticatedPeers.FirstOrDefault(pr => pr.Value.RemoteEndpoint == peerEndpoint);
-            
-            if (_authenticatedPeers.TryRemove(p.Key, out GrpcPeer peer))
+
+            try
             {
-                await peer.StopAsync();
+                if (_authenticatedPeers.TryRemove(p.Key, out GrpcPeer peer))
+                {
+                    await peer.StopAsync();
+                }
+            }
+            catch (ArgumentNullException e)
+            {
+                Logger.LogError(e, $"Error for {peerEndpoint}");
+                throw e;
             }
         }
     }

@@ -94,6 +94,7 @@ namespace AElf.OS.Network.Grpc
         public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
         {
             var peer = GrpcUrl.Parse(context.Peer);
+            Logger.LogDebug($"Auth of {request.HskData.ListeningPort}");
             return Task.FromResult(new AuthResponse {Success = true, Port = peer.ToIpPortFormat()});
         }
 
