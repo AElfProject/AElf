@@ -13,7 +13,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain.Grpc.Client
 {
-    public class GrpcClientGenerator : ISingletonDependency, ILocalEventHandler<GrpcServeNewChainReceivedEvent>
+    public class GrpcClientGenerator : ISingletonDependency
     {
         private CancellationTokenSource TokenSourceToSideChain { get; } = new CancellationTokenSource();
         private CancellationTokenSource TokenSourceToParentChain { get; } = new CancellationTokenSource();
@@ -42,11 +42,11 @@ namespace AElf.CrossChain.Grpc.Client
 
         #region Create client
 
-        private void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
+        public void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
         {
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
-            client.StartDuplexStreamingCall(crossChainCommunicationContext.ChainId, crossChainCommunicationContext.IsSideChain
+            client.StartDuplexStreamingCall(crossChainCommunicationContext.RemoteChainId, crossChainCommunicationContext.RemoteIsSideChain
                 ? TokenSourceToSideChain.Token
                 : TokenSourceToParentChain.Token);
         }
@@ -60,7 +60,7 @@ namespace AElf.CrossChain.Grpc.Client
         {
             var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.RemoteChainId);
 
-            if (grpcClientBase.IsSideChain)
+            if (grpcClientBase.RemoteIsSideChain)
             {
                 var clientToSideChain = new SideChainGrpcClient(channel, _crossChainDataProducer);
                 return clientToSideChain;
@@ -87,12 +87,6 @@ namespace AElf.CrossChain.Grpc.Client
         }
 
         #endregion
-
-        public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
-        {
-            CreateClient(receivedEventData.CrossChainCommunicationContext);
-            return Task.CompletedTask;
-        }
 
         /// <summary>
         /// Close and clear clients to side chain

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain.Cache;
+using AElf.CrossChain.Cache.Exception;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -88,14 +89,25 @@ namespace AElf.CrossChain.Grpc.Client
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                var request = new RequestCrossChainBlockData
+                try
                 {
-                    SideChainId = chainId,
-                    NextHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId)
-                };
-                //Logger.LogTrace($"New requestCrossChain for height {requestCrossChain.NextHeight} to chain {_targetChainId.DumpHex()}");
-                await call.RequestStream.WriteAsync(request);
-                await Task.Delay(_adjustedInterval);
+                    var targetHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId);
+                    var request = new RequestCrossChainBlockData
+                    {
+                        SideChainId = chainId,
+                        NextHeight = targetHeight
+                    };
+                    await call.RequestStream.WriteAsync(request);
+                }
+                catch (ChainCacheNotFoundException)
+                {
+                    Logger.LogTrace($"No cache for chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
+                }
+                finally
+                {
+                    await Task.Delay(_adjustedInterval);
+                }
+                
             }
         }
 
