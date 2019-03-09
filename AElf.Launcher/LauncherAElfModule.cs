@@ -43,7 +43,7 @@ namespace AElf.Launcher
         typeof(AbpAspNetCoreMvcModule),
         typeof(RuntimeSetupAElfModule),
         typeof(KernelAElfModule),
-        typeof(CoreOSAElfModule),
+        typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(GrpcNetworkModule),

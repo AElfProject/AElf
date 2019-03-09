@@ -1,8 +1,13 @@
 using AElf.TestBase;
 
-namespace AElf.OS.Tests
+namespace AElf.OS
 {
-    public class OSTestBase : AElfIntegratedTest<TestsOSAElfModule>
+    public class OSTestBase : AElfIntegratedTest<OSTestAElfModule>
+    {
+        
+    }
+    
+    public class NetWorkTestBase : AElfIntegratedTest<NetTestAElfModule>
     {
         
     }
