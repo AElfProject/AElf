@@ -118,14 +118,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
 
-//                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
-//                foreach (var kv in txCtxt.Trace.StateChanges)
-//                {
-//                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
-//                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
-//                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
-//                }
-
                 if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
                 {
                     internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
