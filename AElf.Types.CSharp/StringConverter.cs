@@ -53,6 +53,9 @@ namespace AElf.Types.CSharp
                 {typeof(ulong), obj => ((ulong) obj).ToString()},
                 {typeof(string), obj => (string) obj},
                 {typeof(byte[]), obj => ((byte[]) obj).ToHex()},
+                {typeof(Hash), obj => ((Hash) obj).ToHex()},
+                {typeof(Address), obj => ((Address) obj).GetFormatted()},
+                {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
             };
 
         static StringConverter()
@@ -70,7 +73,7 @@ namespace AElf.Types.CSharp
 
         private static Dictionary<string, Type> GetTypeLookup(IEnumerable<Type> types)
         {
-            return types.ToDictionary(t => t.FullName.ToShorterName(), t => t);
+            return types.Distinct().ToDictionary(t => t.FullName.ToShorterName(), t => t);
         }
 
         public static Func<string, object> GetTypeParser(string typeName, IEnumerable<Type> types = null)

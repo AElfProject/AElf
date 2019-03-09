@@ -9,6 +9,8 @@ using AElf.Kernel.ABI;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Shouldly;
 using Xunit;
 
@@ -82,11 +84,11 @@ namespace AElf.Runtime.CSharp.Tests
             var byteString = ByteString.CopyFrom(ParamsPacker.Pack(addressFrom, addressTo, 1000UL));
             var parameterObj = executive.GetJsonStringOfParameters(nameof(TokenContract.TransferFrom), byteString.ToByteArray());
             parameterObj.ShouldNotBeNull();
-            var parameterArray = parameterObj.Replace("\"", "").Split(',');
-            parameterArray.Length.ShouldBe(3);
-            var addressString = parameterArray[0];
-            addressString.ShouldBe(addressFrom.GetFormatted());
-            parameterArray[2].To<ulong>().ShouldBe(1000UL);
+            var jsonParameter = (JObject) JsonConvert.DeserializeObject(parameterObj);
+            jsonParameter.Count.ShouldBe(3);
+            jsonParameter["from"].ShouldBe(addressFrom.GetFormatted());
+            jsonParameter["to"].ShouldBe(addressTo.GetFormatted());
+            jsonParameter["amount"].To<ulong>().ShouldBe(1000UL);
         }
 
         [Fact]
