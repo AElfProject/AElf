@@ -135,9 +135,12 @@ namespace AElf.Runtime.CSharp
                 try
                 {
                     var retVal = handler.Execute(tx.Params.ToByteArray());
-                    _currentTransactionContext.Trace.ReturnValue =
-                        retVal == null ? ByteString.Empty : ByteString.CopyFrom(retVal);
-                    _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);
+                    if (retVal != null)
+                    {
+                        _currentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                        _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
+                    }
+
                     _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
                 }
                 catch (TargetInvocationException ex)
