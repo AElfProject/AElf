@@ -320,6 +320,12 @@ namespace AElf.Contracts.CrossChain
                     AddIndexedTxRootMerklePathInParentChain(indexedBlockInfo.Key, indexedBlockInfo.Value);
                 }
 
+                // send consensus data shared from main chain  
+                if (blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
+                {
+                    State.ConsensusContract.UpdateMainChainConsensus(bytes.ToByteArray());
+                }
+                
                 State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
                     blockInfo.Root.SideChainTransactionsRoot;
                 State.CurrentParentChainHeight.Value = parentChainHeight;

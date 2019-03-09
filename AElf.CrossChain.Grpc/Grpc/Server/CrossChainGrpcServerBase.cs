@@ -8,6 +8,7 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -15,19 +16,22 @@ namespace AElf.CrossChain.Grpc.Server
 {
     public class CrossChainGrpcServerBase : CrossChainRpc.CrossChainRpcBase, ISingletonDependency
     {
-        private ILogger<CrossChainGrpcServer> Logger { get; }
+        private ILogger<CrossChainGrpcServerBase> Logger { get; }
         private ILocalEventBus LocalEventBus { get; }
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
-        private readonly ICrossChainService _crossChaiService;
+        private readonly ICrossChainService _crossChainService;
         private readonly ILocalLibService _localLibService;
-        public CrossChainGrpcServerBase(CrossChainService crossChaiService, 
+        private readonly CrossChainConfigOption _crossChainConfigOption;
+        
+        public CrossChainGrpcServerBase(CrossChainService crossChainService, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
             IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService)
         {
-            _crossChaiService = crossChaiService;
+            _crossChainService = crossChainService;
             _blockExtraDataExtractor = blockExtraDataExtractor;
             _localLibService = localLibService;
-            Logger = NullLogger<CrossChainGrpcServer>.Instance;
+            Logger = NullLogger<CrossChainGrpcServerBase>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
+            _crossChainConfigOption = crossChainConfigOption.Value;
         }
         
         /// <summary>
@@ -79,6 +83,11 @@ namespace AElf.CrossChain.Grpc.Server
                 foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
                 {
                     res.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+                }
+
+                foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
+                {
+                    res.BlockData.ExtraData.Add(symbol, _blockExtraDataExtractor.ExtractExtraData(symbol, block.Header));
                 }
                 
                 await responseStream.WriteAsync(res);
@@ -163,7 +172,7 @@ namespace AElf.CrossChain.Grpc.Server
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
             var crossChainBlockData =
-                await _crossChaiService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             return crossChainBlockData.SideChainBlockData;
         }
 

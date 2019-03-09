@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.CrossChain.Cache.Exception;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -17,7 +18,7 @@ namespace AElf.CrossChain.Cache
         public void GetChainHeightNeeded_NotExistChain()
         {
             int chainId = 123;
-            Assert.Throws<System.Exception>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
+            Assert.Throws<ChainCacheNotFoundException>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
         }
         
         [Fact]

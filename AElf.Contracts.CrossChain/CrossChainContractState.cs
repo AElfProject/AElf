@@ -22,6 +22,8 @@ namespace AElf.Contracts.CrossChain
     {
         public Func<ulong> GetCurrentRoundNumber { get; set; }
         public Func<ulong, Round> GetRoundInfo { get; set; }
+        
+        public Action<byte[]> UpdateMainChainConsensus { get; set; }
     }
 
     public class CrossChainContractState : ContractState
