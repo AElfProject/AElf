@@ -1,19 +1,11 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.OS.Jobs;
-using AElf.OS.Network;
-using AElf.OS.Network.Application;
-using AElf.OS.Network.Infrastructure;
-using AElf.OS.Tests.Network;
-using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Tests
+namespace AElf.OS.Jobs
 {
-    public class ForkDownloadJobTest : NetTestBase
+    public class ForkDownloadJobTest : NetWorkTestBase
     {
         private IBlockchainService _blockChainService;
         private ForkDownloadJob _job;

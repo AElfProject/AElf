@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
@@ -7,18 +6,16 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Node.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Tests;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -33,7 +30,7 @@ namespace AElf.OS
         typeof(KernelTestAElfModule),
         typeof(DPoSConsensusTestAElfModule)
     )]
-    public class TestsOSAElfModule : AElfModule
+    public class OSCoreTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -61,20 +58,31 @@ namespace AElf.OS
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
+            
+            context.Services.AddTransient<IAccountService>(o =>
+            {
+                var mockService = new Mock<IAccountService>();
+                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
+                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+                
+                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
+                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
+                {
+                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
+                });
 
-            context.Services.AddSingleton<IKeyStore>(o =>
-                Mock.Of<IKeyStore>(
-                    c => c.OpenAsync(nodeAccount, nodeAccountPassword, false) ==
-                         Task.FromResult(AElfKeyStore.Errors.None) &&
-                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
-            );
+                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
+
+                return mockService.Object;
+            });
 
             context.Services.AddSingleton<IPeerPool>(o =>
             {
                 Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
                 peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
                     .Returns<string>((adr) => null);
-                peerPoolMock.Setup(p => p.GetPeers())
+                peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
                     .Returns(new List<IPeer> { });
 
                 context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);

@@ -13,9 +13,9 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS.Network
 {
-    public class GrpcPeerPoolTests : OSTestBase
+    public class GrpcPeerPoolTests : OSCoreTestBase
     {
         private readonly IAccountService _accountService;
         private readonly ITestOutputHelper _testOutputHelper;

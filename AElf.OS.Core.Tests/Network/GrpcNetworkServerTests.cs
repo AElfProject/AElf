@@ -15,9 +15,9 @@ using Volo.Abp.EventBus.Local;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS.Network
 {
-    public class GrpcNetworkConnectionTests : OSTestBase
+    public class GrpcNetworkConnectionTests : OSCoreTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
@@ -220,22 +220,22 @@ namespace AElf.OS.Tests.Network
             await m2.Item1.StopAsync();
         }
         
-//        [Fact]
-//        public async Task GetPeers_NotExist_Test()
-//        {
-//            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6802"}});
-//            var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 4801 });
-//
-//            await m1.Item1.StartAsync();
-//            await m2.Item1.StartAsync();
-//
-//            var peers = m1.Item2.GetPeers();
-//
-//            await m1.Item1.StopAsync();
-//            await m2.Item1.StopAsync();
-//
-//            peers.Count.ShouldBe(0);
-//        }
+        [Fact]
+        public async Task GetPeers_NotExist_Test()
+        {
+            var m1 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 6800, BootNodes = new List<string> {"127.0.0.1:6801", "127.0.0.1:6802"}});
+            var m2 = BuildGrpcNetworkServer(new NetworkOptions { ListeningPort = 4801 });
+
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+
+            var peers = m1.Item2.GetPeers();
+
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
+
+            peers.Count.ShouldBe(0);
+        }
 
         [Fact]
         public async Task RemovePeer_Test()
@@ -328,6 +328,72 @@ namespace AElf.OS.Tests.Network
            
             var p2 = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
             
+            Assert.Null(p2);
+
+            await m1.Item1.StopAsync();
+        }
+        
+        [Fact]
+        public async Task GetPeers_HardDisconnect_Test()
+        {
+            var m1 = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            
+            var p = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
+
+            Assert.NotNull(p);
+
+            await m2.Item1.StopAsync(false); // stop 2 with hard disconnect
+            
+            // m1 tries to send an RPC to m2, will trigger the remove op
+            await p.AnnounceAsync(new PeerNewBlockAnnouncement()); 
+
+            // make sure we wait enough for disc
+            await Task.Delay(TimeSpan.FromSeconds(NetworkConsts.DefaultPeerDialTimeout+2));
+            
+            // should be null
+            var p2 = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
+            Assert.Null(p2);
+
+            await m1.Item1.StopAsync();
+        }
+        
+        [Fact]
+        public async Task GetPeers_SoftDisconnect_Test()
+        {
+            var m1 = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                ListeningPort = 6800 
+            });
+            
+            var m2 = BuildGrpcNetworkServer(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            
+            var p = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
+
+            Assert.NotNull(p);
+
+            await m2.Item1.StopAsync(); // stop 2
+            
+            // should be null
+            var p2 = m1.Item2.FindPeerByAddress("127.0.0.1:6801");
             Assert.Null(p2);
 
             await m1.Item1.StopAsync();

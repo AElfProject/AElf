@@ -90,16 +90,29 @@ namespace AElf.OS.Network.Grpc
                         DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
                 }
 
-                var resp = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                AuthResponse resp = null;
+                
+                try
+                {
+                    resp = await client.ConnectAsync(hsk,
+                        new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                }
+                catch (Exception e)
+                {
+                    // cleanup essentially for testing
+                    await channel.ShutdownAsync();
+                }
 
                 // todo refactor so that connect returns the handshake and we'll check here 
                 // todo if not correct we kill the channel. 
 
-                if (resp.Success != true)
+                if (resp == null || resp.Success != true)
                     return false;
 
-                _authenticatedPeers[address] = new GrpcPeer(channel, client, null, address, resp.Port);
+                var peer = new GrpcPeer(channel, client, null, address, resp.Port);
+                
+                peer.DisconnectionEvent += PeerOnDisconnectionEvent;
+                _authenticatedPeers[address] = peer;
 
                 Logger.LogTrace($"Connected to {address}.");
 
@@ -112,9 +125,23 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public List<IPeer> GetPeers()
+        private void PeerOnDisconnectionEvent(object sender, EventArgs e)
         {
-            return _authenticatedPeers.Values.Select(p => p as IPeer).ToList();
+            if (sender is GrpcPeer p && _authenticatedPeers.TryRemove(p.PeerAddress, out GrpcPeer removed))
+            {
+                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
+                Logger.LogDebug($"Removed peer {removed.PublicKey.ToHex()} - {removed}");
+            }
+        }
+
+        public List<IPeer> GetPeers(bool includeFailing = false)
+        {
+            var peers = _authenticatedPeers.Select(p => p.Value);
+
+            if (!includeFailing)
+                peers = peers.Where(p => p.IsReady);
+
+            return peers.Select(p => p as IPeer).ToList();
         }
 
         public IPeer FindPeerByAddress(string peerAddress)
@@ -151,7 +178,12 @@ namespace AElf.OS.Network.Grpc
 
         public bool AddPeer(IPeer peer)
         {
-            _authenticatedPeers[peer.PeerAddress] = peer as GrpcPeer;
+            if (!(peer is GrpcPeer p)) 
+                return false;
+            
+            _authenticatedPeers[peer.PeerAddress] = p;
+            p.DisconnectionEvent += PeerOnDisconnectionEvent;
+            
             return true;
         }
 
@@ -181,9 +213,14 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public void ProcessDisconnection(string peerEndpoint)
+        public async Task ProcessDisconnection(string peerEndpoint)
         {
-            _authenticatedPeers.RemoveAll(p => p.Value.RemoteEndpoint == peerEndpoint);
+            var p = _authenticatedPeers.FirstOrDefault(pr => pr.Value.RemoteEndpoint == peerEndpoint);
+            
+            if (_authenticatedPeers.TryRemove(p.Key, out GrpcPeer peer))
+            {
+                await peer.StopAsync();
+            }
         }
     }
 }

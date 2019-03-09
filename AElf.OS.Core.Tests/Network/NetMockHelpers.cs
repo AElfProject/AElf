@@ -3,7 +3,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using Moq;
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS.Network
 {
     public static class NetMockHelpers
     {

@@ -42,7 +42,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public int ChainId { get; }
         public ECKeyPair CallOwnerKeyPair { get; private set; }
-
+        
         private readonly IConsensusService _consensusService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
@@ -71,9 +71,16 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
+                    
+                    options.Services.AddTransient<IAccountService>(o =>
+                    {
+                        var mockAccountService = new Mock<IAccountService>();
+                        mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
+                
+                        return mockAccountService.Object;
+                    });
                 });
             application.Initialize();
-
 
             var transactionExecutingService = application.ServiceProvider.GetService<ITransactionExecutingService>();
             var transactionReadOnlyExecutionService =
@@ -88,12 +95,9 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
             _blockExtraDataService = application.ServiceProvider.GetService<IBlockExtraDataService>();
 
+            _accountService = application.ServiceProvider.GetRequiredService<IAccountService>();
             // Mock dpos options.
             var consensusOptions = MockDPoSOptions(initialMinersKeyPairs, isBootMiner);
-
-            // Mock AccountService.
-            _accountService = MockAccountService();
-
 
             //TODO: if you want to mock a service, just config services in DPoSConsensusTestAElfModule,
             //do not new anything. you can also create XXXDPoSConsensusTestAElfModule depended on DPoSConsensusTestAElfModule,
@@ -224,14 +228,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             });
 
             return consensusOptionsMock.Object;
-        }
-
-        private IAccountService MockAccountService()
-        {
-            var mockAccountService = new Mock<IAccountService>();
-            mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
-
-            return mockAccountService.Object;
         }
 
         private IConsensusScheduler MockConsensusScheduler()
