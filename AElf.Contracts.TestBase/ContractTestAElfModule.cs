@@ -73,8 +73,6 @@ namespace AElf.Contracts.TestBase
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
-            
-            //services.AddSingleton<ILocalEventBus, NullLocalEventBus>();
         }
     }
 }

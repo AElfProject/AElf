@@ -45,12 +45,24 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.TestBase
 {
+    /// <summary>
+    /// For testing contracts.
+    /// Basically we can use this class to:
+    /// 
+    /// Create a new chain with provided smart contracts deployed,
+    /// Package chosen transactions and mine a block,
+    /// execute a block if transactions in block body provided,
+    /// call a contract method and get the execution result,
+    /// generate a new tester using exists context,
+    /// etc.
+    /// </summary>
+    /// <typeparam name="TContractTestAElfModule"></typeparam>
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
         private IAbpApplicationWithInternalServiceProvider Application { get; set; } 
 
-        public ECKeyPair KeyPair { get; set; }
+        public ECKeyPair KeyPair { get; }
 
         public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
         {
@@ -157,6 +169,29 @@ namespace AElf.Contracts.TestBase
         }
         
         /// <summary>
+        /// Initial a chain with given chain id (passed to ctor),
+        /// and produce the genesis block with provided contract types.
+        /// </summary>
+        /// <param name="contractTypes"></param>
+        /// <returns>Return contract addresses as the param order.</returns>
+        public async Task InitialChainAsync(params Type[] contractTypes)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero)
+            };
+
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
+
+            await osBlockchainNodeContextService.StartAsync(dto);
+        }
+        
+        /// <summary>
         /// Use randomized ECKeyPair.
         /// </summary>
         /// <param name="chainId"></param>
@@ -171,17 +206,21 @@ namespace AElf.Contracts.TestBase
             Application.Initialize();
         }
 
-        public int GetChainId()
-        {
-            var chainManager = Application.ServiceProvider.GetRequiredService<IChainManager>();
-            return chainManager.GetChainId();
-        }
-
+        /// <summary>
+        /// Same chain, different key pair.
+        /// </summary>
+        /// <param name="keyPair"></param>
+        /// <returns></returns>
         public ContractTester<TContractTestAElfModule> CreateNewContractTester(ECKeyPair keyPair)
         {
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
         
+        /// <summary>
+        /// Same key pair, different chain.
+        /// </summary>
+        /// <param name="chainId"></param>
+        /// <returns></returns>
         public ContractTester<TContractTestAElfModule> CreateNewContractTester(int chainId)
         {
             return new ContractTester<TContractTestAElfModule>(Application, chainId);
@@ -229,29 +268,6 @@ namespace AElf.Contracts.TestBase
         public Address GetCallOwnerAddress()
         {
             return Address.FromPublicKey(KeyPair.PublicKey);
-        }
-
-        /// <summary>
-        /// Initial a chain with given chain id (passed to ctor),
-        /// and produce the genesis block with provided contract types.
-        /// </summary>
-        /// <param name="contractTypes"></param>
-        /// <returns>Return contract addresses as the param order.</returns>
-        public async Task InitialChainAsync(params Type[] contractTypes)
-        {
-            var osBlockchainNodeContextService =
-                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero)
-            };
-
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
-            dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
-
-            await osBlockchainNodeContextService.StartAsync(dto);
         }
 
         /// <summary>
@@ -315,7 +331,6 @@ namespace AElf.Contracts.TestBase
         /// Normal txs will use tx pool while system txs not.
         /// </summary>
         /// <param name="txs"></param>
-        /// <param name="systemTxs"></param>
         /// <returns></returns>
         public async Task<Block> MineAsync(List<Transaction> txs)
         {
