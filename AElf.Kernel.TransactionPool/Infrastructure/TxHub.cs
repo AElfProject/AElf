@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,8 +21,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
 
-        private readonly Dictionary<Hash, TransactionReceipt> _allTransactions =
-            new Dictionary<Hash, TransactionReceipt>();
+        private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
+            new ConcurrentDictionary<Hash, TransactionReceipt>();
 
         private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
 
@@ -190,7 +191,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
 
-                _allTransactions.Add(receipt.TransactionId, receipt);
+                var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
+                if (!success)
+                {
+                    continue;
+                }
+
                 await _transactionManager.AddTransactionAsync(transaction);
 
                 var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
@@ -211,7 +217,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             foreach (var txId in block.Body.Transactions)
             {
-                _allTransactions.Remove(txId);
+                _allTransactions.TryRemove(txId, out _);
             }
         }
 
@@ -237,7 +243,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 foreach (var txId in txIds.Value.Keys)
                 {
-                    _allTransactions.Remove(txId);
+                    _allTransactions.TryRemove(txId, out _);
                 }
             }
 
