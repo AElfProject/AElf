@@ -6,6 +6,7 @@ using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContractBridge;
 
 namespace AElf.Runtime.CSharp
 {
@@ -32,7 +33,7 @@ namespace AElf.Runtime.CSharp
             _methodInfos = new[]
             {
                 nameof(SetSmartContractContext), nameof(SetTransactionContext), nameof(SetStateProvider),
-                nameof(GetChanges), nameof(Cleanup)
+                nameof(Cleanup)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 
@@ -49,6 +50,11 @@ namespace AElf.Runtime.CSharp
         public void SetStateProvider(IStateProvider stateProvider)
         {
             _methodInfos[nameof(SetStateProvider)].Invoke(_instance, new object[] {stateProvider});
+        }
+
+        public void Initialize(ISmartContractBridgeContext context)
+        {
+            _methodInfos[nameof(Initialize)].Invoke(_instance, new object[] {context});
         }
 
         public TransactionExecutingStateSet GetChanges()

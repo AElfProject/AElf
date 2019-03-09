@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContractBridge;
 
 namespace AElf.Sdk.CSharp.State
 {
@@ -9,7 +10,7 @@ namespace AElf.Sdk.CSharp.State
     {
         private IStateProvider _provider;
         private StatePath _path;
-        private IContextInternal _context;
+        private ISmartContractBridgeContext _context;
 
         internal IStateProvider Provider
         {
@@ -21,7 +22,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal StatePath Path
+        internal virtual StatePath Path
         {
             get => _path;
             set
@@ -31,7 +32,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal IContextInternal Context
+        internal ISmartContractBridgeContext Context
         {
             get => _context;
             set

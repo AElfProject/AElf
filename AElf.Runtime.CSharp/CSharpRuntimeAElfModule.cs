@@ -1,5 +1,6 @@
 ﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContractBridge;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -7,7 +8,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
-    [DependsOn(typeof(SmartContractAElfModule))]
+    [DependsOn(typeof(SmartContractAElfModule), typeof(SmartContractBridgeKernelAElfModule))]
     public class CSharpRuntimeAElfModule : AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -21,7 +22,9 @@ namespace AElf.Runtime.CSharp
             context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryTwo>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryTwo(option.Value.SdkDir, option.Value.BlackList,
+                return new SmartContractRunnerForCategoryTwo(
+                    provider.GetRequiredService<IHostSmartContractBridgeContextService>(),
+                    option.Value.SdkDir, option.Value.BlackList,
                     option.Value.WhiteList);
             });
         }

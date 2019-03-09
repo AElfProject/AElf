@@ -8,6 +8,8 @@
       <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Abstracts\AElf.Kernel.SmartContract.Abstracts.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractBridge.Abstracts\AElf.Kernel.SmartContractBridge.Abstracts.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 

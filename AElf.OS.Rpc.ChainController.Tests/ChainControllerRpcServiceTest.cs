@@ -94,7 +94,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Deploy a new contact and mined
             var chain = await _blockchainService.GetChainAsync();
-            var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
+            var transaction = GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
                 _smartContractAddressService.GetZeroSmartContractAddress(), nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location));
             var signature =
@@ -394,7 +394,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
-            var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
+            var transaction = GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
                 _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)), nameof(TokenContract.Transfer),
                 Address.FromPublicKey(newUserKeyPair.PublicKey), 10);
 
@@ -417,7 +417,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var chain = await _blockchainService.GetChainAsync();
             var account = await _accountService.GetAccountAsync();
 
-            var transaction = await GenerateTransaction(chain, account, _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
+            var transaction = GenerateTransaction(chain, account, _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
                 nameof(TokenContract.Transfer), Address.FromPublicKey(_userEcKeyPair.PublicKey), 10000);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -427,7 +427,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             await MinedOneBlock(chain);
         }
 
-        private async Task<Transaction> GenerateTransaction(Chain chain, Address from, Address to,
+        private Transaction GenerateTransaction(Chain chain, Address from, Address to,
             string methodName, params object[] objects)
         {
             var transaction = new Transaction

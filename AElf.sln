@@ -225,6 +225,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS", "AElf.OS\AElf.OS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core.Tests", "AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj", "{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractBridge", "AElf.Kernel.SmartContractBridge\AElf.Kernel.SmartContractBridge.csproj", "{A39E8703-2C99-4888-BABC-F98A6311A578}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractBridge.Abstracts", "AElf.Kernel.SmartContractBridge.Abstracts\AElf.Kernel.SmartContractBridge.Abstracts.csproj", "{BD670610-C140-4BA2-98B3-D9302B56C545}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -563,6 +567,14 @@ Global
 		{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A39E8703-2C99-4888-BABC-F98A6311A578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A39E8703-2C99-4888-BABC-F98A6311A578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A39E8703-2C99-4888-BABC-F98A6311A578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A39E8703-2C99-4888-BABC-F98A6311A578}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD670610-C140-4BA2-98B3-D9302B56C545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD670610-C140-4BA2-98B3-D9302B56C545}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD670610-C140-4BA2-98B3-D9302B56C545}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD670610-C140-4BA2-98B3-D9302B56C545}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

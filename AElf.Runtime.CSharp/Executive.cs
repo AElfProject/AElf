@@ -14,7 +14,9 @@ using Module = AElf.Kernel.ABI.Module;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContractBridge;
 using AElf.Runtime.CSharp.Core;
+using AElf.Sdk.CSharp;
 
 namespace AElf.Runtime.CSharp
 {
@@ -30,9 +32,12 @@ namespace AElf.Runtime.CSharp
         private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
 
-        public Executive(Module abiModule)
+        private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+
+        public Executive(Module abiModule, IHostSmartContractBridgeContext hostSmartContractBridgeContext)
         {
             _abi = abiModule;
+            _hostSmartContractBridgeContext = hostSmartContractBridgeContext;
         }
 
         public Hash ContractHash { get; set; }
@@ -60,13 +65,14 @@ namespace AElf.Runtime.CSharp
             _smartContract = smartContract;
             _smartContractProxy = new CSharpSmartContractProxy(smartContract);
             _cache = new MethodsCache(_abi, smartContract);
+            _smartContractProxy.Initialize(_hostSmartContractBridgeContext);
             return this;
         }
 
         public IExecutive SetSmartContractContext(ISmartContractContext smartContractContext)
         {
-            _smartContractProxy.SetSmartContractContext(smartContractContext);
-            _currentSmartContractContext = smartContractContext;
+            //_smartContractProxy.SetSmartContractContext(smartContractContext);
+            //_currentSmartContractContext = smartContractContext;
             return this;
         }
 
@@ -100,7 +106,7 @@ namespace AElf.Runtime.CSharp
             {
                 From = _currentTransactionContext.Transaction.From,
                 //TODO: set in constant
-                To = _currentSmartContractContext.GetAddressByContractName(
+                To = _hostSmartContractBridgeContext.GetContractAddressByName(
                     Hash.FromString("AElf.Contracts.Token.TokenContract")),
                 MethodName = nameof(ITokenContract.ChargeTransactionFees),
                 Params = ByteString.CopyFrom(
@@ -134,7 +140,7 @@ namespace AElf.Runtime.CSharp
 
                 try
                 {
-                    var retVal = handler.Execute(tx.Params.ToByteArray());
+                    var retVal = await Task.Run(() => handler.Execute(tx.Params.ToByteArray()));
                     _currentTransactionContext.Trace.RetVal = new RetVal()
                     {
                         Data = retVal == null ? null : ByteString.CopyFrom(retVal)
@@ -188,7 +194,7 @@ namespace AElf.Runtime.CSharp
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
             var retVal = handler.Execute(ParamsPacker.Pack(methodName));
             handler.BytesToReturnType(retVal);
-            return (ulong)handler.BytesToReturnType(retVal);
+            return (ulong) handler.BytesToReturnType(retVal);
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
