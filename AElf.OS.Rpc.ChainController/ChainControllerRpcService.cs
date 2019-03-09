@@ -69,11 +69,11 @@ namespace AElf.OS.Rpc.ChainController
             
             var response = new JObject
             {
-                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
-                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress.GetFormatted(),
-                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress.GetFormatted(),
-                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress.GetFormatted(),
-                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress.GetFormatted(),
+                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress?.GetFormatted(),
+                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
