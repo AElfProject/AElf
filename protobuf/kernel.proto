@@ -104,8 +104,7 @@ message TransactionResult {
 enum ExecutionStatus {
     Undefined = 0;
     // Successful =>
-    ExecutedButNotCommitted = 1;
-    ExecutedAndCommitted = 2;
+    Executed = 1;
 
     // Failed =>
     //   Infrastructure reasons

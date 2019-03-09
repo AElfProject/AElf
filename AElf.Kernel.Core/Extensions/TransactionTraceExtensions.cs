@@ -8,8 +8,7 @@ namespace AElf.Kernel
     {
         public static bool IsSuccessful(this TransactionTrace txTrace)
         {
-            var successful = txTrace.ExecutionStatus == ExecutionStatus.ExecutedButNotCommitted ||
-                             txTrace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted;
+            var successful = txTrace.ExecutionStatus == ExecutionStatus.Executed;
             if (!successful)
             {
                 return false;

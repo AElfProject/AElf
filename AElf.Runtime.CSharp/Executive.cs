@@ -141,7 +141,7 @@ namespace AElf.Runtime.CSharp
                         _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
                     }
 
-                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
+                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -154,8 +154,7 @@ namespace AElf.Runtime.CSharp
                     _currentTransactionContext.Trace.StdErr += "\n" + ex;
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful() &&
-                    _currentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted)
+                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
                 {
                     _currentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
 //                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()

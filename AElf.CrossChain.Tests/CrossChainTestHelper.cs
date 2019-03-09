@@ -33,7 +33,7 @@ namespace AElf.CrossChain
             var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash(),
-                ExecutionStatus = ExecutionStatus.ExecutedButNotCommitted,
+                ExecutionStatus = ExecutionStatus.Executed,
             };
             var returnValue = CreateFakeReturnValue(trace, transaction, methodName);
             trace.ReturnValue = returnValue == null ? ByteString.Empty : ByteString.CopyFrom(returnValue);
