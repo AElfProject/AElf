@@ -10,12 +10,7 @@ namespace AElf.CLI
     {
         public static IContainer Build(BaseOption option)
         {
-//            if (loggerModule == null)
-//            {
-//                loggerModule = new LoggerModule("aelf-cli");
-//            }
             var builder = new ContainerBuilder();
-//            builder.RegisterModule(loggerModule);
             builder.RegisterModule(new JSModule());
             var cmd = new CmdModule(option);
             builder.RegisterModule(cmd);

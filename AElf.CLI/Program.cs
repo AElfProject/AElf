@@ -34,6 +34,5 @@ namespace AElf.CLI
             cmdType.GetMethod("Execute").Invoke(command, new object[0]);
             return 0;
         }
-
     }
 }
