@@ -12,6 +12,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace AElf.OS.Rpc.ChainController
@@ -214,12 +215,11 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, 
-            Transaction tx)
+        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, Transaction tx)
         {
             var address = tx.To;
             IExecutive executive = null;
-            string output;
+            var output = tx.Params.ToBase64();
             try
             {
                 var chain = await s.BlockchainService.GetChainAsync();
@@ -231,6 +231,10 @@ namespace AElf.OS.Rpc.ChainController
 
                 executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainContext, address);
                 output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
+            }
+            catch (InvalidCastException ex)
+            {
+                s.Logger.LogWarning($"Unsupported type conversion error： {ex}");
             }
             finally
             {
