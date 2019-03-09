@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using AElf.Common;
-using AElf.CrossChain;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -37,14 +36,6 @@ namespace AElf.Types.CSharp
                 {typeof(Hash), Hash.LoadHex},
                 {typeof(Address), Address.Parse},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {
-                    typeof(ParentChainBlockData),
-                    (s) => ParentChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
-                },
-                {
-                    typeof(SideChainBlockData),
-                    (s) => SideChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
-                },
                 {typeof(Authorization), (s) => Authorization.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Timestamp), (s) => Timestamp.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
