@@ -70,8 +70,17 @@ namespace AElf.OS.Network.Grpc
                 try
                 {
                     if (gracefulDisconnect)
-                        await peer.SendDisconnectAsync();
-                    
+                    {
+                        try
+                        {
+                            await peer.SendDisconnectAsync();
+                        }
+                        catch (RpcException e)
+                        {
+                            Logger.LogError(e, $"Error sending disconnect {peer}.");
+                        }
+                    }
+
                     await peer.StopAsync();
                 }
                 catch (Exception e)
