@@ -32,20 +32,10 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(SetSmartContractContext), nameof(SetTransactionContext), nameof(SetStateProvider),
-                nameof(Cleanup)
+                nameof(SetStateProvider),nameof(Cleanup),nameof(Initialize)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 
-        public void SetSmartContractContext(ISmartContractContext smartContractContext)
-        {
-            _methodInfos[nameof(SetSmartContractContext)].Invoke(_instance, new object[] {smartContractContext});
-        }
-
-        public void SetTransactionContext(ITransactionContext transactionContext)
-        {
-            _methodInfos[nameof(SetTransactionContext)].Invoke(_instance, new object[] {transactionContext});
-        }
 
         public void SetStateProvider(IStateProvider stateProvider)
         {

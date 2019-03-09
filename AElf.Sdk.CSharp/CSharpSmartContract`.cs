@@ -17,7 +17,7 @@ namespace AElf.Sdk.CSharp
             private set
             {
                 _context = value;
-                SetContractAddress(_context.Sender);
+                SetContractAddress(_context.SmartContractContext.ContractAddress);
             }
         }
 
