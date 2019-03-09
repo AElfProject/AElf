@@ -19,7 +19,7 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task InitialChainTest()
         {
-            var tester = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync(typeof(BasicContractZero));
 
             var chain = await tester.GetChainAsync();
@@ -31,7 +31,7 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task MineTest()
         {
-            var tester = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
@@ -56,10 +56,10 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task MultipleNodesTest()
         {
-            var tester1 = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester1 = new ContractTester<ContractTestAElfModule>();
             await tester1.InitialChainAsync(typeof(BasicContractZero));
 
-            var tester2 = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester2 = new ContractTester<ContractTestAElfModule>();
             await tester2.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester1.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
@@ -80,10 +80,10 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task AddABlockTest()
         {
-            var tester1 = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester1 = new ContractTester<ContractTestAElfModule>();
             await tester1.InitialChainAsync(typeof(BasicContractZero));
 
-            var tester2 = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester2 = new ContractTester<ContractTestAElfModule>();
             await tester2.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester1.GetZeroContractAddress();
@@ -92,7 +92,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var block = await tester1.MineAsync(new List<Transaction> {tx});
 
-            await tester2.ExecuteBlock(block, new List<Transaction> {tx}, new List<Transaction>());
+            await tester2.ExecuteBlock(block, new List<Transaction> {tx});
 
             var chain2 = await tester2.GetChainAsync();
 
@@ -133,7 +133,7 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task GetTransactionResultTest()
         {
-            var tester = new ContractTester<ContractTestAElfModule>(ChainId);
+            var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
@@ -158,7 +158,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             await tester.MineAsync(new List<Transaction> {tx});
 
-            var newTester = tester.CreateContractTester(CryptoHelpers.GenerateKeyPair());
+            var newTester = tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
 
             var chain = await newTester.GetChainAsync();
         }

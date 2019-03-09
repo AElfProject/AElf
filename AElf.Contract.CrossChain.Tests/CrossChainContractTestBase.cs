@@ -79,9 +79,9 @@ namespace AElf.Contract.CrossChain.Tests
             return chainId;
         }
 
-        protected async Task<Block> MineAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
+        protected async Task<Block> MineAsync(List<Transaction> txs)
         {
-            return await ContractTester.MineAsync(txs, systemTxs);
+            return await ContractTester.MineAsync(txs);
         }
         
         protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, params object[] objects)

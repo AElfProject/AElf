@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var triggerInformation = new DPoSTriggerInformation
             {
                 Timestamp = timestamp ?? DateTime.UtcNow.ToTimestamp(),
-                PublicKey = tester.CallOwnerKeyPair.PublicKey.ToHex(),
+                PublicKey = tester.KeyPair.PublicKey.ToHex(),
                 IsBootMiner = true,
             };
             var bytes = await tester.CallContractMethodAsync(
@@ -43,7 +43,9 @@ namespace AElf.Contracts.Consensus.DPoS
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GenerateConsensusTransactions, triggerInformation.ToByteArray());
             var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
-            tester.SignTransaction(ref txs, tester.CallOwnerKeyPair);
+            tester.SignTransaction(ref txs, tester.KeyPair);
+            tester.SupplyTransactionParameters(ref txs);
+
             return txs;
         }
 
@@ -61,13 +63,14 @@ namespace AElf.Contracts.Consensus.DPoS
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GenerateConsensusTransactions,
                 triggerInformation.ToByteArray());
-            var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
-            tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);
-
-            var block = await tester.MineAsync(new List<Transaction>(), systemTxs);
+            var txs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
+            tester.SignTransaction(ref txs, tester.KeyPair);
+            tester.SupplyTransactionParameters(ref txs);
+            
+            var block = await tester.MineAsync(txs);
             foreach (var contractTester in testersGonnaExecuteThisBlock)
             {
-                await contractTester.ExecuteBlock(block, new List<Transaction>(), systemTxs);
+                await contractTester.ExecuteBlock(block, txs);
             }
 
             return block;
