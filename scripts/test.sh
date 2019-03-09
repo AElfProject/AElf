@@ -10,7 +10,7 @@ for i in *Tests ; do
 
   dotnet test "$i" --no-build /p:CollectCoverage=true /p:CoverletOutputFormat='json%2copencover' \
  /p:CoverletOutput="../results/coverage" /p:MergeWith="../results/coverage.json" \
- /p:Exclude="[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Database.RedisProtocol.*]*%2c[AElf.Contracts.Authorization.*]*%2c[AElf.Test.Helpers.*]*%2c[AElf.CLI/Commands.*]"
+ /p:Exclude="[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Database.RedisProtocol.*]*%2c[AElf.Contracts.Authorization.*]*%2c[AElf.Test.Helpers.*]*%2c[AElf.CLI/Commands.*]*%2c[AElf.Runtime.CSharp.Core/Metadata.*]"
   if [ $? -ne 0 ] ; then
     exit 1
   fi
