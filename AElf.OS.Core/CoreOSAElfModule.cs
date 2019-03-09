@@ -1,20 +1,7 @@
-using System;
-using System.Runtime.InteropServices;
-using System.Security;
-using AElf.Common;
-using AElf.Common.Application;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
-using AElf.OS.Account;
-using AElf.OS.Handlers;
-using AElf.OS.Jobs;
 using AElf.OS.Network;
-using AElf.OS.Network.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
@@ -31,19 +18,11 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             context.Services.AddAssemblyOf<CoreOSAElfModule>();
-
-
+            
             //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
-            Configure<AccountOptions>(configuration.GetSection("Account"));
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
-
-            context.Services.AddSingleton<PeerConnectedEventHandler>();
-            context.Services.AddTransient<ForkDownloadJob>();
-
-            var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
-            context.Services.AddSingleton<IKeyStore>(keyStore);
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

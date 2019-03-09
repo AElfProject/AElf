@@ -6,7 +6,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -22,9 +21,9 @@ using Xunit.Abstractions;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS.Network
 {
-    public class GrpcNetworkManagerTests : OSTestBase
+    public class GrpcNetworkManagerTests : OSCoreTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;

@@ -12,9 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS
 {
-    [DependsOn(typeof(TestsOSAElfModule))]
+    [DependsOn(typeof(OSTestAElfModule))]
     public class NetTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
