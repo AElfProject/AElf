@@ -1,13 +1,13 @@
-using AElf.Kernel.Tests;
+using AElf.Kernel;
 using AElf.Modularity;
-using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
     [DependsOn(
         typeof(CrossChainAElfModule),
-        typeof(KernelTestAElfModule))]
+        typeof(KernelTestAElfModule)
+        )]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

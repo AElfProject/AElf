@@ -11,7 +11,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
-namespace AElf.Contracts.Consensus.DPoS.Tests
+namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
     public sealed class ProcessTest : DPoSContractTestBase

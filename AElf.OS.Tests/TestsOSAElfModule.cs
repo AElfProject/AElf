@@ -49,6 +49,13 @@ namespace AElf.OS
                 o.NodeAccountPassword = nodeAccountPassword;
             });
 
+            context.Services.AddSingleton<IKeyStore>(o =>
+                Mock.Of<IKeyStore>(
+                    c => c.OpenAsync(nodeAccount, nodeAccountPassword, false) ==
+                         Task.FromResult(AElfKeyStore.Errors.None) &&
+                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
+            );
+            
             Configure<DPoSOptions>(o =>
             {
                 var miners = new List<string>();
@@ -61,13 +68,6 @@ namespace AElf.OS
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
-
-            context.Services.AddSingleton<IKeyStore>(o =>
-                Mock.Of<IKeyStore>(
-                    c => c.OpenAsync(nodeAccount, nodeAccountPassword, false) ==
-                         Task.FromResult(AElfKeyStore.Errors.None) &&
-                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
-            );
 
             context.Services.AddSingleton<IPeerPool>(o =>
             {

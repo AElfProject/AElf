@@ -21,9 +21,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBaseKernelAElfModule),
+        typeof(KernelCoreTestAElfModule),
         typeof(DPoSConsensusAElfModule),
-        typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule)
     )]

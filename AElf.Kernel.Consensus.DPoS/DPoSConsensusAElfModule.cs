@@ -12,27 +12,24 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
-    [DependsOn(typeof(RxNetSchedulerAElfModule))]
+    [DependsOn(
+        typeof(RxNetSchedulerAElfModule),
+        typeof(ConsensusAElfModule)
+        )]
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
-
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
-            context.Services.AddSingleton<BestChainFoundEventHandler>();
-
+   
+            context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-            context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
 
-            context.Services.AddScoped<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-
-            context.Services.AddSingleton<ConsensusControlInformation>();
-              
             context.Services.AddSingleton<BestChainFoundEventHandler>();
         }
     }

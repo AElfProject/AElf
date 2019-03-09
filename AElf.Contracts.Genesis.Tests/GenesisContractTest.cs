@@ -16,7 +16,7 @@ namespace AElf.Contracts.Genesis
 {
     public class BasicContractZeroTest : BasicContractZeroTestBase
     {
-        private ContractTester Tester;
+        private ContractTester<ContractTestAElfModule> Tester;
         private ECKeyPair otherOwnerKeyPair;
 
         private Address BasicZeroContractAddress;
@@ -25,7 +25,7 @@ namespace AElf.Contracts.Genesis
 
         public BasicContractZeroTest()
         {
-            Tester = new ContractTester();
+            Tester = new ContractTester<ContractTestAElfModule>();
             otherOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
             BasicZeroContractAddress = Tester.GetZeroContractAddress();

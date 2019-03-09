@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract : IMainChainDPoSConsensusSmartContract
+    public partial class ConsensusContract
     {
         public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
         {

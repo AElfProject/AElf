@@ -4,7 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract : ISideChainDPoSConsensusSmartContract
+    public partial class ConsensusContract
     {
         public void UpdateMainChainConsensus(byte[] consensusInformationBytes)
         {

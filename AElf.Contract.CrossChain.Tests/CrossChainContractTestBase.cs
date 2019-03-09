@@ -20,14 +20,14 @@ namespace AElf.Contract.CrossChain.Tests
 {
     public class CrossChainContractTestBase : AElfIntegratedTest<CrossChainContractTestAElfModule>
     {
-        protected ContractTester ContractTester;
+        protected ContractTester<ContractTestAElfModule> ContractTester;
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
         protected Address ConsensusContractAddress;
         protected Address AuthorizationContractAddress;
         public CrossChainContractTestBase()
         {
-            ContractTester = new ContractTester(0, CrossChainContractTestHelper.EcKeyPair);
+            ContractTester = new ContractTester<ContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() => ContractTester.InitialChainAsync(ContractTester.GetDefaultContractTypes().ToArray()));
             CrossChainContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(CrossChainContract).FullName));
             TokenContractAddress = ContractTester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
@@ -48,12 +48,12 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected async Task Initialize(ulong tokenAmount, int parentChainId = 0)
         {
-            var tx1 = ContractTester.GenerateTransaction(TokenContractAddress, "Initialize",
+            var tx1 = await ContractTester.GenerateTransaction(TokenContractAddress, "Initialize",
                 "ELF", "elf token", tokenAmount, 2U);
-            var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "Initialize",
+            var tx2 = await ContractTester.GenerateTransaction(CrossChainContractAddress, "Initialize",
                 ConsensusContractAddress, TokenContractAddress, AuthorizationContractAddress,
                 parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
-            await ContractTester.MineABlockAsync(new List<Transaction> {tx1, tx2});
+            await ContractTester.MineAsync(new List<Transaction> {tx1, tx2});
         }
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0)
@@ -70,19 +70,19 @@ namespace AElf.Contract.CrossChain.Tests
                 LockedTokenAmount = lockedTokenAmount
             };
             
-            var tx1 = ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
+            var tx1 = await ContractTester.GenerateTransaction(CrossChainContractAddress, "RequestChainCreation",
                 sideChainInfo);
-            await ContractTester.MineABlockAsync(new List<Transaction> {tx1});
+            await ContractTester.MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
-            var tx2 = ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
+            var tx2 = await  ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
                     ChainHelpers.ConvertChainIdToBase58(chainId));
-            await ContractTester.MineABlockAsync(new List<Transaction> {tx2});
+            await ContractTester.MineAsync(new List<Transaction> {tx2});
             return chainId;
         }
 
         protected async Task<Block> MineAsync(List<Transaction> txs, List<Transaction> systemTxs = null)
         {
-            return await ContractTester.MineABlockAsync(txs, systemTxs);
+            return await ContractTester.MineAsync(txs, systemTxs);
         }
         
         protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, params object[] objects)
@@ -90,11 +90,11 @@ namespace AElf.Contract.CrossChain.Tests
             return await ContractTester.ExecuteContractWithMiningAsync(contractAddress, methodName, objects);
         }
 
-        protected Transaction GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
+        protected async Task<Transaction> GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
         {
             return ecKeyPair == null
-                ? ContractTester.GenerateTransaction(contractAddress, methodName, objects)
-                : ContractTester.GenerateTransaction(contractAddress, methodName, ecKeyPair, objects);
+                ? await ContractTester.GenerateTransaction(contractAddress, methodName, objects)
+                : await ContractTester.GenerateTransaction(contractAddress, methodName, ecKeyPair, objects);
         }
 
         protected async Task<TransactionResult> GetTransactionResult(Hash txId)

@@ -9,11 +9,11 @@ using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.Tests
+namespace AElf.Contracts.Consensus.DPoS
 {
     public static class ContractTesterConsensusExtensions
     {
-        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester tester,
+        public static async Task<ConsensusCommand> GetConsensusCommand(this ContractTester<DPoSContractTestAElfModule> tester,
             Timestamp timestamp = null)
         {
             var triggerInformation = new DPoSTriggerInformation
@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 
-        public static async Task<DPoSInformation> GetNewConsensusInformation(this ContractTester tester,
+        public static async Task<DPoSInformation> GetNewConsensusInformation(this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return DPoSInformation.Parser.ParseFrom(bytes);
         }
 
-        public static async Task<List<Transaction>> GenerateConsensusTransactions(this ContractTester tester,
+        public static async Task<List<Transaction>> GenerateConsensusTransactions(this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return txs;
         }
 
-        public static async Task<ValidationResult> ValidateConsensus(this ContractTester tester,
+        public static async Task<ValidationResult> ValidateConsensus(this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
@@ -55,8 +55,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
-        public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester tester,
-            DPoSTriggerInformation triggerInformation, params ContractTester[] testersGonnaExecuteThisBlock)
+        public static async Task<Block> GenerateConsensusTransactionsAndMineABlock(this ContractTester<DPoSContractTestAElfModule> tester,
+            DPoSTriggerInformation triggerInformation, params ContractTester<DPoSContractTestAElfModule>[] testersGonnaExecuteThisBlock)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GenerateConsensusTransactions,
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var systemTxs = TransactionList.Parser.ParseFrom(bytes).Transactions.ToList();
             tester.SignTransaction(ref systemTxs, tester.CallOwnerKeyPair);
 
-            var block = await tester.MineABlockAsync(new List<Transaction>(), systemTxs);
+            var block = await tester.MineAsync(new List<Transaction>(), systemTxs);
             foreach (var contractTester in testersGonnaExecuteThisBlock)
             {
                 await contractTester.ExecuteBlock(block, new List<Transaction>(), systemTxs);

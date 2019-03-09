@@ -14,7 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using Xunit;
 
-namespace AElf.Contracts.Consensus.DPoS.Tests
+namespace AElf.Contracts.Consensus.DPoS
 {
     public class ConsensusProcessTest
     {
@@ -285,6 +285,8 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             await testers.Testers[0]
                 .GenerateConsensusTransactionsAndMineABlock(triggerInformationForInitialTerm, testers.Testers[1]);
 
+            var chain = await testers.Testers[0].GetChainAsync();
+
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
                 GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].CallOwnerKeyPair.PublicKey.ToHex(), futureTime);
@@ -342,9 +344,9 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
 
         public List<ECKeyPair> MinersKeyPairs { get; set; } = new List<ECKeyPair>();
 
-        public List<ContractTester> Testers { get; set; } = new List<ContractTester>();
+        public List<ContractTester<DPoSContractTestAElfModule>> Testers { get; set; } = new List<ContractTester<DPoSContractTestAElfModule>>();
         
-        public ContractTester SingleTester { get; set; }
+        public ContractTester<DPoSContractTestAElfModule> SingleTester { get; set; }
 
         public Address ConsensusContractAddress { get; set; }
 
@@ -354,7 +356,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             {
                 var keyPair = CryptoHelpers.GenerateKeyPair();
                 MinersKeyPairs.Add(keyPair);
-                var tester = new ContractTester(ChainId, keyPair);
+                var tester = new ContractTester<DPoSContractTestAElfModule>(ChainId, keyPair);
 
                 AsyncHelper.RunSync(
                     () => tester.InitialChainAsync());
@@ -366,7 +368,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         
         public void InitialSingleTester()
         {
-            SingleTester = new ContractTester(ChainId, CryptoHelpers.GenerateKeyPair());
+            SingleTester = new ContractTester<DPoSContractTestAElfModule>(ChainId, CryptoHelpers.GenerateKeyPair());
             AsyncHelper.RunSync(
                 () => SingleTester.InitialChainAsync());
             ConsensusContractAddress = SingleTester.GetConsensusContractAddress();
