@@ -32,7 +32,6 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using NSubstitute.Extensions;
 using Volo.Abp;
 using Volo.Abp.Threading;
 

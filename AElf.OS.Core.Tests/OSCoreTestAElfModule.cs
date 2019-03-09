@@ -37,12 +37,12 @@ namespace AElf.OS
             Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
-            var nodeAccountAddress = Address.FromPublicKey(ecKeyPair.PublicKey);
+            var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
             var nodeAccountPassword = "123";
 
             Configure<AccountOptions>(o =>
             {
-                o.NodeAccount = nodeAccountAddress.GetFormatted();
+                o.NodeAccount = nodeAccount;
                 o.NodeAccountPassword = nodeAccountPassword;
             });
 
@@ -72,10 +72,7 @@ namespace AElf.OS
                     return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
                 });
 
-                mockService.Setup(a => a.GetPublicKeyAsync()).Returns(Task.FromResult(ecKeyPair.PublicKey));
-
-//                mockService.Setup(a => a.GetAccountAsync())
-//                    .Returns(Task.FromResult(nodeAccountAddress));
+                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
 
                 return mockService.Object;
             });

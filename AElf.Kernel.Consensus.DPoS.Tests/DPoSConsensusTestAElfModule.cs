@@ -36,7 +36,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            ECKeyPair CallOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
+            var CallOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
 
             context.Services.AddTransient<IAccountService>(o =>
             {
