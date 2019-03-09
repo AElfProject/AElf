@@ -33,7 +33,6 @@ namespace AElf.CrossChain
         private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
-            // todo: should use pre block hash here, not prefix
             var crossChainBlockData = new CrossChainBlockData();
             var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(null, refBlockNumber);
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);

@@ -37,15 +37,12 @@ namespace AElf.CrossChain
 
     public class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
     {
-        private IChainManager _chainManager;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-        public CrossChainContractReader(IChainManager chainManager, 
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, 
+        public CrossChainContractReader(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, 
             ISmartContractAddressService smartContractAddressService)
         {
-            _chainManager = chainManager;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
         }
