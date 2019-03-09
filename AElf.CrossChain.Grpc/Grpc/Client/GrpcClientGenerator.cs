@@ -18,13 +18,11 @@ namespace AElf.CrossChain.Grpc.Client
         private CancellationTokenSource TokenSourceToSideChain { get; } = new CancellationTokenSource();
         private CancellationTokenSource TokenSourceToParentChain { get; } = new CancellationTokenSource();
         private readonly CrossChainDataProducer _crossChainDataProducer;
-        private readonly ICertificateStore _certificateStore;
         private ILocalEventBus LocalEventBus { get; }
 
-        public GrpcClientGenerator(CrossChainDataProducer crossChainDataProducer, ICertificateStore certificateStore)
+        public GrpcClientGenerator(CrossChainDataProducer crossChainDataProducer)
         {
             _crossChainDataProducer = crossChainDataProducer;
-            _certificateStore = certificateStore;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -42,9 +40,9 @@ namespace AElf.CrossChain.Grpc.Client
 
         #region Create client
 
-        public void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
+        public void CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext, string certificate)
         {
-            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
+            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext, certificate);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
             client.StartDuplexStreamingCall(crossChainCommunicationContext.RemoteChainId, crossChainCommunicationContext.RemoteIsSideChain
                 ? TokenSourceToSideChain.Token
@@ -56,9 +54,9 @@ namespace AElf.CrossChain.Grpc.Client
         /// </summary>
         /// <returns>
         /// </returns>    
-        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase)
+        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase, string certificate)
         {
-            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.RemoteChainId);
+            var channel = CreateChannel(grpcClientBase.ToUriStr(), grpcClientBase.RemoteChainId, certificate);
 
             if (grpcClientBase.RemoteIsSideChain)
             {
@@ -74,13 +72,11 @@ namespace AElf.CrossChain.Grpc.Client
         /// </summary>
         /// <param name="uriStr"></param>
         /// <param name="targetChainId"></param>
+        /// <param name="crt">Certificate</param>
         /// <returns></returns>
         /// <exception cref="CertificateException"></exception>
-        private Channel CreateChannel(string uriStr, int targetChainId)
+        private Channel CreateChannel(string uriStr, int targetChainId, string crt)
         {
-            string crt = _certificateStore.LoadCertificate(ChainHelpers.ConvertChainIdToBase58(targetChainId));
-            if (crt == null)
-                throw new CertificateException("Unable to load Certificate.");
             var channelCredentials = new SslCredentials(crt);
             var channel = new Channel(uriStr, channelCredentials);
             return channel;
