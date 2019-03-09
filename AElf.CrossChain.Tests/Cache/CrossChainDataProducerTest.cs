@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Cache
         public void GetChainHeightNeeded_NotExistChain()
         {
             int chainId = 123;
-            Assert.Throws<Exception>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
+            Assert.Throws<System.Exception>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
         }
         
         [Fact]
