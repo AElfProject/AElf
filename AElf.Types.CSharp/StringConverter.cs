@@ -5,7 +5,6 @@ using System.Globalization;
 using AElf.Common;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Type = System.Type;
@@ -62,36 +61,7 @@ namespace AElf.Types.CSharp
                 {typeof(long), obj => ((long) obj).ToString()},
                 {typeof(ulong), obj => ((ulong) obj).ToString()},
                 {typeof(string), obj => (string) obj},
-                {
-                    typeof(byte[]),
-                    obj => ((byte[]) obj).ToHex()
-                },
-                {typeof(Hash), obj => ((Hash) obj).ToHex()},
-                {typeof(Address), obj => ((Address) obj).GetFormatted()},
-                {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
-                {typeof(ParentChainBlockData), obj => ((ParentChainBlockData) obj).ToByteArray().ToHex()},
-                {typeof(SideChainBlockData), obj => ((SideChainBlockData) obj).ToByteArray().ToHex()},
-                {typeof(Authorization), obj => ((Authorization) obj).ToByteArray().ToHex()},
-                {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
-                {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
-                {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
-                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()},
-                {
-                    typeof(SideChainBlockData[]), objs =>
-                    {
-                        string[] res = ((SideChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
-                            .ToArray();
-                        return "[" + string.Join(", ", res) + "]";
-                    }
-                },
-                {
-                    typeof(ParentChainBlockData[]), objs =>
-                    {
-                        string[] res = ((ParentChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
-                            .ToArray();
-                        return "[" + string.Join(", ", res) + "]";
-                    }
-                }
+                {typeof(byte[]), obj => ((byte[]) obj).ToHex()},
             };
 
         static StringConverter()
@@ -141,7 +111,6 @@ namespace AElf.Types.CSharp
             throw new Exception($"Not Found parser for type {typeName}");
         }
 
-
         public static Func<object, string> GetTypeFormatter(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
@@ -170,7 +139,7 @@ namespace AElf.Types.CSharp
                 }
             }
 
-            throw new Exception($"Not Found parser for type {typeName}");
+            throw new InvalidCastException($"Not Found parser for type {typeName}");
         }
     }
 }

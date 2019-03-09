@@ -157,8 +157,7 @@ namespace AElf.OS.Rpc.ChainController
             var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
 
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-            if (transactionResult.Status == TransactionResultStatus.Mined 
-                || transactionResult.Status == TransactionResultStatus.Failed)
+            if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
                 response["BlockHash"] = block.BlockHashToHex;
@@ -167,7 +166,7 @@ namespace AElf.OS.Rpc.ChainController
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 response["Error"] = transactionResult.Error;
 
-            // response["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+            response["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
 
             return response;
@@ -217,7 +216,7 @@ namespace AElf.OS.Rpc.ChainController
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         jObjectResult["Error"] = transactionResult.Error;
 
-                    // jObjectResult["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+                    jObjectResult["Param"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
                     response.Add(jObjectResult);
                 }

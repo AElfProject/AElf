@@ -191,8 +191,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
 
-                var exist = _allTransactions.TryAdd(receipt.TransactionId, receipt);
-                if (!exist)
+                var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
+                if (!success)
                 {
                     continue;
                 }
