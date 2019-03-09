@@ -175,8 +175,8 @@ namespace AElf.OS.Rpc.ChainController
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 response["Error"] = transactionResult.Error;
 
-            response["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
 
             return response;
         }
@@ -225,8 +225,8 @@ namespace AElf.OS.Rpc.ChainController
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         jObjectResult["Error"] = transactionResult.Error;
 
-                    jObjectResult["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+                    jObjectResult["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     response.Add(jObjectResult);
                 }
             }

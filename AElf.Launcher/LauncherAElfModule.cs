@@ -62,8 +62,7 @@ namespace AElf.Launcher
         {
             context.Services.SetConfiguration(Configuration);
 
-            var configuration = context.Services.GetConfiguration();
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
+            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(Configuration["ChainId"]));
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
