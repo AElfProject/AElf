@@ -6,10 +6,6 @@ namespace AElf.Kernel.SmartContract
 {
     public interface ISmartContractBridgeContext
     {
-        
-        ITransactionContext TransactionContext { get;  }
-        ISmartContractContext SmartContractContext { get;  }
-        
         int ChainId { get; }
 
         void LogDebug(Func<string> func);

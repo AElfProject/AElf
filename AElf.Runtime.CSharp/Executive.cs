@@ -80,6 +80,7 @@ namespace AElf.Runtime.CSharp
         public IExecutive SetTransactionContext(ITransactionContext transactionContext)
         {
             _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+            _stateProvider.TransactionContext = transactionContext;
             return this;
         }
 
@@ -140,7 +141,7 @@ namespace AElf.Runtime.CSharp
 
                 try
                 {
-                    var retVal = await Task.Run(() => handler.Execute(tx.Params.ToByteArray()));
+                    var retVal = handler.Execute(tx.Params.ToByteArray());
                     CurrentTransactionContext.Trace.RetVal = new RetVal()
                     {
                         Data = retVal == null ? null : ByteString.CopyFrom(retVal)

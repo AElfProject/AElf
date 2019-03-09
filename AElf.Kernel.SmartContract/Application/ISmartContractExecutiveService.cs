@@ -105,9 +105,6 @@ namespace AElf.Kernel.SmartContract.Application
             var reg = await GetSmartContractRegistrationAsync(chainContext, address);
             var executive = await GetExecutiveAsync(reg, address);
 
-            executive.SetHostSmartContractBridgeContext(
-                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address}));
-
             return executive;
         }
 
@@ -146,6 +143,8 @@ namespace AElf.Kernel.SmartContract.Application
                 // run smartcontract executive info and return executive
                 executive = await runner.RunAsync(reg);
                 executive.ContractHash = reg.CodeHash;
+                executive.SetHostSmartContractBridgeContext(
+                    _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address}));
             }
 
             executive.SetStateProviderFactory(_stateProviderFactory);

@@ -40,6 +40,9 @@ namespace AElf.Sdk.CSharp
 
         internal override void Initialize(ISmartContractBridgeContext bridgeContext)
         {
+            if(Context!=null)
+                throw new InvalidOperationException();
+            
             Context = bridgeContext;
         }
     }

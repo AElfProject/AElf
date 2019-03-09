@@ -32,7 +32,7 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(SetStateProvider),nameof(Cleanup),nameof(Initialize)
+                nameof(GetChanges),nameof(SetStateProvider),nameof(Cleanup),nameof(Initialize)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 

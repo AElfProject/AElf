@@ -8,7 +8,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
-    [DependsOn(typeof(SmartContractAElfModule), typeof(SmartContractBridgeKernelAElfModule))]
+    [DependsOn(typeof(SmartContractAElfModule))]
     public class CSharpRuntimeAElfModule : AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
