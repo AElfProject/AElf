@@ -15,9 +15,9 @@ using Volo.Abp.EventBus.Local;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AElf.OS.Tests.Network
+namespace AElf.OS.Network
 {
-    public class GrpcNetworkConnectionTests : OSTestBase
+    public class GrpcNetworkConnectionTests : OSCoreTestBase
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
