@@ -4,32 +4,20 @@ using Xunit;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataProducerTest
+    public class CrossChainDataProducerTest : CrossChainTestBase
     {
-        private MultiChainBlockInfoCacheProvider CreateFakeMultiChainBlockInfoCacheProvider(
-            Dictionary<int, BlockInfoCache> cachingData)
-        {
-            var cacheProvider = new MultiChainBlockInfoCacheProvider();
-            foreach (var (key, value) in cachingData)
-            {
-                cacheProvider.AddBlockInfoCache(key, value);
-            }
+        private readonly ICrossChainDataProducer _crossChainDataProducer;
 
-            return cacheProvider;
+        public CrossChainDataProducerTest()
+        {
+            _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
         }
         
-        private CrossChainDataProducer CreateCrossChainDataProducer(Dictionary<int, BlockInfoCache> cachingData)
-        {
-            var cacheProvider = CreateFakeMultiChainBlockInfoCacheProvider(cachingData);
-            return new CrossChainDataProducer(cacheProvider);
-        }
-
         [Fact]
         public void GetChainHeightNeeded_NotExistChain()
         {
-            var producer = CreateCrossChainDataProducer(new Dictionary<int, BlockInfoCache>());
             int chainId = 123;
-            Assert.Throws<Exception>(() => producer.GetChainHeightNeededForCache(chainId));
+            Assert.Throws<Exception>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
         }
         
         [Fact]
@@ -42,25 +30,23 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            var consumer = CreateCrossChainDataProducer(dict);
-            var neededHeight = consumer.GetChainHeightNeededForCache(chainId);
+            CreateFakeCache(dict);
+            var neededHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId);
             Assert.True(neededHeight == 1);
         }
         
         [Fact]
         public void TryAdd_Null()
         {
-            var producer = CreateCrossChainDataProducer(new Dictionary<int, BlockInfoCache>());
-            var res = producer.AddNewBlockInfo(null);
+            var res = _crossChainDataProducer.AddNewBlockInfo(null);
             Assert.False(res);
         }
 
         [Fact]
         public void TryAdd_NotExistChain()
         {
-            var producer = CreateCrossChainDataProducer(new Dictionary<int, BlockInfoCache>());
             int chainId = 123;
-            var res = producer.AddNewBlockInfo(new SideChainBlockData
+            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
             {
                 SideChainId = chainId
             });
@@ -77,8 +63,8 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            var producer = CreateCrossChainDataProducer(dict);
-            var res = producer.AddNewBlockInfo(new SideChainBlockData
+            CreateFakeCache(dict);
+            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
             {
                 SideChainId = chainId,
                 SideChainHeight = 2
@@ -96,8 +82,8 @@ namespace AElf.CrossChain.Cache
                     chainId, new BlockInfoCache(1)
                 }
             };
-            var producer = CreateCrossChainDataProducer(dict);
-            var res = producer.AddNewBlockInfo(new SideChainBlockData
+            CreateFakeCache(dict);
+            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
             {
                 SideChainId = chainId,
                 SideChainHeight = 1

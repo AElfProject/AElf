@@ -1,6 +1,6 @@
 namespace AElf.CrossChain.Grpc
 {
-    public sealed class NewChainEvent
+    public sealed class GrpcServeNewChainReceivedEvent
     {
         public int LocalChainId{ get; set; }
 //        public ICrossChainDataConsumer CrossChainDataConsumer { get; set; }

@@ -7,7 +7,7 @@ using Org.BouncyCastle.X509;
 
 namespace AElf.Cryptography.Certificate
 {
-    public class CertificateStore
+    public class CertificateStore : ICertificateStore
     {
         private string _dataDirectory;
         public string FolderName { get; } = "certs";
@@ -74,18 +74,9 @@ namespace AElf.Cryptography.Certificate
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string GetCertificate(string name)
+        public string LoadCertificate(string name)
         {
-            try
-            {
-                //name = PrefixString(name);
-                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
-                return crt;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
         }
         
         /// <summary>
@@ -93,18 +84,10 @@ namespace AElf.Cryptography.Certificate
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public string GetPrivateKey(string name)
+        public string LoadKeyStore(string name)
         {
-            try
-            {
-                //name = PrefixString(name);
-                string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
-                return crt;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
+            return crt;
         }
 
         private CertGenerator GetCertificateGenerator(RSAKeyPair keyPair)
