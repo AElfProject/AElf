@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -55,7 +56,8 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         if (contractEvent.Address ==
-                            _smartContractAddressService.GetZeroSmartContractAddress() &&
+                            _smartContractAddressService.GetAddressByContractName(
+                                ConsensusSmartContractAddressNameProvider.Name) &&
                             contractEvent.Topics.Contains(
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
