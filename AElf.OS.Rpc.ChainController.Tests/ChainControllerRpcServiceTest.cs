@@ -449,6 +449,17 @@ namespace AElf.OS.Rpc.ChainController.Tests
             response["error"]["message"].ToString().ShouldBe("The specified method does not exist or is not available");
         }
 
+        [Fact]
+        public async Task Transaction_To_JObject()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await GenerateTransaction(chain, Address.Generate(), Address.Generate(), nameof(TokenContract.Transfer),
+                Address.Generate(), 1000UL);
+            var transactionObj = transaction.GetTransactionInfo();
+            transactionObj.ShouldNotBeNull();
+            transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContract.Transfer));
+        }
+
         private async Task<Block> MinedOneBlock(Chain chain)
         {
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
