@@ -55,6 +55,23 @@ namespace AElf.Contracts.Resource
             elfAmount2.ShouldBeGreaterThan(1000UL);
         }
 
+        [Fact]
+        public void Calculate_CrossConnector_NormalCase()
+        {
+            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 100_000, 200_000, 1000);
+
+            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 200_000, 400_000, 1000);
+        }
+        
+        [Fact]
+        public void Pow_Test()
+        {
+            var result1 = BancorHelpers.Pow(1.5m, 1);
+            result1.ShouldBe(1.5m);
+
+            BancorHelpers.Pow(1.5m, 2);
+        }
+
         private ulong BuyOperation(ulong paidElf)
         {
             var resourcePayout = BancorHelpers.CalculateCrossConnectorReturn(
