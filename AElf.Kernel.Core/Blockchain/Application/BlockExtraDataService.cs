@@ -34,6 +34,7 @@ namespace AElf.Kernel.Blockchain.Application
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
                 if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol))
                 {
+                    // be careful out of range
                     return blockHeader.BlockExtraDatas[i];
                 }
             }

@@ -72,7 +72,7 @@ namespace AElf.Kernel.Types.Tests
 
         private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {
-            Interlocked.CompareExchange(ref preBlockHash, Hash.Genesis, null);
+            Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
             var block = new Block(Hash.Generate());
 

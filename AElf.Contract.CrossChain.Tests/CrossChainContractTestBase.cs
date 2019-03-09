@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Authorization;
@@ -11,7 +12,6 @@ using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.TestBase;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -56,10 +56,10 @@ namespace AElf.Contract.CrossChain.Tests
             await ContractTester.MineAsync(new List<Transaction> {tx1, tx2});
         }
 
-        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0)
+        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, ulong lockedTokenAmount = 10)
         {
             await Initialize(1000, parentChainId);
-            ulong lockedTokenAmount = 10;
+            
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -74,8 +74,7 @@ namespace AElf.Contract.CrossChain.Tests
                 sideChainInfo);
             await ContractTester.MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
-            var tx2 = await  ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain",
-                    ChainHelpers.ConvertChainIdToBase58(chainId));
+            var tx2 = await  ContractTester.GenerateTransaction(CrossChainContractAddress, "CreateSideChain", chainId);
             await ContractTester.MineAsync(new List<Transaction> {tx2});
             return chainId;
         }
@@ -106,6 +105,14 @@ namespace AElf.Contract.CrossChain.Tests
             params object[] objects)
         {
             return await ContractTester.CallContractMethodAsync(contractAddress, methodName, objects);
+        }
+        
+        protected byte[] GetFriendlyBytes(int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
         }
     }
 }

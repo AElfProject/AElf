@@ -131,7 +131,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                await EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
+                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
                     GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
             }
             catch (Exception e)
@@ -198,18 +198,18 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
-        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             try
             {
-                _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
+                await _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
             }
             catch (Exception e)
             {
                 Logger.LogError(e, "Error during Disconnect handle.");
             }
 
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
     }
 }

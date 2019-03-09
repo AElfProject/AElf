@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using AElf.Common;
-using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -38,14 +37,14 @@ namespace AElf.Types.CSharp
                 {typeof(Hash), Hash.LoadHex},
                 {typeof(Address), Address.Parse},
                 {typeof(MerklePath), (s) => MerklePath.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
-                {
-                    typeof(ParentChainBlockData),
-                    (s) => ParentChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
-                },
-                {
-                    typeof(SideChainBlockData),
-                    (s) => SideChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
-                },
+//                {
+//                    typeof(ParentChainBlockData),
+//                    (s) => ParentChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
+//                },
+//                {
+//                    typeof(SideChainBlockData),
+//                    (s) => SideChainBlockData.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))
+//                },
                 {typeof(Authorization), (s) => Authorization.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Proposal), (s) => Proposal.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
                 {typeof(Timestamp), (s) => Timestamp.Parser.ParseFrom(ByteArrayHelpers.FromHexString(s))},
@@ -69,29 +68,29 @@ namespace AElf.Types.CSharp
                 {typeof(Hash), obj => ((Hash) obj).ToHex()},
                 {typeof(Address), obj => ((Address) obj).GetFormatted()},
                 {typeof(MerklePath), obj => ((MerklePath) obj).ToByteArray().ToHex()},
-                {typeof(ParentChainBlockData), obj => ((ParentChainBlockData) obj).ToByteArray().ToHex()},
-                {typeof(SideChainBlockData), obj => ((SideChainBlockData) obj).ToByteArray().ToHex()},
+//                {typeof(ParentChainBlockData), obj => ((ParentChainBlockData) obj).ToByteArray().ToHex()},
+//                {typeof(SideChainBlockData), obj => ((SideChainBlockData) obj).ToByteArray().ToHex()},
                 {typeof(Authorization), obj => ((Authorization) obj).ToByteArray().ToHex()},
                 {typeof(Proposal), obj => ((Proposal) obj).ToByteArray().ToHex()},
                 {typeof(Timestamp), obj => ((Timestamp) obj).ToByteArray().ToHex()},
                 {typeof(Approval), obj => ((Approval) obj).ToByteArray().ToHex()},
-                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()},
-                {
-                    typeof(SideChainBlockData[]), objs =>
-                    {
-                        string[] res = ((SideChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
-                            .ToArray();
-                        return "[" + string.Join(", ", res) + "]";
-                    }
-                },
-                {
-                    typeof(ParentChainBlockData[]), objs =>
-                    {
-                        string[] res = ((ParentChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
-                            .ToArray();
-                        return "[" + string.Join(", ", res) + "]";
-                    }
-                }
+//                {typeof(SideChainInfo), obj => ((SideChainInfo) obj).ToByteArray().ToHex()},
+//                {
+//                    typeof(SideChainBlockData[]), objs =>
+//                    {
+//                        string[] res = ((SideChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
+//                            .ToArray();
+//                        return "[" + string.Join(", ", res) + "]";
+//                    }
+//                },
+//                {
+//                    typeof(ParentChainBlockData[]), objs =>
+//                    {
+//                        string[] res = ((ParentChainBlockData[]) objs).Select(obj => obj.ToByteArray().ToHex())
+//                            .ToArray();
+//                        return "[" + string.Join(", ", res) + "]";
+//                    }
+//                }
             };
 
         static StringConverter()
