@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Types;
 using AElf.Kernel.Types.SmartContract;
 using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Types.CSharp;
@@ -106,11 +104,9 @@ namespace AElf.Runtime.CSharp
             {
                 From = _currentTransactionContext.Transaction.From,
                 //TODO: set in constant
-                To = _hostSmartContractBridgeContext.GetContractAddressByName(
-                    Hash.FromString("AElf.Contracts.Token.TokenContract")),
+                To = _hostSmartContractBridgeContext.GetContractAddressByName(Hash.FromString("AElf.Contracts.Token.TokenContract")),
                 MethodName = nameof(ITokenContract.ChargeTransactionFees),
-                Params = ByteString.CopyFrom(
-                    ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
             });
         }
 
@@ -201,19 +197,23 @@ namespace AElf.Runtime.CSharp
         {
             // method info 
             var methodInfo = _smartContract.GetType().GetMethod(methodName);
-            var parameters = ParamsPacker.Unpack(paramsBytes,
-                methodInfo.GetParameters().Select(y => y.ParameterType).ToArray());
+            var parameterNames = methodInfo.GetParameters().Select(y => y.Name);
+            var parameterTypes = methodInfo.GetParameters().Select(y => y.ParameterType).ToArray();
+            var parameters = ParamsPacker.Unpack(paramsBytes, parameterTypes);
+
             // get method in abi
             var method = _cache.GetMethodAbi(methodName);
 
             // deserialize
-            return string.Join(",", method.DeserializeParams(parameters));
+            var values = method.DeserializeParams(parameters, parameterTypes);
+            var formattedParams = parameterNames.Zip(values, Tuple.Create).Select(x => $@"""{x.Item1}"": {x.Item2}");
+
+            return $"{{{string.Join(", ", formattedParams)}}}";
         }
 
         public object GetReturnValue(string methodName, byte[] bytes)
         {
             var handler = _cache.GetHandler(methodName);
-
             if (handler == null)
             {
                 throw new RuntimeException($"Failed to find handler for {methodName}.");

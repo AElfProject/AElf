@@ -59,7 +59,15 @@ namespace AElf.OS.Network.Grpc
                     return false;
                 }
 
-                await peer.SendDisconnectAsync();
+                try
+                {
+                    await peer.SendDisconnectAsync();
+                }
+                catch (RpcException e)
+                {
+                    Logger.LogError(e, $"Error sending disconnect peer {address}.");
+                }
+                
                 await peer.StopAsync();
 
                 return _authenticatedPeers.TryRemove(peer.PeerAddress, out _);
