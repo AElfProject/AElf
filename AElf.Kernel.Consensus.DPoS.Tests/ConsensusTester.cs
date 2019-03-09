@@ -41,6 +41,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     public class ConsensusTester
     {
         public int ChainId { get; }
+        public ECKeyPair CallOwnerKeyPair { get; private set; }
+        
         private readonly IConsensusService _consensusService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
@@ -62,12 +64,21 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             bool isBootMiner = false)
         {
             ChainId = (chainId == 0) ? ChainHelpers.ConvertBase58ToChainId("AELF") : chainId;
+            CallOwnerKeyPair = callOwnerKeyPair ?? CryptoHelpers.GenerateKeyPair();
 
             var application =
                 AbpApplicationFactory.Create<DPoSConsensusTestAElfModule>(options =>
                 {
                     options.UseAutofac();
                     options.Services.Configure<ChainOptions>(o => o.ChainId = ChainId);
+                    
+                    options.Services.AddTransient<IAccountService>(o =>
+                    {
+                        var mockAccountService = new Mock<IAccountService>();
+                        mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
+                
+                        return mockAccountService.Object;
+                    });
                 });
             application.Initialize();
 

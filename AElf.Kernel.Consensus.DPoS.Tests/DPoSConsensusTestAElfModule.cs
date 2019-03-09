@@ -36,15 +36,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var CallOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
-
-            context.Services.AddTransient<IAccountService>(o =>
-            {
-                var mockAccountService = new Mock<IAccountService>();
-                mockAccountService.Setup(s => s.GetPublicKeyAsync()).ReturnsAsync(CallOwnerKeyPair.PublicKey);
-                
-                return mockAccountService.Object;
-            });
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
     }
