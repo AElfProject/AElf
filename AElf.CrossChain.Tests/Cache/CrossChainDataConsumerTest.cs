@@ -3,32 +3,20 @@ using Xunit;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataConsumerTest
+    public class CrossChainDataConsumerTest : CrossChainTestBase
     {
-        private CrossChainDataConsumer CreateCrossChainDataConsumer(Dictionary<int, BlockInfoCache> cachingData)
-        {
-            var cacheProvider = CreateFakeMultiChainBlockInfoCacheProvider(cachingData);
-            return new CrossChainDataConsumer(cacheProvider);
-        }
+        private readonly ICrossChainDataConsumer _crossChainDataConsumer;
 
-        private MultiChainBlockInfoCacheProvider CreateFakeMultiChainBlockInfoCacheProvider(
-            Dictionary<int, BlockInfoCache> cachingData)
+        public CrossChainDataConsumerTest()
         {
-            var cacheProvider = new MultiChainBlockInfoCacheProvider();
-            foreach (var (key, value) in cachingData)
-            {
-                cacheProvider.AddBlockInfoCache(key, value);
-            }
-
-            return cacheProvider;
+            _crossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
         }
         
         [Fact]
         public void TryTake_EmptyCache()
         {
-            var consumer = CreateCrossChainDataConsumer(new Dictionary<int, BlockInfoCache>());
             int chainId = 123;
-            var blockInfo = consumer.TryTake(chainId, 1, false);
+            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -40,9 +28,9 @@ namespace AElf.CrossChain.Cache
             {
                 {chainIdA, new BlockInfoCache(1)}
             };
-            var consumer = CreateCrossChainDataConsumer(dict);
+            CreateFakeCache(dict);
             int chainIdB = 124;
-            var blockInfo = consumer.TryTake(chainIdB, 1, false);
+            var blockInfo = _crossChainDataConsumer.TryTake(chainIdB, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -60,16 +48,15 @@ namespace AElf.CrossChain.Cache
             {
                 {chainId, blockInfoCache}
             };
-            var consumer = CreateCrossChainDataConsumer(dict);
-            var blockInfo = consumer.TryTake(chainId, 2, false);
+            CreateFakeCache(dict);
+            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 2, false);
             Assert.Null(blockInfo);
         }
 
         [Fact]
         public void CachedCount_Empty()
         {
-            var consumer = CreateCrossChainDataConsumer(new Dictionary<int, BlockInfoCache>());
-            var count = consumer.GetCachedChainCount();
+            var count = _crossChainDataConsumer.GetCachedChainCount();
             Assert.True(0 == count);
         }
         
@@ -81,29 +68,26 @@ namespace AElf.CrossChain.Cache
             {
                 {chainId, new BlockInfoCache(1)}
             };
-            var consumer = CreateCrossChainDataConsumer(dict);
-            var count = consumer.GetCachedChainCount();
+            CreateFakeCache(dict);
+            var count = _crossChainDataConsumer.GetCachedChainCount();
             Assert.True(1 == count);
         }
 
         [Fact]
         public void RegisterNewChain_NotNull()
         {
-            var consumer = CreateCrossChainDataConsumer(new Dictionary<int, BlockInfoCache>());
             int chainId = 123;
-            consumer.RegisterNewChainCache(chainId, 1);
-            var count = consumer.GetCachedChainCount();
+            _crossChainDataConsumer.RegisterNewChainCache(chainId, 1);
+            var count = _crossChainDataConsumer.GetCachedChainCount();
             Assert.True(1 == count);
         }
 
         [Fact]
         public void TryTake_After_RegisterNewChain()
         {
-            var multiChainCacheProvider = new MultiChainBlockInfoCacheProvider();
-            var consumer = new CrossChainDataConsumer(multiChainCacheProvider);
             int chainId = 123;
-            consumer.RegisterNewChainCache(chainId, 1);
-            var blockInfoCache = multiChainCacheProvider.GetBlockInfoCache(chainId);
+            _crossChainDataConsumer.RegisterNewChainCache(chainId, 1);
+            var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData
             {
@@ -111,18 +95,16 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = 1
             };
             blockInfoCache.TryAdd(expectedBlockInfo);
-            var actualBlockInfo = consumer.TryTake(chainId, 1, false);
+            var actualBlockInfo = _crossChainDataConsumer.TryTake(chainId, 1, false);
             Assert.Equal(expectedBlockInfo, actualBlockInfo);
         }
         
         [Fact]
         public void TryTake_WrongIndex_After_RegisterNewChain()
         {
-            var multiChainCacheProvider = new MultiChainBlockInfoCacheProvider();
-            var consumer = new CrossChainDataConsumer(multiChainCacheProvider);
             int chainId = 123;
-            consumer.RegisterNewChainCache(chainId, 1);
-            var blockInfoCache = multiChainCacheProvider.GetBlockInfoCache(chainId);
+            _crossChainDataConsumer.RegisterNewChainCache(chainId, 1);
+            var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData
             {
@@ -130,7 +112,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = 1
             };
             blockInfoCache.TryAdd(expectedBlockInfo);
-            var blockInfo = consumer.TryTake(chainId, 2, false);
+            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 2, false);
             Assert.Null(blockInfo);
         }
     }

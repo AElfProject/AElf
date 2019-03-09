@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using AElf.Types.CSharp;
 
-namespace AElf.Runtime.CSharp.Core
+namespace AElf.Types.CSharp
 {
     public class MethodHandlerForVoid : IMethodHandler
     {

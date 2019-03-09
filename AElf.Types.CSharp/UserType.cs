@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Google.Protobuf.Reflection;
@@ -14,8 +15,8 @@ namespace AElf.Types.CSharp
 {
     public class UserType
     {
-        private static Dictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
-            = new Dictionary<System.Type, List<UserFieldInfo>>();
+        private static ConcurrentDictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
+            = new ConcurrentDictionary<System.Type, List<UserFieldInfo>>();
 
         public UserTypeHolder Pack()
         {
@@ -39,13 +40,38 @@ namespace AElf.Types.CSharp
 
         private List<UserFieldInfo> GetFieldInfos()
         {
-            if (!_fieldInfosByType.TryGetValue(GetType(), out var fieldInfos))
+            var type = GetType();
+            if (!_fieldInfosByType.TryGetValue(type, out var fieldInfos))
             {
-                fieldInfos = GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                fieldInfos = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
                                       .Select(x => new UserFieldInfo(x)).ToList();
-                _fieldInfosByType.Add(GetType(), fieldInfos);
+                _fieldInfosByType.TryAdd(type, fieldInfos);
             }
             return fieldInfos;
+        }
+
+        protected bool Equals(UserType other)
+        {
+            if (ReferenceEquals(other, null)) {
+                return false;
+            }
+            if (ReferenceEquals(other, this)) {
+                return true;
+            }
+            return this.Pack().Equals(other.Pack());
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((UserType) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Pack().GetHashCode();
         }
     }
 

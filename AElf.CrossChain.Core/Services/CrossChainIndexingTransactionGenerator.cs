@@ -12,6 +12,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
@@ -20,48 +21,16 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainService _crossChainService;
 
-        private readonly IChainManager _chainManager;
-
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService, IChainManager chainManager,
+        public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService,
             ISmartContractAddressService smartContractAddressService)
         {
             _crossChainService = crossChainService;
-            _chainManager = chainManager;
             _smartContractAddressService = smartContractAddressService;
         }
 
-        /// <summary>
-        /// Generate system txs for parent chain block info and broadcast it.
-        /// </summary>
-        /// <returns></returns>
-        private void GenerateTransactionForIndexingSideChain(Address from, long refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
-        {
-//            var sideChainBlockInfos = await CollectSideChainIndexedInfo();
-//            if (sideChainBlockInfos.Length == 0)
-//                return;
-            generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                CrossChainConsts.IndexingSideChainMethodName,
-                refBlockNumber, refBlockPrefix, new object[0]));
-        }
-
-        /// <summary>
-        /// Generate system txs for parent chain block info and broadcast it.
-        /// </summary>
-        /// <returns></returns>
-        private void GenerateTransactionForIndexingParentChain(Address from, long refBlockNumber,
-            byte[] refBlockPrefix, IEnumerable<Transaction> generatedTransactions)
-        {
-            //var parentChainBlockData = await CollectParentChainBlockInfo();
-            //if (parentChainBlockData != null && parentChainBlockData.Length != 0)
-            generatedTransactions.Append(GenerateNotSignedTransaction(from,
-                CrossChainConsts.IndexingParentChainMethodName, refBlockNumber, refBlockPrefix, new object[0]));
-        }
-
-        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from,
-            long refBlockNumber,
+        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
             // todo: should use pre block hash here, not prefix
@@ -75,9 +44,8 @@ namespace AElf.CrossChain
 
             var generatedTransactions = new List<Transaction>
             {
-                GenerateNotSignedTransaction(from,
-                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber, previousBlockPrefix,
-                    new object[] {crossChainBlockData})
+                GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                    previousBlockPrefix, crossChainBlockData)
             };
             return generatedTransactions;
         }
@@ -101,12 +69,11 @@ namespace AElf.CrossChain
         /// <param name="params"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
-            byte[] refBlockPrefix, object[] @params)
+            byte[] refBlockPrefix, params object[] @params)
         {
             return new Transaction
             {
                 From = from,
-
                 To = _smartContractAddressService.GetAddressByContractName(
                     CrossChainSmartContractAddressNameProvider.Name),
                 RefBlockNumber = refBlockNumber,
