@@ -16,7 +16,7 @@ namespace AElf.Sdk.CSharp
             State.Provider = stateProvider;
         }
 
-        protected override void SetContractAddress(Address address)
+        internal override void SetContractAddress(Address address)
         {
             if (address == null)
             {

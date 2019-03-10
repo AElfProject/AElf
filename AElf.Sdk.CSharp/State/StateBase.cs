@@ -21,7 +21,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal virtual StatePath Path
+        internal StatePath Path
         {
             get => _path;
             set
