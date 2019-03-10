@@ -118,14 +118,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).Apply();
 
-//                txCtxt.Trace.StateSet = new TransactionExecutingStateSet();
-//                foreach (var kv in txCtxt.Trace.StateChanges)
-//                {
-//                    stateCache[kv.StatePath] = new StateCache(kv.StateValue.CurrentValue.ToByteArray());
-//                    var key = string.Join("/", kv.StatePath.Path.Select(x => x.ToStringUtf8()));
-//                    txCtxt.Trace.StateSet.Writes[key] = kv.StateValue.CurrentValue;
-//                }
-
                 if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
                 {
                     internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
@@ -161,77 +153,42 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
-            switch (trace.ExecutionStatus)
+            if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                case ExecutionStatus.Canceled:
-                    // Put back transaction
-                    return null;
-                case ExecutionStatus.ExecutedAndCommitted:
-                    // Successful
-                    var txRes = new TransactionResult()
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Mined,
-                        ReturnValue = trace.RetVal.Data,
-                        ReadableReturnValue = trace.ReadableReturnValue,
-                        BlockNumber = blockHeight,
-                        //StateHash = trace.GetSummarizedStateHash(),
-                        Logs = {trace.FlattenedLogs}
-                    };
-                    txRes.UpdateBloom();
-
-                    // insert deferred txn to transaction pool and wait for execution 
-                    if (trace.DeferredTransaction.Length != 0)
-                    {
-                        var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                        txRes.DeferredTransactions.Add(deferredTxn);
-                        txRes.DeferredTxnId = deferredTxn.GetHash();
-                    }
-
-                    return txRes;
-                case ExecutionStatus.ContractError:
-                    var txResF = new TransactionResult()
-                    {
-                        TransactionId = trace.TransactionId,
-                        Status = TransactionResultStatus.Failed,
-                        Error = trace.StdErr,
-                        StateHash = Hash.Default
-                    };
-                    return txResF;
-                case ExecutionStatus.InsufficientTransactionFees:
-                    var txResITF = new TransactionResult()
-                    {
-                        TransactionId = trace.TransactionId,
-                        ReturnValue = ByteString.CopyFromUtf8(trace.ExecutionStatus.ToString()), // Is this needed?
-                        Status = TransactionResultStatus.Failed,
-                        StateHash = trace.GetSummarizedStateHash()
-                    };
-                    return txResITF;
-                case ExecutionStatus.Undefined:
-                    Logger.LogCritical(
-                        $@"Transaction Id ""{
-                                trace.TransactionId
-                            } is executed with status Undefined. Transaction trace: {trace}""");
-                    return null;
-                case ExecutionStatus.SystemError:
-                    // SystemError shouldn't happen, and need to fix
-                    Logger.LogCritical(
-                        $@"Transaction Id ""{
-                                trace.TransactionId
-                            } is executed with status SystemError. Transaction trace: {trace}""");
-                    return null;
-                case ExecutionStatus.ExecutedButNotCommitted:
-                    // If this happens, there's problem with the code
-                    Logger.LogCritical(
-                        $@"Transaction Id ""{
-                                trace.TransactionId
-                            } is executed with status ExecutedButNotCommitted. Transaction trace: {
-                                trace
-                            }""");
-                    return null;
-                default:
-                    return null;
+                return null;
             }
+
+            if (trace.IsSuccessful())
+            {
+                var txRes = new TransactionResult()
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Mined,
+                    ReturnValue = trace.ReturnValue,
+                    ReadableReturnValue = trace.ReadableReturnValue,
+                    BlockNumber = blockHeight,
+                    //StateHash = trace.GetSummarizedStateHash(),
+                    Logs = {trace.FlattenedLogs}
+                };
+                txRes.UpdateBloom();
+
+                // insert deferred txn to transaction pool and wait for execution 
+                if (trace.DeferredTransaction.Length != 0)
+                {
+                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
+                    txRes.DeferredTransactions.Add(deferredTxn);
+                    txRes.DeferredTxnId = deferredTxn.GetHash();
+                }
+
+                return txRes; 
+            }
+
+            return new TransactionResult()
+            {
+                TransactionId = trace.TransactionId,
+                Status = TransactionResultStatus.Failed,
+                Error = trace.StdErr
+            };
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
@@ -255,12 +212,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     returnSet.StateChanges[s.Key] = s.Value;
                 }
 
-                if (trace.RetVal == null)
-                {
-                    throw new NullReferenceException("RetVal of trace is null.");
-                }
-
-                returnSet.ReturnValue = trace.RetVal.Data;
+                returnSet.ReturnValue = trace.ReturnValue;
             }
 
             return returnSet;
