@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Contexts
         {
 #if DEBUG
             _smartContractBridgeService.LogDebug(() =>
-                $"TX = {Transaction.GetHash().ToHex()}, Method = {Transaction.MethodName}, {func()}");
+                $"TX = {Transaction?.GetHash().ToHex()}, Method = {Transaction?.MethodName}, {func()}");
 #endif
         }
 
