@@ -15,7 +15,7 @@ namespace AElf.Runtime.CSharp
         private static MethodInfo GetMethedInfo(Type type, string name)
         {
             return type.GetMethod(name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+                BindingFlags.Instance | BindingFlags.NonPublic );
         }
 
         private object _instance;
@@ -32,7 +32,7 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(GetChanges),nameof(SetStateProvider),nameof(Cleanup),nameof(Initialize)
+                nameof(GetChanges), nameof(SetStateProvider), nameof(Cleanup), nameof(Initialize)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 
