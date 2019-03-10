@@ -104,8 +104,7 @@ message TransactionResult {
 enum ExecutionStatus {
     Undefined = 0;
     // Successful =>
-    ExecutedButNotCommitted = 1;
-    ExecutedAndCommitted = 2;
+    Executed = 1;
 
     // Failed =>
     //   Infrastructure reasons
@@ -120,21 +119,17 @@ enum ExecutionStatus {
 
 message TransactionTrace {
     Hash TransactionId = 1;
-    RetVal RetVal = 2;
+    bytes ReturnValue = 2;
     string StdOut = 3;
     string StdErr = 4;
-    Hash StateHash = 5;
-    repeated LogEvent Logs = 6;
-    repeated Transaction InlineTransactions = 7;
-    repeated TransactionTrace InlineTraces = 8;
-    // TODO: Remove state changes
-    repeated StateChange StateChanges = 9;
-    int64 Elapsed = 10;
-    ExecutionStatus ExecutionStatus = 11;
-    bytes DeferredTransaction = 12;
-    TransactionTrace FeeTransactionTrace = 13;
-    TransactionExecutingStateSet StateSet = 14;
-    string ReadableReturnValue = 15;
+    repeated Transaction InlineTransactions = 5;
+    repeated TransactionTrace InlineTraces = 6;
+    repeated LogEvent Logs = 7;
+    int64 Elapsed = 8;
+    ExecutionStatus ExecutionStatus = 9;
+    TransactionExecutingStateSet StateSet = 10;
+    bytes DeferredTransaction = 11;
+    string ReadableReturnValue = 12;
 }
 
 message ExecutionReturnSet {
@@ -155,23 +150,6 @@ message LogEvent {
 message TransactionLogEvent{
     Hash Transaction = 1;
     LogEvent LogEvent = 2;
-}
-
-message RetVal {
-    RetType Type = 1;
-    bytes Data = 2;
-    enum RetType {
-        Void = 0;
-        Bool = 1;
-        Int32 = 2;
-        UInt32 = 3;
-        Int64 = 4;
-        UInt64 = 5;
-        String = 6;
-        Bytes = 7;
-        PbMessage = 8;
-        UserType = 9;
-    }
 }
 
 message BlockHeaderList {

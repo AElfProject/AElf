@@ -277,7 +277,7 @@ namespace AElf.Contracts.TestBase
             if (!transactionTrace.StdErr.IsNullOrEmpty())
                 throw new InvalidOperationException(transactionTrace.StdErr);
 
-            return transactionTrace.RetVal?.Data;
+            return transactionTrace.ReturnValue;
         }
 
         public void SignTransaction(ref List<Transaction> transactions, ECKeyPair callerKeyPair)

@@ -140,12 +140,13 @@ namespace AElf.Runtime.CSharp
                 try
                 {
                     var retVal = handler.Execute(tx.Params.ToByteArray());
-                    CurrentTransactionContext.Trace.RetVal = new RetVal()
+                    if (retVal != null)
                     {
-                        Data = retVal == null ? null : ByteString.CopyFrom(retVal)
-                    };
-                    CurrentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExecutedAndCommitted;
+                        CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                        CurrentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
+                    }
+
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -158,8 +159,7 @@ namespace AElf.Runtime.CSharp
                     CurrentTransactionContext.Trace.StdErr += "\n" + ex;
                 }
 
-                if (!methodAbi.IsView && CurrentTransactionContext.Trace.IsSuccessful() &&
-                    CurrentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted)
+                if (!methodAbi.IsView && CurrentTransactionContext.Trace.IsSuccessful())
                 {
                     CurrentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
                 }

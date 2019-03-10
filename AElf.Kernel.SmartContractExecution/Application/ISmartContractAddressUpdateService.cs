@@ -62,7 +62,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();
 
-            var address = transactionResult.RetVal.Data.DeserializeToPbMessage<Address>();
+            var address = transactionResult.ReturnValue.DeserializeToPbMessage<Address>();
 
             if (address != null)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);

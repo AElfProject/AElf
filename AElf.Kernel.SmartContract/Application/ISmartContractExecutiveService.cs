@@ -205,8 +205,8 @@ namespace AElf.Kernel.SmartContract.Application
                 executiveZero = await GetExecutiveAsync(registration, _defaultContractZeroCodeProvider.ContractZeroAddress);
                 executiveZero.SetDataCache(chainContext.StateCache);
                 await executiveZero.SetTransactionContext(txCtxt).Apply();
-                var returnBytes = txCtxt.Trace?.RetVal?.Data;
-                if (returnBytes != null)
+                var returnBytes = txCtxt.Trace?.ReturnValue;
+                if (returnBytes != null && returnBytes != ByteString.Empty)
                 {
                     result = SmartContractRegistration.Parser.ParseFrom(returnBytes);
                 }
