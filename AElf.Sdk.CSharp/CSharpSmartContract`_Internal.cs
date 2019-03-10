@@ -44,6 +44,7 @@ namespace AElf.Sdk.CSharp
                 throw new InvalidOperationException();
             
             Context = bridgeContext;
+            State.Context = bridgeContext;
         }
     }
 }
