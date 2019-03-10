@@ -273,6 +273,9 @@ namespace AElf.Contracts.TestBase
                 },
                 tx,
                 DateTime.UtcNow);
+            
+            if (!transactionTrace.StdErr.IsNullOrEmpty())
+                throw new InvalidOperationException(transactionTrace.StdErr);
 
             return transactionTrace.RetVal?.Data;
         }

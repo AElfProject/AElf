@@ -36,7 +36,6 @@ namespace AElf.Contracts.Resource.Tests
         {
             Tester = new ContractTester();
             var contractArray = Tester.GetDefaultContractTypes();
-            contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
 
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
