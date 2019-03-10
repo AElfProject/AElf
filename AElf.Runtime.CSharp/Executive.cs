@@ -12,7 +12,6 @@ using Module = AElf.Kernel.ABI.Module;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractBridge;
 using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.Contexts.IHostSmartContractBridgeContext;

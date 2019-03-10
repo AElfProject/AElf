@@ -11,7 +11,6 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
-using AElf.Kernel.SmartContractBridge;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;

@@ -1,6 +1,5 @@
 ﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractBridge;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
