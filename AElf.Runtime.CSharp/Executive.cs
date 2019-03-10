@@ -27,7 +27,6 @@ namespace AElf.Runtime.CSharp
         private CSharpSmartContractProxy _smartContractProxy;
         private ISmartContract _smartContract;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
-        private ISmartContractContext _currentSmartContractContext;
         private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
 
@@ -50,7 +49,7 @@ namespace AElf.Runtime.CSharp
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
         {
             _hostSmartContractBridgeContext = smartContractBridgeContext;
-            _smartContractProxy.Initialize(_hostSmartContractBridgeContext);
+            _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
             return this;
         }
 
@@ -164,12 +163,6 @@ namespace AElf.Runtime.CSharp
                     CurrentTransactionContext.Trace.ExecutionStatus == ExecutionStatus.ExecutedAndCommitted)
                 {
                     CurrentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
-//                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
-//                    {
-//                        StatePath = kv.Key,
-//                        StateValue = kv.Value
-//                    });
-//                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
                 }
                 else
                 {

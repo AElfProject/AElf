@@ -32,7 +32,7 @@ namespace AElf.Runtime.CSharp
         {
             _methodInfos = new[]
             {
-                nameof(GetChanges),nameof(SetStateProvider),nameof(Cleanup),nameof(Initialize)
+                nameof(GetChanges),nameof(SetStateProvider),nameof(Cleanup),nameof(InternalInitialize)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 
@@ -42,9 +42,9 @@ namespace AElf.Runtime.CSharp
             _methodInfos[nameof(SetStateProvider)].Invoke(_instance, new object[] {stateProvider});
         }
 
-        public void Initialize(ISmartContractBridgeContext context)
+        public void InternalInitialize(ISmartContractBridgeContext context)
         {
-            _methodInfos[nameof(Initialize)].Invoke(_instance, new object[] {context});
+            _methodInfos[nameof(InternalInitialize)].Invoke(_instance, new object[] {context});
         }
 
         public TransactionExecutingStateSet GetChanges()

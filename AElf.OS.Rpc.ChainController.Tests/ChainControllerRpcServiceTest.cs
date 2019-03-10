@@ -453,7 +453,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         public async Task Transaction_To_JObject()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var transaction = await GenerateTransaction(chain, Address.Generate(), Address.Generate(), nameof(TokenContract.Transfer),
+            var transaction = GenerateTransaction(chain, Address.Generate(), Address.Generate(), nameof(TokenContract.Transfer),
                 Address.Generate(), 1000UL);
             var transactionObj = transaction.GetTransactionInfo();
             transactionObj.ShouldNotBeNull();
@@ -487,7 +487,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
-            var transaction = await GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
+            var transaction = GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
                 _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)), nameof(TokenContract.BalanceOf),
                 paramArray);
 
@@ -529,7 +529,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray())
             };
 
-            return await Task.FromResult(transaction);
+            return transaction;
         }
     }
 }

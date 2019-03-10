@@ -20,6 +20,6 @@ namespace AElf.Sdk.CSharp
             }
         }
 
-        internal abstract void Initialize(ISmartContractBridgeContext bridgeContext);
+        internal abstract void InternalInitialize(ISmartContractBridgeContext bridgeContext);
     }
 }

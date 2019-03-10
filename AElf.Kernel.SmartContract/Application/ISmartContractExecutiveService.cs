@@ -37,7 +37,6 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
         private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
@@ -50,12 +49,11 @@ namespace AElf.Kernel.SmartContract.Application
         public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
 #endif
 
-        public SmartContractExecutiveService(IServiceProvider serviceProvider,
+        public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
             IHostSmartContractBridgeContextService hostSmartContractBridgeContextService)
         {
-            _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;

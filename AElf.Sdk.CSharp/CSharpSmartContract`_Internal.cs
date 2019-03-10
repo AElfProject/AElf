@@ -38,7 +38,7 @@ namespace AElf.Sdk.CSharp
             State.Clear();
         }
 
-        internal override void Initialize(ISmartContractBridgeContext bridgeContext)
+        internal override void InternalInitialize(ISmartContractBridgeContext bridgeContext)
         {
             if(Context!=null)
                 throw new InvalidOperationException();
