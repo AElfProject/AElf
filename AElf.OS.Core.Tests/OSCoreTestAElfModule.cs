@@ -81,9 +81,7 @@ namespace AElf.OS
                 peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
                     .Returns<string>((adr) => null);
                 peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
-                    .Returns(new List<IPeer> { });
-
-                context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
+                    .Returns(new List<IPeer>());
                 return peerPoolMock.Object;
             });
 
