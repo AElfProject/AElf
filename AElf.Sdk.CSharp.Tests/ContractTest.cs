@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Sdk;
 using Xunit;
 using Shouldly;

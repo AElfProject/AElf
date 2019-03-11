@@ -1,5 +1,4 @@
 using System;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 

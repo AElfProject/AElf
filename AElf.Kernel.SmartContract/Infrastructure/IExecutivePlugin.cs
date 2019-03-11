@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract.Contexts;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
 {

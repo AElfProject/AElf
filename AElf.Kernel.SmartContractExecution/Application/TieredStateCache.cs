@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 
