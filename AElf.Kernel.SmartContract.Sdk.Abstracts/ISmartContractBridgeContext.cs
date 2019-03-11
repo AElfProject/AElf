@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using AElf.Common;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Sdk
 {
     public interface ISmartContractBridgeContext
     {

@@ -1,7 +1,6 @@
 using AElf.Common;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContract
 {
     public interface ISmartContractAddressNameProvider 
     {

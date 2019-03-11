@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract.Sdk
 {
     public class InmemoryStateCache : IStateCache
     {

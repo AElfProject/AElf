@@ -1,10 +1,9 @@
-﻿﻿using System;
- using System.Threading.Tasks;
- using AElf.Kernel;
+﻿using System;
+using System.Threading.Tasks;
 using AElf.Common;
- using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Application;
 
- namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Sdk
 {
     public class TransactionContext : ITransactionContext
     {

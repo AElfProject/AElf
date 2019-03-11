@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Sdk
 {
     public static class StatePathExtensions
     {

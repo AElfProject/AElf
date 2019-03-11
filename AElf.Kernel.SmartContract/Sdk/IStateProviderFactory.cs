@@ -1,6 +1,4 @@
-using AElf.Kernel.SmartContractExecution.Domain;
-
-namespace AElf.Kernel.SmartContract.Contexts
+namespace AElf.Kernel.SmartContract.Sdk
 {
     public interface IStateProviderFactory
     {
