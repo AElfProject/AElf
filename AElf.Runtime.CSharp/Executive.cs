@@ -13,6 +13,8 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp.Core;
+using AElf.Sdk.CSharp;
+using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.Contexts.IHostSmartContractBridgeContext;
 
 namespace AElf.Runtime.CSharp
 {
@@ -23,10 +25,11 @@ namespace AElf.Runtime.CSharp
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ISmartContract _smartContract;
-        private ITransactionContext _currentTransactionContext;
-        private ISmartContractContext _currentSmartContractContext;
+        private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
         private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
+
+        private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
 
         public Executive(Module abiModule)
         {
@@ -34,12 +37,21 @@ namespace AElf.Runtime.CSharp
         }
 
         public Hash ContractHash { get; set; }
+        public Address ContractAddress { get; set; }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
         {
             _maxCallDepth = maxCallDepth;
             return this;
         }
+
+        public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
+        {
+            _hostSmartContractBridgeContext = smartContractBridgeContext;
+            _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
+            return this;
+        }
+
 
         public IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
         {
@@ -58,20 +70,15 @@ namespace AElf.Runtime.CSharp
             _smartContract = smartContract;
             _smartContractProxy = new CSharpSmartContractProxy(smartContract);
             _cache = new MethodsCache(_abi, smartContract);
+
             return this;
         }
 
-        public IExecutive SetSmartContractContext(ISmartContractContext smartContractContext)
-        {
-            _smartContractProxy.SetSmartContractContext(smartContractContext);
-            _currentSmartContractContext = smartContractContext;
-            return this;
-        }
 
         public IExecutive SetTransactionContext(ITransactionContext transactionContext)
         {
-            _smartContractProxy.SetTransactionContext(transactionContext);
-            _currentTransactionContext = transactionContext;
+            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+            _stateProvider.TransactionContext = transactionContext;
             return this;
         }
 
@@ -89,39 +96,41 @@ namespace AElf.Runtime.CSharp
         public void MaybeInsertFeeTransaction()
         {
             // No insertion of transaction if it's not IFeeChargedContract or it's not top level transaction
-            if (!(_smartContract is IFeeChargedContract) || _currentTransactionContext.CallDepth > 0)
+            if (!(_smartContract is IFeeChargedContract) || CurrentTransactionContext.CallDepth > 0)
             {
                 return;
             }
 
-            _currentTransactionContext.Trace.InlineTransactions.Add(new Transaction()
+            CurrentTransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
-                From = _currentTransactionContext.Transaction.From,
+                From = CurrentTransactionContext.Transaction.From,
                 //TODO: set in constant
-                To = _currentSmartContractContext.GetAddressByContractName(Hash.FromString("AElf.Contracts.Token.TokenContract")),
+                To = _hostSmartContractBridgeContext.GetContractAddressByName(
+                    Hash.FromString("AElf.Contracts.Token.TokenContract")),
                 MethodName = nameof(ITokenContract.ChargeTransactionFees),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(GetFee(_currentTransactionContext.Transaction.MethodName)))
+                Params = ByteString.CopyFrom(
+                    ParamsPacker.Pack(GetFee(CurrentTransactionContext.Transaction.MethodName)))
             });
         }
 
         public async Task ExecuteMainTransaction()
         {
-            if (_currentTransactionContext.CallDepth > _maxCallDepth)
+            if (CurrentTransactionContext.CallDepth > _maxCallDepth)
             {
-                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                _currentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
                 return;
             }
 
-            var s = _currentTransactionContext.Trace.StartTime = DateTime.UtcNow;
-            var methodName = _currentTransactionContext.Transaction.MethodName;
+            var s = CurrentTransactionContext.Trace.StartTime = DateTime.UtcNow;
+            var methodName = CurrentTransactionContext.Transaction.MethodName;
 
             try
             {
                 var methodAbi = _cache.GetMethodAbi(methodName);
 
                 var handler = _cache.GetHandler(methodName);
-                var tx = _currentTransactionContext.Transaction;
+                var tx = CurrentTransactionContext.Transaction;
 
                 if (handler == null)
                 {
@@ -133,50 +142,44 @@ namespace AElf.Runtime.CSharp
                     var retVal = handler.Execute(tx.Params.ToByteArray());
                     if (retVal != null)
                     {
-                        _currentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                        _currentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
+                        CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                        CurrentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
                     }
 
-                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
                 }
                 catch (TargetInvocationException ex)
                 {
-                    _currentTransactionContext.Trace.StdErr += ex.InnerException;
-                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    CurrentTransactionContext.Trace.StdErr += ex.InnerException;
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 }
                 catch (Exception ex)
                 {
-                    _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    _currentTransactionContext.Trace.StdErr += "\n" + ex;
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
                 }
 
-                if (!methodAbi.IsView && _currentTransactionContext.Trace.IsSuccessful())
+                if (!methodAbi.IsView && CurrentTransactionContext.Trace.IsSuccessful())
                 {
-                    _currentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
-//                    var changes = _smartContractProxy.GetChanges().Select(kv => new StateChange()
-//                    {
-//                        StatePath = kv.Key,
-//                        StateValue = kv.Value
-//                    });
-//                    _currentTransactionContext.Trace.StateChanges.AddRange(changes);
+                    CurrentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
                 }
                 else
                 {
-                    _currentTransactionContext.Trace.StateSet = new TransactionExecutingStateSet();
+                    CurrentTransactionContext.Trace.StateSet = new TransactionExecutingStateSet();
                 }
             }
             catch (Exception ex)
             {
-                _currentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-                _currentTransactionContext.Trace.StdErr += ex + "\n";
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
+                CurrentTransactionContext.Trace.StdErr += ex + "\n";
             }
             finally
             {
                 Cleanup();
             }
 
-            var e = _currentTransactionContext.Trace.EndTime = DateTime.UtcNow;
-            _currentTransactionContext.Trace.Elapsed = (e - s).Ticks;
+            var e = CurrentTransactionContext.Trace.EndTime = DateTime.UtcNow;
+            CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 
         public ulong GetFee(string methodName)
@@ -184,7 +187,7 @@ namespace AElf.Runtime.CSharp
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
             var retVal = handler.Execute(ParamsPacker.Pack(methodName));
             handler.BytesToReturnType(retVal);
-            return (ulong)handler.BytesToReturnType(retVal);
+            return (ulong) handler.BytesToReturnType(retVal);
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

@@ -1,48 +1,55 @@
 using System;
-using AElf.Common;
-using AElf.Kernel;
 using System.Linq;
-using System.Reflection;
+using AElf.Common;
 using AElf.Cryptography;
-using System.Threading.Tasks;
-using AElf.Cryptography;
-using AElf.Kernel.Types;
-using AElf.Sdk.CSharp.ReadOnly;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.Threading;
 
-namespace AElf.Sdk.CSharp
+namespace AElf.Kernel.SmartContract.Contexts
 {
-    public class Context : IContextInternal
+    public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext
     {
-        public ITransactionContext TransactionContext { get; set; }
+        private readonly ISmartContractBridgeService _smartContractBridgeService;
 
+        public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService)
+        {
+            _smartContractBridgeService = smartContractBridgeService;
+        }
+
+        public ITransactionContext TransactionContext { get; set; }
         public ISmartContractContext SmartContractContext { get; set; }
 
-        public int ChainId => SmartContractContext.GetChainId();
+        public Address GetContractAddressByName(Hash hash)
+        {
+            return _smartContractBridgeService.GetAddressByContractName(hash);
+        }
+
+        public int ChainId => _smartContractBridgeService.GetChainId();
 
         public void LogDebug(Func<string> func)
         {
 #if DEBUG
-            SmartContractContext.LogDebug(func);
+            _smartContractBridgeService.LogDebug(() =>
+                $"TX = {Transaction?.GetHash().ToHex()}, Method = {Transaction?.MethodName}, {func()}");
 #endif
         }
 
-        public void FireEvent<TEvent>(TEvent e) where TEvent : Event
+        public void FireLogEvent(LogEvent logEvent)
         {
-            var logEvent = EventParser<TEvent>.ToLogEvent(e, Self);
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
-        public Transaction Transaction => TransactionContext.Transaction.ToReadOnly();
+
+        public Transaction Transaction => TransactionContext.Transaction.Clone();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
-        public Address Sender => TransactionContext.Transaction.From.ToReadOnly();
-        public Address Self => SmartContractContext.ContractAddress.ToReadOnly();
+        public Address Sender => TransactionContext.Transaction.From.Clone();
+        public Address Self => SmartContractContext.ContractAddress.Clone();
         public Address Genesis => Address.Genesis;
         public long CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
-        public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.ToReadOnly();
+        public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
@@ -74,8 +81,8 @@ namespace AElf.Sdk.CSharp
 
         public Block GetPreviousBlock()
         {
-            return SmartContractContext.GetBlockByHash(
-                TransactionContext.PreviousBlockHash);
+            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockByHashAsync(
+                TransactionContext.PreviousBlockHash));
         }
 
         public bool VerifySignature(Transaction tx)
@@ -104,24 +111,24 @@ namespace AElf.Sdk.CSharp
         {
             //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
             //method SmartContractContext.DeployContract or it's service 
-            if (!Self.Equals(SmartContractContext.GetZeroSmartContractAddress()))
+            if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
-                throw new AssertionError("no permission.");
+                throw new NoPermissionException();
             }
 
-            SmartContractContext.DeployContract(address, registration,
-                false, name);
+            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+                false, name));
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            if (!Self.Equals(SmartContractContext.GetZeroSmartContractAddress()))
+            if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
-                throw new AssertionError("no permission.");
+                throw new NoPermissionException();
             }
 
-            SmartContractContext.UpdateContract(address, registration,
-                false, null);
+            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+                false, null));
         }
     }
 }
