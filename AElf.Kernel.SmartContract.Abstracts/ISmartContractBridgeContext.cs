@@ -48,6 +48,7 @@ namespace AElf.Kernel.SmartContract
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
 
         void SendInline(Address address, string methodName, params object[] args);
+        T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args);
     }
 
     [Serializable]

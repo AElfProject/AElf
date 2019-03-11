@@ -1,20 +1,25 @@
+using System;
 using AElf.Kernel.SmartContract.Contexts;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public class HostSmartContractBridgeContextService : IHostSmartContractBridgeContextService
     {
-        private readonly ISmartContractBridgeService _smartContractBridgeService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public HostSmartContractBridgeContextService(ISmartContractBridgeService smartContractBridgeService)
+        public HostSmartContractBridgeContextService(IServiceProvider serviceProvider)
         {
-            _smartContractBridgeService = smartContractBridgeService;
+            _serviceProvider = serviceProvider;
         }
 
 
         public IHostSmartContractBridgeContext Create(ISmartContractContext smartContractContext)
         {
-            var context = new HostSmartContractBridgeContext(_smartContractBridgeService);
+            var smartContractBridgeService = _serviceProvider.GetService<ISmartContractBridgeService>();
+            var smartContractExecutiveService = _serviceProvider.GetService<ISmartContractExecutiveService>();
+            var context =
+                new HostSmartContractBridgeContext(smartContractBridgeService, smartContractExecutiveService);
 
             context.SmartContractContext = smartContractContext;
             return context;
