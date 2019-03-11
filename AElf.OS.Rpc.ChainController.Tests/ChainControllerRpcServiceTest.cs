@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Common.Application;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
@@ -19,6 +20,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Newtonsoft.Json.Linq;
 using Shouldly;
 using Volo.Abp.Threading;
 using Volo.Abp.Validation;
@@ -55,6 +57,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             AsyncHelper.RunSync(async () => await InitAccountAmount());
         }
 
+        #region Chain cases
         [Fact]
         public async Task Get_Commands_Success()
         {
@@ -459,7 +462,88 @@ namespace AElf.OS.Rpc.ChainController.Tests
             transactionObj.ShouldNotBeNull();
             transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContract.Transfer));
         }
+        
+        #endregion
+        
+        #region Wallet cases
+        [Fact]
+        public async Task Wallet_ListAccounts()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
+            var store = new AElfKeyStore(walletStorePath);
+            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
+            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
+            
+            var response = await JsonCallAsJObject("/wallet", "ListAccounts");
+            response.ShouldNotBeNull();
+            response["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
+            response["result"].ToList().Contains(addressString).ShouldBeTrue();
+            
+            Directory.Delete(walletStorePath, true);
+        }
 
+        [Fact]
+        public async Task Wallet_SignHash_Success()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
+            var store = new AElfKeyStore(walletStorePath);
+            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
+            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
+            
+            var response = await JsonCallAsJObject("/wallet", "SignHash",
+                new { address = addressString, password = "123", hash = Hash.Generate().ToHex() });
+            response.ShouldNotBeNull();
+            response["result"].ToString().ShouldNotBeEmpty();
+            
+            Directory.Delete(walletStorePath, true);
+        }
+        
+        [Fact]
+        public async Task Wallet_SignHash_Failed()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
+            var store = new AElfKeyStore(walletStorePath);
+            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
+            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
+            
+            var response = await JsonCallAsJObject("/wallet", "SignHash",
+                new { address = addressString, password = "wrong_password", hash = Hash.Generate().ToHex() });
+            response.ShouldNotBeNull();
+            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.WrongPassword);
+            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.WrongPassword]);
+            
+            response = await JsonCallAsJObject("/wallet", "SignHash",
+                new { address = addressString + "test", password = "123", hash = Hash.Generate().ToHex() });
+            response.ShouldNotBeNull();
+            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.AccountNotExist);
+            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.AccountNotExist]);
+
+            Directory.Delete(walletStorePath, true);
+        }
+        
+        #endregion
+        
+        #region Net cases
+
+        [Fact]
+        public async Task Net_Get_And_AddPeer()
+        {
+            string addressInfo = "127.0.0.1:6810";
+            var response = await JsonCallAsJObject("/net", "AddPeer",
+                new { address = addressInfo});
+            response.ShouldNotBeNull();
+            response["result"].To<bool>().ShouldBeFalse(); //currently network service is mocked.
+
+            var response1 = await JsonCallAsJObject("/net", "GetPeers");
+            response1.ShouldNotBeNull();
+            response1["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(0);
+        }
+
+        #endregion
+        
         private async Task<Block> MinedOneBlock(Chain chain)
         {
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
