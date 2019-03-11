@@ -9,7 +9,7 @@ using Google.Protobuf;
 // ReSharper disable once CheckNamespace
 namespace AElf.Common
 {
-    public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash> , IEnumerable<byte>
+    public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -25,8 +25,8 @@ namespace AElf.Common
         {
             if (bytes.Length != TypeConsts.HashByteArrayLength)
             {
-                throw new ArgumentOutOfRangeException(
-                    $"Hash bytes has to be {TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
+                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
             }
 
             Value = ByteString.CopyFrom(bytes.ToArray());
@@ -91,7 +91,6 @@ namespace AElf.Common
             }
         }
 
-
         public static Hash Generate()
         {
             return FromRawBytes(Guid.NewGuid().ToByteArray());
@@ -100,13 +99,6 @@ namespace AElf.Common
         #endregion
 
         #region Predefined
-
-       
-        //TODO: remove Hash Zero = FromString("AElf")
-        public static readonly Hash Zero = FromString("AElf");
-
-        //TODO: remove Hash Default = FromRawBytes(new byte[0]);
-        public static readonly Hash Default = FromRawBytes(new byte[0]);
 
         public static readonly Hash Empty = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
 
@@ -209,13 +201,7 @@ namespace AElf.Common
         /// <returns></returns>
         public string ToHex()
         {
-            
             return Value.ToHex();
-        }
-
-        public string DumpBase58()
-        {
-            return Value.ToPlainBase58();
         }
 
         /// <summary>
@@ -236,25 +222,6 @@ namespace AElf.Common
                 Value = ByteString.CopyFrom(bytes)
             };
         }
-        
-        /// <summary>
-        /// Loads the content value from 32-byte long byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash LoadByteArray(ByteString bytes)
-        {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bytes));
-            }
-
-            return new Hash
-            {
-                Value = bytes
-            };
-        }
 
         /// <summary>
         /// Loads the content value represented in hex string.
@@ -268,14 +235,7 @@ namespace AElf.Common
             return LoadByteArray(bytes);
         }
 
-        public static Hash LoadBase58(string b58str)
-        {
-            var bytes = b58str.DecodeBase58();
-            return LoadByteArray(bytes);
-        }
-
         #endregion Load and dump
-        
 
         public IEnumerator<byte> GetEnumerator()
         {

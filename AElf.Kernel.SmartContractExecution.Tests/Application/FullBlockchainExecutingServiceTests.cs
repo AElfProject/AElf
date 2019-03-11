@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Header = new BlockHeader
                 {
                     Height = 2,
-                    PreviousBlockHash = Hash.Zero
+                    PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
             };
