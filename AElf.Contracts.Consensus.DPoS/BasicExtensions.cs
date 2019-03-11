@@ -340,7 +340,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return Hash.FromTwoHashes(inValue,
-                round.RealTimeMinersInformation.Values.Aggregate(Hash.Default,
+                round.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
         

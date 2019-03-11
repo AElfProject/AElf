@@ -66,7 +66,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         {
                             PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                             Timestamp = DateTime.UtcNow.ToTimestamp(),
-                            PreviousInValue = Hash.Default,
+                            PreviousInValue = Hash.Empty,
                             CurrentInValue = _inValue
                         }.ToByteArray();
                     }

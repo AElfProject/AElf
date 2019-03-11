@@ -166,7 +166,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -196,7 +196,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -225,7 +225,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var minerInRoundAfter = roundAfter.RealTimeMinersInformation[publicKey];
 

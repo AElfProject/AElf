@@ -76,7 +76,7 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
 
             // One cannot publish his in value sometime, like in his first round.
-            if (toUpdate.PreviousInValue != Hash.Default)
+            if (toUpdate.PreviousInValue != Hash.Empty)
             {
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
             }

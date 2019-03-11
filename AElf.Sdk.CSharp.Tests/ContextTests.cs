@@ -208,7 +208,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Category = 0,
                 Code = ByteString.Empty,
-                CodeHash = Hash.Zero
+                CodeHash = Hash.Empty
             };
 
             context.DeployContract(Address.Zero, registration, null);
@@ -240,7 +240,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Category = 0,
                 Code = ByteString.Empty,
-                CodeHash = Hash.Zero
+                CodeHash = Hash.Empty
             };
 
             context.UpdateContract(Address.Zero, registration, null);

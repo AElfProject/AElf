@@ -18,7 +18,7 @@ namespace AElf.Kernel.Blockchain.Helpers
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
-                    MerkleTreeRootOfWorldState = Hash.Default
+                    MerkleTreeRootOfWorldState = Hash.Empty
                 },
                 Body = new BlockBody()
             };

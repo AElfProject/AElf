@@ -312,7 +312,7 @@ namespace AElf.Contracts.Consensus.DPoS.Tests
         {
             if (previousInValue == null)
             {
-                previousInValue = Hash.Default;
+                previousInValue = Hash.Empty;
             }
 
             return new DPoSTriggerInformation
