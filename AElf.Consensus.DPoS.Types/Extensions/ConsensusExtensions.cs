@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace

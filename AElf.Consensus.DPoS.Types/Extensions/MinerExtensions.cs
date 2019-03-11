@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
@@ -20,8 +19,6 @@ namespace AElf.Consensus.DPoS
             return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
         }
 
-        
-        
         /// <summary>
         /// Get local time
         /// </summary>
@@ -29,8 +26,7 @@ namespace AElf.Consensus.DPoS
         /// <returns></returns>
         private static Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
-            var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
-            return now;
+            return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
     }
 }
