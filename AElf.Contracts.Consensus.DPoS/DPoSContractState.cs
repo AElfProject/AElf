@@ -1,6 +1,6 @@
 using System;
 using AElf.Common;
-using AElf.Kernel;
+using AElf.Consensus.DPoS;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 

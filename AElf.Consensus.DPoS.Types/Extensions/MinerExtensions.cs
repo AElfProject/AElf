@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Consensus.DPoS.Extensions
+namespace AElf.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
     public static class MinersExtensions
@@ -21,8 +19,6 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             return Hash.FromMessage(miners.PublicKeys.OrderBy(p => p).ToMiners());
         }
 
-        
-        
         /// <summary>
         /// Get local time
         /// </summary>
@@ -30,8 +26,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         /// <returns></returns>
         private static Timestamp GetTimestampOfUtcNow(int offset = 0)
         {
-            var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
-            return now;
+            return Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
         }
     }
 }
