@@ -47,7 +47,11 @@ namespace AElf.Kernel.SmartContract
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
 
-        void SendInline(Address address, string methodName, params object[] args);
+        void SendInline(Address toAddress, string methodName, params object[] args);
+
+        void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, params object[] args);
+
+        Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
     }
 
     [Serializable]
