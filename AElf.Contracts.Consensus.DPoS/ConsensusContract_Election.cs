@@ -18,24 +18,32 @@ namespace AElf.Contracts.Consensus.DPoS
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
-            if (tickets!=null)
+            if (tickets != null)
             {
                 foreach (var voteToTransaction in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[voteToTransaction];
-                    if (votingRecord!=null)
+                    if (votingRecord != null)
                     {
                         Assert(votingRecord.IsWithdrawn, DPoSContractConsts.VoterCannotAnnounceElection);
                     }
                 }
             }
 
-            // TODO: To implement lock method.
-            State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            // TODO: Need a way to implement Lock.
+            State.TokenContract.Lock(Context.Self, DPoSContractConsts.LockTokenForElection);
+
             var candidates = State.CandidatesField.Value;
-            if (!candidates.PublicKeys.Contains(publicKey))
+            if (candidates != null)
             {
-                candidates.PublicKeys.Add(publicKey);
+                if (!candidates.PublicKeys.Contains(publicKey))
+                {
+                    candidates.PublicKeys.Add(publicKey);
+                }
+            }
+            else
+            {
+                candidates = new Candidates {PublicKeys = {publicKey}};
             }
 
             State.CandidatesField.Value = candidates;
@@ -46,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var publicKeyOfThisAlias = State.AliasesLookupMap[alias.ToStringValue()];
-            if (publicKeyOfThisAlias!=null &&
+            if (publicKeyOfThisAlias != null &&
                 publicKey == publicKeyOfThisAlias.Value)
             {
                 return new ActionResult {Success = true};
@@ -57,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Add this alias to history information of this candidate.
             var candidateHistoryInformation = State.HistoryMap[publicKey.ToStringValue()];
-            if (candidateHistoryInformation!=null)
+            if (candidateHistoryInformation != null)
             {
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
