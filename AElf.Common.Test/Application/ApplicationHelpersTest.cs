@@ -3,7 +3,7 @@ using System.IO;
 using Xunit;
 using Shouldly;
 
-namespace AElf.Common.Application.Test
+namespace AElf.Common.Application
 {
     public class ApplicationHelpersTest
     {
