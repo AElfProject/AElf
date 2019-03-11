@@ -63,6 +63,7 @@ namespace AElf.OS.Network.Grpc
                     var c = channel.WaitForStateChangedAsync(channel.State);
                 }
 
+                // td injector
                 var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
 
                 // Verify auth
@@ -73,28 +74,17 @@ namespace AElf.OS.Network.Grpc
 
                 // send our credentials
                 var hsk = await _peerPool.GetHandshakeAsync();
-                var resp = client.Authentify(hsk);
-
+                
                 // If auth ok -> add it to our peers
                 _peerPool.AddPeer(grpcPeer);
 
-                return new AuthResponse {Success = true, Port = resp.Port};
+                return new AuthResponse {Success = true, Port = "1234"};
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
                 return new AuthResponse {Err = AuthError.UnknownError};
             }
-        }
-
-        /// <summary>
-        /// Second step of the connect/auth process. This takes place after the connect to receive the peers
-        /// information and on return let him know that we've validated.
-        /// </summary>
-        public override Task<AuthResponse> Authentify(Handshake request, ServerCallContext context)
-        {
-            var peer = GrpcUrl.Parse(context.Peer);
-            return Task.FromResult(new AuthResponse {Success = true, Port = peer.ToIpPortFormat()});
         }
 
         /// <summary>
@@ -202,6 +192,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
+                // td change to pubkey
                 await _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
             }
             catch (Exception e)
