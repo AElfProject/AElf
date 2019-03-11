@@ -307,7 +307,7 @@ namespace AElf.OS.Rpc.ChainController
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
-            return trace.RetVal.Data.ToByteArray();
+            return trace.ReturnValue.ToByteArray();
         }
 
         internal static async Task<Block> GetBlock(this ChainControllerRpcService s, Hash blockHash)

@@ -18,8 +18,6 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             context.Services.AddAssemblyOf<CoreOSAElfModule>();
-            
-            //Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]));
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));

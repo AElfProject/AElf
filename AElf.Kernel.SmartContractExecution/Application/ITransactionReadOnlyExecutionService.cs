@@ -45,6 +45,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(transactionContext).Apply();
+
             }
             finally
             {

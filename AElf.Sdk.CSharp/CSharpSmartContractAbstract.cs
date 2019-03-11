@@ -7,8 +7,6 @@ namespace AElf.Sdk.CSharp
 {
     public abstract class CSharpSmartContractAbstract : CSharpSmartContract
     {
-        internal abstract void SetSmartContractContext(ISmartContractContext smartContractContext);
-        internal abstract void SetTransactionContext(ITransactionContext transactionContext);
         internal abstract void SetStateProvider(IStateProvider stateProvider);
         internal abstract void SetContractAddress(Address address);
         internal abstract TransactionExecutingStateSet GetChanges();
@@ -21,5 +19,7 @@ namespace AElf.Sdk.CSharp
                 throw new AssertionError(message);
             }
         }
+
+        internal abstract void InternalInitialize(ISmartContractBridgeContext bridgeContext);
     }
 }

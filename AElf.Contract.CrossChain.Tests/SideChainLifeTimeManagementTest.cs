@@ -470,7 +470,7 @@ namespace AElf.Contract.CrossChain.Tests
             
             var chainId = ChainHelpers.GetChainId(1);
             var status = await CallContractMethodAsync(CrossChainContractAddress, "GetChainStatus", chainId);
-            Assert.Null(status);
+            Assert.Equal(ByteString.Empty, status);
         }
 
         [Fact]
@@ -506,7 +506,7 @@ namespace AElf.Contract.CrossChain.Tests
             await ApproveBalance(lockedTokenAmount);
             var chainId = ChainHelpers.GetChainId(1);
             var height = await CallContractMethodAsync(CrossChainContractAddress, "GetSideChainHeight", chainId);
-            Assert.Null(height);
+            Assert.Equal(ByteString.Empty, height);
         }
     }
 }

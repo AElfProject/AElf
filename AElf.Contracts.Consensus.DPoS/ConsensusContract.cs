@@ -265,11 +265,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextTerm),
+                            GenerateTransaction("NextTerm",
                                 new List<object> {round}),
-                            GenerateTransaction(nameof(SnapshotForMiners), new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction(nameof(SnapshotForTerm), new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction(nameof(SendDividends), new List<object> {roundNumber, termNumber})
+                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
                         }
                     };
                 case DPoSBehaviour.Invalid:
