@@ -13,13 +13,12 @@ namespace AElf.Contracts.CrossChain
     {
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
-        public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
-            Address authorizationContractAddress, int parentChainId)
+        public void Initialize(Address consensusContractAddress, Address tokenContractAddress, int parentChainId)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContract.Value = consensusContractAddress;
             State.TokenContract.Value = tokenContractAddress;
-            State.AuthorizationContract.Value = authorizationContractAddress;
+            //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = parentChainId;
         }
@@ -225,7 +224,8 @@ namespace AElf.Contracts.CrossChain
         public SideChainIdAndHeightDict GetSideChainIdAndHeight()
         {
             var dict = new SideChainIdAndHeightDict();
-            for (ulong i = 1; i < State.SideChainSerialNumber.Value; i++)
+            var serialNumber = State.SideChainSerialNumber.Value;
+            for (ulong i = 1; i <= serialNumber; i++)
             {
                 int chainId = ChainHelpers.GetChainId(i);
                 var sideChainInfo = State.SideChainInfos[chainId];
