@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,19 +19,20 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
     public class SmartContractAddressUpdateService : ISmartContractAddressUpdateService
     {
-        private readonly ITransactionExecutingService _transactionExecutingService;
+        private readonly ITransactionReadOnlyExecutionService _transactionExecutingService;
 
         private readonly IEnumerable<ISmartContractAddressNameProvider> _smartContractAddressNameProviders;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public SmartContractAddressUpdateService(ITransactionExecutingService transactionExecutingService,
+        public SmartContractAddressUpdateService(
             IEnumerable<ISmartContractAddressNameProvider> smartContractAddressNameProviders,
-            ISmartContractAddressService smartContractAddressService)
+            ISmartContractAddressService smartContractAddressService,
+            ITransactionReadOnlyExecutionService transactionExecutingService)
         {
-            _transactionExecutingService = transactionExecutingService;
             _smartContractAddressNameProviders = smartContractAddressNameProviders;
             _smartContractAddressService = smartContractAddressService;
+            _transactionExecutingService = transactionExecutingService;
         }
 
         public async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader)
@@ -52,9 +54,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(smartContractAddressNameProvider.ContractName))
             };
 
-            var transactionResult = (await _transactionExecutingService.ExecuteAsync(blockHeader,
-                new List<Transaction> {t},
-                CancellationToken.None)).First();
+            var transactionResult =
+                (await _transactionExecutingService.ExecuteAsync(
+                    new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
+                    DateTime.UtcNow));
+
+            if (!transactionResult.IsSuccessful())
+                throw new InvalidOperationException();
 
             var address = transactionResult.ReturnValue.DeserializeToPbMessage<Address>();
 

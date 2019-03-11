@@ -14,9 +14,8 @@ using Xunit;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZeroTest : BasicContractZeroTestBase
+    public class BasicContractZeroTest : ContractTestBase<ContractTestAElfModule>
     {
-        private ContractTester Tester;
         private ECKeyPair otherOwnerKeyPair;
 
         private Address BasicZeroContractAddress;
@@ -25,7 +24,6 @@ namespace AElf.Contracts.Genesis
 
         public BasicContractZeroTest()
         {
-            Tester = new ContractTester();
             otherOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
             BasicZeroContractAddress = Tester.GetZeroContractAddress();

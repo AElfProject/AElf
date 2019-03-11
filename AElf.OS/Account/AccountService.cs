@@ -11,7 +11,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Account
 {
-    [Dependency(TryRegister = true)]
     public class AccountService : IAccountService
     {
         private readonly IKeyStore _keyStore;

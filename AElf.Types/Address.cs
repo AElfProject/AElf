@@ -35,7 +35,7 @@ namespace AElf.Common
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            var hash = TakeByAddressLength(SHA256.Create().ComputeHash(SHA256.Create().ComputeHash(bytes)));
+            var hash = TakeByAddressLength(bytes.CalculateHash().CalculateHash());
             return new Address(hash);
         }
 

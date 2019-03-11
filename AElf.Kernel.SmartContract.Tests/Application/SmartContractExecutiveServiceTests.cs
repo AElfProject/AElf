@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.Application
                 CodeHash = Hash.FromString("TestGetExecutive")
             };
 
-            var result = await _smartContractExecutiveService.GetExecutiveAsync(registration);
+            var result = await _smartContractExecutiveService.GetExecutiveAsync(registration, Address.Zero);
             result.ContractHash.ShouldBe(registration.CodeHash);
         }
     }

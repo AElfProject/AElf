@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (round.RealTimeMinersInformation.Count < 2)
             {
                 // Just appoint the mining interval for single miner.
-                return 4000;
+                return 1000;
             }
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
@@ -424,6 +424,17 @@ namespace AElf.Contracts.Consensus.DPoS
             var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null).Select(m => m.ActualMiningTime)
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
+        }
+
+        public static ulong GetMinedBlocks(this Round round)
+        {
+            var minedBlocks = 0UL;
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                minedBlocks += minerInRound.Value.ProducedBlocks;
+            }
+
+            return minedBlocks;
         }
         
         /// <summary>

@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update the age of this blockchain
             State.AgeField.Value = round.BlockchainAge;
 
-            Assert(TryToGetCurrentRoundInformation(out var currentRound), "Failed to get current round information.");
+            Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
 
             UpdateHistoryInformation(round);
 

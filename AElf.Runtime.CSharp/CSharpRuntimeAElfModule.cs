@@ -21,7 +21,8 @@ namespace AElf.Runtime.CSharp
             context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryTwo>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryTwo(option.Value.SdkDir, option.Value.BlackList,
+                return new SmartContractRunnerForCategoryTwo(
+                    option.Value.SdkDir, option.Value.BlackList,
                     option.Value.WhiteList);
             });
         }
