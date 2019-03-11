@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
@@ -100,13 +101,15 @@ namespace AElf.OS.Node.Application
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
         private ISmartContractAddressService _smartContractAddressService;
+        private readonly IEnumerable<IChainPlugin> _chainPlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService)
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService, IEnumerable<IChainPlugin> chainPlugins)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
             _smartContractAddressService = smartContractAddressService;
+            _chainPlugins = chainPlugins;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -139,6 +142,11 @@ namespace AElf.OS.Node.Application
 
             await _networkServer.StartAsync();
 
+            foreach (var chainPlugin in _chainPlugins)
+            {
+                var task = chainPlugin.StartAsync(dto.ChainId);
+            }
+            
             return context;
         }
 

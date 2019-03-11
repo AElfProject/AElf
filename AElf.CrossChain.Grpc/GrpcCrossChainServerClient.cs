@@ -5,6 +5,7 @@ using AElf.CrossChain.Grpc.Client;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel.Node.Infrastructure;
 using Grpc.Core;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain
@@ -18,12 +19,13 @@ namespace AElf.CrossChain
         private readonly ICertificateStore _certificateStore;
         
         public GrpcCrossChainServerClient(ICrossChainServer crossChainServer, GrpcClientGenerator grpcClientGenerator, 
-            GrpcCrossChainConfigOption grpcCrossChainConfigOption, CrossChainConfigOption crossChainConfigOption, ICertificateStore certificateStore)
+            IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICertificateStore certificateStore)
         {
             _crossChainServer = crossChainServer;
             _grpcClientGenerator = grpcClientGenerator;
-            _grpcCrossChainConfigOption = grpcCrossChainConfigOption;
-            _crossChainConfigOption = crossChainConfigOption;
+            _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
+            _crossChainConfigOption = crossChainConfigOption.Value;
             _certificateStore = certificateStore;
         }
 
