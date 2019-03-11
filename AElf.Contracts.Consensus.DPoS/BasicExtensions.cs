@@ -425,6 +425,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
+
+        public static ulong GetMinedBlocks(this Round round)
+        {
+            var minedBlocks = 0UL;
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                minedBlocks += minerInRound.Value.ProducedBlocks;
+            }
+
+            return minedBlocks;
+        }
         
         /// <summary>
         /// If DaysEachTerm == 7:
