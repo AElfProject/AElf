@@ -10,9 +10,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Tests;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
@@ -27,8 +25,8 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(CoreOSAElfModule),
-        typeof(KernelTestAElfModule),
-        typeof(DPoSConsensusTestAElfModule)
+        typeof(DPoSContractTestAElfModule),
+        typeof(KernelTestAElfModule)
     )]
     public class OSCoreTestAElfModule : AElfModule
     {
@@ -83,9 +81,7 @@ namespace AElf.OS
                 peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
                     .Returns<string>((adr) => null);
                 peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
-                    .Returns(new List<IPeer> { });
-
-                context.Services.AddSingleton<IPeerPool>(peerPoolMock.Object);
+                    .Returns(new List<IPeer>());
                 return peerPoolMock.Object;
             });
 

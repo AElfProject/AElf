@@ -8,9 +8,9 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Contracts.Consensus.DPoS.Tests
+namespace AElf.Contracts.Consensus.DPoS
 {
-    public class RoundExtensionsTest
+    public class BasicExtensionsTest
     {
         /// <summary>
         /// Really basic tests about time stuff.
