@@ -9,8 +9,10 @@ for i in *Tests ; do
   echo ""
 
   dotnet test "$i" --no-build /p:CollectCoverage=true /p:CoverletOutputFormat='json%2copencover' \
- /p:CoverletOutput="../results/coverage" /p:MergeWith="../results/coverage.json" \
- /p:Exclude="[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*" 
+  /p:CoverletOutput="../results/coverage" /p:MergeWith="../results/coverage.json" \
+  /p:Exclude="[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.*.Tests]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Contracts.Authorization]*%2c[AElf.Test.Helpers]*%2c[AElf.CLI]AElf.CLI.Commands.*%2c[AElf.Runtime.CSharp.Core]AElf.Runtime.CSharp.Core.Metadata.*%2c[AElf.Kernel.SmartContract]AElf.Kernel.SmartContract.Metadata.*" \
+  /p:ExcludeByFile=\"*/Metadata/*.cs\"
+  
   if [ $? -ne 0 ] ; then
     exit 1
   fi

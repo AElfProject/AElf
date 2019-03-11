@@ -125,7 +125,7 @@ namespace AElf.CrossChain
                 await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, readOnlyTransaction, DateTime.UtcNow);
             
             if(trace.IsSuccessful())
-                return (T)trace.RetVal.Data.DeserializeToType(typeof(T));
+                return (T)trace.ReturnValue.DeserializeToType(typeof(T));
             return default(T);
         }
         

@@ -6,6 +6,9 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Domain;
@@ -58,10 +61,18 @@ namespace AElf.OS.Rpc.ChainController
         public Task<JObject> GetChainInfo()
         {
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
-
+            var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
+            var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
+            var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            
             var response = new JObject
             {
-                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero.GetFormatted(),
+                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
+                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress?.GetFormatted(),
+                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
+                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
+                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
@@ -163,8 +174,8 @@ namespace AElf.OS.Rpc.ChainController
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 response["Error"] = transactionResult.Error;
 
-            response["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
 
             return response;
         }
@@ -213,8 +224,8 @@ namespace AElf.OS.Rpc.ChainController
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         jObjectResult["Error"] = transactionResult.Error;
 
-                    jObjectResult["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
+                    jObjectResult["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     response.Add(jObjectResult);
                 }
             }

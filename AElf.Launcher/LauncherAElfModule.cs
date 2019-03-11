@@ -1,4 +1,5 @@
-﻿using AElf.Contracts.Consensus.DPoS;
+using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
@@ -63,6 +64,8 @@ namespace AElf.Launcher
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.SetConfiguration(Configuration);
+
+            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(Configuration["ChainId"]));
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
