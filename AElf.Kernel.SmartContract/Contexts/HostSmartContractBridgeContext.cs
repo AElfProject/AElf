@@ -70,12 +70,12 @@ namespace AElf.Kernel.SmartContract.Contexts
                 TransactionContext.Transaction.GetHash().DumpByteArray());
         }
 
-        public void SendInline(Address address, string methodName, params object[] args)
+        public void SendInline(Address toAddress, string methodName, params object[] args)
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
                 From = Self,
-                To = address,
+                To = toAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
@@ -123,6 +123,24 @@ namespace AElf.Kernel.SmartContract.Contexts
 
             var decoder = ReturnTypeHelper.GetDecoder<T>();
             return decoder(transactionContext.Trace.ReturnValue.ToByteArray());
+        }
+
+        public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
+            params object[] args)
+        {
+            TransactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = ConvertVirtualAddressToContractAddress(fromVirtualAddress),
+                To = toAddress,
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+            });
+        }
+
+        public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
+        {
+            return Address.FromPublicKey(Self.Value.Concat(
+                virtualAddress.Value).ToArray());
         }
 
 
