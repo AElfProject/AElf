@@ -25,6 +25,7 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(CoreOSAElfModule),
+        typeof(DPoSContractTestAElfModule),
         typeof(KernelTestAElfModule)
     )]
     public class OSCoreTestAElfModule : AElfModule
