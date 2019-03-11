@@ -272,7 +272,7 @@ namespace AElf.OS.Rpc.ChainController
             return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(height);
         }
 
-        internal static async Task<byte[]> CallReadOnly(this ChainControllerRpcService s, Transaction tx)
+        internal static async Task<JObject> CallReadOnly(this ChainControllerRpcService s, Transaction tx)
         {
             var trace = new TransactionTrace
             {
@@ -307,7 +307,12 @@ namespace AElf.OS.Rpc.ChainController
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
-            return trace.ReturnValue.ToByteArray();
+
+            return new JObject()
+            {
+                ["FriendlyValue"] = trace.ReadableReturnValue,
+                ["Value"] = trace.ReturnValue.ToByteArray().ToHex()
+            };
         }
 
         internal static async Task<Block> GetBlock(this ChainControllerRpcService s, Hash blockHash)

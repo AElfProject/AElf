@@ -116,9 +116,9 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         [JsonRpcMethod("Call", "rawTransaction")]
-        public async Task<string> CallReadOnly(string rawTransaction)
+        public async Task<JObject> CallReadOnly(string rawTransaction)
         {
-            byte[] response;
+            JObject response;
             try
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
@@ -130,7 +130,7 @@ namespace AElf.OS.Rpc.ChainController
                 throw new JsonRpcServiceException(Error.InvalidTransaction, Error.Message[Error.InvalidTransaction]);
             }
 
-            return response?.ToHex();
+            return response;
         }
 
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
