@@ -142,7 +142,7 @@ namespace AElf.Contracts.Resource.Tests
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact(Skip="Not implement issue.")]
+        [Fact]
         public async Task FeeReceiver_Burn()
         {
             await Initialize_Resource();

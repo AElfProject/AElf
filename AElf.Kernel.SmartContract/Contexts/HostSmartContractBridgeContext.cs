@@ -12,10 +12,13 @@ namespace AElf.Kernel.SmartContract.Contexts
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
-        public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService)
+        public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractBridgeService = smartContractBridgeService;
+            _smartContractExecutiveService = smartContractExecutiveService;
         }
 
         public ITransactionContext TransactionContext { get; set; }
@@ -76,6 +79,50 @@ namespace AElf.Kernel.SmartContract.Contexts
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
             });
+        }
+
+        public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
+        {
+            var svc = _smartContractExecutiveService;
+            var transactionContext = new TransactionContext()
+            {
+                Transaction = new Transaction()
+                {
+                    From = this.Self,
+                    To = address,
+                    MethodName = methodName,
+                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+                }
+            };
+
+            var chainContext = new ChainContext()
+            {
+                BlockHash = this.TransactionContext.PreviousBlockHash,
+                BlockHeight = this.TransactionContext.BlockHeight - 1,
+                StateCache = stateCache
+            };
+            AsyncHelper.RunSync(async () =>
+            {
+                var executive = await svc.GetExecutiveAsync(chainContext, address);
+                executive.SetDataCache(stateCache);
+                try
+                {
+                    // view only, write actions need to be sent via SendInline
+                    await executive.SetTransactionContext(transactionContext).Apply();
+                }
+                finally
+                {
+                    await svc.PutExecutiveAsync(address, executive);
+                }
+            });
+
+            if (!transactionContext.Trace.IsSuccessful())
+            {
+                throw new Exception("Contract reading call failed.");
+            }
+
+            var decoder = ReturnTypeHelper.GetDecoder<T>();
+            return decoder(transactionContext.Trace.ReturnValue.ToByteArray());
         }
 
 
