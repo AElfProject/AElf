@@ -1,3 +1,4 @@
+//TODO: move to Kernel.SmartContract.Tests, test BridgeContext
 //using System;
 //using AElf.Common;
 //using AElf.Cryptography;
