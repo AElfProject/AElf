@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
-        Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg);
+        //Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
@@ -37,10 +37,10 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
         private readonly IStateProviderFactory _stateProviderFactory;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-        private readonly ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>> _executivePools =
-            new ConcurrentDictionary<Hash, ConcurrentBag<IExecutive>>();
+        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
+            new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
 
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
@@ -49,14 +49,15 @@ namespace AElf.Kernel.SmartContract.Application
         public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
 #endif
 
-        public SmartContractExecutiveService(IServiceProvider serviceProvider,
+        public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
+            IHostSmartContractBridgeContextService hostSmartContractBridgeContextService)
         {
-            _serviceProvider = serviceProvider;
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _stateProviderFactory = stateProviderFactory;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
+            _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
 #if DEBUG
             SmartContractContextLogger = NullLogger<ISmartContractContext>.Instance;
 #endif
@@ -86,12 +87,12 @@ namespace AElf.Kernel.SmartContract.Application
 //            var contractHash = await GetContractHashAsync(address);
 //            return await _smartContractManager.GetAsync(contractHash);
 //        }
-        private ConcurrentBag<IExecutive> GetPool(Hash contractHash)
+        private ConcurrentBag<IExecutive> GetPool(Address address)
         {
-            if (!_executivePools.TryGetValue(contractHash, out var pool))
+            if (!_executivePools.TryGetValue(address, out var pool))
             {
                 pool = new ConcurrentBag<IExecutive>();
-                _executivePools[contractHash] = pool;
+                _executivePools[address] = pool;
             }
 
             return pool;
@@ -100,22 +101,11 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address)
         {
             var reg = await GetSmartContractRegistrationAsync(chainContext, address);
-            var executive = await GetExecutiveAsync(reg);
-
-            executive.SetSmartContractContext(new SmartContractContext()
-            {
-                ContractAddress = address,
-                BlockchainService = _serviceProvider.GetService<IBlockchainService>(),
-                SmartContractService = _serviceProvider.GetService<ISmartContractService>(),
-                SmartContractAddressService = _serviceProvider.GetService<ISmartContractAddressService>(),
-                SmartContractExecutiveService = this,
-#if DEBUG
-                Logger = SmartContractContextLogger
-#endif
-            });
+            var executive = await GetExecutiveAsync(reg, address);
 
             return executive;
         }
+
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
@@ -127,7 +117,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             });
             executive.SetDataCache(new NullStateCache());
-            GetPool(executive.ContractHash).Add(executive);
+            GetPool(address).Add(executive);
 
             await Task.CompletedTask;
         }
@@ -139,9 +129,9 @@ namespace AElf.Kernel.SmartContract.Application
             return runner.GetAbi(smartContractRegistration);
         }
 
-        public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg)
+        public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg, Address address)
         {
-            var pool = GetPool(reg.CodeHash);
+            var pool = GetPool(address);
 
             if (!pool.TryTake(out var executive))
             {
@@ -151,6 +141,8 @@ namespace AElf.Kernel.SmartContract.Application
                 // run smartcontract executive info and return executive
                 executive = await runner.RunAsync(reg);
                 executive.ContractHash = reg.CodeHash;
+                executive.SetHostSmartContractBridgeContext(
+                    _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address}));
             }
 
             executive.SetStateProviderFactory(_stateProviderFactory);
@@ -210,7 +202,7 @@ namespace AElf.Kernel.SmartContract.Application
             SmartContractRegistration result = null;
             try
             {
-                executiveZero = await GetExecutiveAsync(registration);
+                executiveZero = await GetExecutiveAsync(registration, _defaultContractZeroCodeProvider.ContractZeroAddress);
                 executiveZero.SetDataCache(chainContext.StateCache);
                 await executiveZero.SetTransactionContext(txCtxt).Apply();
                 var returnBytes = txCtxt.Trace?.ReturnValue;
