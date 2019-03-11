@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.Extensions
+namespace AElf.Consensus.DPoS
 {
     public static class RoundExtensions
     {
@@ -237,21 +236,21 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         public static bool GenerateNextRoundInformation(this Round round, Timestamp timestamp, Timestamp blockchainStartTimestamp, out Round nextRound)
         {
             nextRound = new Round();
-            
+
             // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
             var minersMinedCurrentRound = round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound != 0).ToList();
             if (minersMinedCurrentRound.Any(m => m.Signature == null))
             {
                 return false;
             }
-            
+
             // TODO: Check: No order conflicts for next round.
 
             var miningInterval = round.GetMiningInterval();
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.BlockchainAge =
                 (ulong) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalDays;
-            
+
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
             {
@@ -264,7 +263,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                     PromisedTinyBlocks = 1
                 };
             }
-            
+
             // Set miners' information of miners missed their time slot in this round.
             var minersNotMinedCurrentRound = round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound == 0).ToList();
             var minersCount = round.RealTimeMinersInformation.Count;
@@ -292,10 +291,10 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             {
                 expectedExtraBlockProducer.IsExtraBlockProducer = true;
             }
-            
+
             return true;
         }
-        
+
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
         {
             var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
@@ -304,6 +303,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
                 // If no miner produce block during this round, just appoint the first miner to be the extra block producer of next round.
                 return 1;
             }
+
             var signature = firstPlaceInfo.Signature;
             var sigNum = BitConverter.ToUInt64(
                 BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
@@ -336,9 +336,9 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
         {
             return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
-                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
-        
+
         private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
         {
             return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
@@ -374,7 +374,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
             }
 
             return Hash.FromTwoHashes(inValue,
-                round.RealTimeMinersInformation.Values.Aggregate(Hash.Default,
+                round.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
