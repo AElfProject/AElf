@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
