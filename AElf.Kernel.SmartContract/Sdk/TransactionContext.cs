@@ -3,6 +3,7 @@
  using AElf.Kernel;
 using AElf.Common;
  using AElf.Kernel.Blockchain.Application;
+ using AElf.Kernel.SmartContract.Sdk;
 
  namespace AElf.Kernel.SmartContract
 {

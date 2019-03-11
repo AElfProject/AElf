@@ -1,5 +1,6 @@
 using System;
 using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Sdk;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application

@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

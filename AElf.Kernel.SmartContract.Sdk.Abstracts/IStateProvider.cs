@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.SmartContract.Sdk
 {
 
     public interface IStateProvider

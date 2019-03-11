@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Domain;
 using Google.Protobuf;
 
