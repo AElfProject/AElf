@@ -8,16 +8,13 @@
     <ItemGroup>
       <PackageReference Include="Google.Protobuf" Version="3.6.1" />
       <PackageReference Include="Mono.Cecil" Version="0.10.3" />
+      <PackageReference Include="Hyperion" Version="0.9.8" />
+
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="Hyperion, Version=0.9.8.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\..\..\.nuget\packages\hyperion\0.9.8\lib\netstandard1.6\Hyperion.dll</HintPath>
-      </Reference>
-    </ItemGroup>
 
 </Project>

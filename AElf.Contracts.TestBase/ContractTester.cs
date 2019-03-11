@@ -273,7 +273,7 @@ namespace AElf.Contracts.TestBase
                 },
                 tx,
                 DateTime.UtcNow);
-
+            
             return transactionTrace.ReturnValue;
         }
 

@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
+using AElf.Sdk.CSharp;
 using AElf.Types.CSharp.MetadataAttribute;
 using Google.Protobuf;
 using Type = System.Type;
@@ -32,7 +33,9 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        public SmartContractRunnerForCategoryTwo(string sdkDir, IEnumerable<string> blackList = null,
+        public SmartContractRunnerForCategoryTwo(
+            string sdkDir,
+            IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
@@ -88,7 +91,9 @@ namespace AElf.Runtime.CSharp
 //                throw new InvalidCodeException("No Api was found.");
 //            }
 
-            Executive executive = new Executive(abiModule).SetSmartContract(instance); //.SetApi(ApiSingleton);
+            Executive executive =
+                new Executive(abiModule)
+                    .SetSmartContract(instance); //.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
         }
