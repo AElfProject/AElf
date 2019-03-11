@@ -91,7 +91,7 @@ namespace AElf.Contract.CrossChain.Tests
                 ParentChainBlockData = {parentChainBlockData}
             };
 
-            var tx = GenerateTransaction(CrossChainContractAddress, CrossChainConsts.CrossChainIndexingMethodName, null,
+            var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.CrossChainIndexingMethodName, null,
                 crossChainBlockData);
             await MineAsync(new List<Transaction>{tx});
             (await GetTransactionResult(tx.GetHash())).Status.ShouldBe(TransactionResultStatus.Mined);
@@ -235,7 +235,7 @@ namespace AElf.Contract.CrossChain.Tests
                 ParentChainBlockData = {parentChainBlockData}
             };
 
-            var tx = GenerateTransaction(CrossChainContractAddress, CrossChainConsts.CrossChainIndexingMethodName, null,
+            var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.CrossChainIndexingMethodName, null,
                 crossChainBlockData);
             await MineAsync(new List<Transaction>{tx});
             (await GetTransactionResult(tx.GetHash())).Status.ShouldBe(TransactionResultStatus.Mined);
@@ -280,7 +280,7 @@ namespace AElf.Contract.CrossChain.Tests
                 SideChainBlockData = { sideChainBlockData}
             };
 
-            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
@@ -313,11 +313,11 @@ namespace AElf.Contract.CrossChain.Tests
                 LockedTokenAmount = lockedTokenAmount
             };
             
-            var tx1 = GenerateTransaction(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
+            var tx1 = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
                 sideChainInfo);
             await MineAsync(new List<Transaction> {tx1});
             var sideChainId2 = ChainHelpers.GetChainId(2);
-            var tx2 = GenerateTransaction(CrossChainContractAddress, "CreateSideChain", null, sideChainId2);
+            var tx2 = await GenerateTransactionAsync(CrossChainContractAddress, "CreateSideChain", null, sideChainId2);
             await MineAsync(new List<Transaction> {tx2});
             
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
@@ -352,7 +352,7 @@ namespace AElf.Contract.CrossChain.Tests
                 SideChainBlockData = { sideChainBlockData1, sideChainBlockData2, sideChainBlockData3}
             };
 
-            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
@@ -403,7 +403,7 @@ namespace AElf.Contract.CrossChain.Tests
                 ParentChainBlockData = {parentChainBlockData}
             };
             
-            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
@@ -445,7 +445,7 @@ namespace AElf.Contract.CrossChain.Tests
                 ParentChainBlockData = {parentChainBlockData}
             };
             
-            var indexingTx = GenerateTransaction(CrossChainContractAddress,
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
