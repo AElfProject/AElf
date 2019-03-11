@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
 using AElf.Common;
-using AElf.Contracts.Consensus.DPoS.Extensions;
+using AElf.Consensus.DPoS;
 using AElf.Cryptography;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -166,7 +165,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -196,7 +195,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
@@ -225,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Default, outValue, Hash.Default, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var minerInRoundAfter = roundAfter.RealTimeMinersInformation[publicKey];
 

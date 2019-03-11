@@ -33,7 +33,7 @@ namespace AElf.Kernel
 
         public string BlockHashToHex
         {
-            get => Header?.GetHash().ToHex() ?? Hash.Default.ToHex();
+            get => Header?.GetHash().ToHex() ?? Hash.Empty.ToHex();
             set { }
         }
 

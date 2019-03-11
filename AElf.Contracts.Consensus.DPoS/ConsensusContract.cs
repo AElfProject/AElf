@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -155,7 +156,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                     var outValue = Hash.FromMessage(inValue);
 
-                    var signature = Hash.Default;
+                    var signature = Hash.Empty;
                     if (round.RoundNumber != 1)
                     {
                         Assert(TryToGetPreviousRoundInformation(out var previousRound),
@@ -242,7 +243,7 @@ namespace AElf.Contracts.Consensus.DPoS
                                     {
                                         OutValue = minerInRound.OutValue,
                                         Signature = minerInRound.Signature,
-                                        PreviousInValue = minerInRound.PreviousInValue ?? Hash.Default,
+                                        PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                                         RoundId = round.RoundId,
                                         PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
                                     }

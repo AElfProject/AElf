@@ -25,11 +25,6 @@ namespace AElf.Types.Tests.Extensions
 
             var hash1 = hexValue.CalculateHash();
             hash1.ShouldNotBe(null);
-
-            var hash2 = Hash.Generate();
-            var base58String = hash2.DumpBase58();
-            var decodeHashArray = base58String.DecodeBase58();
-            decodeHashArray.ShouldBe(hash2.DumpByteArray());
         }
 
         [Fact]

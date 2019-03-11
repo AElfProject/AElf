@@ -80,7 +80,7 @@ namespace AElf.Kernel.Types.Tests
             block.Header.ChainId = chainId;
             block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
             block.Header.Height = height;
-            block.Header.MerkleTreeRootOfWorldState = Hash.Default;
+            block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
 
             block.Body.BlockHeader = block.Header.GetHash();
             var transactionItems = GenerateFakeTransactions(3);

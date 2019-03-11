@@ -1,8 +1,6 @@
 using System;
-using AElf.Common;
-using AElf.Kernel;
 
-namespace AElf.Contracts.Consensus.DPoS.Extensions
+namespace AElf.Consensus.DPoS
 {
     public static class VotingRecordExtensions
     {
