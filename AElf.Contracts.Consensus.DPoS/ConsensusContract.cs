@@ -225,7 +225,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.InitialConsensus),
+                            GenerateTransaction(nameof(InitialConsensus),
                                 new List<object> {round})
                         }
                     };
@@ -235,7 +235,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.UpdateValue),
+                            GenerateTransaction(nameof(UpdateValue),
                                 new List<object>
                                 {
                                     new ToUpdate
@@ -254,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.NextRound),
+                            GenerateTransaction(nameof(NextRound),
                                 new List<object> {round})
                         }
                     };
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(IMainChainDPoSConsensusSmartContract.NextTerm),
+                            GenerateTransaction("NextTerm",
                                 new List<object> {round}),
                             GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
                             GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),

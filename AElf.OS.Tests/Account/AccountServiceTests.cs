@@ -9,7 +9,7 @@ namespace AElf.OS.Account
     {
         private readonly AccountOptions _accountOptions;
         private readonly AccountService _accountService;
-        
+
         public AccountServiceTests()
         {
             _accountOptions = GetRequiredService<IOptionsSnapshot<AccountOptions>>().Value;
@@ -23,7 +23,7 @@ namespace AElf.OS.Account
 
             Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
         }
-        
+
         [Fact]
         public async Task GetAccountTest()
         {
@@ -40,7 +40,7 @@ namespace AElf.OS.Account
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
             var verifyResult = await _accountService.VerifySignatureAsync(signature, data, publicKey);
-            
+
             Assert.True(verifyResult);
         }
 
@@ -53,7 +53,7 @@ namespace AElf.OS.Account
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();
             var verifyResult = await _accountService.VerifySignatureAsync(signature, data2, publicKey);
-            
+
             Assert.False(verifyResult);
         }
     }

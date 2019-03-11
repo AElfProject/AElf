@@ -24,19 +24,18 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(TestBaseKernelAElfModule),
+        typeof(KernelCoreTestAElfModule),
         typeof(DPoSConsensusAElfModule),
-        typeof(KernelAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class DPoSConsensusTestAElfModule : AElfModule
+    public class DPoSConsensusTestAElfModule : TestBaseAElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
+            context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
         }
     }
 }
