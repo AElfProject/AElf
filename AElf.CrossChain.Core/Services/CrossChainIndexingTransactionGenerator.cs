@@ -33,19 +33,19 @@ namespace AElf.CrossChain
         private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
-            var crossChainBlockData = new CrossChainBlockData();
+            var generatedTransactions = new List<Transaction>();
             var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
-            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
             var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
+            if (parentChainBlockData.Count == 0 || sideChainBlockData.Count == 0)
+                return generatedTransactions;
+            
+            var crossChainBlockData = new CrossChainBlockData();
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-
+            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
-            var generatedTransactions = new List<Transaction>
-            {
-                GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
-                    previousBlockPrefix, crossChainBlockData)
-            };
+            generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                previousBlockPrefix, crossChainBlockData));
             return generatedTransactions;
         }
 
