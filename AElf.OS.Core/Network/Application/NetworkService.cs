@@ -36,7 +36,7 @@ namespace AElf.OS.Network.Application
 
         public List<string> GetPeers()
         {
-            return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
+            return _peerPool.GetPeers().Select(p => p.PeerIpAddress).ToList();
         }
 
         public async Task BroadcastAnnounceAsync(BlockHeader blockHeader)
@@ -166,7 +166,7 @@ namespace AElf.OS.Network.Application
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Error while requesting block from {peer.PeerAddress}.");
+                Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
                 return null;
             }
         }

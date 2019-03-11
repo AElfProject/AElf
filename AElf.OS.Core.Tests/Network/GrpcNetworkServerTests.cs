@@ -51,9 +51,10 @@ namespace AElf.OS.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool( optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
+            var accountService = NetMockHelpers.MockAccountService().Object;
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, accountService, mockBlockChainService.Object);
             
-            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
@@ -160,8 +161,8 @@ namespace AElf.OS.Network
 
             Assert.True(peers.Count == 2);
             
-            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerAddress));
-            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerAddress));
+            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerIpAddress));
+            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerIpAddress));
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();

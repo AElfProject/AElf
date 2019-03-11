@@ -13,10 +13,26 @@ service PeerService {
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (Transaction) returns (VoidReply) {}
 
-    rpc Connect (Handshake) returns (AuthResponse) {}
+    rpc Connect (Handshake) returns (ConnectReply) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }
+
+// **** Connection *****
+
+message ConnectReply {
+    Handshake Handshake = 1;
+    AuthError Err = 2;
+}
+
+enum AuthError {
+    None = 0;
+    UnknownError = 1;
+    WrongSig = 2;
+    WrongAuth = 3;
+}
+
+// **** Blocks *****
 
 message BlocksRequest {
     Hash PreviousBlockHash = 1;
@@ -25,10 +41,6 @@ message BlocksRequest {
 
 message BlockList {
     repeated Block Blocks = 1;
-}
-
-message BlockIdList {
-    repeated Hash Hashes = 1;
 }
 
 message DisconnectReason {
@@ -42,18 +54,6 @@ message Announcement {
     BlockHeader Header = 1;
 }
 
-message AuthResponse {
-    bool Success = 1;
-    AuthError Err = 2;
-    string Port = 3;
-}
-
-enum AuthError {
-    UnknownError = 0;
-    WrongSig = 1;
-    WrongAuth = 2;
-}
-
 message BlockRequest {
     Hash Hash = 1;
 }
@@ -62,6 +62,8 @@ message BlockReply {
     string Error = 1;
     Block Block = 2;
 }
+
+// **** No reply *****
 
 message VoidReply {
 }

@@ -1,17 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -25,15 +29,29 @@ namespace AElf.OS.Network.Grpc
 
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
+        private readonly IAccountService _accountService;
 
         public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcServerService> Logger { get; set; }
+        
+        private string _localPubKey;
+        
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService)
+        private string LocalPublickey
+        {
+            get
+            {
+                return _localPubKey ?? 
+                       (_localPubKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+            }
+        }
+
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
         {
             _peerPool = peerPool;
             _blockChainService = blockChainService;
+            _accountService = accountService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -44,7 +62,7 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        public override async Task<AuthResponse> Connect(Handshake handshake, ServerCallContext context)
+        public override async Task<ConnectReply> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
@@ -56,7 +74,11 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
                 Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
-                var client = new PeerService.PeerServiceClient(channel);
+                var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
+                {
+                    metadata.Add("public-key", LocalPublickey);
+                    return metadata;
+                }));
 
                 if (channel.State != ChannelState.Ready)
                 {
@@ -64,13 +86,14 @@ namespace AElf.OS.Network.Grpc
                 }
 
                 // td injector
-                var grpcPeer = new GrpcPeer(channel, client, handshake.HskData, peerAddress, peer.ToIpPortFormat());
+                var pubKey = handshake.HskData.PublicKey.ToHex();
+                var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress);
 
                 // Verify auth
-                bool valid = _peerPool.IsAuthenticatePeer(peerAddress, handshake);
+                bool valid = _peerPool.IsAuthenticatePeer(pubKey);
 
                 if (!valid)
-                    return new AuthResponse {Err = AuthError.WrongAuth};
+                    return new ConnectReply { Err = AuthError.WrongAuth };
 
                 // send our credentials
                 var hsk = await _peerPool.GetHandshakeAsync();
@@ -78,12 +101,12 @@ namespace AElf.OS.Network.Grpc
                 // If auth ok -> add it to our peers
                 _peerPool.AddPeer(grpcPeer);
 
-                return new AuthResponse {Success = true, Port = "1234"};
+                return new ConnectReply { Handshake = hsk };
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
-                return new AuthResponse {Err = AuthError.UnknownError};
+                return new ConnectReply { Err = AuthError.UnknownError };
             }
         }
 
@@ -101,7 +124,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Error during connect, peer: {context.Peer}.");
+                Logger.LogError(e, $"Error during SendTransaction, peer: {context.Peer}.");
             }
 
             return new VoidReply();
@@ -192,8 +215,8 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                // td change to pubkey
-                await _peerPool.ProcessDisconnection(GrpcUrl.Parse(context.Peer).ToIpPortFormat());
+                await _peerPool.ProcessDisconnection(
+                    context.RequestHeaders.First(entry => entry.Key == "public-key").Value);
             }
             catch (Exception e)
             {

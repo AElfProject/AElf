@@ -27,24 +27,17 @@ namespace AElf.OS.Network.Grpc
         
         public Hash CurrentBlockHash { get; set; }
         public long CurrentBlockHeight { get; set; }
-        public string PeerAddress { get; }
-        public string RemoteEndpoint { get; }
+        public string PeerIpAddress { get; }
+        public string PubKey { get; }
 
-        private byte[] _pubKey;
-        public byte[] PublicKey
-        {
-            get { return _pubKey ?? (_pubKey = _handshakeData?.PublicKey?.ToByteArray()); }
-        }
-
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, HandshakeData handshakeData,
-            string peerAddress, string remoteEndpoint)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress)
         {
             _channel = channel;
             _client = client;
-            _handshakeData = handshakeData;
 
-            RemoteEndpoint = remoteEndpoint;
-            PeerAddress = peerAddress;
+            PeerIpAddress = peerIpAddress;
+
+            PubKey = pubKey;
         }
 
         public async Task<Block> RequestBlockAsync(Hash hash)
