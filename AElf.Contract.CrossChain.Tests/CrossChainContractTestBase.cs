@@ -88,7 +88,7 @@ namespace AElf.Contract.CrossChain.Tests
             return await Tester.ExecuteContractWithMiningAsync(contractAddress, methodName, objects);
         }
 
-        protected async Task<Transaction> GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
+        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
         {
             return ecKeyPair == null
                 ? await Tester.GenerateTransactionAsync(contractAddress, methodName, objects)
