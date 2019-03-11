@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS.Extensions
+namespace AElf.Consensus.DPoS
 {
     public static class RoundExtensions
     {
@@ -336,7 +335,7 @@ namespace AElf.Contracts.Consensus.DPoS.Extensions
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
         {
             return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
-                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
         
         private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)

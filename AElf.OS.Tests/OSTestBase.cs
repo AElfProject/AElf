@@ -2,6 +2,7 @@ using AElf.TestBase;
 
 namespace AElf.OS
 {
+    // ReSharper disable once InconsistentNaming
     public class OSTestBase : AElfIntegratedTest<OSTestAElfModule>
     {
         

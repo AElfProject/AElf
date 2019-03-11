@@ -9,7 +9,7 @@ namespace AElf.Sdk.CSharp.State
     {
         private IStateProvider _provider;
         private StatePath _path;
-        private IContextInternal _context;
+        private ISmartContractBridgeContext _context;
 
         internal IStateProvider Provider
         {
@@ -31,7 +31,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal IContextInternal Context
+        internal ISmartContractBridgeContext Context
         {
             get => _context;
             set

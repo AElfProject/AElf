@@ -181,7 +181,6 @@ namespace AElf.Contracts.Genesis
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="contractName"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)

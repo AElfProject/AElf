@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update the age of this blockchain
             State.AgeField.Value = round.BlockchainAge;
 
-            Assert(TryToGetCurrentRoundInformation(out var currentRound), "Failed to get current round information.");
+            Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
 
             UpdateHistoryInformation(round);
 

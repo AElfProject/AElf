@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
+using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (round.RealTimeMinersInformation.Count < 2)
             {
                 // Just appoint the mining interval for single miner.
-                return 4000;
+                return 1000;
             }
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
@@ -425,6 +425,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
+
+        public static ulong GetMinedBlocks(this Round round)
+        {
+            var minedBlocks = 0UL;
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                minedBlocks += minerInRound.Value.ProducedBlocks;
+            }
+
+            return minedBlocks;
+        }
         
         /// <summary>
         /// If DaysEachTerm == 7:
@@ -441,7 +452,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
         {
             return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
-                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
         
         public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 0)
