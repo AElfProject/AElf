@@ -203,13 +203,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.CrossChain", "AElf.Cro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Types", "AElf.CrossChain.Types\AElf.CrossChain.Types.csproj", "{14012931-8CFC-4C9C-B21E-0CC3FE9779D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contract.Resource.Tests", "AElf.Contract.Resource.Tests\AElf.Contract.Resource.Tests.csproj", "{EE1DF2C6-64F3-460B-9538-E3C30468EB68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.Tests", "AElf.Contracts.Resource.Tests\AElf.Contracts.Resource.Tests.csproj", "{EE1DF2C6-64F3-460B-9538-E3C30468EB68}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase.Tests", "AElf.Contracts.TestBase.Tests\AElf.Contracts.TestBase.Tests.csproj", "{17CEAE8A-1F06-4027-9183-10901413FBA9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TestBase", "AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj", "{6B97F71E-83AE-4FA9-B41D-06FFAC81EDCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contract.CrossChain.Tests", "AElf.Contract.CrossChain.Tests\AElf.Contract.CrossChain.Tests.csproj", "{1AB21B04-6593-4F63-B2BB-5C6939A764FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain.Tests", "AElf.Contracts.CrossChain.Tests\AElf.Contracts.CrossChain.Tests.csproj", "{1AB21B04-6593-4F63-B2BB-5C6939A764FE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Test", "AElf.Common.Test\AElf.Common.Test.csproj", "{2A442741-0593-415F-B801-3AA553E547AB}"
 EndProject

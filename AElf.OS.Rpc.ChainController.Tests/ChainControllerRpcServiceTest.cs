@@ -529,18 +529,19 @@ namespace AElf.OS.Rpc.ChainController.Tests
         #region Net cases
 
         [Fact]
-        public async Task Net_AddPeer()
+        public async Task Net_Get_And_AddPeer()
         {
             string addressInfo = "127.0.0.1:6810";
             var response = await JsonCallAsJObject("/net", "AddPeer",
                 new { address = addressInfo});
             response.ShouldNotBeNull();
-            //response["result"].To<bool>().ShouldBeTrue();
+            response["result"].To<bool>().ShouldBeFalse(); //currently network service is mocked.
 
             var response1 = await JsonCallAsJObject("/net", "GetPeers");
             response1.ShouldNotBeNull();
-
+            response1["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(0);
         }
+
         #endregion
         
         private async Task<Block> MinedOneBlock(Chain chain)
