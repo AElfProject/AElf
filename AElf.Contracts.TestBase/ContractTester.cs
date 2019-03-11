@@ -340,7 +340,7 @@ namespace AElf.Contracts.TestBase
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
 
             return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.AddMilliseconds(4000));
+                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace AElf.Contracts.TestBase
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             params object[] objects)
         {
-            var tx = await GenerateTransaction(contractAddress, methodName, objects);
+            var tx = await GenerateTransaction(contractAddress, methodName, KeyPair, objects);
             await MineAsync(new List<Transaction> {tx});
             var result = await GetTransactionResult(tx.GetHash());
 

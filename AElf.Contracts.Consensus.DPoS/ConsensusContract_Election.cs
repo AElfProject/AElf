@@ -30,6 +30,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
+            // TODO: To implement lock method.
             State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
             if (!candidates.PublicKeys.Contains(publicKey))
