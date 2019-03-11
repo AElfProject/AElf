@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Sdk;
 using Xunit;
@@ -20,28 +21,33 @@ namespace AElf.Sdk.CSharp.Tests
         private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
         private TokenContract Contract { get; } = new TokenContract();
         private IStateProvider StateProvider { get; }
+        private IHostSmartContractBridgeContext BridgeContext { get; }
 
         public ContractTest()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
+
             Contract.SetStateProvider(StateProvider);
-            Contract.SetSmartContractContext(new SmartContractContext()
-            {
-#if DEBUG
-                Logger = GetRequiredService<ILogger<ISmartContractContext>>(),
-#endif
-                ContractAddress = AddressList[0],
-                BlockchainService = new Mock<IBlockchainService>().Object,
-            });
-            Contract.SetTransactionContext(new TransactionContext()
+
+
+            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create(
+                new SmartContractContext()
+                {
+                    ContractAddress = AddressList[0],
+                });
+            Contract.InternalInitialize(BridgeContext);
+
+            var transactionContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
                     From = AddressList[1],
                     To = AddressList[0]
                 }
-            });
-            Contract.SetContractAddress(AddressList[0]);
+            };
+
+            BridgeContext.TransactionContext = transactionContext;
+            StateProvider.TransactionContext = transactionContext;
         }
 
         [Fact]
@@ -199,14 +205,17 @@ namespace AElf.Sdk.CSharp.Tests
 
         private void SwitchOwner(Address address)
         {
-            Contract.SetTransactionContext(new TransactionContext()
+            var transactionContext = new TransactionContext()
             {
                 Transaction = new Transaction()
                 {
                     From = address,
                     To = AddressList[0]
                 }
-            });
+            };
+
+            BridgeContext.TransactionContext = transactionContext;
+            StateProvider.TransactionContext = transactionContext;
         }
     }
 }
