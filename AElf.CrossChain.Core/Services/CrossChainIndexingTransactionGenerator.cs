@@ -34,9 +34,9 @@ namespace AElf.CrossChain
             Hash previousBlockHash)
         {
             var crossChainBlockData = new CrossChainBlockData();
-            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(null, refBlockNumber);
+            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(null, refBlockNumber);
+            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
 
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
@@ -64,7 +64,7 @@ namespace AElf.CrossChain
         /// <param name="methodName"></param>
         /// <param name="refBlockNumber"></param>
         /// <param name=""></param>
-        /// <param name="refBlockPrefix"></param>
+        /// <param name="refBlockPrefix"></param> 
         /// <param name="params"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,

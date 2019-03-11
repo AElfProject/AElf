@@ -34,7 +34,7 @@ namespace AElf.CrossChain
             if (_grpcCrossChainConfigOption.LocalServer)
             {
                 var keySore = LoadKeyStore(_grpcCrossChainConfigOption.LocalCertificateFileName);
-                var cert = LoadKeyStore(_grpcCrossChainConfigOption.LocalCertificateFileName);
+                var cert = LoadCertificate(_grpcCrossChainConfigOption.LocalCertificateFileName);
                 _crossChainServer.StartAsync(_grpcCrossChainConfigOption.LocalServerIP,
                     _grpcCrossChainConfigOption.LocalServerPort, new KeyCertificatePair(cert, keySore));
             }

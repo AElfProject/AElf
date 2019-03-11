@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.Certificate;
@@ -20,9 +21,12 @@ namespace AElf.CrossChain.Grpc.Server
     {
         private global::Grpc.Core.Server _server;
         private readonly CrossChainGrpcServerBase _serverBase;
+        public ILogger<CrossChainGrpcServer> Logger { get; set; }
+
         public CrossChainGrpcServer(CrossChainGrpcServerBase serverBase)
         {
             _serverBase = serverBase;
+            Logger = NullLogger<CrossChainGrpcServer>.Instance;
         }
 
         public async Task StartAsync(string localServerIP, int localServerPort, KeyCertificatePair keyCert)
@@ -35,9 +39,17 @@ namespace AElf.CrossChain.Grpc.Server
                     new ServerPort(localServerIP, localServerPort, new SslServerCredentials(new List<KeyCertificatePair> {keyCert}))
                 }
             };
-            await Task.Run(() => _server.Start());
+            try
+            {
+                _server.Start();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
         }
-
 
         public void Dispose()
         {

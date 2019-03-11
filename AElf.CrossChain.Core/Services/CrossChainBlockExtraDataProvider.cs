@@ -18,6 +18,8 @@ namespace AElf.CrossChain
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
+            if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
+                return null;
             var indexedCrossChainBlockData =
                 await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.GetHash(), blockHeader.Height);
             if (indexedCrossChainBlockData == null)
