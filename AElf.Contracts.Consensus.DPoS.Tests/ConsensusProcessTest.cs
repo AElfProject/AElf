@@ -16,7 +16,7 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class ConsensusProcessTest
+    public class ConsensusProcessTest : ContractTestBase<DPoSContractTestAElfModule>
     {
         private int _miningInterval = 4000;
 

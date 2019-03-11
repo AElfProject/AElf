@@ -225,7 +225,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction("InitialConsensus",
+                            GenerateTransaction(nameof(InitialConsensus),
                                 new List<object> {round})
                         }
                     };
@@ -235,7 +235,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction("UpdateValue",
+                            GenerateTransaction(nameof(UpdateValue),
                                 new List<object>
                                 {
                                     new ToUpdate
@@ -254,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction("NextRound",
+                            GenerateTransaction(nameof(NextRound),
                                 new List<object> {round})
                         }
                     };
@@ -265,11 +265,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction("NextTerm",
+                            GenerateTransaction(nameof(NextTerm),
                                 new List<object> {round}),
-                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
+                            GenerateTransaction(nameof(SnapshotForMiners), new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction(nameof(SnapshotForTerm), new List<object> {roundNumber, termNumber}),
+                            GenerateTransaction(nameof(SendDividends), new List<object> {roundNumber, termNumber})
                         }
                     };
                 case DPoSBehaviour.Invalid:

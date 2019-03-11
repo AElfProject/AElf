@@ -21,9 +21,8 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Resource.Tests
 {
-    public class ResourceContractTest: ResourceContractTestBase
+    public class ResourceContractTest: ContractTestBase<ResourceContractTestAElfModule>
     {
-        private ContractTester<ResourceContractTestAElfModule> Tester;
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair;
 
@@ -34,7 +33,6 @@ namespace AElf.Contracts.Resource.Tests
 
         public ResourceContractTest()
         {
-            Tester = new ContractTester<ResourceContractTestAElfModule>();
             var contractArray = Tester.GetDefaultContractTypes();
             contractArray.Add(typeof(FeeReceiverContract));
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
@@ -51,9 +49,9 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Deploy_Contracts()
         {
-            var tokenTx = await  Tester.GenerateTransaction(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
+            var tokenTx = await  Tester.GenerateTransactionAsync(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-            var resourceTx = await Tester.GenerateTransaction(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
+            var resourceTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
 
             await Tester.MineAsync(new List<Transaction> {tokenTx, resourceTx});

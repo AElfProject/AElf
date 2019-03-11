@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
             // Create a transaction to deploy token contract.
-            var tx = await tester.GenerateTransaction(zeroContractAddress, "DeploySmartContract", 2,
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             var chain = await tester.GetChainAsync();
@@ -64,7 +64,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var zeroContractAddress = tester1.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
 
-            var tx = await tester1.GenerateTransaction(zeroContractAddress, "DeploySmartContract", 2,
+            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await tester1.MineAsync(new List<Transaction> {tx});
@@ -87,7 +87,7 @@ namespace AElf.Contracts.TestBase.Tests
             await tester2.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester1.GetZeroContractAddress();
-            var tx = await tester1.GenerateTransaction(zeroContractAddress, "DeploySmartContract", 2,
+            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             var block = await tester1.MineAsync(new List<Transaction> {tx});
@@ -117,7 +117,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             var tokenContractAddress = tester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
             var txToInitialize =
-                await tester.GenerateTransaction(tokenContractAddress, "Initialize", "ELF", "ELF Token",
+                await tester.GenerateTransactionAsync(tokenContractAddress, "Initialize", "ELF", "ELF Token",
                     totalSupply, 2U);
 
             await tester.MineAsync(new List<Transaction> {txToInitialize});
@@ -137,7 +137,7 @@ namespace AElf.Contracts.TestBase.Tests
             await tester.InitialChainAsync(typeof(BasicContractZero));
 
             var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
-            var tx = await tester.GenerateTransaction(zeroContractAddress, "DeploySmartContract", 2,
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await tester.MineAsync(new List<Transaction> {tx});
@@ -153,7 +153,7 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync(typeof(BasicContractZero));
             var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
-            var tx = await tester.GenerateTransaction(zeroContractAddress, "DeploySmartContract", 2,
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await tester.MineAsync(new List<Transaction> {tx});

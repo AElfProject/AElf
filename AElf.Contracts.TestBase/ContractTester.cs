@@ -277,7 +277,7 @@ namespace AElf.Contracts.TestBase
         /// <param name="methodName"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransaction(Address contractAddress, string methodName, params object[] objects)
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlock();
@@ -305,7 +305,7 @@ namespace AElf.Contracts.TestBase
         /// <param name="ecKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransaction(Address contractAddress, string methodName, ECKeyPair ecKeyPair,
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair,
             params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -369,7 +369,7 @@ namespace AElf.Contracts.TestBase
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             params object[] objects)
         {
-            var tx = await GenerateTransaction(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
             await MineAsync(new List<Transaction> {tx});
             var result = await GetTransactionResult(tx.GetHash());
 
@@ -390,7 +390,7 @@ namespace AElf.Contracts.TestBase
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
-            var tx = await GenerateTransaction(contractAddress, methodName, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
             var preBlock = await blockchainService.GetBestChainLastBlock();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
