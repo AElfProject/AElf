@@ -148,7 +148,6 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, "Burn");
-            var returnMessage = burnResult.ReturnValue.ToStringUtf8();
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
