@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Generated" />
+    </ItemGroup>
+
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Command="bash protogen.sh" />
+    </Target>
+
+</Project>
