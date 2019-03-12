@@ -77,34 +77,26 @@ namespace AElf.OS.Network.Grpc
             {
                 await _server.KillAsync();
             }
-            catch (Exception)
+            catch (InvalidOperationException)
             {
-                // no matter what exceptions this throws, we
-                // want to continue and clear the channels.
+                // if server already shutdown, we continue and clear the channels.
             }
 
             foreach (var peer in PeerPool.GetPeers(true))
             {
-                try
+                if (gracefulDisconnect)
                 {
-                    if (gracefulDisconnect)
+                    try
                     {
-                        try
-                        {
-                            await peer.SendDisconnectAsync();
-                        }
-                        catch (RpcException e)
-                        {
-                            Logger.LogError(e, $"Error sending disconnect {peer}.");
-                        }
+                        await peer.SendDisconnectAsync();
                     }
+                    catch (RpcException e)
+                    {
+                        Logger.LogError(e, $"Error sending disconnect {peer}.");
+                    }
+                }
 
-                    await peer.StopAsync();
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Error while disconnecting peer {peer}.");
-                }
+                await peer.StopAsync();
             }
         }
 

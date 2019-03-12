@@ -120,16 +120,7 @@ namespace AElf.OS.Network.Grpc
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
                     {
-                        try
-                        {
-                            await StopAsync(); // shutdown for good
-                        }
-                        catch (Exception)
-                        {
-                            // no matter what happens here, we need to make sure the 
-                            // DisconnectionEvent is fired.
-                        }
-                    
+                        await StopAsync();
                         DisconnectionEvent?.Invoke(this, EventArgs.Empty);
                     }
                 });
@@ -142,7 +133,14 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StopAsync()
         {
-            await _channel.ShutdownAsync();
+            try
+            {
+                await _channel.ShutdownAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // If channel already shutdown
+            }
         }
 
         public async Task SendDisconnectAsync()

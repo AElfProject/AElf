@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -60,57 +62,45 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
-            Channel channel = null;
+            if (handshake?.HskData == null)
+                return new ConnectReply { Err = AuthError.InvalidHandshake };
             
-            try
+            var peer = GrpcUrl.Parse(context.Peer);
+            var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+
+            Logger.LogDebug($"Attempting to create channel to {peerAddress}");
+
+            Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
+            var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
-                var peer = GrpcUrl.Parse(context.Peer);
-                var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+                metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
+                return metadata;
+            }));
 
-                Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-
-                channel = new Channel(peerAddress, ChannelCredentials.Insecure);
-                var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
-                {
-                    metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
-                    return metadata;
-                }));
-
-                if (channel.State != ChannelState.Ready)
-                {
-                    var c = channel.WaitForStateChangedAsync(channel.State);
-                }
-
-                // td injector
-                var pubKey = handshake.HskData.PublicKey.ToHex();
-                var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress);
-
-                // Verify auth
-                bool valid = _peerPool.IsAuthenticatePeer(pubKey);
-
-                if (!valid)
-                {
-                    await channel.ShutdownAsync();
-                    return new ConnectReply {Err = AuthError.WrongAuth};
-                }
-
-                // send our credentials
-                var hsk = await _peerPool.GetHandshakeAsync();
-                
-                // If auth ok -> add it to our peers
-                _peerPool.AddPeer(grpcPeer);
-
-                return new ConnectReply { Handshake = hsk };
-            }
-            catch (Exception e)
+            if (channel.State != ChannelState.Ready)
             {
-                Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
-                
-                if (channel != null)
-                    await channel?.ShutdownAsync();
-                
-                return new ConnectReply { Err = AuthError.UnknownError };
+                var c = channel.WaitForStateChangedAsync(channel.State);
             }
+
+            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress);
+
+            // Verify auth
+            bool valid = _peerPool.IsAuthenticatePeer(pubKey);
+
+            if (!valid)
+            {
+                await channel.ShutdownAsync();
+                return new ConnectReply {Err = AuthError.WrongAuth};
+            }
+
+            // send our credentials
+            var hsk = await _peerPool.GetHandshakeAsync();
+            
+            // If auth ok -> add it to our peers
+            _peerPool.AddPeer(grpcPeer);
+
+            return new ConnectReply { Handshake = hsk };
         }
 
         /// <summary>
@@ -118,17 +108,10 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            try
+            await EventBus.PublishAsync(new TransactionsReceivedEvent()
             {
-                await EventBus.PublishAsync(new TransactionsReceivedEvent()
-                {
-                    Transactions = new List<Transaction> {tx}
-                });
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"Error during SendTransaction, peer: {context.Peer}.");
-            }
+                Transactions = new List<Transaction> {tx}
+            });
 
             return new VoidReply();
         }
@@ -143,16 +126,10 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
                 return Task.FromResult(new VoidReply());
             }
-
-            try
-            {
-                Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"Error during announcement processing, peer: {context.Peer}.");
-            }
+            
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
+            
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
 
             return Task.FromResult(new VoidReply());
         }
@@ -166,23 +143,14 @@ namespace AElf.OS.Network.Grpc
         {
             if (request == null)
                 return new BlockReply();
-
-            try
-            {
-                Logger.LogDebug($"Peer {context.Peer} requested block {request.Hash}.");
-                var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
+            
+            Logger.LogDebug($"Peer {context.Peer} requested block {request.Hash}.");
+            var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
 
 
-                Logger.LogDebug($"Sending {block} to {context.Peer}.");
+            Logger.LogDebug($"Sending {block} to {context.Peer}.");
 
-                return new BlockReply {Block = block};
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, $"Error during block request handle, peer: {context.Peer}.");
-            }
-
-            return new BlockReply();
+            return new BlockReply { Block = block };
         }
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
@@ -191,20 +159,13 @@ namespace AElf.OS.Network.Grpc
                 return new BlockList();
 
             var blockList = new BlockList();
+            
+            var blocks = await _blockChainService.GetBlocksAsync(request.PreviousBlockHash, request.Count);
 
-            try
-            {
-                var blocks = await _blockChainService.GetBlocksAsync(request.PreviousBlockHash, request.Count);
+            if (blocks == null)
+                return blockList;
 
-                if (blocks == null)
-                    return blockList;
-
-                blockList.Blocks.AddRange(blocks);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error during RequestBlock handle.");
-            }
+            blockList.Blocks.AddRange(blocks);
 
             Logger.LogTrace($"Response {blockList.Blocks.Count} blocks for request {request}");
             return blockList;
@@ -215,15 +176,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
-            try
-            {
-                await _peerPool.ProcessDisconnection(context.GetPublicKey());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Error during Disconnect handle.");
-            }
-
+            await _peerPool.ProcessDisconnection(context.GetPublicKey());
             return new VoidReply();
         }
     }

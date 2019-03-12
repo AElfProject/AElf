@@ -56,38 +56,31 @@ namespace AElf.OS.Handlers
 
             var chain = await BlockchainService.GetChainAsync();
 
-            try
+            Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
+
+            var block = await BlockchainService.GetBlockByHashAsync(blockHash);
+            if (block != null)
             {
-                Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
-
-                var block = await BlockchainService.GetBlockByHashAsync(blockHash);
-                if (block != null)
-                {
-                    Logger.LogDebug($"Block {blockHash} already know.");
-                    return;
-                }
-
-                block = await NetworkService.GetBlockByHashAsync(blockHash);
-
-                await BlockchainService.AddBlockAsync(block);
-
-                var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-
-                await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-
-                if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
-                {
-                    await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
-                    {
-                        SuggestedPeerPubKey = senderPubKey,
-                        BlockHash = header.Announce.BlockHash.ToHex(),
-                        BlockHeight = blockHeight
-                    });
-                }
+                Logger.LogDebug($"Block {blockHash} already know.");
+                return;
             }
-            catch (Exception e)
+
+            block = await NetworkService.GetBlockByHashAsync(blockHash);
+
+            await BlockchainService.AddBlockAsync(block);
+
+            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+
+            await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+
+            if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
             {
-                Logger.LogError(e, $"Error during {nameof(ProcessNewBlock)}, peer: {senderPubKey}.");
+                await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+                {
+                    SuggestedPeerPubKey = senderPubKey,
+                    BlockHash = header.Announce.BlockHash.ToHex(),
+                    BlockHeight = blockHeight
+                });
             }
         }
     }

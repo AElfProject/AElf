@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -48,7 +49,7 @@ namespace AElf.OS.Network.Application
                     await peer.AnnounceAsync(new PeerNewBlockAnnouncement
                         {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
                     Logger.LogError(e, "Error while sending block."); // todo improve
                 }
@@ -63,7 +64,7 @@ namespace AElf.OS.Network.Application
                 {
                     await peer.SendTransactionAsync(tx);
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
                     Logger.LogError(e, "Error while sending transaction."); // todo improve
                 }
@@ -164,7 +165,7 @@ namespace AElf.OS.Network.Application
             {
                 return await peer.RequestBlockAsync(hash);
             }
-            catch (Exception e)
+            catch (RpcException e)
             {
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
                 return null;
