@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS
+namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public partial class ConsensusContract
     {
