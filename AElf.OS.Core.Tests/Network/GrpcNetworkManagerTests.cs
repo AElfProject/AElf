@@ -79,7 +79,7 @@ namespace AElf.OS.Network
             return (netServer, grpcPeerPool);
         }
 
-        [Fact(Skip="ToDebug")]
+        [Fact]
         private async Task Multi_Connect()
         {
             var r = new List<(GrpcNetworkServer, IPeerPool)>();

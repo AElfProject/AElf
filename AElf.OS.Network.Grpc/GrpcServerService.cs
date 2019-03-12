@@ -60,6 +60,8 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
 
+            Channel channel = null;
+            
             try
             {
                 var peer = GrpcUrl.Parse(context.Peer);
@@ -67,7 +69,7 @@ namespace AElf.OS.Network.Grpc
 
                 Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
-                Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
+                channel = new Channel(peerAddress, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
                     metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
@@ -87,7 +89,10 @@ namespace AElf.OS.Network.Grpc
                 bool valid = _peerPool.IsAuthenticatePeer(pubKey);
 
                 if (!valid)
-                    return new ConnectReply { Err = AuthError.WrongAuth };
+                {
+                    await channel.ShutdownAsync();
+                    return new ConnectReply {Err = AuthError.WrongAuth};
+                }
 
                 // send our credentials
                 var hsk = await _peerPool.GetHandshakeAsync();
@@ -100,6 +105,10 @@ namespace AElf.OS.Network.Grpc
             catch (Exception e)
             {
                 Logger.LogError(e, $"Error during connect, peer: {context.Peer}.");
+                
+                if (channel != null)
+                    await channel?.ShutdownAsync();
+                
                 return new ConnectReply { Err = AuthError.UnknownError };
             }
         }

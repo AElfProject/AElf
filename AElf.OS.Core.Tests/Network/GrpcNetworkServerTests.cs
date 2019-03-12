@@ -237,7 +237,7 @@ namespace AElf.OS.Network
             peers.Count.ShouldBe(0);
         }
 
-        [Fact(Skip="ToDebug")]
+        [Fact]
         public async Task RemovePeer_Test()
         {
             // setup 2 peers
@@ -351,7 +351,7 @@ Stack Trace:
    at AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_SoftDisconnect_Test() in /Users/ericshu/GitHub/AElf/AElf.OS.Core.Tests/Network/GrpcNetworkServerTests.cs:line 397
 --- End of stack trace from previous location where exception was thrown ---
          */
-        [Fact(Skip = "Test Failed")]
+        [Fact]
         public async Task GetPeers_HardDisconnect_Test()
         {
             var m1 = BuildGrpcNetworkServer(new NetworkOptions
