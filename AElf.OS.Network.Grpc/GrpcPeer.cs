@@ -15,7 +15,6 @@ namespace AElf.OS.Network.Grpc
         
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
-        private readonly HandshakeData _handshakeData;
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -125,7 +124,7 @@ namespace AElf.OS.Network.Grpc
                         {
                             await StopAsync(); // shutdown for good
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             // no matter what happens here, we need to make sure the 
                             // DisconnectionEvent is fired.

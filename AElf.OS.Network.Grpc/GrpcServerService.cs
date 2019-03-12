@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -9,7 +8,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
-using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -25,8 +23,6 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase
     {
-        private readonly ChainOptions _chainOptions;
-
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
@@ -74,7 +70,7 @@ namespace AElf.OS.Network.Grpc
                 Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConsts.PUBKEY_METADATA_KEY, LocalPublickey);
+                    metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
                     return metadata;
                 }));
 
@@ -131,12 +127,12 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override async Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
+        public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
             if (an?.BlockHash == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
-                return new VoidReply();
+                return Task.FromResult(new VoidReply());
             }
 
             try
@@ -150,7 +146,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, $"Error during announcement processing, peer: {context.Peer}.");
             }
 
-            return new VoidReply();
+            return Task.FromResult(new VoidReply());
         }
 
         /// <summary>

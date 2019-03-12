@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
@@ -102,7 +101,7 @@ namespace AElf.OS.Network.Grpc
 
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConsts.PUBKEY_METADATA_KEY, LocalPublickey);
+                    metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
                     return metadata;
                 }));
                 

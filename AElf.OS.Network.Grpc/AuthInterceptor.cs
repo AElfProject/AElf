@@ -1,11 +1,7 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Grpc.Core.Utils;
 
 namespace AElf.OS.Network.Grpc
 {

@@ -10,9 +10,9 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                return context.RequestHeaders.First(entry => entry.Key == GrpcConsts.PUBKEY_METADATA_KEY).Value;
+                return context.RequestHeaders.First(entry => entry.Key == GrpcConsts.PubkeyMetadataKey).Value;
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return null;
             }

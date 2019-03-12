@@ -1,6 +1,5 @@
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
-using Grpc.Core.Interceptors;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

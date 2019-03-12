@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Options;
@@ -382,6 +381,7 @@ Stack Trace:
             }
             catch (Exception e)
             {
+                _testOutputHelper.WriteLine(e.ToString());
             }
 
             // make sure we wait enough for disc
