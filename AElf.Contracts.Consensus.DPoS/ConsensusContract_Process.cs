@@ -17,16 +17,16 @@ namespace AElf.Contracts.Consensus.DPoS
         
         public void InitialConsensus(Round firstRound)
         {
-            Assert(firstRound.RoundNumber == 1,
-                "It seems that the term number of initial term is incorrect.");
+            Assert(firstRound.RoundNumber == 1, "Incorrect round information: invalid round number.");
 
-            Assert(firstRound.RealTimeMinersInformation.Any(), "No miners in round information.");
+            Assert(firstRound.RealTimeMinersInformation.Any(), "Incorrect round information: no miner.");
             
             InitialSettings(firstRound);
 
             SetAliases(firstRound);
 
             firstRound.BlockchainAge = 1;
+            
             Assert(TryToAddRoundInformation(firstRound), "Failed to add round information.");
         }
 
@@ -154,6 +154,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if (minersCount == 1)
                 {
+                    // Single node will set every previous block as LIB.
                     offset = 1;
                     return true;
                 }
