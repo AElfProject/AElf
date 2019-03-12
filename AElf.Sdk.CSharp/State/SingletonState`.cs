@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
