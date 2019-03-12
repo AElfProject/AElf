@@ -157,6 +157,30 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
+        public async Task Quit_Election_WithoutAnnounce()
+        {
+            var candidateInfo = GenerateNewUser();
+            await Starter.TransferTokenAsync(candidateInfo.Item2, DPoSContractConsts.LockTokenForElection);
+            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
+            
+            // The candidate announce election.
+            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
+            await candidate.AnnounceElectionAsync("AElfin");
+            var candidatesList = await candidate.GetCandidatesListAsync();
+            candidatesList.Values.ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
+            
+            //select another account ,and quit election
+            candidateInfo = GenerateNewUser();
+            var result = await candidate.QuitCancelElectionAsync();
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains("").ShouldBeTrue();
+            
+            balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            balance.ShouldBe(0UL);
+        }
+        
+        [Fact]
         public async Task Vote_Candidate_Success()
         {
             const ulong amount = 1000;
@@ -232,7 +256,25 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Vote_Different_Candidates()
         {
+            const ulong amount = 1000;
+            const ulong voteAmount = 200;
+            var candidateLists = await Starter.GenerateCandidatesAsync(5);
             
+            var voter = Starter.GenerateVoters(1)[0];
+            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+
+            for (int i = 0; i < 5; i++)
+            {
+                var candidate = candidateLists[i];
+                var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
+                txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            var ticketsOfVoter = await voter.GetTicketsInformationAsync();
+            ticketsOfVoter.VotedTickets.ShouldBe(1000UL);
+
+            var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
+            balance.ShouldBe(0UL);
         }
         
         private static User GenerateNewUser()
