@@ -28,16 +28,6 @@ namespace AElf.OS.Network.Grpc
 
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
-        private string _localPubKey;
-        private string LocalPublickey
-        {
-            get
-            {
-                return _localPubKey ?? 
-                       (_localPubKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
-            }
-        }
-
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
             IBlockchainService blockChainService)
         {
@@ -101,7 +91,7 @@ namespace AElf.OS.Network.Grpc
 
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConsts.PubkeyMetadataKey, LocalPublickey);
+                    metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                     return metadata;
                 }));
                 
