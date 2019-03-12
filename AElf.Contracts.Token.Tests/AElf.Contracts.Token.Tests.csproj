@@ -2,9 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <IsPackable>true</IsPackable>
+    <RootNamespace>AElf.Contracts.Token</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Contracts.Consensus.Tests\AElf.Contracts.Consensus.Tests.csproj" />
     <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />

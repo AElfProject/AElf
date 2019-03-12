@@ -8,10 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.SmartContract.Abstracts\AElf.Kernel.SmartContract.Abstracts.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Contexts\TentativeDataProvider.cs" />
   </ItemGroup>
 </Project>

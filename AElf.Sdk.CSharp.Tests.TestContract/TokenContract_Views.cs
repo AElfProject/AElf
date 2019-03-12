@@ -1,4 +1,7 @@
 ﻿using Address = AElf.Common.Address;
+using System.Linq;
+using AElf.Common;
+using AElf.Kernel;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
 {
@@ -38,6 +41,20 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public ulong Allowance(Address owner, Address spender)
         {
             return State.Allowances[owner][spender];
+        }
+
+
+        [View]
+        public Hash GetVirtualAddressHash(int n)
+        {
+            return
+                Hash.FromRawBytes(Context.Sender.Value.Concat(n.DumpByteArray()).ToArray().CalculateHash());
+        }
+
+        [View]
+        public Address GetVirtualAddress(int n)
+        {
+            return Context.ConvertVirtualAddressToContractAddress(GetVirtualAddressHash(n));
         }
     }
 }

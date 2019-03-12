@@ -414,7 +414,7 @@ namespace AElf.Contracts.CrossChain
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = path.ComputeRootWith(tx);
             
-            //Api.Assert((parentRoot??Hash.Zero).Equals(rootCalculated), "Transaction verification Failed");
+            //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             Assert(merkleTreeRoot.Equals(rootCalculated), "Verification Failed.");
             return true;
         }

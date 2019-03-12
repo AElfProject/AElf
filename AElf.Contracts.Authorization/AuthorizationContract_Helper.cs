@@ -1,4 +1,4 @@
-using AElf.Kernel;
+using AElf.Consensus.DPoS;
 
 namespace AElf.Contracts.Authorization
 {

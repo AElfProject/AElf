@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
-using AElf.Contracts.Consensus.DPoS.Extensions;
+using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
@@ -30,6 +30,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
+            // TODO: To implement lock method.
             State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
             if (!candidates.PublicKeys.Contains(publicKey))

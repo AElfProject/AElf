@@ -7,6 +7,8 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Jobs;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -30,6 +32,8 @@ namespace AElf.OS
             });
 
             context.Services.AddTransient<ForkDownloadJob>();
+
+            context.Services.AddSingleton<INetworkService, NetworkService>();
 
             context.Services.AddSingleton<IPeerPool>(o =>
             {

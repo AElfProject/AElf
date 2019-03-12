@@ -22,7 +22,7 @@ namespace AElf.Kernel
         {
             // side chain info
             if (blockBody.TransactionsCount == 0)
-                return Hash.Default;
+                return Hash.Empty;
             if (blockBody.BinaryMerkleTree.Root != null)
                 return blockBody.BinaryMerkleTree.Root;
             blockBody.BinaryMerkleTree.AddNodes(blockBody.Transactions);

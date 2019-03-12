@@ -10,7 +10,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Consensus.DPoS.Tests;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -33,6 +32,7 @@ namespace AElf.OS
         typeof(OSAElfModule),
         typeof(OSCoreTestAElfModule)
     )]
+    // ReSharper disable once InconsistentNaming
     public class OSTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

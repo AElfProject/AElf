@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
 {

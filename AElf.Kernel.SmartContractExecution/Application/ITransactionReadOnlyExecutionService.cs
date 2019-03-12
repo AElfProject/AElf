@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
