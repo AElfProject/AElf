@@ -144,7 +144,7 @@ namespace AElf.CrossChain
             foreach (var chainIdHeight in dict)
             {
                 if(!_crossChainDataConsumer.CheckAlreadyCachedChain(chainIdHeight.Key))
-                    _crossChainDataConsumer.RegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value);
+                    _crossChainDataConsumer.RegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
         }
 

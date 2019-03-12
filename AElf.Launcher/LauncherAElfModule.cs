@@ -87,10 +87,10 @@ namespace AElf.Launcher
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
-//            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-//            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
-//            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-//            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

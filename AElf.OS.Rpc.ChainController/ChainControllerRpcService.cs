@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -64,7 +65,8 @@ namespace AElf.OS.Rpc.ChainController
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            
+            var crossChainContractAddress =
+                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
             var response = new JObject
             {
                 [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
@@ -72,6 +74,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
+                [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
