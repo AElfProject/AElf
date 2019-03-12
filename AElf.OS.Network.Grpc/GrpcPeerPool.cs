@@ -102,7 +102,7 @@ namespace AElf.OS.Network.Grpc
 
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add("public-key", LocalPublickey);
+                    metadata.Add(GrpcConsts.PUBKEY_METADATA_KEY, LocalPublickey);
                     return metadata;
                 }));
                 

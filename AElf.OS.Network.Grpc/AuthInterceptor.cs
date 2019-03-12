@@ -20,10 +20,9 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            if (context.Method != "/PeerService/Connect")
+            if (context.Method != "/" + nameof(PeerService) + "/ " + nameof(PeerService.PeerServiceBase.Connect))
             {
-                var peer = _peerPool.FindPeerByPublicKey(context.RequestHeaders.First(entry => entry.Key == "public-key")
-                    .Value);
+                var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
                 if (peer == null)
                     return Task.FromResult<TResponse>(null);

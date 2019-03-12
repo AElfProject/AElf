@@ -74,7 +74,7 @@ namespace AElf.OS.Network.Grpc
                 Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
                 var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add("public-key", LocalPublickey);
+                    metadata.Add(GrpcConsts.PUBKEY_METADATA_KEY, LocalPublickey);
                     return metadata;
                 }));
 
@@ -213,8 +213,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await _peerPool.ProcessDisconnection(
-                    context.RequestHeaders.First(entry => entry.Key == "public-key").Value);
+                await _peerPool.ProcessDisconnection(context.GetPublicKey());
             }
             catch (Exception e)
             {
