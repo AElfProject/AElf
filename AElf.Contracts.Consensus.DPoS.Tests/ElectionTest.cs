@@ -115,12 +115,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
             }
             
-            var cans = await Starter.GenerateCandidatesAsync(10);
-
-            {
-                var candidatesList = await Starter.GetCandidatesListAsync();
-                var c = await Starter.GetCandidatesAsync();
-            }
 
             // The candidate announce election.
             var candidate = Starter.CreateNewContractTester(candidateInfo);
@@ -140,7 +134,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Quit election
-            var result = AsyncHelper.RunSync(() => candidate.QuitElectionAsync());
+            var result = await candidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check candidates list.
@@ -160,23 +154,23 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Quit_Election_WithoutAnnounce()
         {
             var candidateInfo = GenerateNewUser();
-            await Starter.TransferTokenAsync(candidateInfo.Item2, DPoSContractConsts.LockTokenForElection);
-            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
+            var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
             
             // The candidate announce election.
-            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
+            var candidate = Starter.CreateNewContractTester(candidateInfo);
             await candidate.AnnounceElectionAsync("AElfin");
             var candidatesList = await candidate.GetCandidatesListAsync();
             candidatesList.Values.ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
             
             //select another account ,and quit election
             candidateInfo = GenerateNewUser();
-            var result = await candidate.QuitCancelElectionAsync();
+            var result = await candidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("").ShouldBeTrue();
             
-            balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(0UL);
         }
         
