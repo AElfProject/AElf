@@ -114,7 +114,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var balance = await Starter.GetBalanceAsync(candidateInfo);
                 Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
             }
-            
+
+            await Starter.GenerateCandidatesAsync(10);
 
             // The candidate announce election.
             var candidate = Starter.CreateNewContractTester(candidateInfo);

@@ -325,7 +325,7 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<Block> MineAsync(List<Transaction> txs)
         {
-            await AddTransactions(txs);
+            await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlock();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
@@ -341,13 +341,16 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private async Task AddTransactions(IEnumerable<Transaction> txs)
+        private async Task AddTransactionsAsync(IEnumerable<Transaction> txs)
         {
             var txHub = Application.ServiceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            foreach (var tx in txs)
             {
-                Transactions = txs
-            });
+                await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction> {tx}
+                });
+            }
         }
 
         /// <summary>
