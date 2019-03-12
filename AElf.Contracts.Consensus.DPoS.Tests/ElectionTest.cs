@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -34,6 +35,29 @@ namespace AElf.Contracts.Consensus.DPoS
             // Check the candidates list.
             Assert.Contains(candidate.KeyPair.PublicKey.ToHex(), candidatesList.Values.ToList());
         }
-    }
 
+        [Fact]
+        public async Task VoteTest()
+        {
+            const ulong amount = 1000;
+            
+            var starter = new ContractTester<DPoSContractTestAElfModule>();
+            await starter.InitialChainAndTokenAsync();
+
+            var candidate = (await starter.GenerateCandidatesAsync(1))[0];
+
+            var voter = starter.GenerateVoters(1)[0];
+            await starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 10000);
+
+            await voter.Vote(candidate.PublicKey, amount, 100);
+
+            var ticketsOfCandidate = await candidate.GetTicketsInformationAsync();
+
+            Assert.Equal(amount, ticketsOfCandidate.ObtainedTickets);
+            
+            var ticketsOfVoter = await voter.GetTicketsInformationAsync();
+            
+            Assert.Equal(amount, ticketsOfVoter.VotedTickets);
+        }
+    }
 }

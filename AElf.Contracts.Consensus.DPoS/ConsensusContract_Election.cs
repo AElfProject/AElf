@@ -30,8 +30,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            // TODO: Need a way to implement Lock.
-            State.TokenContract.Lock(Context.Self, DPoSContractConsts.LockTokenForElection);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, DPoSContractConsts.LockTokenForElection);
 
             var candidates = State.CandidatesField.Value;
             if (candidates != null)
@@ -104,25 +103,28 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Cannot vote to non-candidate.
             var candidates = State.CandidatesField.Value;
-            Assert(candidates.PublicKeys.Contains(candidatePublicKey),
+            Assert(candidates != null, "No candidate.");
+            Assert(candidates != null && candidates.PublicKeys.Contains(candidatePublicKey),
                 DPoSContractConsts.TargetNotAnnounceElection);
 
+            var voterPublicKey = Context.RecoverPublicKey().ToHex();
             // A candidate cannot vote to anybody.
-            Assert(!candidates.PublicKeys.Contains(Context.RecoverPublicKey().ToHex()),
+            Assert(candidates != null && !candidates.PublicKeys.Contains(voterPublicKey),
                 DPoSContractConsts.CandidateCannotVote);
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.Lock(Context.Sender, amount);
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value ?? DateTime.UtcNow.ToTimestamp();
+
             var votingRecord = new VotingRecord
             {
                 Count = amount,
-                From = Context.RecoverPublicKey().ToHex(),
+                From = voterPublicKey,
                 To = candidatePublicKey,
                 RoundNumber = currentRoundNumber,
                 TransactionId = Context.TransactionId,
@@ -133,10 +135,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime)
                     .ToTimestamp()
             };
+
             votingRecord.LockDaysList.Add(lockTime);
 
             // Add the transaction id of this voting record to the tickets information of the voter.
-            var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
+            var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
+
             if (tickets != null)
             {
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
@@ -149,7 +153,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             tickets.VotedTickets += votingRecord.Count;
             tickets.HistoryVotedTickets += votingRecord.Count;
-            State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()] = tickets;
+            State.TicketsMap[voterPublicKey.ToStringValue()] = tickets;
 
             // Add the transaction id of this voting record to the tickets information of the candidate.
             var candidateTickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
@@ -168,14 +172,10 @@ namespace AElf.Contracts.Consensus.DPoS
             State.TicketsMap[candidatePublicKey.ToStringValue()] = candidateTickets;
 
             // Update the amount of votes (voting records of whole system).
-            var currentCount = State.VotesCountField.Value;
-            currentCount += 1;
-            State.VotesCountField.Value = currentCount;
+            State.VotesCountField.Value += 1;
 
             // Update the amount of tickets.
-            var ticketsCount = State.TicketsCountField.Value;
-            ticketsCount += votingRecord.Count;
-            State.TicketsCountField.Value = ticketsCount;
+            State.TicketsCountField.Value += 1;
 
             // Add this voting record to voting records map.
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;

@@ -8,6 +8,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public Action<string, string, ulong, uint> Initialize { get; set; }
         public Action<Address, ulong> Transfer { get; set; }
+        public Action<Address, Address, ulong> TransferFrom { get; set; }
         public Action<Address, ulong> Lock { get; set; }
         public Action<Address, ulong> Unlock { get; set; }
     }

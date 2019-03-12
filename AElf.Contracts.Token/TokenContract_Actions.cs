@@ -36,6 +36,13 @@ namespace AElf.Contracts.Token
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = State.Allowances[from][Context.Sender];
+            
+            if (to == State.ConsensusContractAddress.Value)
+            {
+                DoTransfer(from, to, amount);
+                return;
+            }
+
             Assert(allowance >= amount, $"Insufficient allowance.");
 
             DoTransfer(from, to, amount);
@@ -100,6 +107,12 @@ namespace AElf.Contracts.Token
                 State.ChargedFees[sender] = 0UL;
                 State.Balances[feePool] = State.Balances[feePool].Add(fee);
             }
+        }
+
+        public void SetConsensusContractAddress(Address consensusContractAddress)
+        {
+            Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
+            State.ConsensusContractAddress.Value = consensusContractAddress;
         }
 
     }

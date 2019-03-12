@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -14,29 +13,19 @@ using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Services;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.OS;
-using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
@@ -63,6 +52,8 @@ namespace AElf.Contracts.TestBase
         private IAbpApplicationWithInternalServiceProvider Application { get; set; } 
 
         public ECKeyPair KeyPair { get; }
+
+        public string PublicKey => KeyPair.PublicKey.ToHex();
 
         public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
         {
