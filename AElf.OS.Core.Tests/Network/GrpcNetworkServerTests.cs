@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,6 +21,8 @@ namespace AElf.OS.Network
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+        
+        private List<GrpcNetworkServer> _servers = new List<GrpcNetworkServer>();
 
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
@@ -58,8 +61,20 @@ namespace AElf.OS.Network
             
             GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
+            
+            _servers.Add(netServer);
 
             return (netServer, grpcPeerPool);
+        }
+        
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var server in _servers)
+            {
+                AsyncHelper.RunSync(() => server.StopAsync(false));
+            }
         }
 
         [Fact]

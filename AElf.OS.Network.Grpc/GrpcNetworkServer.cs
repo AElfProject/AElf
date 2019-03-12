@@ -17,6 +17,8 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
+        public IPeerPool PeerPool { get; }
+        
         private readonly NetworkOptions _networkOptions;
 
         private readonly PeerService.PeerServiceBase _serverService;
@@ -71,7 +73,15 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StopAsync(bool gracefulDisconnect = true)
         {
-            await _server.KillAsync();
+            try
+            {
+                await _server.KillAsync();
+            }
+            catch (Exception)
+            {
+                // no matter what exceptions this throws, we
+                // want to continue and clear the channels.
+            }
 
             foreach (var peer in PeerPool.GetPeers(true))
             {
@@ -97,8 +107,6 @@ namespace AElf.OS.Network.Grpc
                 }
             }
         }
-
-        public IPeerPool PeerPool { get; }
 
         public void Dispose()
         {
