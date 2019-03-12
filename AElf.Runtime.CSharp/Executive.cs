@@ -191,13 +191,14 @@ namespace AElf.Runtime.CSharp
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 
+        /*
         public ulong GetFee(string methodName)
         {
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
             var retVal = handler.Execute(ParamsPacker.Pack(methodName));
             handler.BytesToReturnType(retVal);
             return (ulong) handler.BytesToReturnType(retVal);
-        }
+        }*/
 
         private object ExecuteReadOnlyHandler(string methodName, params object[] objects)
         {
