@@ -43,7 +43,10 @@ namespace AElf
 
     public class ServiceContainerFactoryOptions<T>
     {
-        public List<Type> Types { get; set; } = new List<Type>();
+        /// <summary>
+        /// if Types is null, it will return all services of T
+        /// </summary>
+        public List<Type> Types { get; set; }
     }
 
     public class ServiceContainerFactory<T> : IServiceContainer<T>
@@ -53,6 +56,12 @@ namespace AElf
         public ServiceContainerFactory(IOptionsSnapshot<ServiceContainerFactoryOptions<T>> options,
             IServiceProvider serviceProvider)
         {
+            if (options.Value.Types == null)
+            {
+                _services = serviceProvider.GetServices<T>();
+                return;
+            }
+
             _services = serviceProvider.GetServices<T>(options.Value.Types);
         }
 
