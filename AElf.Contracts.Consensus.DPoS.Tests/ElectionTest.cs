@@ -5,6 +5,7 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types.CSharp;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -271,7 +272,22 @@ namespace AElf.Contracts.Consensus.DPoS
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
             balance.ShouldBe(0UL);
         }
-        
+
+        [Fact]
+        public async Task IsCandidate_Success()
+        {
+            var candidateLists = await Starter.GenerateCandidatesAsync(2);
+            var nonCandidateInfo = GenerateNewUser();
+            var candidate = Starter.CreateNewContractTester(nonCandidateInfo.KeyPair);
+            var candidateResult = await candidate.CallContractMethodAsync(candidate.GetConsensusContractAddress(),
+                nameof(ConsensusContract.IsCandidate), nonCandidateInfo.PublicKey);
+            candidateResult.DeserializeToBool().ShouldBeFalse();
+            
+            var candidateResult1 = await candidate.CallContractMethodAsync(candidate.GetConsensusContractAddress(),
+                nameof(ConsensusContract.IsCandidate), candidateLists[0].PublicKey);
+            candidateResult1.DeserializeToBool().ShouldBeTrue();
+        }
+
         private static User GenerateNewUser()
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -285,7 +301,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 PublicKey = callPublicKey
             };
         }
-
+        
         private struct User
         {
             public ECKeyPair KeyPair { get; set; }
