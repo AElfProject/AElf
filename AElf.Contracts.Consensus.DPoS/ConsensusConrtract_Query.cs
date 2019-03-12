@@ -42,6 +42,11 @@ namespace AElf.Contracts.Consensus.DPoS
             };
         }
 
+        public Candidates GetCandidates()
+        {
+            return State.CandidatesField.Value;
+        }
+        
         [View]
         public string GetCandidatesListToFriendlyString()
         {

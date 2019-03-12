@@ -9,6 +9,7 @@ using AElf.Kernel;
 using System;
 using System.Linq;
 using AElf.Consensus.DPoS;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -187,7 +188,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.AnnounceElection), alias);
         }
 
-        public static async Task<TransactionResult> QuitCancelElectionAsync(this ContractTester<DPoSContractTestAElfModule> candidate)
+        public static async Task<TransactionResult> QuitElectionAsync(this ContractTester<DPoSContractTestAElfModule> candidate)
         {
             return await candidate.ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
                 nameof(ConsensusContract.QuitElection));
@@ -196,21 +197,41 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateCandidatesAsync(
             this ContractTester<DPoSContractTestAElfModule> starter, int number)
         {
+            var candidatesKeyPairs = new List<ECKeyPair>();
             var candidates = new List<ContractTester<DPoSContractTestAElfModule>>();
+            var transferTxs = new List<Transaction>();
+            var announceElectionTxs = new List<Transaction>();
 
             for (var i = 0; i < number; i++)
             {
                 var candidateKeyPair = CryptoHelpers.GenerateKeyPair();
-                var candidate = starter.CreateNewContractTester(candidateKeyPair);
-                await starter.TransferTokenAsync(candidate.GetCallOwnerAddress(),
-                    DPoSContractConsts.LockTokenForElection + 100);
-                await candidate.AnnounceElectionAsync();
-                candidates.Add(candidate);
+                transferTxs.Add(await starter.GenerateTransactionAsync(starter.GetTokenContractAddress(),
+                    nameof(TokenContract.Transfer), starter.KeyPair, Address.FromPublicKey(candidateKeyPair.PublicKey),
+                    DPoSContractConsts.LockTokenForElection + 100));
+                announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.AnnounceElection), candidateKeyPair, $"{i}"));
+                candidatesKeyPairs.Add(candidateKeyPair);
+            }
+
+            // Package Transfer txs.
+            await starter.MineAsync(transferTxs);
+
+            // Package AnnounceElection txs.
+            var block = await starter.MineAsync(announceElectionTxs);
+
+            foreach (var transaction in announceElectionTxs)
+            {
+                var result = await starter.GetTransactionResultAsync(transaction.GetHash());
+            }
+
+            foreach (var candidatesKeyPair in candidatesKeyPairs)
+            {
+                candidates.Add(starter.CreateNewContractTester(candidatesKeyPair));
             }
 
             return candidates;
         }
-        
+
         public static List<ContractTester<DPoSContractTestAElfModule>> GenerateVoters(
             this ContractTester<DPoSContractTestAElfModule> starter, int number)
         {
@@ -237,6 +258,14 @@ namespace AElf.Contracts.Consensus.DPoS
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCandidatesList));
             return StringList.Parser.ParseFrom(bytes);
+        }
+        
+        public static async Task<Candidates> GetCandidatesAsync(
+            this ContractTester<DPoSContractTestAElfModule> contractTester)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetCandidates));
+            return Candidates.Parser.ParseFrom(bytes);
         }
 
         public static async Task<Tickets> GetTicketsInformationAsync(

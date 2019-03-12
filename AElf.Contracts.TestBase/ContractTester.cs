@@ -49,7 +49,7 @@ namespace AElf.Contracts.TestBase
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
-        private IAbpApplicationWithInternalServiceProvider Application { get; set; } 
+        private IAbpApplicationWithInternalServiceProvider Application { get; } 
 
         public ECKeyPair KeyPair { get; }
 
@@ -303,7 +303,7 @@ namespace AElf.Contracts.TestBase
             var refBlock = await blockchainService.GetBestChainLastBlock();
             var tx = new Transaction
             {
-                From = Address.FromPublicKey(KeyPair.PublicKey),
+                From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
@@ -362,7 +362,7 @@ namespace AElf.Contracts.TestBase
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
             await MineAsync(new List<Transaction> {tx});
-            var result = await GetTransactionResult(tx.GetHash());
+            var result = await GetTransactionResultAsync(tx.GetHash());
 
             return result;
         }
@@ -445,7 +445,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
-        public async Task<TransactionResult> GetTransactionResult(Hash txId)
+        public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
             var transactionResultQueryService =
                 Application.ServiceProvider.GetRequiredService<ITransactionResultQueryService>();

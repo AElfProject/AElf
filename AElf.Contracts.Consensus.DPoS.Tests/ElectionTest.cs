@@ -28,13 +28,13 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(DPoSContractConsts.LockTokenForElection * 100, starterBalance);
             
             // The starter transfer a specific amount of tokens to candidate for further testing.
-            var candidateInfo = GenerateNewUser();
-            await Starter.TransferTokenAsync(candidateInfo.Item2, DPoSContractConsts.LockTokenForElection);
-            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            var candidateInformation = GenerateNewUser();
+            await Starter.TransferTokenAsync(candidateInformation, DPoSContractConsts.LockTokenForElection);
+            var balance = await Starter.GetBalanceAsync(candidateInformation);
             Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
             
             // The candidate announce election.
-            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
+            var candidate = Starter.CreateNewContractTester(candidateInformation);
             await candidate.AnnounceElectionAsync("AElfin");
             var candidatesList = await candidate.GetCandidatesListAsync();
 
@@ -46,18 +46,18 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_WithoutEnough_Token()
         {
             // The starter transfer not enough token 
-            var candidateInfo = GenerateNewUser();
-            await Starter.TransferTokenAsync(candidateInfo.Item2, 50_000UL);
-            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            var candidateInformation = GenerateNewUser();
+            await Starter.TransferTokenAsync(candidateInformation, 50_000UL);
+            var balance = await Starter.GetBalanceAsync(candidateInformation);
             balance.ShouldBe(50_000UL);
             
             // The candidate announce election.
-            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
+            var candidate = Starter.CreateNewContractTester(candidateInformation);
             var result = await candidate.AnnounceElectionAsync("AElfin");
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Insufficient balance").ShouldBeTrue();
             var candidatesList = await candidate.GetCandidatesListAsync();
-            candidatesList.Values.ToList().Contains(candidateInfo.Item3).ShouldBeFalse();
+            candidatesList.Values.ToList().Contains(candidateInformation).ShouldBeFalse();
         }
 
         [Fact]
@@ -65,23 +65,41 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             // The starter transfer 200_000UL
             var candidateInfo = GenerateNewUser();
-            await Starter.TransferTokenAsync(candidateInfo.Item2, DPoSContractConsts.LockTokenForElection*2);
-            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
+            await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection*2);
+            var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection*2);
             
-            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
-            //announce election 1
-            var result = await candidate.AnnounceElectionAsync("AElfin");
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            var candidate = Starter.CreateNewContractTester(candidateInfo);
             
-            //announce election 2
-            var result1 = await candidate.AnnounceElectionAsync("AElfinAgain");
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            // Announce election.
+            {
+                var result = await candidate.AnnounceElectionAsync("AElfin");
+                result.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
             
-            balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
-            balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
-            var candidatesList = await candidate.GetCandidatesListAsync();
-            candidatesList.Values.ToList().Contains(candidateInfo.Item3).ShouldBeTrue();
+            // Check candidates list.
+            {
+                var candidatesList = await candidate.GetCandidatesListAsync();
+                candidatesList.Values.ToList().Contains(candidateInfo).ShouldBeTrue();
+            }
+
+            // Announce election again.
+            {
+                var result = await candidate.AnnounceElectionAsync("AElfinAgain");
+                result.Status.ShouldBe(TransactionResultStatus.Failed);
+            }
+
+            // Check balance.
+            {
+                balance = await Starter.GetBalanceAsync(candidateInfo);
+                balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
+            }
+            
+            // Check candidate list again.
+            {
+                var candidatesList = await candidate.GetCandidatesListAsync();
+                candidatesList.Values.ToList().Contains(candidateInfo).ShouldBeTrue();
+            }
         }
 
         [Fact]
@@ -89,25 +107,53 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             // The starter transfer a specific amount of tokens to candidate for further testing.
             var candidateInfo = GenerateNewUser();
-            await Starter.TransferTokenAsync(candidateInfo.Item2, DPoSContractConsts.LockTokenForElection);
-            var balance = await Starter.GetBalanceAsync(candidateInfo.Item2);
-            Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
+            await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             
+            // Check balance.
+            {
+                var balance = await Starter.GetBalanceAsync(candidateInfo);
+                Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
+            }
+            
+            var cans = await Starter.GenerateCandidatesAsync(10);
+
+            {
+                var candidatesList = await Starter.GetCandidatesListAsync();
+                var c = await Starter.GetCandidatesAsync();
+            }
+
             // The candidate announce election.
-            var candidate = Starter.CreateNewContractTester(candidateInfo.Item1);
+            var candidate = Starter.CreateNewContractTester(candidateInfo);
+            
             await candidate.AnnounceElectionAsync("AElfin");
-            var candidatesList = await candidate.GetCandidatesListAsync();
-            candidatesList.Values.ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
             
-            //Quit election
-            var result = await candidate.QuitCancelElectionAsync();
+            // Check balance.
+            {
+                var balance = await candidate.GetBalanceAsync(candidateInfo);
+                balance.ShouldBe(0UL);
+            }
+
+            // Check candidates list.
+            {
+                var candidatesList = await candidate.GetCandidatesListAsync();
+                candidatesList.Values.ToList().Contains(candidateInfo).ShouldBeTrue();
+            }
+
+            // Quit election
+            var result = AsyncHelper.RunSync(() => candidate.QuitElectionAsync());
             result.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var candidatesList1 = await candidate.GetCandidatesListAsync();
-            candidatesList1.Values.Contains(candidateInfo.Item3).ShouldBeFalse();
-            
-            var balance1 = await Starter.GetBalanceAsync(candidateInfo.Item2);
-            balance1.ShouldBe(DPoSContractConsts.LockTokenForElection);
+
+            // Check candidates list.
+            {
+                var candidatesList = await candidate.GetCandidatesListAsync();
+                candidatesList.Values.Contains(candidateInfo).ShouldBeFalse();
+            }
+
+            // Check balance.
+            {
+                var balance = await candidate.GetBalanceAsync(candidateInfo);
+                balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
+            }
         }
 
         [Fact]
@@ -136,7 +182,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             var notCandidate = GenerateNewUser();
-            var result = await voter.Vote(notCandidate.Item3, amount, 100);
+            var result = await voter.Vote(notCandidate, amount, 100);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Target didn't announce election.").ShouldBeTrue();
             
@@ -162,13 +208,40 @@ namespace AElf.Contracts.Consensus.DPoS
             
         }
         
-        private static (ECKeyPair, Address, string) GenerateNewUser()
+        private static User GenerateNewUser()
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
             var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
             var callPublicKey = callKeyPair.PublicKey.ToHex();
+
+            return new User
+            {
+                KeyPair = callKeyPair,
+                Address = callAddress,
+                PublicKey = callPublicKey
+            };
+        }
+
+        private struct User
+        {
+            public ECKeyPair KeyPair { get; set; }
+            public Address Address { get; set; }
+            public string PublicKey { get; set; }
+
+            public static implicit operator ECKeyPair(User user)
+            {
+                return user.KeyPair;
+            }
             
-            return (callKeyPair, callAddress, callPublicKey);
+            public static implicit operator Address(User user)
+            {
+                return user.Address;
+            }
+            
+            public static implicit operator string(User user)
+            {
+                return user.PublicKey;
+            }
         }
     }
 }

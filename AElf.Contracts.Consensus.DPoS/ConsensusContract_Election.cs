@@ -30,15 +30,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, DPoSContractConsts.LockTokenForElection);
-
             var candidates = State.CandidatesField.Value;
             if (candidates != null)
             {
-                if (!candidates.PublicKeys.Contains(publicKey))
-                {
-                    candidates.PublicKeys.Add(publicKey);
-                }
+                Assert(!candidates.PublicKeys.Contains(publicKey), "Already announced election.");
+                candidates.PublicKeys.Add(publicKey);
             }
             else
             {
@@ -82,15 +78,27 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
+            State.TokenContract.TransferFrom(Context.Sender, Context.Self, DPoSContractConsts.LockTokenForElection);
+
             return new ActionResult {Success = true};
         }
 
         public ActionResult QuitElection()
         {
-            State.TokenContract.Unlock(Context.Sender, DPoSContractConsts.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
-            candidates.PublicKeys.Remove(Context.RecoverPublicKey().ToHex());
+            
+            Assert(candidates != null, "Candidates list is empty.");
+
+            var publicKey = Context.RecoverPublicKey().ToHex();
+            
+            Assert(candidates != null && candidates.PublicKeys.Remove(publicKey),
+                "Failed to remove this public key from candidates list.");
+
+            Assert(candidates != null && !candidates.PublicKeys.Contains(publicKey), "Failed to remove.");
+
             State.CandidatesField.Value = candidates;
+
+            State.TokenContract.Transfer(Context.Sender, DPoSContractConsts.LockTokenForElection);
 
             return new ActionResult {Success = true};
         }

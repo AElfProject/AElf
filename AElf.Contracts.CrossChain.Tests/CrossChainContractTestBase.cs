@@ -97,7 +97,7 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected async Task<TransactionResult> GetTransactionResult(Hash txId)
         {
-            return await Tester.GetTransactionResult(txId);
+            return await Tester.GetTransactionResultAsync(txId);
         }
 
         protected async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,

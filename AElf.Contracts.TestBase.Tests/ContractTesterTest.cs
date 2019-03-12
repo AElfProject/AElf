@@ -100,7 +100,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             // Check the executing result of txs in new block.
 
-            var txResult = await tester2.GetTransactionResult(tx.GetHash());
+            var txResult = await tester2.GetTransactionResultAsync(tx.GetHash());
 
             Assert.Equal(TransactionResultStatus.Mined, txResult.Status);
         }
@@ -142,7 +142,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             await tester.MineAsync(new List<Transaction> {tx});
 
-            var txResult = await tester.GetTransactionResult(tx.GetHash());
+            var txResult = await tester.GetTransactionResultAsync(tx.GetHash());
 
             Assert.Equal(TransactionResultStatus.Mined, txResult.Status);
         }
