@@ -30,10 +30,12 @@ namespace AElf.Runtime.CSharp
         private int _maxCallDepth = 4;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+        private IServiceContainer<IExecutivePlugin> _executivePlugins;
 
-        public Executive(Module abiModule)
+        public Executive(Module abiModule, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
             _abi = abiModule;
+            _executivePlugins = executivePlugins;
         }
 
         public Hash ContractHash { get; set; }
@@ -90,9 +92,16 @@ namespace AElf.Runtime.CSharp
         public async Task Apply()
         {
             await ExecuteMainTransaction();
-            MaybeInsertFeeTransaction();
+            //MaybeInsertFeeTransaction();
+
+            foreach (var executivePlugin in _executivePlugins)
+            {
+                executivePlugin.AfterApply(_smartContract, 
+                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
+            }
         }
 
+        /*
         public void MaybeInsertFeeTransaction()
         {
             // No insertion of transaction if it's not IFeeChargedContract or it's not top level transaction
@@ -111,7 +120,7 @@ namespace AElf.Runtime.CSharp
                 Params = ByteString.CopyFrom(
                     ParamsPacker.Pack(GetFee(CurrentTransactionContext.Transaction.MethodName)))
             });
-        }
+        }*/
 
         public async Task ExecuteMainTransaction()
         {
@@ -143,7 +152,7 @@ namespace AElf.Runtime.CSharp
                     if (retVal != null)
                     {
                         CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                        CurrentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);                        
+                        CurrentTransactionContext.Trace.ReadableReturnValue = handler.BytesToString(retVal);
                     }
 
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
@@ -182,10 +191,19 @@ namespace AElf.Runtime.CSharp
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 
+        /*
         public ulong GetFee(string methodName)
         {
             var handler = _cache.GetHandler(nameof(IFeeChargedContract.GetMethodFee));
             var retVal = handler.Execute(ParamsPacker.Pack(methodName));
+            handler.BytesToReturnType(retVal);
+            return (ulong) handler.BytesToReturnType(retVal);
+        }*/
+
+        private object ExecuteReadOnlyHandler(string methodName, params object[] objects)
+        {
+            var handler = _cache.GetHandler(methodName);
+            var retVal = handler.Execute(ParamsPacker.Pack(objects));
             handler.BytesToReturnType(retVal);
             return (ulong) handler.BytesToReturnType(retVal);
         }
