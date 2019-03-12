@@ -10,7 +10,7 @@ namespace AElf.Contracts.MultiToken
     {
         public Nothing Create(CreateInput input)
         {
-            Assert(!string.IsNullOrEmpty(input.Symbol) & input.Symbol.All(x => x >= 'A' && x <= 'Z'),
+            Assert(!string.IsNullOrEmpty(input.Symbol) & input.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(!string.IsNullOrEmpty(input.TokenName), "Invalid token name.");
             Assert(input.TotalSupply > 0, "Invalid total supply.");
