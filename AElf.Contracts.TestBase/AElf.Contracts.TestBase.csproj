@@ -21,6 +21,7 @@
     <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    <ProjectReference Include="..\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
   </ItemGroup>

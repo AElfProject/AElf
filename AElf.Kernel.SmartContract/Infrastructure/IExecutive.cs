@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
         void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
-        ulong GetFee(string methodName);
+        //ulong GetFee(string methodName);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         object GetReturnValue(string methodName, byte[] bytes);
 

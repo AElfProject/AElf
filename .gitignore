@@ -266,12 +266,10 @@ __pycache__/
 
 .vs/
 slnx.sqlite
-/AElf.Kernel/MerkleTree.cs
-/AElf.Kernel/MerkleNode.cs
 
 # Generated Protobuf classes
 *.g.cs
-*plugin
+grpc_csharp_plugin
 *Grpc.cs
 
 launchSettings.json
