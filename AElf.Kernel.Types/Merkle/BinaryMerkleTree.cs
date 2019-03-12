@@ -61,7 +61,7 @@ namespace AElf.Kernel
                 return Root;
             if (Nodes.Count == 0)
             {
-                Root = Hash.Zero;
+                Root = Hash.Empty;
                 return Root;
             }
             LeafCount = Nodes.Count;

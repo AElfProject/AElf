@@ -1,4 +1,4 @@
-using AElf.Kernel;
+using AElf.Consensus.DPoS;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.Consensus.DPoS

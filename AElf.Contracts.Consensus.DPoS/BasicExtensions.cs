@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
+using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
@@ -340,7 +340,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return Hash.FromTwoHashes(inValue,
-                round.RealTimeMinersInformation.Values.Aggregate(Hash.Default,
+                round.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
         
@@ -452,7 +452,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
         {
             return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
-                   DPoSContractConsts.DaysEachTerm != termNumber - 1;
+                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
         
         public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 0)

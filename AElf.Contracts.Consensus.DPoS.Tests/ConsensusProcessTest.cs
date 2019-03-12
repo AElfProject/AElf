@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Genesis;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -314,7 +314,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             if (previousInValue == null)
             {
-                previousInValue = Hash.Default;
+                previousInValue = Hash.Empty;
             }
 
             return new DPoSTriggerInformation
