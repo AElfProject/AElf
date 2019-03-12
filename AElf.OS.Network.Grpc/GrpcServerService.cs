@@ -113,7 +113,7 @@ namespace AElf.OS.Network.Grpc
             {
                 await EventBus.PublishAsync(new TransactionsReceivedEvent()
                 {
-                    Transactions = new List<Transaction>() {tx}
+                    Transactions = new List<Transaction> {tx}
                 });
             }
             catch (Exception e)
@@ -138,8 +138,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
-                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an,
-                    GrpcUrl.Parse(context.Peer).ToIpPortFormat()));
+                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
             }
             catch (Exception e)
             {

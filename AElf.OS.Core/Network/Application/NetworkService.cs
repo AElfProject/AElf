@@ -70,13 +70,13 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerAddress = null,
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
             bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
-            if (!string.IsNullOrWhiteSpace(peerAddress))
+            if (!string.IsNullOrWhiteSpace(peerPubKey))
             {
-                IPeer p = _peerPool.FindPeerByAddress(peerAddress);
+                IPeer p = _peerPool.FindPeerByPublicKey(peerPubKey);
 
                 if (p == null)
                 {
@@ -93,7 +93,7 @@ namespace AElf.OS.Network.Application
 
                 if (!tryOthersIfFail)
                 {
-                    Logger.LogWarning($"{peerAddress} does not have block {nameof(tryOthersIfFail)} is false.");
+                    Logger.LogWarning($"{peerPubKey} does not have block {nameof(tryOthersIfFail)} is false.");
                     return null;
                 }
             }
