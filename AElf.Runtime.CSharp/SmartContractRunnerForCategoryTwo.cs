@@ -33,14 +33,18 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
+        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+
         public SmartContractRunnerForCategoryTwo(
             string sdkDir,
+            IServiceContainer<IExecutivePlugin> executivePlugins,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
             _assemblyChecker = new AssemblyChecker(blackList, whiteList);
+            _executivePlugins = executivePlugins;
         }
 
         /// <summary>
@@ -92,7 +96,7 @@ namespace AElf.Runtime.CSharp
 //            }
 
             Executive executive =
-                new Executive(abiModule)
+                new Executive(abiModule, _executivePlugins)
                     .SetSmartContract(instance); //.SetApi(ApiSingleton);
 
             return await Task.FromResult(executive);
