@@ -44,6 +44,11 @@ namespace AElf.CrossChain.Grpc.Client
         {
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext, certificate);
             //client = clientBasicInfo.TargetIsSideChain ? (ClientToSideChain) client : (ClientToParentChain) client;
+            var connectingResult = client.RequestIndexingCall(crossChainCommunicationContext.SelfChainId,
+                ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort);
+            if (!connectingResult)
+                return;
+            
             client.StartDuplexStreamingCall(crossChainCommunicationContext.RemoteChainId, crossChainCommunicationContext.RemoteIsSideChain
                 ? TokenSourceToSideChain.Token
                 : TokenSourceToParentChain.Token);

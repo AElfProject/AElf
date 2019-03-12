@@ -121,7 +121,7 @@ namespace AElf.CrossChain.Grpc.Client
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                using (var call = Call())
+                using (var call = CallWithDuplexStreaming())
                 {
                     while (_channel.State != ChannelState.Ready)
                     {
@@ -151,11 +151,13 @@ namespace AElf.CrossChain.Grpc.Client
                     {
                         await call.RequestStream.CompleteAsync();
                     }
-                } 
+                }
             }
         }
 
-        protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> Call(int milliSeconds = 0);
+        public abstract bool RequestIndexingCall(int chainId, int localListeningPort);
+
+        protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
     }
     
     public class SideChainGrpcClient : CrossChainGrpcClient<ResponseSideChainBlockData>
@@ -167,7 +169,25 @@ namespace AElf.CrossChain.Grpc.Client
             _client = new CrossChainRpc.CrossChainRpcClient(channel);
         }
 
-        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> Call(int milliSeconds = 0)
+        public override bool RequestIndexingCall(int chainId, int localListeningPort)
+        {
+            try
+            {
+                return _client.RequestIndexing(new IndexingRequestMessage
+                {
+                    SideChainId = chainId,
+                    ListeningPort = localListeningPort,
+                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(chainId)
+                    // use formatted chainId as certificate name, which can be changed later.  
+                }).Result;
+            }
+            catch (RpcException)
+            {
+                return false;
+            }
+        }
+
+        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
         {
             return milliSeconds == 0
                 ? _client.RequestSideChainDuplexStreaming()
@@ -184,7 +204,12 @@ namespace AElf.CrossChain.Grpc.Client
             _client = new CrossChainRpc.CrossChainRpcClient(channel);
         }
 
-        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> Call(int milliSeconds = 0)
+        public override bool RequestIndexingCall(int chainId, int localListeningPort)
+        {
+            return false;
+        }
+
+        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
         {
             return milliSeconds == 0
                 ? _client.RequestParentChainDuplexStreaming()
@@ -195,5 +220,6 @@ namespace AElf.CrossChain.Grpc.Client
     public interface IGrpcCrossChainClient
     {
         Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
+        bool RequestIndexingCall(int chainId, int localListeningPort);
     }
 }

@@ -48,7 +48,8 @@ namespace AElf.CrossChain
                     TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                     TargetPort = _grpcCrossChainConfigOption.LocalServerPort,
                     SelfChainId = chainId,
-                    CertificateFileName = _grpcCrossChainConfigOption.LocalCertificateFileName
+                    CertificateFileName = _grpcCrossChainConfigOption.LocalCertificateFileName,
+                    LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
                 }, certificate);
             }
             return Task.CompletedTask;
