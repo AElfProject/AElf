@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using System;
 using System.Linq;
+using AElf.Consensus.DPoS;
 using AElf.Kernel.Consensus.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
