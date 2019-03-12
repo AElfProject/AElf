@@ -57,7 +57,7 @@ namespace AElf.OS.Network
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
 
             return (netServer, grpcPeerPool);
@@ -78,7 +78,7 @@ namespace AElf.OS.Network
             Assert.True(peers1.Count == 0);
 
             await server.Item2.AddPeerAsync("127.0.0.1:6800");
-
+            
             var peers2 = server.Item2.GetPeers();
             Assert.True(peers2.Count == 0);
 

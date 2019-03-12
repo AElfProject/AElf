@@ -33,11 +33,9 @@ namespace AElf.OS.Network.Grpc
 
         public ILocalEventBus EventBus { get; set; }
 
-        public ILogger<GrpcServerService> Logger { get; set; }
+        public ILogger<GrpcServerService> Logger { get; set; }    
         
         private string _localPubKey;
-        
-
         private string LocalPublickey
         {
             get

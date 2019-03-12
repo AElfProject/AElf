@@ -73,7 +73,7 @@ namespace AElf.OS.Network
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
 
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
 
             return (netServer, grpcPeerPool);

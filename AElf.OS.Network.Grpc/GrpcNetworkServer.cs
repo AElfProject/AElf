@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,7 @@ namespace AElf.OS.Network.Grpc
         private readonly NetworkOptions _networkOptions;
 
         private readonly PeerService.PeerServiceBase _serverService;
+        private readonly AuthInterceptor _authInterceptor;
 
         private Server _server;
 
@@ -26,9 +28,10 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
         public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
-            IPeerPool peerPool)
+            IPeerPool peerPool, AuthInterceptor authInterceptor)
         {
             _serverService = serverService;
+            _authInterceptor = authInterceptor;
             PeerPool = peerPool;
             _networkOptions = options.Value;
 
@@ -38,9 +41,14 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
+
+            if (_authInterceptor != null)
+                serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
+            
             _server = new Server
             {
-                Services = {PeerService.BindService(_serverService)},
+                Services = { serviceDefinition },
                 Ports =
                 {
                     new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
