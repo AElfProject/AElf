@@ -193,13 +193,40 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Vote_Candidate_Without_Enough_Token()
         {
+            const ulong amount = 100;
+            const ulong voteAmount = 200;
+            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
+            var voter = Starter.GenerateVoters(1)[0];
+            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+
+            var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.Contains("Insufficient balance.").ShouldBeTrue();
             
+            var ticketsOfVoter = await voter.GetTicketsInformationAsync();
+            ticketsOfVoter.VotedTickets.ShouldBe(0UL);
         }
 
         [Fact]
         public async Task Vote_Same_Candidate_MultipleTimes()
         {
+            const ulong amount = 1000;
+            const ulong voteAmount = 200;
+            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
+            var voter = Starter.GenerateVoters(1)[0];
+            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+
+            for (int i = 0; i < 5; i++)
+            {
+                var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
+                txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
             
+            var ticketsOfVoter = await voter.GetTicketsInformationAsync();
+            ticketsOfVoter.VotedTickets.ShouldBe(1000UL);
+
+            var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
+            balance.ShouldBe(0UL);
         }
 
         [Fact]
