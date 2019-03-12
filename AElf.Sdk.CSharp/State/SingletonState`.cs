@@ -19,6 +19,8 @@ namespace AElf.Sdk.CSharp.State
         private TEntity _originalValue;
         private TEntity _value;
 
+        private bool _isSet = false;
+
         public TEntity Value
         {
             get
@@ -32,6 +34,7 @@ namespace AElf.Sdk.CSharp.State
             }
             set
             {
+                _isSet = true;
                 if (!Loaded)
                 {
                     Load();
@@ -59,7 +62,7 @@ namespace AElf.Sdk.CSharp.State
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
-            if (!Equals(_originalValue, _value))
+            if (!Equals(_originalValue, _value) || (_isSet && _value != null))
             {
                 stateSet.Writes[Path.ToStateKey()] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
