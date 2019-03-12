@@ -39,15 +39,8 @@ namespace AElf.CrossChain.Grpc.Server
                     new ServerPort(localServerIP, localServerPort, new SslServerCredentials(new List<KeyCertificatePair> {keyCert}))
                 }
             };
-            try
-            {
-                _server.Start();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            await Task.Run(() => _server.Start());
+            
             Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
         }
 

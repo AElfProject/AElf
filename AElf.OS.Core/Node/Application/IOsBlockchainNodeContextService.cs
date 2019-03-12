@@ -101,15 +101,15 @@ namespace AElf.OS.Node.Application
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
         private ISmartContractAddressService _smartContractAddressService;
-        private readonly IEnumerable<IChainPlugin> _chainPlugins;
+        private readonly IEnumerable<INodePlugin> _nodePlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService, IEnumerable<IChainPlugin> chainPlugins)
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService, IEnumerable<INodePlugin> nodePlugins)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
             _smartContractAddressService = smartContractAddressService;
-            _chainPlugins = chainPlugins;
+            _nodePlugins = nodePlugins;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -139,10 +139,11 @@ namespace AElf.OS.Node.Application
             };
             
             context.AElfNetworkServer = _networkServer;
+            context.NodePlugins = _nodePlugins;
 
             await _networkServer.StartAsync();
 
-            foreach (var chainPlugin in _chainPlugins)
+            foreach (var chainPlugin in _nodePlugins)
             {
                 var task = chainPlugin.StartAsync(dto.ChainId);
             }
