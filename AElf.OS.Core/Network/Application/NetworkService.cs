@@ -103,8 +103,8 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        //TODO: Add GetBlockAsync from specified peer address case [Case]
-        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerAddress = null,
+        //TODO: Add GetBlockAsync from specified peerPubKey case [Case]
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
             bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
