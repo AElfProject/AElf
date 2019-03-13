@@ -1,6 +1,7 @@
 ﻿using System;
 using Xunit;
 using Google.Protobuf;
+using Shouldly;
 
 namespace AElf.Types.CSharp.Tests
 {
@@ -31,6 +32,23 @@ namespace AElf.Types.CSharp.Tests
             Assert.Equal(serialized, ParamsPacker.Pack(
                 objs
             ));
+        }
+
+        [Fact]
+        public void UserType_PackTest()
+        {
+            var userTypeObj = new PersonalData()
+            {
+                Name = "Eric",
+                Sex = "Male" 
+            };
+            var packData = ParamsPacker.Pack(userTypeObj);
+            packData.ShouldNotBeNull();
+
+            var unpackObj = ParamsPacker.Unpack(packData, new Type[]{typeof(PersonalData)});
+            unpackObj.Length.ShouldBe(1);
+            var userTypeObj1 = unpackObj[0] as PersonalData;
+            userTypeObj.ShouldBe(userTypeObj1);
         }
     }
 }

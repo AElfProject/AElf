@@ -143,6 +143,7 @@ namespace AElf.OS.Network.Grpc
             return new BlockReply { Block = block };
         }
 
+        //TODO: Add case to cover RequestBlocks [Case]
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
             if (request == null)
