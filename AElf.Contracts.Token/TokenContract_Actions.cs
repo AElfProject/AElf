@@ -53,7 +53,10 @@ namespace AElf.Contracts.Token
 
         public void Unlock(Address to, ulong amount)
         {
-            DoTransfer(Context.Sender, to, amount);
+            if (Context.Sender == State.ConsensusContractAddress.Value)
+            {
+                DoTransfer(Context.Sender, to, amount);
+            }
         }
 
         public void Approve(Address spender, ulong amount)
