@@ -109,20 +109,18 @@ namespace AElf.Contracts.Consensus.DPoS
             // The starter transfer a specific amount of tokens to candidate for further testing.
             var candidateInfo = GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
-            
+
             // Check balance.
             {
                 var balance = await Starter.GetBalanceAsync(candidateInfo);
                 Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
             }
 
-            await Starter.GenerateCandidatesAsync(10);
-
             // The candidate announce election.
             var candidate = Starter.CreateNewContractTester(candidateInfo);
-            
+
             await candidate.AnnounceElectionAsync("AElfin");
-            
+
             // Check balance.
             {
                 var balance = await candidate.GetBalanceAsync(candidateInfo);
@@ -162,9 +160,6 @@ namespace AElf.Contracts.Consensus.DPoS
             
             // The candidate announce election.
             var candidate = Starter.CreateNewContractTester(candidateInfo);
-            await candidate.AnnounceElectionAsync("AElfin");
-            var candidatesList = await candidate.GetCandidatesListAsync();
-            candidatesList.Values.ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
             
             //select another account ,and quit election
             candidateInfo = GenerateNewUser();

@@ -91,6 +91,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var publicKey = Context.RecoverPublicKey().ToHex();
             
+            Assert(candidates != null &&  candidates.PublicKeys.Contains(publicKey), "Not announced.");
+            
             Assert(candidates != null && candidates.PublicKeys.Remove(publicKey),
                 "Failed to remove this public key from candidates list.");
 

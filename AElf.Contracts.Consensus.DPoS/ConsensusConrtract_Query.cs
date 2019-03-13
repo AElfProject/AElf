@@ -36,10 +36,11 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public StringList GetCandidatesList()
         {
-            return new StringList
+            var list = new StringList
             {
                 Values = {State.CandidatesField.Value.PublicKeys.ToList()}
             };
+            return list;
         }
 
         public Candidates GetCandidates()
