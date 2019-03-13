@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Xunit;
 using AElf.Common;
+using Google.Protobuf;
 using Shouldly;
 
 namespace AElf.Types.Tests
@@ -65,6 +66,17 @@ namespace AElf.Types.Tests
             enCode.ShouldNotBe(string.Empty);
             var deCode = Base58CheckEncoding.DecodePlain(enCode);
             deCode.ShouldBe(data);
+        }
+
+        [Fact]
+        public void EncodePlan_And_DecodePlain_ByteString()
+        {
+            var bs = ByteString.CopyFromUtf8("test byte string");
+            var encodeMessage = Base58CheckEncoding.EncodePlain(bs);
+
+            var decodeMessage = Base58CheckEncoding.DecodePlain(encodeMessage);
+            var bs1 = ByteString.CopyFrom(decodeMessage);
+            bs.ShouldBe(bs1);
         }
     }
 }

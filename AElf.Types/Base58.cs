@@ -61,7 +61,7 @@ namespace AElf.Common
         /// </summary>
         /// <param name="data">The data to be encoded</param>
         /// <returns></returns>
-        public static string EncodePlain(ByteString data) //Todo Add case to cover EncodePlain
+        public static string EncodePlain(ByteString data)
         {
             // Decode byte[] to BigInteger
             var intData = data.Aggregate<byte, BigInteger>(0, (current, t) => current * 256 + t);
