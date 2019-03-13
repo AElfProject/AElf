@@ -30,5 +30,6 @@
     <Folder Include="SmartContractExecution\Application" />
     <Folder Include="SmartContract\Application" />
     <Folder Include="TransactionPool\Application" />
+    <Folder Include="TransactionPool\Infrastructure" />
   </ItemGroup>
 </Project>
