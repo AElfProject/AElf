@@ -9,6 +9,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -51,7 +52,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                var peer = _authenticatedPeers.FirstOrDefault(p => p.Key == address).Value;
+                var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerIpAddress == address).Value;
 
                 if (peer == null)
                 {
@@ -68,9 +69,10 @@ namespace AElf.OS.Network.Grpc
                     Logger.LogError(e, $"Error sending disconnect peer {address}.");
                 }
                 
+                // todo factor
                 await peer.StopAsync();
 
-                return _authenticatedPeers.TryRemove(peer.PeerAddress, out _);
+                return _authenticatedPeers.TryRemove(peer.PubKey, out _);
             }
             catch (Exception e)
             {
@@ -79,16 +81,20 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        private async Task<bool> DialAsync(string address)
+        private async Task<bool> DialAsync(string ipAddress)
         {
             try
             {
-                Logger.LogTrace($"Attempting to reach {address}.");
+                Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
-                var splitAddress = address.Split(":");
-                Channel channel = new Channel(splitAddress[0], int.Parse(splitAddress[1]), ChannelCredentials.Insecure);
+                Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure);
 
-                var client = new PeerService.PeerServiceClient(channel);
+                var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
+                {
+                    metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                    return metadata;
+                }));
+                
                 var hsk = await BuildHandshakeAsync();
 
                 if (channel.State == ChannelState.TransientFailure)
@@ -98,47 +104,66 @@ namespace AElf.OS.Network.Grpc
                         DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
                 }
 
-                AuthResponse resp = null;
+                ConnectReply connectReply;
                 
                 try
                 {
-                    resp = await client.ConnectAsync(hsk,
+                    connectReply = await client.ConnectAsync(hsk,
                         new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
-                    // cleanup essentially for testing
                     await channel.ShutdownAsync();
+                    Logger.LogError(e, $"Could not connect to {ipAddress}.");
+                    return false;
                 }
 
                 // todo refactor so that connect returns the handshake and we'll check here 
-                // todo if not correct we kill the channel. 
-
-                if (resp == null || resp.Success != true)
+                // todo if not correct we kill the channel.
+                if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
+                {
+                    Logger.LogWarning($"Incorrect handshake for {ipAddress}.");
+                    await channel.ShutdownAsync();
                     return false;
+                }
 
-                var peer = new GrpcPeer(channel, client, null, address, resp.Port);
+                // todo injector 
+                var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
+                var peer = new GrpcPeer(channel, client, pubKey, ipAddress);
+
+                if (!_authenticatedPeers.TryAdd(pubKey, peer))
+                {
+                    Logger.LogWarning($"Peer {pubKey} is already in list.");
+                    await channel.ShutdownAsync();
+                    return false;
+                }
                 
                 peer.DisconnectionEvent += PeerOnDisconnectionEvent;
-                _authenticatedPeers[address] = peer;
 
-                Logger.LogTrace($"Connected to {address}.");
+                Logger.LogTrace($"Connected to {pubKey} ({ipAddress}).");
 
                 return true;
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Error while connection to {address}.");
+                Logger.LogError(e, $"Error while connection to {ipAddress}.");
                 return false;
             }
         }
 
         private void PeerOnDisconnectionEvent(object sender, EventArgs e)
         {
-            if (sender is GrpcPeer p && _authenticatedPeers.TryRemove(p.PeerAddress, out GrpcPeer removed))
+            if (!(sender is GrpcPeer p)) 
+                return;
+            
+            if (_authenticatedPeers.TryRemove(p.PubKey, out GrpcPeer removed))
             {
                 removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
-                Logger.LogDebug($"Removed peer {removed.PublicKey.ToHex()} - {removed}");
+                Logger.LogDebug($"Removed peer {removed.PubKey} - {removed}");
+            }
+            else
+            {
+                Logger.LogDebug($"Removed peer {p.PubKey}");
             }
         }
 
@@ -155,33 +180,25 @@ namespace AElf.OS.Network.Grpc
         public IPeer FindPeerByAddress(string peerAddress)
         {
             return _authenticatedPeers
-                .Where(p => p.Value.PeerAddress == peerAddress || peerAddress.EndsWith(p.Value.RemoteEndpoint))
+                .Where(p => p.Value.PeerIpAddress == peerAddress)
                 .Select(p => p.Value)
                 .FirstOrDefault();
         }
 
-        public IPeer FindPeerByPublicKey(byte[] publicKey)
+        public IPeer FindPeerByPublicKey(string publicKey)
         {
-            return _authenticatedPeers.Where(p => publicKey.BytesEqual(p.Value.PublicKey))
-                .Select(p => p.Value)
-                .FirstOrDefault();
+            _authenticatedPeers.TryGetValue(publicKey, out GrpcPeer p);
+            return p;
         }
 
-        public bool IsAuthenticatePeer(string peerAddress, Handshake handshake)
+        public bool IsAuthenticatePeer(string remotePubKey)
         {
-            var pubKey = handshake.HskData.PublicKey.ToByteArray();
-            if (pubKey.BytesEqual(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync)))
+            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
+            
+            if (remotePubKey == localPubKey)
                 return false;
 
-            var alreadyConnected = _authenticatedPeers
-                .Where(p => p.Value.PeerAddress == peerAddress || pubKey.BytesEqual(p.Value.PublicKey))
-                .Select(p => p.Value)
-                .FirstOrDefault();
-
-            if (alreadyConnected != null)
-                return false;
-
-            return true;
+            return FindPeerByPublicKey(remotePubKey) == null;
         }
 
         public bool AddPeer(IPeer peer)
@@ -189,7 +206,12 @@ namespace AElf.OS.Network.Grpc
             if (!(peer is GrpcPeer p)) 
                 return false;
             
-            _authenticatedPeers[peer.PeerAddress] = p;
+            if (!_authenticatedPeers.TryAdd(p.PubKey, p))
+            {
+                Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.PeerIpAddress})");
+                return false;
+            }
+            
             p.DisconnectionEvent += PeerOnDisconnectionEvent;
             
             return true;
@@ -221,12 +243,12 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public async Task ProcessDisconnection(string peerEndpoint)
-        {
-            var p = _authenticatedPeers.FirstOrDefault(pr => pr.Value.RemoteEndpoint == peerEndpoint);
-            
-            if (_authenticatedPeers.TryRemove(p.Key, out GrpcPeer peer))
+        public async Task ProcessDisconnection(string pubKey)
+        {            
+            if (_authenticatedPeers.TryRemove(pubKey, out GrpcPeer peer))
             {
+                // todo factor
+                peer.DisconnectionEvent -= PeerOnDisconnectionEvent;
                 await peer.StopAsync();
             }
         }

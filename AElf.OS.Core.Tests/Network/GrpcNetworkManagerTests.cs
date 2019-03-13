@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,6 +29,8 @@ namespace AElf.OS.Network
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
 
+        private List<GrpcNetworkServer> _servers = new List<GrpcNetworkServer>();
+
         public GrpcNetworkManagerTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
@@ -35,6 +38,16 @@ namespace AElf.OS.Network
             var optionsMock = new Mock<IOptionsSnapshot<ChainOptions>>();
             optionsMock.Setup(m => m.Value).Returns(new ChainOptions {ChainId = ChainHelpers.GetRandomChainId()});
             _optionsMock = optionsMock.Object;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var server in _servers)
+            {
+                AsyncHelper.RunSync(() => server.StopAsync(false));
+            }
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions,
@@ -68,19 +81,20 @@ namespace AElf.OS.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
 
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object,
-                NetMockHelpers.MockAccountService().Object, mockBlockService.Object);
-            GrpcServerService serverService =
-                new GrpcServerService(grpcPeerPool, mockBlockService.Object);
+            var accountService = NetMockHelpers.MockAccountService().Object;
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, accountService, mockBlockService.Object);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
 
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
+            
+            _servers.Add(netServer);
 
             return (netServer, grpcPeerPool);
         }
 
-        [Fact(Skip="ToDebug")]
+        [Fact]
         private async Task Multi_Connect()
         {
             var r = new List<(GrpcNetworkServer, IPeerPool)>();
