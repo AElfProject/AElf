@@ -25,6 +25,14 @@ namespace AElf.Runtime.CSharp
                     option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(), option.Value.BlackList,
                     option.Value.WhiteList);
             });
+            
+            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryTen>(provider =>
+            {
+                var option = provider.GetService<IOptions<RunnerOptions>>();
+                return new SmartContractRunnerForCategoryTen(
+                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(), option.Value.BlackList,
+                    option.Value.WhiteList);
+            });
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
