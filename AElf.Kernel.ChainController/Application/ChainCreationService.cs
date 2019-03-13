@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Helpers;
 using AElf.Kernel.KernelAccount;
@@ -23,14 +24,17 @@ namespace AElf.Kernel.ChainController.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService)
+        public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
+            IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
+            _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -52,16 +56,11 @@ namespace AElf.Kernel.ChainController.Application
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     ChainId = _blockchainService.GetChainId()
                 };
-
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
-
-                await _blockchainService.CreateChainAsync(block);
-
-                await LocalEventBus.PublishAsync(new BestChainFoundEventData
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = 1
-                });
+                
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions); 
+                var chain = await _blockchainService.CreateChainAsync(block);
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
+                    BlockAttachOperationStatus.LongestChainFound);
                     
                 return await _blockchainService.GetChainAsync();
             }
