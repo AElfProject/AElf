@@ -288,6 +288,37 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
+        public async Task Vote_Lock_Days_Illegal()
+        {
+            const ulong amount = 1000;
+            const ulong voteAmount = 200;
+            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
+            var voter = Starter.GenerateVoters(1)[0];
+            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+            
+            var txResult1 = await voter.Vote(candidate.PublicKey, voteAmount, 89);
+            txResult1.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult1.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
+            
+            var txResult2 = await voter.Vote(candidate.PublicKey, voteAmount, 1096);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult2.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Vote_By_Candidate()
+        {
+            const ulong amount = 1000;
+            const ulong voteAmount = 200;
+            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
+            await Starter.TransferTokenAsync(candidate.GetCallOwnerAddress(), amount);
+            
+            var txResult = await candidate.Vote(candidate.PublicKey, voteAmount, 90);
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
+        }
+
+        [Fact]
         public async Task IsCandidate_Success()
         {
             var candidateLists = await Starter.GenerateCandidatesAsync(2);
@@ -301,7 +332,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.IsCandidate), candidateLists[0].PublicKey);
             candidateResult1.DeserializeToBool().ShouldBeTrue();
         }
-
+        
         private static User GenerateNewUser()
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
