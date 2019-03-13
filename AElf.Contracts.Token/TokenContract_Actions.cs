@@ -36,17 +36,24 @@ namespace AElf.Contracts.Token
         public void TransferFrom(Address from, Address to, ulong amount)
         {
             var allowance = State.Allowances[from][Context.Sender];
-            
-            if (to == State.ConsensusContractAddress.Value)
-            {
-                DoTransfer(from, to, amount);
-                return;
-            }
-
             Assert(allowance >= amount, $"Insufficient allowance.");
 
             DoTransfer(from, to, amount);
             State.Allowances[from][Context.Sender] = allowance.Sub(amount);
+        }
+
+        public void Lock(Address from, ulong amount)
+        {
+            // Consensus contract can transfer user's token to its address to lock tokens.
+            if (Context.Sender == State.ConsensusContractAddress.Value)
+            {
+                DoTransfer(from, Context.Sender, amount);
+            }
+        }
+
+        public void Unlock(Address to, ulong amount)
+        {
+            DoTransfer(Context.Sender, to, amount);
         }
 
         public void Approve(Address spender, ulong amount)

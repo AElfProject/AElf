@@ -9,6 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
+    // ReSharper disable UnusedMember.Global
     public partial class ConsensusContract
     {
         private ulong CurrentAge => State.AgeField.Value;
@@ -78,7 +79,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, DPoSContractConsts.LockTokenForElection);
+            State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
 
             return new ActionResult {Success = true};
         }
@@ -100,7 +101,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.CandidatesField.Value = candidates;
 
-            State.TokenContract.Transfer(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            State.TokenContract.Unlock(Context.Sender, DPoSContractConsts.LockTokenForElection);
 
             return new ActionResult {Success = true};
         }
@@ -123,7 +124,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 DPoSContractConsts.CandidateCannotVote);
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
+            State.TokenContract.Lock(Context.Sender, amount);
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
@@ -248,7 +249,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if ((votingRecord.UnlockAge <= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
                 {
-                    State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
+                    State.TokenContract.Unlock(Context.Sender, votingRecord.Count);
                     State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
 
                     var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
@@ -305,7 +306,7 @@ namespace AElf.Contracts.Consensus.DPoS
                             continue;
                         }
 
-                        State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
+                        State.TokenContract.Unlock(Context.Sender, votingRecord.Count);
                         State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
 
                         var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
