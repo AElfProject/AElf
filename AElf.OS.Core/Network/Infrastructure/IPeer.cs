@@ -7,7 +7,8 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeer
     {
-        string PeerAddress { get; }
+        string PeerIpAddress { get; }
+        string PubKey { get; }
         Hash CurrentBlockHash { get; set; }
         long CurrentBlockHeight { get; set; }
         

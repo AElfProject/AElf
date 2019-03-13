@@ -21,15 +21,15 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<IBlockchainExecutingService>(p =>
-            {
-                var mockExec = new Mock<IBlockchainExecutingService>();
-                mockExec.Setup(exec =>
-                        exec.ExecuteBlocksAttachedToLongestChain(It.IsAny<Chain>(),
-                            It.IsAny<BlockAttachOperationStatus>()))
-                    .Returns<Chain, BlockAttachOperationStatus>((c, a) => Task.FromResult(new List<ChainBlockLink>()));
-                return mockExec.Object;
-            });
+//            context.Services.AddTransient<IBlockchainExecutingService>(p =>
+//            {
+//                var mockExec = new Mock<IBlockchainExecutingService>();
+//                mockExec.Setup(exec =>
+//                        exec.ExecuteBlocksAttachedToLongestChain(It.IsAny<Chain>(),
+//                            It.IsAny<BlockAttachOperationStatus>()))
+//                    .Returns<Chain, BlockAttachOperationStatus>((c, a) => Task.FromResult(new List<ChainBlockLink>()));
+//                return mockExec.Object;
+//            });
 
             context.Services.AddTransient<ForkDownloadJob>();
 
