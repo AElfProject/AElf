@@ -30,7 +30,6 @@
     <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.4.3" />
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.14.0" />
     <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />

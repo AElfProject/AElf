@@ -2,7 +2,9 @@
 using System.IO;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Types.CSharp.Tests;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using Shouldly;
 using Xunit;
 
@@ -68,6 +70,19 @@ namespace AElf.Types.CSharp
             var encoded = ReturnTypeHelper.GetEncoder<byte[]>()(bytes);
             var decoded = ReturnTypeHelper.GetEncoder<byte[]>()(encoded);
             decoded.ShouldBe(bytes);
+        }
+
+        [Fact]
+        public void GetStringConverter_From_UserType()
+        {
+            var convertResult = ReturnTypeHelper.GetStringConverter<PersonalData>();
+            var userData = new PersonalData{ Name = "Lily", Sex = "Female"};
+
+            var result = convertResult(userData);
+            result.ShouldBe(userData.Pack().ToString());
+
+            result = convertResult(null);
+            result.ShouldBeNull();
         }
     }
 }

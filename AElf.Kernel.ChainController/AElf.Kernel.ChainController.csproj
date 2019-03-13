@@ -3,9 +3,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
