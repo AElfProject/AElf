@@ -188,5 +188,19 @@ namespace AElf.Kernel
             await check3_2();
 
         }
+
+        [Fact]
+        public async Task TestState_MergedSituation()
+        {
+            int chainId = 1;
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+            chainStateInfo.MergingBlockHash = _tv[1].BlockHash;
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+            
+            chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
+            chainStateInfo.MergingBlockHash.ShouldBeNull();
+        }
     }
 }
