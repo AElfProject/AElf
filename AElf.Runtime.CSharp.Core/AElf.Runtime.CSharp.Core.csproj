@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.Protobuf" Version="3.6.1" />
       <PackageReference Include="Mono.Cecil" Version="0.10.3" />
       <PackageReference Include="Hyperion" Version="0.9.8" />
 
