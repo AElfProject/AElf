@@ -218,7 +218,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var notCandidate = GenerateNewUser();
             var result = await voter.Vote(notCandidate, amount, 100);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains().ShouldBeTrue();
+            result.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
             
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
             balance.ShouldBe(amount);
