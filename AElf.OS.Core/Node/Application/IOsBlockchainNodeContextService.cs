@@ -35,6 +35,8 @@ namespace AElf.OS.Node.Application
         public Transaction[] InitializationTransactions { get; set; }
 
         public Type ZeroSmartContract { get; set; }
+
+        public int SmartContractRunnerCategory { get; set; } = 2; //TODO: change to 0
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -113,11 +115,13 @@ namespace AElf.OS.Node.Application
         {
             var transactions = new List<Transaction>();
 
-            transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty));
+            transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty,
+                dto.SmartContractRunnerCategory));
 
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
-                    GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName)));
+                    GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName,
+                        dto.SmartContractRunnerCategory)));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -134,7 +138,7 @@ namespace AElf.OS.Node.Application
                 BlockchainNodeContext =
                     await _blockchainNodeContextService.StartAsync(blockchainNodeContextStartDto)
             };
-            
+
             context.AElfNetworkServer = _networkServer;
 
             await _networkServer.StartAsync();
@@ -143,7 +147,8 @@ namespace AElf.OS.Node.Application
         }
 
 
-        private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName)
+        private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName,
+            int category)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var code = File.ReadAllBytes(contractType.Assembly.Location);
@@ -154,7 +159,7 @@ namespace AElf.OS.Node.Application
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, 2, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code))
             };
         }
 

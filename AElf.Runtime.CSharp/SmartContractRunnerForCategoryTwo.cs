@@ -52,7 +52,7 @@ namespace AElf.Runtime.CSharp
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
-        private ContractCodeLoadContext GetLoadContext()
+        protected virtual AssemblyLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
             return new ContractCodeLoadContext(_sdkStreamManager);
@@ -64,7 +64,7 @@ namespace AElf.Runtime.CSharp
 
             var code = reg.Code.ToByteArray();
 
-            var loadContext = AssemblyLoadContext.Default; //GetLoadContext();
+            var loadContext = GetLoadContext();
 
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
