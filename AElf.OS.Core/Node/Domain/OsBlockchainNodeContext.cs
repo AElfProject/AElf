@@ -10,7 +10,5 @@ namespace AElf.OS.Node.Domain
         public BlockchainNodeContext BlockchainNodeContext { get; set; }
         
         public IAElfNetworkServer AElfNetworkServer { get; set; }
-        
-        public IEnumerable<INodePlugin> NodePlugins { get; set; }
     }
 }

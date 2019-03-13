@@ -1,3 +1,4 @@
+using System;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
@@ -6,6 +7,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
+using SideChain = AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -69,7 +71,11 @@ namespace AElf.Launcher
         {
             context.Services.SetConfiguration(Configuration);
 
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(Configuration["ChainId"]));
+            Configure<ChainOptions>(option =>
+            {
+                option.ChainId = ChainHelpers.ConvertBase58ToChainId(Configuration["ChainId"]);
+                option.IsMainChain = Convert.ToBoolean(Configuration["IsMainChain"]);
+            });
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -90,7 +96,15 @@ namespace AElf.Launcher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
+            if (chainOptions.IsMainChain)
+                dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                    ConsensusSmartContractAddressNameProvider.Name);
+            else
+            {
+                dto.InitializationSmartContracts.AddGenesisSmartContract(typeof(SideChain.ConsensusContract));
+                ConsensusSmartContractAddressNameProvider.Name = Hash.FromString(typeof(SideChain.ConsensusContract).FullName);
+            }
+            
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);

@@ -46,9 +46,9 @@ namespace AElf.CrossChain
                     RemoteChainId = ChainHelpers.ConvertBase58ToChainId(_crossChainConfigOption.ParentChainId),
                     RemoteIsSideChain = false,
                     TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                    TargetPort = _grpcCrossChainConfigOption.LocalServerPort,
+                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                     SelfChainId = chainId,
-                    CertificateFileName = _grpcCrossChainConfigOption.LocalCertificateFileName,
+                    CertificateFileName = _grpcCrossChainConfigOption.RemoteParentCertificateFileName,
                     LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
                 }, certificate);
             }

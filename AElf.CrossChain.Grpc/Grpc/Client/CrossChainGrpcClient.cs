@@ -68,7 +68,7 @@ namespace AElf.CrossChain.Grpc.Client
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
             });
-
+    
             return responseReaderTask;
         }
 
@@ -171,20 +171,7 @@ namespace AElf.CrossChain.Grpc.Client
 
         public override bool RequestIndexingCall(int chainId, int localListeningPort)
         {
-            try
-            {
-                return _client.RequestIndexing(new IndexingRequestMessage
-                {
-                    SideChainId = chainId,
-                    ListeningPort = localListeningPort,
-                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(chainId)
-                    // use formatted chainId as certificate name, which can be changed later.  
-                }).Result;
-            }
-            catch (RpcException)
-            {
-                return false;
-            }
+            return false;
         }
 
         protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
@@ -206,7 +193,20 @@ namespace AElf.CrossChain.Grpc.Client
 
         public override bool RequestIndexingCall(int chainId, int localListeningPort)
         {
-            return false;
+            try
+            {
+                return _client.RequestIndexing(new IndexingRequestMessage
+                {
+                    SideChainId = chainId,
+                    ListeningPort = localListeningPort,
+                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(chainId)
+                    // use formatted chainId as certificate name, which can be changed later.  
+                }).Result;
+            }
+            catch (RpcException)
+            {
+                return false;
+            }
         }
 
         protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
