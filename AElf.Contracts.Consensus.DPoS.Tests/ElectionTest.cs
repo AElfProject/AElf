@@ -163,9 +163,10 @@ namespace AElf.Contracts.Consensus.DPoS
             
             //select another account ,and quit election
             candidateInfo = GenerateNewUser();
+            candidate = Starter.CreateNewContractTester(candidateInfo);
             var result = await candidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("").ShouldBeTrue();
+            result.Error.Contains("Failed to remove this public key from candidates list.").ShouldBeTrue();
             
             balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(0UL);
