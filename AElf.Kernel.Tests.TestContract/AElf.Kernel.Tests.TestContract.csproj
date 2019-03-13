@@ -4,9 +4,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.6.1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
   </ItemGroup>
 </Project>
