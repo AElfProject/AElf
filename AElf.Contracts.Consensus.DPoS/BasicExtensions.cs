@@ -3,12 +3,86 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     public static class BasicExtensions
     {
+        public static ConsensusCommand GetConsensusCommand(this DPoSBehaviour behaviour, Round round,
+            MinerInRound minerInRound, int miningInterval, Timestamp timestamp, bool isBootMiner)
+        {
+            switch (behaviour)
+            {
+                case DPoSBehaviour.InitialConsensus:
+                    return new ConsensusCommand
+                    {
+                        // For now, only if one node configured himself as a boot miner can he actually create the first block,
+                        // which block height is 2.
+                        CountingMilliseconds = isBootMiner
+                            ? DPoSContractConsts.BootMinerWaitingMilliseconds
+                            : int.MaxValue,
+                        // No need to limit the mining time for the first block a chain.
+                        TimeoutMilliseconds = int.MaxValue,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                case DPoSBehaviour.UpdateValue:
+                    var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
+
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime())
+                            .TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                case DPoSBehaviour.NextRound:
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds =
+                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, timestamp).ToDateTime() -
+                                   timestamp.ToDateTime()).TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                case DPoSBehaviour.NextTerm:
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds =
+                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, timestamp).ToDateTime() -
+                                   timestamp.ToDateTime()).TotalMilliseconds,
+                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                case DPoSBehaviour.Invalid:
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds = int.MaxValue,
+                        TimeoutMilliseconds = 0,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         /// <summary>
         /// This method is only executable when the miners of this round is more than 1.
         /// </summary>
