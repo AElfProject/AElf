@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -36,7 +37,7 @@ namespace AElf.OS.Network.Application
 
         public List<string> GetPeers()
         {
-            return _peerPool.GetPeers().Select(p => p.PeerAddress).ToList();
+            return _peerPool.GetPeers().Select(p => p.PeerIpAddress).ToList();
         }
 
         public async Task BroadcastAnnounceAsync(BlockHeader blockHeader)
@@ -48,7 +49,7 @@ namespace AElf.OS.Network.Application
                     await peer.AnnounceAsync(new PeerNewBlockAnnouncement
                         {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
                     Logger.LogError(e, "Error while sending block."); // todo improve
                 }
@@ -63,20 +64,20 @@ namespace AElf.OS.Network.Application
                 {
                     await peer.SendTransactionAsync(tx);
                 }
-                catch (Exception e)
+                catch (RpcException e)
                 {
                     Logger.LogError(e, "Error while sending transaction."); // todo improve
                 }
             }
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerAddress = null,
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
             bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
-            if (!string.IsNullOrWhiteSpace(peerAddress))
+            if (!string.IsNullOrWhiteSpace(peerPubKey))
             {
-                IPeer p = _peerPool.FindPeerByAddress(peerAddress);
+                IPeer p = _peerPool.FindPeerByPublicKey(peerPubKey);
 
                 if (p == null)
                 {
@@ -93,7 +94,7 @@ namespace AElf.OS.Network.Application
 
                 if (!tryOthersIfFail)
                 {
-                    Logger.LogWarning($"{peerAddress} does not have block {nameof(tryOthersIfFail)} is false.");
+                    Logger.LogWarning($"{peerPubKey} does not have block {nameof(tryOthersIfFail)} is false.");
                     return null;
                 }
             }
@@ -164,9 +165,9 @@ namespace AElf.OS.Network.Application
             {
                 return await peer.RequestBlockAsync(hash);
             }
-            catch (Exception e)
+            catch (RpcException e)
             {
-                Logger.LogError(e, $"Error while requesting block from {peer.PeerAddress}.");
+                Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
                 return null;
             }
         }

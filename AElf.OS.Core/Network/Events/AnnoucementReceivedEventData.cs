@@ -1,15 +1,13 @@
-using AElf.Kernel;
-
 namespace AElf.OS.Network.Events
 {
     public class AnnouncementReceivedEventData
     {
-        public PeerNewBlockAnnouncement Announce { get; private set; }
-        public string Peer { get; private set; }
+        public PeerNewBlockAnnouncement Announce { get; }
+        public string SenderPubKey { get; }
         
-        public AnnouncementReceivedEventData(PeerNewBlockAnnouncement an, string peer)
+        public AnnouncementReceivedEventData(PeerNewBlockAnnouncement an, string senderPubKey)
         {
-            Peer = peer;
+            SenderPubKey = senderPubKey;
             Announce = an;
         }
     }
