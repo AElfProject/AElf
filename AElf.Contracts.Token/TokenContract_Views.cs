@@ -26,6 +26,7 @@ namespace AElf.Contracts.Token
         [View]
         public uint Decimals()
         {
+            var a = State.TokenInfo;
             return State.TokenInfo.Decimals.Value;
         }
 
