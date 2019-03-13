@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public Hash Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
@@ -205,7 +205,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
-            return new ActionResult {Success = true};
+            return Context.TransactionId;
         }
 
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
