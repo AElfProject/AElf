@@ -260,7 +260,6 @@ message BlockStateSet{
     map<string, bytes> Changes = 4;
 }
 
-// TODO: Not used, it should be removed
 message TransactionExecutingStateSet{
     int64 Version = 1;
     map<string, bytes> Writes = 2;

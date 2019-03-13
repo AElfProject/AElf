@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
@@ -231,6 +232,12 @@ namespace AElf.Kernel.Blockchain.Application
                 var block = await GetBlockByHeightAsync(first.Height + i);
                 if (block == null)
                     break;
+
+                if (blockList.Count != 0 && block.Header.PreviousBlockHash != blockList.Last().GetHash())
+                {
+                    Logger.LogWarning($"Get not linked blocks, last block: {blockList.Last().GetHash()}. ");
+                    break;
+                }
 
                 blockList.Add(block);
             }

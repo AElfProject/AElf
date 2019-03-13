@@ -26,14 +26,22 @@ namespace AElf.OS.Jobs
                 var count = NetworkOptions.Value.BlockIdRequestCount;
 
                 var chain = await BlockchainService.GetChainAsync();
+
                 var blockHash = chain.LongestChainHash;
-                
+
+                // If behind 1/3 than other peer, use the LIB hash to sync 
+                if (args.BlockHeight / 3 * 2 > chain.LongestChainHeight)
+                {
+                    Logger.LogTrace($"Behind many blocks than peer {args.SuggestedPeerAddress}, sync from LIB {chain.LastIrreversibleBlockHash}");
+                    blockHash = chain.LastIrreversibleBlockHash;
+                }
+
                 while (true)
                 {
                     Logger.LogDebug($"Current job hash : {blockHash}");
-                    
+
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
-                    
+
                     Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
 
                     foreach (var block in blocks)
@@ -42,7 +50,7 @@ namespace AElf.OS.Jobs
                         Logger.LogDebug($"Processing {block}. Chain is {{ longest: {chain.LongestChainHash}, best: {chain.BestChainHash} }} ");
 
                         await BlockchainService.AddBlockAsync(block);
-                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
+                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
