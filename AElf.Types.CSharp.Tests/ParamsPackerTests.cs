@@ -50,11 +50,5 @@ namespace AElf.Types.CSharp.Tests
             var userTypeObj1 = unpackObj[0] as PersonalData;
             userTypeObj.ShouldBe(userTypeObj1);
         }
-
-        class PersonalData : UserType
-        {
-            public string Name { get; set; }
-            public string Sex { get; set; }
-        }
     }
 }
