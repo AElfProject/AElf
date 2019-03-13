@@ -11,7 +11,6 @@
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Grpc.Tools" Version="1.18.0" />
     <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.14.0" />
     <PackageReference Include="Volo.Abp.Core" Version="0.14.0" />
   </ItemGroup>

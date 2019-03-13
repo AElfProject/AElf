@@ -1,3 +1,4 @@
+using Google.Protobuf.Reflection;
 using Xunit;
 
 namespace AElf.Types.Tests
@@ -7,7 +8,6 @@ namespace AElf.Types.Tests
         [Fact]
         public void TestDescriptor()
         {
-            //MessageDescriptor descriptor=new MessageDescriptor();
         }
     }
 }
