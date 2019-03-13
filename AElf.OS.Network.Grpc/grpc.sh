@@ -16,7 +16,7 @@ else
 fi
 
 name="${osn}_${osb}"
-cp ~/.nuget/packages/grpc.tools/1.18.0/tools/${name}/grpc_csharp_plugin ./
+cp ~/.nuget/packages/grpc.tools/1.19.0/tools/${name}/grpc_csharp_plugin ./
 protoc --proto_path=../protobuf \
 --csharp_out=./Generated \
 --csharp_opt=file_extension=.g.cs \
