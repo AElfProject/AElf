@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Runtime.CSharp3.Tests.TestContract";
+import "aelf_options.proto";
+
+service TokenContract {
+    option (aelf.state_type) = "AElf.Runtime.CSharp3.Tests.TestContract.TokenContractState";
+    rpc Echo (EchoInput) returns (EchoOutput) {}
+}
+
+message TokenInfo {
+    string symbol = 1;
+    string token_name = 2;
+    int64 total_supply = 3;
+    int32 decimals = 4;
+}
+
+message EchoInput {
+    string value = 1;
+}
+
+message EchoOutput {
+    string value = 2;
+}
+
+message Nothing {
+}

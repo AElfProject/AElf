@@ -40,6 +40,7 @@ namespace AElf.Launcher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule3),
         typeof(GrpcNetworkModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
