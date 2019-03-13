@@ -50,7 +50,7 @@ namespace AElf.Cryptography.Certificate
         /// <param name="name"> prefix of file </param>
         /// <param name="certificate"> cert content </param>
         /// <returns></returns>
-        public bool AddCertificate(string name, string certificate)
+        public bool AddCertificate(string name, string certificate) //Todo No case cover AddCertificate
         {
             Directory.CreateDirectory(Path.Combine(_dataDirectory, FolderName));
             //name = PrefixString(name);

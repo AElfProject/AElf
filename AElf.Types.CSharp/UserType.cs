@@ -108,6 +108,7 @@ namespace AElf.Types.CSharp
         public string Name { get; }
         public FieldInfo FieldInfo { get; }
         public Packer Packer { get; }
+        //Todo Not covered all logic
         private Packer GetPacker(System.Type type)
         {
             string typeName = type.FullName;

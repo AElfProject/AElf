@@ -1,5 +1,5 @@
 // ReSharper disable once CheckNamespace
-
+//Todo AElf.Consensus.Extensions no need cases cover
 namespace AElf.Consensus.DPoS
 {
     public partial class VotingRecord

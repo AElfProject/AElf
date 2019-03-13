@@ -3,7 +3,7 @@ using System.Linq;
 using Google.Protobuf.Collections;
 using QuickGraph;
 
-
+//Todo All code about Metadata without cases covered, including AElf.Kernel.SmartContract and AElf.Runtime.CSharp.Core
 namespace AElf.Kernel.SmartContract.MetaData
 {
     public class CallGraph : AdjacencyGraph<string, Edge<string>>, IEquatable<CallGraph>
