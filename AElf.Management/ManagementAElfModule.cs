@@ -1,7 +1,5 @@
-using AElf.Management.Interfaces;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Management
