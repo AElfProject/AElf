@@ -54,7 +54,8 @@ namespace AElf.Kernel.ChainController.Application
                         PreviousBlockHash = Hash.Empty,
                         Time = Timestamp.FromDateTime(DateTime.UtcNow),
                         ChainId = _blockchainService.GetChainId()
-                    }
+                    },
+                    Body = new BlockBody()
                 };
                 foreach (var tx in genesisTransactions)
                 {
