@@ -1,12 +1,15 @@
+using AElf.Sdk.CSharp;
+
 namespace AElf.Runtime.CSharp3.Tests.TestContract
 {
-    public class ContractApi : TokenContract.TokenContractBase
+    public class ContractApi : TestContractContainer.TestContractBase
     {
-        public override EchoOutput Echo(EchoInput request)
+        public override IncrementOutput Increment(IncrementInput request)
         {
-            return new EchoOutput()
+            State.Counter.Value = State.Counter.Value.Add(request.Value);
+            return new IncrementOutput()
             {
-                Value = request.Value
+                Value = State.Counter.Value
             };
         }
     }
