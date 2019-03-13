@@ -6,9 +6,4 @@ namespace AElf.Kernel.TransactionPool.Tests
     {
         
     }
-    
-    public class TransactionPoolValidatorTestBase:AElfIntegratedTest<TransactionPoolValidatorTestAElfModule>
-    {
-        
-    }
 }
