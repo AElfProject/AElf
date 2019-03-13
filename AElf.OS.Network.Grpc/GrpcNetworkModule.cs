@@ -1,11 +1,7 @@
 using AElf.Modularity;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -18,6 +14,8 @@ namespace AElf.OS.Network.Grpc
             context.Services.AddSingleton<IPeerPool, GrpcPeerPool>();
 
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
+            
+            context.Services.AddSingleton<AuthInterceptor>();
         }
     }
 }

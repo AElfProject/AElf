@@ -56,6 +56,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                         Timestamp = DateTime.UtcNow.ToTimestamp(),
                         Miners = {_dpoSOptions.InitialMiners},
+                        IsBootMiner = _dpoSOptions.IsBootMiner,
                         MiningInterval = DPoSConsensusConsts.MiningInterval,
                     }.ToByteArray();
                 case DPoSBehaviour.UpdateValue:

@@ -42,6 +42,7 @@ namespace AElf.Types.CSharp
             {
                 output.WriteMessage((IMessage)value);
             }
+            //TODO:  Add case to cover IsUserType [Case]
             else if (type.IsUserType())
             {
                 output.WriteMessage(((UserType)value).ToPbMessage());
@@ -60,7 +61,8 @@ namespace AElf.Types.CSharp
             }
             return null;
         }
-        
+
+        //TODO: Add cases to cover all logic [Case]
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             uint length = 1;
@@ -69,7 +71,7 @@ namespace AElf.Types.CSharp
             {
                 return h(input);
             }
-            
+
             if (type.IsArray && type != typeof(byte[]))
             {
                 length = input.ReadUInt32();

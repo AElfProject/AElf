@@ -22,7 +22,7 @@ namespace AElf.Runtime.CSharp
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
                 return new SmartContractRunnerForCategoryTwo(
-                    option.Value.SdkDir, option.Value.BlackList,
+                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(), option.Value.BlackList,
                     option.Value.WhiteList);
             });
         }

@@ -13,6 +13,7 @@ using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
+using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.EventBus.Local;
@@ -22,6 +23,7 @@ namespace AElf.Contracts.TestBase
 {
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
+        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)
     )]

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -16,9 +17,12 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
+        public IPeerPool PeerPool { get; }
+        
         private readonly NetworkOptions _networkOptions;
 
         private readonly PeerService.PeerServiceBase _serverService;
+        private readonly AuthInterceptor _authInterceptor;
 
         private Server _server;
 
@@ -26,9 +30,10 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
         public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
-            IPeerPool peerPool)
+            IPeerPool peerPool, AuthInterceptor authInterceptor)
         {
             _serverService = serverService;
+            _authInterceptor = authInterceptor;
             PeerPool = peerPool;
             _networkOptions = options.Value;
 
@@ -38,9 +43,14 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
+
+            if (_authInterceptor != null)
+                serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
+            
             _server = new Server
             {
-                Services = {PeerService.BindService(_serverService)},
+                Services = { serviceDefinition },
                 Ports =
                 {
                     new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
@@ -63,34 +73,32 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StopAsync(bool gracefulDisconnect = true)
         {
-            await _server.KillAsync();
+            try
+            {
+                await _server.KillAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // if server already shutdown, we continue and clear the channels.
+            }
 
             foreach (var peer in PeerPool.GetPeers(true))
             {
-                try
+                if (gracefulDisconnect)
                 {
-                    if (gracefulDisconnect)
+                    try
                     {
-                        try
-                        {
-                            await peer.SendDisconnectAsync();
-                        }
-                        catch (RpcException e)
-                        {
-                            Logger.LogError(e, $"Error sending disconnect {peer}.");
-                        }
+                        await peer.SendDisconnectAsync();
                     }
+                    catch (RpcException e)
+                    {
+                        Logger.LogError(e, $"Error sending disconnect {peer}.");
+                    }
+                }
 
-                    await peer.StopAsync();
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Error while disconnecting peer {peer}.");
-                }
+                await peer.StopAsync();
             }
         }
-
-        public IPeerPool PeerPool { get; }
 
         public void Dispose()
         {

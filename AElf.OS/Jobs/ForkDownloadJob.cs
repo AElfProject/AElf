@@ -19,7 +19,7 @@ namespace AElf.OS.Jobs
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
-            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerAddress} }}");
+            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerPubKey} }}");
 
             try
             {
@@ -27,12 +27,23 @@ namespace AElf.OS.Jobs
 
                 var chain = await BlockchainService.GetChainAsync();
                 var blockHash = chain.LongestChainHash;
-                
+                                
                 while (true)
                 {
                     Logger.LogDebug($"Current job hash : {blockHash}");
                     
-                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
+                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
+
+                    if (blocks.FirstOrDefault() != null)
+                    {
+                        if (blocks.First().Header.PreviousBlockHash != blockHash)
+                        {
+                            Logger.LogError($"Current job hash : {blockHash}");
+
+                            throw new InvalidOperationException($"previous block not match previous {blockHash}, network back{blocks.First().Header.PreviousBlockHash}");
+                        }
+                    }
+                    
                     
                     Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
 
