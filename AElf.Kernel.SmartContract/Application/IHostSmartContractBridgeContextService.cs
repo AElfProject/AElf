@@ -1,4 +1,4 @@
-using AElf.Kernel.SmartContract.Contexts;
+using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContract.Application
 {

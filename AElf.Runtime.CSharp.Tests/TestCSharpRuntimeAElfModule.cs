@@ -7,7 +7,6 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
-using AElf.Kernel.SmartContract.Contexts;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

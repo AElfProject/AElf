@@ -10,15 +10,13 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> RemovePeerAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         
-        IPeer FindPeerByAddress(string peerAddress);
-        IPeer FindPeerByPublicKey(byte[] publicKey);
+        IPeer FindPeerByAddress(string peerIpAddress);
+        IPeer FindPeerByPublicKey(string publicKey);
 
-        //TODO: it seems it only cares about pubKey in Handshake?
-        bool IsAuthenticatePeer(string peerAddress, Handshake handshake);
+        bool IsAuthenticatePeer(string remotePubKey);
 
         bool AddPeer(IPeer peer);
 
-        //TODO: is it equal to address?
         Task ProcessDisconnection(string peerEndpoint);
 
         Task<Handshake> GetHandshakeAsync();

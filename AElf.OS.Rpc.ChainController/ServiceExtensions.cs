@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;

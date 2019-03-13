@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,6 +21,8 @@ namespace AElf.OS.Network
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+        
+        private List<GrpcNetworkServer> _servers = new List<GrpcNetworkServer>();
 
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
@@ -51,15 +53,28 @@ namespace AElf.OS.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool( optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
+            var accountService = NetMockHelpers.MockAccountService().Object;
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, accountService, mockBlockChainService.Object);
             
-            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
+            
+            _servers.Add(netServer);
 
             return (netServer, grpcPeerPool);
+        }
+        
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var server in _servers)
+            {
+                AsyncHelper.RunSync(() => server.StopAsync(false));
+            }
         }
 
         [Fact]
@@ -77,7 +92,7 @@ namespace AElf.OS.Network
             Assert.True(peers1.Count == 0);
 
             await server.Item2.AddPeerAsync("127.0.0.1:6800");
-
+            
             var peers2 = server.Item2.GetPeers();
             Assert.True(peers2.Count == 0);
 
@@ -160,8 +175,8 @@ namespace AElf.OS.Network
 
             Assert.True(peers.Count == 2);
             
-            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerAddress));
-            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerAddress));
+            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerIpAddress));
+            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerIpAddress));
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -237,7 +252,7 @@ namespace AElf.OS.Network
             peers.Count.ShouldBe(0);
         }
 
-        [Fact(Skip="ToDebug")]
+        [Fact]
         public async Task RemovePeer_Test()
         {
             // setup 2 peers
@@ -332,7 +347,7 @@ namespace AElf.OS.Network
 
             await m1.Item1.StopAsync();
         }
-        
+
         [Fact]
         public async Task GetPeers_HardDisconnect_Test()
         {
@@ -361,8 +376,9 @@ namespace AElf.OS.Network
             {
                 await p.AnnounceAsync(new PeerNewBlockAnnouncement());
             }
-            catch (Exception e)
+            catch (InvalidOperationException e)
             {
+                _testOutputHelper.WriteLine(e.ToString());
             }
 
             // make sure we wait enough for disc

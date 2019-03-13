@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Sdk.CSharp.State
 {

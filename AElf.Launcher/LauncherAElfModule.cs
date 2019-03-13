@@ -18,6 +18,7 @@ using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
 using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
+using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +41,10 @@ namespace AElf.Launcher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
+        
+        //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule)

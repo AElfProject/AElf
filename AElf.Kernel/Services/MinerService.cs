@@ -61,9 +61,7 @@ namespace AElf.Kernel.Services
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
         {
-            Logger.LogInformation("Generate start");
             var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
-
             var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
 
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
@@ -89,7 +87,7 @@ namespace AElf.Kernel.Services
             Logger.LogInformation($"Generated block: {block.BlockHashToHex}, " +
                                   $"height: {block.Header.Height}, " +
                                   $"previous: {block.Header.PreviousBlockHash}, " +
-                                  $"tx-count: {block.Body.TransactionsCount}");
+                                  $"transactions: {block.Body.TransactionsCount}");
 
             await _blockchainService.AddBlockAsync(block);
             var chain = await _blockchainService.GetChainAsync();
