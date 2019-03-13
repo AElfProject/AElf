@@ -12,7 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public BoolState Initialized { get; set; }
 
-
         /// <summary>
         /// Current round number.
         /// </summary>
@@ -92,11 +91,6 @@ namespace AElf.Contracts.Consensus.DPoS
         public MappedState<StringValue, CandidateInHistory> HistoryMap { get; set; }
 
         /// <summary>
-        /// blockchain age -> first round number.
-        /// </summary>
-        public MappedState<UInt64Value, UInt64Value> AgeToRoundNumberMap { get; set; }
-
-        /// <summary>
         /// Keep tracking of the count of votes.
         /// </summary>
         public UInt64State VotesCountField { get; set; }
@@ -105,11 +99,6 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Keep tracking of the count of tickets.
         /// </summary>
         public UInt64State TicketsCountField { get; set; }
-
-        /// <summary>
-        /// Whether 2/3 of miners mined in current term.
-        /// </summary>
-        public BoolState TwoThirdsMinersMinedCurrentTermField { get; set; }
 
         /// <summary>
         /// Transaction Id -> Voting Record.
