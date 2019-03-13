@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public Hash Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public string Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
@@ -204,7 +204,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
-            return Context.TransactionId;
+            return Context.TransactionId.ToHex();
         }
 
         // ReSharper disable once PossibleNullReferenceException
@@ -259,7 +259,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     "This voting record has already withdrawn."));
 
             Assert(votingRecord.UnlockAge > CurrentAge,
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, ""));
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                    "This voting record can't withdraw for now."));
 
             // Update voting record map.
             var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
