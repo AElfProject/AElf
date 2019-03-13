@@ -23,14 +23,17 @@ namespace AElf.Kernel.ChainController.Application
     public class ChainCreationService : IChainCreationService
     {
         private readonly IBlockchainService _blockchainService;
+        private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ChainCreationService(IBlockchainService blockchainService, IBlockchainExecutingService blockchainExecutingService)
+        public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
+            IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
+            _blockExecutingService = blockExecutingService;
             _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -46,23 +49,15 @@ namespace AElf.Kernel.ChainController.Application
         {
             try
             {
-                var block = new Block
+                var blockHeader = new BlockHeader
                 {
-                    Header = new BlockHeader
-                    {
-                        Height = ChainConsts.GenesisBlockHeight,
-                        PreviousBlockHash = Hash.Empty,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ChainId = _blockchainService.GetChainId()
-                    },
-                    Body = new BlockBody()
+                    Height = ChainConsts.GenesisBlockHeight,
+                    PreviousBlockHash = Hash.Empty,
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    ChainId = _blockchainService.GetChainId()
                 };
-                foreach (var tx in genesisTransactions)
-                {
-                    block.AddTransaction(tx);
-                }
-                block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
                 
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions); 
                 var chain = await _blockchainService.CreateChainAsync(block);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
                     BlockAttachOperationStatus.LongestChainFound);
