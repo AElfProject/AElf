@@ -20,7 +20,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            if (currentRound.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() == State.CurrentMiners.Value.GetMinersHash())
+            if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() ==
+                State.CurrentMiners.Value.GetMinersHash())
             {
                 return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
             }
