@@ -11,6 +11,6 @@ namespace AElf.OS.Jobs
         /// <summary>
         /// leave it empty when you do not care get the block from which peer
         /// </summary>
-        public string SuggestedPeerAddress { get; set; }  
+        public string SuggestedPeerPubKey { get; set; }  
     }
 }

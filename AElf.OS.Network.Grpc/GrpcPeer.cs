@@ -15,7 +15,6 @@ namespace AElf.OS.Network.Grpc
         
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
-        private readonly HandshakeData _handshakeData;
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -27,24 +26,17 @@ namespace AElf.OS.Network.Grpc
         
         public Hash CurrentBlockHash { get; set; }
         public long CurrentBlockHeight { get; set; }
-        public string PeerAddress { get; }
-        public string RemoteEndpoint { get; }
+        public string PeerIpAddress { get; }
+        public string PubKey { get; }
 
-        private byte[] _pubKey;
-        public byte[] PublicKey
-        {
-            get { return _pubKey ?? (_pubKey = _handshakeData?.PublicKey?.ToByteArray()); }
-        }
-
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, HandshakeData handshakeData,
-            string peerAddress, string remoteEndpoint)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress)
         {
             _channel = channel;
             _client = client;
-            _handshakeData = handshakeData;
 
-            RemoteEndpoint = remoteEndpoint;
-            PeerAddress = peerAddress;
+            PeerIpAddress = peerIpAddress;
+
+            PubKey = pubKey;
         }
 
         public async Task<Block> RequestBlockAsync(Hash hash)
@@ -128,16 +120,7 @@ namespace AElf.OS.Network.Grpc
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
                     {
-                        try
-                        {
-                            await StopAsync(); // shutdown for good
-                        }
-                        catch (Exception e)
-                        {
-                            // no matter what happens here, we need to make sure the 
-                            // DisconnectionEvent is fired.
-                        }
-                    
+                        await StopAsync();
                         DisconnectionEvent?.Invoke(this, EventArgs.Empty);
                     }
                 });
@@ -150,7 +133,14 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StopAsync()
         {
-            await _channel.ShutdownAsync();
+            try
+            {
+                await _channel.ShutdownAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // If channel already shutdown
+            }
         }
 
         public async Task SendDisconnectAsync()
