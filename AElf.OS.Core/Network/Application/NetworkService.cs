@@ -24,6 +24,7 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
+        //TODO: Add Peer operation test cases [Case]
         public async Task<bool> AddPeerAsync(string address)
         {
             return await _peerPool.AddPeerAsync(address);
@@ -70,7 +71,7 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        //Todo Add GetBlockAsync from specified peer address case
+        //TODO: Add GetBlockAsync from specified peer address case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerAddress = null,
             bool tryOthersIfFail = false)
         {

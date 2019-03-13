@@ -135,7 +135,7 @@ namespace AElf.Kernel.SmartContract.Domain
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        //TODO: Add MergeBlockStateAsync 
+        //TODO: Add MergeBlockStateAsync [Case] 
         public async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash)
         {
             var blockState = await _blockStateSets.GetAsync(blockStateHash.ToStorageKey());

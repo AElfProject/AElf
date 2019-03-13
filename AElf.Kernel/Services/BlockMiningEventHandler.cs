@@ -7,7 +7,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Miner.Application
 {
-    //Todo BlockMiningEventHandle caser not covered.
+    //TODO: BlockMiningEventHandle caser not covered. [Case]
     public class BlockMiningEventHandler : ILocalEventHandler<BlockMiningEventData>, ITransientDependency
     {
         public readonly IMinerService _minerService;

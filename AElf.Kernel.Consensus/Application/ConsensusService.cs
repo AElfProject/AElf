@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    //Todo ConsensusService no cases covered, need add cases.
+    //TODO: ConsensusService no cases covered, need add cases. [Case]
     public class ConsensusService : IConsensusService
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;

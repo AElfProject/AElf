@@ -174,7 +174,7 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        //TODO: Add SetIrreversibleBlockAsync test case
+        //TODO: Add SetIrreversibleBlockAsync test case [Case]
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
             Hash irreversibleBlockHash)
         {
@@ -219,7 +219,7 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        //TODO: Add GetBlockAsync case
+        //TODO: Add GetBlockAsync case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
@@ -305,7 +305,7 @@ namespace AElf.Kernel.Blockchain.Application
             return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
-        //TODO: Add GetBlockHeaderByHeightAsync case
+        //TODO: Add GetBlockHeaderByHeightAsync case [Case]
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(long height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(height);
