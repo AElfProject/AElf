@@ -89,46 +89,6 @@ namespace AElf.Runtime.CSharp
             return GetAbiModule(reg);
         }
 
-        public Type GetContractType(SmartContractRegistration reg)
-        {
-            // TODO: This method should be removed, now it's used for deserializing parameters and extracting metadata.
-            // TODO (Cont'd): However, these two need to implemented in other ways.
-            // TODO (Cont'd): This implementation is not good as currently AssemblyLoadContext doesn't support unloading.
-            // TODO (Cont'd): So the type cannot be unloaded even if we don't need it. There is a huge memory concern.
-
-            var code = reg.Code.ToByteArray();
-
-            var codeHash = Hash.FromRawBytes(code);
-            if (_cachedContractTypeByHash.TryGetValue(codeHash, out var t))
-            {
-                return t;
-            }
-
-            var loadContext = GetLoadContext();
-
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
-
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
-
-            var abiModule = GetAbiModule(reg);
-            // TODO: Change back
-            var type = assembly.GetTypes().FirstOrDefault(x => x.FullName.Contains(abiModule.Name));
-            if (type == null)
-            {
-                throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
-            }
-
-            _cachedContractTypeByHash.TryAdd(codeHash, type);
-            return type;
-        }
-
         /// <summary>
         /// Performs code checks.
         /// </summary>
