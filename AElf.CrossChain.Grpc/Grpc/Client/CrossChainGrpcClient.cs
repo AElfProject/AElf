@@ -26,10 +26,10 @@ namespace AElf.CrossChain.Grpc.Client
             _channel = channel;
             Logger = NullLogger<CrossChainGrpcClient<TResponse>>.Instance;
             _crossChainDataProducer = crossChainDataProducer;
-            _adjustedInterval = _initInterval;
+            _adjustedInterval = _initInterval = UnavailableConnectionInterval;
         }
 
-        private void UpdateRequestInterval(int initInterval)
+        private void UpdateRequestInterval(int initInterval) 
         {
             _initInterval = initInterval;
             _adjustedInterval = _initInterval;
@@ -101,13 +101,12 @@ namespace AElf.CrossChain.Grpc.Client
                 }
                 catch (ChainCacheNotFoundException)
                 {
-                    Logger.LogTrace($"No cache for chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
+                    Logger.LogWarning($"No cache for chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 }
                 finally
                 {
                     await Task.Delay(_adjustedInterval);
                 }
-                
             }
         }
 

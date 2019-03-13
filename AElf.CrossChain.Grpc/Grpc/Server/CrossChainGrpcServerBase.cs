@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Grpc.Server
 {
     public class CrossChainGrpcServerBase : CrossChainRpc.CrossChainRpcBase, ISingletonDependency
     {
-        private ILogger<CrossChainGrpcServerBase> Logger { get; }
+        public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         private ILocalEventBus LocalEventBus { get; }
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
         private readonly ICrossChainService _crossChainService;

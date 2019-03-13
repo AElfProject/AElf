@@ -26,7 +26,6 @@ namespace AElf.CrossChain.Grpc.Server
         public CrossChainGrpcServer(CrossChainGrpcServerBase serverBase)
         {
             _serverBase = serverBase;
-            Logger = NullLogger<CrossChainGrpcServer>.Instance;
         }
 
         public async Task StartAsync(string localServerIP, int localServerPort, KeyCertificatePair keyCert)

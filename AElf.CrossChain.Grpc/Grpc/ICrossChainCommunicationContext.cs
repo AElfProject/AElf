@@ -6,7 +6,7 @@ namespace AElf.CrossChain
         int TargetPort { get; set; }
         int RemoteChainId { get; set; }
         
-        int SelfChainId { get; set; }
+        int LocalChainId { get; set; }
         bool RemoteIsSideChain { get; set; }
     }
 }
