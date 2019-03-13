@@ -151,22 +151,40 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task Quit_Election_WithoutAnnounce()
+        public async Task Quit_Election_NoOneAnnounce()
         {
             var candidateInfo = GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
             
-            // The candidate announce election.
-            var candidate = Starter.CreateNewContractTester(candidateInfo);
-            
-            //select another account ,and quit election
+            // Didn't announce election, but call quit announce.
             candidateInfo = GenerateNewUser();
-            candidate = Starter.CreateNewContractTester(candidateInfo);
-            var result = await candidate.QuitElectionAsync();
+            var notCandidate = Starter.CreateNewContractTester(candidateInfo);
+            var result = await notCandidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Failed to remove this public key from candidates list.").ShouldBeTrue();
+            result.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidField]).ShouldBeTrue();
+            
+            balance = await Starter.GetBalanceAsync(candidateInfo);
+            balance.ShouldBe(0UL);
+        }
+        
+        [Fact]
+        public async Task Quit_Election_WithoutAnnounce()
+        {
+            var candidateInfo = GenerateNewUser();
+            await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
+            var balance = await Starter.GetBalanceAsync(candidateInfo);
+            balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
+
+            await Starter.GenerateCandidatesAsync(1);
+            
+            // Didn't announce election, but call quit announce.
+            candidateInfo = GenerateNewUser();
+            var notCandidate = Starter.CreateNewContractTester(candidateInfo);
+            var result = await notCandidate.QuitElectionAsync();
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
             
             balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(0UL);
@@ -200,7 +218,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var notCandidate = GenerateNewUser();
             var result = await voter.Vote(notCandidate, amount, 100);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Target didn't announce election.").ShouldBeTrue();
+            result.Error.Contains().ShouldBeTrue();
             
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
             balance.ShouldBe(amount);

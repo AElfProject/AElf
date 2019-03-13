@@ -58,7 +58,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public void UpdateValue(ToUpdate toUpdate)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   toUpdate.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
+                   toUpdate.RoundId == currentRound.RoundId, "Round Id not matched.");
 
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
 

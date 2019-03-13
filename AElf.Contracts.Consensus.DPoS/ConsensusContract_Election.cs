@@ -26,7 +26,9 @@ namespace AElf.Contracts.Consensus.DPoS
                     var votingRecord = State.VotingRecordsMap[voteToTransaction];
                     if (votingRecord != null)
                     {
-                        Assert(votingRecord.IsWithdrawn, DPoSContractConsts.VoterCannotAnnounceElection);
+                        Assert(votingRecord.IsWithdrawn,
+                            ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                                "Voter can't announce election."));
                     }
                 }
             }
@@ -34,12 +36,18 @@ namespace AElf.Contracts.Consensus.DPoS
             var candidates = State.CandidatesField.Value;
             if (candidates != null)
             {
-                Assert(!candidates.PublicKeys.Contains(publicKey), "Already announced election.");
-                candidates.PublicKeys.Add(publicKey);
+                Assert(!candidates.PublicKeys.Contains(publicKey),
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                        "Already announced election."));
+                candidates.AddCandidate(Context.RecoverPublicKey());
             }
             else
             {
-                candidates = new Candidates {PublicKeys = {publicKey}};
+                candidates = new Candidates
+                {
+                    PublicKeys = {publicKey},
+                    Addresses = {Address.FromPublicKey(Context.RecoverPublicKey())}
+                };
             }
 
             State.CandidatesField.Value = candidates;
@@ -87,17 +95,18 @@ namespace AElf.Contracts.Consensus.DPoS
         public ActionResult QuitElection()
         {
             var candidates = State.CandidatesField.Value;
-            
-            Assert(candidates != null, "Candidates list is empty.");
+
+            Assert(candidates != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidField, nameof(State.CandidatesField)));
 
             var publicKey = Context.RecoverPublicKey().ToHex();
-            
-            Assert(candidates != null &&  candidates.PublicKeys.Contains(publicKey), "Not announced.");
-            
-            Assert(candidates != null && candidates.PublicKeys.Remove(publicKey),
-                "Failed to remove this public key from candidates list.");
 
-            Assert(candidates != null && !candidates.PublicKeys.Contains(publicKey), "Failed to remove.");
+            Assert(candidates != null && candidates.PublicKeys.Contains(publicKey),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Not announced."));
+
+            Assert(candidates != null && candidates.RemoveCandidate(Context.RecoverPublicKey()),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                    "Failed to remove this public key from candidates list."));
 
             State.CandidatesField.Value = candidates;
 
@@ -108,20 +117,20 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            Assert(lockTime.InRange(90, 1095), DPoSContractConsts.LockDayIllegal);
+            Assert(lockTime.InRange(90, 1095),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
 
             // Cannot vote to non-candidate.
             var candidates = State.CandidatesField.Value;
-            Assert(candidates != null, "No candidate.");
+            Assert(candidates != null, ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "No candidate."));
             Assert(candidates != null && candidates.PublicKeys.Contains(candidatePublicKey),
-                DPoSContractConsts.TargetNotAnnounceElection);
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                    "Target didn't announce election."));
 
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             // A candidate cannot vote to anybody.
             Assert(candidates != null && !candidates.PublicKeys.Contains(voterPublicKey),
-                DPoSContractConsts.CandidateCannotVote);
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
             State.TokenContract.Lock(Context.Sender, amount);
@@ -195,7 +204,6 @@ namespace AElf.Contracts.Consensus.DPoS
             State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
-            Context.LogDebug(() => $"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
 
             return new ActionResult {Success = true};
         }
