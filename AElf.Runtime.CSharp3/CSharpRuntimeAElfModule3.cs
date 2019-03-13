@@ -22,8 +22,8 @@ namespace AElf.Runtime.CSharp
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
                 return new SmartContractRunnerForCategoryThree(
-                    option.Value.SdkDir, option.Value.BlackList,
-                    option.Value.WhiteList);
+                    option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(),
+                    option.Value.BlackList, option.Value.WhiteList);
             });
         }
 

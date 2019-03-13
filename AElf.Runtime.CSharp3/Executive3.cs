@@ -32,6 +32,7 @@ namespace AElf.Runtime.CSharp
         private int _maxCallDepth = 4;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
+        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
 
         private Type FindContractType(Assembly assembly)
         {
@@ -56,8 +57,9 @@ namespace AElf.Runtime.CSharp
             var ssd = methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
             return ssd.GetCallHandlers();
         }
-        public Executive3(Assembly assembly)
+        public Executive3(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
+            _executivePlugins = executivePlugins;
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
@@ -108,27 +110,13 @@ namespace AElf.Runtime.CSharp
         public async Task Apply()
         {
             await ExecuteMainTransaction();
-            MaybeInsertFeeTransaction();
-        }
-
-        public void MaybeInsertFeeTransaction()
-        {
-            // No insertion of transaction if it's not IFeeChargedContract or it's not top level transaction
-            if (!(_contractInstance is IFeeChargedContract) || CurrentTransactionContext.CallDepth > 0)
+//            MaybeInsertFeeTransaction();
+            foreach (var executivePlugin in _executivePlugins)
             {
-                return;
+                // TODO: Change executive plugin to use this executive
+//                executivePlugin.AfterApply(_contractInstance, 
+//                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
             }
-
-            CurrentTransactionContext.Trace.InlineTransactions.Add(new Transaction()
-            {
-                From = CurrentTransactionContext.Transaction.From,
-                //TODO: set in constant
-                To = _hostSmartContractBridgeContext.GetContractAddressByName(
-                    Hash.FromString("AElf.Contracts.Token.TokenContract")),
-                MethodName = nameof(ITokenContract.ChargeTransactionFees),
-                Params = ByteString.CopyFrom(
-                    ParamsPacker.Pack(GetFee(CurrentTransactionContext.Transaction.MethodName)))
-            });
         }
 
         public async Task ExecuteMainTransaction()
@@ -194,16 +182,6 @@ namespace AElf.Runtime.CSharp
 
             var e = CurrentTransactionContext.Trace.EndTime = DateTime.UtcNow;
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
-        }
-
-        public ulong GetFee(string methodName)
-        {
-            if (!_callHandlers.TryGetValue(nameof(IFeeChargedContract.GetMethodFee), out var handler))
-            {
-                return 0;
-            }
-            var retVal = handler.Execute(ParamsPacker.Pack(methodName));
-            return (ulong) handler.ReturnBytesToObject(retVal);
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)

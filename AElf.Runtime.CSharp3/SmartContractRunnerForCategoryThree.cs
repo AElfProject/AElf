@@ -33,14 +33,17 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
+        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryThree(
             string sdkDir,
+            IServiceContainer<IExecutivePlugin> executivePlugins,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
             _assemblyChecker = new AssemblyChecker(blackList, whiteList);
+            _executivePlugins = executivePlugins;
         }
 
         /// <summary>
@@ -72,7 +75,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive3(assembly) {ContractHash = reg.CodeHash};
+            var executive = new Executive3(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
 
             return await Task.FromResult(executive);
         }
