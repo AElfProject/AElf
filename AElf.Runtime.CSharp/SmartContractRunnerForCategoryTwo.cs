@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
@@ -63,7 +64,7 @@ namespace AElf.Runtime.CSharp
 
             var code = reg.Code.ToByteArray();
 
-            var loadContext = GetLoadContext();
+            var loadContext = AssemblyLoadContext.Default; //GetLoadContext();
 
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))

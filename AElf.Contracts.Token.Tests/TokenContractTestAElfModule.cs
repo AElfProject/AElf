@@ -8,7 +8,7 @@ namespace AElf.Contracts.Token
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+            //var type = typeof(TokenContract).Assembly;
         }
     }
 }
