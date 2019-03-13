@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace AElf.OS.Network
 {
+    // todo more unit tests can be done here 
     public class GrpcPeerPoolTests : OSCoreTestBase
     {
         private readonly IAccountService _accountService;
