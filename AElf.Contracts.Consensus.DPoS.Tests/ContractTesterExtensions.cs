@@ -217,12 +217,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await starter.MineAsync(transferTxs);
 
             // Package AnnounceElection txs.
-            var block = await starter.MineAsync(announceElectionTxs);
-
-            foreach (var transaction in announceElectionTxs)
-            {
-                var result = await starter.GetTransactionResultAsync(transaction.GetHash());
-            }
+            await starter.MineAsync(announceElectionTxs);
 
             foreach (var candidatesKeyPair in candidatesKeyPairs)
             {
