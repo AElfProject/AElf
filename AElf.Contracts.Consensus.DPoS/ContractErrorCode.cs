@@ -12,6 +12,8 @@ namespace AElf.Contracts.Consensus.DPoS
         public const int InvalidOperation = 3;
 
         public const int AttemptFailed = 4;
+
+        public const int NoPermission = 5;
         
         public static readonly Dictionary<int, string> Message = new Dictionary<int, string>
         {
@@ -19,6 +21,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {InvalidField, "Invalid field"},
             {InvalidOperation, "Invalid operation"},
             {AttemptFailed, "Attempt failed"},
+            {NoPermission, "No Permission"}
         };
 
         public static string GetErrorMessage(int errorCode, string furtherInformation = "")

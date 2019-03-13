@@ -272,5 +272,11 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         #endregion
+
+        public static async Task SetBlockchainAgeAsync(this ContractTester<DPoSContractTestAElfModule> starter, ulong age)
+        {
+            await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.SetBlockchainAge),
+                age);
+        }
     }
 }

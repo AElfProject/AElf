@@ -121,6 +121,6 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         public MappedState<UInt64Value, UInt64Value> TermToFirstRoundMap { get; set; }
 
-        public Int32State ChainIdField { get; set; }
+        public SingletonState<string> StarterPublicKey { get; set; }
     }
 }

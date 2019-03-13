@@ -99,14 +99,9 @@ namespace AElf.Contracts.Consensus.DPoS
             State.CurrentRoundNumberField.Value = roundNumber;
         }
 
-        public void SetBlockAge(ulong blockAge)
+        private void SetBlockAge(ulong blockAge)
         {
             State.AgeField.Value = blockAge;
-        }
-
-        public void SetChainId(int chainId)
-        {
-            State.ChainIdField.Value = chainId;
         }
 
         public void SetBlockchainStartTimestamp(Timestamp timestamp)
