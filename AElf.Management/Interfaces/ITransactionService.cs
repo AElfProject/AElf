@@ -7,7 +7,7 @@ namespace AElf.Management.Interfaces
 {
     public interface ITransactionService
     {
-        Task<ulong> GetPoolSize(string chainId);
+        Task<int> GetPoolSize(string chainId);
 
         Task RecordPoolSize(string chainId, DateTime timee);
 

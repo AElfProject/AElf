@@ -1,3 +1,4 @@
+using AElf.Management.Database;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -14,6 +15,8 @@ namespace AElf.Management
             Configure<MonitorDbOptions>(configuration.GetSection("MonitorDb"));
             
             context.Services.AddAssemblyOf<ManagementAElfModule>();
+
+            context.Services.AddSingleton<IInfluxDatabase, InfluxDatabase>();
         }
     }
 }
