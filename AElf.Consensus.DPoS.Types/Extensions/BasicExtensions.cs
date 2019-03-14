@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS
+// ReSharper disable once CheckNamespace
+namespace AElf.Consensus.DPoS
 {
     public static class BasicExtensions
     {
@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         // For now, only if one node configured himself as a boot miner can he actually create the first block,
                         // which block height is 2.
                         CountingMilliseconds = isBootMiner
-                            ? DPoSContractConsts.BootMinerWaitingMilliseconds
+                            ? 8000
                             : int.MaxValue,
                         // No need to limit the mining time for the first block a chain.
                         TimeoutMilliseconds = int.MaxValue,
@@ -531,6 +531,17 @@ namespace AElf.Contracts.Consensus.DPoS
             var result1 = candidates.PublicKeys.Remove(publicKey.ToHex());
             var result2 = candidates.Addresses.Remove(Address.FromPublicKey(publicKey));
             return result1 && result2;
+        }
+        
+        public static bool IsExpired(this VotingRecord votingRecord, ulong currentAge)
+        {
+            var lockExpiredAge = votingRecord.VoteAge;
+            foreach (var day in votingRecord.LockDaysList)
+            {
+                lockExpiredAge += (ulong) day;
+            }
+
+            return lockExpiredAge <= currentAge;
         }
 
         /// <summary>

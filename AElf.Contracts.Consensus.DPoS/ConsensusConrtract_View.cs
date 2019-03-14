@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -208,6 +209,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return GetTicketsInformation(publicKey).ToString();
         }
 
+        [View]
+        public VotingRecord GetVotingRecord(Hash transactionId)
+        {
+            return State.VotingRecordsMap[transactionId];
+        }
+        
         [View]
         public ulong QueryObtainedNotExpiredVotes(string publicKey)
         {
