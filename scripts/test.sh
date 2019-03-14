@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for i in *Tests ; do
-  limit=$((${#i}+20))
+  limit=$((${#i}+30))
 
   echo ""
   echo "Executing Tests for $i"
@@ -13,6 +13,7 @@ for i in *Tests ; do
   /p:Exclude="[coverlet.*.tests?]*%2c[xunit.*]*%2c[AElf.Database]AElf.Database.RedisProtocol.*%2c[AElf.Contracts.Authorization]*%2c[AElf.Test.Helpers]*%2c[AElf.CLI]AElf.CLI.Commands.*" \
   /p:ExcludeByFile="../AElf.Runtime.CSharp.Core/Metadata/*.cs%2c../AElf.Kernel.SmartContract/Metadata/*.cs"
   
+  sleep 0.05
   if [[ $? -ne 0 ]] ; then
     exit 1
   fi
