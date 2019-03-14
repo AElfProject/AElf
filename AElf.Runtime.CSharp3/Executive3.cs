@@ -18,6 +18,7 @@ using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.Reflection;
 using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.IHostSmartContractBridgeContext;
+using FileDescriptorSet = AElf.Runtime.CSharp.FileDescriptorSet;
 
 namespace AElf.Runtime.CSharp
 {
