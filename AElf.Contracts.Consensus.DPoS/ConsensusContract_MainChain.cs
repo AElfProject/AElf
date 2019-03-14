@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update term number lookup. (Using term number to get first round number of related term.)
             AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);
 
-            Assert(TryToGetCurrentAge(out var blockAge), "Block age not found.");
+            TryToGetCurrentAge(out var blockAge);
             // Update blockchain age of next two rounds.
             round.BlockchainAge = blockAge;
 

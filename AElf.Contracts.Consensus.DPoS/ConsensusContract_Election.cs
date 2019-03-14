@@ -254,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(votingRecord != null,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
 
-            Assert(votingRecord.IsWithdrawn,
+            Assert(!votingRecord.IsWithdrawn,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
                     "This voting record has already withdrawn."));
 

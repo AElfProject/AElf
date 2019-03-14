@@ -369,6 +369,20 @@ namespace AElf.Contracts.TestBase
 
             return result;
         }
+        
+        /// <summary>
+        /// Generate a tx then package the new tx to a new block.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
+        public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress, string methodName,
+            params object[] objects)
+        {
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            return (await MineAsync(new List<Transaction> {tx}), tx);
+        }
 
         /// <summary>
         /// Using tx to call a method without mining.

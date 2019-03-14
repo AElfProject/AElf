@@ -20,6 +20,11 @@ namespace AElf.Contracts.Dividends
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
         
+        /// <summary>
+        /// Transfer dividends to miners.
+        /// </summary>
+        /// <param name="votingRecord"></param>
+        /// <returns></returns>
         public ActionResult TransferDividends(VotingRecord votingRecord)
         {
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can add dividends.");

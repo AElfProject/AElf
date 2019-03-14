@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -15,12 +17,22 @@ namespace AElf.Contracts.Consensus.DPoS
     public class ElectionTest
     {
         public readonly ContractTester<DPoSContractTestAElfModule> Starter;
+
+        private const int MinersCount = 17;
+
+        private const int MiningInterval = 1;
+
+        public readonly List<ContractTester<DPoSContractTestAElfModule>> Miners;
         public ElectionTest()
         {
             // The starter initial chain and tokens.
             Starter = new ContractTester<DPoSContractTestAElfModule>();
-            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync());
-         }
+
+            var minersKeyPairs = Enumerable.Range(0, MinersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval));
+            Miners = Enumerable.Range(0, 17)
+                .Select(i => Starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
+        }
         
         [Fact]
         public async Task Announce_Election_Success()
