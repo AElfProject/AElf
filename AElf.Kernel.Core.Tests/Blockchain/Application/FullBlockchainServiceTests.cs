@@ -16,12 +16,10 @@ namespace AElf.Kernel.Blockchain.Application
     public class FullBlockchainServiceTests : AElfKernelTestBase
     {
         private readonly FullBlockchainService _fullBlockchainService;
-        private readonly ILocalEventBus _localEventBus;
 
         public FullBlockchainServiceTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
-            _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
         [Fact]
@@ -40,11 +38,17 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();
+            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
+            existBlock.ShouldBeNull();
 
-            await _fullBlockchainService.CreateChainAsync(block);
+            var createChainResult = await _fullBlockchainService.CreateChainAsync(block);
 
             chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldNotBeNull();
+            chain.ShouldBe(createChainResult);
+
+            existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
+            existBlock.ShouldBe(block);
         }
 
         [Fact]

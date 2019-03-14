@@ -93,7 +93,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 BlockHash = genesisBlock,
                 Height = ChainConsts.GenesisBlockHeight,
                 PreviousBlockHash = Hash.Empty,
-                IsLinked = true
+                IsLinked = true,
+                IsIrreversibleBlock = true
             });
 
             await SetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight, genesisBlock);
