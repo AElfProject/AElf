@@ -5,8 +5,6 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region Consensus Settings
 
-        public const int BootMinerWaitingMilliseconds = 8000;
-        public const ulong TotalSupply = 100_000_000_000;
         public const ulong LockTokenForElection = 100_000;
         public const int AliasLimit = 20;
 
