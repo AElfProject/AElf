@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -21,6 +22,8 @@ namespace AElf.Contracts.Consensus.DPoS
         private const int MinersCount = 17;
 
         private const int MiningInterval = 1;
+        
+        public VotingRecord votingRecord = new VotingRecord();
 
         public readonly List<ContractTester<DPoSContractTestAElfModule>> Miners;
         public ElectionTest()
@@ -344,6 +347,75 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.IsCandidate), candidateLists[0].PublicKey);
             candidateResult1.DeserializeToBool().ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task Withdraw_By_TransactionId()
+        {
+            const ulong amount = 1000;
+            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
+            var voters = Starter.GenerateVoters(2);
+
+            for (int i = 0; i < voters.Count; i++)
+                await Starter.TransferTokenAsync(voters[i].GetCallOwnerAddress(), 10000);
+            
+            var txResult  = await voters[0].Vote(candidate.PublicKey, amount, 100);
+            txResult.Status.ShouldBe(TransactionResultStatus.Mined); 
+            
+            var ticketsOfCandidate = await candidate.GetTicketsInformationAsync();
+            Assert.Equal(amount, ticketsOfCandidate.ObtainedTickets);
+            
+            var ticketsOfVoter = await voters[0].GetTicketsInformationAsync();
+            Assert.Equal(amount, ticketsOfVoter.VotedTickets);
+
+            await Miners.ChangeTermAsync(1);
+            var blockchainAge = (await voters[0].CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetBlockchainAge))).DeserializeToUInt64();
+            //blockchainAge.ShouldBe(0UL);
+            
+            // UnlockAge > CurrentAge
+            string txId = txResult.ReadableReturnValue;
+            var withdrawResult1 = await voters[0].ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
+                nameof(ConsensusContract.WithdrawByTransactionId), txId);
+            withdrawResult1.Status.ShouldBe(TransactionResultStatus.Failed);
+            withdrawResult1.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
+
+            await Starter.SetBlockchainAgeAsync(101);
+
+            //Withdrawn 
+            var withdrawResult3 = await voters[0].ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
+                nameof(ConsensusContract.WithdrawByTransactionId), txId);
+            withdrawResult3.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //check withdrawn time
+            var redeemTime = votingRecord.UnlockTimestamp.Nanos;
+            var unlockAge = votingRecord.UnlockAge;
+            redeemTime.ShouldBe(100);
+            unlockAge.ShouldBe(100UL);
+            
+            //check candidate & voter ticket
+            ticketsOfCandidate = await candidate.GetTicketsInformationAsync();
+            ticketsOfCandidate.ObtainedTickets.ShouldBe(0UL);
+            ticketsOfVoter = await voters[0].GetTicketsInformationAsync();
+            ticketsOfVoter.VotedTickets.ShouldBe(0UL);
+            
+            //check voter balance
+            var balanceResult = await Starter.GetBalanceAsync(voters[0].GetCallOwnerAddress());
+            balanceResult.ShouldBe(amount);
+            
+            //votingRecord is withdrawn
+            var withdrawResult4 = await voters[0].ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
+                nameof(ConsensusContract.WithdrawByTransactionId), txId);
+            withdrawResult4.Status.ShouldBe(TransactionResultStatus.Failed);
+            withdrawResult4.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
+        }
+
+
+        private void vote()
+        {
+            
+        }
+        
+        
         
         private static User GenerateNewUser()
         {
