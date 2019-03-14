@@ -16,12 +16,14 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.Reflection;
 using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.IHostSmartContractBridgeContext;
 
 namespace AElf.Runtime.CSharp
 {
     public class Executive3 : IExecutive
     {
+        private readonly Assembly _contractAssembly;
         private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
@@ -59,6 +61,7 @@ namespace AElf.Runtime.CSharp
         }
         public Executive3(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
+            _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
@@ -202,6 +205,32 @@ namespace AElf.Runtime.CSharp
             }
 
             return handler.ReturnBytesToObject(bytes);
+        }
+
+        private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
+            HashSet<string> known = null)
+        {
+            known = known ?? new HashSet<string>();
+            if (known.Contains(fileDescriptor.Name))
+            {
+                return new List<FileDescriptor>();
+            }
+
+            var fileDescriptors = new List<FileDescriptor>();
+            fileDescriptors.AddRange(fileDescriptor.Dependencies.SelectMany(x => GetSelfAndDependency(x, known)));
+            fileDescriptors.Add(fileDescriptor);
+            known.Add(fileDescriptor.Name);
+            return fileDescriptors;
+        }
+
+        public byte[] GetFileDescriptorSet()
+        {
+            var prop = FindContractContainer(_contractAssembly).GetProperty("Descriptor",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var descriptor = (ServiceDescriptor) prop.GetValue(null, null);
+            var output = new FileDescriptorSet();
+            output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
+            return output.ToByteArray();
         }
     }
 }

@@ -131,6 +131,7 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\network_types.proto = protobuf\network_types.proto
 	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
 	protobuf\aelf_options.proto = protobuf\aelf_options.proto
+	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"

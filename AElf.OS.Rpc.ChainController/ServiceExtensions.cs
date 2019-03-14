@@ -311,6 +311,18 @@ namespace AElf.OS.Rpc.ChainController
             return trace.ReturnValue.ToByteArray();
         }
 
+        internal static async Task<byte[]> GetFileDescriptorSetAsync(this ChainControllerRpcService s, Address address)
+        {
+            var chain = await s.BlockchainService.GetChainAsync();
+            var chainContext = new ChainContext()
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await s.TransactionReadOnlyExecutionService.GetFileDescriptorSetAsync(chainContext, address);
+        }
+
         internal static async Task<Block> GetBlock(this ChainControllerRpcService s, Hash blockHash)
         {
             return (Block) await s.BlockchainService.GetBlockByHashAsync(blockHash);
