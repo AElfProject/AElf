@@ -1,0 +1,25 @@
+{
+  "ConnectionStrings": {
+    "BlockchainDb": "redis://localhost:6379?db=3",
+    "StateDb": "redis://localhost:6379?db=3"
+  },
+  "Account": {
+    "NodeAccount": "ELF_5ta1yvi2dFEs4V7YLPgwkbnn816xVUvwWyTHPHcfxMVLrLB",
+    "NodeAccountPassword": "ean"
+  },
+  "Network": {
+    "ListeningPort": 7002
+  },
+  "Kestrel": {
+    "EndPoints": {
+      "Http": {
+        "Url": "http://*:1728/"
+      }
+    }
+  },
+  "Consensus": {
+    "IsBootMiner": false
+  },
+
+  "urls": "http://localhost:5002"
+}
