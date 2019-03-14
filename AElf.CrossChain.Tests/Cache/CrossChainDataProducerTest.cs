@@ -18,7 +18,7 @@ namespace AElf.CrossChain.Cache
         public void GetChainHeightNeeded_NotExistChain()
         {
             int chainId = 123;
-            Assert.Throws<ChainCacheNotFoundException>(() => _crossChainDataProducer.GetChainHeightNeededForCache(chainId));
+            Assert.Throws<ChainCacheNotFoundException>(() => _crossChainDataProducer.GetChainHeightNeeded(chainId));
         }
         
         [Fact]
@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var neededHeight = _crossChainDataProducer.GetChainHeightNeededForCache(chainId);
+            var neededHeight = _crossChainDataProducer.GetChainHeightNeeded(chainId);
             Assert.True(neededHeight == 1);
         }
         

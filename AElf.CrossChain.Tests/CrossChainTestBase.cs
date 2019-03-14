@@ -31,7 +31,7 @@ namespace AElf.CrossChain
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
-                CrossChainDataConsumer.RegisterNewChainCache(crossChainId, blockInfos.First().Height);
+                CrossChainDataConsumer.TryRegisterNewChainCache(crossChainId, blockInfos.First().Height);
                 foreach (var blockInfo in blockInfos)
                 {
                     CrossChainDataProducer.AddNewBlockInfo(blockInfo);
