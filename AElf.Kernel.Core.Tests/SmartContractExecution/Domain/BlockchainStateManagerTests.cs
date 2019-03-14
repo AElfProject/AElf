@@ -190,6 +190,29 @@ namespace AElf.Kernel
         }
 
         [Fact]
+        public async Task Test_MergeBlockState_WithStatus_NotCommon()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+                Changes =
+                {
+                    {
+                        _tv[1].Key,
+                        _tv[1].Value
+                    }
+                }
+            });
+            
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+
+            await Should.ThrowAsync<InvalidOperationException>(async ()=> await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash));
+        }
+        
+        [Fact]
         public async Task Test_AddBlockState_Without_Change()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
@@ -198,6 +221,7 @@ namespace AElf.Kernel
                 BlockHeight = _tv[1].BlockHeight,
                 PreviousHash = null,
             });
+            
             var result = await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[1].BlockHeight, _tv[1].BlockHash);
             result.ShouldBeNull();
         }
