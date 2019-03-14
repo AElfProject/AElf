@@ -16,7 +16,7 @@ namespace AElf.OS.Jobs
         protected abstract Task ExecuteAsync(TArgs args);
     }
 
-    //TODO: Add test case for AddBlockJob [Case]
+    //No body call and no logic contained about AddBlockJob
     public class AddBlockJob : AsyncBackgroundJob<string>
     {
         private IBlockchainService _blockchainService;
