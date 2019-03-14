@@ -114,13 +114,23 @@ namespace AElf.Contracts.Consensus.DPoS
                 methodName, objects);
         }
 
-        public static async Task<TransactionResult> InitializeAsync(
+        /// <summary>
+        /// Initial consensus contract and dividends contract.
+        /// </summary>
+        /// <param name="contractTester"></param>
+        /// <returns></returns>
+        public static async Task InitializeAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return await contractTester.ExecuteConsensusContractMethodWithMiningAsync(
+            await contractTester.ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.Initialize),
                 contractTester.GetContractAddress(typeof(TokenContract)),
                 contractTester.GetContractAddress(typeof(DividendsContract)));
+            
+            await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
+                nameof(DividendsContract.Initialize),
+                contractTester.GetContractAddress(typeof(ConsensusContract)),
+                contractTester.GetContractAddress(typeof(TokenContract)));
         }
 
         #endregion
@@ -156,6 +166,10 @@ namespace AElf.Contracts.Consensus.DPoS
             // Initial token.
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Initialize),
                 "ELF", "elf token", DPoSContractConsts.LockTokenForElection * 100, 2U);
+
+            // Transfer token to dividends contract.
+            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer),
+                starter.GetDividendsContractAddress(), DPoSContractConsts.LockTokenForElection * 10);
 
             // Initial consensus contract.
             await starter.InitializeAsync();
@@ -299,18 +313,21 @@ namespace AElf.Contracts.Consensus.DPoS
             var nextRound = miners.Select(m => m.PublicKey).ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, round.RoundNumber, currentTermNumber);
 
+            var termNumber = (await miners.AnyOne().CallContractMethodAsync(
+                miners.AnyOne().GetConsensusContractAddress(), nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToUInt64();
+
             var nextTermTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
                 nameof(ConsensusContract.NextTerm), nextRound);
             var snapshotForMinersTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SnapshotForMiners), nextRound);
+                nameof(ConsensusContract.SnapshotForMiners), termNumber, round.RoundNumber);
             var snapshotForTermTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SnapshotForTerm), nextRound);
+                nameof(ConsensusContract.SnapshotForTerm), termNumber, round.RoundNumber);
             var sendDividendsTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SendDividends), nextRound);
+                nameof(ConsensusContract.SendDividends), termNumber, round.RoundNumber);
 
             var txs = new List<Transaction> {nextTermTx, snapshotForMinersTx, snapshotForTermTx, sendDividendsTx};
             var extraBlockMiner = miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);

@@ -19,6 +19,13 @@ namespace AElf.Contracts.Dividends
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
+
+        public void SendDividends(Address targetAddress, ulong amount)
+        {
+            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
+
+            State.TokenContract.Transfer(targetAddress, amount);
+        }
         
         /// <summary>
         /// Transfer dividends to miners.

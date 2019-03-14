@@ -36,6 +36,12 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetVictories(out Miners victories)
         {
             var candidates = State.CandidatesField.Value;
+            if (candidates == null)
+            {
+                victories = null;
+                return false;
+            }
+            
             var ticketsMap = new Dictionary<string, ulong>();
             foreach (var candidatePublicKey in candidates.PublicKeys)
             {
@@ -85,6 +91,11 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
         {
             var candidates = State.CandidatesField.Value;
+            if (candidates == null)
+            {
+                backups = null;
+                return false;
+            }
             backups = candidates.PublicKeys.Except(currentMiners).ToList();
             return backups.Any();
         }
