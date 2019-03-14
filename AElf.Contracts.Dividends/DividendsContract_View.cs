@@ -103,6 +103,7 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
+        // TODO: Views cannot throw exceptions？
         public ulong CheckDividends(ulong ticketsAmount, int lockTime, ulong termNumber)
         {
             var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber();

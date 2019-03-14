@@ -511,7 +511,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ulong QueryCurrentDividendsForVoters()
         {
             var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToUInt64Value()].GetMinedBlocks();
-            return (ulong) (minedBlocks * DPoSContractConsts.VotersRatio) * DPoSContractConsts.ElfTokenPerBlock;
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
 
         [View]

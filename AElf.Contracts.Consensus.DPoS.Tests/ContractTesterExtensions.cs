@@ -131,6 +131,13 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return contractTester.GetContractAddress(typeof(TokenContract));
         }
+        
+        public static Address GetDividendsContractAddress(
+            this ContractTester<DPoSContractTestAElfModule> contractTester)
+        {
+            return contractTester.GetContractAddress(typeof(DividendsContract));
+        }
+        
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
@@ -224,6 +231,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
+        //TODO:  Failed to execute SnapshotForMiners tx.
         public static async Task ChangeTermAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int miningInterval)
         {
@@ -248,8 +256,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.SendDividends), nextRound);
 
             var txs = new List<Transaction> {nextTermTx, snapshotForMinersTx, snapshotForTermTx, sendDividendsTx};
-            var block = await miners.First(m => m.PublicKey == extraBlockProducer.PublicKey).MineAsync(txs);
+            var extraBlockMiner = miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
+            var block = await extraBlockMiner.MineAsync(txs);
 
+            foreach (var transaction in txs)
+            {
+                var transactionResult = await extraBlockMiner.GetTransactionResultAsync(transaction.GetHash());
+                if (transactionResult.Status != TransactionResultStatus.Mined)
+                {
+                    throw new Exception($"Failed to execute {transaction.MethodName} tx.");
+                }
+            }
             foreach (var otherMiner in miners.Where(m => m.PublicKey != extraBlockProducer.PublicKey))
             {
                 await otherMiner.ExecuteBlock(block, txs);
@@ -403,6 +420,23 @@ namespace AElf.Contracts.Consensus.DPoS
             return Tickets.Parser.ParseFrom(bytes);
         }
 
+        public static async Task<VotingRecord> GetVotingRecord(
+            this ContractTester<DPoSContractTestAElfModule> contractTester, Hash txId)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(), nameof(ConsensusContract.GetVotingRecord),txId);
+            return VotingRecord.Parser.ParseFrom(bytes);
+        }
+
+        #endregion
+        
+        #region Dividends
+        public static async Task<ULongList> CheckDividendsOfPreviousTerm(
+            this ContractTester<DPoSContractTestAElfModule> contractTester)
+        {
+            var bytes  = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(), nameof(DividendsContract.CheckDividendsOfPreviousTerm));
+            return ULongList.Parser.ParseFrom(bytes);
+        }
+        
         #endregion
 
         public static async Task SetBlockchainAgeAsync(this ContractTester<DPoSContractTestAElfModule> starter,

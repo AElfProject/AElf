@@ -256,7 +256,7 @@ namespace AElf.Contracts.TestBase
             return smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                 .Name);
         }
-
+        
         public Address GetCallOwnerAddress()
         {
             return Address.FromPublicKey(KeyPair.PublicKey);
