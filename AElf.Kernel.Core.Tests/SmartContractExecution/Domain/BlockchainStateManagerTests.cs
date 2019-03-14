@@ -190,6 +190,32 @@ namespace AElf.Kernel
         }
 
         [Fact]
+        public async Task Test_AddBlockState_Without_Change()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+            });
+            var result = await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[1].BlockHeight, _tv[1].BlockHash);
+            result.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task Test_Without_AddBlockState_And_Without_Change()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+            });
+            var result = await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[2].BlockHeight, _tv[1].BlockHash);
+            result.ShouldBeNull();
+        }
+        
+        [Fact]
         public async Task TestState_MergedSituation()
         {
             int chainId = 1;
