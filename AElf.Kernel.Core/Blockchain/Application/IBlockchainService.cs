@@ -304,7 +304,6 @@ namespace AElf.Kernel.Blockchain.Application
             return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
-        //TODO: Add GetBlockHeaderByHeightAsync case [Case]
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(long height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(height);

@@ -24,6 +24,172 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionManager = GetRequiredService<ITransactionManager>();
         }
 
+        #region private mehtods
+
+        /// <summary>
+        /// Mock a chain with a best branch, a fork branch and some alone blocks
+        /// </summary>
+        /// <returns>
+        ///          Chain: best chain height 11, lib height 5
+        ///         Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
+        ///    Best Branch: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
+        /// Longest Branch:                                         l -> m  -> n  -> o  -> p 
+        ///    Fork Branch:                          q -> r -> s -> t -> u
+        ///    Alone Block: v[3] w[9] x[15]
+        /// </returns>
+        private async Task<MockChain> MockNewChain()
+        {
+            var bestBranchBlockList = new List<Block>();
+            var longestBranchBlockList = new List<Block>();
+            var forkBranchBlockList = new List<Block>();
+            var aloneBlockList = new List<Block>();
+            
+            var chain = await CreateNewChain();
+            
+            // Best branch
+            bestBranchBlockList = await AddBestBranch(chain);
+            
+            // Longest branch
+            longestBranchBlockList =
+                await AddForkBranch(chain, bestBranchBlockList[6].Height + 1, bestBranchBlockList[6].GetHash());
+            
+            // Fork branch
+            forkBranchBlockList = 
+                await AddForkBranch(chain, bestBranchBlockList[3].Height + 1, bestBranchBlockList[3].GetHash());
+            
+            // Alone blocks
+            aloneBlockList = await AddAloneBlock();
+
+            // Set lib
+            chain = await _fullBlockchainService.GetChainAsync();
+            await _fullBlockchainService.SetIrreversibleBlockAsync(chain, bestBranchBlockList[3].Height,
+                bestBranchBlockList[3].GetHash());
+            
+            chain = await _fullBlockchainService.GetChainAsync();
+            return new MockChain
+            {
+                Chain = chain,
+                BestBranchBlocks = bestBranchBlockList,
+                LongestBranchBlocks = longestBranchBlockList,
+                ForkBranchBlocks = forkBranchBlockList,
+                AloneBlocks = aloneBlockList
+            };
+        }
+        
+        private async Task<Chain> CreateNewChain()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            if (chain != null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var genesisBlock = new Block
+            {
+                Header = new BlockHeader
+                {
+                    Height = ChainConsts.GenesisBlockHeight,
+                    PreviousBlockHash = Hash.Empty
+                },
+                Body = new BlockBody()
+            };
+            chain = await _fullBlockchainService.CreateChainAsync(genesisBlock);
+            return chain;
+        }
+
+        private async Task<List<Block>> AddBestBranch(Chain chain)
+        {
+            var bestBranchBlockList = new List<Block>();
+            
+            for (var i = 0; i < 10; i++)
+            {
+                var newBlock = new Block
+                {
+                    Header = new BlockHeader
+                    {
+                        Height = chain.BestChainHeight + 1,
+                        PreviousBlockHash = chain.BestChainHash
+                    },
+                    Body = new BlockBody()
+                };
+                bestBranchBlockList.Add(newBlock);
+
+                await _fullBlockchainService.AddBlockAsync(newBlock);
+                chain = await _fullBlockchainService.GetChainAsync();
+                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+                await _fullBlockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
+            }
+
+            return bestBranchBlockList;
+        }
+
+        private async Task<List<Block>> AddAloneBlock()
+        {
+            var aloneBlockList = new List<Block>();
+            
+            for (var i = 0; i < 3; i++)
+            {
+                var newBlock = new Block
+                {
+                    Header = new BlockHeader
+                    {
+                        Height = i * 6 + 3,
+                        PreviousBlockHash = Hash.FromString(Guid.NewGuid().ToString())
+                    },
+                    Body = new BlockBody()
+                };
+                aloneBlockList.Add(newBlock);
+
+                await _fullBlockchainService.AddBlockAsync(newBlock);
+                var chain = await _fullBlockchainService.GetChainAsync();
+                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+            }
+
+            return aloneBlockList;
+        }
+
+        private async Task<List<Block>> AddForkBranch(Chain chain, long startHeight, Hash startPreviousHash)
+        {
+            var forkBranchBlockList = new List<Block>();
+            
+            for (var i = 0; i < 5; i++)
+            {
+                var newBlock = new Block
+                {
+                    Header = new BlockHeader
+                    {
+                        Height = startHeight,
+                        PreviousBlockHash = startPreviousHash
+                    },
+                    Body = new BlockBody()
+                };
+                forkBranchBlockList.Add(newBlock);
+
+                await _fullBlockchainService.AddBlockAsync(newBlock);
+                chain = await _fullBlockchainService.GetChainAsync();
+                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+                
+                startHeight ++;
+                startPreviousHash = newBlock.GetHash();
+            }
+
+            return forkBranchBlockList;
+        }
+
+        private Transaction GenerateTransaction()
+        {
+            var transaction = new Transaction
+            {
+                From = Address.Zero,
+                To = Address.Zero,
+                MethodName = Guid.NewGuid().ToString()
+            };
+
+            return transaction;
+        }
+        
+        #endregion
+
         [Fact]
         public async Task Create_Chain_Success()
         {
@@ -91,6 +257,9 @@ namespace AElf.Kernel.Blockchain.Application
             var result = await _fullBlockchainService.HasBlockAsync(mockChain.BestBranchBlocks[1].GetHash());
             result.ShouldBeTrue();
             
+            result = await _fullBlockchainService.HasBlockAsync(mockChain.LongestBranchBlocks[1].GetHash());
+            result.ShouldBeTrue();
+            
             result = await _fullBlockchainService.HasBlockAsync(mockChain.ForkBranchBlocks[1].GetHash());
             result.ShouldBeTrue();
             
@@ -109,8 +278,18 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_BlockHash_ByHeight_ReturnNull()
         {
             var mockChain = await MockNewChain();
-            
-            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, 12);
+
+            var result =
+                await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, 14,
+                    mockChain.Chain.BestChainHash);
+            result.ShouldBeNull();
+
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, 14,
+                mockChain.Chain.LongestChainHash);
+            result.ShouldBeNull();
+
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, 14,
+                mockChain.ForkBranchBlocks.Last().GetHash());
             result.ShouldBeNull();
         }
 
@@ -118,11 +297,20 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_BlockHash_ByHeight_ReturnHash()
         {
             var mockChain = await MockNewChain();
-            
-            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, mockChain.BestBranchBlocks[8].Height);
-            result.ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
-        }
 
+            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, mockChain
+                .BestBranchBlocks[8].Height, mockChain.Chain.BestChainHash);
+            result.ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
+            
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, mockChain
+                .LongestBranchBlocks[3].Height, mockChain.Chain.LongestChainHash);
+            result.ShouldBe(mockChain.LongestBranchBlocks[3].GetHash());
+            
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, mockChain
+                .ForkBranchBlocks[3].Height, mockChain.Chain.LongestChainHash);
+            result.ShouldBe(mockChain.ForkBranchBlocks[3].GetHash());
+        }
+        
         [Fact]
         public async Task Get_GetReservedBlockHashes_ReturnNull()
         {
@@ -130,13 +318,13 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldBeNull();
         }
 
-
         [Fact]
-        public async Task Get_GetBlockHashes_ReturnNull()
+        public async Task Get_ReversedBlockHashes_ReturnEmpty()
         {
-            var chain = await _fullBlockchainService.GetChainAsync();
-            var result = await _fullBlockchainService.GetBlockHashes(chain, Hash.FromString("not exist"), 1);
-            result.ShouldBeNull();
+            var mockChain = await MockNewChain();
+            
+            var result = await _fullBlockchainService.GetReversedBlockHashes(mockChain.BestBranchBlocks[2].GetHash(), 0);
+            result.Count.ShouldBe(0);
         }
 
         [Fact]
@@ -157,7 +345,7 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldBeNull();
         }
 
-        [Fact]
+        [Fact(Skip = "need Optimize GetBlockHashByHeightAsync")]
         public async Task Get_Blocks_ReturnBlocks()
         {
             var mockChain = await MockNewChain();
@@ -175,6 +363,14 @@ namespace AElf.Kernel.Blockchain.Application
             result.Count.ShouldBe(2);
             result[0].GetHash().ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
             result[1].GetHash().ShouldBe(mockChain.BestBranchBlocks[9].GetHash());
+        }
+        
+        [Fact]
+        public async Task Get_GetBlockHashes_ReturnNull()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            var result = await _fullBlockchainService.GetBlockHashes(chain, Hash.FromString("not exist"), 1);
+            result.ShouldBeNull();
         }
 
         [Fact]
@@ -232,6 +428,15 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
+        public async Task Get_BlockHeaderByHash_ReturnHeader()
+        {
+            var mockChain = await MockNewChain();
+
+            var blockHeader = await _fullBlockchainService.GetBlockHeaderByHeightAsync(mockChain.BestBranchBlocks[2].Height);
+            blockHeader.GetHash().ShouldBe(mockChain.BestBranchBlocks[2].GetHash());
+        }
+
+        [Fact]
         public async Task Get_Chain_ReturnChain()
         {
             var mockChain = await MockNewChain();
@@ -270,156 +475,6 @@ namespace AElf.Kernel.Blockchain.Application
             var result = await _fullBlockchainService.GetBestChainLastBlock();
             result.Height.ShouldBe(mockChain.BestBranchBlocks.Last().Height);
             result.GetHash().ShouldBe(mockChain.BestBranchBlocks.Last().GetHash());
-        }
-
-        /// <summary>
-        /// Mock a chain with a best branch, a fork branch and some alone blocks
-        /// </summary>
-        /// <returns>
-        ///          Chain: best chain height 11
-        ///         Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
-        ///    Best Branch: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
-        /// Longest Branch:                                         l -> m  -> n -> o -> p 
-        ///    Fork Branch:                          q -> r -> s -> t -> u
-        ///    Alone Block: v[3] w[8] x[13]
-        /// </returns>
-        private async Task<MockChain> MockNewChain()
-        {
-            var chain = await CreateNewChain();
-            var bestBranchBlockList = new List<Block>();
-            var longestBranchBlockList = new List<Block>();
-            var forkBranchBlockList = new List<Block>();
-            var aloneBlockList = new List<Block>();
-
-            // Best branch
-            for (var i = 0; i < 10; i++)
-            {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash
-                    },
-                    Body = new BlockBody()
-                };
-                bestBranchBlockList.Add(newBlock);
-
-                await _fullBlockchainService.AddBlockAsync(newBlock);
-                chain = await _fullBlockchainService.GetChainAsync();
-                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
-                await _fullBlockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
-            }
-            
-            // Longest branch
-            var currentHeight = bestBranchBlockList[6].Height + 1;
-            var previousBlockHash = bestBranchBlockList[6].GetHash();
-            for (var i = 0; i < 5; i++)
-            {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = currentHeight,
-                        PreviousBlockHash = previousBlockHash
-                    },
-                    Body = new BlockBody()
-                };
-                longestBranchBlockList.Add(newBlock);
-
-                await _fullBlockchainService.AddBlockAsync(newBlock);
-                chain = await _fullBlockchainService.GetChainAsync();
-                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
-                
-                currentHeight = currentHeight + 1;
-                previousBlockHash = newBlock.GetHash();
-            }
-            
-            // Fork branch
-            currentHeight = bestBranchBlockList[3].Height + 1;
-            previousBlockHash = bestBranchBlockList[3].GetHash();
-            for (var i = 0; i < 5; i++)
-            {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = currentHeight,
-                        PreviousBlockHash = previousBlockHash
-                    },
-                    Body = new BlockBody()
-                };
-                forkBranchBlockList.Add(newBlock);
-
-                await _fullBlockchainService.AddBlockAsync(newBlock);
-                chain = await _fullBlockchainService.GetChainAsync();
-                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
-                
-                currentHeight = currentHeight + 1;
-                previousBlockHash = newBlock.GetHash();
-            }
-            
-            // Alone blocks
-            for (var i = 0; i < 3; i++)
-            {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = i * 5 + 3,
-                        PreviousBlockHash = Hash.FromString(Guid.NewGuid().ToString())
-                    },
-                    Body = new BlockBody()
-                };
-                aloneBlockList.Add(newBlock);
-
-                await _fullBlockchainService.AddBlockAsync(newBlock);
-                chain = await _fullBlockchainService.GetChainAsync();
-                await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
-            }
-
-            chain = await _fullBlockchainService.GetChainAsync();
-            return new MockChain
-            {
-                Chain = chain,
-                BestBranchBlocks = bestBranchBlockList,
-                LongestBranchBlocks = longestBranchBlockList,
-                ForkBranchBlocks = forkBranchBlockList,
-                AloneBlocks = aloneBlockList
-            };
-        }
-        
-        private async Task<Chain> CreateNewChain()
-        {
-            var chain = await _fullBlockchainService.GetChainAsync();
-            if (chain != null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
-            chain = await _fullBlockchainService.CreateChainAsync(genesisBlock);
-            return chain;
-        }
-        
-        private Transaction GenerateTransaction()
-        {
-            var transaction = new Transaction
-            {
-                From = Address.Zero,
-                To = Address.Zero,
-                MethodName = Guid.NewGuid().ToString()
-            };
-
-            return transaction;
         }
     }
 
