@@ -7,6 +7,7 @@ cache:
   yarn: true 
   directories:
     - $HOME/.nuget/packages
+    - $(pwd)/ChakraCoreFiles
 before_install:
   - bash scripts/install_protobuf.sh
   - nvm install node
