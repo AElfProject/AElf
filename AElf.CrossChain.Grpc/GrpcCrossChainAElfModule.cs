@@ -7,7 +7,7 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Grpc
 {
     [DependsOn(typeof(CrossChainAElfModule))]
     public class GrpcCrossChainAElfModule : AElfModule
