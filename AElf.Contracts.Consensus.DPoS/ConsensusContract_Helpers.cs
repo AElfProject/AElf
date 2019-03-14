@@ -183,11 +183,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private bool ValidateMinersList(Round round1, Round round2)
         {
-            return true;
-
-            // TODO:
-            // If the miners are different, we need a further validation
-            // to prove the missing (replaced) one should be kicked out.
+            return round1.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() ==
+                   round2.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash();
         }
 
         private bool OutInValueAreNull(Round round)
