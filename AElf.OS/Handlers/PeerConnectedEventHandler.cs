@@ -55,9 +55,15 @@ namespace AElf.OS.Handlers
                 peerInPool.CurrentBlockHeight = blockHeight;
             }
 
+            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {peerInPool?.PeerIpAddress}.");
+
             var chain = await BlockchainService.GetChainAsync();
 
-            Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
+            if (blockHeight < chain.LastIrreversibleBlockHeight)
+            {
+                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {peerInPool?.PeerIpAddress}, ignore.");
+                return;
+            }
 
             var block = await BlockchainService.GetBlockByHashAsync(blockHash);
             if (block != null)
