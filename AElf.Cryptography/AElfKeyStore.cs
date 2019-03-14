@@ -141,10 +141,6 @@ namespace AElf.Cryptography
             {
                 throw new InvalidPasswordException("Invalid password.", pemEx);
             }
-            catch (Exception e)
-            {
-                throw new Exception("Unknown error.", e);
-            }
         }
 
         private async Task<bool> WriteKeyPairAsync(ECKeyPair keyPair, string password, string chainId)

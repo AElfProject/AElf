@@ -20,7 +20,6 @@ using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -31,12 +30,12 @@ using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.Launcher
+namespace AElf.TestLauncher
 {
     [DependsOn(
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
-        typeof(RuntimeSetupAElfModule),
+        //typeof(RuntimeSetupAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
@@ -49,15 +48,15 @@ namespace AElf.Launcher
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule)
     )]
-    public class LauncherAElfModule : AElfModule
+    public class MainBlockchainAElfModule : AElfModule
     {
-        public ILogger<LauncherAElfModule> Logger { get; set; }
+        public ILogger<MainBlockchainAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
-        public LauncherAElfModule()
+        public MainBlockchainAElfModule()
         {
-            Logger = NullLogger<LauncherAElfModule>.Instance;
+            Logger = NullLogger<MainBlockchainAElfModule>.Instance;
         }
 
         public override void PreConfigureServices(ServiceConfigurationContext context)
