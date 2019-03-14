@@ -108,7 +108,7 @@ namespace AElf.Types.CSharp
         public string Name { get; }
         public FieldInfo FieldInfo { get; }
         public Packer Packer { get; }
-        //Todo Not covered all logic
+        //TODO: Not covered all logic case [Case]
         private Packer GetPacker(System.Type type)
         {
             string typeName = type.FullName;

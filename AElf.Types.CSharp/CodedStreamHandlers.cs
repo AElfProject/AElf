@@ -42,7 +42,7 @@ namespace AElf.Types.CSharp
             {
                 output.WriteMessage((IMessage)value);
             }
-            //Todo Add case to cover IsUserType
+            //TODO:  Add case to cover IsUserType [Case]
             else if (type.IsUserType())
             {
                 output.WriteMessage(((UserType)value).ToPbMessage());
@@ -62,7 +62,6 @@ namespace AElf.Types.CSharp
             return null;
         }
 
-        //Todo: Add cases to cover all logic
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             uint length = 1;

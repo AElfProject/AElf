@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,6 +21,8 @@ namespace AElf.OS.Network
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IOptionsSnapshot<ChainOptions> _optionsMock;
+        
+        private List<GrpcNetworkServer> _servers = new List<GrpcNetworkServer>();
 
         public GrpcNetworkConnectionTests(ITestOutputHelper testOutputHelper)
         {
@@ -51,15 +53,28 @@ namespace AElf.OS.Network
             mockBlockChainService.Setup(m => m.GetBestChainLastBlock())
                 .Returns(Task.FromResult(new BlockHeader()));
             
-            GrpcPeerPool grpcPeerPool = new GrpcPeerPool( optionsMock.Object, NetMockHelpers.MockAccountService().Object, mockBlockChainService.Object);
+            var accountService = NetMockHelpers.MockAccountService().Object;
+            GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, accountService, mockBlockChainService.Object);
             
-            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object);
+            GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockChainService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
             
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
             netServer.EventBus = mockLocalEventBus.Object;
+            
+            _servers.Add(netServer);
 
             return (netServer, grpcPeerPool);
+        }
+        
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var server in _servers)
+            {
+                AsyncHelper.RunSync(() => server.StopAsync(false));
+            }
         }
 
         [Fact]
@@ -77,7 +92,7 @@ namespace AElf.OS.Network
             Assert.True(peers1.Count == 0);
 
             await server.Item2.AddPeerAsync("127.0.0.1:6800");
-
+            
             var peers2 = server.Item2.GetPeers();
             Assert.True(peers2.Count == 0);
 
@@ -160,8 +175,8 @@ namespace AElf.OS.Network
 
             Assert.True(peers.Count == 2);
             
-            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerAddress));
-            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerAddress));
+            Assert.Contains("127.0.0.1:6800", peers.Select(p => p.PeerIpAddress));
+            Assert.Contains("127.0.0.1:6801", peers.Select(p => p.PeerIpAddress));
             
             await m1.Item1.StopAsync();
             await m2.Item1.StopAsync();
@@ -237,7 +252,7 @@ namespace AElf.OS.Network
             peers.Count.ShouldBe(0);
         }
 
-        [Fact(Skip="ToDebug")]
+        [Fact]
         public async Task RemovePeer_Test()
         {
             // setup 2 peers
@@ -332,26 +347,8 @@ namespace AElf.OS.Network
 
             await m1.Item1.StopAsync();
         }
-        
-        /*
-         [xUnit.net 00:00:12.08]     AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_HardDisconnect_Test [FAIL]
-Failed   AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_HardDisconnect_Test
-Error Message:
- Assert.Null() Failure
-Expected: (null)
-Actual:   GrpcPeer { CurrentBlockHash = null, CurrentBlockHeight = 0, IsReady = True, PeerAddress = "127.0.0.1:6801", PublicKey = [4, 221, 74, 75, 133, ...], ... }
-Stack Trace:
-   at AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_HardDisconnect_Test() in /Users/ericshu/GitHub/AElf/AElf.OS.Core.Tests/Network/GrpcNetworkServerTests.cs:line 373
---- End of stack trace from previous location where exception was thrown ---
-[xUnit.net 00:00:12.36]     AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_SoftDisconnect_Test [FAIL]
-Failed   AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_SoftDisconnect_Test
-Error Message:
- Assert.NotNull() Failure
-Stack Trace:
-   at AElf.OS.Network.GrpcNetworkConnectionTests.GetPeers_SoftDisconnect_Test() in /Users/ericshu/GitHub/AElf/AElf.OS.Core.Tests/Network/GrpcNetworkServerTests.cs:line 397
---- End of stack trace from previous location where exception was thrown ---
-         */
-        [Fact(Skip = "Test Failed")]
+
+        [Fact]
         public async Task GetPeers_HardDisconnect_Test()
         {
             var m1 = BuildGrpcNetworkServer(new NetworkOptions
@@ -379,8 +376,9 @@ Stack Trace:
             {
                 await p.AnnounceAsync(new PeerNewBlockAnnouncement());
             }
-            catch (Exception e)
+            catch (InvalidOperationException e)
             {
+                _testOutputHelper.WriteLine(e.ToString());
             }
 
             // make sure we wait enough for disc

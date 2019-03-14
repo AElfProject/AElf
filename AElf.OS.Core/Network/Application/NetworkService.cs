@@ -56,7 +56,6 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        //TODO: Add Peer operation test cases [Case]
         public async Task<bool> AddPeerAsync(string address)
         {
             return await _peerPool.AddPeerAsync(address);

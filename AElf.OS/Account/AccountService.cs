@@ -52,7 +52,7 @@ namespace AElf.OS.Account
             var accountKeyPair = _keyStore.GetAccountKeyPair(_accountOptions.NodeAccount);
             if (accountKeyPair == null)
             {
-                //Todo Add GetAccountKeyPairAsync case to cover 'accountKeyPair == null' logic
+                //TODO: Add GetAccountKeyPairAsync case to cover 'accountKeyPair == null' logic [Case]
                 await _keyStore.OpenAsync(_accountOptions.NodeAccount, _accountOptions.NodeAccountPassword, false);
                 accountKeyPair = _keyStore.GetAccountKeyPair(_accountOptions.NodeAccount);
             }

@@ -22,7 +22,7 @@ namespace AElf.OS
             {
                 Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
                 
-                peerPoolMock.Setup(p => p.FindPeerByAddress(It.Is<string>(adr => adr == "p1")))
+                peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                     .Returns<string>(adr =>
                     {
                         var p1 = new Mock<IPeer>();

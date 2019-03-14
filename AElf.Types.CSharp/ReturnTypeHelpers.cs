@@ -347,7 +347,6 @@ namespace AElf.Types.CSharp
                 };
             }
 
-            //Todo Add User Type Converter case
             if (type.IsUserType())
             {
                 return v =>
