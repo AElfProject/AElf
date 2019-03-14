@@ -258,7 +258,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
                     "This voting record has already withdrawn."));
 
-            Assert(votingRecord.UnlockAge > CurrentAge,
+            Assert(votingRecord.UnlockAge <= CurrentAge,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
                     "This voting record can't withdraw for now."));
 

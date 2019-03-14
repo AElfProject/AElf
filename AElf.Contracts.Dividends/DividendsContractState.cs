@@ -35,7 +35,7 @@ namespace AElf.Contracts.Dividends
         // Because voter can request dividends of each VotingRecord instance for terms it experienced,
         // we need to record the term number of last term he request his dividends.
         // Hash (of VotingRecord) -> Latest request dividends term number
-        public MappedState<Hash, ulong> LastRequestDividendsMap { get; set; }
+        public MappedState<Hash, ulong> LastRequestedDividendsMap { get; set; }
 
         public SingletonState<string> StarterPublicKey { get; set; }
     }

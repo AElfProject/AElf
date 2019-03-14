@@ -34,7 +34,7 @@ namespace AElf.Contracts.Dividends
         [View]
         public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
         {
-            var termNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
+            var termNumber = State.LastRequestedDividendsMap[votingRecord.TransactionId];
             return termNumber != 0
                 ? termNumber
                 : votingRecord.TermNumber;
@@ -46,7 +46,7 @@ namespace AElf.Contracts.Dividends
             ulong dividends = 0;
 
             var start = votingRecord.TermNumber + 1;
-            var lastRequestTermNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
+            var lastRequestTermNumber = State.LastRequestedDividendsMap[votingRecord.TransactionId];
             if (lastRequestTermNumber > 0)
             {
                 start = lastRequestTermNumber + 1;
