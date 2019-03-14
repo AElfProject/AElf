@@ -33,7 +33,14 @@ namespace AElf.CrossChain.Grpc.Server
             LocalEventBus = NullLocalEventBus.Instance;
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
-        
+
+        public override async Task RequestIndexingParentChain(RequestCrossChainBlockData request, IServerStreamWriter<ResponseParentChainBlockData> responseStream,
+            ServerCallContext context)
+        {
+            Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
+            await WriteResponseStream(request, responseStream, false);
+        }
+
         /// <summary>
         /// Response to recording request from side chain node.
         /// Many requests to many responses.
@@ -47,51 +54,26 @@ namespace AElf.CrossChain.Grpc.Server
         {
             Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
 
-            while (await requestStream.MoveNext())
-            {
-                var requestInfo = requestStream.Current;
-                var requestedHeight = requestInfo.NextHeight;
-                var sideChainId = requestInfo.SideChainId;
-                
-                var block = await GetIrreversibleBlock(requestedHeight);
-                if (block == null)
-                {
-                    await responseStream.WriteAsync(new ResponseParentChainBlockData
-                    {
-                        Success = false
-                    });
-                    continue;
-                }
-
-                var res = new ResponseParentChainBlockData
-                {
-                    Success = true,
-                    BlockData = new ParentChainBlockData
-                    {
-                        Root = new ParentChainBlockRootInfo
-                        {
-                            ParentChainHeight = requestedHeight,
-                            SideChainTransactionsRoot =
-                                Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()),
-                            ParentChainId = block.Header.ChainId
-                        }
-                    }
-                };
-
-                var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
-                var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, sideChainId);
-                foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
-                {
-                    res.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
-                }
-
-                foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
-                {
-                    res.BlockData.ExtraData.Add(symbol, _blockExtraDataExtractor.ExtractExtraData(symbol, block.Header));
-                }
-                
-                await responseStream.WriteAsync(res);
-            }
+//            while (await requestStream.MoveNext())
+//            {
+//                var requestInfo = requestStream.Current;
+//                var requestedHeight = requestInfo.NextHeight;
+//                var sideChainId = requestInfo.RemoteChainId;
+//                
+//                var block = await GetIrreversibleBlock(requestedHeight);
+//                if (block == null)
+//                {
+//                    await responseStream.WriteAsync(new ResponseParentChainBlockData
+//                    {
+//                        Success = false
+//                    });
+//                    continue;
+//                }
+//
+//                var res = await CreateParentChainResponse(block, sideChainId);
+//                
+//                await responseStream.WriteAsync(res);
+//            }
         }
         
         /// <summary>
@@ -107,68 +89,77 @@ namespace AElf.CrossChain.Grpc.Server
         {
             Logger.LogDebug("Side Chain Server received IndexedInfo message.");
 
-            try
-            {
-                while (await requestStream.MoveNext())
-                {
-                    var requestInfo = requestStream.Current;
-                    var requestedHeight = requestInfo.NextHeight;
-                    
-                    var block = await GetIrreversibleBlock(
-                        requestedHeight);
-                    if (block == null)
-                    {
-                        await responseStream.WriteAsync(new ResponseSideChainBlockData
-                        {
-                            Success = false
-                        });
-                        continue;
-                    }
-                    
-                    var blockHeader = block.Header;
-                    var res = new ResponseSideChainBlockData
-                    {
-                        Success = blockHeader != null,
-                        BlockData = blockHeader == null ? null : new SideChainBlockData
-                        {
-                            SideChainHeight = requestedHeight,
-                            BlockHeaderHash = blockHeader.GetHash(),
-                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
-                            SideChainId = blockHeader.ChainId
-                        }
-                    };
-                    
-                    await responseStream.WriteAsync(res);
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Side chain server out of service with exception.");
-            }
+//            try
+//            {
+//                while (await requestStream.MoveNext())
+//                {
+//                    var requestInfo = requestStream.Current;
+//                    var requestedHeight = requestInfo.NextHeight;
+//                    
+//                    var block = await GetIrreversibleBlock(
+//                        requestedHeight);
+//                    if (block == null)
+//                    {
+//                        await responseStream.WriteAsync(new ResponseSideChainBlockData
+//                        {
+//                            Success = false
+//                        });
+//                        continue;
+//                    }
+//                    
+//                    var blockHeader = block.Header;
+//                    var res = new ResponseSideChainBlockData
+//                    {
+//                        Success = blockHeader != null,
+//                        BlockData = blockHeader == null ? null : new SideChainBlockData
+//                        {
+//                            SideChainHeight = requestedHeight,
+//                            BlockHeaderHash = blockHeader.GetHash(),
+//                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
+//                            SideChainId = blockHeader.ChainId
+//                        }
+//                    };
+//                    
+//                    await responseStream.WriteAsync(res);
+//                }
+//            }
+//            catch (Exception e)
+//            {
+//                Logger.LogError(e, "Side chain server out of service with exception.");
+//            }
         }
 
-        /// <summary>
-        /// Rpc interface for new chain connection.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
+        public override async Task RequestIndexingSideChain(RequestCrossChainBlockData request, IServerStreamWriter<ResponseSideChainBlockData> responseStream,
+            ServerCallContext context)
         {
-            var splitRes = context.Peer.Split(':');
-            LocalEventBus.PublishAsync(new GrpcServeNewChainReceivedEvent
-            {
-                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
-                {
-                    TargetIp = splitRes[1],
-                    TargetPort = request.ListeningPort,
-                    RemoteChainId = request.SideChainId,
-                    RemoteIsSideChain = true,
-                    CertificateFileName = request.CertificateFileName
-                }
-            });
-            return Task.FromResult(new IndexingRequestResult{Result = true});
+            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
+            await WriteResponseStream(request, responseStream, true);
         }
+
+//        /// <summary>
+//        /// Rpc interface for new chain connection.
+//        /// </summary>
+//        /// <param name="request"></param>
+//        /// <param name="context"></param>
+//        /// <returns></returns>
+//        public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
+//        {
+//            var splitRes = context.Peer.Split(':');
+//            LocalEventBus.PublishAsync(new GrpcServeNewChainReceivedEvent
+//            {
+//                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
+//                {
+//                    TargetIp = splitRes[1],
+//                    TargetPort = request.ListeningPort,
+//                    RemoteChainId = request.SideChainId,
+//                    RemoteIsSideChain = true,
+//                    CertificateFileName = request.CertificateFileName
+//                }
+//            });
+//            return Task.FromResult(new IndexingRequestResult{Result = true});
+//        }
+
+
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
             var crossChainBlockData =
@@ -204,6 +195,71 @@ namespace AElf.CrossChain.Grpc.Server
             return _blockExtraDataExtractor.ExtractExtraData(extraDataType, header);
         }
 
+        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int parentChain)
+        {
+            var res = new ResponseParentChainBlockData
+            {
+                Success = true,
+                BlockData = new ParentChainBlockData
+                {
+                    Root = new ParentChainBlockRootInfo
+                    {
+                        ParentChainHeight = block.Height,
+                        SideChainTransactionsRoot =
+                            Hash.LoadByteArray(block.Header.BlockExtraDatas[0].ToByteArray()),
+                        ParentChainId = block.Header.ChainId
+                    }
+                }
+            };
+            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
+
+            var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, parentChain);
+            foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
+            {
+                res.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+            }
+
+            foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
+            {
+                res.BlockData.ExtraData.Add(symbol, _blockExtraDataExtractor.ExtractExtraData(symbol, block.Header));
+            }
+
+            return res;
+        }
+
+        private IResponseIndexingMessage CreateSideChainBlockData(Block block, int sideChainId)
+        {
+            return new ResponseSideChainBlockData
+            {
+                Success = block.Header != null,
+                BlockData = new SideChainBlockData
+                {
+                    SideChainHeight = block.Height,
+                    BlockHeaderHash = block.GetHash(),
+                    TransactionMKRoot = block.Header.MerkleTreeRootOfTransactions,
+                    SideChainId = sideChainId
+                }
+            };
+        }
+
+        private async Task WriteResponseStream<T>(RequestCrossChainBlockData request, 
+            IServerStreamWriter<T> responseStream, bool requestSideChain) where T : IResponseIndexingMessage
+        {
+            var requestedHeight = request.NextHeight;
+            var remoteChainId = request.RemoteChainId;
+            while (true)
+            {
+                var block = await GetIrreversibleBlock(requestedHeight);
+                if (block == null)
+                    return;
+                var res = requestSideChain
+                    ? CreateSideChainBlockData(block, remoteChainId)
+                    : await CreateParentChainResponse(block, remoteChainId);
+                await responseStream.WriteAsync((T) res);
+                requestedHeight++;
+            }
+        }
+            
         private async Task<Block> GetIrreversibleBlock(long height)
         {
             return await _localLibService.GetIrreversibleBlockByHeightAsync(height);
