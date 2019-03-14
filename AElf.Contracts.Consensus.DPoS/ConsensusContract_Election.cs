@@ -262,6 +262,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
                     "This voting record can't withdraw for now."));
 
+            Assert(votingRecord.From == Context.RecoverPublicKey().ToHex(), "Can only withdraw tickets of the sender.");
+
             // Update voting record map.
             var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
             votingRecord.WithdrawTimestamp =
