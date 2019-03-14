@@ -173,7 +173,8 @@ namespace AElf.Contracts.TestBase
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero)
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
             };
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
