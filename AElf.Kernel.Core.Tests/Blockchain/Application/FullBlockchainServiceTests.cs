@@ -16,10 +16,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class FullBlockchainServiceTests : AElfKernelTestBase
     {
         private readonly FullBlockchainService _fullBlockchainService;
+        private readonly ITransactionManager _transactionManager;
 
         public FullBlockchainServiceTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
+            _transactionManager = GetRequiredService<ITransactionManager>();
         }
 
         [Fact]
@@ -48,7 +50,7 @@ namespace AElf.Kernel.Blockchain.Application
             chain.ShouldBe(createChainResult);
 
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.ShouldBe(block);
+            existBlock.GetHash().ShouldBe(block.GetHash());
         }
 
         [Fact]
@@ -56,17 +58,29 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var block = new Block
             {
+                Height = 2,
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
+            for (var i = 0; i < 3; i++)
+            {
+                block.Body.AddTransaction(GenerateTransaction());
+            }
 
-            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.Header.GetHash());
+            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
             await _fullBlockchainService.AddBlockAsync(block);
-            existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.Header.GetHash());
+            
+            existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
+            existBlock.GetHash().ShouldBe(block.GetHash());
+            existBlock.Body.TransactionsCount.ShouldBe(3);
 
-            existBlock.ShouldNotBeNull();
+            foreach (var tx in block.Body.TransactionList)
+            {
+                var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
+                existTransaction.ShouldBe(tx);
+            }
         }
 
         [Fact]
@@ -271,6 +285,18 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             return (chain, blockList);
+        }
+        
+        private Transaction GenerateTransaction()
+        {
+            var transaction = new Transaction
+            {
+                From = Address.Zero,
+                To = Address.Zero,
+                MethodName = Guid.NewGuid().ToString()
+            };
+
+            return transaction;
         }
     }
 }

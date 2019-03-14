@@ -74,6 +74,15 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
         [Fact]
+        public async Task Create_Chain_ThrowInvalidOperationException()
+        {
+            await _chainManager.CreateAsync(_genesis);
+
+            await _chainManager.CreateAsync(_genesis).ShouldThrowAsync<InvalidOperationException>();
+            await _chainManager.CreateAsync(_blocks[1]).ShouldThrowAsync<InvalidOperationException>();
+        }
+
+        [Fact]
         public async Task LIB_Blocks_Test()
         {
             //0 -> 1 linked
