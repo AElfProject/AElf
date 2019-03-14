@@ -75,10 +75,9 @@ namespace AElf.Contracts.Dividends
         {
             var dividends = State.DividendsMap[termNumber];
 
-            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can add dividends.");
-            
             if (dividends > 0)
             {
+                // Dividends of current term can be updated by several consensus.
                 var finalDividends = dividends + dividendsAmount;
                 State.DividendsMap[termNumber] = finalDividends;
             }
