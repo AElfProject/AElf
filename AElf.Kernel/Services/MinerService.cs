@@ -111,6 +111,7 @@ namespace AElf.Kernel.Services
                 _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
                     previousBlockHash);
 
+            //TODO: SignAsync in foreach logic not covered [Case]
             foreach (var txn in generatedTxns)
             {
                 await SignAsync(txn);

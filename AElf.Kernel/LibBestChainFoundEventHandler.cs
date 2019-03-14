@@ -61,6 +61,7 @@ namespace AElf.Kernel
                             contractEvent.Topics.Contains(
                                 ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                         {
+                            //TODO: HandleEventAsync SetIrreversible logc not covered. [Case]
                             var indexingEventData = ExtractLibFoundData(contractEvent);
                             var offset = (long) indexingEventData[0];
                             var libHeight = eventData.BlockHeight - offset;

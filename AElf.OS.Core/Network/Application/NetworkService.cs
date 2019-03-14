@@ -1,17 +1,48 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
-using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
+    
+    //TODO: should wrap grpc exception in NetworkException as innerException
+    [Serializable]
+    public class NetworkException : Exception
+    {
+        //
+        // For guidelines regarding the creation of new exception types, see
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
+        // and
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
+        //
+
+        public NetworkException()
+        {
+        }
+
+        public NetworkException(string message) : base(message)
+        {
+        }
+
+        public NetworkException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected NetworkException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
+    }
+
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
@@ -25,6 +56,7 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
+        //TODO: Add Peer operation test cases [Case]
         public async Task<bool> AddPeerAsync(string address)
         {
             return await _peerPool.AddPeerAsync(address);
@@ -49,7 +81,7 @@ namespace AElf.OS.Network.Application
                     await peer.AnnounceAsync(new PeerNewBlockAnnouncement
                         {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
                 }
-                catch (RpcException e)
+                catch (NetworkException e)
                 {
                     Logger.LogError(e, "Error while sending block."); // todo improve
                 }
@@ -64,13 +96,14 @@ namespace AElf.OS.Network.Application
                 {
                     await peer.SendTransactionAsync(tx);
                 }
-                catch (RpcException e)
+                catch (NetworkException e)
                 {
                     Logger.LogError(e, "Error while sending transaction."); // todo improve
                 }
             }
         }
 
+        //TODO: Add GetBlockAsync from specified peerPubKey case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
             bool tryOthersIfFail = false)
         {
@@ -161,11 +194,38 @@ namespace AElf.OS.Network.Application
 
         private async Task<Block> RequestBlockToAsync(Hash hash, IPeer peer)
         {
+            
+            
+            //TODO: change like this @sam
+            return await RequestAsync(peer, p => p.RequestBlockAsync(hash));
+            //Remove
+            /*
+            return await RequestAsync(peer, p =>
+            {
+                
+                //More logic here
+                return p.RequestBlockAsync(hash);
+            });
+            
             try
             {
                 return await peer.RequestBlockAsync(hash);
             }
-            catch (RpcException e)
+            catch (NetworkException e)
+            {
+                Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
+                return null;
+            }*/
+        }
+
+        private async Task<T> RequestAsync<T>(IPeer peer, Func<IPeer, Task<T>> func)
+            where T : class
+        {
+            try
+            {
+                return await func(peer);
+            }
+            catch (NetworkException e)
             {
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
                 return null;

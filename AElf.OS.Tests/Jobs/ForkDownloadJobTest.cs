@@ -5,6 +5,7 @@ using Xunit;
 
 namespace AElf.OS.Jobs
 {
+    // todo more scenarios should be tested
     public sealed class ForkDownloadJobTest : NetWorkTestBase
     {
         private IBlockchainService _blockChainService;
