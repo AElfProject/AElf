@@ -95,7 +95,7 @@ Result Type:
 
 To get current miners.
 
-### `GetTicketsInfo` / `GetTicketsInfoToFriendlyString`
+### `GetTicketsInformation` / `GetTicketsInformationToFriendlyString`
 
 Params:
 - `string` publicKeyHexString
@@ -398,7 +398,7 @@ To query obtained and not expired votes number of a candidate.
 
 获取当前在任的区块生产者公钥列表，
 
-### `GetTicketsInfo` / `GetTicketsInfoToFriendlyString`
+### `GetTicketsInformation` / `GetTicketsInformationToFriendlyString`
 
 参数:
 - `string` publicKeyHexString

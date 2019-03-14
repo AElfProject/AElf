@@ -42,6 +42,23 @@ namespace AElf.Contracts.Token
             State.Allowances[from][Context.Sender] = allowance.Sub(amount);
         }
 
+        public void Lock(Address from, ulong amount)
+        {
+            // Consensus contract can transfer user's token to its address to lock tokens.
+            if (Context.Sender == State.ConsensusContractAddress.Value)
+            {
+                DoTransfer(from, Context.Sender, amount);
+            }
+        }
+
+        public void Unlock(Address to, ulong amount)
+        {
+            if (Context.Sender == State.ConsensusContractAddress.Value)
+            {
+                DoTransfer(Context.Sender, to, amount);
+            }
+        }
+
         public void Approve(Address spender, ulong amount)
         {
             State.Allowances[Context.Sender][spender] = State.Allowances[Context.Sender][spender].Add(amount);
@@ -100,6 +117,12 @@ namespace AElf.Contracts.Token
                 State.ChargedFees[sender] = 0UL;
                 State.Balances[feePool] = State.Balances[feePool].Add(fee);
             }
+        }
+
+        public void SetConsensusContractAddress(Address consensusContractAddress)
+        {
+            Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
+            State.ConsensusContractAddress.Value = consensusContractAddress;
         }
 
     }
