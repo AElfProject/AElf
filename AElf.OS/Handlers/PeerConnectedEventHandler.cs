@@ -14,6 +14,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
+    //TODO: PeerConnectedEventHandler all methods have no cases cover [Case]
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
         ILocalEventHandler<AnnouncementReceivedEventData>
     {
