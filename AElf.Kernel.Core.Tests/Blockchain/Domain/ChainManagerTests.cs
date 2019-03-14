@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
@@ -38,12 +39,42 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
         [Fact]
-        public async Task Should_Create_Chain()
+        public async Task Create_Chain_Success()
         {
-            var chain = await _chainManager.CreateAsync(_genesis);
+            var chain = await _chainManager.GetAsync();
+            chain.ShouldBeNull();
+            
+            var createChainResult = await _chainManager.CreateAsync(_genesis);
+            chain = await _chainManager.GetAsync();
+            chain.ShouldBe(createChainResult);
+            chain.LongestChainHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
             chain.LongestChainHash.ShouldBe(_genesis);
+            chain.BestChainHash.ShouldBe(_genesis);
+            chain.BestChainHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
             chain.GenesisBlockHash.ShouldBe(_genesis);
-            chain.LongestChainHeight.ShouldBe(0.BlockHeight());
+            chain.LastIrreversibleBlockHash.ShouldBe(_genesis);
+            chain.LastIrreversibleBlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
+            chain.Branches.Count.ShouldBe(1);
+            chain.Branches[_genesis.ToStorageKey()].ShouldBe(ChainConsts.GenesisBlockHeight);
+
+            var blockLink = await _chainManager.GetChainBlockLinkAsync(_genesis);
+            blockLink.BlockHash.ShouldBe(_genesis);
+            blockLink.Height.ShouldBe(ChainConsts.GenesisBlockHeight);
+            blockLink.PreviousBlockHash.ShouldBe(Hash.Empty);
+            blockLink.IsLinked.ShouldBeTrue();
+            blockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
+
+            var chainBlockIndex = await _chainManager.GetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight);
+            chainBlockIndex.BlockHash.ShouldBe(_genesis);
+        }
+
+        [Fact]
+        public async Task Create_Chain_ThrowInvalidOperationException()
+        {
+            await _chainManager.CreateAsync(_genesis);
+
+            await _chainManager.CreateAsync(_genesis).ShouldThrowAsync<InvalidOperationException>();
+            await _chainManager.CreateAsync(_blocks[1]).ShouldThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
