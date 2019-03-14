@@ -308,6 +308,7 @@ namespace AElf.OS.Rpc.ChainController
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
+
             return trace.ReturnValue.ToByteArray();
         }
 

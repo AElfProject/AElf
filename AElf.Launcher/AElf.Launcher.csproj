@@ -32,15 +32,6 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="netstandard2.0\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="netstandard2.0\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="netstandard2.0\**" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="appsettings.Development.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
