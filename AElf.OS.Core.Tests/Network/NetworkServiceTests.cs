@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.OS.Network.Application;
@@ -14,6 +15,8 @@ namespace AElf.OS.Network
         {
             _networkService = GetRequiredService<INetworkService>();
         }
+        
+        /** GetBlocks **/
 
         [Fact]
         public async Task GetBlocks_FromAnyone_ReturnsBlocks()
@@ -55,5 +58,46 @@ namespace AElf.OS.Network
             var blocks2 = await _networkService.GetBlocksAsync(Hash.FromString("block"), 5, "a", true);
             Assert.Null(blocks2);
         }
+        
+        /** GetBlockByHash **/
+
+        [Fact]
+        public async Task GetBlockByHash_WithNoPeerAndTryOthers_ShoudlThrow()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), null, true));
+        }
+        
+        [Fact]
+        public async Task GetBlockByHash_FromSpecifiedPeer_ReturnsBlocks()
+        {
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"),  "p1");
+            Assert.NotNull(block);
+        }
+        
+        [Fact]
+        public async Task GetBlockByHash_TryOthers_ReturnsBlocks()
+        {
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "p1", true);
+            Assert.NotNull(block);
+        }
+        
+        [Fact]
+        public async Task GetBlockByHash_NoTryOthers_ReturnsBlocks()
+        {
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "p1", false);
+            Assert.Null(block);
+        }
+        
+//        [Fact]
+//        public async Task GetBlockByHash_FromUnknownPeer_ReturnsNull()
+//        {
+//            var blocks = await _networkService.GetBlockByHashAsync(Hash.FromString("block"), 5, "a");
+//            Assert.Null(blocks);
+//            
+//            // even with try others it should return null
+//            var blocks2 = await _networkService.GetBlocksAsync(Hash.FromString("block"), 5, "a", true);
+//            Assert.Null(blocks2);
+//        }
     }
 }

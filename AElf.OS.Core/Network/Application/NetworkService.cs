@@ -158,7 +158,7 @@ namespace AElf.OS.Network.Application
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peer))
             {
-                IPeer p = _peerPool.FindPeerByAddress(peer);
+                IPeer p = _peerPool.FindPeerByPublicKey(peer);
 
                 if (p == null)
                 {
