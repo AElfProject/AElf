@@ -150,8 +150,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 VoteAge = CurrentAge,
                 UnlockAge = CurrentAge + (ulong) lockTime,
                 TermNumber = currentTermNumber,
-                VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp(),
-                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime)
+                VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp(),
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + (ulong) lockTime)
                     .ToTimestamp()
             };
 
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update voting record map.
             var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
             votingRecord.WithdrawTimestamp =
-                blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
+                blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
             votingRecord.IsWithdrawn = true;
             State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
 

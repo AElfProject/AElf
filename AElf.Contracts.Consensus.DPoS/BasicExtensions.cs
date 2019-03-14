@@ -327,7 +327,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var miningInterval = round.GetMiningInterval();
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.BlockchainAge =
-                (ulong) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalDays;
+                (ulong) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalMinutes;
 
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
@@ -548,7 +548,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
             ulong termNumber)
         {
-            return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
+            return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes /
                    ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
 
