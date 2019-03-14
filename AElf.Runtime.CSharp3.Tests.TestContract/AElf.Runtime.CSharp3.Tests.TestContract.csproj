@@ -10,4 +10,9 @@
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Command="bash gen.sh" />
     </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Generated/*.cs" />
+        </ItemGroup>
+    </Target>
 </Project>
