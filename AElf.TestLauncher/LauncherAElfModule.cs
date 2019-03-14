@@ -35,7 +35,7 @@ namespace AElf.TestLauncher
     [DependsOn(
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
-        typeof(RuntimeSetupAElfModule),
+        //typeof(RuntimeSetupAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),

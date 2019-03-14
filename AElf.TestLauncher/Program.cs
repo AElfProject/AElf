@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Serilog.Extensions.Logging.File;
 
 namespace AElf.TestLauncher
 {
@@ -18,6 +19,7 @@ namespace AElf.TestLauncher
         public static void Main(string[] args)
         {
             ILogger<Program> logger = NullLogger<Program>.Instance;
+
             try
             {
                 Task.WaitAll(RunServers().ToArray());
@@ -36,10 +38,8 @@ namespace AElf.TestLauncher
             {
                 Console.WriteLine($"start {file}");
 
-                var dir = file.Substring(0, file.Length - ".json".Length);
+                var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
 
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
 
                 yield return new WebHostBuilder()
                     .ConfigureAppConfiguration(config =>
@@ -51,10 +51,15 @@ namespace AElf.TestLauncher
                     {
                         options.Configure(builderContext.Configuration.GetSection("Kestrel"));
                     })
-                    .ConfigureLogging(logger => { })
+                    .ConfigureLogging(logger =>
+                    {
+                        logger
+                            .AddFile($"Logs/{fileNameWithoutExtension}.log",LogLevel.Trace);
+                    })
+
                     //.UseContentRoot(dir)
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseStartup<MainBlockchainStartup>()
+                    .UseStartup<MainBlockchainStartup<MainBlockchainAElfModule>>()
                     .ConfigureServices(services => { })
                     .Build().RunAsync();
             }
