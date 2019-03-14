@@ -60,6 +60,13 @@ namespace AElf.OS.Network
         }
         
         /** GetBlockByHash **/
+        
+        [Fact]
+        public async Task GetBlockByHash_UnfindablePeer_ReturnsNull()
+        {
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "a", false);
+            Assert.Null(block);
+        }
 
         [Fact]
         public async Task GetBlockByHash_WithNoPeerAndTryOthers_ShoudlThrow()
