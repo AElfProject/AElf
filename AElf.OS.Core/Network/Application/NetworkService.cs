@@ -102,7 +102,6 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        //TODO: Add GetBlockAsync from specified peerPubKey case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
             bool tryOthersIfFail = false)
         {

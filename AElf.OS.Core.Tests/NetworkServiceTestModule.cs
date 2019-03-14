@@ -36,6 +36,14 @@ namespace AElf.OS
                         return p1.Object;
                     });
                 
+                peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "failed_peer")))
+                    .Returns<string>(adr =>
+                    {
+                        var p1 = new Mock<IPeer>();
+                        p1.Setup(p => p.RequestBlockAsync(It.IsAny<Hash>())).Throws(new NetworkException());
+                        return p1.Object;
+                    });
+                
                 peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
                     .Returns<bool>(b =>
                     {
