@@ -11,6 +11,7 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -166,15 +167,65 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         /// <summary>
+        /// Unable to change round.
+        /// </summary>
+        /// <param name="miners"></param>
+        /// <param name="blocksCount"></param>
+        /// <returns></returns>
+        public static async Task<ContractTester<DPoSContractTestAElfModule>> ProduceNormalBlocks(
+            this List<ContractTester<DPoSContractTestAElfModule>> miners,
+            int blocksCount)
+        {
+            var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
+            var startMiner = round.RealTimeMinersInformation.Values.OrderBy(v => v.Order)
+                .FirstOrDefault(v => v.OutValue == null);
+
+            // Terminate this method if blocks mining are complete in this round.
+            if (startMiner == null)
+            {
+                return miners.First(m => m.PublicKey == round.RealTimeMinersInformation.Values
+                                             .Last(v => v.Order == round.RealTimeMinersInformation.Count).PublicKey);
+            }
+
+            var startOrder = startMiner.Order;
+            var endOrder = Math.Min(round.RealTimeMinersInformation.Count, startOrder + blocksCount - 1);
+            var finalMinerPublicKey = "";
+            for (var i = startOrder; i < endOrder + 1; i++)
+            {
+                var currentMinerPublicKey = round.RealTimeMinersInformation.Values.First(v => v.Order == i).PublicKey;
+                var currentMiner = miners.First(m => m.PublicKey == currentMinerPublicKey);
+                var (block, tx) = await currentMiner.ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
+                    nameof(ConsensusContract.UpdateValue), new ToUpdate
+                    {
+                        OutValue = Hash.Generate(),
+                        PreviousInValue = Hash.Generate(),
+                        RoundId = round.RoundId,
+                        Signature = Hash.Generate(),
+                        PromiseTinyBlocks = 1
+                    });
+                finalMinerPublicKey = currentMinerPublicKey;
+                foreach (var otherMiner in miners.Where(m => m.PublicKey != currentMinerPublicKey))
+                {
+                    await otherMiner.ExecuteBlock(block, new List<Transaction> {tx});
+                }
+            }
+
+            return miners.First(m =>
+                m.PublicKey == round.RealTimeMinersInformation.Values.Last(v => v.PublicKey == finalMinerPublicKey)
+                    .PublicKey);
+        }
+
+        /// <summary>
         /// Will use fake in value and out value.
         /// </summary>
         /// <param name="miners"></param>
         /// <param name="roundsCount"></param>
         /// <param name="changeTermFinally"></param>
         /// <returns></returns>
-        public static async Task RunConsensusAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
+        public static async Task<ContractTester<DPoSContractTestAElfModule>> RunConsensusAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int roundsCount, bool changeTermFinally = false)
         {
+            var finalExtraBlockProducer = new ContractTester<DPoSContractTestAElfModule>();
             for (var i = 0; i < roundsCount; i++)
             {
                 var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
@@ -198,16 +249,19 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if (changeTermFinally && i == roundsCount - 1)
                 {
-                    await miners.ChangeTermAsync(round.GetMiningInterval());
+                    finalExtraBlockProducer = await miners.ChangeTermAsync(round.GetMiningInterval());
                 }
                 else
                 {
-                    await miners.ChangeRoundAsync();
+                    finalExtraBlockProducer = await miners.ChangeRoundAsync();
                 }
             }
+
+            return finalExtraBlockProducer;
         }
 
-        public static async Task ChangeRoundAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners)
+        public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeRoundAsync(
+            this List<ContractTester<DPoSContractTestAElfModule>> miners)
         {
             var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
 
@@ -222,9 +276,12 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 await otherMiner.ExecuteBlock(extraBlock, new List<Transaction> {extraTx});
             }
+
+            return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
         }
 
-        public static async Task ChangeTermAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
+        public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeTermAsync(
+            this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int miningInterval)
         {
             var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
@@ -254,6 +311,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 await otherMiner.ExecuteBlock(block, txs);
             }
+
+            return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
         }
 
         public static async Task<Round> GetCurrentRoundInformationAsync(
@@ -417,5 +476,15 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return contractTesters[new Random().Next(0, contractTesters.Count)];
         }
+
+        #region LIB
+
+        public static async Task<long> GetLIBOffset(this ContractTester<DPoSContractTestAElfModule> miner)
+        {
+            return (await miner.CallContractMethodAsync(miner.GetConsensusContractAddress(), nameof(GetLIBOffset)))
+                .DeserializeToInt64();
+        }
+
+        #endregion
     }
 }

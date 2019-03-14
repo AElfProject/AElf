@@ -141,6 +141,11 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
+        public long GetLIBOffset()
+        {
+            return CalculateLIB(out var offset) ? offset : 0;
+        }
+
         private bool CalculateLIB(out long offset)
         {
             offset = 0;
@@ -164,16 +169,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
 
                 var senderPublicKey = Context.RecoverPublicKey().ToHex();
-                var senderOrder = currentRoundMiners[senderPublicKey].Order;
-                if (validMinersCountOfCurrentRound == minimumCount + 1)
+                if (validMinersCountOfCurrentRound >= minimumCount)
                 {
-                    offset = senderOrder;
-                    return true;
-                }
-
-                if (validMinersCountOfCurrentRound > minersCount + 1)
-                {
-                    offset = 1;
+                    offset = minimumCount;
                     return true;
                 }
 
@@ -205,7 +203,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                         if (publicKeys.Count >= minimumCount)
                         {
-                            offset = validMinersCountOfCurrentRound + i;
+                            offset = minimumCount;
                             return true;
                         }
                     }
