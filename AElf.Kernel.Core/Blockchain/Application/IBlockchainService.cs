@@ -219,7 +219,6 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        //TODO: Add GetBlockAsync case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);

@@ -145,6 +145,35 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
+        public async Task Get_Blocks_ReturnNull()
+        {
+            var (chain, blockList) = await CreateNewChainWithBlock(10);
+
+            var result = await _fullBlockchainService.GetBlocksAsync(Hash.FromString("not exist"), 3);
+            result.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task Get_Blocks_ReturnBlocks()
+        {
+            var (chain, blockList) = await CreateNewChainWithBlock(10);
+
+            var result = await _fullBlockchainService.GetBlocksAsync(chain.BestChainHash, 3);
+            result.Count.ShouldBe(0);
+            
+            result = await _fullBlockchainService.GetBlocksAsync(blockList[2].GetHash(), 3);
+            result.Count.ShouldBe(3);
+            result[0].GetHash().ShouldBe(blockList[3].GetHash());
+            result[1].GetHash().ShouldBe(blockList[4].GetHash());
+            result[2].GetHash().ShouldBe(blockList[5].GetHash());
+            
+            result = await _fullBlockchainService.GetBlocksAsync(blockList[7].GetHash(), 3);
+            result.Count.ShouldBe(2);
+            result[0].GetHash().ShouldBe(blockList[8].GetHash());
+            result[1].GetHash().ShouldBe(blockList[9].GetHash());
+        }
+
+        [Fact]
         public async Task Get_GetBlockHashes_ReturnHashes()
         {
             var (chain, blockList) = await CreateNewChainWithBlock(3);
