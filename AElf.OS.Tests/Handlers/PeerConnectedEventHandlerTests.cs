@@ -45,9 +45,18 @@ namespace AElf.OS.Handlers
         }
 
         [Fact]
+        public async Task HandleEventAsync_UnderLIBHeight_DoesNothing()
+        {
+            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("block"), BlockHeight = 1 };
+            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
+            
+            Assert.Empty(_jobQueue);
+        }
+
+        [Fact]
         public async Task HandleEventAsync_BlockAlreadyKnown_DoesNothing()
         {
-            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("block") };
+            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("block"), BlockHeight = 2 };
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
             
             Assert.Empty(_jobQueue);
@@ -56,7 +65,7 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task HandleEventAsync_UnknownLinkableBlock_DoesNotQueueJob()
         {
-            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("linkable") };
+            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("linkable"), BlockHeight = 2 };
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
             
             Assert.Empty(_jobQueue);
@@ -65,7 +74,7 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task HandleEventAsync_UnknownUnLinkableBlock_QueuesJob()
         {
-            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("unlinkable") };
+            var announcement = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("unlinkable"), BlockHeight = 2 };
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
             
             Assert.True(_jobQueue.Count == 1);

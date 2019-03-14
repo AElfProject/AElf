@@ -56,6 +56,8 @@ namespace AElf.OS
                     .Setup(bs => bs.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
                     .Returns(Task.FromResult(new Block()));
 
+                blockchainService.Setup(bs => bs.GetChainAsync()).Returns(Task.FromResult(new Chain {LastIrreversibleBlockHeight = 2}));
+
                 blockchainService.Setup(bs => bs.AttachBlockToChainAsync(It.IsAny<Chain>(), It.Is<Block>(b => b.Equals(block))))
                     .Returns(Task.FromResult(BlockAttachOperationStatus.NewBlockLinked));             
                 
