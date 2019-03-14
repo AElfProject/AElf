@@ -4,6 +4,7 @@ mono: none
 dotnet: 2.2
 dist: xenial
 cache:
+  yarn: true 
   directories:
     - $HOME/.nuget/packages
 before_install:
@@ -13,8 +14,8 @@ before_install:
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
-  - bash scripts/download_chakracore.sh 1_11_1
   - export LD_LIBRARY_PATH=$(pwd)/ChakraCoreFiles/lib/:$LD_LIBRARY_PATH
+  - bash scripts/install_chakracore.sh
 script:
   - bash scripts/build.sh
   - bash scripts/test.sh
