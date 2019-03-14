@@ -6,35 +6,33 @@ using AElf.CrossChain.Grpc;
 using AElf.CrossChain.Grpc.Client;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainServerClient : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, 
-        ILocalEventHandler<NewCrossChainCacheEvent>
+    public class GrpcCrossChainServerClient : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly ICrossChainServer _crossChainServer;
-        private readonly GrpcClientGenerator _grpcClientGenerator;
+        private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly CrossChainConfigOption _crossChainConfigOption;
         private readonly ICertificateStore _certificateStore;
-        private readonly int _chainId;
-        public GrpcCrossChainServerClient(ICrossChainServer crossChainServer, GrpcClientGenerator grpcClientGenerator, 
+        public GrpcCrossChainServerClient(ICrossChainServer crossChainServer, CrossChainGrpcClientController crossChainGrpcClientController, 
             IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICertificateStore certificateStore, IOptionsSnapshot<ChainOptions> chainOptions)
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICertificateStore certificateStore)
         {
             _crossChainServer = crossChainServer;
-            _grpcClientGenerator = grpcClientGenerator;
+            _crossChainGrpcClientController = crossChainGrpcClientController;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
             _crossChainConfigOption = crossChainConfigOption.Value;
             _certificateStore = certificateStore;
-            _chainId = chainOptions.Value.ChainId;
         }
 
-        public Task StartAsync()
+        public Task StartAsync(int chainId)
         {
             if (_grpcCrossChainConfigOption.LocalServer)
             {
@@ -44,45 +42,42 @@ namespace AElf.CrossChain
                     _grpcCrossChainConfigOption.LocalServerPort, new KeyCertificatePair(cert, keySore));
             }
 
+            if (_grpcCrossChainConfigOption.LocalClient)
+            {
+                var certificate = LoadCertificate(_grpcCrossChainConfigOption.RemoteParentCertificateFileName);
+                var task = _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
+                {
+                    RemoteChainId = ChainHelpers.ConvertBase58ToChainId(_crossChainConfigOption.ParentChainId),
+                    RemoteIsSideChain = false,
+                    TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
+                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
+                    LocalChainId = chainId,
+                    CertificateFileName = _grpcCrossChainConfigOption.RemoteParentCertificateFileName,
+                    LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
+                }, certificate);
+            }
+
             return Task.CompletedTask;
         }
 
         public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
         {
-//            if(!_crossChainCommunicationContexts.ContainsKey(receivedEventData.CrossChainCommunicationContextDto.RemoteChainId))
-//                _crossChainCommunicationContexts.Add(receivedEventData.CrossChainCommunicationContextDto.RemoteChainId,
-//                (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto);
-            _grpcClientGenerator.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
+            return _crossChainGrpcClientController.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
                 LoadCertificate(
                     ((GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto)
                     .CertificateFileName));
-            return Task.CompletedTask;
         }
-        
-        public Task HandleEventAsync(NewCrossChainCacheEvent eventData)
+        public Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            if(_grpcCrossChainConfigOption.LocalClient && 
-               eventData.ChainId == ChainHelpers.ConvertBase58ToChainId(_crossChainConfigOption.ParentChainId))
-            {
-                var certificate = LoadCertificate(_grpcCrossChainConfigOption.RemoteParentCertificateFileName);
-                _grpcClientGenerator.CreateClient(new GrpcCrossChainCommunicationContext
-                {
-                    RemoteChainId = eventData.ChainId,
-                    RemoteIsSideChain = false,
-                    TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
-                    LocalChainId = _chainId,
-                    CertificateFileName = _grpcCrossChainConfigOption.RemoteParentCertificateFileName,
-                    LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
-                }, certificate);
-            }
+            _crossChainGrpcClientController.RequestCrossChainIndexing();
+            return Task.CompletedTask;
         }
         
         public Task ShutdownAsync()
         {
             _crossChainServer.Dispose();
-            _grpcClientGenerator.CloseClientsToSideChain();
-            _grpcClientGenerator.CloseClientToParentChain();
+            _crossChainGrpcClientController.CloseClientsToSideChain();
+            _crossChainGrpcClientController.CloseClientToParentChain();
             return Task.CompletedTask;
         }
 

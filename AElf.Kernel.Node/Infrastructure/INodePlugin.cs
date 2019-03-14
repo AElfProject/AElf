@@ -4,7 +4,7 @@ namespace AElf.Kernel.Node.Infrastructure
 {
     public interface INodePlugin
     {
-        Task StartAsync();
+        Task StartAsync(int chainId);
         Task ShutdownAsync();
     }
 }
