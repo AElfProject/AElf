@@ -56,7 +56,6 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        //TODO: Add Peer operation test cases [Case]
         public async Task<bool> AddPeerAsync(string address)
         {
             return await _peerPool.AddPeerAsync(address);
@@ -122,12 +121,12 @@ namespace AElf.OS.Network.Application
 
                 var blocks = await p.GetBlocksAsync(blockHash, count);
 
-                if (blocks != null)
+                if (blocks != null && blocks.Count > 0)
                     return blocks;
 
                 if (!tryOthersIfFail)
                 {
-                    Logger.LogWarning($"{peerPubKey} does not have block {nameof(tryOthersIfFail)} is false.");
+                    Logger.LogWarning($"{peerPubKey} does not have blocks {nameof(tryOthersIfFail)} is false.");
                     return null;
                 }
             }
