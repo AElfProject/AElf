@@ -3,6 +3,9 @@ sudo: required
 mono: none
 dotnet: 2.2
 dist: xenial
+cache:
+  directories:
+    - $HOME/.nuget/packages
 before_install:
   - bash scripts/install_protobuf.sh
   - nvm install node
