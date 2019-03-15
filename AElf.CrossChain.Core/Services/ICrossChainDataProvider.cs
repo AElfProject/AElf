@@ -22,7 +22,7 @@ namespace AElf.CrossChain
         //void AddNewSideChainDataConsumer(ICrossChainDataConsumer crossChainDataConsumer);
         //int GetCachedChainCount();
         //void CreateNewSideChain();
-        Task<CrossChainBlockData> ValidateIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
+        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
 
         Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
 

@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Grpc
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext, certificate);
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
-            if (!reply.Result)
+            if (reply == null || !reply.Result)
                 return;
             _grpcCrossChainClients[crossChainCommunicationContext.RemoteChainId] = client;
         }
@@ -95,7 +95,7 @@ namespace AElf.CrossChain.Grpc
             }
             catch (Exception e) when (e is ChainCacheNotFoundException || e is RpcException)
             {
-                Logger.LogWarning(e.ToString());
+                Logger.LogWarning(e.Message);
                 return null;
             }
         }

@@ -30,7 +30,7 @@ namespace AElf.Contract.CrossChain.Tests
             CrossChainContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(CrossChainContract).FullName));
             TokenContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
             ConsensusContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(ConsensusContract).FullName));
-            AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
+//            AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
         }
 
         protected async Task ApproveBalance(ulong amount)
