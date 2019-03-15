@@ -260,13 +260,13 @@ namespace AElf.Consensus.DPoS
                 .AddMilliseconds(miningInterval);
         }
 
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash PreviousInValue,
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
             Hash outValue, Hash signature, Timestamp timestamp)
         {
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 round.RealTimeMinersInformation[publicKey].ActualMiningTime = timestamp;
-                round.RealTimeMinersInformation[publicKey].PreviousInValue = PreviousInValue;
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
                 round.RealTimeMinersInformation[publicKey].OutValue = outValue;
                 if (round.RoundNumber != 1)
                 {
