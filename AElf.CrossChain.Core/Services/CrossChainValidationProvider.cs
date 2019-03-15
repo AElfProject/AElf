@@ -36,31 +36,31 @@ namespace AElf.CrossChain
             var extraData = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
             if (indexedCrossChainBlockData == null)
             {
-                return extraData != null;
+                return extraData == null;
             }
             
-            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block.GetHash(), block.Height);
+            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
             if(!res)
                 throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.");
             return true;
         }
 
-        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, CrossChainExtraData extraData,
-            Hash preBlockHash, long preBlockHeight)
+        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
+            CrossChainExtraData extraData, IBlock block)
         {
             var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
             // first check identity with the root in header
-            if (calculatedSideChainTransactionsRoot.Equals(Hash.Empty) && extraData == null ||
-                !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot))
+            if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot))
                 return false;
             
             // check cache identity
-            return await _crossChainService.ValidateSideChainBlockDataAsync(
-                       crossChainBlockData.SideChainBlockData.ToList(), preBlockHash, preBlockHeight) &&
+            var res = await _crossChainService.ValidateSideChainBlockDataAsync(
+                       crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1) &&
                    await _crossChainService.ValidateParentChainBlockDataAsync(
-                       crossChainBlockData.ParentChainBlockData.ToList(), preBlockHash, preBlockHeight);
+                       crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
+            return res;
         }
     }
 }

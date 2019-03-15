@@ -11,7 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainDataProvider : ICrossChainDataProvider, ITransientDependency
+    public class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
@@ -56,7 +56,7 @@ namespace AElf.CrossChain
                 // return 0 if side chain not exist.
                 var targetHeight =
                     await _crossChainContractReader.GetSideChainCurrentHeightAsync(blockInfo.ChainId, previousBlockHash,
-                        preBlockHeight);
+                        preBlockHeight) + 1;
                 if (targetHeight != blockInfo.Height)
                     // this should not happen if it is good data.
                     return false;
@@ -85,11 +85,11 @@ namespace AElf.CrossChain
                 await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);
             
             var targetHeight = heightInState + 1;
+            Logger.LogTrace($"Target height {targetHeight}");
 
             var i = 0;
             while (i < length)
             {
-                Logger.LogTrace($"Target height {targetHeight}");
 
                 var blockInfo = _crossChainDataConsumer.TryTake(parentChainId, targetHeight, true);
                 if (blockInfo == null)
@@ -99,6 +99,7 @@ namespace AElf.CrossChain
                 }
 
                 parentChainBlockData.Add((ParentChainBlockData) blockInfo);
+                Logger.LogTrace($"Got parent chain height {blockInfo.Height}");
                 targetHeight++;
                 i++;
             }
@@ -125,7 +126,7 @@ namespace AElf.CrossChain
             var i = 0;
 
             var targetHeight =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight);
+                await _crossChainContractReader.GetParentChainCurrentHeightAsync(previousBlockHash, preBlockHeight) + 1;
             var res = true;
             while (i < length)
             {
@@ -161,7 +162,7 @@ namespace AElf.CrossChain
             _crossChainDataConsumer.TryRegisterNewChainCache(chainId);
         }
 
-        public async Task<CrossChainBlockData> ValidateIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             return await _crossChainContractReader.GetIndexedCrossChainBlockDataAsync(previousBlockHash, previousBlockHeight);
         }
@@ -175,21 +176,24 @@ namespace AElf.CrossChain
         public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             var height = await _localLibService.GetLibHeight();
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < height)
-                .Select(kv => kv.Key);
+            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < height)
+                .Select(kv => kv.Key).ToList();
             foreach (var hash in toRemoveList)
             {
                 _indexedCrossChainBlockData.Remove(hash);
             }
             var sideChainBlockData = await GetSideChainBlockDataAsync(previousBlockHash, previousBlockHeight);
             var parentChainBlockData = await GetParentChainBlockDataAsync(previousBlockHash, previousBlockHeight);
-            
+
+            if (sideChainBlockData.Count == 0 && parentChainBlockData.Count == 0)
+                return null;
             var crossChainBlockData = new CrossChainBlockData();
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
             crossChainBlockData.PreviousBlockHeight = previousBlockHeight;
             _indexedCrossChainBlockData[previousBlockHash] = crossChainBlockData;
-            return null;
+            Logger.LogTrace($"IndexedCrossChainBlockData count {_indexedCrossChainBlockData.Count}");
+            return crossChainBlockData;
         }
 
         /// <summary>
@@ -200,6 +204,7 @@ namespace AElf.CrossChain
         /// <returns></returns>
         public CrossChainBlockData GetUsedCrossChainBlockData(Hash previousBlockHash, long previousBlockHeight)
         {
+            Logger.LogTrace($"IndexedCrossChainBlockData count {_indexedCrossChainBlockData.Count}");
             return _indexedCrossChainBlockData.TryGetValue(previousBlockHash, out var crossChainBlockData)
                 ? crossChainBlockData
                 : null;

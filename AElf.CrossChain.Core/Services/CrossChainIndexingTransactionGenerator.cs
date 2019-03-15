@@ -12,6 +12,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -22,6 +23,8 @@ namespace AElf.CrossChain
         private readonly ICrossChainService _crossChainService;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
+
+        public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
 
         public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService,
             ISmartContractAddressService smartContractAddressService)
@@ -45,6 +48,8 @@ namespace AElf.CrossChain
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
+            Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
+            
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
                 _crossChainService.GetCrossChainBlockDataFilledInBlock(previousBlockHash, refBlockNumber);

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
@@ -10,13 +11,12 @@ namespace AElf.CrossChain
     public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly ICrossChainService _crossChainService;
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
 
-        public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService, 
-            IBlockExtraDataExtractor blockExtraDataExtractor)
+        public ILogger<CrossChainBlockExtraDataProvider> Logger { get; set; }
+
+        public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService)
         {
             _crossChainService = crossChainService;
-            _blockExtraDataExtractor = blockExtraDataExtractor;
         }
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
@@ -24,10 +24,12 @@ namespace AElf.CrossChain
             if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
                 return ByteString.Empty;
 
+            Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
+
             var newCrossChainBlockData =
                 await _crossChainService.GetNewCrossChainBlockDataAsync(blockHeader.PreviousBlockHash,
                     blockHeader.Height - 1);
-            if (newCrossChainBlockData.SideChainBlockData.Count == 0)
+            if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
             
             var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
