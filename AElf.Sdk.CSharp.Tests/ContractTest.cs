@@ -110,8 +110,8 @@ namespace AElf.Sdk.CSharp.Tests
         {
             Init_Test();
             Contract.Approve(AddressList[2], 1000UL);
-            var allownce = Contract.Allowance(AddressList[1], AddressList[2]);
-            allownce.ShouldBe(1000UL);
+            var allowance = Contract.Allowance(AddressList[1], AddressList[2]);
+            allowance.ShouldBe(1000UL);
         }
 
         [Fact]

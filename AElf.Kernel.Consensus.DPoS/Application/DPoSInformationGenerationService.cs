@@ -57,7 +57,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         Timestamp = DateTime.UtcNow.ToTimestamp(),
                         Miners = {_dpoSOptions.InitialMiners},
                         IsBootMiner = _dpoSOptions.IsBootMiner,
-                        MiningInterval = DPoSConsensusConsts.MiningInterval,
+                        MiningInterval = _dpoSOptions.MiningInterval
                     }.ToByteArray();
                 case DPoSBehaviour.UpdateValue:
                     if (_inValue == null)
@@ -99,34 +99,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private string GetLogStringForOneRound(Round round)
-        {
-            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
-            {
-                var minerInformation = "\n";
-                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
-                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
-                minerInformation +=
-                    minerInRound.PublicKey == AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex()
-                        ? "(This Node)"
-                        : "";
-                minerInformation += $"\nOrder:\t {minerInRound.Order}";
-                minerInformation +=
-                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
-                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
-                minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
-                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
-                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
-                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nLMiss:\t {minerInRound.LatestMissedTimeSlots}";
-
-                logs += minerInformation;
-            }
-
-            return logs;
         }
     }
 }

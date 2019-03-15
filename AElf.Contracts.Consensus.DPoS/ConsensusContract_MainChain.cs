@@ -16,6 +16,15 @@ namespace AElf.Contracts.Consensus.DPoS
             State.TokenContract.Value = tokenContractAddress;
             State.DividendContract.Value = dividendsContractAddress;
             State.Initialized.Value = true;
+            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
+        }
+
+        public void SetBlockchainAge(ulong age)
+        {
+            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+                    "No permission to change blockchain age."));
+            State.AgeField.Value = age;
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
@@ -163,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update term number lookup. (Using term number to get first round number of related term.)
             AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);
 
-            Assert(TryToGetCurrentAge(out var blockAge), "Block age not found.");
+            TryToGetCurrentAge(out var blockAge);
             // Update blockchain age of next two rounds.
             round.BlockchainAge = blockAge;
 
