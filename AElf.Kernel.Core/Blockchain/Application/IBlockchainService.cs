@@ -131,6 +131,7 @@ namespace AElf.Kernel.Blockchain.Application
         /// <param name="height">the height of the block</param>
         /// <param name="startBlockHash">the block from which to start the search, by default the head of the best chain.</param>
         /// <returns></returns>
+        // TODO: remove startBlockHash default value
         public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash startBlockHash = null)
         {
             if (chain.LastIrreversibleBlockHeight >= height)
@@ -139,8 +140,9 @@ namespace AElf.Kernel.Blockchain.Application
                 return (await _chainManager.GetChainBlockIndexAsync(height)).BlockHash;
             }
 
+            // Get from the verified blocks (best chain)
             if (startBlockHash == null)
-                startBlockHash = chain.LongestChainHash;
+                startBlockHash = chain.BestChainHash;
 
             // TODO: may introduce cache to improve the performance
 
@@ -174,7 +176,6 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        //TODO: Add SetIrreversibleBlockAsync test case [Case]
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
             Hash irreversibleBlockHash)
         {
@@ -219,7 +220,6 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        //TODO: Add GetBlockAsync case [Case]
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
@@ -240,6 +240,7 @@ namespace AElf.Kernel.Blockchain.Application
             return blockList;
         }
 
+        // TODO: remove chainBranchBlockHash default value
         public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null)
         {
@@ -305,7 +306,6 @@ namespace AElf.Kernel.Blockchain.Application
             return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
-        //TODO: Add GetBlockHeaderByHeightAsync case [Case]
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(long height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(height);

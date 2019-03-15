@@ -54,6 +54,7 @@ namespace AElf.Contract.CrossChain.Tests
         {
             int parentChainId = 123;
             await InitAndCreateSideChain(parentChainId);
+
             var parentChainBlockData = new ParentChainBlockData
             {
                 Root = new ParentChainBlockRootInfo

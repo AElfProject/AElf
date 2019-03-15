@@ -276,3 +276,5 @@ launchSettings.json
 
 yarn.lock
 
+results/coverage.json
+results/coverage.opencover.xml
