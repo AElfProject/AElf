@@ -47,7 +47,6 @@ namespace AElf.Launcher
         typeof(CSharpRuntimeAElfModule),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
-        typeof(GrpcCrossChainAElfModule),
         
         //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),

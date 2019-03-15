@@ -147,9 +147,9 @@ namespace AElf.OS.Node.Application
 
             await _networkServer.StartAsync();
 
-            foreach (var chainPlugin in _nodePlugins)
+            foreach (var nodePlugin in _nodePlugins)
             {
-                var task = chainPlugin.StartAsync(dto.ChainId);
+                var task = nodePlugin.StartAsync(dto.ChainId);
             }
             
             return context;
@@ -178,9 +178,9 @@ namespace AElf.OS.Node.Application
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
             
-            foreach (var chainPlugin in _nodePlugins)
+            foreach (var nodePlugin in _nodePlugins)
             {
-                var task = chainPlugin.ShutdownAsync();
+                var task = nodePlugin.ShutdownAsync();
             }
         }
     }
