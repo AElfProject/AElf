@@ -15,7 +15,11 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             if(consensusInformationBytes == null || consensusInformationBytes.Length == 0)
                 return;
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
+            if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
+                return;
+            Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToUInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
+            State.TermNumberFromMainChainField.Value = consensusInformation.Round.TermNumber;
             State.CurrentMiners.Value = minersKeys.ToMiners(1);
         }
         
@@ -28,7 +32,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
             }
 
-            nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval());
+            nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
+                currentRound.RoundNumber, State.TermNumberFromMainChainField.Value);
             return true;
         }
 
@@ -39,6 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             State.AgeField.Value = 1;
             State.BlockchainStartTimestamp.Value = firstRound.GetStartTime();
             State.MiningIntervalField.Value = firstRound.GetMiningInterval();
+            State.TermNumberFromMainChainField.Value = firstRound.TermNumber; // init term with main chain term number
         }
 
         private void UpdateHistoryInformation(Round round)

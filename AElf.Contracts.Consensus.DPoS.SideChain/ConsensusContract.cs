@@ -222,6 +222,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
+                    round.TermNumber = payload.InitialTermNumber; // use main chain term number to initialize
                     return new TransactionList
                     {
                         Transactions =
