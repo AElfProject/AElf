@@ -202,13 +202,20 @@ namespace AElf.Contracts.CrossChain
         {
             var height = State.CurrentSideChainHeight[chainId];
             Assert(height != 0);
-            return State.CurrentSideChainHeight[chainId];
+            return height;
         }
 
         [View]
         public long GetParentChainHeight()
         {
             return State.CurrentParentChainHeight.Value;
+        }
+
+        public int GetParentChainId()
+        {
+            var parentChainId = State.ParentChainId.Value;
+            Assert(parentChainId != 0);
+            return parentChainId;
         }
 
         [View]
@@ -325,10 +332,12 @@ namespace AElf.Contracts.CrossChain
                 {
                     State.ConsensusContract.UpdateMainChainConsensus(bytes.ToByteArray());
                 }
-                
-                State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
-                    blockInfo.Root.SideChainTransactionsRoot;
+
                 State.CurrentParentChainHeight.Value = parentChainHeight;
+               
+                if (blockInfo.Root.CrossChainExtraData != null)
+                    State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
+                        blockInfo.Root.CrossChainExtraData.SideChainTransactionsRoot;
             }
         }
 

@@ -12,6 +12,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.
             
             // For now we just extract the miner list from main chain consensus information, then update miners list.
+            if(consensusInformationBytes == null || consensusInformationBytes.Length == 0)
+                return;
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.CurrentMiners.Value = minersKeys.ToMiners(1);
