@@ -30,31 +30,39 @@ namespace AElf.CrossChain
             _smartContractAddressService = smartContractAddressService;
         }
 
-        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
+        private IEnumerable<Transaction> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
-            var generatedTransactions = new List<Transaction>();
-            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
-            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
-            if (parentChainBlockData.Count == 0 && sideChainBlockData.Count == 0)
-                return generatedTransactions;
+//            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
+//            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
+//            if (parentChainBlockData.Count == 0 && sideChainBlockData.Count == 0)
+//                return generatedTransactions;
+//            
+//            var crossChainBlockData = new CrossChainBlockData();
+//            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
+//            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
             
-            var crossChainBlockData = new CrossChainBlockData();
-            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
+            var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
-            generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
-                previousBlockPrefix, crossChainBlockData));
+            // should return the same data already filled in block header.
+            var filledCrossChainBlockData =
+                _crossChainService.GetCrossChainBlockDataFilledInBlock(previousBlockHash, refBlockNumber);
+            
+            // filledCrossChainBlockData == null means no cross chain data filled in this block.
+            if (filledCrossChainBlockData != null)
+            {
+                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                    previousBlockPrefix, filledCrossChainBlockData));
+            }
+            
             return generatedTransactions;
         }
 
         public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
-            generatedTransactions.AddRange(
-                AsyncHelper.RunSync(
-                    () => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
+            generatedTransactions.AddRange(GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash));
         }
 
         /// <summary>

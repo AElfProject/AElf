@@ -21,19 +21,16 @@ namespace AElf.CrossChain
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (_blockExtraDataExtractor.ExtractCrossChainExtraData(blockHeader) != null)
-                return null; // return null if already filled, this happens on blocks received from other peers.
-            
             if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
                 return ByteString.Empty;
-            
-            var indexedCrossChainBlockData =
-                await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.PreviousBlockHash, blockHeader.Height);
-            
-            if (indexedCrossChainBlockData == null || indexedCrossChainBlockData.SideChainBlockData.Count == 0)
+
+            var newCrossChainBlockData =
+                await _crossChainService.GetNewCrossChainBlockDataAsync(blockHeader.PreviousBlockHash,
+                    blockHeader.Height - 1);
+            if (newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
             
-            var txRootHashList = indexedCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
+            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
 
             return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}

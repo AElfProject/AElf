@@ -68,8 +68,8 @@ message SideChainIdAndHeightDict{
     map<int32, int64> IdHeighDict = 1;
 }
 
-
 message CrossChainBlockData {
     repeated SideChainBlockData SideChainBlockData = 1;
     repeated ParentChainBlockData ParentChainBlockData = 2;
+    int64 PreviousBlockHeight = 3;
 }

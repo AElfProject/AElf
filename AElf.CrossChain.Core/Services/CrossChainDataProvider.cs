@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,14 +15,16 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly ILocalLibService _localLibService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
-        private Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<Hash, CrossChainBlockData>();
+        private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<Hash, CrossChainBlockData>();
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer)
+            ICrossChainDataConsumer crossChainDataConsumer, ILocalLibService localLibService)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
+            _localLibService = localLibService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight)
@@ -164,19 +167,43 @@ namespace AElf.CrossChain
         }
 
         /// <summary>
-        /// This method returns cross chain data mined before.
+        /// This method returns cross chain data.
         /// </summary>
         /// <param name="previousBlockHash"></param>
         /// <param name="previousBlockHeight"></param>
         /// <returns></returns>
-        public CrossChainBlockData GetIndexedCrossChainBlockData(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            if (_indexedCrossChainBlockData.TryGetValue(previousBlockHash, out var crossChainBlockData))
+            var height = await _localLibService.GetLibHeight();
+            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < height)
+                .Select(kv => kv.Key);
+            foreach (var hash in toRemoveList)
             {
-                return crossChainBlockData;
+                _indexedCrossChainBlockData.Remove(hash);
             }
-
+            var sideChainBlockData = await GetSideChainBlockDataAsync(previousBlockHash, previousBlockHeight);
+            var parentChainBlockData = await GetParentChainBlockDataAsync(previousBlockHash, previousBlockHeight);
+            
+            var crossChainBlockData = new CrossChainBlockData();
+            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
+            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
+            crossChainBlockData.PreviousBlockHeight = previousBlockHeight;
+            _indexedCrossChainBlockData[previousBlockHash] = crossChainBlockData;
             return null;
         }
+
+        /// <summary>
+        /// This method returns cross chain data already used before.
+        /// </summary>
+        /// <param name="previousBlockHash"></param>
+        /// <param name="previousBlockHeight"></param>
+        /// <returns></returns>
+        public CrossChainBlockData GetUsedCrossChainBlockData(Hash previousBlockHash, long previousBlockHeight)
+        {
+            return _indexedCrossChainBlockData.TryGetValue(previousBlockHash, out var crossChainBlockData)
+                ? crossChainBlockData
+                : null;
+        }
+
     }
 }

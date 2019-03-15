@@ -15,7 +15,6 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IChainManager _chainManager;
-        //private ILocalEventBus LocalEventBus { get; }
 
         public CrossChainService(ICrossChainDataProvider crossChainDataProvider, IChainManager chainManager)
         {
@@ -54,7 +53,17 @@ namespace AElf.CrossChain
             _crossChainDataProvider.RegisterNewChain(_chainManager.GetChainId());
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
+        {
+            return await _crossChainDataProvider.GetNewCrossChainBlockDataAsync(previousBlockHash, previousBlockHeight);
+        }
+
+        public CrossChainBlockData GetCrossChainBlockDataFilledInBlock(Hash previousBlockHash, long previousBlockHeight)
+        {
+            return _crossChainDataProvider.GetUsedCrossChainBlockData(previousBlockHash, previousBlockHeight);
+        }
+
+        public async Task<CrossChainBlockData> GetCrossChainBlockDataIndexedInStateAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             return await _crossChainDataProvider.ValidateIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);

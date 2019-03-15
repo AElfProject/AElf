@@ -22,5 +22,11 @@ namespace AElf.CrossChain
             var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height);
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
+
+        public async Task<long> GetLibHeight()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            return chain.LastIrreversibleBlockHeight;
+        }
     }
 }

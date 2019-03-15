@@ -179,7 +179,7 @@ namespace AElf.CrossChain.Grpc
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
             var crossChainBlockData =
-                await _crossChainService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainService.GetCrossChainBlockDataIndexedInStateAsync(block.GetHash(), block.Height);
             return crossChainBlockData.SideChainBlockData;
         }
 
