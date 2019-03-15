@@ -1,22 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain.Cache;
-using AElf.CrossChain.Cache.Exception;
-using AElf.CrossChain.Grpc.Exceptions;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.EventBus;
 
-namespace AElf.CrossChain.Grpc.Client
+namespace AElf.CrossChain.Grpc
 {
     public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
         public ILogger<CrossChainGrpcClient<TResponse>> Logger { get; set; }
 
+        protected CrossChainGrpcClient()
+        {
+            Logger = NullLogger<CrossChainGrpcClient<TResponse>>.Instance;
+        }
+        
 //        private int _initInterval;
 //        private int _adjustedInterval;
 //        private const int UnavailableConnectionInterval = 1_000;
@@ -183,7 +184,7 @@ namespace AElf.CrossChain.Grpc.Client
                     }
                     if(!crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
                         continue;
-                    Logger.LogTrace(
+                    crossChainDataProducer.Logger.LogTrace(
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
             });
@@ -217,7 +218,7 @@ namespace AElf.CrossChain.Grpc.Client
     {
         private readonly CrossChainRpc.CrossChainRpcClient _client;
 
-        public GrpcClientForSideChain(string uri, string certificate, ICrossChainDataProducer crossChainDataProducer)
+        public GrpcClientForSideChain(string uri, string certificate)
         {
             _client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
         }
@@ -245,7 +246,7 @@ namespace AElf.CrossChain.Grpc.Client
     {
         private readonly CrossChainRpc.CrossChainRpcClient _client;
 
-        public GrpcClientForParentChain(string uri, string certificate, ICrossChainDataProducer crossChainDataProducer)
+        public GrpcClientForParentChain(string uri, string certificate)
         {
             _client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
         }

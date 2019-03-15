@@ -1,4 +1,4 @@
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Grpc
 {
     public interface ICrossChainCommunicationContext
     {
