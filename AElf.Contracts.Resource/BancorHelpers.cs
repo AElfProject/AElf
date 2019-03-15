@@ -8,8 +8,8 @@ namespace AElf.Contracts.Resource
     {
         private static readonly decimal MaxWeight = 1000000m;
         
-        public static ulong CalculateCrossConnectorReturn(ulong fromConnectorBalance, ulong fromConnectorWeight,
-            ulong toConnectorBalance, ulong toConnectorWeight, ulong paidAmount)
+        public static long CalculateCrossConnectorReturn(long fromConnectorBalance, long fromConnectorWeight,
+            long toConnectorBalance, long toConnectorWeight, long paidAmount)
         {
             decimal bf = fromConnectorBalance;
             decimal wf = fromConnectorWeight / MaxWeight;
@@ -19,19 +19,19 @@ namespace AElf.Contracts.Resource
             if (wf == wt)
             {
                 // if both weights are the same, the formula can be reduced
-                return (ulong) (bt * a / (bf + a));
+                return (long) (bt * a / (bf + a));
             }
 
             decimal x = bf / (bf + a);
             decimal y = wf / wt;
-            return (ulong) (bt * (One - Exp(y * Ln(x))));
+            return (long) (bt * (One - Exp(y * Ln(x))));
         }
 
         #region Exponential Helpers
 
-        static readonly uint _LOOPS = 22; // Max = 22
+        static readonly uint _LOOPS = 20; // Max = 20
 
-        private static ulong[] Fact = new ulong[]
+        private static long[] Fact =
         {
             1L,
             1L * 2,
@@ -53,8 +53,8 @@ namespace AElf.Contracts.Resource
             1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18,
             1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19,
             1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20,
-            14197454024290336768L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21,        // NOTE: Overflow during compilation
-            17196083355034583040L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21 * 22    // NOTE: Overflow during compilation
+            //14197454024290336768L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21,        // NOTE: Overflow during compilation
+            //17196083355034583040L, //1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20 * 21 * 22    // NOTE: Overflow during compilation
         };
 
         // http://www.daimi.au.dk/~ivan/FastExpproject.pdf
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Resource
             while (iteration > 0)
             {
                 //uint fatorial = Factorial(iteration);
-                ulong fatorial = Fact[iteration - 1];
+                var fatorial = Fact[iteration - 1];
                 result += (Pow(y, iteration) / fatorial);
                 iteration--;
             }

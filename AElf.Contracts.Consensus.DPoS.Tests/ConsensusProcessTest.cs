@@ -271,7 +271,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
-            Assert.Equal(2UL,  newConsensusInformation.Round.RoundNumber);
+            Assert.Equal(2L,  newConsensusInformation.Round.RoundNumber);
         }
         
         [Fact]

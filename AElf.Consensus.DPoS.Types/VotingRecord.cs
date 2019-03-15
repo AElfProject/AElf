@@ -4,11 +4,11 @@ namespace AElf.Consensus.DPoS
 {
     public partial class VotingRecord
     {
-        public ulong Weight => CalculateWeight(Count, LockDaysList[0]);
+        public long Weight => CalculateWeight(Count, LockDaysList[0]);
 
-        public static ulong CalculateWeight(ulong ticketsAmount, int lockTime)
+        public static long CalculateWeight(long ticketsAmount, int lockTime)
         {
-            return (ulong) (((double) lockTime / 270 + 2.0 / 3.0) * ticketsAmount);
+            return (long) (((double) lockTime / 270 + 2.0 / 3.0) * ticketsAmount);
         }
     }
 }
