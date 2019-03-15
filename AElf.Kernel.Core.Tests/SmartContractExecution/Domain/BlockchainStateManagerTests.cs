@@ -10,12 +10,11 @@ using Xunit;
 
 namespace AElf.Kernel
 {
-    public class BlockchainStateManagerTests : AElfKernelTestBase
+    public sealed class BlockchainStateManagerTests : AElfKernelTestBase
     {
-        private BlockchainStateManager _blockchainStateManager;
+        private readonly BlockchainStateManager _blockchainStateManager;
 
         private List<TestPair> _tv;
-
 
         public BlockchainStateManagerTests()
         {
@@ -103,7 +102,7 @@ namespace AElf.Kernel
             });
 
             await check2();
-            
+
             //but when we we can get value at the height of block height 1, also block hash 1
             await check1();
 
@@ -149,12 +148,10 @@ namespace AElf.Kernel
 
             var check3_2 = new Func<Task>(async () =>
             {
-                
-
                 (await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[3].BlockHeight, _tv[4].BlockHash))
                     .ShouldBe(_tv[5].Value);
             });
-            
+
             await check1();
             await check2();
             await check3_2();
@@ -167,15 +164,18 @@ namespace AElf.Kernel
             await check2();
             await check3_1();
             await check3_2();
-            
+
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[3].BlockHash));
 
-            
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash);
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await check1());
             await check2();
+
+            //test failed merge recover
+            chainStateInfo.Status = ChainStateMergingStatus.Merging;
+            chainStateInfo.MergingBlockHash = _tv[4].BlockHash;
             
             //merge best to second branch
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
@@ -186,6 +186,11 @@ namespace AElf.Kernel
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await check3_1());
             await check3_2();
+            
+            //test failed merge recover
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+            chainStateInfo.MergingBlockHash = _tv[4].BlockHash;
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
 
         }
 
