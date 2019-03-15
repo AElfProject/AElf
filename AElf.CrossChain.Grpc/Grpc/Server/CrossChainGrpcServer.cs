@@ -15,11 +15,11 @@ using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.CrossChain.Grpc.Server
+namespace AElf.CrossChain.Grpc
 {
     public class CrossChainGrpcServer : ICrossChainServer
     {
-        private global::Grpc.Core.Server _server;
+        private Server _server;
         private readonly CrossChainGrpcServerBase _serverBase;
         public ILogger<CrossChainGrpcServer> Logger { get; set; }
 
