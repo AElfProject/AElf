@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (round.RealTimeMinersInformation.Count < 2)
             {
                 // Just appoint the mining interval for single miner.
-                return 1000;
+                return 4000;
             }
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)

@@ -1,6 +1,5 @@
 using System.Linq;
 using AElf.Common.Application;
-using AElf.CrossChain.Grpc.Server;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
@@ -15,11 +14,19 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+            var configuration = services.GetConfiguration();
+            var crossChainConfiguration =
+                configuration.GetChildren().FirstOrDefault(child => child.Key.Equals("CrossChain"));
+            if (crossChainConfiguration == null)
+                return;
+            var grpcCrossChainConfiguration =
+                crossChainConfiguration.GetChildren().FirstOrDefault(child => child.Key.Equals("Grpc"));
+            if(grpcCrossChainConfiguration == null)
+                return;
+            Configure<GrpcCrossChainConfigOption>(grpcCrossChainConfiguration);
             services.AddTransient<INodePlugin, GrpcCrossChainServerClient>();
             services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
-            var configuration = context.Services.GetConfiguration();
-            Configure<GrpcCrossChainConfigOption>(configuration.GetSection("CrossChain").GetChildren()
-                .FirstOrDefault(child => child.Key.Equals("Grpc")));
+            services.AddSingleton<GrpcCrossChainServerClient>();
             var keyStore = new CertificateStore(ApplicationHelper.AppDataPath);
             context.Services.AddSingleton<ICertificateStore>(keyStore);
         }

@@ -30,12 +30,18 @@ message ParentChainBlockData {
 message ParentChainBlockRootInfo
 {
     int64 ParentChainHeight = 1;
+    CrossChainExtraData CrossChainExtraData = 2;
+    int32 ParentChainId = 3;
+}
+
+message CrossChainExtraData{
     // Merkle tree root of side chain block headers
     Hash SideChainBlockHeadersRoot = 2;
 
     // Merkle tree root of side chain block transaction roots
     Hash SideChainTransactionsRoot = 3;
-    int32 ParentChainId = 4;
+    
+    // more
 }
 
 enum SideChainStatus
