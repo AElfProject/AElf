@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -67,6 +68,7 @@ namespace AElf.Contracts.MultiToken
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return Nothing.Instance;
         }
+
         public Nothing Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
@@ -144,11 +146,51 @@ namespace AElf.Contracts.MultiToken
 
             return Nothing.Instance;
         }
-        
+
         public void SetConsensusContractAddress(Address consensusContractAddress)
         {
             Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
             State.ConsensusContractAddress.Value = consensusContractAddress;
         }
+
+        #region ForTests
+
+        public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
+            long totalSupply)
+        {
+            Create(new CreateInput()
+            {
+                Symbol = symbol,
+                Decimals = decimals,
+                IsBurnable = isBurnable,
+                Issuer = issuer,
+                TokenName = tokenName,
+                TotalSupply = totalSupply
+            });
+        }
+
+        public void Issue2(string symbol, long amount, Address to, string memo)
+        {
+            Issue(new IssueInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+        }
+
+        public void Transfer2(string symbol, long amount, Address to, string memo)
+        {
+            Transfer(new TransferInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+        }
+
+        public void Approve2(string symbol, long amount, Address spender)
+        {
+            Approve(new ApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+        }
+
+        public void UnApprove2(string symbol, long amount, Address spender)
+        {
+            UnApprove(new UnApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+        }
+
+
+
+        #endregion
     }
 }
