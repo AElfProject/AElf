@@ -214,7 +214,7 @@ namespace AElf.Kernel
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
 
-            await Should.ThrowAsync<InvalidOperationException>(async ()=> await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash));
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
         }
         
         [Fact]
