@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Resource.FeeReceiver
@@ -25,7 +26,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [View]
-        public ulong GetOwedToFoundation()
+        public long GetOwedToFoundation()
         {
             return State.OwedToFoundation.Value;
         }
@@ -52,12 +53,20 @@ namespace AElf.Contracts.Resource.FeeReceiver
         /// Withdraw specific amount owed to the foundation. Only foundation can perform this action.
         /// </summary>
         /// <param name="amount"></param>
-        public void Withdraw(ulong amount)
+        public void Withdraw(long amount)
         {
             Assert(Context.Sender == State.FoundationAddress.Value, "Only foundation can withdraw token.");
             var owed = State.OwedToFoundation.Value;
             Assert(owed >= amount, "Too much to withdraw.");
-            State.TokenContract.Transfer(State.FoundationAddress.Value, amount);
+            if (amount > 0)
+            {
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = State.FoundationAddress.Value,
+                    Amount = amount,
+                    Symbol = "ELF"
+                });
+            }
             State.OwedToFoundation.Value = owed.Sub(amount);
         }
 
@@ -75,11 +84,22 @@ namespace AElf.Contracts.Resource.FeeReceiver
         /// </summary>
         public void Burn()
         {
-            var bal = State.TokenContract.BalanceOf(Context.Self);
+            var bal = State.TokenContract.GetBalance(new GetBalanceInput
+            {
+                Owner = Context.Self,
+                Symbol = "ELF"
+            }).Balance;
             var owed = State.OwedToFoundation.Value;
             var preBurnAmount = bal.Sub(owed);
             var half = preBurnAmount.Div(2);
-            State.TokenContract.Burn(half);
+            if (half > 0)
+            {
+                State.TokenContract.Burn(new BurnInput
+                {
+                    Symbol = "ELF",
+                    Amount = half
+                });
+            }
             owed = owed.Add(half);
             State.OwedToFoundation.Value = owed;
         }
