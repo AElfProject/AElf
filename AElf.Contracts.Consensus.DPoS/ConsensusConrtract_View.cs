@@ -129,12 +129,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     return result;
                 }
 
-                var tickets = State.TicketsMap[candidate.ToStringValue()];
-                if (tickets == null)
+                var tickets = State.TicketsMap[candidate.ToStringValue()] ?? new Tickets
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
-                    return result;
-                }
+                    PublicKey = candidate,
+                    ObtainedTicket = 0
+                };
 
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
