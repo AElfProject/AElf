@@ -34,5 +34,33 @@ namespace AElf.Contracts.MultiToken
                 Allowance = State.Allowances[input.Owner][input.Spender][input.Symbol]
             };
         }
+
+        #region ForTests
+
+        [View]
+        public string GetTokenInfo2(string symbol)
+        {
+            return GetTokenInfo(new GetTokenInfoInput() {Symbol = symbol}).ToString();
+        }
+
+        [View]
+        public string GetBalance2(string symbol, Address owner)
+        {
+            return GetBalance(
+                new GetBalanceInput() {Symbol = symbol, Owner = owner})?.ToString();
+        }
+
+        [View]
+        public string GetAllowance2(string symbol, Address owner, Address spender)
+        {
+            return GetAllowance(new GetAllowanceInput()
+            {
+                Owner = owner,
+                Symbol = symbol,
+                Spender = spender
+            })?.ToString();
+        }
+
+        #endregion
     }
 }
