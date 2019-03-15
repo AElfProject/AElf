@@ -15,7 +15,8 @@ namespace AElf.OS.Jobs
 
         protected abstract Task ExecuteAsync(TArgs args);
     }
-    
+
+    //No body call and no logic contained about AddBlockJob
     public class AddBlockJob : AsyncBackgroundJob<string>
     {
         private IBlockchainService _blockchainService;

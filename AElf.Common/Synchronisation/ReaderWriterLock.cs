@@ -8,7 +8,6 @@ namespace AElf.Common.Synchronisation
     /// <summary>
     /// Initializes a new instance of the object with ability to cancel locked tasks.
     /// </summary>
-    //TODO: Add ReaderWriter cases [Case]
     public class ReaderWriterLock : ILock
     {
         private readonly ConcurrentExclusiveSchedulerPair SchedulerPair  =
