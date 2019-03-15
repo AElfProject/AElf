@@ -193,5 +193,100 @@ namespace AElf.Kernel
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
 
         }
+
+        [Fact]
+        public async Task Test_MergeBlockState_WithStatus_NotCommonStatus()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+                Changes =
+                {
+                    {
+                        _tv[1].Key,
+                        _tv[1].Value
+                    }
+                }
+            });
+            
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+        }
+        
+        [Fact]
+        public async Task Test_GetState_From_VersionedState()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+            });
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[2].BlockHash,
+                BlockHeight = _tv[2].BlockHeight,
+                PreviousHash = _tv[1].BlockHash,
+                Changes =
+                {
+                    {
+                        _tv[1].Key,
+                        _tv[2].Value
+                    }
+                }
+            });
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[3].BlockHash,
+                BlockHeight = _tv[3].BlockHeight,
+                PreviousHash = null,
+                Changes =
+                {
+                    {
+                        _tv[2].Key,
+                        _tv[3].Value
+                    }
+                }
+            });
+            
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash);
+            
+            var result = await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[3].BlockHeight, _tv[3].BlockHash);
+            result.ShouldNotBeNull();
+            result.ShouldBe(_tv[2].Value);
+        }
+
+        [Fact]
+        public async Task Test_GetState_From_BlockStateSet()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+            });
+            var result = await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[2].BlockHeight, _tv[1].BlockHash);
+            result.ShouldBeNull();
+        }
+        
+        [Fact]
+        public async Task TestState_MergedSituation()
+        {
+            int chainId = 1;
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+            chainStateInfo.MergingBlockHash = _tv[1].BlockHash;
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+            
+            chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
+            chainStateInfo.MergingBlockHash.ShouldBeNull();
+        }
     }
 }

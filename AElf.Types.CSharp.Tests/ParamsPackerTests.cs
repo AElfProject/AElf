@@ -50,5 +50,20 @@ namespace AElf.Types.CSharp.Tests
             var userTypeObj1 = unpackObj[0] as PersonalData;
             userTypeObj.ShouldBe(userTypeObj1);
         }
+
+        [Fact]
+        public void Type_GetDefaultTest()
+        {
+            //reference type
+            var userData = new PersonalData();
+            var result = userData.GetType().GetDefault();
+            result.ShouldBeNull();
+            
+            //value type
+            var valueData = new Random().Next();
+            var result1 = valueData.GetType().GetDefault();
+            result1.ShouldBe(0);
+            
+        }
     }
 }
