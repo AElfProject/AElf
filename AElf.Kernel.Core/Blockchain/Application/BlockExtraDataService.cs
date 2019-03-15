@@ -9,11 +9,6 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockExtraDataService : IBlockExtraDataService
     {
         private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
-
-        static BlockExtraDataService()
-        {
-            int a = 2;
-        }
         public BlockExtraDataService(IEnumerable<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders.ToList();
@@ -25,8 +20,10 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
                 var extraData = await blockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(blockHeader);
-                if (extraData != null)
+                if (extraData != null) 
                 {
+                    // Actually extraData cannot be NULL if it is mining processing, as the index in BlockExtraData is fixed.
+                    // So it can be ByteString.Empty but not NULL.
                     blockHeader.BlockExtraDatas.Add(extraData);
                 }
             }
@@ -39,7 +36,6 @@ namespace AElf.Kernel.Blockchain.Application
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
                 if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) && i < blockHeader.BlockExtraDatas.Count)
                 {
-                    // be careful out of range
                     return blockHeader.BlockExtraDatas[i];
                 }
             }

@@ -53,6 +53,8 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = new BlockBody()
             };
 
+            // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
+            await _blockExtraDataService.FillBlockExtraData(block.Header);
             // calculate and set tx merkle tree root 
             //block.Complete(currentBlockTime, results);
             return block;
@@ -82,8 +84,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = blockHeader,
                 Body = blockBody
             };
-            // get block extra data with _blockExtraDataService including consensus data, cross chain data etc.. 
-            await _blockExtraDataService.FillBlockExtraData(block.Header);
+            
             blockBody.BlockHeader = blockHeader.GetHash();
 
             return block;
