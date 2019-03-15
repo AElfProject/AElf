@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -7,6 +8,7 @@ using AElf.Kernel.Node;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Handlers;
+using AElf.OS.Jobs;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
@@ -22,6 +24,8 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.Configure<BackgroundJobOptions>(options => { options.IsJobExecutionEnabled = false; });
+            
             var block = new Block { Header = new BlockHeader { Height = 1 } };
             var block2 = new Block { Header = new BlockHeader { Height = 2 } };
             
