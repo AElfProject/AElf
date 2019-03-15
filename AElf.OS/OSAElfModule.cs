@@ -1,9 +1,13 @@
-﻿using AElf.Common.Application;
+﻿using System;
+using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Rpc.ChainController;
+using AElf.OS.Rpc.Net;
+using AElf.OS.Rpc.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -11,7 +15,10 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(CoreOSAElfModule),
-        typeof(GrpcNetworkModule))]
+        typeof(GrpcNetworkModule),
+        typeof(NetRpcAElfModule),
+        typeof(ChainControllerRpcModule),
+        typeof(WalletRpcModule))]
     public class OSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
