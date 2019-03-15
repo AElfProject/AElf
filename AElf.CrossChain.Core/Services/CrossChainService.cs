@@ -56,7 +56,7 @@ namespace AElf.CrossChain
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
+            return await _crossChainDataProvider.ValidateIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);
         }
         public Task HandleEventAsync(BestChainFoundEventData eventData)

@@ -36,7 +36,7 @@ namespace AElf.CrossChain
             var generatedTransactions = new List<Transaction>();
             var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
             var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
-            if (parentChainBlockData.Count == 0 || sideChainBlockData.Count == 0)
+            if (parentChainBlockData.Count == 0 && sideChainBlockData.Count == 0)
                 return generatedTransactions;
             
             var crossChainBlockData = new CrossChainBlockData();

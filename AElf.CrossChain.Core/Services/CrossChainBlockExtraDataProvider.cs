@@ -10,24 +10,34 @@ namespace AElf.CrossChain
     public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly ICrossChainService _crossChainService;
+        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
 
-        public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService)
+        public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService, 
+            IBlockExtraDataExtractor blockExtraDataExtractor)
         {
             _crossChainService = crossChainService;
+            _blockExtraDataExtractor = blockExtraDataExtractor;
         }
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
+            if (_blockExtraDataExtractor.ExtractCrossChainExtraData(blockHeader) != null)
+                return null; // return null if already filled, this happens on blocks received from other peers.
+            
             if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
-                return null;
+                return ByteString.Empty;
+            
             var indexedCrossChainBlockData =
-                await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.GetHash(), blockHeader.Height);
-            if (indexedCrossChainBlockData == null)
-                return null;
+                await _crossChainService.GetIndexedCrossChainBlockDataAsync(blockHeader.PreviousBlockHash, blockHeader.Height);
+            
+            if (indexedCrossChainBlockData == null || indexedCrossChainBlockData.SideChainBlockData.Count == 0)
+                return ByteString.Empty;
+            
             var txRootHashList = indexedCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
-            
-            return calculatedSideChainTransactionsRoot.ToByteString();
+
+            return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
+                .ToByteString();
         }
     }
 }

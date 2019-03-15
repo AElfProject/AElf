@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.CrossChain.Cache.Exception;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
@@ -10,6 +11,7 @@ namespace AElf.CrossChain.Cache
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
+        public ILogger<CrossChainDataProducer> Logger { get; set; }
         public CrossChainDataProducer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
         {
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;

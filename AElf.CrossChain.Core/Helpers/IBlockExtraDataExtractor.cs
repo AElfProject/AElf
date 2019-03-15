@@ -7,7 +7,8 @@ namespace AElf.CrossChain
 {
     public interface IBlockExtraDataExtractor
     {
-        ByteString ExtractExtraData(string symbol, BlockHeader header);
+        CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header);
+        ByteString ExtractOtherExtraData(string symbol, BlockHeader header);
     }
 
     public class BlockExtraDataExtractor : IBlockExtraDataExtractor, ITransientDependency
@@ -19,9 +20,16 @@ namespace AElf.CrossChain
             _blockExtraDataService = blockExtraDataService;
         }
 
-        public ByteString ExtractExtraData(string symbol, BlockHeader header)
+        public CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)
         {
-            return _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
+            var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
+            return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
         }
+
+        public ByteString ExtractOtherExtraData(string symbol, BlockHeader header)
+        {
+            return _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
+        }
+
     }
 }
