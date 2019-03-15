@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividends
 {
-    public class DividendsContract : CSharpSmartContract<DividendsContractState>
+    public partial class DividendsContract : CSharpSmartContract<DividendsContractState>
     {
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress)
         {
@@ -17,219 +17,79 @@ namespace AElf.Contracts.Dividends
             State.ConsensusContract.Value = consensusContractAddress;
             State.TokenContract.Value = tokenContractAddress;
             State.Initialized.Value = true;
-        }
-        [View]
-        public ulong GetTermDividends(ulong termNumber)
-        {
-            return State.DividendsMap[termNumber];
+            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
 
-        [View]
-        public ulong GetTermTotalWeights(ulong termNumber)
+        public void SendDividends(Address targetAddress, ulong amount)
         {
-            return State.TotalWeightsMap[termNumber];
-        }
+            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
-        [View]
-        public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
-        {
-            var termNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
-            return termNumber != 0
-                ? termNumber
-                : votingRecord.TermNumber;
-        }
-
-        [View]
-        public ulong GetAvailableDividends(VotingRecord votingRecord)
-        {
-            ulong dividends = 0;
-
-            var start = votingRecord.TermNumber + 1;
-            var lastRequestTermNumber = State.LastRequestDividendsMap[votingRecord.TransactionId];
-            if (lastRequestTermNumber > 0)
-            {
-                start = lastRequestTermNumber + 1;
-            }
-
-            var end = Math.Min(GetExpireTermNumber(votingRecord, State.ConsensusContract.GetBlockchainAge()),
-                State.ConsensusContract.GetCurrentTermNumber() - 1);
-
-            for (var i = start; i <= end; i++)
-            {
-                var totalWeights = State.TotalWeightsMap[i];
-                if (totalWeights > 0)
-                {
-                    var totalDividends = State.DividendsMap[i];
-                    if (totalDividends > 0)
-                    {
-                        Context.LogDebug(()=>$"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
-                        Context.LogDebug(()=>$"Total weights of term {i}: {totalWeights}");
-                        Context.LogDebug(()=>$"Total dividends of term {i}: {totalDividends}");
-                        Context.LogDebug(()=>$"Weights of this vote: {votingRecord.Weight}");
-                        dividends += totalDividends * votingRecord.Weight / totalWeights;
-                        Context.LogDebug(()=>$"Result: {dividends}");
-                    }
-                }
-            }
-
-            return dividends;
+            State.TokenContract.Transfer(targetAddress, amount);
         }
         
-        public ulong GetExpireTermNumber(VotingRecord votingRecord, ulong currentAge)
+        /// <summary>
+        /// Transfer dividends to miners.
+        /// </summary>
+        /// <param name="votingRecord"></param>
+        /// <returns></returns>
+        // ReSharper disable once InconsistentNaming
+        public ulong TransferDividends(VotingRecord votingRecord)
         {
-            return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / 7;
-        }
-        
-        public ulong GetDurationDays(VotingRecord votingRecord, ulong currentAge)
-        {
-            var days = currentAge - votingRecord.VoteAge + 1;
-            ulong totalLockDays = 0;
-            foreach (var d in votingRecord.LockDaysList)
-            {
-                totalLockDays += (ulong) d;
-            }
+            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
-            return Math.Min(days, totalLockDays);
-        }
+            var dividendsOwner = votingRecord.From;
+            var dividendsOwnerAddress = Address.FromPublicKey(ByteArrayHelpers.FromHexString(dividendsOwner));
 
-        [View]
-        public ulong GetAllAvailableDividends(string publicKey)
-        {
-            return State.ConsensusContract.GetTicketsInfo(publicKey).VotingRecords
-                .Where(vr => vr.From == publicKey)
-                .Aggregate<VotingRecord, ulong>(0,
-                    (current, votingRecord) => current + GetAvailableDividends(votingRecord));
-        }
-
-        [View]
-        public ulong CheckDividends(ulong ticketsAmount, int lockTime, ulong termNumber)
-        {
-            var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber();
-            Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
-            var totalWeights = State.TotalWeightsMap[termNumber];
-            if (totalWeights > 0)
-            {
-                var totalDividends = State.DividendsMap[termNumber];
-                if (totalDividends > 0)
-                {
-                    return VotingRecord.CalculateWeight(ticketsAmount, lockTime) * totalDividends /
-                           totalWeights;
-                }
-            }
-
-            return 0;
-        }
-
-        [View]
-        public ULongList CheckDividendsOfPreviousTerm()
-        {
-            var termNumber = State.ConsensusContract.GetCurrentTermNumber() - 1;
-            var result = new ULongList();
-
-            if (termNumber < 1)
-            {
-                return new ULongList {Values = {0}, Remark = "Not found."};
-            }
-
-            const ulong ticketsAmount = 10_000;
-            var lockTimes = new List<int> {30, 180, 365, 730, 1095};
-            foreach (var lockTime in lockTimes)
-            {
-                result.Values.Add(CheckDividends(ticketsAmount, lockTime, termNumber));
-            }
-
-            return result;
-        }
-
-        [View]
-        public string CheckDividendsOfPreviousTermToFriendlyString()
-        {
-            return CheckDividendsOfPreviousTerm().ToString();
-        }
-
-        public ActionResult TransferDividends(VotingRecord votingRecord)
-        {
-            var owner = votingRecord.From;
-            var ownerAddress =
-                Address.FromPublicKey(ByteArrayHelpers.FromHexString(owner));
-
-            var start = votingRecord.TermNumber + 1;
-            var history = State.LastRequestDividendsMap[votingRecord.TransactionId];
+            var startTermNumber = votingRecord.TermNumber + 1;
+            var history = State.LastRequestedDividendsMap[votingRecord.TransactionId];
             if (history > 0)
             {
-                start = history + 1;
+                startTermNumber = history + 1;
             }
 
-            var end = Math.Min(GetExpireTermNumber(votingRecord, State.ConsensusContract.GetBlockchainAge()),
+            var endTermNumber = Math.Min(GetExpireTermNumber(votingRecord, State.ConsensusContract.GetBlockchainAge()),
                 State.ConsensusContract.GetCurrentTermNumber() - 1);
 
-            var actualTermNumber = start;
-            ulong dividendsAmount = 0;
-            for (var i = start; i <= end; i++)
+            // Record last requested dividends term number.
+            var actualTermNumber = startTermNumber;
+            ulong totalDividendsAmount = 0;
+            for (var i = startTermNumber; i <= endTermNumber; i++)
             {
                 var totalWeights = State.TotalWeightsMap[i];
-                if (totalWeights > 0)
-                {
-                    var dividends = State.DividendsMap[i];
-                    if (dividends > 0)
-                    {
-                        dividendsAmount += dividends * votingRecord.Weight / totalWeights;
-                        actualTermNumber = i;
-                    }
-                    else
-                    {
-                        return new ActionResult {Success = false, ErrorMessage = $"Dividends of term {i} not found."};
-                    }
-                }
-                else
-                {
-                    return new ActionResult {Success = false, ErrorMessage = $"Total weights of term {i} not found."};
-                }
+                Assert(totalWeights > 0, $"Total weights of term {i} not found.");
+                var dividends = State.DividendsMap[i];
+                Assert(dividends > 0, $"Dividends of term {i} not found.");
+                totalDividendsAmount += dividends * votingRecord.Weight / totalWeights;
+                actualTermNumber = i;
             }
 
-            State.TokenContract.Transfer(ownerAddress, dividendsAmount);
+            State.TokenContract.Transfer(dividendsOwnerAddress, totalDividendsAmount);
 
-            Context.LogDebug(()=>$"Gonna transfer {dividendsAmount} dividends to {ownerAddress}");
+            Context.LogDebug(()=>$"Gonna transfer {totalDividendsAmount} dividends to {dividendsOwnerAddress}");
 
-            State.LastRequestDividendsMap[votingRecord.TransactionId] = actualTermNumber;
+            State.LastRequestedDividendsMap[votingRecord.TransactionId] = actualTermNumber;
 
-            return new ActionResult {Success = true};
+            return totalDividendsAmount;
         }
 
-        public ActionResult AddDividends(ulong termNumber, ulong dividendsAmount)
+        public ulong AddDividends(ulong termNumber, ulong dividendsAmount)
         {
-            var dividends = State.DividendsMap[termNumber];
-            if (dividends > 0 && Context.Sender != State.ConsensusContract.Value)
-            {
-                var finalDividends = dividends + dividendsAmount;
-                State.DividendsMap[termNumber] = finalDividends;
-            }
-            else
-            {
-                State.DividendsMap[termNumber] = dividendsAmount;
-            }
-
+            var currentDividends = State.DividendsMap[termNumber];
+            var finalDividends = currentDividends + dividendsAmount;
+            State.DividendsMap[termNumber] = finalDividends;
             Context.LogDebug(()=>$"Dividends of term {termNumber}: {dividendsAmount}");
 
-            return new ActionResult {Success = true};
+            return finalDividends;
         }
 
-        public ActionResult AddWeights(ulong weights, ulong termNumber)
+        public ulong AddWeights(ulong weights, ulong termNumber)
         {
-            var totalWeights = State.TotalWeightsMap[termNumber];
-            if (totalWeights > 0)
-            {
-                var finalWeights = totalWeights + weights;
-                State.TotalWeightsMap[termNumber] = finalWeights;
-                Context.LogDebug(()=>$"Weights of term {termNumber}: {finalWeights}.[Add]");
-            }
-            else
-            {
-                State.TotalWeightsMap[termNumber] = weights;
-                Context.LogDebug(()=>$"Weights of term {termNumber}: {weights}.[Add]");
-            }
+            var currentWeights = State.TotalWeightsMap[termNumber];
+            var finalWeights = currentWeights + weights;
+            State.TotalWeightsMap[termNumber] = finalWeights;
+            Context.LogDebug(()=>$"Weights of term {termNumber}: {finalWeights}.[Add]");
 
-            return new ActionResult {Success = true};
+            return finalWeights;
         }
 
         public ActionResult KeepWeights(ulong oldTermNumber)
@@ -247,12 +107,9 @@ namespace AElf.Contracts.Dividends
         public ActionResult SubWeights(ulong weights, ulong termNumber)
         {
             var totalWeights = State.TotalWeightsMap[termNumber];
-            if (totalWeights > 0)
-            {
-                var newWeights = totalWeights - weights;
-                State.TotalWeightsMap[termNumber] = newWeights;
-                Context.LogDebug(()=>$"Weights of term {termNumber}: {totalWeights}.[Sub]");
-            }
+            Assert(totalWeights > 0, $"Invalid weights of term {termNumber}");
+            var newWeights = totalWeights - weights;
+            State.TotalWeightsMap[termNumber] = newWeights;
 
             return new ActionResult {Success = true};
         }

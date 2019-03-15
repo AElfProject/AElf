@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -36,12 +37,18 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public StringList GetCandidatesList()
         {
-            return new StringList
+            var list = new StringList
             {
                 Values = {State.CandidatesField.Value.PublicKeys.ToList()}
             };
+            return list;
         }
 
+        public Candidates GetCandidates()
+        {
+            return State.CandidatesField.Value;
+        }
+        
         [View]
         public string GetCandidatesListToFriendlyString()
         {
@@ -164,7 +171,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         // TODO: Add an API to get unexpired tickets info.
         [View]
-        public Tickets GetTicketsInfo(string publicKey)
+        public Tickets GetTicketsInformation(string publicKey)
         {
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
 
@@ -197,15 +204,21 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
-        public string GetTicketsInfoToFriendlyString(string publicKey)
+        public string GetTicketsInformationToFriendlyString(string publicKey)
         {
-            return GetTicketsInfo(publicKey).ToString();
+            return GetTicketsInformation(publicKey).ToString();
         }
 
         [View]
+        public VotingRecord GetVotingRecord(Hash transactionId)
+        {
+            return State.VotingRecordsMap[transactionId];
+        }
+        
+        [View]
         public ulong QueryObtainedNotExpiredVotes(string publicKey)
         {
-            var tickets = GetTicketsInfo(publicKey);
+            var tickets = GetTicketsInformation(publicKey);
             if (!tickets.VotingRecords.Any())
             {
                 return 0;
@@ -219,7 +232,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public ulong QueryObtainedVotes(string publicKey)
         {
-            var tickets = GetTicketsInfo(publicKey);
+            var tickets = GetTicketsInformation(publicKey);
             if (tickets.VotingRecords.Any())
             {
                 return tickets.ObtainedTickets;
@@ -231,7 +244,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
-            var tickets = GetTicketsInfo(publicKey);
+            var tickets = GetTicketsInformation(publicKey);
             
             var count = tickets.VotingRecords.Count;
             var take = Math.Min(length - startIndex, count - startIndex);
@@ -261,7 +274,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
         {
-            var tickets = GetTicketsInfo(publicKey);
+            var tickets = GetTicketsInformation(publicKey);
 
             var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
             var count = notWithdrawnVotingRecords.Count;
@@ -295,7 +308,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
             
-            var tickets = GetTicketsInfo(publicKey);
+            var tickets = GetTicketsInformation(publicKey);
 
             foreach (var votingRecord in tickets.VotingRecords)
             {
@@ -498,7 +511,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public ulong QueryCurrentDividendsForVoters()
         {
             var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToUInt64Value()].GetMinedBlocks();
-            return (ulong) (minedBlocks * DPoSContractConsts.VotersRatio) * DPoSContractConsts.ElfTokenPerBlock;
+            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
 
         [View]
