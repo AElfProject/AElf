@@ -73,7 +73,7 @@ namespace AElf.Launcher
             Configure<ChainOptions>(option =>
             {
                 option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
-                option.IsMainChain = Convert.ToBoolean(config["IsMainChain"]);
+                option.IsSideChain = Convert.ToBoolean(config["IsSideChain"]);
             });
         }
 
@@ -90,14 +90,13 @@ namespace AElf.Launcher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            if (chainOptions.IsMainChain)
-                dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
-                    ConsensusSmartContractAddressNameProvider.Name);
-            else
+            if (chainOptions.IsSideChain)
             {
                 dto.InitializationSmartContracts.AddGenesisSmartContract(typeof(SideChain.ConsensusContract));
                 ConsensusSmartContractAddressNameProvider.Name = Hash.FromString(typeof(SideChain.ConsensusContract).FullName);
             }
+            else
+                dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
             
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
