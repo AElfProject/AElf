@@ -140,8 +140,9 @@ namespace AElf.Kernel.Blockchain.Application
                 return (await _chainManager.GetChainBlockIndexAsync(height)).BlockHash;
             }
 
+            // Get from the verified blocks (best chain)
             if (startBlockHash == null)
-                startBlockHash = chain.LongestChainHash;
+                startBlockHash = chain.BestChainHash;
 
             // TODO: may introduce cache to improve the performance
 

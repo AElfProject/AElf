@@ -54,13 +54,13 @@ namespace AElf.OS.Handlers
                 peerInPool.CurrentBlockHeight = blockHeight;
             }
 
-            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {peerInPool?.PeerIpAddress}.");
+            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
             var chain = await BlockchainService.GetChainAsync();
 
             if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {peerInPool?.PeerIpAddress}, ignore.");
+                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
                 return;
             }
 
