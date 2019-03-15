@@ -9,6 +9,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
@@ -233,7 +234,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task ExtraBlock_GetConsensusCommand()
+        public async Task NextRound_GetConsensusCommand()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -244,16 +245,16 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 1).ToTimestamp();
-            var actual = await testers.Testers[0].GetConsensusCommandAsync(futureTime);
+            var command = await testers.Testers[0].GetConsensusCommandAsync(futureTime);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.CountingMilliseconds > 0);
-            Assert.Equal(4000, actual.TimeoutMilliseconds);
+            Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            Assert.True(command.CountingMilliseconds > 0);
+            Assert.Equal(4000, command.TimeoutMilliseconds);
         }
         
         [Fact]
-        public async Task ExtraBlock_GetNewConsensusInformation()
+        public async Task NextRound_GetNewConsensusInformation()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -275,7 +276,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
         
         [Fact]
-        public async Task ExtraBlock_GenerateConsensusTransactions()
+        public async Task NextRound_GenerateConsensusTransactions()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -296,6 +297,49 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.Equal(DPoSBehaviour.NextRound.ToString(),  consensusTransactions.First().MethodName);
+        }
+
+        [Fact]
+        public async Task NextTerm_GetConsensusCommand()
+        {
+            const int minersCount = 17;
+            
+            var starter = new ContractTester<DPoSContractTestAElfModule>();
+            
+            var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            await starter.InitialChainAndTokenAsync(minersKeyPairs, _miningInterval);
+
+            var miners = Enumerable.Range(0, minersCount)
+                .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
+
+            await miners.ProduceNormalBlocks(minersCount);
+
+            // Unable to change term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var offset = minersCount * _miningInterval + _miningInterval;
+                var bytes = await extraBlockMiner.CallContractMethodAsync(starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetConsensusCommand),
+                    GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey,
+                        DateTime.UtcNow.AddMilliseconds(offset).ToTimestamp()));
+                var command = bytes.DeserializeToPbMessage<ConsensusCommand>();
+                Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            }
+
+            await miners.ChangeRoundAsync();
+            await miners.ProduceNormalBlocks(minersCount,
+                DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1).ToTimestamp());
+            
+            // Able to changer term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var bytes = await extraBlockMiner.CallContractMethodAsync(starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetConsensusCommand),
+                    GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey,
+                        DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 2).ToTimestamp()));
+                var command = bytes.DeserializeToPbMessage<ConsensusCommand>();
+                Assert.Equal(DPoSBehaviour.NextTerm, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            }
         }
 
         private DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)

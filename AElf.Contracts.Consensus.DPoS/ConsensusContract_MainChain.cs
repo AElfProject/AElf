@@ -249,8 +249,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 CandidatesSnapshot = {candidateInTerms}
             });
 
-            Console.WriteLine($"Snapshot of term {snapshotTermNumber} taken.");
-
             return new ActionResult {Success = true};
         }
 
