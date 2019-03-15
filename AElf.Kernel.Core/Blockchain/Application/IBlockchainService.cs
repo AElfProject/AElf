@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Blockchain.Application
             Hash chainBranchBlockHash = null);
 
         Task<BlockHeader> GetBestChainLastBlock();
-        Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash = null);
+        Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash);
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash);
@@ -129,20 +130,15 @@ namespace AElf.Kernel.Blockchain.Application
         /// </summary>
         /// <param name="chain">the chain to search</param>
         /// <param name="height">the height of the block</param>
-        /// <param name="startBlockHash">the block from which to start the search, by default the head of the best chain.</param>
+        /// <param name="startBlockHash">the block from which to start the search.</param>
         /// <returns></returns>
-        // TODO: remove startBlockHash default value
-        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash startBlockHash = null)
+        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash startBlockHash)
         {
             if (chain.LastIrreversibleBlockHeight >= height)
             {
                 // search irreversible section of the chain
                 return (await _chainManager.GetChainBlockIndexAsync(height)).BlockHash;
             }
-
-            // Get from the verified blocks (best chain)
-            if (startBlockHash == null)
-                startBlockHash = chain.BestChainHash;
 
             // TODO: may introduce cache to improve the performance
 
@@ -240,9 +236,8 @@ namespace AElf.Kernel.Blockchain.Application
             return blockList;
         }
 
-        // TODO: remove chainBranchBlockHash default value
         public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
-            Hash chainBranchBlockHash = null)
+            Hash chainBranchBlockHash)
         {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
 
@@ -277,7 +272,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Block> GetBlockByHeightAsync(long height)
         {
             var chain = await GetChainAsync();
-            var hash = await GetBlockHashByHeightAsync(chain, height);
+            var hash = await GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
 
             return await GetBlockByHashAsync(hash);
         }

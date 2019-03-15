@@ -379,7 +379,7 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldBeNull();
         }
 
-        [Fact(Skip = "need optimize GetBlockHashByHeightAsync")]
+        [Fact]
         public async Task Get_Blocks_ReturnBlocks()
         {
             var mockChain = await MockNewChain();
@@ -398,13 +398,23 @@ namespace AElf.Kernel.Blockchain.Application
             result[0].GetHash().ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
             result[1].GetHash().ShouldBe(mockChain.BestBranchBlocks[9].GetHash());
         }
-        
+
         [Fact]
         public async Task Get_GetBlockHashes_ReturnNull()
         {
             var mockChain = await MockNewChain();
+            var notExistHash = Hash.FromString("not exist");
             
-            var result = await _fullBlockchainService.GetBlockHashes(mockChain.Chain, Hash.FromString("not exist"), 1);
+            var result = await _fullBlockchainService.GetBlockHashes(mockChain.Chain, notExistHash, 1,
+                mockChain.Chain.BestChainHash);
+            result.ShouldBeNull();
+            
+            result = await _fullBlockchainService.GetBlockHashes(mockChain.Chain, notExistHash, 1,
+                mockChain.Chain.LongestChainHash);
+            result.ShouldBeNull();
+
+            result = await _fullBlockchainService.GetBlockHashes(mockChain.Chain, notExistHash, 1,
+                mockChain.ForkBranchBlocks.Last().GetHash());
             result.ShouldBeNull();
         }
 
@@ -413,8 +423,17 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var mockChain = await MockNewChain();
 
-            await _fullBlockchainService.GetBlockHashes(mockChain.Chain, mockChain.Chain.BestChainHash, 10)
+            await _fullBlockchainService
+                .GetBlockHashes(mockChain.Chain, mockChain.Chain.BestChainHash, 10, mockChain.Chain.BestChainHash)
                 .ShouldThrowAsync<InvalidOperationException>();
+
+            await _fullBlockchainService
+                .GetBlockHashes(mockChain.Chain, mockChain.Chain.LongestChainHash, 10, mockChain.Chain.LongestChainHash)
+                .ShouldThrowAsync<InvalidOperationException>();
+
+            await _fullBlockchainService
+                .GetBlockHashes(mockChain.Chain, mockChain.ForkBranchBlocks[0].GetHash(), 10,
+                    mockChain.ForkBranchBlocks.Last().GetHash()).ShouldThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
@@ -424,13 +443,13 @@ namespace AElf.Kernel.Blockchain.Application
 
             var result =
                 await _fullBlockchainService.GetBlockHashes(mockChain.Chain, mockChain.BestBranchBlocks[0].GetHash(),
-                    2);
+                    2, mockChain.Chain.BestChainHash);
             result.Count.ShouldBe(2);
             result[0].ShouldBe(mockChain.BestBranchBlocks[1].GetHash()); //6c56
             result[1].ShouldBe(mockChain.BestBranchBlocks[2].GetHash()); //
 
             result = await _fullBlockchainService.GetBlockHashes(mockChain.Chain,
-                mockChain.BestBranchBlocks[1].GetHash(), 1);
+                mockChain.BestBranchBlocks[1].GetHash(), 1, mockChain.Chain.BestChainHash);
             result.Count.ShouldBe(1);
             result[0].ShouldBe(mockChain.BestBranchBlocks[2].GetHash()); //
         }
