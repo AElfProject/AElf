@@ -267,12 +267,6 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        internal static async Task<BinaryMerkleTree> GetBinaryMerkleTreeByHeight(this ChainControllerRpcService s,
-            ulong height)
-        {
-            return await s.BinaryMerkleTreeManager.GetTransactionsMerkleTreeByHeightAsync(height);
-        }
-
         internal static async Task<byte[]> CallReadOnly(this ChainControllerRpcService s, Transaction tx)
         {
             var trace = new TransactionTrace
