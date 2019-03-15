@@ -1,6 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -15,20 +16,17 @@ namespace AElf.Contracts.CrossChain
 
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<Address, ulong> Transfer { get; set; }
-        public Action<Address, Address, ulong> TransferFrom { get; set; }
-        
-        public Func<Address, ulong> BalanceOf { get; set; }
+        public Action<TransferInput> Transfer { get; set; }
+        public Action<TransferFromInput> TransferFrom { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Func<ulong> GetCurrentRoundNumber { get; set; }
-        public Func<ulong, Round> GetRoundInfo { get; set; }
-        
         public Action<byte[]> UpdateMainChainConsensus { get; set; }
         
         public Func<Miners> GetCurrentMiners { get; set; }
+        public Func<long> GetCurrentRoundNumber { get; set; }
+        public Func<long, Round> GetRoundInformation { get; set; }
     }
 
     public class CrossChainContractState : ContractState
@@ -45,7 +43,7 @@ namespace AElf.Contracts.CrossChain
 
         public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
-        public MappedState<int, ulong> IndexingBalance { get; set; }
+        public MappedState<int, long> IndexingBalance { get; set; }
 
         #endregion
 

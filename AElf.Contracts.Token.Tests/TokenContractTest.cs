@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿/*using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -325,4 +325,4 @@ namespace AElf.Contracts.Token
             resultGet1.DeserializeToUInt64().ShouldBe(10UL);
         }
     }
-}
+}*/

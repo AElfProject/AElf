@@ -1,6 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
@@ -8,16 +9,16 @@ namespace AElf.Contracts.Dividends
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Func<ulong> GetCurrentRoundNumber { get; set; }
-        public Func<ulong> GetCurrentTermNumber { get; set; }
-        public Func<ulong, Round> GetRoundInfo { get; set; }
+        public Func<long> GetCurrentRoundNumber { get; set; }
+        public Func<long> GetCurrentTermNumber { get; set; }
+        public Func<long, Round> GetRoundInfo { get; set; }
         public Func<string, Tickets> GetTicketsInfo { get; set; }
-        public Func<ulong> GetBlockchainAge { get; set; }
+        public Func<long> GetBlockchainAge { get; set; }
     }
 
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<Address, ulong> Transfer { get; set; }
+        public Action<TransferInput> Transfer { get; set; }
     }
 
     public class DividendsContractState : ContractState
@@ -27,15 +28,15 @@ namespace AElf.Contracts.Dividends
         public TokenContractReferenceState TokenContract { get; set; }
 
         // Term Number -> Dividends Amount
-        public MappedState<ulong, ulong> DividendsMap { get; set; }
+        public MappedState<long, long> DividendsMap { get; set; }
 
         // Term Number -> Total weights
-        public MappedState<ulong, ulong> TotalWeightsMap { get; set; }
+        public MappedState<long, long> TotalWeightsMap { get; set; }
 
         // Because voter can request dividends of each VotingRecord instance for terms it experienced,
         // we need to record the term number of last term he request his dividends.
         // Hash (of VotingRecord) -> Latest request dividends term number
-        public MappedState<Hash, ulong> LastRequestedDividendsMap { get; set; }
+        public MappedState<Hash, long> LastRequestedDividendsMap { get; set; }
 
         public SingletonState<string> StarterPublicKey { get; set; }
     }

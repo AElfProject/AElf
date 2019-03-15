@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.CrossChain
             return State.SideChainSerialNumber.Value;
         }
 
-        public ulong LockedToken(int chainId)
+        public long LockedToken(int chainId)
         {
             var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
@@ -130,7 +131,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="amount"></param>
-        public void Recharge(int chainId, ulong amount)
+        public void Recharge(int chainId, long amount)
         {
             var sideChainInfo = State.SideChainInfos[chainId];
             Assert(
@@ -145,7 +146,14 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfos[chainId] = sideChainInfo;
             }
 
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, amount);
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = "ELF",
+                Amount = amount,
+                Memo = "Recharge."
+            });
         }
 
         /// <summary>
@@ -222,7 +230,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public ulong LockedBalance(int chainId)
+        public long LockedBalance(int chainId)
         {
             var sideChainInfo = State.SideChainInfos[chainId];
             Assert(sideChainInfo != null, "Not existed side chain.");
@@ -235,7 +243,7 @@ namespace AElf.Contracts.CrossChain
         {
             var dict = new SideChainIdAndHeightDict();
             var serialNumber = State.SideChainSerialNumber.Value;
-            for (ulong i = 1; i <= serialNumber; i++)
+            for (var i = 1; i <= serialNumber; i++)
             {
                 int chainId = ChainHelpers.GetChainId(i);
                 var sideChainInfo = State.SideChainInfos[chainId];
@@ -394,7 +402,13 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 State.IndexingBalance[chainId] = lockedToken - indexingPrice;
-                State.TokenContract.Transfer(Context.Sender, indexingPrice);
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = Context.Sender,
+                    Symbol = "ELF",
+                    Amount = indexingPrice,
+                    Memo = "Index fee."
+                });
 
                 State.CurrentSideChainHeight[chainId] = target;
                 indexedSideChainBlockData.Add(blockInfo);
@@ -467,7 +481,13 @@ namespace AElf.Contracts.CrossChain
             var balance = State.TokenContract.BalanceOf(Context.Sender);
             Context.LogDebug(() => $"{balance} Balance.");
             // update locked token balance
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, sideChainInfo.LockedTokenAmount);
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Amount = sideChainInfo.LockedTokenAmount,
+                Symbol = "ELF"
+            });
             var chainId = sideChainInfo.SideChainId;
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -485,7 +505,12 @@ namespace AElf.Contracts.CrossChain
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
             if (balance != 0)
-                State.TokenContract.Transfer(sideChainInfo.Proposer, balance);
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = sideChainInfo.Proposer,
+                    Amount = balance,
+                    Symbol = "ELF"
+                });
             State.IndexingBalance[chainId] = 0;
 
             // unlock resource 

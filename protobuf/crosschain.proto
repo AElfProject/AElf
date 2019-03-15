@@ -54,8 +54,8 @@ enum SideChainStatus
 }
 
 message SideChainInfo {
-    uint64 IndexingPrice = 1;
-    uint64 LockedTokenAmount = 2;
+    int64 IndexingPrice = 1;
+    int64 LockedTokenAmount = 2;
     repeated ResourceTypeBalancePair ResourceBalances = 3; 
     bytes ContractCode = 4;
     Address Proposer = 5;
