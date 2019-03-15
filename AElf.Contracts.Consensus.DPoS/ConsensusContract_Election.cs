@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,7 +12,7 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable UnusedMember.Global
     public partial class ConsensusContract
     {
-        private ulong CurrentAge => State.AgeField.Value;
+        private long CurrentAge => State.AgeField.Value;
 
         public ActionResult AnnounceElection(string alias = "")
         {
@@ -86,7 +87,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection,
+                Memo = "Lock for announcing election."
+            });
 
             return new ActionResult {Success = true};
         }
@@ -109,12 +117,18 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.CandidatesField.Value = candidates;
 
-            State.TokenContract.Unlock(Context.Sender, DPoSContractConsts.LockTokenForElection);
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = Context.Sender,
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection,
+                Memo = "Unlock tickets."
+            });
 
             return new ActionResult {Success = true};
         }
 
-        public string Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public string Vote(string candidatePublicKey, long amount, int lockTime)
         {
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
@@ -132,7 +146,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.Lock(Context.Sender, amount);
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = "ELF",
+                Amount = amount,
+                Memo = "Lock for getting tickets."
+            });
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
@@ -148,10 +169,10 @@ namespace AElf.Contracts.Consensus.DPoS
                 RoundNumber = currentRoundNumber,
                 TransactionId = Context.TransactionId,
                 VoteAge = CurrentAge,
-                UnlockAge = CurrentAge + (ulong) lockTime,
+                UnlockAge = CurrentAge + (long) lockTime,
                 TermNumber = currentTermNumber,
                 VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp(),
-                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + (ulong) lockTime)
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + (long) lockTime)
                     .ToTimestamp()
             };
 
@@ -297,7 +318,13 @@ namespace AElf.Contracts.Consensus.DPoS
             // Sub weight.
             State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
             // Transfer token back to voter.
-            State.TokenContract.Unlock(Context.Sender, votingRecord.Count);
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = Context.Sender,
+                Symbol = "ELF",
+                Amount = votingRecord.Count,
+                Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+            });
 
             return State.TicketsMap[votingRecord.From.ToStringValue()];
         }
@@ -307,8 +334,8 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;
-            var withdrawnAmount = 0UL;
-            var candidatesVotesDict = new Dictionary<string, ulong>();
+            var withdrawnAmount = 0L;
+            var candidatesVotesDict = new Dictionary<string, long>();
 
             var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
 
@@ -346,7 +373,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
                 }
 
-                State.TokenContract.Unlock(Context.Sender, votingRecord.Count);
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = Context.Sender,
+                    Symbol = "ELF",
+                    Amount = votingRecord.Count,
+                    Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                });
+
                 State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
             }
 

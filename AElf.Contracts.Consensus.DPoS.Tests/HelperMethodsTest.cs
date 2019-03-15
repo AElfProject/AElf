@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task SetBlockchainAgeTest()
         {
-            const ulong age = 100UL;
+            const long age = 100L;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
             await starter.InitialChainAndTokenAsync();
             await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.SetBlockchainAge),
@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Starter can set blockchain age.
             {
                 var blockchainAge = (await starter.CallContractMethodAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToUInt64();
+                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToInt64();
 
                 blockchainAge.ShouldBe(age);
             }
@@ -34,7 +34,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // While others can't.
             {
                 var blockchainAge = (await user.CallContractMethodAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToUInt64();
+                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToInt64();
 
                 // Still 100.
                 blockchainAge.ShouldBe(age);
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
             
-                Assert.Equal(2UL, round.RoundNumber);
+                Assert.Equal(2L, round.RoundNumber);
             }
 
             await miners.RunConsensusAsync(2, true);
@@ -68,8 +68,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
 
-                Assert.Equal(4UL, round.RoundNumber);
-                Assert.Equal(2UL, round.TermNumber);
+                Assert.Equal(4L, round.RoundNumber);
+                Assert.Equal(2L, round.TermNumber);
             }
         }
 

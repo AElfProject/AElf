@@ -15,7 +15,7 @@ namespace AElf.Contracts.Dividends
         /// <param name="termNumber"></param>
         /// <returns></returns>
         [View]
-        public ulong GetTermDividends(ulong termNumber)
+        public long GetTermDividends(long termNumber)
         {
             return State.DividendsMap[termNumber];
         }
@@ -26,13 +26,13 @@ namespace AElf.Contracts.Dividends
         /// <param name="termNumber"></param>
         /// <returns></returns>
         [View]
-        public ulong GetTermTotalWeights(ulong termNumber)
+        public long GetTermTotalWeights(long termNumber)
         {
             return State.TotalWeightsMap[termNumber];
         }
 
         [View]
-        public ulong GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
+        public long GetLatestRequestDividendsTermNumber(VotingRecord votingRecord)
         {
             var termNumber = State.LastRequestedDividendsMap[votingRecord.TransactionId];
             return termNumber != 0
@@ -41,9 +41,9 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        public ulong GetAvailableDividends(VotingRecord votingRecord)
+        public long GetAvailableDividends(VotingRecord votingRecord)
         {
-            ulong dividends = 0;
+            long dividends = 0;
 
             var start = votingRecord.TermNumber + 1;
             var lastRequestTermNumber = State.LastRequestedDividendsMap[votingRecord.TransactionId];
@@ -76,35 +76,35 @@ namespace AElf.Contracts.Dividends
             return dividends;
         }
         
-        public ulong GetExpireTermNumber(VotingRecord votingRecord, ulong currentAge)
+        public long GetExpireTermNumber(VotingRecord votingRecord, long currentAge)
         {
             return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / 7;
         }
         
-        public ulong GetDurationDays(VotingRecord votingRecord, ulong currentAge)
+        public long GetDurationDays(VotingRecord votingRecord, long currentAge)
         {
             var days = currentAge - votingRecord.VoteAge + 1;
-            ulong totalLockDays = 0;
+            var totalLockDays = 0L;
             foreach (var d in votingRecord.LockDaysList)
             {
-                totalLockDays += (ulong) d;
+                totalLockDays += (long) d;
             }
 
             return Math.Min(days, totalLockDays);
         }
 
         [View]
-        public ulong GetAllAvailableDividends(string publicKey)
+        public long GetAllAvailableDividends(string publicKey)
         {
             return State.ConsensusContract.GetTicketsInfo(publicKey).VotingRecords
                 .Where(vr => vr.From == publicKey)
-                .Aggregate<VotingRecord, ulong>(0,
+                .Aggregate<VotingRecord, long>(0,
                     (current, votingRecord) => current + GetAvailableDividends(votingRecord));
         }
 
         [View]
         // TODO: Views cannot throw exceptions？
-        public ulong CheckDividends(ulong ticketsAmount, int lockTime, ulong termNumber)
+        public long CheckDividends(long ticketsAmount, int lockTime, long termNumber)
         {
             var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber();
             Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
@@ -123,17 +123,17 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        public ULongList CheckDividendsOfPreviousTerm()
+        public LongList CheckDividendsOfPreviousTerm()
         {
             var termNumber = State.ConsensusContract.GetCurrentTermNumber() - 1;
-            var result = new ULongList();
+            var result = new LongList();
 
             if (termNumber < 1)
             {
-                return new ULongList {Values = {0}, Remark = "Not found."};
+                return new LongList {Values = {0}, Remark = "Not found."};
             }
 
-            const ulong ticketsAmount = 10_000;
+            const long ticketsAmount = 10_000;
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};
             foreach (var lockTime in lockTimes)
             {

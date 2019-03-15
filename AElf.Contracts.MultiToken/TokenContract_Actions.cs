@@ -42,6 +42,7 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
+            State.Balances[input.To][input.Symbol] = input.Amount;
             return Nothing.Instance;
         }
 
@@ -56,13 +57,16 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            Assert(allowance >= input.Amount, $"Insufficient allowance.");
+            Assert(allowance >= input.Amount ||
+                   // If the sender and `to` value are consensus contract address, no need to check the allowance.
+                   (Context.Sender == State.ConsensusContractAddress.Value &&
+                    input.To == State.ConsensusContractAddress.Value && input.Symbol == "ELF"),
+                $"Insufficient allowance.");
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return Nothing.Instance;
         }
-
         public Nothing Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
@@ -139,6 +143,12 @@ namespace AElf.Contracts.MultiToken
             }
 
             return Nothing.Instance;
+        }
+        
+        public void SetConsensusContractAddress(Address consensusContractAddress)
+        {
+            Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
+            State.ConsensusContractAddress.Value = consensusContractAddress;
         }
     }
 }

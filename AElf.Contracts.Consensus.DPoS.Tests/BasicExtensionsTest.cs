@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var result = roundAfter.GenerateNextRoundInformation(terminateTime, startTimestamp, out var secondRound);
 
             Assert.True(result);
-            Assert.Equal(2UL, secondRound.RoundNumber);
+            Assert.Equal(2L, secondRound.RoundNumber);
             Assert.Equal(minersCount, secondRound.RealTimeMinersInformation.Count);
             Assert.Equal(1, secondRound.RealTimeMinersInformation.Values.Count(m => m.IsExtraBlockProducer));
         }

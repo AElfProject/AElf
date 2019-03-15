@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.CrossChain;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
@@ -249,11 +251,11 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task GetParentChainHeight_WithoutIndexing()
         {
             int parentChainId = 123;
-            ulong parentChainHeight = 0;
+            long parentChainHeight = 0;
             await InitAndCreateSideChain(parentChainId);
             
             var bytes = await CallContractMethodAsync(CrossChainContractAddress, CrossChainConsts.GetParentChainHeightMethodName);
-            Assert.True(parentChainHeight == bytes.DeserializeToUInt64());
+            Assert.True(parentChainHeight == bytes.DeserializeToInt64());
         }
         
         #endregion
@@ -263,8 +265,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task RecordSideChainData()
         {
-            int parentChainId = 123;
-            ulong lockedToken = 10;
+            var parentChainId = 123;
+            var lockedToken = 10L;
             var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
@@ -285,8 +287,8 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
-                CrossChainConsts.GetLockedBalanceMethodName, sideChainId);
-            Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
+                nameof(CrossChainContract.LockedBalance), sideChainId);
+            Assert.Equal(lockedToken - 1, balance.DeserializeToInt64());
 
             var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
                 CrossChainConsts.GetIndexedCrossChainBlockDataByHeight, block.Height);
@@ -299,11 +301,11 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task RecordSideChainData_WithChainNotExist()
         {
             int parentChainId = 123;
-            ulong lockedToken = 10;
+            long lockedToken = 10;
             var sideChainId1 = await InitAndCreateSideChain(parentChainId, lockedToken);
             
             // create second side chain
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -359,7 +361,7 @@ namespace AElf.Contract.CrossChain.Tests
             
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
                 CrossChainConsts.GetLockedBalanceMethodName, sideChainId1);
-            Assert.True(balance.DeserializeToUInt64() == lockedToken - 1);
+            Assert.Equal(lockedToken - 1, balance.DeserializeToInt64());
 
             var indexedCrossChainBlockData = await CallContractMethodAsync(CrossChainContractAddress,
                 CrossChainConsts.GetIndexedCrossChainBlockDataByHeight, block.Height);
@@ -378,7 +380,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task CrossChain_MerklePath()
         {
             int parentChainId = 123;
-            ulong lockedToken = 10;
+            long lockedToken = 10;
             var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
             var txHash = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();
@@ -419,7 +421,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task CrossChain_Verification()
         {
             int parentChainId = 123;
-            ulong lockedToken = 10;
+            long lockedToken = 10;
             var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
             var txHash = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();

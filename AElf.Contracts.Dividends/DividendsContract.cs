@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -20,11 +21,22 @@ namespace AElf.Contracts.Dividends
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
 
-        public void SendDividends(Address targetAddress, ulong amount)
+        public void SendDividends(Address targetAddress, long amount)
         {
+            if (amount <= 0)
+            {
+                return;
+            }
+            
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
-            State.TokenContract.Transfer(targetAddress, amount);
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = targetAddress,
+                Amount = amount,
+                Symbol = "ELF",
+                Memo = "Send dividends."
+            });
         }
         
         /// <summary>
@@ -33,7 +45,7 @@ namespace AElf.Contracts.Dividends
         /// <param name="votingRecord"></param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
-        public ulong TransferDividends(VotingRecord votingRecord)
+        public long TransferDividends(VotingRecord votingRecord)
         {
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
@@ -52,7 +64,7 @@ namespace AElf.Contracts.Dividends
 
             // Record last requested dividends term number.
             var actualTermNumber = startTermNumber;
-            ulong totalDividendsAmount = 0;
+            long totalDividendsAmount = 0;
             for (var i = startTermNumber; i <= endTermNumber; i++)
             {
                 var totalWeights = State.TotalWeightsMap[i];
@@ -63,7 +75,13 @@ namespace AElf.Contracts.Dividends
                 actualTermNumber = i;
             }
 
-            State.TokenContract.Transfer(dividendsOwnerAddress, totalDividendsAmount);
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = dividendsOwnerAddress,
+                Amount = totalDividendsAmount,
+                Symbol = "ELF",
+                Memo = "Transfer dividends."
+            });
 
             Context.LogDebug(()=>$"Gonna transfer {totalDividendsAmount} dividends to {dividendsOwnerAddress}");
 
@@ -72,7 +90,7 @@ namespace AElf.Contracts.Dividends
             return totalDividendsAmount;
         }
 
-        public ulong AddDividends(ulong termNumber, ulong dividendsAmount)
+        public long AddDividends(long termNumber, long dividendsAmount)
         {
             var currentDividends = State.DividendsMap[termNumber];
             var finalDividends = currentDividends + dividendsAmount;
@@ -82,7 +100,7 @@ namespace AElf.Contracts.Dividends
             return finalDividends;
         }
 
-        public ulong AddWeights(ulong weights, ulong termNumber)
+        public long AddWeights(long weights, long termNumber)
         {
             var currentWeights = State.TotalWeightsMap[termNumber];
             var finalWeights = currentWeights + weights;
@@ -92,7 +110,7 @@ namespace AElf.Contracts.Dividends
             return finalWeights;
         }
 
-        public ActionResult KeepWeights(ulong oldTermNumber)
+        public ActionResult KeepWeights(long oldTermNumber)
         {
             var totalWeights = State.TotalWeightsMap[oldTermNumber];
             if (totalWeights > 0)
@@ -104,7 +122,7 @@ namespace AElf.Contracts.Dividends
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SubWeights(ulong weights, ulong termNumber)
+        public ActionResult SubWeights(long weights, long termNumber)
         {
             var totalWeights = State.TotalWeightsMap[termNumber];
             Assert(totalWeights > 0, $"Invalid weights of term {termNumber}");

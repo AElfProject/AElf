@@ -13,10 +13,10 @@ enum ResourceType {
 }
 
 message Converter {
-    uint64 ResBalance = 1;
-    uint64 ElfBalance = 2;
-    uint64 ResWeight = 3; // Weight based on MAX of 1,000,000
-    uint64 ElfWeight = 4; // Weight based on MAX of 1,000,000
+    int64 ResBalance = 1;
+    int64 ElfBalance = 2;
+    int64 ResWeight = 3; // Weight based on MAX of 1,000,000
+    int64 ElfWeight = 4; // Weight based on MAX of 1,000,000
     ResourceType ResourceType = 5;
 }
 

@@ -11,7 +11,7 @@ message Term {
     Round FirstRound = 2;
     Round SecondRound = 3;
     int32 MiningInterval = 4;
-    uint64 TermNumber = 5;
+    int64 TermNumber = 5;
     google.protobuf.Timestamp Timestamp = 6;
 }
 
@@ -26,14 +26,14 @@ message ToUpdate {
 
 // The miners public key list for each term.
 message Miners {
-    uint64 TermNumber = 1;
+    int64 TermNumber = 1;
     repeated string PublicKeys = 2;
     repeated Address Addresses = 3;
 }
 
 // To query to first round number of each term.
 message TermNumberLookUp {
-    map<uint64, uint64> Map = 1;// Term number -> Round number.
+    map<int64, int64> Map = 1;// Term number -> Round number.
 }
 
 // All the candidates.
@@ -46,11 +46,11 @@ message Candidates {
 // The ticket / voting information for one user.
 message Tickets {
     repeated VotingRecord VotingRecords = 1;
-    uint64 VotingRecordsCount = 2;
-    uint64 ObtainedTickets = 3;
-    uint64 VotedTickets = 4;
-    uint64 HistoryObtainedTickets = 5;
-    uint64 HistoryVotedTickets = 6;
+    int64 VotingRecordsCount = 2;
+    int64 ObtainedTickets = 3;
+    int64 VotedTickets = 4;
+    int64 HistoryObtainedTickets = 5;
+    int64 HistoryVotedTickets = 6;
     string Remark = 7;
     repeated Hash VoteToTransactions = 8;
     repeated Hash VoteFromTransactions = 9;
@@ -61,13 +61,13 @@ message Tickets {
 message VotingRecord {
     string From = 1;
     string To = 2;
-    uint64 Count = 3;
-    uint64 RoundNumber = 4;
+    int64 Count = 3;
+    int64 RoundNumber = 4;
     Hash TransactionId = 5;
-    uint64 VoteAge = 6;
+    int64 VoteAge = 6;
     repeated int32 LockDaysList = 7;// Can be renewed by adding items.
-    uint64 UnlockAge = 8;
-    uint64 TermNumber = 9;
+    int64 UnlockAge = 8;
+    int64 TermNumber = 9;
     google.protobuf.Timestamp UnlockTimestamp = 10;
     google.protobuf.Timestamp WithdrawTimestamp = 11;
     google.protobuf.Timestamp VoteTimestamp = 12;
@@ -76,10 +76,10 @@ message VotingRecord {
 
 // The snap shot of one term.
 message TermSnapshot {
-    uint64 EndRoundNumber = 1;
-    uint64 TotalBlocks = 2;
+    int64 EndRoundNumber = 1;
+    int64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
-    uint64 TermNumber = 4;
+    int64 TermNumber = 4;
     string Remark = 5;
 }
 
@@ -87,16 +87,16 @@ message TermSnapshot {
 message CandidateInTerm {
     string PublicKey = 1;
     Address Address = 2;
-    uint64 Votes = 3;
+    int64 Votes = 3;
 }
 
 // The information of a round.
 message Round {
-    uint64 RoundNumber = 1;
+    int64 RoundNumber = 1;
     map<string, MinerInRound> RealTimeMinersInformation = 2;
-    uint64 BlockchainAge = 4;
+    int64 BlockchainAge = 4;
     string ExtraBlockProducerOfPreviousRound = 7;
-    uint64 TermNumber = 8;
+    int64 TermNumber = 8;
 }
 
 // The information of a miner in a specific round.
@@ -107,13 +107,13 @@ message MinerInRound {
     Hash OutValue = 4;
     Hash Signature = 5;
     google.protobuf.Timestamp ExpectedMiningTime = 6;
-    uint64 ProducedBlocks = 7;
+    int64 ProducedBlocks = 7;
     bool IsForked = 8;
-    uint64 MissedTimeSlots = 9;
-    uint64 RoundNumber = 10;
+    int64 MissedTimeSlots = 9;
+    int64 RoundNumber = 10;
     string PublicKey = 11;
-    uint64 PackagedTxsCount = 12;
-    uint64 LatestMissedTimeSlots = 13;
+    int64 PackagedTxsCount = 12;
+    int64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
     int32 PromisedTinyBlocks = 16;
     string Alias = 17;
@@ -125,14 +125,14 @@ message MinerInRound {
 // The information of a candidate.
 message CandidateInHistory {
     string PublicKey = 1;
-    repeated uint64 Terms = 2;
-    uint64 ProducedBlocks = 3;
-    uint64 MissedTimeSlots = 4;
-    uint64 ContinualAppointmentCount = 5;
-    uint64 ReappointmentCount = 6;
+    repeated int64 Terms = 2;
+    int64 ProducedBlocks = 3;
+    int64 MissedTimeSlots = 4;
+    int64 ContinualAppointmentCount = 5;
+    int64 ReappointmentCount = 6;
     repeated string Aliases = 7;
     string CurrentAlias = 8;
-    uint64 CurrentVotesNumber = 9;
+    int64 CurrentVotesNumber = 9;
     string Remark = 10;
     Address Address = 11;
 }
@@ -150,13 +150,13 @@ message CandidateInHistoryDictionary {
 
 message TicketsHistories {
     repeated TicketsHistory Values = 1;
-    uint64 HistoriesNumber = 2;
+    int64 HistoriesNumber = 2;
     string Remark = 3;
 }
 
 message TicketsHistory {
     string CandidateAlias = 1;
-    uint64 VotesNumber = 2;
+    int64 VotesNumber = 2;
     google.protobuf.Timestamp Timestamp = 3;
     bool State = 4;
     TicketsHistoryType Type = 5;
