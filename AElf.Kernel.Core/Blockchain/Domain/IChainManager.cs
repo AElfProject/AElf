@@ -197,7 +197,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
-            Logger.LogTrace($"Attached {chainBlockLink.BlockHash}, height: {chainBlockLink.Height}, status: {status}, longestChainHash: {chain.LongestChainHash}, notLinkedBlocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
+            Logger.LogTrace($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, height: {chainBlockLink.Height}, " +
+                            $"longest chain hash: {chain.LongestChainHash}, not linked blocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
 
             return status;
         }
