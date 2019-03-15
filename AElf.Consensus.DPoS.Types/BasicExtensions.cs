@@ -562,9 +562,14 @@ namespace AElf.Consensus.DPoS
                    ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
 
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, long termNumber = 0)
+        public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
         {
-            return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
+            return new Miners
+            {
+                PublicKeys = {minerPublicKeys},
+                Addresses = {minerPublicKeys.Select(p => Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)))},
+                TermNumber = termNumber
+            };
         }
 
         private static int GetModulus(long longValue, int intValue)

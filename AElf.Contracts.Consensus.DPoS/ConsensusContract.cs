@@ -55,7 +55,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 case DPoSBehaviour.InitialConsensus:
                     var miningInterval = payload.MiningInterval;
                     var initialMiners = payload.Miners;
-                    var firstRound = initialMiners.ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
+                    var firstRound = initialMiners.ToList().ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
@@ -161,7 +161,8 @@ namespace AElf.Contracts.Consensus.DPoS
                                         Signature = minerInRound.Signature,
                                         PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                                         RoundId = round.RoundId,
-                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
+                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                                        ActualMiningTime = minerInRound.ActualMiningTime
                                     }
                                 }),
                         }

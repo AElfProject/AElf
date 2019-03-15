@@ -74,6 +74,8 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
+            
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = toUpdate.ActualMiningTime;
 
             // One cannot publish his in value sometime, like in his first round.
             if (toUpdate.PreviousInValue != Hash.Empty)

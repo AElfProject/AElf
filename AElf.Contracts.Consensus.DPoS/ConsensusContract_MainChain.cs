@@ -167,7 +167,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Update miners list.
-            SetMiners(round.RealTimeMinersInformation.Keys.ToMiners(round.TermNumber));
+            SetMiners(round.RealTimeMinersInformation.Keys.ToList().ToMiners(round.TermNumber));
 
             // Update term number lookup. (Using term number to get first round number of related term.)
             AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);

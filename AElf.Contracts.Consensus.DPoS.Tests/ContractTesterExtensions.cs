@@ -188,7 +188,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 // Initial consensus information.
                 await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.InitialConsensus),
-                    minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToMiners()
+                    minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
                         .GenerateFirstRoundOfNewTerm(miningInterval));
             }
 
@@ -202,10 +202,11 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         /// <param name="miners"></param>
         /// <param name="blocksCount"></param>
+        /// <param name="fakeTimestamp"></param>
         /// <returns></returns>
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ProduceNormalBlocks(
             this List<ContractTester<DPoSContractTestAElfModule>> miners,
-            int blocksCount)
+            int blocksCount, Timestamp fakeTimestamp = null)
         {
             var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
             var startMiner = round.RealTimeMinersInformation.Values.OrderBy(v => v.Order)
@@ -223,6 +224,11 @@ namespace AElf.Contracts.Consensus.DPoS
             var finalMinerPublicKey = "";
             for (var i = startOrder; i < endOrder + 1; i++)
             {
+                var timestamp = DateTime.UtcNow.ToTimestamp();
+                if (fakeTimestamp != null)
+                {
+                    timestamp = fakeTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+                }
                 var currentMinerPublicKey = round.RealTimeMinersInformation.Values.First(v => v.Order == i).PublicKey;
                 var currentMiner = miners.First(m => m.PublicKey == currentMinerPublicKey);
                 var (block, tx) = await currentMiner.ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
@@ -232,7 +238,8 @@ namespace AElf.Contracts.Consensus.DPoS
                         PreviousInValue = Hash.Generate(),
                         RoundId = round.RoundId,
                         Signature = Hash.Generate(),
-                        PromiseTinyBlocks = 1
+                        PromiseTinyBlocks = 1,
+                        ActualMiningTime = timestamp
                     });
                 finalMinerPublicKey = currentMinerPublicKey;
                 foreach (var otherMiner in miners.Where(m => m.PublicKey != currentMinerPublicKey))
@@ -319,7 +326,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentTermNumber = await miners.AnyOne().GetCurrentTermNumber();
 
             var extraBlockProducer = round.GetExtraBlockProducerInformation();
-            var nextRound = miners.Select(m => m.PublicKey).ToMiners()
+            var nextRound = miners.Select(m => m.PublicKey).ToList().ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, round.RoundNumber, currentTermNumber);
 
             var termNumber = (await miners.AnyOne().CallContractMethodAsync(

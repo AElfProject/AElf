@@ -125,14 +125,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
                 if (historyInformation == null)
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
+                    result.Maps.Add(candidate,
+                        new CandidateInHistory {Remark = $"Not found history information of {candidate}"});
                     return result;
                 }
 
                 var tickets = State.TicketsMap[candidate.ToStringValue()] ?? new Tickets
                 {
                     PublicKey = candidate,
-                    ObtainedTicket = 0
+                    ObtainedTickets = 0
                 };
 
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;

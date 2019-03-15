@@ -22,6 +22,7 @@ message ToUpdate {
     int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
     int32 PromiseTinyBlocks = 4;// By default, this value is 1, except this miner wanna produce tiny blocks in one time slot.
     Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
+    google.protobuf.Timestamp ActualMiningTime = 6;
 }
 
 // The miners public key list for each term.

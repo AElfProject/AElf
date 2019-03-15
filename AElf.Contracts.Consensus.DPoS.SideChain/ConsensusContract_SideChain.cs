@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -14,13 +15,13 @@ namespace AElf.Contracts.Consensus.DPoS
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
-            State.CurrentMiners.Value = minersKeys.ToMiners(1);
+            State.CurrentMiners.Value = minersKeys.ToList().ToMiners();
         }
         
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            if (currentRound.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() == State.CurrentMiners.Value.GetMinersHash())
+            if (currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() == State.CurrentMiners.Value.GetMinersHash())
             {
                 return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
             }
