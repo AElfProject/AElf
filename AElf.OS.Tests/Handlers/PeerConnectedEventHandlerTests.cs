@@ -28,12 +28,7 @@ namespace AElf.OS.Handlers
 
         public PeerConnectedEventHandlerTests()
         {
-            // todo find out why property injection doesn't work here
             _handler = GetRequiredService<PeerConnectedEventHandler>();
-            _handler.BlockchainService = GetRequiredService<IBlockchainService>();
-            _handler.NetworkService = GetRequiredService<INetworkService>();
-            _handler.BlockchainExecutingService = GetRequiredService<IBlockchainExecutingService>();
-            _handler.PeerPool = GetRequiredService<IPeerPool>();
             
             var jobManagerMock = new Mock<IBackgroundJobManager>();
             jobManagerMock
