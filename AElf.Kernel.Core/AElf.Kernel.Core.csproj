@@ -23,6 +23,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Domain" />
     <Folder Include="Miner\Domain" />
     <Folder Include="Node\Application" />
     <Folder Include="Node\Domain" />
