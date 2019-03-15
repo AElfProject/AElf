@@ -113,11 +113,14 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
+            var miners = State.ConsensusContract.GetCurrentMiners();
+            Console.WriteLine(miners.PublicKeys.ToString());
             // fire event
             Context.FireEvent(new SideChainCreationRequested
             {
                 ChainId = chainId,
-                Creator = Context.Sender
+                Creator = Context.Sender,
+                Miners = miners
             });
             return chainId;
         }
@@ -461,6 +464,8 @@ namespace AElf.Contracts.CrossChain
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
+            var balance = State.TokenContract.BalanceOf(Context.Sender);
+            Context.LogDebug(() => $"{balance} Balance.");
             // update locked token balance
             State.TokenContract.TransferFrom(Context.Sender, Context.Self, sideChainInfo.LockedTokenAmount);
             var chainId = sideChainInfo.SideChainId;

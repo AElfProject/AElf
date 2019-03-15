@@ -17,6 +17,8 @@ namespace AElf.Contracts.CrossChain
     {
         public Action<Address, ulong> Transfer { get; set; }
         public Action<Address, Address, ulong> TransferFrom { get; set; }
+        
+        public Func<Address, ulong> BalanceOf { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState
@@ -25,6 +27,8 @@ namespace AElf.Contracts.CrossChain
         public Func<ulong, Round> GetRoundInfo { get; set; }
         
         public Action<byte[]> UpdateMainChainConsensus { get; set; }
+        
+        public Func<Miners> GetCurrentMiners { get; set; }
     }
 
     public class CrossChainContractState : ContractState
