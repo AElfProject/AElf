@@ -224,13 +224,15 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
 
             var blockList = new List<Block>();
+            var previousBlockHash = firstHash;
             for (var i = 1; i <= count; i++)
             {
                 var block = await GetBlockByHeightAsync(first.Height + i);
-                if (block == null)
+                if (block == null || block.Header.PreviousBlockHash != previousBlockHash)
                     break;
 
                 blockList.Add(block);
+                previousBlockHash = block.GetHash();
             }
 
             return blockList;

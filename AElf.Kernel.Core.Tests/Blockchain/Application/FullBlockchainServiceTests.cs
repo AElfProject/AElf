@@ -108,7 +108,8 @@ namespace AElf.Kernel.Blockchain.Application
                     Header = new BlockHeader
                     {
                         Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash
+                        PreviousBlockHash = chain.BestChainHash,
+                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
                     },
                     Body = new BlockBody()
                 };
@@ -134,7 +135,8 @@ namespace AElf.Kernel.Blockchain.Application
                     Header = new BlockHeader
                     {
                         Height = i * 6 + 3,
-                        PreviousBlockHash = Hash.FromString(Guid.NewGuid().ToString())
+                        PreviousBlockHash = Hash.FromString(Guid.NewGuid().ToString()),
+                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
                     },
                     Body = new BlockBody()
                 };
@@ -159,7 +161,8 @@ namespace AElf.Kernel.Blockchain.Application
                     Header = new BlockHeader
                     {
                         Height = startHeight,
-                        PreviousBlockHash = startPreviousHash
+                        PreviousBlockHash = startPreviousHash,
+                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
                     },
                     Body = new BlockBody()
                 };
@@ -307,7 +310,7 @@ namespace AElf.Kernel.Blockchain.Application
             result.ShouldBe(mockChain.LongestBranchBlocks[3].GetHash());
 
             result = await _fullBlockchainService.GetBlockHashByHeightAsync(mockChain.Chain, mockChain
-                .ForkBranchBlocks[3].Height, mockChain.Chain.LongestChainHash);
+                .ForkBranchBlocks[3].Height, mockChain.ForkBranchBlocks.Last().GetHash());
             result.ShouldBe(mockChain.ForkBranchBlocks[3].GetHash());
 
             // search irreversible section of the chain
@@ -397,6 +400,9 @@ namespace AElf.Kernel.Blockchain.Application
             result.Count.ShouldBe(2);
             result[0].GetHash().ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
             result[1].GetHash().ShouldBe(mockChain.BestBranchBlocks[9].GetHash());
+            
+            result = await _fullBlockchainService.GetBlocksAsync(mockChain.LongestBranchBlocks[0].GetHash(), 3);
+            result.Count.ShouldBe(0);
         }
 
         [Fact]
