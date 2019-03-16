@@ -53,7 +53,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                //TODO: BeshChain hash not equal situation not covered [Case]
                 Logger.LogWarning(
                     $"Attempting to retrieve executable transactions while best chain records don't macth.");
                 return new ExecutableTransactionSet()

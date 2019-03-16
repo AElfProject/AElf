@@ -26,6 +26,253 @@ namespace AElf.Kernel.TransactionPool.Tests.Infrastructure
             AsyncHelper.RunSync(CreateNewChain);
         }
         
+        [Fact]
+        public async Task Get_ExecutableTransactionSet_ReturnEmpty()
+        {
+            {
+                // Empty transaction pool
+                // Chain:
+                //         BestChainHeight: 1
+                // TxHub:
+                //         BestChainHeight: 0
+                //          AllTransaction: 0
+                //   ExecutableTransaction: 0
+                ExecutableTransactionShouldBe(Hash.Empty, 0);
+
+                TransactionPoolSizeShouldBe(0);
+            }
+
+            var transaction100 = GenerateTransaction(100);
+            {
+                // Receive a feature transaction twice
+                // Chain:
+                //         BestChainHeight: 1
+                // TxHub:
+                //         BestChainHeight: 0
+                //          AllTransaction: 1
+                //   ExecutableTransaction: 0
+                
+                // Receive the transaction first time
+                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction> {transaction100}
+                });
+
+                ExecutableTransactionShouldBe(Hash.Empty, 0);
+                
+                TransactionPoolSizeShouldBe(1);
+                TransactionShouldInPool(transaction100);
+                
+                // Receive the same transaction again
+                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction> {transaction100}
+                });
+
+                ExecutableTransactionShouldBe(Hash.Empty, 0);
+
+                TransactionPoolSizeShouldBe(1);
+                TransactionShouldInPool(transaction100);
+            }
+
+            {
+                // Receive a valid transaction 
+                // Chain:
+                //         BestChainHeight: 1
+                // TxHub:
+                //         BestChainHeight: 0
+                //          AllTransaction: 2
+                //   ExecutableTransaction: 0
+                var chain = await _blockchainService.GetChainAsync();
+                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+
+                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction> {transactionValid}
+                });
+
+                TransactionPoolSizeShouldBe(2);
+                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionValid);
+
+                // Receive a block
+                // Chain:
+                //         BestChainHeight: 2
+                // TxHub:
+                //         BestChainHeight: 0
+                //          AllTransaction: 1
+                //   ExecutableTransaction: 0
+                var transactionNotInPool = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+
+                var newBlock = await AddBlock(new List<Transaction>
+                {
+                    transactionValid,
+                    transactionNotInPool
+                });
+
+                await _blockchainService.AddBlockAsync(newBlock);
+                await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
+
+                await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
+                {
+                    BlockHeader = newBlock.Header
+                });
+
+                TransactionPoolSizeShouldBe(1);
+                TransactionShouldInPool(transaction100);
+            }
+
+            {
+                // Receive best chain found event
+                // Chain:
+                //         BestChainHeight: 2
+                // TxHub:
+                //         BestChainHeight: 2
+                //          AllTransaction: 1
+                //   ExecutableTransaction: 0
+                var chain = await _blockchainService.GetChainAsync();
+
+                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                });
+                
+                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                
+                TransactionPoolSizeShouldBe(1);
+                TransactionShouldInPool(transaction100);
+            }
+            
+            {
+                // Receive a valid transaction and a invalid transaction
+                // Chain:
+                //         BestChainHeight: 2
+                // TxHub:
+                //         BestChainHeight: 2
+                //          AllTransaction: 3
+                //   ExecutableTransaction: 1
+                var chain = await _blockchainService.GetChainAsync();
+                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionInvalid = GenerateTransaction(chain.BestChainHeight - 1);
+
+                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction>
+                    {
+                        transactionValid, 
+                        transactionInvalid
+                    }
+                });
+                
+                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight, new List<Transaction>
+                {
+                    transactionValid
+                });
+                
+                TransactionPoolSizeShouldBe(3);
+                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionValid);
+                TransactionShouldInPool(transactionInvalid);
+
+                // Receive lib found event
+                // Chain:
+                //         BestChainHeight: 2
+                // TxHub:
+                //         BestChainHeight: 2
+                //          AllTransaction: 3
+                //   ExecutableTransaction: 1
+                await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                });
+
+                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight, new List<Transaction>
+                {
+                    transactionValid
+                });
+                
+                TransactionPoolSizeShouldBe(3);
+                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionValid);
+                TransactionShouldInPool(transactionInvalid);
+            }
+
+            {
+                // After 65 blocks
+                // Chain:
+                //         BestChainHeight: 67
+                // TxHub:
+                //         BestChainHeight: 67
+                //          AllTransaction: 1
+                //   ExecutableTransaction: 0
+                var chain = await _blockchainService.GetChainAsync();
+                var bestChainHeight = chain.BestChainHeight;
+                for (var i = 0; i < ChainConsts.ReferenceBlockValidPeriod + 1; i++)
+                {
+                    var transaction = GenerateTransaction(bestChainHeight + i);
+                    await AddBlock(new List<Transaction> {transaction});
+                    chain = await _blockchainService.GetChainAsync();
+                    await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                    {
+                        BlockHash = chain.BestChainHash,
+                        BlockHeight = chain.BestChainHeight
+                    });
+                    await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
+                    {
+                        BlockHash = chain.BestChainHash,
+                        BlockHeight = chain.BestChainHeight
+                    });
+                }
+
+                ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
+                
+                TransactionPoolSizeShouldBe(1);
+                TransactionShouldInPool(transaction100);
+            }
+        }
+
+        #region check methods
+
+        private void TransactionShouldInPool(Transaction transaction)
+        {
+            var existTransactionReceipt = _txHub.GetTransactionReceiptAsync(transaction.GetHash()).Result;
+            existTransactionReceipt.Transaction.ShouldBe(transaction);
+        }
+
+        private void TransactionPoolSizeShouldBe(int size)
+        {
+            var transactionPoolSize = _txHub.GetTransactionPoolSizeAsync().Result;
+            transactionPoolSize.ShouldBe(size);
+        }
+
+        private void ExecutableTransactionShouldBe(Hash previousBlockHash, long previousBlockHeight,
+            List<Transaction> transactions = null)
+        {
+            var executableTxSet = _txHub.GetExecutableTransactionSetAsync().Result;
+            executableTxSet.PreviousBlockHash.ShouldBe(previousBlockHash);
+            executableTxSet.PreviousBlockHeight.ShouldBe(previousBlockHeight);
+            if (transactions != null)
+            {
+                executableTxSet.Transactions.Count.ShouldBe(transactions.Count);
+
+                foreach (var tx in transactions)
+                {
+                    executableTxSet.Transactions.ShouldContain(tx);
+                }
+            }
+            else
+            {
+                executableTxSet.Transactions.Count.ShouldBe(0);
+            }
+        }
+
+        #endregion
+
+        #region private methods
+
         private async Task<Chain> CreateNewChain()
         {
             var genesisBlock = new Block
@@ -40,7 +287,32 @@ namespace AElf.Kernel.TransactionPool.Tests.Infrastructure
             var chain = await _blockchainService.CreateChainAsync(genesisBlock);
             return chain;
         }
-        
+
+        private async Task<Block> AddBlock(List<Transaction> transactions)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var newBlock = new Block
+            {
+                Header = new BlockHeader
+                {
+                    Height = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash,
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                },
+                Body = new BlockBody()
+            };
+            foreach (var tx in transactions)
+            {
+                newBlock.Body.AddTransaction(tx);
+            }
+
+            await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
+            await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
+
+            return newBlock;
+        }
+
         private Transaction GenerateTransaction(long refBlockNumber, Hash refBlockHash = null)
         {
             var transaction = new Transaction
@@ -50,179 +322,13 @@ namespace AElf.Kernel.TransactionPool.Tests.Infrastructure
                 MethodName = Guid.NewGuid().ToString(),
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = refBlockHash == null
-                    ? null
+                    ? ByteString.Empty
                     : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
             };
 
             return transaction;
         }
 
-        [Fact]
-        public async Task Get_ExecutableTransactionSet_ReturnEmpty()
-        {
-            // Empty transaction pool
-            {
-                // Executable transaction is empty 
-                var executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(Hash.Empty);
-                executableTxSet.PreviousBlockHeight.ShouldBe(0);
-                executableTxSet.Transactions.Count.ShouldBe(0);
-                
-                var transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(0);
-            }
-
-            // Receive a feature transaction
-            {
-                var newTransaction = GenerateTransaction(100);
-
-                // Receive the transaction first time
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {newTransaction}
-                });
-
-                var executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(Hash.Empty);
-                executableTxSet.PreviousBlockHeight.ShouldBe(0);
-                executableTxSet.Transactions.Count.ShouldBe(0);
-
-                var transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(1);
-                
-                // Receive the same transaction again
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {newTransaction}
-                });
-
-                executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(Hash.Empty);
-                executableTxSet.PreviousBlockHeight.ShouldBe(0);
-                executableTxSet.Transactions.Count.ShouldBe(0);
-
-                transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(1);
-
-                var existTransactionReceipt = await _txHub.GetTransactionReceiptAsync(newTransaction.GetHash());
-                existTransactionReceipt.Transaction.ShouldBe(newTransaction);
-            }
-            
-            // Receive a block
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                var transaction1 = GenerateTransaction(chain.BestChainHeight + 1);
-                var transaction2 = GenerateTransaction(chain.BestChainHeight + 1);
-                
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction> {transaction1}
-                });
-                
-                var transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(2);
-                
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                    },
-                    Body = new BlockBody()
-                };
-                newBlock.Body.AddTransaction(transaction1);
-                newBlock.Body.AddTransaction(transaction2);
-                
-                await _blockchainService.AddBlockAsync(newBlock);
-                await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-
-                await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
-                {
-                    BlockHeader = newBlock.Header
-                });
-                
-                transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(1);
-            }
-
-            // Receive best chain found event
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = chain.LongestChainHeight + 1,
-                        PreviousBlockHash = chain.LongestChainHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                    },
-                    Body = new BlockBody()
-                };
-                newBlock.Body.AddTransaction(GenerateTransaction(newBlock.Height));
-                newBlock.Body.AddTransaction(GenerateTransaction(newBlock.Height));
-                
-                await _blockchainService.AddBlockAsync(newBlock);
-                await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
-
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                {
-                    BlockHash = newBlock.GetHash(),
-                    BlockHeight = newBlock.Height
-                });
-                
-                var executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(newBlock.GetHash());
-                executableTxSet.PreviousBlockHeight.ShouldBe(newBlock.Height);
-                executableTxSet.Transactions.Count.ShouldBe(0);
-                
-                var transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(1);
-            }
-            
-            // Receive lib found event
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                var transaction1 = GenerateTransaction(chain.BestChainHeight);
-                var transaction2 = GenerateTransaction(chain.BestChainHeight - 1);
-
-                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-                {
-                    Transactions = new List<Transaction>
-                    {
-                        transaction1, 
-                        transaction2
-                    }
-                });
-                
-                var executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
-                executableTxSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
-                executableTxSet.Transactions.Count.ShouldBe(1);
-                
-                var transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(3);
-
-                await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                });
-                
-                executableTxSet = await _txHub.GetExecutableTransactionSetAsync();
-                executableTxSet.PreviousBlockHash.ShouldBe(chain.BestChainHash);
-                executableTxSet.PreviousBlockHeight.ShouldBe(chain.BestChainHeight);
-                executableTxSet.Transactions.Count.ShouldBe(1);
-                
-                transactionPoolSize = await _txHub.GetTransactionPoolSizeAsync();
-                transactionPoolSize.ShouldBe(2);
-            }
-
-        }
-
-
-
+        #endregion
     }
 }
