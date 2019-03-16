@@ -18,4 +18,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class AccountTestBase : AElfIntegratedTest<AccountTestAElfModule>
+    {
+        
+    }
 }
