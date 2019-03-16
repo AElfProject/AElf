@@ -25,7 +25,7 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public ulong CurrentSideChainSerialNumber()
+        public long CurrentSideChainSerialNumber()
         {
             return State.SideChainSerialNumber.Value;
         }
@@ -243,7 +243,7 @@ namespace AElf.Contracts.CrossChain
         {
             var dict = new SideChainIdAndHeightDict();
             var serialNumber = State.SideChainSerialNumber.Value;
-            for (var i = 1; i <= serialNumber; i++)
+            for (long i = 1; i <= serialNumber; i++)
             {
                 int chainId = ChainHelpers.GetChainId(i);
                 var sideChainInfo = State.SideChainInfos[chainId];
@@ -478,8 +478,12 @@ namespace AElf.Contracts.CrossChain
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
-            var balance = State.TokenContract.BalanceOf(Context.Sender);
-            Context.LogDebug(() => $"{balance} Balance.");
+            var balance = State.TokenContract.GetBalance(new GetBalanceInput
+            {
+                Owner = Context.Sender,
+                Symbol = "ELF"
+            });
+            Console.WriteLine($"{balance.Balance} Balance.");
             // update locked token balance
             State.TokenContract.TransferFrom(new TransferFromInput
             {

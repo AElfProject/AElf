@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
             if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
                 return;
-            Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToUInt64Value()}");
+            Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.TermNumberFromMainChainField.Value = consensusInformation.Round.TermNumber;
             State.CurrentMiners.Value = minersKeys.ToMiners(1);

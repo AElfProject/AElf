@@ -10,6 +10,6 @@ namespace AElf.Kernel.Consensus.DPoS
         public int MiningInterval { get; set; }
         public bool IsBootMiner { get; set; }
         
-        public ulong InitialTermNumber { get; set; }
+        public long InitialTermNumber { get; set; }
     }
 }

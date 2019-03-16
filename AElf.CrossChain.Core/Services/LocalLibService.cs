@@ -19,7 +19,7 @@ namespace AElf.CrossChain
             var chain = await _blockchainService.GetChainAsync();
             if (chain.LastIrreversibleBlockHeight < height)
                 return null;
-            var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height);
+            var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
 

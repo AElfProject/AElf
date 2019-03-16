@@ -18,6 +18,8 @@ namespace AElf.Contracts.CrossChain
     {
         public Action<TransferInput> Transfer { get; set; }
         public Action<TransferFromInput> TransferFrom { get; set; }
+        
+        public Func<GetBalanceInput, GetBalanceOutput> GetBalance { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState
@@ -35,7 +37,7 @@ namespace AElf.Contracts.CrossChain
         //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
         public ConsensusContractReferenceState ConsensusContract { get; set; }
-        public UInt64State SideChainSerialNumber { get; set; }
+        public Int64State SideChainSerialNumber { get; set; }
         
         public MappedState<long, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }
 

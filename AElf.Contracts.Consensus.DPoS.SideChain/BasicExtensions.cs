@@ -206,7 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
                 var minersCount = round.RealTimeMinersInformation.Count;
                 var sigNum =
-                    BitConverter.ToUInt64(
+                    BitConverter.ToInt64(
                         BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
                         0);
                 var orderOfNextRound = Math.Abs(GetModulus(sigNum, minersCount));
@@ -251,7 +251,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var miningInterval = round.GetMiningInterval();
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.BlockchainAge =
-                (ulong) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalDays;
+                (long) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalDays;
             
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
@@ -306,7 +306,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return 1;
             }
             var signature = firstPlaceInfo.Signature;
-            var sigNum = BitConverter.ToUInt64(
+            var sigNum = BitConverter.ToInt64(
                 BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
             var blockProducerCount = round.RealTimeMinersInformation.Count;
             var order = GetModulus(sigNum, blockProducerCount);
@@ -344,11 +344,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
         
-        public static UInt64Value ToUInt64Value(this ulong value)
-        {
-            return new UInt64Value {Value = value};
-        }
-
         public static StringValue ToStringValue(this string value)
         {
             return new StringValue {Value = value};
@@ -366,7 +361,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return value >= min && value <= max;
         }
         
-        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval, ulong currentRoundNumber = 0, ulong currentTermNumber = 0)
+        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
@@ -417,7 +412,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 .Aggregate("", (current, publicKey) => current + publicKey));
         }
 
-        public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, ulong termNumber)
+        public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp, long termNumber)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
             var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
@@ -426,9 +421,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return approvalsCount >= minimumCount;
         }
 
-        public static ulong GetMinedBlocks(this Round round)
+        public static long GetMinedBlocks(this Round round)
         {
-            var minedBlocks = 0UL;
+            var minedBlocks = 0L;
             foreach (var minerInRound in round.RealTimeMinersInformation)
             {
                 minedBlocks += minerInRound.Value.ProducedBlocks;
@@ -449,20 +444,20 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
         /// <returns></returns>
-        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, ulong termNumber)
+        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp, long termNumber)
         {
-            return (ulong) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
+            return (long) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalDays /
                    ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
         }
         
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, ulong termNumber = 0)
+        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, long termNumber = 0)
         {
             return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
         }
 
-        private static int GetModulus(ulong uLongVal, int intVal)
+        private static int GetModulus(long LongVal, int intVal)
         {
-            return Math.Abs((int) (uLongVal % (ulong) intVal));
+            return Math.Abs((int) (LongVal % intVal));
         }
         
         /// <summary>

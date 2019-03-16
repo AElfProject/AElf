@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             TryToFindLIB();
         }
         
-        private bool TryToUpdateRoundNumber(ulong roundNumber)
+        private bool TryToUpdateRoundNumber(long roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumberField.Value;
             if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
@@ -209,29 +209,29 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
          private bool TryToAddRoundInformation(Round round)
         {
-            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
+            var ri = State.RoundsMap[round.RoundNumber.ToInt64Value()];
             if (ri != null)
             {
                 return false;
             }
 
-            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
+            State.RoundsMap[round.RoundNumber.ToInt64Value()] = round;
             return true;
         }
 
         private bool TryToUpdateRoundInformation(Round round)
         {
-            var ri = State.RoundsMap[round.RoundNumber.ToUInt64Value()];
+            var ri = State.RoundsMap[round.RoundNumber.ToInt64Value()];
             if (ri == null)
             {
                 return false;
             }
 
-            State.RoundsMap[round.RoundNumber.ToUInt64Value()] = round;
+            State.RoundsMap[round.RoundNumber.ToInt64Value()] = round;
             return true;
         }
         
-        public bool TryToGetRoundNumber(out ulong roundNumber)
+        public bool TryToGetRoundNumber(out long roundNumber)
         {
             roundNumber = State.CurrentRoundNumberField.Value;
             return roundNumber != 0;
@@ -242,7 +242,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             roundInformation = null;
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
+                roundInformation = State.RoundsMap[roundNumber.ToInt64Value()];
                 if (roundInformation != null)
                 {
                     return true;
@@ -256,7 +256,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         {
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                roundInformation = State.RoundsMap[(roundNumber - 1).ToUInt64Value()];
+                roundInformation = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
                 if (roundInformation != null)
                 {
                     return true;
@@ -267,9 +267,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-        public bool TryToGetRoundInformation(ulong roundNumber, out Round roundInformation)
+        public bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
         {
-            roundInformation = State.RoundsMap[roundNumber.ToUInt64Value()];
+            roundInformation = State.RoundsMap[roundNumber.ToInt64Value()];
             return roundInformation != null;
         }
 
