@@ -128,7 +128,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-
         #endregion
 
         public void TryToFindLIB()

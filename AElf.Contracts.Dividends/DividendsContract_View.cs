@@ -73,7 +73,7 @@ namespace AElf.Contracts.Dividends
 
         public long GetExpireTermNumber(VotingRecord votingRecord, long currentAge)
         {
-            return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / 7;
+            return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / ConsensusDPoSConsts.DaysEachTerm;
         }
 
         public long GetDurationDays(VotingRecord votingRecord, long currentAge)
