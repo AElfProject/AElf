@@ -104,11 +104,14 @@ namespace AElf.Contracts.Dividends
         }
 
         [View]
-        // TODO: Views cannot throw exceptions？
         public long CheckDividends(long ticketsAmount, int lockTime, long termNumber)
         {
             var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber();
-            Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
+            if (termNumber >= currentTermNumber)
+            {
+                return 0;
+            }
+            
             var totalWeights = State.TotalWeightsMap[termNumber];
             if (totalWeights > 0)
             {
@@ -131,7 +134,7 @@ namespace AElf.Contracts.Dividends
 
             if (termNumber < 1)
             {
-                return new LongList {Values = {0}, Remark = "Not found."};
+                return new LongList {Values = {0}};
             }
 
             const long ticketsAmount = 10_000;

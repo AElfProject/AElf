@@ -52,7 +52,6 @@ message Tickets {
     int64 VotedTickets = 4;
     int64 HistoryObtainedTickets = 5;
     int64 HistoryVotedTickets = 6;
-    string Remark = 7;
     repeated Hash VoteToTransactions = 8;
     repeated Hash VoteFromTransactions = 9;
     string PublicKey = 10;
@@ -81,7 +80,6 @@ message TermSnapshot {
     int64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
     int64 TermNumber = 4;
-    string Remark = 5;
 }
 
 // The information of a candidate of a specific term.
@@ -134,25 +132,21 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     int64 CurrentVotesNumber = 9;
-    string Remark = 10;
     Address Address = 11;
 }
 
 message TicketsDictionary {
     map<string, Tickets> Maps = 1;
-    string Remark = 2;
 }
 
 message CandidateInHistoryDictionary {
     map<string, CandidateInHistory> Maps = 1;
-    string Remark = 2;
     int32 CandidatesNumber = 3;
 }
 
 message TicketsHistories {
     repeated TicketsHistory Values = 1;
     int64 HistoriesNumber = 2;
-    string Remark = 3;
 }
 
 message TicketsHistory {

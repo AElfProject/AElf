@@ -125,8 +125,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
                 if (historyInformation == null)
                 {
-                    result.Maps.Add(candidate,
-                        new CandidateInHistory {Remark = $"Not found history information of {candidate}"});
+                    result.Maps.Add(candidate, new CandidateInHistory());
                     return result;
                 }
 
@@ -256,7 +255,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -287,7 +285,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -436,10 +433,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            return new TicketsDictionary
-            {
-                Remark = "Failed to get election information."
-            };
+            return new TicketsDictionary();
         }
 
         [View]
