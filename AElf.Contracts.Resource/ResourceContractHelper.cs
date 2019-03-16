@@ -37,7 +37,7 @@ namespace AElf.Contracts.Resource
             return new StringValue() {Value = resourceType.ToUpper()};
         }
 
-        private void Transfer(Address from, Address to, ulong amount, ResourceType rt)
+        private void Transfer(Address from, Address to, long amount, ResourceType rt)
         {
             var fromKey = new UserResourceKey(from, rt);
             var toKey = new UserResourceKey(to, rt);
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Resource
         
         private static readonly decimal MaxWeight = 1000000m;
 
-        public ulong BuyResourceFromExchange(string resourceType, ulong paidElf)
+        public long BuyResourceFromExchange(string resourceType, long paidElf)
         {
             checked
             {
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Resource
             }
         }
 
-        public ulong SellResourceToExchange(string resourceType, ulong paidRes)
+        public long SellResourceToExchange(string resourceType, long paidRes)
         {
             checked
             {

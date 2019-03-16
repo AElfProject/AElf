@@ -5,6 +5,7 @@ using Grpc.Core.Interceptors;
 
 namespace AElf.OS.Network.Grpc
 {
+    //TODO: AuthInterceptor class no case cover [Case]
     public class AuthInterceptor : Interceptor
     {
         private readonly IPeerPool _peerPool;

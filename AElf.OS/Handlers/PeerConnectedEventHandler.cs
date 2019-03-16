@@ -10,22 +10,22 @@ using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundJobs;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
+    //TODO: PeerConnectedEventHandler all methods have no cases cover [Case]
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
         ILocalEventHandler<AnnouncementReceivedEventData>
     {
         public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
-
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
-
+        public IPeerPool PeerPool { get; set; }
+        
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
-
-        public IAElfNetworkServer NetworkServer { get; set; }
 
         public PeerConnectedEventHandler()
         {
@@ -47,7 +47,7 @@ namespace AElf.OS.Handlers
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
 
-            var peerInPool = NetworkServer.PeerPool.FindPeerByPublicKey(senderPubKey);
+            var peerInPool = PeerPool.FindPeerByPublicKey(senderPubKey);
             if (peerInPool != null)
             {
                 peerInPool.CurrentBlockHash = blockHash;

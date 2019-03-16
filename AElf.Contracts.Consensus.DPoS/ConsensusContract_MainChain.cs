@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
 
-        public void SetBlockchainAge(ulong age)
+        public void SetBlockchainAge(long age)
         {
             Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// <param name="snapshotTermNumber"></param>
         /// <param name="lastRoundNumber"></param>
         /// <returns></returns>
-        public ActionResult SnapshotForTerm(ulong snapshotTermNumber, ulong lastRoundNumber)
+        public ActionResult SnapshotForTerm(long snapshotTermNumber, long lastRoundNumber)
         {
             if (TryToGetSnapshot(snapshotTermNumber, out _))
             {
@@ -210,7 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // To calculate the number of mined blocks.
-            var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, ulong>(0,
+            var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
 
             // Snapshot for the number of votes of new victories.
@@ -254,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SnapshotForMiners(ulong previousTermNumber, ulong lastRoundNumber)
+        public ActionResult SnapshotForMiners(long previousTermNumber, long lastRoundNumber)
         {
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
@@ -264,7 +264,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 CandidateInHistory candidateInHistory;
                 if (TryToGetMinerHistoryInformation(candidate.Key, out var historyInformation))
                 {
-                    var terms = new List<ulong>(historyInformation.Terms.ToList());
+                    var terms = new List<long>(historyInformation.Terms.ToList());
 
                     if (terms.Contains(previousTermNumber))
                     {
@@ -315,19 +315,19 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SendDividends(ulong dividendsTermNumber, ulong lastRoundNumber)
+        public ActionResult SendDividends(long dividendsTermNumber, long lastRoundNumber)
         {
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
 
             // Set dividends of related term to Dividends Contract.
-            var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, ulong>(0,
+            var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
             State.DividendContract.AddDividends(dividendsTermNumber, GetDividendsForVoters(minedBlocks));
 
-            ulong totalVotes = 0;
-            ulong totalReappointment = 0;
-            var continualAppointmentDict = new Dictionary<string, ulong>();
+            long totalVotes = 0;
+            long totalReappointment = 0;
+            var continualAppointmentDict = new Dictionary<string, long>();
             foreach (var minerInRound in roundInformation.RealTimeMinersInformation)
             {
                 if (TryToGetTicketsInformation(minerInRound.Key, out var candidateTickets))
@@ -362,7 +362,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 foreach (var backup in backups)
                 {
-                    var backupCount = (ulong) backups.Count;
+                    var backupCount = (long) backups.Count;
                     var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
                     State.DividendContract.SendDividends(Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                         amount);
