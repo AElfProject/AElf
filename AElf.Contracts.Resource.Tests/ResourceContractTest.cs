@@ -159,13 +159,44 @@ namespace AElf.Contracts.Resource.Tests
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1227")]
         public async Task FeeReceiver_Burn()
         {
             await Initialize_Resource();
+            
+            //Give FeeReceiver address some token for burn operation
+            var balance = 5;
+            var transferResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Transfer),
+                new TransferInput()
+                {
+                    Symbol = "ELF",
+                    To = FeeReceiverContractAddress,
+                    Amount = balance,
+                    Memo = "Just for burn test"
+                });
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //Check balance before burn
+            var feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
+            {
+                Owner = FeeReceiverContractAddress,
+                Symbol = "ELF"
+            });
+            var balance1 = feeReceiverBalance.DeserializeToPbMessage<GetBalanceOutput>().Balance;
+            balance1.ShouldBe(balance);
 
+            //Action burn
             var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Burn));
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //Check burned balance.
+            feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
+            {
+                Owner = FeeReceiverContractAddress,
+                Symbol = "ELF"
+            });
+            var balance2 = feeReceiverBalance.DeserializeToPbMessage<GetBalanceOutput>().Balance;
+            balance2.ShouldBeLessThan(balance1);
         }
 
         #endregion
