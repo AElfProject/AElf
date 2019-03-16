@@ -9,6 +9,7 @@ namespace AElf.Types.CSharp
 {
     public class ParamsPacker
     {
+        //TODO:  Add Pack to array type data case [Case]
         public static byte[] Pack(params object[] objs)
         {
             if (objs.Length == 0)

@@ -22,8 +22,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation()
         {
-            await Initialize(1000_000UL);
-            ulong lockedTokenAmount = 10;
+            await Initialize(1000_000L);
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -44,8 +44,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation_WithoutApprove()
         {
-            await Initialize(1000_000UL);
-            ulong lockedTokenAmount = 10;
+            await Initialize(1000_000L);
+            long lockedTokenAmount = 10;
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -70,7 +70,7 @@ namespace AElf.Contract.CrossChain.Tests
                 ContractCode = ByteString.Empty,
                 IndexingPrice = 1,
                 Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = 1000_000UL
+                LockedTokenAmount = 1000_000L
             };
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
                 sideChainInfo);
@@ -81,8 +81,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation_WrongProposer()
         {
-            await Initialize(1000_000UL);
-            ulong lockedTokenAmount = 10;
+            await Initialize(1000_000L);
+            long lockedTokenAmount = 10;
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -100,8 +100,8 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Creation_WrongStatus()
         {
-            await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            await Initialize(1000L);
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -120,7 +120,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Request_SideChain_Creation_Twice()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 20;
+            long lockedTokenAmount = 20;
             await ApproveBalance(lockedTokenAmount * 2);
 
             var sideChainInfo = new SideChainInfo
@@ -145,7 +145,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Withdraw_ChainCreation()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -170,7 +170,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Withdraw_ChainCreation_WithWrongSender()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -197,7 +197,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Withdraw_ChainCreation_ChainNotExist()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -222,7 +222,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Withdraw_ChainCreation_WrongStatus()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -248,7 +248,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Create_SideChain()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -273,7 +273,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task CheckLockedBalance()
         {
             await Initialize(1000);
-            ulong lockedTokenAmount = 10;
+            long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -291,14 +291,14 @@ namespace AElf.Contract.CrossChain.Tests
             var creationTransaction = await GenerateTransactionAsync(CrossChainContractAddress, "CreateSideChain", null, chainId);
             await MineAsync(new List<Transaction> {creationTransaction});
             var balance = await CallContractMethodAsync(CrossChainContractAddress, CrossChainConsts.GetLockedBalanceMethodName, chainId);
-            Assert.True(balance.DeserializeToUInt64() == 10);
+            Assert.Equal(10, balance.DeserializeToInt64());
             
         }
         
         [Fact]
         public async Task Create_SideChain_FireEvent()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -330,7 +330,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Create_SideChain_ChainNotExist()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -355,7 +355,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Request_SideChain_Disposal()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -383,7 +383,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Dispose_SideChain()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -414,7 +414,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task GetChainStatus_Review()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -439,7 +439,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task GetChainStatus_Active()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -464,7 +464,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task GetChainStatus_ChainNotExist()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -476,7 +476,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Get_SideChain_Height()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             
@@ -501,7 +501,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task Get_SideChain_Height_ChainNotExist()
         {
-            ulong lockedTokenAmount = 10;           
+            long lockedTokenAmount = 10;           
             await Initialize(1000);
             await ApproveBalance(lockedTokenAmount);
             var chainId = ChainHelpers.GetChainId(1);

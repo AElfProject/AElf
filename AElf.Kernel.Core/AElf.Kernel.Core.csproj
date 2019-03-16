@@ -23,10 +23,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Domain" />
     <Folder Include="Miner\Domain" />
-    <Folder Include="Node\Application" />
-    <Folder Include="Node\Domain" />
-    <Folder Include="Node\Infrastructure" />
     <Folder Include="SmartContractExecution\Application" />
     <Folder Include="SmartContract\Application" />
     <Folder Include="TransactionPool\Application" />

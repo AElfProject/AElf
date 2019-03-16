@@ -71,7 +71,7 @@ namespace AElf.Sdk.CSharp.State
         {
             var bytes = Provider.GetAsync(Path).Result;
             _originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
-            _value = _originalValue;
+            _value = SerializationHelper.Deserialize<TEntity>(bytes);
             Loaded = true;
         }
 

@@ -40,6 +40,7 @@ namespace AElf.RuntimeSetup
                 {
                     ConfigFile = log4NetConfigFile
                 });
+                
                 builder.SetMinimumLevel(LogLevel.Debug);
             });
         }

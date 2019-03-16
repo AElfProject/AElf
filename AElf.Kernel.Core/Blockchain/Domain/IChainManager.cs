@@ -27,19 +27,11 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<Chain> GetAsync();
         Task<ChainBlockLink> GetChainBlockLinkAsync(Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
-
-        Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
-            ChainBlockLink chainBlockLink);
-
+        Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
-
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
-
-        Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink,
-            ChainBlockLinkExecutionStatus status);
-
+        Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
-
         int GetChainId();
     }
 
@@ -93,7 +85,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 BlockHash = genesisBlock,
                 Height = ChainConsts.GenesisBlockHeight,
                 PreviousBlockHash = Hash.Empty,
-                IsLinked = true
+                IsLinked = true,
+                IsIrreversibleBlock = true
             });
 
             await SetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight, genesisBlock);
@@ -136,8 +129,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey());
         }
 
-        public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain,
-            ChainBlockLink chainBlockLink)
+        public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)
         {
             BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
 
@@ -204,7 +196,9 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
-            Logger.LogDebug($"Attached {chainBlockLink.BlockHash}, status: {status}, new longest: {chain.LongestChainHash}");
+
+            Logger.LogTrace($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, height: {chainBlockLink.Height}, " +
+                            $"longest chain hash: {chain.LongestChainHash}, not linked blocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
 
             return status;
         }

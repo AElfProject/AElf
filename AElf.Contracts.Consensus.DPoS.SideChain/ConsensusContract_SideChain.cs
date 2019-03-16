@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
         }
 
-        private bool TryToGetTermNumber(out ulong termNumber)
+        private bool TryToGetTermNumber(out long termNumber)
         {
             termNumber = 0;
             return true;

@@ -7,6 +7,7 @@ using AElf.Common;
 
 namespace AElf.Kernel.SmartContractExecution
 {
+    //TODO: MockResourceUsageDetectionService no cases covered. [Case]
     public class MockResourceUsageDetectionService : IResourceUsageDetectionService
     {
         public async Task<IEnumerable<string>> GetResources(Transaction transaction)

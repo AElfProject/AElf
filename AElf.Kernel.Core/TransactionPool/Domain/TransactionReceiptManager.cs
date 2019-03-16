@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.TransactionPool.Infrastructure;
 
 namespace AElf.Kernel.TransactionPool.Domain
 {

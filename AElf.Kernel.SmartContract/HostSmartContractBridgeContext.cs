@@ -126,6 +126,7 @@ namespace AElf.Kernel.SmartContract
             return decoder(transactionContext.Trace.ReturnValue.ToByteArray());
         }
 
+        //TODO: SendVirtualInline no case cover [Case]
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
             params object[] args)
         {

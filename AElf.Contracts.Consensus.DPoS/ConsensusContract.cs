@@ -27,97 +27,13 @@ namespace AElf.Contracts.Consensus.DPoS
             var publicKey = payload.PublicKey;
             var timestamp = payload.Timestamp;
 
-            if (timestamp == null)
-            {
-                return null;
-            }
-
             Context.LogDebug(() => GetLogStringForOneRound(publicKey));
 
             var behaviour = GetBehaviour(publicKey, timestamp, out var round, out var minerInRound);
 
             TryToGetMiningInterval(out var miningInterval);
-
-            switch (behaviour)
-            {
-                case DPoSBehaviour.InitialConsensus:
-                    Context.LogDebug(() => "About to initial DPoS information.");
-                    return new ConsensusCommand
-                    {
-                        // For now, only if one node configured himself as a boot miner can he actually create the first block,
-                        // which block height is 2.
-                        CountingMilliseconds = payload.IsBootMiner
-                            ? DPoSContractConsts.BootMinerWaitingMilliseconds
-                            : int.MaxValue,
-                        // No need to limit the mining time for the first block a chain.
-                        TimeoutMilliseconds = int.MaxValue,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.UpdateValue:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to produce a normal block.");
-
-                    var expectedMiningTime = round.GetExpectedMiningTime(publicKey);
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime())
-                            .TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.NextRound:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to terminate current round.");
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(publicKey, timestamp).ToDateTime() -
-                                   timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.NextTerm:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to terminate current term.");
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(publicKey, timestamp).ToDateTime() -
-                                   timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.Invalid:
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = int.MaxValue,
-                        TimeoutMilliseconds = 0,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, timestamp, payload.IsBootMiner)
+                .ToByteArray();
         }
 
         [View]
