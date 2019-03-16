@@ -14,6 +14,10 @@ namespace AElf.CrossChain
      {
          public override void ConfigureServices(ServiceConfigurationContext context)
          {
+             context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
+             context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
+             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
              var services = context.Services;
              var configuration = services.GetConfiguration();
              var crossChainConfiguration =
@@ -21,10 +25,6 @@ namespace AElf.CrossChain
              if (crossChainConfiguration == null)
                  return;
              Configure<CrossChainConfigOption>(crossChainConfiguration);
-             context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-             context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
-             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
-             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
          }
      }
  }

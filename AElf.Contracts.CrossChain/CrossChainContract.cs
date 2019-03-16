@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
@@ -114,14 +115,14 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
-            var miners = State.ConsensusContract.GetCurrentMiners();
-            Console.WriteLine(miners.PublicKeys.ToString());
+//            var miners = State.ConsensusContract.GetCurrentMiners();
+//            Console.WriteLine(miners.PublicKeys.ToString());
             // fire event
             Context.FireEvent(new SideChainCreationRequested
             {
                 ChainId = chainId,
                 Creator = Context.Sender,
-                Miners = miners
+                Miners = new Miners()
             });
             return chainId;
         }
@@ -478,12 +479,12 @@ namespace AElf.Contracts.CrossChain
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
-            var balance = State.TokenContract.GetBalance(new GetBalanceInput
-            {
-                Owner = Context.Sender,
-                Symbol = "ELF"
-            });
-            Console.WriteLine($"{balance.Balance} Balance.");
+//            var balance = State.TokenContract.GetBalance(new GetBalanceInput
+//            {
+//                Owner = Context.Sender,
+//                Symbol = "ELF"
+//            });
+//            Console.WriteLine($"{balance.Balance} Balance.");
             // update locked token balance
             State.TokenContract.TransferFrom(new TransferFromInput
             {

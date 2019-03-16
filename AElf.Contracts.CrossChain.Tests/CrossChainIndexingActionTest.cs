@@ -289,6 +289,8 @@ namespace AElf.Contract.CrossChain.Tests
             var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
+            var indexingRes = await Tester.GetTransactionResultAsync(indexingTx.GetHash());
+            Assert.True(indexingRes.Status == TransactionResultStatus.Mined);
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.LockedBalance), sideChainId);
             Assert.Equal(lockedToken - 1, balance.DeserializeToInt64());

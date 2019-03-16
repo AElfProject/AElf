@@ -78,7 +78,7 @@ namespace AElf.Contract.CrossChain.Tests
                     To = Tester.GetCallOwnerAddress(),
                     Memo = "Initial tokens for testing cross chain contract."
                 });
-            await Tester.MineAsync(new List<Transaction> {tx1, tx2, tx3});
+            await Tester.MineAsync(new List<Transaction> {tx1, tx2,tx3});
         }
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)

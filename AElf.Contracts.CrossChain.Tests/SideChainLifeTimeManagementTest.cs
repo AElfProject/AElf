@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -25,6 +27,13 @@ namespace AElf.Contract.CrossChain.Tests
             await Initialize(1000_000L);
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
+            var balanceResult = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
+                new GetBalanceInput
+                {
+                    Owner = Address.FromPublicKey(Tester.KeyPair.PublicKey),
+                    Symbol = "ELF"
+                });
+            Assert.True(balanceResult.DeserializeToPbMessage<GetBalanceOutput>().Balance == 1000_000L);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
