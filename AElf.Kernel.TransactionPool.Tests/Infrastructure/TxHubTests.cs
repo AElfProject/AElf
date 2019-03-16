@@ -42,7 +42,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 TransactionPoolSizeShouldBe(0);
             }
 
-            var transaction100 = GenerateTransaction(100);
+            var transactionHeight100 = GenerateTransaction(100);
             {
                 // Receive a feature transaction twice
                 // Chain:
@@ -55,24 +55,24 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 // Receive the transaction first time
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
-                    Transactions = new List<Transaction> {transaction100}
+                    Transactions = new List<Transaction> {transactionHeight100}
                 });
 
                 ExecutableTransactionShouldBe(Hash.Empty, 0);
                 
                 TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
                 
                 // Receive the same transaction again
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
-                    Transactions = new List<Transaction> {transaction100}
+                    Transactions = new List<Transaction> {transactionHeight100}
                 });
 
                 ExecutableTransactionShouldBe(Hash.Empty, 0);
 
                 TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
             }
 
             {
@@ -92,7 +92,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 });
 
                 TransactionPoolSizeShouldBe(2);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
 
                 // Receive a block
@@ -120,7 +120,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 });
 
                 TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
             }
 
             {
@@ -142,7 +142,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
                 
                 TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
             }
             
             {
@@ -172,7 +172,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 });
                 
                 TransactionPoolSizeShouldBe(3);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
                 TransactionShouldInPool(transactionInvalid);
 
@@ -195,7 +195,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 });
                 
                 TransactionPoolSizeShouldBe(3);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
                 TransactionShouldInPool(transactionInvalid);
             }
@@ -230,7 +230,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
                 
                 TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transaction100);
+                TransactionShouldInPool(transactionHeight100);
             }
         }
 
