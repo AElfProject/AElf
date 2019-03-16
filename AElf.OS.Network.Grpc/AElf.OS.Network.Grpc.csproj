@@ -26,7 +26,7 @@
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="sh grpc.sh" LogStandardErrorAsError="true" />
-        <Exec Condition=" '$(OS)' == 'Windows_NT' " Command="protoc --proto_path=../protobuf --csharp_out=./Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Generated peer_service.proto --plugin=protoc-gen-grpc=%userprofile%/.nuget/packages/grpc.tools/1.18.0/tools/windows_x86/grpc_csharp_plugin.exe" />
+        <Exec Condition=" '$(OS)' == 'Windows_NT' " Command="protoc --proto_path=../protobuf --csharp_out=./Generated --csharp_opt=file_extension=.g.cs --grpc_out=./Generated peer_service.proto --plugin=protoc-gen-grpc=%userprofile%/.nuget/packages/grpc.tools/1.19.0/tools/windows_x86/grpc_csharp_plugin.exe" />
     </Target>
     
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
