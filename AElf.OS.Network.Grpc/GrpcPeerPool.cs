@@ -187,7 +187,11 @@ namespace AElf.OS.Network.Grpc
 
         public IPeer FindPeerByPublicKey(string publicKey)
         {
+            if (string.IsNullOrEmpty(publicKey))
+                return null;
+            
             _authenticatedPeers.TryGetValue(publicKey, out GrpcPeer p);
+            
             return p;
         }
 
