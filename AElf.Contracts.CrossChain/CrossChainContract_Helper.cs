@@ -44,7 +44,7 @@ namespace AElf.Contracts.CrossChain
         private bool IsMiner()
         {
             var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
-            var round = State.ConsensusContract.GetRoundInfo(roundNumber);
+            var round = State.ConsensusContract.GetRoundInformation(roundNumber);
             var miners = new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
             return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
         }

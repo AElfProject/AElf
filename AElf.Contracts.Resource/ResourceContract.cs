@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Resource
@@ -47,7 +48,7 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the resource to query for.</param>
         /// <returns></returns>
         [View]
-        public ulong GetUserBalance(Address address, string resourceType)
+        public long GetUserBalance(Address address, string resourceType)
         {
             var urk = new UserResourceKey(address, ParseResourceType(resourceType));
             return State.UserBalances[urk];
@@ -60,7 +61,7 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the locked resource to query for.</param>
         /// <returns></returns>
         [View]
-        public ulong GetUserLockedBalance(Address address, string resourceType)
+        public long GetUserLockedBalance(Address address, string resourceType)
         {
             var urk = new UserResourceKey(address, ParseResourceType(resourceType));
             return State.LockedUserResources[urk];
@@ -72,7 +73,7 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the resource.</param>
         /// <returns>The balance held by the exchange.</returns>
         [View]
-        public ulong GetExchangeBalance(string resourceType)
+        public long GetExchangeBalance(string resourceType)
         {
             return State.Converters[GetConverterKey(resourceType)].ResBalance;
         }
@@ -83,7 +84,7 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the resource</param>
         /// <returns>The balance of ELF held in the converter.</returns>
         [View]
-        public ulong GetElfBalance(string resourceType)
+        public long GetElfBalance(string resourceType)
         {
             return State.Converters[GetConverterKey(resourceType)].ElfBalance;
         }
@@ -127,7 +128,7 @@ namespace AElf.Contracts.Resource
         /// </summary>
         /// <param name="resourceType">The type of resource to issue.</param>
         /// <param name="delta">The new amount to issue.</param>
-        public void IssueResource(string resourceType, ulong delta)
+        public void IssueResource(string resourceType, long delta)
         {
             Assert(State.ResourceControllerAddress.Value == Context.Sender,
                 "Only resource controller is allowed to perform this action.");
@@ -149,16 +150,39 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the resource to buy.</param>
         /// <param name="paidElf">The amount of ELF token to pay for the resource. The returned resource amount
         /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
-        public void BuyResource(string resourceType, ulong paidElf)
+        public void BuyResource(string resourceType, long paidElf)
         {
             AssertCorrectResourceType(resourceType);
-            var fees = (ulong) (paidElf * FeeRate);
+            var fees = (long) (paidElf * FeeRate);
             var elfForRes = paidElf.Sub(fees);
             var payout = this.BuyResourceFromExchange(resourceType, elfForRes);
             var urk = new UserResourceKey(Context.Sender, ParseResourceType(resourceType));
             State.UserBalances[urk] = State.UserBalances[urk].Add(payout);
-            State.TokenContract.TransferFrom(Context.Sender, Context.Self, elfForRes);
-            State.TokenContract.TransferFrom(Context.Sender, State.FeeAddress.Value, fees);
+
+            if (elfForRes > 0)
+            {
+                State.TokenContract.TransferFrom(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Amount = elfForRes,
+                    Symbol = "ELF",
+                    Memo = $"Buying {resourceType.ToUpper()} with {paidElf} elf tokens."
+                });
+            }
+
+            if (fees > 0)
+            {
+                State.TokenContract.TransferFrom(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = State.FeeAddress.Value,
+                    Amount = fees,
+                    Symbol = "ELF",
+                    Memo = $"Charged {fees} fees for buying {resourceType.ToUpper()}"
+                });
+            }
+
             Context.FireEvent(new ResourceBought()
             {
                 ResourceType = Standardized(resourceType),
@@ -174,17 +198,39 @@ namespace AElf.Contracts.Resource
         /// <param name="resourceType">The type of the resource to sell.</param>
         /// <param name="resToSell">The amount of the resource to sell. The returned ELF token amount
         /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
-        public void SellResource(string resourceType, ulong resToSell)
+        public void SellResource(string resourceType, long resToSell)
         {
             var bal = GetUserBalance(Context.Sender, resourceType);
             Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
-            var fees = (ulong) (elfToReceive * FeeRate);
+            var fees = (long) (elfToReceive * FeeRate);
             var urk = new UserResourceKey(Context.Sender, ParseResourceType(resourceType));
             State.UserBalances[urk] = State.UserBalances[urk].Sub(resToSell);
-            State.TokenContract.Transfer(Context.Sender, elfToReceive.Sub(fees));
-            State.TokenContract.Transfer(State.FeeAddress.Value, fees);
+            
+            var amount = elfToReceive.Sub(fees);
+            if (amount > 0)
+            {
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = Context.Sender,
+                    Amount = amount,
+                    Symbol = "ELF",
+                    Memo = $"Selling {resToSell} {resourceType.ToUpper()}s"
+                });
+            }
+
+            if (fees > 0)
+            {
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = State.FeeAddress.Value,
+                    Symbol = "ELF",
+                    Amount = fees,
+                    Memo = $"Charged {fees} fees for selling {resourceType.ToUpper()}s"
+                });
+            }
+
             Context.FireEvent(new ResourceSold()
             {
                 ResourceType = Standardized(resourceType),
@@ -199,7 +245,7 @@ namespace AElf.Contracts.Resource
         /// </summary>
         /// <param name="amount">The amount of resource to lock.</param>
         /// <param name="resourceType">The type of the resource to lock.</param>
-        public void LockResource(ulong amount, string resourceType)
+        public void LockResource(long amount, string resourceType)
         {
             // Transfer from user to resource controller
             var rt = ParseResourceType(resourceType);
@@ -222,7 +268,7 @@ namespace AElf.Contracts.Resource
         /// <param name="userAddress">The address of the user to unlock the resource for.</param>
         /// <param name="amount">The amount of resource to unlock.</param>
         /// <param name="resourceType">The type of the resource to unlock.</param>
-        public void UnlockResource(Address userAddress, ulong amount, string resourceType)
+        public void UnlockResource(Address userAddress, long amount, string resourceType)
         {
             var rca = State.ResourceControllerAddress.Value;
             Assert(Context.Sender == rca, "Only the resource controller can perform this action.");

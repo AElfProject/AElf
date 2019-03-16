@@ -234,7 +234,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp3.Tests.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken", "AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj", "{0597D9D4-D2BB-434C-92C4-76266509D021}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Tester", "AElf.Tester\AElf.Tester.csproj", "{6B9DF43E-248A-45B2-945B-EA8217C7125B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.ExecutiveTokenPlugin", "AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj", "{E710F6D7-F087-4815-8906-AE3643E21BAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestLauncher", "AElf.TestLauncher\AElf.TestLauncher.csproj", "{05350E0A-D372-401F-B13C-894D1BB88397}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -586,10 +590,18 @@ Global
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B9DF43E-248A-45B2-945B-EA8217C7125B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B9DF43E-248A-45B2-945B-EA8217C7125B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B9DF43E-248A-45B2-945B-EA8217C7125B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B9DF43E-248A-45B2-945B-EA8217C7125B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05350E0A-D372-401F-B13C-894D1BB88397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05350E0A-D372-401F-B13C-894D1BB88397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05350E0A-D372-401F-B13C-894D1BB88397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05350E0A-D372-401F-B13C-894D1BB88397}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -672,5 +684,6 @@ Global
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{0597D9D4-D2BB-434C-92C4-76266509D021} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{6B9DF43E-248A-45B2-945B-EA8217C7125B} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

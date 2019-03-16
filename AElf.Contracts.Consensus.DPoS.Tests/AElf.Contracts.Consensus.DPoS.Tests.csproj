@@ -18,7 +18,9 @@
     <ItemGroup>
         <!--<ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />-->
         <!--<ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />-->
+        <ProjectReference Include="..\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />

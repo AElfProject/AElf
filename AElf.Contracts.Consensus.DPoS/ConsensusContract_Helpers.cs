@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public bool TryToUpdateTermNumber(ulong termNumber)
+        public bool TryToUpdateTermNumber(long termNumber)
         {
             var oldTermNumber = State.CurrentTermNumberField.Value;
             if (termNumber != 1 && oldTermNumber + 1 != termNumber)
@@ -21,22 +21,28 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetTermNumber(out ulong termNumber)
+        public bool TryToGetTermNumber(out long termNumber)
         {
             termNumber = State.CurrentTermNumberField.Value;
             return termNumber != 0;
         }
 
-        public bool TryToGetMiners(ulong termNumber, out Miners miners)
+        public bool TryToGetMiners(long termNumber, out Miners miners)
         {
-            miners = State.MinersMap[termNumber.ToUInt64Value()];
+            miners = State.MinersMap[termNumber.ToInt64Value()];
             return miners != null;
         }
 
         public bool TryToGetVictories(out Miners victories)
         {
             var candidates = State.CandidatesField.Value;
-            var ticketsMap = new Dictionary<string, ulong>();
+            if (candidates == null)
+            {
+                victories = null;
+                return false;
+            }
+            
+            var ticketsMap = new Dictionary<string, long>();
             foreach (var candidatePublicKey in candidates.PublicKeys)
             {
                 var tickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
@@ -58,7 +64,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetCurrentAge(out ulong blockAge)
+        public bool TryToGetCurrentAge(out long blockAge)
         {
             blockAge = State.AgeField.Value;
             return blockAge > 0;
@@ -70,9 +76,9 @@ namespace AElf.Contracts.Consensus.DPoS
             return historyInformation != null;
         }
 
-        public bool TryToGetSnapshot(ulong termNumber, out TermSnapshot snapshot)
+        public bool TryToGetSnapshot(long termNumber, out TermSnapshot snapshot)
         {
-            snapshot = State.SnapshotMap[termNumber.ToUInt64Value()];
+            snapshot = State.SnapshotMap[termNumber.ToInt64Value()];
             return snapshot != null;
         }
 
@@ -85,28 +91,28 @@ namespace AElf.Contracts.Consensus.DPoS
         public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
         {
             var candidates = State.CandidatesField.Value;
+            if (candidates == null)
+            {
+                backups = null;
+                return false;
+            }
             backups = candidates.PublicKeys.Except(currentMiners).ToList();
             return backups.Any();
         }
 
-        public void SetTermNumber(ulong termNumber)
+        public void SetTermNumber(long termNumber)
         {
             State.CurrentTermNumberField.Value = termNumber;
         }
 
-        public void SetRoundNumber(ulong roundNumber)
+        public void SetRoundNumber(long roundNumber)
         {
             State.CurrentRoundNumberField.Value = roundNumber;
         }
 
-        public void SetBlockAge(ulong blockAge)
+        private void SetBlockAge(long blockAge)
         {
             State.AgeField.Value = blockAge;
-        }
-
-        public void SetChainId(int chainId)
-        {
-            State.ChainIdField.Value = chainId;
         }
 
         public void SetBlockchainStartTimestamp(Timestamp timestamp)
@@ -126,7 +132,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void SetTermSnapshot(TermSnapshot snapshot)
         {
-            State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()] = snapshot;
+            State.SnapshotMap[snapshot.TermNumber.ToInt64Value()] = snapshot;
         }
 
         public void SetMiningInterval(int miningInterval)
@@ -134,25 +140,25 @@ namespace AElf.Contracts.Consensus.DPoS
             State.MiningIntervalField.Value = miningInterval;
         }
 
-        public bool AddTermNumberToFirstRoundNumber(ulong termNumber, ulong firstRoundNumber)
+        public bool AddTermNumberToFirstRoundNumber(long termNumber, long firstRoundNumber)
         {
-            var ri = State.TermToFirstRoundMap[termNumber.ToUInt64Value()];
+            var ri = State.TermToFirstRoundMap[termNumber.ToInt64Value()];
             if (ri != null)
             {
                 return false;
             }
 
-            State.TermToFirstRoundMap[termNumber.ToUInt64Value()] = firstRoundNumber.ToUInt64Value();
+            State.TermToFirstRoundMap[termNumber.ToInt64Value()] = firstRoundNumber.ToInt64Value();
             return true;
         }
 
         public bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)
         {
             // Miners for one specific term should only update once.
-            var m = State.MinersMap[miners.TermNumber.ToUInt64Value()];
+            var m = State.MinersMap[miners.TermNumber.ToInt64Value()];
             if (gonnaReplaceSomeone || m == null)
             {
-                State.MinersMap[miners.TermNumber.ToUInt64Value()] = miners;
+                State.MinersMap[miners.TermNumber.ToInt64Value()] = miners;
                 return true;
             }
 
@@ -161,13 +167,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public bool SetSnapshot(TermSnapshot snapshot)
         {
-            var s = State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()];
+            var s = State.SnapshotMap[snapshot.TermNumber.ToInt64Value()];
             if (s != null)
             {
                 return false;
             }
 
-            State.SnapshotMap[snapshot.TermNumber.ToUInt64Value()] = snapshot;
+            State.SnapshotMap[snapshot.TermNumber.ToInt64Value()] = snapshot;
             return true;
         }
 
@@ -188,11 +194,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private bool ValidateMinersList(Round round1, Round round2)
         {
-            return true;
-
-            // TODO:
-            // If the miners are different, we need a further validation
-            // to prove the missing (replaced) one should be kicked out.
+            return round1.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() ==
+                   round2.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash();
         }
 
         private bool OutInValueAreNull(Round round)
@@ -211,51 +214,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private bool AllOutValueFilled(string publicKey, out MinerInRound minerInformation)
-        {
-            minerInformation = null;
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
-                {
-                    minerInformation = currentRoundInStateDB.RealTimeMinersInformation[publicKey];
-                }
-
-                return currentRoundInStateDB.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) ==
-                       GetProducerNumber();
-            }
-
-            return false;
-        }
-
-        private bool OwnOutValueFilled(string publicKey, out MinerInRound minerInformation)
-        {
-            minerInformation = null;
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
-                {
-                    minerInformation = currentRoundInStateDB.RealTimeMinersInformation[publicKey];
-                }
-
-                return currentRoundInStateDB.RealTimeMinersInformation[publicKey].OutValue != null;
-            }
-
-            return false;
-        }
-
-        private bool TimeOverflow(Timestamp timestamp)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB) &&
-                TryToGetMiningInterval(out var miningInterval))
-            {
-                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval).AddMilliseconds(-4000) <
-                       timestamp.ToDateTime();
-            }
-
-            return false;
-        }
-
         private Round GenerateFirstRoundOfNextTerm()
         {
             if (TryToGetTermNumber(out var termNumber) &&
@@ -264,6 +222,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetMiningInterval(out var miningInterval))
             {
                 return victories.GenerateFirstRoundOfNewTerm(miningInterval, roundNumber, termNumber);
+            }
+
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                return round.RealTimeMinersInformation.Keys.ToMiners()
+                    .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), round.RoundNumber, termNumber);
             }
 
             return null;
@@ -297,36 +261,38 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #endregion
 
-        public ulong GetDividendsForEveryMiner(ulong minedBlocks)
+        public long GetDividendsForEveryMiner(long minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
+            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
                             GetProducerNumber());
         }
 
-        public ulong GetDividendsForTicketsCount(ulong minedBlocks)
+        public long GetDividendsForTicketsCount(long minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
+            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
         }
 
-        public ulong GetDividendsForReappointment(ulong minedBlocks)
+        public long GetDividendsForReappointment(long minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock *
+            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock *
                             DPoSContractConsts.MinersReappointmentRatio);
         }
 
-        public ulong GetDividendsForBackupNodes(ulong minedBlocks)
+        public long GetDividendsForBackupNodes(long minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
+            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
         }
 
-        public ulong GetDividendsForVoters(ulong minedBlocks)
+        public long GetDividendsForVoters(long minedBlocks)
         {
-            return (ulong) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
+            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
 
         public int GetProducerNumber()
         {
-            return 17 + (DateTime.UtcNow.Year - 2019) * 2;
+            var round = GetCurrentRoundInformation();
+            return round.RealTimeMinersInformation.Count;
+            //return 17 + (DateTime.UtcNow.Year - 2019) * 2;
         }
     }
 }

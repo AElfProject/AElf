@@ -14,7 +14,6 @@ namespace AElf.Cryptography
         // ReaderWriterLock for thread-safe with Secp256k1 APIs
         private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
 
-        // TODO: maybe need refactor, both Cryptography.EC* and Cryptography.CryptoHelpers expose public method.
         static CryptoHelpers()
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
@@ -40,10 +39,6 @@ namespace AElf.Cryptography
                 Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
                 return new ECKeyPair(privateKey, pubKey);
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while GenerateKeyPair", ex);
-            }
             finally
             {
                 Lock.ReleaseWriterLock();
@@ -61,10 +56,6 @@ namespace AElf.Cryptography
                 Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
                 compactSig[64] = (byte) recoverId; // put recover id at the last slot
                 return compactSig;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while SignWithPrivateKey", ex);
             }
             finally
             {
@@ -88,10 +79,6 @@ namespace AElf.Cryptography
                 Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey);
                 publicKey = pubKey;
                 return true;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Exception while RecoverPublicKey", ex);
             }
             finally
             {
