@@ -10,6 +10,7 @@ using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundJobs;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
@@ -20,12 +21,10 @@ namespace AElf.OS.Handlers
         public IBackgroundJobManager BackgroundJobManager { get; set; }
         public INetworkService NetworkService { get; set; }
         public IBlockchainService BlockchainService { get; set; }
-
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
-
+        public IPeerPool PeerPool { get; set; }
+        
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
-
-        public IAElfNetworkServer NetworkServer { get; set; }
 
         public PeerConnectedEventHandler()
         {
@@ -34,7 +33,7 @@ namespace AElf.OS.Handlers
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            await ProcessNewBlock(eventData, eventData.Peer);
+            await ProcessNewBlock(eventData, eventData.SenderPubKey);
         }
 
         public async Task HandleEventAsync(PeerConnectedEventData eventData)
@@ -42,52 +41,51 @@ namespace AElf.OS.Handlers
             //await ProcessNewBlock(eventData, eventData.Peer);
         }
 
-        private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string peerAddress)
+        private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)
         {
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
 
-            var peerInPool = NetworkServer.PeerPool.FindPeerByAddress(peerAddress);
+            var peerInPool = PeerPool.FindPeerByPublicKey(senderPubKey);
             if (peerInPool != null)
             {
                 peerInPool.CurrentBlockHash = blockHash;
                 peerInPool.CurrentBlockHeight = blockHeight;
             }
 
+            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
+
             var chain = await BlockchainService.GetChainAsync();
 
-            try
+            if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Processing header {{ hash: {blockHash}, height: {blockHeight} }} from {peerAddress}.");
-
-                var block = await BlockchainService.GetBlockByHashAsync(blockHash);
-                if (block != null)
-                {
-                    Logger.LogDebug($"Block {blockHash} already know.");
-                    return;
-                }
-
-                block = await NetworkService.GetBlockByHashAsync(blockHash);
-
-                await BlockchainService.AddBlockAsync(block);
-
-                var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
-
-                await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-
-                if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
-                {
-                    await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
-                    {
-                        SuggestedPeerAddress = peerAddress,
-                        BlockHash = header.Announce.BlockHash.ToHex(),
-                        BlockHeight = blockHeight
-                    });
-                }
+                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
+                return;
             }
-            catch (Exception e)
+
+            var block = await BlockchainService.GetBlockByHashAsync(blockHash);
+            if (block != null)
             {
-                Logger.LogError(e, $"Error during {nameof(ProcessNewBlock)}, peer: {peerAddress}.");
+                Logger.LogDebug($"Block {blockHash} already know.");
+                return;
+            }
+
+            block = await NetworkService.GetBlockByHashAsync(blockHash);
+
+            await BlockchainService.AddBlockAsync(block);
+
+            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
+
+            await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+
+            if (status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
+            {
+                await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+                {
+                    SuggestedPeerPubKey = senderPubKey,
+                    BlockHash = header.Announce.BlockHash.ToHex(),
+                    BlockHeight = blockHeight
+                });
             }
         }
     }

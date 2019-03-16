@@ -2,9 +2,9 @@
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
-using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
@@ -41,9 +41,10 @@ namespace AElf.Launcher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule3),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
-        
+
         //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
@@ -51,8 +52,6 @@ namespace AElf.Launcher
     )]
     public class LauncherAElfModule : AElfModule
     {
-        public static IConfigurationRoot Configuration;
-
         public ILogger<LauncherAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
@@ -64,18 +63,16 @@ namespace AElf.Launcher
 
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.SetConfiguration(Configuration);
-
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(Configuration["ChainId"]));
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var config = context.Services.GetConfiguration();
+            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -87,21 +84,22 @@ namespace AElf.Launcher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+                TokenSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
+                DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
+                ResourceSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
+                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
-
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
-
+        
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

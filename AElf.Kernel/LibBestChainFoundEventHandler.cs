@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
@@ -38,7 +37,6 @@ namespace AElf.Kernel
             Logger = NullLogger<LibBestChainFoundEventHandler>.Instance;
         }
 
-
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             if (eventData.ExecutedBlocks == null)
@@ -49,32 +47,39 @@ namespace AElf.Kernel
             foreach (var executedBlock in eventData.ExecutedBlocks)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(executedBlock);
-
                 foreach (var transactionHash in block.Body.Transactions)
                 {
                     var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionHash);
+                    if (result == null)
+                    {
+                        Logger.LogTrace($"Transaction result is null, transactionHash: {transactionHash}");
+                        continue;
+                    }
+                    if (result.Status == TransactionResultStatus.Failed)
+                    {
+                        Logger.LogTrace($"Transaction failed, transactionHash: {transactionHash}, error: {result.Error}");
+                        continue;
+                    }
                     foreach (var contractEvent in result.Logs)
                     {
-                        if (contractEvent.Address ==
-                            _smartContractAddressService.GetAddressByContractName(
-                                ConsensusSmartContractAddressNameProvider.Name) &&
-                            contractEvent.Topics.Contains(
-                                ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
-                        {
-                            var indexingEventData = ExtractLibFoundData(contractEvent);
-                            var offset = (long) indexingEventData[0];
-                            var libHeight = eventData.BlockHeight - offset;
-                            var chain = await _blockchainService.GetChainAsync();
-                            var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight);
+                        var address = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+                        if (contractEvent.Address != address || !contractEvent.Topics.Contains(ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
+                            continue;
 
-                            await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, libHash);
-                            Logger.LogInformation("Lib setting finished.");
-                        }
+                        //TODO: HandleEventAsync SetIrreversible logc not covered. [Case]
+                        var indexingEventData = ExtractLibFoundData(contractEvent);
+                        var offset = (long) indexingEventData[0];
+                        var libHeight = eventData.BlockHeight - offset;
+                        var chain = await _blockchainService.GetChainAsync();
+                        var libHash =
+                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
+
+                        await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, libHash);
+                        Logger.LogInformation("Lib setting finished.");
                     }
                 }
             }
         }
-
 
         private object[] ExtractLibFoundData(LogEvent logEvent)
         {

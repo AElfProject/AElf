@@ -13,5 +13,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, Address, string, long> Allowances { get; set; }
         public MappedState<Address, string, long> ChargedFees { get; set; }
         public SingletonState<Address> FeePoolAddress { get; set; }
+        public SingletonState<Address> ConsensusContractAddress { get; set; }
     }
 }

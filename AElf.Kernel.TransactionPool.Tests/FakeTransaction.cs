@@ -1,7 +1,7 @@
 ﻿using AElf.Common;
 using Google.Protobuf;
 
-namespace AElf.Kernel.TransactionPool.Tests
+namespace AElf.Kernel.TransactionPool
 {
     public static class FakeTransaction
     {

@@ -19,33 +19,31 @@ namespace AElf.OS.Jobs
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
-            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerAddress} }}");
+            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerPubKey} }}");
 
             try
             {
                 var count = NetworkOptions.Value.BlockIdRequestCount;
-
                 var chain = await BlockchainService.GetChainAsync();
-                var blockHash = chain.LongestChainHash;
-                                
+
+                var blockHash = chain.LastIrreversibleBlockHash;
+
                 while (true)
                 {
-                    Logger.LogDebug($"Current job hash : {blockHash}");
-                    
-                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerAddress);
+                    Logger.LogDebug($"Request blocks start with {blockHash}");
+
+                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
+
+                    Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
 
                     if (blocks.FirstOrDefault() != null)
                     {
                         if (blocks.First().Header.PreviousBlockHash != blockHash)
                         {
                             Logger.LogError($"Current job hash : {blockHash}");
-
-                            throw new InvalidOperationException($"previous block not match previous {blockHash}, network back{blocks.First().Header.PreviousBlockHash}");
+                            throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
                         }
                     }
-                    
-                    
-                    Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
 
                     foreach (var block in blocks)
                     {

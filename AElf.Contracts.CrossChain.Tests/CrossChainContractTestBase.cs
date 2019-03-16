@@ -6,8 +6,9 @@ using AElf.Common;
 using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
-using AElf.Contracts.Token;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -34,31 +35,58 @@ namespace AElf.Contract.CrossChain.Tests
             AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
         }
 
-        protected async Task ApproveBalance(ulong amount)
+        protected async Task ApproveBalance(long amount)
         {
             var callOwner = Address.FromPublicKey(CrossChainContractTestHelper.GetPubicKey());
 
-            var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, "Approve",
-                CrossChainContractAddress, amount);
+            var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.Approve), new ApproveInput
+                {
+                    Spender = CrossChainContractAddress,
+                    Symbol = "ELF",
+                    Amount = amount
+                });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            await Tester.CallContractMethodAsync(TokenContractAddress, "Allowance",
-                callOwner, CrossChainContractAddress);
+            await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetAllowance),
+                new GetAllowanceInput
+                {
+                    Symbol = "ELF",
+                    Owner = callOwner,
+                    Spender = CrossChainContractAddress
+                });
         }
 
-        protected async Task Initialize(ulong tokenAmount, int parentChainId = 0)
+        protected async Task Initialize(long tokenAmount, int parentChainId = 0)
         {
-            var tx1 = await Tester.GenerateTransactionAsync(TokenContractAddress, "Initialize",
-                "ELF", "elf token", tokenAmount, 2U);
-            var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress, "Initialize",
+            var tx1 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Create),
+                new CreateInput
+                {
+                    Symbol = "ELF",
+                    Decimals = 2,
+                    IsBurnable = false,
+                    Issuer = Tester.GetCallOwnerAddress(),
+                    TokenName = "elf token",
+                    TotalSupply = tokenAmount
+                });
+            var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.Initialize),
                 ConsensusContractAddress, TokenContractAddress, AuthorizationContractAddress,
                 parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
-            await Tester.MineAsync(new List<Transaction> {tx1, tx2});
+            var tx3 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Issue),
+                new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = tokenAmount,
+                    To = Tester.GetCallOwnerAddress(),
+                    Memo = "Initial tokens for testing cross chain contract."
+                });
+            await Tester.MineAsync(new List<Transaction> {tx1, tx2, tx3});
         }
 
-        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, ulong lockedTokenAmount = 10)
+        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
         {
             await Initialize(1000, parentChainId);
-            
+
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo
             {
@@ -68,12 +96,13 @@ namespace AElf.Contract.CrossChain.Tests
                 Proposer = CrossChainContractTestHelper.GetAddress(),
                 LockedTokenAmount = lockedTokenAmount
             };
-            
-            var tx1 = await Tester.GenerateTransactionAsync(CrossChainContractAddress, "RequestChainCreation",
-                sideChainInfo);
+
+            var tx1 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.RequestChainCreation), sideChainInfo);
             await Tester.MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
-            var tx2 = await  Tester.GenerateTransactionAsync(CrossChainContractAddress, "CreateSideChain", chainId);
+            var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.CreateSideChain), chainId);
             await Tester.MineAsync(new List<Transaction> {tx2});
             return chainId;
         }
@@ -97,7 +126,7 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected async Task<TransactionResult> GetTransactionResult(Hash txId)
         {
-            return await Tester.GetTransactionResult(txId);
+            return await Tester.GetTransactionResultAsync(txId);
         }
 
         protected async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,

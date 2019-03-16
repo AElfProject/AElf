@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿/*using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -73,7 +73,13 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task Initialize_View_TokenContract()
         {
-            await Initialize_TokenContract();
+            var tx = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Initialize),
+                "ELF", "elf token", 1000_000UL, 2U);
+            await Tester.MineAsync(new List<Transaction> {tx});
+            var bytes = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.BalanceOf),
+                Tester.GetCallOwnerAddress());
+            var result = bytes.DeserializeToUInt64();
+            result.ShouldBe(1000_000UL);
 
             var bytes1 = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.TotalSupply));
             bytes1.DeserializeToUInt64().ShouldBe(1000_000UL);
@@ -319,4 +325,4 @@ namespace AElf.Contracts.Token
             resultGet1.DeserializeToUInt64().ShouldBe(10UL);
         }
     }
-}
+}*/

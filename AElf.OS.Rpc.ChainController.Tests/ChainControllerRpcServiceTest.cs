@@ -427,7 +427,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             }
 
             await BroadcastTransactions(transactions);
-            var block = await MinedOneBlock(chain);
+            await MinedOneBlock(chain);
             
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
                 new {blockHeight = 3, includeTransactions = true});
@@ -440,6 +440,40 @@ namespace AElf.OS.Rpc.ChainController.Tests
             response1["result"]["BlockHash"].ToString().ShouldBe(blockHash);
             response1["result"]["BlockHeight"].To<int>().ShouldBe(3);
             response1["result"]["Changes"].ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task Get_Block_State_FewBlocks_Later()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < 3; i++)
+            {
+                transactions.Add(await GenerateTransferTransaction(chain));
+            }
+
+            await BroadcastTransactions(transactions);
+            await MinedOneBlock(chain);
+            
+            var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
+                new {blockHeight = 3, includeTransactions = true});
+            var responseResult = response["result"];
+            var blockHash = responseResult["BlockHash"].ToString();
+            
+            //Continue generate block 
+            for (int i = 0; i < 10; i++)
+            {
+                await MinedOneBlock(chain);
+            }
+            
+            //Check Block State
+            var response1 = await JsonCallAsJObject("/chain", "GetBlockState",
+                new{ blockHash = blockHash });
+            response1["result"].ShouldNotBeNull();
+            response1["result"]["BlockHash"].ToString().ShouldBe(blockHash);
+            response1["result"]["BlockHeight"].To<int>().ShouldBe(3);
+            response1["result"]["Changes"].ShouldNotBeNull();
+            
         }
         
         [Fact]
@@ -540,6 +574,9 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var response1 = await JsonCallAsJObject("/net", "GetPeers");
             response1.ShouldNotBeNull();
             response1["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(0);
+
+            var response2 = await JsonCallAsync("/net", "RemovePeer",
+                new { address = addressInfo });
         }
 
         #endregion

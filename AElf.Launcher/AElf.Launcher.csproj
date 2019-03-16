@@ -13,7 +13,6 @@
     <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
@@ -22,24 +21,15 @@
     <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
     <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
     <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
+    <ProjectReference Include="..\AElf.Runtime.CSharp3\AElf.Runtime.CSharp3.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
     <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.4.3" />
     <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.14.0" />
     <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="netstandard2.0\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="netstandard2.0\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="netstandard2.0\**" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="appsettings.Development.json">

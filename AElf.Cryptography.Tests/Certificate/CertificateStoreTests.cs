@@ -48,5 +48,18 @@ namespace AElf.Cryptography.Tests.Certificate
 
             Directory.Delete(Path.Combine(TempDir, "certs"), true);
         }
+
+        [Fact]
+        public void Add_Certificate()
+        {
+            var name = "testCertificate";
+            var certificateContent = "test information about certificate.";
+            var result = _certStore.AddCertificate(name, certificateContent);
+            result.ShouldBeTrue();
+
+            var certificateContent1 = _certStore.LoadCertificate(name);
+            certificateContent1.ShouldBe(certificateContent);
+
+        }
     }
 }

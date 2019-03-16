@@ -11,19 +11,19 @@ namespace AElf.Contracts.Resource
         {
             CpuConverter = new Converter()
             {
-                ElfBalance = 1000_000UL,
-                ElfWeight = 500_000UL,
-                ResBalance = 1000_000UL,
-                ResWeight = 500_000UL
+                ElfBalance = 1000_000L,
+                ElfWeight = 500_000L,
+                ResBalance = 1000_000L,
+                ResWeight = 500_000L
             };
         }
 
         [Theory]
-        [InlineData(10UL)]
-        [InlineData(100UL)]
-        [InlineData(1000UL)]
-        [InlineData(10000UL)]
-        public void BuyResource_Test(ulong paidElf)
+        [InlineData(10L)]
+        [InlineData(100L)]
+        [InlineData(1000L)]
+        [InlineData(10000L)]
+        public void BuyResource_Test(long paidElf)
         {
             var resourceAmount1 = BuyOperation(paidElf);
             var resourceAmount2 = BuyOperation(paidElf);
@@ -31,11 +31,11 @@ namespace AElf.Contracts.Resource
         }
 
         [Theory]
-        [InlineData(10UL)]
-        [InlineData(100UL)]
-        [InlineData(1000UL)]
-        [InlineData(10000UL)]
-        public void SellResource_Test(ulong paidRes)
+        [InlineData(10L)]
+        [InlineData(100L)]
+        [InlineData(1000L)]
+        [InlineData(10000L)]
+        public void SellResource_Test(long paidRes)
         {
             var elfAmount1 = SellOperation(paidRes);
             var elfAmount2 = SellOperation(paidRes);
@@ -45,14 +45,14 @@ namespace AElf.Contracts.Resource
         [Fact]
         public void Buy_And_Sell_Test()
         {
-            var resourceAmount1 = BuyOperation(1000UL);
+            var resourceAmount1 = BuyOperation(1000L);
             var elfAmount = SellOperation(resourceAmount1);
-            elfAmount.ShouldBeLessThan(1000UL);
+            elfAmount.ShouldBeLessThan(1000L);
 
-            var resourceAmount2 = BuyOperation(1000UL);
-            BuyOperation(1000UL);
+            var resourceAmount2 = BuyOperation(1000L);
+            BuyOperation(1000L);
             var elfAmount2 = SellOperation(resourceAmount2);
-            elfAmount2.ShouldBeGreaterThan(1000UL);
+            elfAmount2.ShouldBeGreaterThan(1000L);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace AElf.Contracts.Resource
             BancorHelpers.Pow(1.5m, 2);
         }
 
-        private ulong BuyOperation(ulong paidElf)
+        private long BuyOperation(long paidElf)
         {
             var resourcePayout = BancorHelpers.CalculateCrossConnectorReturn(
                 CpuConverter.ElfBalance, CpuConverter.ElfWeight,
@@ -84,7 +84,7 @@ namespace AElf.Contracts.Resource
             return resourcePayout;
         }
 
-        private ulong SellOperation(ulong paidRes)
+        private long SellOperation(long paidRes)
         {
             var elfPayout = BancorHelpers.CalculateCrossConnectorReturn(
                 CpuConverter.ResBalance, CpuConverter.ResWeight,

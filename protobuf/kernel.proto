@@ -213,8 +213,8 @@ message StringList {
     string Remark = 2;
 }
 
-message ULongList {
-    repeated uint64 Values = 1;
+message LongList {
+    repeated int64 Values = 1;
     string Remark = 2;
 }
 
@@ -260,7 +260,6 @@ message BlockStateSet{
     map<string, bytes> Changes = 4;
 }
 
-// TODO: Not used, it should be removed
 message TransactionExecutingStateSet{
     int64 Version = 1;
     map<string, bytes> Writes = 2;

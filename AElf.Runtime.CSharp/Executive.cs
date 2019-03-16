@@ -205,7 +205,7 @@ namespace AElf.Runtime.CSharp
             var handler = _cache.GetHandler(methodName);
             var retVal = handler.Execute(ParamsPacker.Pack(objects));
             handler.BytesToReturnType(retVal);
-            return (ulong) handler.BytesToReturnType(retVal);
+            return handler.BytesToReturnType(retVal);
         }
 
         public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
@@ -235,6 +235,11 @@ namespace AElf.Runtime.CSharp
             }
 
             return handler.BytesToReturnType(bytes);
+        }
+
+        public byte[] GetFileDescriptorSet()
+        {
+            return new byte[0];
         }
     }
 }

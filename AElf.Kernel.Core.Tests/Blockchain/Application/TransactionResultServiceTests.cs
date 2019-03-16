@@ -18,6 +18,7 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionBlockIndexManager _transacionBlockIndexManager;
         private readonly ILocalEventBus _localEventBus;
         private Block GenesisBlock { get; }
 
@@ -26,6 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
+            _transacionBlockIndexManager = GetRequiredService<ITransactionBlockIndexManager>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
             GenesisBlock = new Block()
             {
@@ -251,6 +253,27 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             #endregion
+        }
+
+        [Fact]
+        public async Task Query_TransactionResult_With_Index()
+        {
+            await _blockchainService.CreateChainAsync(GenesisBlock);
+            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
+            var (block, results) = GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx});
+
+            var result = results.First();
+            // Complete block
+            await AddTransactionResultsWithPostMiningAsync(block, new[] {result});
+            
+            var transactionBlockIndex = new TransactionBlockIndex()
+            {
+                BlockHash = block.GetHash()
+            };
+            await _transacionBlockIndexManager.SetTransactionBlockIndexAsync(tx.GetHash(), transactionBlockIndex);
+            
+            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
+            queried.ShouldBe(result);
         }
     }
 }

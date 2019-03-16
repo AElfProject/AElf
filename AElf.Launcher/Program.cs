@@ -27,7 +27,6 @@ namespace AElf.Launcher
         private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(builder => { builder.ClearProviders(); })
-                .ConfigureAppConfiguration(builder => { LauncherAElfModule.Configuration = builder.Build(); })
                 .UseStartup<Startup>();
     }
 }

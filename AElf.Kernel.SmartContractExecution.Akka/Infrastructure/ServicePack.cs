@@ -1,5 +1,4 @@
-﻿using AElf.Kernel.Domain;
-using AElf.Kernel.SmartContract.Application;
+﻿using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 
 namespace AElf.Kernel.SmartContractExecution.Application
