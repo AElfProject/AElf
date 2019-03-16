@@ -67,14 +67,6 @@ namespace AElf.Runtime.CSharp.Tests
         }
 
         [Fact]
-        public void Get_Contract_Type()
-        {
-            var contractType = Runner.GetContractType(Reg);
-            var fullName = contractType.FullName;
-            fullName.ShouldBe("AElf.Contracts.Token.TokenContractState");
-        }
-
-        [Fact]
         public async Task Get_JsonStringParameter()
         {
             var executive = await Runner.RunAsync(Reg);
