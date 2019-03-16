@@ -41,6 +41,7 @@ namespace AElf.Launcher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
+        typeof(CSharpRuntimeAElfModule3),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
 

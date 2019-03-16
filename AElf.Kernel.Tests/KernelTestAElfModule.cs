@@ -2,7 +2,7 @@ using AElf.Kernel.ChainController;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.TransactionPool.Tests;
+using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 
