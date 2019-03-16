@@ -1,41 +1,53 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
+    // ReSharper disable UnusedMember.Global
     public partial class ConsensusContract
     {
-        private ulong CurrentAge => State.AgeField.Value;
+        private long CurrentAge => State.AgeField.Value;
 
         public ActionResult AnnounceElection(string alias = "")
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
-            if (tickets!=null)
+            if (tickets != null)
             {
                 foreach (var voteToTransaction in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[voteToTransaction];
-                    if (votingRecord!=null)
+                    if (votingRecord != null)
                     {
-                        Assert(votingRecord.IsWithdrawn, DPoSContractConsts.VoterCannotAnnounceElection);
+                        Assert(votingRecord.IsWithdrawn,
+                            ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                                "Voter can't announce election."));
                     }
                 }
             }
 
-            // TODO: To implement lock method.
-            State.TokenContract.Lock(Context.Sender, DPoSContractConsts.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
-            if (!candidates.PublicKeys.Contains(publicKey))
+            if (candidates != null)
             {
-                candidates.PublicKeys.Add(publicKey);
+                Assert(!candidates.PublicKeys.Contains(publicKey),
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                        "Already announced election."));
+                candidates.AddCandidate(Context.RecoverPublicKey());
+            }
+            else
+            {
+                candidates = new Candidates
+                {
+                    PublicKeys = {publicKey},
+                    Addresses = {Address.FromPublicKey(Context.RecoverPublicKey())}
+                };
             }
 
             State.CandidatesField.Value = candidates;
@@ -46,7 +58,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var publicKeyOfThisAlias = State.AliasesLookupMap[alias.ToStringValue()];
-            if (publicKeyOfThisAlias!=null &&
+            if (publicKeyOfThisAlias != null &&
                 publicKey == publicKeyOfThisAlias.Value)
             {
                 return new ActionResult {Success = true};
@@ -57,7 +69,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Add this alias to history information of this candidate.
             var candidateHistoryInformation = State.HistoryMap[publicKey.ToStringValue()];
-            if (candidateHistoryInformation!=null)
+            if (candidateHistoryInformation != null)
             {
                 if (!candidateHistoryInformation.Aliases.Contains(alias))
                 {
@@ -75,60 +87,100 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection,
+                Memo = "Lock for announcing election."
+            });
+
             return new ActionResult {Success = true};
         }
 
         public ActionResult QuitElection()
         {
-            State.TokenContract.Unlock(Context.Sender, DPoSContractConsts.LockTokenForElection);
             var candidates = State.CandidatesField.Value;
-            candidates.PublicKeys.Remove(Context.RecoverPublicKey().ToHex());
+
+            Assert(candidates != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidField, nameof(State.CandidatesField)));
+
+            var publicKey = Context.RecoverPublicKey().ToHex();
+
+            Assert(candidates != null && candidates.PublicKeys.Contains(publicKey),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Not announced."));
+
+            Assert(candidates != null && candidates.RemoveCandidate(Context.RecoverPublicKey()),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                    "Failed to remove this public key from candidates list."));
+
             State.CandidatesField.Value = candidates;
+
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = Context.Sender,
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection,
+                Memo = "Unlock tickets."
+            });
 
             return new ActionResult {Success = true};
         }
 
-        public ActionResult Vote(string candidatePublicKey, ulong amount, int lockTime)
+        public string Vote(string candidatePublicKey, long amount, int lockTime)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            Assert(lockTime.InRange(90, 1095), DPoSContractConsts.LockDayIllegal);
+            Assert(lockTime.InRange(90, 1095),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
 
             // Cannot vote to non-candidate.
             var candidates = State.CandidatesField.Value;
-            Assert(candidates.PublicKeys.Contains(candidatePublicKey),
-                DPoSContractConsts.TargetNotAnnounceElection);
+            Assert(candidates != null, ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "No candidate."));
+            Assert(candidates != null && candidates.PublicKeys.Contains(candidatePublicKey),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                    "Target didn't announce election."));
 
+            var voterPublicKey = Context.RecoverPublicKey().ToHex();
             // A candidate cannot vote to anybody.
-            Assert(!candidates.PublicKeys.Contains(Context.RecoverPublicKey().ToHex()),
-                DPoSContractConsts.CandidateCannotVote);
+            Assert(candidates != null && !candidates.PublicKeys.Contains(voterPublicKey),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.Lock(Context.Sender, amount);
+            State.TokenContract.TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = "ELF",
+                Amount = amount,
+                Memo = "Lock for getting tickets."
+            });
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value ?? DateTime.UtcNow.ToTimestamp();
+
             var votingRecord = new VotingRecord
             {
                 Count = amount,
-                From = Context.RecoverPublicKey().ToHex(),
+                From = voterPublicKey,
                 To = candidatePublicKey,
                 RoundNumber = currentRoundNumber,
                 TransactionId = Context.TransactionId,
                 VoteAge = CurrentAge,
-                UnlockAge = CurrentAge + (ulong) lockTime,
+                UnlockAge = CurrentAge + (long) lockTime,
                 TermNumber = currentTermNumber,
-                VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp(),
-                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge + (ulong) lockTime)
+                VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp(),
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + (long) lockTime)
                     .ToTimestamp()
             };
+
             votingRecord.LockDaysList.Add(lockTime);
 
             // Add the transaction id of this voting record to the tickets information of the voter.
-            var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
+            var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
+
             if (tickets != null)
             {
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
@@ -141,7 +193,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             tickets.VotedTickets += votingRecord.Count;
             tickets.HistoryVotedTickets += votingRecord.Count;
-            State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()] = tickets;
+            State.TicketsMap[voterPublicKey.ToStringValue()] = tickets;
 
             // Add the transaction id of this voting record to the tickets information of the candidate.
             var candidateTickets = State.TicketsMap[candidatePublicKey.ToStringValue()];
@@ -160,14 +212,10 @@ namespace AElf.Contracts.Consensus.DPoS
             State.TicketsMap[candidatePublicKey.ToStringValue()] = candidateTickets;
 
             // Update the amount of votes (voting records of whole system).
-            var currentCount = State.VotesCountField.Value;
-            currentCount += 1;
-            State.VotesCountField.Value = currentCount;
+            State.VotesCountField.Value += 1;
 
             // Update the amount of tickets.
-            var ticketsCount = State.TicketsCountField.Value;
-            ticketsCount += votingRecord.Count;
-            State.TicketsCountField.Value = ticketsCount;
+            State.TicketsCountField.Value += 1;
 
             // Add this voting record to voting records map.
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
@@ -176,157 +224,183 @@ namespace AElf.Contracts.Consensus.DPoS
             State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
-            Context.LogDebug(() => $"Vote duration: {stopwatch.ElapsedMilliseconds} ms.");
 
-            return new ActionResult {Success = true};
+            return Context.TransactionId.ToHex();
         }
 
+        // ReSharper disable once PossibleNullReferenceException
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
-            if (votingRecord != null &&
-                votingRecord.From == Context.RecoverPublicKey().ToHex())
-            {
-                State.DividendContract.TransferDividends(votingRecord);
-                return new ActionResult {Success = true};
-            }
 
-            return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
+            Assert(votingRecord != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
+
+            Assert(votingRecord.From == Context.RecoverPublicKey().ToHex(),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+                    "No permission to receive."));
+
+            State.DividendContract.TransferDividends(votingRecord);
+
+            return new ActionResult {Success = true};
         }
 
+        // ReSharper disable once PossibleNullReferenceException
         public ActionResult ReceiveAllDividends()
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
-            if (tickets != null)
-            {
-                if (!tickets.VoteToTransactions.Any())
-                {
-                    return new ActionResult {Success = false, ErrorMessage = "Voting records not found."};
-                }
 
-                foreach (var transactionId in tickets.VoteToTransactions)
-                {
-                    var votingRecord = State.VotingRecordsMap[transactionId];
-                    if (votingRecord != null)
-                    {
-                        State.DividendContract.TransferDividends(votingRecord);
-                    }
-                }
+            Assert(tickets != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Tickets information not found."));
+
+            Assert(tickets.VoteToTransactions.Any(),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting records not found."));
+
+            foreach (var transactionId in tickets.VoteToTransactions)
+            {
+                var votingRecord = State.VotingRecordsMap[transactionId];
+                Assert(votingRecord != null,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
+                State.DividendContract.TransferDividends(votingRecord);
             }
 
             return new ActionResult {Success = true};
         }
 
-        public ActionResult WithdrawByTransactionId(string transactionId, bool withoutLimitation)
+        // ReSharper disable once PossibleNullReferenceException
+        public Tickets WithdrawByTransactionId(string transactionId)
         {
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
-            if (votingRecord != null)
+
+            Assert(votingRecord != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
+
+            Assert(!votingRecord.IsWithdrawn,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                    "This voting record has already withdrawn."));
+
+            Assert(votingRecord.UnlockAge <= CurrentAge,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
+                    "This voting record can't withdraw for now."));
+
+            Assert(votingRecord.From == Context.RecoverPublicKey().ToHex(),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+                    "No permission to withdraw tickets of others."));
+
+            // Update voting record map.
+            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+            votingRecord.WithdrawTimestamp =
+                blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
+            votingRecord.IsWithdrawn = true;
+            State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
+
+            // Update total tickets count.
+            var ticketsCount = State.TicketsCountField.Value;
+            ticketsCount -= votingRecord.Count;
+            State.TicketsCountField.Value = ticketsCount;
+
+            // Update tickets number of this voter.
+            var ticketsOfVoter = State.TicketsMap[votingRecord.From.ToStringValue()];
+            if (ticketsOfVoter != null)
             {
-                if (votingRecord.IsWithdrawn)
-                {
-                    return new ActionResult
-                        {Success = false, ErrorMessage = "This voting record has already withdrawn."};
-                }
-
-                if ((votingRecord.UnlockAge <= CurrentAge || withoutLimitation) && votingRecord.IsWithdrawn == false)
-                {
-                    State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
-                    State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
-
-                    var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
-                    votingRecord.WithdrawTimestamp =
-                        blockchainStartTimestamp.ToDateTime().AddDays(CurrentAge).ToTimestamp();
-                    votingRecord.IsWithdrawn = true;
-
-                    State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
-
-                    var ticketsCount = State.TicketsCountField.Value;
-                    ticketsCount -= votingRecord.Count;
-                    State.TicketsCountField.Value = ticketsCount;
-
-                    var ticketsOfVoter = State.TicketsMap[votingRecord.From.ToStringValue()];
-                    if (ticketsOfVoter != null)
-                    {
-                        ticketsOfVoter.VotedTickets -= votingRecord.Count;
-                        State.TicketsMap[votingRecord.From.ToStringValue()] = ticketsOfVoter;
-                    }
-
-                    var ticketsOfCandidate = State.TicketsMap[votingRecord.To.ToStringValue()];
-                    if (ticketsOfCandidate != null)
-                    {
-                        ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
-                        State.TicketsMap[votingRecord.To.ToStringValue()] = ticketsOfCandidate;
-                    }
-                }
-            }
-            else
-            {
-                return new ActionResult {Success = false, ErrorMessage = "Voting record not found."};
+                ticketsOfVoter.VotedTickets -= votingRecord.Count;
+                State.TicketsMap[votingRecord.From.ToStringValue()] = ticketsOfVoter;
             }
 
-            return new ActionResult {Success = true};
+            // Update tickets number of related candidate.
+            var ticketsOfCandidate = State.TicketsMap[votingRecord.To.ToStringValue()];
+            if (ticketsOfCandidate != null)
+            {
+                ticketsOfCandidate.ObtainedTickets -= votingRecord.Count;
+                State.TicketsMap[votingRecord.To.ToStringValue()] = ticketsOfCandidate;
+            }
+
+            // Sub weight.
+            State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+            // Transfer token back to voter.
+            State.TokenContract.Transfer(new TransferInput
+            {
+                To = Context.Sender,
+                Symbol = "ELF",
+                Amount = votingRecord.Count,
+                Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+            });
+
+            return State.TicketsMap[votingRecord.From.ToStringValue()];
         }
 
-        public ActionResult WithdrawAll(bool withoutLimitation = false)
+        // ReSharper disable PossibleNullReferenceException
+        public Tickets WithdrawAll()
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;
-            var withdrawnAmount = 0UL;
-            var candidatesVotesDict = new Dictionary<string, ulong>();
+            var withdrawnAmount = 0L;
+            var candidatesVotesDict = new Dictionary<string, long>();
 
             var tickets = State.TicketsMap[voterPublicKey.ToStringValue()];
-            if (tickets != null)
+
+            Assert(tickets != null,
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Tickets information not found."));
+
+            foreach (var transactionId in tickets.VoteToTransactions)
             {
-                foreach (var transactionId in tickets.VoteToTransactions)
+                var votingRecord = State.VotingRecordsMap[transactionId];
+
+                Assert(votingRecord != null,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
+
+                if (votingRecord.UnlockAge > CurrentAge)
                 {
-                    var votingRecord = State.VotingRecordsMap[transactionId];
-                    if (votingRecord != null)
-                    {
-                        if (votingRecord.UnlockAge > CurrentAge && !withoutLimitation)
-                        {
-                            continue;
-                        }
-
-                        State.TokenContract.Transfer(Context.Sender, votingRecord.Count);
-                        State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
-
-                        var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
-                        votingRecord.WithdrawTimestamp =
-                            blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
-                        votingRecord.IsWithdrawn = true;
-
-                        withdrawnAmount += votingRecord.Count;
-                        if (candidatesVotesDict.ContainsKey(votingRecord.To))
-                        {
-                            candidatesVotesDict[votingRecord.To] += votingRecord.Count;
-                        }
-                        else
-                        {
-                            candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
-                        }
-
-                        State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
-                    }
+                    // Just check next one, no need to assert.
+                    continue;
                 }
 
-                ticketsCount -= withdrawnAmount;
-                State.TicketsCountField.Value = ticketsCount;
+                // Update voting record map.
+                var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+                votingRecord.WithdrawTimestamp =
+                    blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
+                votingRecord.IsWithdrawn = true;
+                State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
-                tickets.VotedTickets -= withdrawnAmount;
-                State.TicketsMap[voterPublicKey.ToStringValue()] = tickets;
-
-                foreach (var candidateVote in candidatesVotesDict)
+                // Prepare data for updating tickets map.
+                withdrawnAmount += votingRecord.Count;
+                if (candidatesVotesDict.ContainsKey(votingRecord.To))
                 {
-                    var ticketsOfCandidate = State.TicketsMap[candidateVote.Key.ToStringValue()];
-                    if (ticketsOfCandidate != null)
-                    {
-                        ticketsOfCandidate.ObtainedTickets -= candidateVote.Value;
-                        State.TicketsMap[candidateVote.Key.ToStringValue()] = ticketsOfCandidate;
-                    }
+                    candidatesVotesDict[votingRecord.To] += votingRecord.Count;
                 }
+                else
+                {
+                    candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
+                }
+
+                State.TokenContract.Transfer(new TransferInput
+                {
+                    To = Context.Sender,
+                    Symbol = "ELF",
+                    Amount = votingRecord.Count,
+                    Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                });
+
+                State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
             }
 
-            return new ActionResult {Success = true};
+            ticketsCount -= withdrawnAmount;
+            State.TicketsCountField.Value = ticketsCount;
+
+            tickets.VotedTickets -= withdrawnAmount;
+            State.TicketsMap[voterPublicKey.ToStringValue()] = tickets;
+
+            foreach (var candidateVote in candidatesVotesDict)
+            {
+                var ticketsOfCandidate = State.TicketsMap[candidateVote.Key.ToStringValue()];
+                Assert(ticketsOfCandidate != null,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound,
+                        $"Tickets information of {candidateVote.Key} not found."));
+                ticketsOfCandidate.ObtainedTickets -= candidateVote.Value;
+                State.TicketsMap[candidateVote.Key.ToStringValue()] = ticketsOfCandidate;
+            }
+
+            return State.TicketsMap[voterPublicKey.ToStringValue()];
         }
     }
 }

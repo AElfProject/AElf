@@ -41,5 +41,6 @@ namespace AElf.Contracts.Token
         public AllowanceMappedState Allowances { get; set; }
         public ChargedFeesMappedState ChargedFees { get; set; }
         public FeePoolAddress FeePoolAddress { get; set; }
+        public SingletonState<Address> ConsensusContractAddress { get; set; }
     }
 }

@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     </ItemGroup>

@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package aelf;
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.ServiceOptions {
+    optional string state_type = 238149;
+}
+
+extend google.protobuf.MethodOptions {
+    optional bool is_view = 342891;
+}

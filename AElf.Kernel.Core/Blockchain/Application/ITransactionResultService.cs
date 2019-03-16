@@ -117,8 +117,7 @@ namespace AElf.Kernel.Blockchain.Application
                     foreach (var txId in block.Body.Transactions)
                     {
                         var result = await _transactionResultManager.GetTransactionResultAsync(txId, preMiningHash);
-                        await _transactionResultManager.AddTransactionResultAsync(result,
-                            transactionBlockIndex.BlockHash);
+                        await _transactionResultManager.AddTransactionResultAsync(result, transactionBlockIndex.BlockHash);
                     }
                 }
 

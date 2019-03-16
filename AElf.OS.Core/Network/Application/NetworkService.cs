@@ -88,12 +88,12 @@ namespace AElf.OS.Network.Application
 
                 var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(blockHash, count));
 
-                if (blocks != null)
+                if (blocks != null && blocks.Count > 0)
                     return blocks;
 
                 if (!tryOthersIfFail)
                 {
-                    Logger.LogWarning($"{peerPubKey} does not have block {nameof(tryOthersIfFail)} is false.");
+                    Logger.LogWarning($"{peerPubKey} does not have blocks {nameof(tryOthersIfFail)} is false.");
                     return null;
                 }
             }
@@ -125,7 +125,7 @@ namespace AElf.OS.Network.Application
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peer))
             {
-                IPeer p = _peerPool.FindPeerByAddress(peer);
+                IPeer p = _peerPool.FindPeerByPublicKey(peer);
 
                 if (p == null)
                 {

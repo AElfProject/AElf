@@ -6,6 +6,7 @@
     <RootNamespace>AElf.Contracts.Resource.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
     <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />

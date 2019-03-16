@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
             var consensusInformation = await _consensusService.GetNewConsensusInformationAsync();
 
-            return consensusInformation == null ? null : ByteString.CopyFrom(consensusInformation);
+            return consensusInformation == null ? ByteString.Empty : ByteString.CopyFrom(consensusInformation);
         }
     }
 }

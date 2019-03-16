@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -9,34 +8,24 @@ using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
-using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Services;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.OS;
-using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
@@ -60,9 +49,11 @@ namespace AElf.Contracts.TestBase
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
-        private IAbpApplicationWithInternalServiceProvider Application { get; set; } 
+        private IAbpApplicationWithInternalServiceProvider Application { get; } 
 
         public ECKeyPair KeyPair { get; }
+
+        public string PublicKey => KeyPair.PublicKey.ToHex();
 
         public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
         {
@@ -182,7 +173,8 @@ namespace AElf.Contracts.TestBase
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero)
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
             };
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
@@ -264,7 +256,7 @@ namespace AElf.Contracts.TestBase
             return smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                 .Name);
         }
-
+        
         public Address GetCallOwnerAddress()
         {
             return Address.FromPublicKey(KeyPair.PublicKey);
@@ -312,7 +304,7 @@ namespace AElf.Contracts.TestBase
             var refBlock = await blockchainService.GetBestChainLastBlock();
             var tx = new Transaction
             {
-                From = Address.FromPublicKey(KeyPair.PublicKey),
+                From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
@@ -334,7 +326,7 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public async Task<Block> MineAsync(List<Transaction> txs)
         {
-            await AddTransactions(txs);
+            await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlock();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
@@ -350,13 +342,16 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
-        private async Task AddTransactions(IEnumerable<Transaction> txs)
+        private async Task AddTransactionsAsync(IEnumerable<Transaction> txs)
         {
             var txHub = Application.ServiceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            foreach (var tx in txs)
             {
-                Transactions = txs
-            });
+                await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = new List<Transaction> {tx}
+                });
+            }
         }
 
         /// <summary>
@@ -371,9 +366,23 @@ namespace AElf.Contracts.TestBase
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
             await MineAsync(new List<Transaction> {tx});
-            var result = await GetTransactionResult(tx.GetHash());
+            var result = await GetTransactionResultAsync(tx.GetHash());
 
             return result;
+        }
+        
+        /// <summary>
+        /// Generate a tx then package the new tx to a new block.
+        /// </summary>
+        /// <param name="contractAddress"></param>
+        /// <param name="methodName"></param>
+        /// <param name="objects"></param>
+        /// <returns></returns>
+        public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress, string methodName,
+            params object[] objects)
+        {
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
         /// <summary>
@@ -454,7 +463,7 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
-        public async Task<TransactionResult> GetTransactionResult(Hash txId)
+        public async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
             var transactionResultQueryService =
                 Application.ServiceProvider.GetRequiredService<ITransactionResultQueryService>();

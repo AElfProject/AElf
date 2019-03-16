@@ -9,6 +9,7 @@ using Xunit;
 
 namespace AElf.OS.Network
 {
+    // todo more unit tests can be done here 
     public class GrpcPeerPoolTests : OSCoreTestBase
     {
         private const string TestIp = "127.0.0.1:6800";

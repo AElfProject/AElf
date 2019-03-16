@@ -13,9 +13,6 @@
 
     <ItemGroup>
       <Compile Remove="ConsensusContract.cs" />
-      <Compile Include="..\AElf.Contracts.Consensus.DPoS\BasicExtensions.cs">
-        <Link>BasicExtensions.cs</Link>
-      </Compile>
       <Compile Include="..\AElf.Contracts.Consensus.DPoS\ConsensusContract.cs">
         <Link>ConsensusContract.cs</Link>
       </Compile>
