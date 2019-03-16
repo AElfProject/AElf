@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
@@ -20,9 +19,9 @@ using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunnerForCategoryTwo : ISmartContractRunner
+    public class SmartContractRunnerForCategoryThree : ISmartContractRunner
     {
-        public int Category { get; protected set; } = 2;
+        public int Category { get; protected set; } = 3;
         private readonly ISdkStreamManager _sdkStreamManager;
 
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
@@ -35,8 +34,7 @@ namespace AElf.Runtime.CSharp
         private readonly AssemblyChecker _assemblyChecker;
 
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-
-        public SmartContractRunnerForCategoryTwo(
+        public SmartContractRunnerForCategoryThree(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins,
             IEnumerable<string> blackList = null,
@@ -52,7 +50,7 @@ namespace AElf.Runtime.CSharp
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
-        protected virtual AssemblyLoadContext GetLoadContext()
+        private ContractCodeLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
             return new ContractCodeLoadContext(_sdkStreamManager);
@@ -77,28 +75,7 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var abiModule = GetAbiModule(reg);
-
-            // TODO: Change back
-            var types = assembly.GetTypes();
-            var type = types.FirstOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t));
-            if (type == null)
-            {
-                throw new InvalidCodeException($"No SmartContract type {abiModule.Name} is defined in the code.");
-            }
-
-            var instance = (ISmartContract) Activator.CreateInstance(type);
-
-//            var ApiSingleton = loadContext.Sdk.GetTypes().FirstOrDefault(x => x.Name.EndsWith("Api"));
-//
-//            if (ApiSingleton == null)
-//            {
-//                throw new InvalidCodeException("No Api was found.");
-//            }
-
-            Executive executive =
-                new Executive(abiModule, _executivePlugins)
-                    .SetSmartContract(instance); //.SetApi(ApiSingleton);
+            var executive = new Executive3(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
 
             return await Task.FromResult(executive);
         }
