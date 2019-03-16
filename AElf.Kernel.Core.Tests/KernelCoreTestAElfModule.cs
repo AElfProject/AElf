@@ -31,10 +31,10 @@ namespace AElf.Kernel
                     new Transaction() {From = Address.Zero, To = Address.Generate(), MethodName = "OutValue"},
                 };
                 var consensusTransactionGenerator = new Mock<ISystemTransactionGenerator>();
-                consensusTransactionGenerator.Setup(m => m.GenerateTransactions(@It.IsAny<Address>(), It.IsAny<long>(),
+                consensusTransactionGenerator.Setup(m => m.GenerateTransactions(It.IsAny<Address>(), It.IsAny<long>(),
                         It.IsAny<Hash>(), ref It.Ref<List<Transaction>>.IsAny))
                     .Callback(
-                        new MockGenerateTransactions((Address @from, long preBlockHeight, Hash previousBlockHash,
+                        new MockGenerateTransactions((Address from, long preBlockHeight, Hash previousBlockHash,
                             ref List<Transaction> generatedTransactions) => generatedTransactions = transactionList));
                     
                 return consensusTransactionGenerator.Object;
