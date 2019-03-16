@@ -16,6 +16,7 @@ namespace AElf.OS
     [DependsOn(
         typeof(CoreOSAElfModule),
         typeof(GrpcNetworkModule),
+        //RPC modules
         typeof(NetRpcAElfModule),
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule))]

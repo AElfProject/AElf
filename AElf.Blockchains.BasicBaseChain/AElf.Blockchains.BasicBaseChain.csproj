@@ -3,8 +3,8 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
+
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
@@ -12,4 +12,8 @@
         <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
+    </ItemGroup>
+
 </Project>

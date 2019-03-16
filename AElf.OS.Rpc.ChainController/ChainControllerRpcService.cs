@@ -35,13 +35,11 @@ namespace AElf.OS.Rpc.ChainController
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
-        private readonly ChainOptions _chainOptions;
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
 
-        public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
+        public ChainControllerRpcService()
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
-            _chainOptions = options.Value;
         }
 
         [JsonRpcMethod("GetCommands")]
@@ -71,7 +69,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
-                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
+                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
 
             return Task.FromResult(response);

@@ -240,6 +240,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.MainChain"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "blockchains", "blockchains", "{F0781B38-6E5B-439B-8071-DF4DF8FC11A1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseChain", "AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj", "{BAE34041-C603-4A7D-BE25-5DD48BD4391E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -602,6 +604,10 @@ Global
 		{6D907620-FE59-4C55-86CD-8299278BC06A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D907620-FE59-4C55-86CD-8299278BC06A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D907620-FE59-4C55-86CD-8299278BC06A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAE34041-C603-4A7D-BE25-5DD48BD4391E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAE34041-C603-4A7D-BE25-5DD48BD4391E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAE34041-C603-4A7D-BE25-5DD48BD4391E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAE34041-C603-4A7D-BE25-5DD48BD4391E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -685,5 +691,6 @@ Global
 		{0597D9D4-D2BB-434C-92C4-76266509D021} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{6B9DF43E-248A-45B2-945B-EA8217C7125B} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{6D907620-FE59-4C55-86CD-8299278BC06A} = {F0781B38-6E5B-439B-8071-DF4DF8FC11A1}
+		{BAE34041-C603-4A7D-BE25-5DD48BD4391E} = {F0781B38-6E5B-439B-8071-DF4DF8FC11A1}
 	EndGlobalSection
 EndGlobal
