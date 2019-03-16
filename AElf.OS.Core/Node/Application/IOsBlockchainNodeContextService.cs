@@ -62,6 +62,7 @@ namespace AElf.OS.Node.Application
             });
         }
 
+        //TODO: AddGenesisSmartContract no case cover [Case]
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name)
         {
@@ -172,6 +173,7 @@ namespace AElf.OS.Node.Application
             };
         }
 
+        //TODO: StopAsync need case cover [Case]
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)
         {
             await _networkServer.StopAsync();

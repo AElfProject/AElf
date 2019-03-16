@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -135,7 +136,6 @@ namespace AElf.Kernel.SmartContract.Domain
             await _blockStateSets.SetAsync(GetKey(blockStateSet), blockStateSet);
         }
 
-        //TODO: Add MergeBlockStateAsync [Case] 
         public async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash)
         {
             var blockState = await _blockStateSets.GetAsync(blockStateHash.ToStorageKey());
@@ -156,11 +156,6 @@ namespace AElf.Kernel.SmartContract.Domain
 
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
             {
-                if (chainStateInfo.Status != ChainStateMergingStatus.Common)
-                {
-                    throw new InvalidOperationException("another merging");
-                }
-
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;
                 chainStateInfo.MergingBlockHash = blockStateHash;
 
