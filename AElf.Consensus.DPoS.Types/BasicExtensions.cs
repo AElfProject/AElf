@@ -327,7 +327,7 @@ namespace AElf.Consensus.DPoS
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.TermNumber = round.TermNumber;
             nextRound.BlockchainAge =
-                (long) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalMinutes;
+                (long) (timestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes;
 
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
