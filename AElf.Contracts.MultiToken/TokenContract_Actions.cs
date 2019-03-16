@@ -54,15 +54,29 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
+        public Nothing Lock(LockInput input)
+        {
+            AssertLockAddress(input.Symbol, input.To);
+            AssertValidToken(input.Symbol, input.Amount);
+            var lockAddress = GenerateLockAddress(input.From, input.To, input.TransactionId);
+            DoTransfer(input.From, lockAddress, input.Symbol, input.Amount, input.Usage);
+            return Nothing.Instance;
+        }
+
+        public Nothing Unlock(UnlockInput input)
+        {
+            AssertLockAddress(input.Symbol, input.To);
+            AssertValidToken(input.Symbol, input.Amount);
+            var lockAddress = GenerateLockAddress(input.From, input.To, input.TransactionId);
+            DoTransfer(lockAddress, input.To, input.Symbol, input.Amount, input.Usage);
+            return Nothing.Instance;
+        }
+
         public Nothing TransferFrom(TransferFromInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            Assert(allowance >= input.Amount ||
-                   // If the sender and `to` value are consensus contract address, no need to check the allowance.
-                   (Context.Sender == State.ConsensusContractAddress.Value &&
-                    input.To == State.ConsensusContractAddress.Value && input.Symbol == "ELF"),
-                $"Insufficient allowance.");
+            Assert(allowance >= input.Amount, $"Insufficient allowance.");
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -147,10 +161,12 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public void SetConsensusContractAddress(Address consensusContractAddress)
+        public void SetLockWhiteList(WhiteListInput input)
         {
-            Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
-            State.ConsensusContractAddress.Value = consensusContractAddress;
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo != null && tokenInfo != new TokenInfo(), "Token is not found.");
+            Assert(Context.Sender == State.TokenInfos[input.Symbol].Issuer, "Only issuer can set white list.");
+            State.LockWhiteLists[input.Symbol][input.White] = true;
         }
 
         #region ForTests

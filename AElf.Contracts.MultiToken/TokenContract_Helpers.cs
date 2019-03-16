@@ -38,5 +38,19 @@ namespace AElf.Contracts.MultiToken
                 Memo = memo
             });
         }
+
+        private Address GenerateLockAddress(Address from, Address to, Hash txId)
+        {
+            var bytes = Address.TakeByAddressLength(ByteArrayHelpers.Combine(from.DumpByteArray(), to.DumpByteArray(),
+                txId.DumpByteArray()));
+            return Address.FromBytes(bytes);
+        }
+
+        private void AssertLockAddress(string symbol, Address address)
+        {
+            var symbolState = State.LockWhiteLists[symbol];
+            Assert(symbolState != null, "White list of this symbol not set.");
+            Assert(symbolState[address], "Not in white list.");
+        }
     }
 }

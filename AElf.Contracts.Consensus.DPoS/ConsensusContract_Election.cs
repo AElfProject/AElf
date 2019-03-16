@@ -87,13 +87,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.TransferFrom(new TransferFromInput
+            State.TokenContract.Lock(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection,
-                Memo = "Lock for announcing election."
+                TransactionId = Context.TransactionId,
+                Usage = "Lock for announcing election."
             });
 
             return new ActionResult {Success = true};
@@ -117,12 +118,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.CandidatesField.Value = candidates;
 
-            State.TokenContract.Transfer(new TransferInput
+            State.TokenContract.Unlock(new UnlockInput
             {
-                To = Context.Sender,
+                From = Context.Sender,
+                To = Context.Self,
                 Symbol = "ELF",
+                // TODO: Need the tx id to unlock.
                 Amount = DPoSContractConsts.LockTokenForElection,
-                Memo = "Unlock tickets."
+                Usage = "Unlock tickets."
             });
 
             return new ActionResult {Success = true};
@@ -146,13 +149,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.TransferFrom(new TransferFromInput
+            State.TokenContract.Lock(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = amount,
-                Memo = "Lock for getting tickets."
+                TransactionId = Context.TransactionId,
+                Usage = "Lock for getting tickets."
             });
 
             var currentTermNumber = State.CurrentTermNumberField.Value;
@@ -318,12 +322,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // Sub weight.
             State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
             // Transfer token back to voter.
-            State.TokenContract.Transfer(new TransferInput
+            State.TokenContract.Unlock(new UnlockInput
             {
-                To = Context.Sender,
+                From = Context.Sender,
+                To = Context.Self,
                 Symbol = "ELF",
                 Amount = votingRecord.Count,
-                Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                TransactionId = votingRecord.TransactionId,
+                Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
             });
 
             return State.TicketsMap[votingRecord.From.ToStringValue()];
@@ -373,12 +379,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
                 }
 
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Unlock(new UnlockInput
                 {
-                    To = Context.Sender,
+                    From = Context.Sender,
+                    To = Context.Self,
                     Symbol = "ELF",
                     Amount = votingRecord.Count,
-                    Memo = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                    TransactionId = votingRecord.TransactionId,
+                    Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
                 });
 
                 State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
