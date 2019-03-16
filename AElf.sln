@@ -39,10 +39,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController", "AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj", "{74446502-51C1-48EE-BE10-F7B3551005A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI", "AElf.CLI\AElf.CLI.csproj", "{2B0FCBF9-D72C-4328-874F-29B4466B000D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CLI.Tests", "AElf.CLI.Tests\AElf.CLI.Tests.csproj", "{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Lighthouse", "AElf.Concurrency.Lighthouse\AElf.Concurrency.Lighthouse.csproj", "{55F6997E-DB59-476B-B1D1-65FE4B6D0437}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Contracts", "AElf.Contracts", "{D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}"
@@ -132,6 +128,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
 	protobuf\aelf_options.proto = protobuf\aelf_options.proto
 	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
+	protobuf\test_contract.proto = protobuf\test_contract.proto
+	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
@@ -318,14 +316,6 @@ Global
 		{74446502-51C1-48EE-BE10-F7B3551005A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74446502-51C1-48EE-BE10-F7B3551005A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74446502-51C1-48EE-BE10-F7B3551005A5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2B0FCBF9-D72C-4328-874F-29B4466B000D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55F6997E-DB59-476B-B1D1-65FE4B6D0437}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -616,7 +606,6 @@ Global
 		{6F17E8F3-68F9-46A4-8766-5E003688C742} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{65480B60-CE71-4486-85F4-EBEF8BEEFD98} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{BE325074-BE8D-448D-931B-57F5812F7714} = {4E54480A-D155-43ED-9736-1A5BE7957211}
-		{206C27FB-FD8A-45EE-B99F-9C2BA4E5A0C6} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{7B4C527E-B09B-430D-9D93-9C58D78078E1} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{F3F761B4-914A-4190-93B1-F874CEE9149E} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{D40BEB6B-C370-4A8E-A628-47B6842C975A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
