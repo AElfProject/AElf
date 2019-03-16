@@ -75,6 +75,9 @@ namespace AElf.OS.Network
 
                 mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<long>()))
                     .Returns<long>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
+                
+                mockBlockService.Setup(bs => bs.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
+                    .Returns<Hash, int>((h, cnt) => { return Task.FromResult(blockList); });
             }
 
             var mockBlockChainService = new Mock<IFullBlockchainService>();
@@ -161,6 +164,35 @@ namespace AElf.OS.Network
             Assert.NotNull(b);
 
             await m3.Item1.StopAsync();
+        }
+
+        [Fact]
+        private async Task Request_Blocks_Test()
+        {
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
+
+            var m1 = BuildNetManager(new NetworkOptions {ListeningPort = 6800},
+                null,
+                new List<Block> {genesis});
+
+            var m2 = BuildNetManager(new NetworkOptions
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            
+            var service2 = new NetworkService(m2.Item2);
+            
+            List<Block> b = await service2.GetBlocksAsync(genesis.GetHash(), 5, "");
+            
+            await m1.Item1.StopAsync();
+            await m2.Item1.StopAsync();
+            
+            Assert.NotNull(b);
+
         }
 
         [Fact]
