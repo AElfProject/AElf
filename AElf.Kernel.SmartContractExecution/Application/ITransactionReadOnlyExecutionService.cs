@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -10,6 +12,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
             DateTime currentBlockTime);
+        Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
     }
 
     public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
@@ -54,6 +57,29 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             return trace;
+        }
+
+        public async Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address)
+        {
+            IExecutive executive = null;
+
+            byte[] output;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    chainContext, address);
+                executive.SetDataCache(chainContext.StateCache);
+                output = executive.GetFileDescriptorSet();
+            }
+            finally
+            {
+                if (executive != null)
+                {
+                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);    
+                }
+            }
+
+            return output;
         }
     }
 }

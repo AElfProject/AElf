@@ -130,6 +130,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\peer_service.proto = protobuf\peer_service.proto
 	protobuf\network_types.proto = protobuf\network_types.proto
 	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
+	protobuf\aelf_options.proto = protobuf\aelf_options.proto
+	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
@@ -225,6 +227,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types", "AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj", "{E48703B9-82DD-45F5-8CE6-F81AB0047B18}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp3", "AElf.Runtime.CSharp3\AElf.Runtime.CSharp3.csproj", "{BED61A6F-A339-4F33-ADA6-D41DA8251615}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp3.Tests.TestContract", "AElf.Runtime.CSharp3.Tests.TestContract\AElf.Runtime.CSharp3.Tests.TestContract.csproj", "{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken", "AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj", "{0597D9D4-D2BB-434C-92C4-76266509D021}"
 EndProject
@@ -572,6 +578,14 @@ Global
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0597D9D4-D2BB-434C-92C4-76266509D021}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -668,6 +682,7 @@ Global
 		{2A37A558-8BB1-4F8F-8D16-81014B252400} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
 		{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{0597D9D4-D2BB-434C-92C4-76266509D021} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{6B9DF43E-248A-45B2-945B-EA8217C7125B} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
