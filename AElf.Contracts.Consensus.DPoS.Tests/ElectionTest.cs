@@ -206,7 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             const long amount = 1000;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 10000);
 
             await voter.Vote(candidate.PublicKey, amount, 100);
@@ -223,7 +223,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             const long amount = 1000;
             await Starter.GenerateCandidatesAsync(1);
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             var notCandidate = GenerateNewUser();
@@ -241,7 +241,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const long amount = 100;
             const long voteAmount = 200;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
@@ -258,7 +258,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const long amount = 1000;
             const long voteAmount = 200;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             for (int i = 0; i < 5; i++)
@@ -284,7 +284,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const long voteAmount = 200;
             var candidateLists = await Starter.GenerateCandidatesAsync(5);
 
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             for (int i = 0; i < 5; i++)
@@ -307,7 +307,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const long amount = 1000;
             const long voteAmount = 200;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), amount);
 
             var txResult1 = await voter.Vote(candidate.PublicKey, voteAmount, 89);
@@ -353,11 +353,13 @@ namespace AElf.Contracts.Consensus.DPoS
             const long amount = 1000;
             const int lockTime = 100;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voters = Starter.GenerateVoters(2);
+            var voters = await Starter.GenerateVotersAsync(2);
 
-            for (int i = 0; i < voters.Count; i++)
-                await Starter.IssueTokenAsync(voters[i].GetCallOwnerAddress(), 10000);
-
+            foreach (var voter in voters)
+            {
+                await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 10000);
+            }
+            
             var txResult = await voters[0].Vote(candidate.PublicKey, amount, lockTime);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -422,7 +424,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var lockTimes = new List<int> {90, 180, 365, 730, 1095};
 
             var candidateLists = await Starter.GenerateCandidatesAsync(5);
-            var voter = Starter.GenerateVoters(1)[0];
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
             await Starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 10000);
             var txResultList = new List<TransactionResult>();
             var votingRecordList = new List<VotingRecord>();
@@ -502,11 +504,11 @@ namespace AElf.Contracts.Consensus.DPoS
             var lockTimes = new List<int> {90, 180, 365, 730, 1095};
 
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voters = Starter.GenerateVoters(5);
+            var voters = await Starter.GenerateVotersAsync(5);
             var txResultList = new List<TransactionResult>();
             var votingRecordList = new List<VotingRecord>();
 
-            for (int i = 0; i < voters.Count; i++)
+            for (var i = 0; i < voters.Count; i++)
             {
                 await Starter.IssueTokenAsync(voters[i].GetCallOwnerAddress(), 10000);
                 var txResult = await voters[i].Vote(candidate.PublicKey, amount, lockTimes[i]);

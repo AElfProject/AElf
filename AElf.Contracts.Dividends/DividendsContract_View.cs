@@ -63,24 +63,19 @@ namespace AElf.Contracts.Dividends
                     var totalDividends = State.DividendsMap[i];
                     if (totalDividends > 0)
                     {
-                        Context.LogDebug(()=>$"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
-                        Context.LogDebug(()=>$"Total weights of term {i}: {totalWeights}");
-                        Context.LogDebug(()=>$"Total dividends of term {i}: {totalDividends}");
-                        Context.LogDebug(()=>$"Weights of this vote: {votingRecord.Weight}");
                         dividends += totalDividends * votingRecord.Weight / totalWeights;
-                        Context.LogDebug(()=>$"Result: {dividends}");
                     }
                 }
             }
 
             return dividends;
         }
-        
+
         public long GetExpireTermNumber(VotingRecord votingRecord, long currentAge)
         {
             return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / 7;
         }
-        
+
         public long GetDurationDays(VotingRecord votingRecord, long currentAge)
         {
             var days = currentAge - votingRecord.VoteAge + 1;
@@ -96,7 +91,13 @@ namespace AElf.Contracts.Dividends
         [View]
         public long GetAllAvailableDividends(string publicKey)
         {
-            return State.ConsensusContract.GetTicketsInfo(publicKey).VotingRecords
+            var ticketsInformation = State.ConsensusContract.GetTicketsInfo(publicKey);
+            if (ticketsInformation == null || ticketsInformation.VotingRecords.Any())
+            {
+                return 0;
+            }
+
+            return ticketsInformation.VotingRecords
                 .Where(vr => vr.From == publicKey)
                 .Aggregate<VotingRecord, long>(0,
                     (current, votingRecord) => current + GetAvailableDividends(votingRecord));

@@ -298,6 +298,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return finalExtraBlockProducer;
         }
 
+        public static async Task MineAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
+            List<Transaction> txs)
+        {
+            var block = await miners.First().MineAsync(txs);
+            foreach (var miner in miners.Skip(1))
+            {
+                await miner.ExecuteBlock(block, txs);
+            }
+        }
+
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeRoundAsync(
             this List<ContractTester<DPoSContractTestAElfModule>> miners)
         {
@@ -318,6 +328,13 @@ namespace AElf.Contracts.Consensus.DPoS
             return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
         }
 
+        /// <summary>
+        /// Just change the term number and set dividends stuff, don't update miners list.
+        /// </summary>
+        /// <param name="miners"></param>
+        /// <param name="miningInterval"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Txs of changing term executing failed.</exception>
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeTermAsync(
             this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int miningInterval)
@@ -497,14 +514,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return candidates;
         }
 
-        public static List<ContractTester<DPoSContractTestAElfModule>> GenerateVoters(
-            this ContractTester<DPoSContractTestAElfModule> starter, int number)
+        public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateVotersAsync(
+            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1)
         {
             var voters = new List<ContractTester<DPoSContractTestAElfModule>>();
 
             for (var i = 0; i < number; i++)
             {
-                voters.Add(starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair()));
+                var voter = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+                await starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 1000L);
+                voters.Add(voter);
             }
 
             return voters;

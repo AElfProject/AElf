@@ -325,6 +325,7 @@ namespace AElf.Consensus.DPoS
 
             var miningInterval = round.GetMiningInterval();
             nextRound.RoundNumber = round.RoundNumber + 1;
+            nextRound.TermNumber = round.TermNumber;
             nextRound.BlockchainAge =
                 (long) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalMinutes;
 
@@ -493,8 +494,8 @@ namespace AElf.Consensus.DPoS
 
         public static Hash GetMinersHash(this Miners miners)
         {
-            return Hash.FromString(miners.PublicKeys.OrderBy(p => p.Take(1))
-                .Aggregate("", (current, publicKey) => current + publicKey));
+            var orderedMiners = miners.PublicKeys.OrderBy(p => p);
+            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
 
         public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp,
