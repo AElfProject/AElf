@@ -1,4 +1,4 @@
-﻿using AElf.Common;
+﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
@@ -7,68 +7,24 @@ using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
-using AElf.OS;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
-using AElf.OS.Rpc.ChainController;
-using AElf.OS.Rpc.Net;
-using AElf.OS.Rpc.Wallet;
-using AElf.Runtime.CSharp;
-using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
-using AElf.RuntimeSetup;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
-using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.TestLauncher
+namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
-        typeof(AbpAutofacModule),
-        typeof(AbpAspNetCoreMvcModule),
-        typeof(DPoSConsensusAElfModule),
-        typeof(KernelAElfModule),
-        typeof(OSAElfModule),
-        typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
-        typeof(GrpcNetworkModule),
-        typeof(ChainControllerRpcModule),
-        typeof(WalletRpcModule),
-        typeof(NetRpcAElfModule)
+        typeof(BasicBaseChainAElfModule)
     )]
-    public class MainBlockchainAElfModule : AElfModule
+    public class MainChainAElfModule : AElfModule
     {
-        public ILogger<MainBlockchainAElfModule> Logger { get; set; }
-
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-
-        public MainBlockchainAElfModule()
-        {
-            Logger = NullLogger<MainBlockchainAElfModule>.Instance;
-        }
-
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-        }
-
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var config = context.Services.GetConfiguration();
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]));
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

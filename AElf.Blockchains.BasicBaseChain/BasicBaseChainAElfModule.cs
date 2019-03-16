@@ -28,53 +28,8 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(KernelAElfModule),
         typeof(OSAElfModule)
     )]
-    public class BasicBaseChainAElfModule : AElfModule
+    public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>
     {
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-
-
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-        }
-
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto()
-            {
-                ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero)
-            };
-
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
-                ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
-                DividendsSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
-                ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
-                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
-
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
-        }
         
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            var that = this;
-            AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
-        }
     }
 }
