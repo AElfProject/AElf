@@ -6,6 +6,7 @@ using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
@@ -50,11 +51,20 @@ namespace AElf.OS
             });
 
             context.Services.AddSingleton<IKeyStore>(o =>
-                Mock.Of<IKeyStore>(
-                    c => c.OpenAsync(nodeAccount, nodeAccountPassword, false) ==
-                         Task.FromResult(AElfKeyStore.Errors.None) &&
-                         c.GetAccountKeyPair(nodeAccount) == ecKeyPair)
-            );
+            {
+                var keyStore = new Mock<IKeyStore>();
+                ECKeyPair keyPair = null;
+
+                keyStore.Setup(k => k.GetAccountKeyPair(It.IsAny<string>())).Returns(() => keyPair);
+
+                keyStore.Setup(k => k.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(() =>
+                {
+                    keyPair = ecKeyPair;
+                    return Task.FromResult(AElfKeyStore.Errors.None);
+                });
+
+                return keyStore.Object;
+            });
 
             context.Services.AddTransient<AccountService>();
         }
