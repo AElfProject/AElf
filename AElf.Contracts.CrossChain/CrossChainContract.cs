@@ -59,7 +59,8 @@ namespace AElf.Contracts.CrossChain
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
-                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0, "Invalid chain creation request.");
+                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0 &&
+                request.LockedTokenAmount > request.IndexingPrice, "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
@@ -394,15 +395,16 @@ namespace AElf.Contracts.CrossChain
                 // indexing fee
                 var indexingPrice = info.IndexingPrice;
                 var lockedToken = State.IndexingBalance[chainId];
-                // locked token not enough 
+
+                lockedToken -= indexingPrice;
+                State.IndexingBalance[chainId] = lockedToken;
+                
                 if (lockedToken < indexingPrice)
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
-                    State.SideChainInfos[chainId] = info;
-                    continue;
                 }
+                State.SideChainInfos[chainId] = info;
 
-                State.IndexingBalance[chainId] = lockedToken - indexingPrice;
                 State.TokenContract.Transfer(new TransferInput
                 {
                     To = Context.Sender,
@@ -411,7 +413,7 @@ namespace AElf.Contracts.CrossChain
                     Memo = "Index fee."
                 });
 
-                State.CurrentSideChainHeight[chainId] = target;
+                State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.Add(blockInfo);
                 //binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 //indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);

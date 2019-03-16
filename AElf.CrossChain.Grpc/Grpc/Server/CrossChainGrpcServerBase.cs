@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Grpc
     public class CrossChainGrpcServerBase : CrossChainRpc.CrossChainRpcBase, ISingletonDependency
     {
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
-        private ILocalEventBus LocalEventBus { get; }
+        public ILocalEventBus LocalEventBus { get; set; }
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
         private readonly ICrossChainService _crossChainService;
         private readonly ILocalLibService _localLibService;
@@ -29,7 +29,6 @@ namespace AElf.CrossChain.Grpc
             _crossChainService = crossChainService;
             _blockExtraDataExtractor = blockExtraDataExtractor;
             _localLibService = localLibService;
-            Logger = NullLogger<CrossChainGrpcServerBase>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
@@ -168,11 +167,12 @@ namespace AElf.CrossChain.Grpc
                 {
                     TargetIp = splitRes[1],
                     TargetPort = request.ListeningPort,
-                    RemoteChainId = request.SideChainId,
+                    RemoteChainId = request.ChainId,
                     RemoteIsSideChain = true,
-                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.SideChainId)
+                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.ChainId)
                 }
             });
+            Logger.LogWarning($"Hand shake from chain {request.ChainId}");
             return Task.FromResult(new IndexingHandShakeReply{Result = true});
         }
 

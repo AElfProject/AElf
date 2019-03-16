@@ -83,20 +83,20 @@ namespace AElf.CrossChain.Grpc
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
-                TryRequest(client, c => c.StartIndexingRequest(chainId, _crossChainDataProducer));
+                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, _crossChainDataProducer));
             }
         }
 
-        private Task<T> TryRequest<T>(IGrpcCrossChainClient client, Func<IGrpcCrossChainClient, Task<T>> requestFunc)
+        private async Task<T> TryRequest<T>(IGrpcCrossChainClient client, Func<IGrpcCrossChainClient, Task<T>> requestFunc)
         {
             try
             {
-                return requestFunc(client);
+                return await requestFunc(client);
             }
             catch (Exception e) when (e is ChainCacheNotFoundException || e is RpcException)
             {
                 Logger.LogWarning(e.Message);
-                return null;
+                return default(T);
             }
         }
         

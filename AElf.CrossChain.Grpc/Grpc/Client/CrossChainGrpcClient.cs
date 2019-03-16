@@ -11,13 +11,7 @@ namespace AElf.CrossChain.Grpc
 {
     public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
-        public ILogger<CrossChainGrpcClient<TResponse>> Logger { get; set; }
-
-        protected CrossChainGrpcClient()
-        {
-            Logger = NullLogger<CrossChainGrpcClient<TResponse>>.Instance;
-        }
-        
+        protected CrossChainRpc.CrossChainRpcClient Client;
 //        private int _initInterval;
 //        private int _adjustedInterval;
 //        private const int UnavailableConnectionInterval = 1_000;
@@ -192,7 +186,16 @@ namespace AElf.CrossChain.Grpc
             return responseReaderTask;
         }
 
-        public abstract Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort);
+        public Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort)
+        {
+            var handShakeReply = Client.CrossChainIndexingShake(new IndexingHandShake
+            {
+                ChainId = chainId,
+                ListeningPort = localListeningPort
+                // use formatted chainId as certificate name, which can be changed later.  
+            });
+            return Task.FromResult(handShakeReply);
+        }
 
         //protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
 
@@ -205,7 +208,6 @@ namespace AElf.CrossChain.Grpc
         /// <param name="uriStr"></param>
         /// <param name="crt">Certificate</param>
         /// <returns></returns>
-        /// <exception cref="CertificateException"></exception>
         protected Channel CreateChannel(string uriStr, string crt)
         {
             var channelCredentials = new SslCredentials(crt);
@@ -216,11 +218,10 @@ namespace AElf.CrossChain.Grpc
     
     public class GrpcClientForSideChain : CrossChainGrpcClient<ResponseSideChainBlockData>
     {
-        private readonly CrossChainRpc.CrossChainRpcClient _client;
 
         public GrpcClientForSideChain(string uri, string certificate)
         {
-            _client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
+            Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
         }
 
 //        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseSideChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
@@ -230,36 +231,34 @@ namespace AElf.CrossChain.Grpc
 //                : _client.RequestSideChainDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
 //        }
 
-        public override Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort)
-        {
-            // dont handshake with side chain.
-            throw new NotImplementedException();
-        }
+//        public override Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort)
+//        {
+//            // dont handshake with side chain.
+//            return await Client.CrossChainIndexingShakeAsync(new IndexingHandShake
+//            {
+//                SideChainId = remoteChainId,
+//                ListeningPort = localListeningPort
+//                // use formatted chainId as certificate name, which can be changed later.  
+//            });
+//        }
 
         protected override AsyncServerStreamingCall<ResponseSideChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return _client.RequestIndexingSideChain(requestCrossChainBlockData);
+            return Client.RequestIndexingSideChain(requestCrossChainBlockData);
         }
     }
     
     public class GrpcClientForParentChain : CrossChainGrpcClient<ResponseParentChainBlockData>
     {
-        private readonly CrossChainRpc.CrossChainRpcClient _client;
-
         public GrpcClientForParentChain(string uri, string certificate)
         {
-            _client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
+            Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
         }
 
-        public override Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort)
-        {
-            return Task.FromResult(_client.CrossChainIndexingShake(new IndexingHandShake
-            {
-                SideChainId = remoteChainId,
-                ListeningPort = localListeningPort
-                // use formatted chainId as certificate name, which can be changed later.  
-            }));
-        }
+//        public override async Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort)
+//        {
+//            
+//        }
 
 //        protected override AsyncDuplexStreamingCall<RequestCrossChainBlockData, ResponseParentChainBlockData> CallWithDuplexStreaming(int milliSeconds = 0)
 //        {
@@ -270,14 +269,14 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<ResponseParentChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return _client.RequestIndexingParentChain(requestCrossChainBlockData);
+            return Client.RequestIndexingParentChain(requestCrossChainBlockData);
         }
     }
 
     public interface IGrpcCrossChainClient
     {
         //Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
-        Task<IndexingHandShakeReply> TryHandShakeAsync(int remoteChainId, int localListeningPort);
+        Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
         Task<bool> StartIndexingRequest(int remoteChainaId, ICrossChainDataProducer crossChainDataProducer);
     }
 }
