@@ -1,4 +1,6 @@
-﻿using AElf.Modularity;
+﻿using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.TransactionPool.Tests
@@ -11,7 +13,7 @@ namespace AElf.Kernel.TransactionPool.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+            context.Services.AddSingleton<TxHub>();
         }
     }
 }

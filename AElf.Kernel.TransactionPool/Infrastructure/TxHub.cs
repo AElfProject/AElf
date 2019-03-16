@@ -200,6 +200,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 await _transactionManager.AddTransactionAsync(transaction);
 
+                if (_bestChainHash == Hash.Empty)
+                {
+                    continue;
+                }
+
                 var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
                 CheckPrefixForOne(receipt, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(receipt);

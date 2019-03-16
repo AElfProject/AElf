@@ -2,8 +2,8 @@
 
 namespace AElf.Kernel.TransactionPool.Tests
 {
-    public class TransactionPoolTestBase:AElfIntegratedTest<TransactionPoolAElfModule>
+    public class TransactionPoolTestBase : AElfIntegratedTest<TransactionPoolTestAElfModule>
     {
-        
+
     }
 }
