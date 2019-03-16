@@ -42,7 +42,6 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<SmartContractBridgeService>.Instance;
         }
 
-
         public void LogDebug(Func<string> func)
         {
             Logger.LogDebug(func());
