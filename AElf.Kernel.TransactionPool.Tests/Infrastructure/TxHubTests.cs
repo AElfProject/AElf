@@ -27,7 +27,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         }
         
         [Fact]
-        public async Task Get_ExecutableTransactionSet_ReturnEmpty()
+        public async Task Test_TxHub()
         {
             {
                 // Empty transaction pool
