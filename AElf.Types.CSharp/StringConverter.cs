@@ -117,7 +117,7 @@ namespace AElf.Types.CSharp
                         return o => $@"""{parser(o)}""";
                     }
 
-                    return parser;
+                    return o => parser(o).ToLower();
                 }
             }
 

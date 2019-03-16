@@ -236,5 +236,10 @@ namespace AElf.Runtime.CSharp
 
             return handler.BytesToReturnType(bytes);
         }
+
+        public byte[] GetFileDescriptorSet()
+        {
+            return new byte[0];
+        }
     }
 }
