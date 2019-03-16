@@ -5,19 +5,19 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
-namespace AElf.Kernel.TransactionPool.Tests.Infrastructure
+namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class TxHubTests : TransactionPoolTestBase
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;
+        
         public TxHubTests()
         {
             _txHub = GetRequiredService<TxHub>();
