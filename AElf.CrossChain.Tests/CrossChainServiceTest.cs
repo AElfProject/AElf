@@ -93,7 +93,7 @@ namespace AElf.CrossChain
             };
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockSideChainBlockData}};
             AddFakeCacheData(fakeCache);
-            _crossChainTestHelper.AddFakeSideChainIdHeight(stubChainId, 1);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(stubChainId, 0);
 
             var res = await _crossChainService.ValidateSideChainBlockDataAsync(
                 mockSideChainBlockData.Select(scb => (SideChainBlockData) scb).ToList(), Hash.Empty, 1);
@@ -145,7 +145,7 @@ namespace AElf.CrossChain
                 }
             };
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{stubChainId, mockParentChainBlockData}};
-            _crossChainTestHelper.AddFakeParentChainIdHeight(stubChainId, 1);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(stubChainId, 0);
             AddFakeCacheData(fakeCache);
            
             var res = await _crossChainService.ValidateParentChainBlockDataAsync(

@@ -16,14 +16,10 @@ namespace AElf.CrossChain
     {
         private readonly IBlockExtraDataProvider _crossChainBlockExtraDataProvider;
         private readonly CrossChainTestHelper _crossChainTestHelper;
-        private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly ICrossChainDataProducer _crossChainDataProducer;
         public CrossChainBlockExtraDataProviderTest()
         {
             _crossChainBlockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
-            _crossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
-            _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
         }
         
         [Fact(Skip = "Return value would be null.")]
@@ -59,10 +55,6 @@ namespace AElf.CrossChain
             int chainId1 = ChainHelpers.GetRandomChainId();
             int chainId2 = ChainHelpers.GetRandomChainId();
             int chainId3 = ChainHelpers.GetRandomChainId();
-
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId1);
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId2);
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId3);
             var fakeSideChainBlockDataList = new List<SideChainBlockData>
             {
                 new SideChainBlockData
@@ -85,25 +77,29 @@ namespace AElf.CrossChain
                 }
             };
             
-            _crossChainDataProducer.AddNewBlockInfo(fakeSideChainBlockDataList[0]);
-            _crossChainDataProducer.AddNewBlockInfo(fakeSideChainBlockDataList[1]);          
-            _crossChainDataProducer.AddNewBlockInfo(fakeSideChainBlockDataList[2]);
+            var list1 = new List<IBlockInfo>();
+            var list2 = new List<IBlockInfo>();
+            var list3 = new List<IBlockInfo>();
+            
+            list1.Add(fakeSideChainBlockDataList[0]);
+            list2.Add(fakeSideChainBlockDataList[1]);          
+            list3.Add(fakeSideChainBlockDataList[2]);
 
             for (int i = 2; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 2; i++)
             {
-                _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+                list1.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
                     TransactionMKRoot = fakeMerkleTreeRoot1,
                     SideChainId = chainId1
                 });
-                _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+                list2.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
                     TransactionMKRoot = fakeMerkleTreeRoot2,
                     SideChainId = chainId2
                 });
-                _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+                list3.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
                     TransactionMKRoot = fakeMerkleTreeRoot3,
@@ -111,9 +107,14 @@ namespace AElf.CrossChain
                 });
                 
             }
+
+            AddFakeCacheData(new Dictionary<int, List<IBlockInfo>>
+            {
+                {chainId1, list1},
+                {chainId2, list2},
+                {chainId3, list3}
+            });
             
-//            fakeIndexedCrossChainBlockData.SideChainBlockData.AddRange(fakeSideChainBlockDataList);
-//            _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(1, fakeIndexedCrossChainBlockData);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);

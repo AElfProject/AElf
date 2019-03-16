@@ -52,7 +52,8 @@ namespace AElf.CrossChain
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
             // first check identity with the root in header
-            if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot))
+            if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot) ||
+                extraData == null && !calculatedSideChainTransactionsRoot.Equals(Hash.Empty))
                 return false;
             
             // check cache identity
