@@ -12,6 +12,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Synchronization.Tests;
 using Google.Protobuf;
+using Grpc.Core;
 using Microsoft.Extensions.Options;
 using Moq;
 using Shouldly;
@@ -51,7 +52,7 @@ namespace AElf.OS.Network
         }
 
         private (GrpcNetworkServer, IPeerPool) BuildNetManager(NetworkOptions networkOptions,
-            Action<object> eventCallBack = null, List<Block> blockList = null)
+            Action<object> eventCallBack = null, List<Block> blockList = null,  bool withAuth = false)
         {
             var optionsMock = new Mock<IOptionsSnapshot<NetworkOptions>>();
             optionsMock.Setup(m => m.Value).Returns(networkOptions);
@@ -71,13 +72,13 @@ namespace AElf.OS.Network
             if (blockList != null)
             {
                 mockBlockService.Setup(bs => bs.GetBlockByHashAsync(It.IsAny<Hash>()))
-                    .Returns<Hash>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
+                    .Returns<Hash>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.GetHash() == h)));
 
                 mockBlockService.Setup(bs => bs.GetBlockByHeightAsync(It.IsAny<long>()))
-                    .Returns<long>((h) => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
+                    .Returns<long>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
                 
                 mockBlockService.Setup(bs => bs.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
-                    .Returns<Hash, int>((h, cnt) => { return Task.FromResult(blockList); });
+                    .Returns<Hash, int>((h, cnt) => Task.FromResult(blockList));
             }
 
             var mockBlockChainService = new Mock<IFullBlockchainService>();
@@ -88,13 +89,66 @@ namespace AElf.OS.Network
             GrpcPeerPool grpcPeerPool = new GrpcPeerPool(optionsMock.Object, accountService, mockBlockService.Object);
             GrpcServerService serverService = new GrpcServerService(grpcPeerPool, mockBlockService.Object, accountService);
             serverService.EventBus = mockLocalEventBus.Object;
+            
+            AuthInterceptor authInterceptor = null;
+            if (withAuth)
+                authInterceptor = new AuthInterceptor(grpcPeerPool);
 
-            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, null);
+            GrpcNetworkServer netServer = new GrpcNetworkServer(optionsMock.Object, serverService, grpcPeerPool, authInterceptor);
             netServer.EventBus = mockLocalEventBus.Object;
             
             _servers.Add(netServer);
 
             return (netServer, grpcPeerPool);
+        }
+        
+        [Fact]
+        public async Task AtuhInterceptor_MethodWithoutAuth_ThrowsRpcException()
+        {
+            // setup 2 peers
+            var m1 = BuildNetManager(new NetworkOptions {
+                ListeningPort = 6800 
+            }, null, null, true);
+            
+            await m1.Item1.StartAsync();
+            
+            Channel chan = new Channel("127.0.0.1:6800", ChannelCredentials.Insecure);
+            var client = new PeerService.PeerServiceClient(chan);
+            
+            var e = Assert.Throws<RpcException>(() => client.RequestBlocks(new BlocksRequest()));
+
+            await chan.ShutdownAsync();
+            
+            Assert.True(e.StatusCode == StatusCode.Cancelled);
+        }
+        
+        [Fact]
+        public async Task AuthInterceptor_WithAuth_IsValid()
+        {
+            var genesis = ChainGenerationHelpers.GetGenesisBlock();
+            
+            var m1 = BuildNetManager(new NetworkOptions
+            {
+                ListeningPort = 6800
+            }, null, new List<Block> { genesis });
+            
+            var m2 = BuildNetManager(new NetworkOptions 
+            {
+                BootNodes = new List<string> {"127.0.0.1:6800"},
+                ListeningPort = 6801
+            });
+            
+            await m1.Item1.StartAsync();
+            await m2.Item1.StartAsync();
+            
+            Channel chan = new Channel("127.0.0.1:6800", ChannelCredentials.Insecure);
+            var client = new PeerService.PeerServiceClient(chan);
+            
+            var blocks = client.RequestBlocks(new BlocksRequest());
+
+            await chan.ShutdownAsync();
+            
+            Assert.True(blocks.Blocks.Count == 1);
         }
 
         [Fact]
