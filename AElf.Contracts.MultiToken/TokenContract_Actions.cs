@@ -33,6 +33,11 @@ namespace AElf.Contracts.MultiToken
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
+            foreach (var address in input.LockWhiteList)
+            {
+                State.LockWhiteLists[input.Symbol][address] = true;
+            }
+            
             return Nothing.Instance;
         }
 
@@ -44,10 +49,6 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = input.Amount;
-            foreach (var address in input.LockWhiteList)
-            {
-                State.LockWhiteLists[input.Symbol][address] = true;
-            }
             return Nothing.Instance;
         }
 
@@ -62,7 +63,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
-            var lockAddress = GenerateLockAddress(input.From, input.To, input.TransactionId);
+            var lockAddress = GenerateLockAddress(input.From, input.To, input.LockId);
             DoTransfer(input.From, lockAddress, input.Symbol, input.Amount, input.Usage);
             return Nothing.Instance;
         }
@@ -71,7 +72,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
-            var lockAddress = GenerateLockAddress(input.From, input.To, input.TransactionId);
+            var lockAddress = GenerateLockAddress(input.From, input.To, input.LockId);
             DoTransfer(lockAddress, input.From, input.Symbol, input.Amount, input.Usage);
             return Nothing.Instance;
         }

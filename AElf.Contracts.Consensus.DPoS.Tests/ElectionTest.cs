@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var candidateInfo = GenerateNewUser();
             await Starter.IssueTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection * 2);
 
-            // Check balance,.
+            // Check balance.
             {
                 var balance = await Starter.GetBalanceAsync(candidateInfo);
                 balance.ShouldBe(DPoSContractConsts.LockTokenForElection * 2);

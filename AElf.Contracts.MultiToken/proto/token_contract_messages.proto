@@ -24,6 +24,7 @@ message CreateInput {
     int32 decimals = 4;
     Address issuer = 5;
     bool is_burnable = 6;
+    repeated Address lockWhiteList = 7;
 }
 
 message IssueInput {
@@ -31,13 +32,12 @@ message IssueInput {
     int64 amount = 2;
     string memo = 3;
     Address to = 4;
-    repeated Address lockWhiteList = 5;
 }
 
 message LockInput {
     Address from = 1; // The one want to lock his token.
     Address to = 2; // The address in white list.
-    Hash transactionId = 3;
+    Hash lock_id = 3;
     string symbol = 4;
     string usage = 5;
     int64 amount = 6;
@@ -46,7 +46,7 @@ message LockInput {
 message UnlockInput {
     Address from = 1; // The one want to lock his token.
     Address to = 2; // The address in white list.
-    Hash transactionId = 3;
+    Hash lock_id = 3;
     string symbol = 4;
     string usage = 5;
     int64 amount = 6;

@@ -69,7 +69,7 @@ namespace AElf.Contracts.Resource.Tests
                     Issuer = Tester.GetCallOwnerAddress(),
                     TotalSupply = 1000_000L,
                     Decimals = 2,
-                    IsBurnable = false
+                    IsBurnable = true
                 });
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
             

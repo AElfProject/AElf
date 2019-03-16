@@ -95,7 +95,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection,
-                TransactionId = Context.TransactionId,
+                LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
             });
 
@@ -125,7 +125,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = "ELF",
-                TransactionId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
+                LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
                 Amount = DPoSContractConsts.LockTokenForElection,
                 Usage = "Unlock tickets."
             });
@@ -157,7 +157,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = amount,
-                TransactionId = Context.TransactionId,
+                LockId = Context.TransactionId,
                 Usage = "Lock for getting tickets."
             });
 
@@ -330,7 +330,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = votingRecord.Count,
-                TransactionId = votingRecord.TransactionId,
+                LockId = votingRecord.TransactionId,
                 Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
             });
 
@@ -387,7 +387,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     To = Context.Self,
                     Symbol = "ELF",
                     Amount = votingRecord.Count,
-                    TransactionId = votingRecord.TransactionId,
+                    LockId = votingRecord.TransactionId,
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
                 });
 

@@ -148,7 +148,6 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return contractTester.GetContractAddress(typeof(DividendsContract));
         }
-        
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
@@ -168,10 +167,11 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = "ELF",
                 Decimals = 2,
-                IsBurnable = false,
+                IsBurnable = true,
                 Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteList = { starter.GetConsensusContractAddress()}
             });
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
             {
@@ -179,7 +179,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
                 To = starter.GetDividendsContractAddress(),
                 Memo = "Set dividends.",
-                LockWhiteList = { starter.GetConsensusContractAddress()}
             });
 
             // Initial consensus contract.
@@ -390,7 +389,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = receiverAddress,
                 Amount = amount,
                 Symbol = "ELF",
-                LockWhiteList = { contractTester.GetConsensusContractAddress()}
             });
         }
 
