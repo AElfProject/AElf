@@ -1,4 +1,4 @@
-git #!/usr/bin/env bash
+#!/usr/bin/env bash
 
 d="Darwin"
 l="Linux"
