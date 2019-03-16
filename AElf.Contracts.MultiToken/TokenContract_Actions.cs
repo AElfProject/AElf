@@ -44,6 +44,10 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = input.Amount;
+            foreach (var address in input.LockWhiteList)
+            {
+                State.LockWhiteLists[input.Symbol][address] = true;
+            }
             return Nothing.Instance;
         }
 
@@ -68,7 +72,7 @@ namespace AElf.Contracts.MultiToken
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
             var lockAddress = GenerateLockAddress(input.From, input.To, input.TransactionId);
-            DoTransfer(lockAddress, input.To, input.Symbol, input.Amount, input.Usage);
+            DoTransfer(lockAddress, input.From, input.Symbol, input.Amount, input.Usage);
             return Nothing.Instance;
         }
 
@@ -159,14 +163,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             return Nothing.Instance;
-        }
-
-        public void SetLockWhiteList(WhiteListInput input)
-        {
-            var tokenInfo = State.TokenInfos[input.Symbol];
-            Assert(tokenInfo != null && tokenInfo != new TokenInfo(), "Token is not found.");
-            Assert(Context.Sender == State.TokenInfos[input.Symbol].Issuer, "Only issuer can set white list.");
-            State.LockWhiteLists[input.Symbol][input.White] = true;
         }
 
         #region ForTests

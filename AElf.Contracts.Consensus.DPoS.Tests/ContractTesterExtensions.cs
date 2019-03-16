@@ -178,7 +178,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
                 To = starter.GetDividendsContractAddress(),
-                Memo = "Set dividends."
+                Memo = "Set dividends.",
+                LockWhiteList = { starter.GetConsensusContractAddress()}
             });
 
             // Initial consensus contract.
@@ -191,10 +192,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToMiners()
                         .GenerateFirstRoundOfNewTerm(miningInterval));
             }
-
-            // Set consensus contract address to token contract.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(
-                nameof(TokenContract.SetConsensusContractAddress), starter.GetConsensusContractAddress());
         }
 
         /// <summary>
@@ -393,6 +390,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = receiverAddress,
                 Amount = amount,
                 Symbol = "ELF",
+                LockWhiteList = { contractTester.GetConsensusContractAddress()}
             });
         }
 

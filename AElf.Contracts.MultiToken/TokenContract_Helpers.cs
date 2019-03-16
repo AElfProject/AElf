@@ -24,6 +24,7 @@ namespace AElf.Contracts.MultiToken
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
         {
+            Assert(from != to, "Can't do transfer to sender itself.");
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance.");
             var balanceOfReceiver = State.Balances[to][symbol];
@@ -41,7 +42,9 @@ namespace AElf.Contracts.MultiToken
 
         private Address GenerateLockAddress(Address from, Address to, Hash txId)
         {
-            var bytes = Address.TakeByAddressLength(ByteArrayHelpers.Combine(from.DumpByteArray(), to.DumpByteArray(),
+            var bytes = Address.TakeByAddressLength(ByteArrayHelpers.Combine(
+                from.DumpByteArray().Take(TypeConsts.AddressHashLength / 3).ToArray(),
+                to.DumpByteArray().Take(TypeConsts.AddressHashLength / 3).ToArray(),
                 txId.DumpByteArray()));
             return Address.FromBytes(bytes);
         }

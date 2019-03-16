@@ -136,6 +136,7 @@ message CandidateInHistory {
     int64 CurrentVotesNumber = 9;
     string Remark = 10;
     Address Address = 11;
+    Hash AnnouncementTransactionId = 12;
 }
 
 message TicketsDictionary {

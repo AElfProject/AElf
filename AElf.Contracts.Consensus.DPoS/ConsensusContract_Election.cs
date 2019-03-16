@@ -76,14 +76,16 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidateHistoryInformation.Aliases.Add(alias);
                     candidateHistoryInformation.CurrentAlias = alias;
                 }
-
+                
+                candidateHistoryInformation.AnnouncementTransactionId = Context.TransactionId;
                 State.HistoryMap[publicKey.ToStringValue()] = candidateHistoryInformation;
             }
             else
             {
                 State.HistoryMap[publicKey.ToStringValue()] = new CandidateInHistory
                 {
-                    CurrentAlias = alias
+                    CurrentAlias = alias,
+                    AnnouncementTransactionId = Context.TransactionId
                 };
             }
 
@@ -123,7 +125,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = "ELF",
-                // TODO: Need the tx id to unlock.
+                TransactionId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
                 Amount = DPoSContractConsts.LockTokenForElection,
                 Usage = "Unlock tickets."
             });

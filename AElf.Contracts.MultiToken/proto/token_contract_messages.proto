@@ -31,6 +31,7 @@ message IssueInput {
     int64 amount = 2;
     string memo = 3;
     Address to = 4;
+    repeated Address lockWhiteList = 5;
 }
 
 message LockInput {
