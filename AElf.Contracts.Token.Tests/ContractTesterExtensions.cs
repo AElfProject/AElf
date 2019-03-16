@@ -40,7 +40,7 @@ namespace AElf.Contracts.Token
                 Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
                 TotalSupply = 100_000,
-                LockWhiteList = {whiteAddresses}
+                LockWhiteList = {whiteAddresses.ToList()}
             });
         }
 

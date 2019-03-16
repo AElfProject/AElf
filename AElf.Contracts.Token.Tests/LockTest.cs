@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -14,9 +15,9 @@ namespace AElf.Contracts.Token
 {
     public class LockTest
     {
-        public ContractTester<TokenContractTestAElfModule> Starter { get; set; }
+        private ContractTester<TokenContractTestAElfModule> Starter { get; set; }
 
-        public Address ConsensusContractAddress => Starter.GetConsensusContractAddress();
+        private Address ConsensusContractAddress => Starter.GetConsensusContractAddress();
 
         public LockTest()
         {
@@ -32,7 +33,7 @@ namespace AElf.Contracts.Token
             // Create token with consensus contract address in white list.
             await Starter.CreateTokenAsync(ConsensusContractAddress);
 
-            var user = GenerateNewUser();
+            var user = GenerateUser();
 
             var tester = Starter.CreateNewContractTester(user);
 
@@ -97,6 +98,38 @@ namespace AElf.Contracts.Token
             }
         }
 
+        [Fact]
+        public async Task Cannot_Lock_To_Address_Not_In_White_List()
+        {
+            const long amount = 100;
+
+            // Create token with white list empty.
+            await Starter.CreateTokenAsync();
+            
+            var user = GenerateUser();
+
+            var tester = Starter.CreateNewContractTester(user);
+
+            await Starter.IssueTokenAsync(user, amount);
+
+            // Try to lock.
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var transactionResult = await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Lock),
+                new LockInput
+                {
+                    From = user,
+                    To = ConsensusContractAddress,
+                    Amount = amount,
+                    Symbol = "ELF",
+                    LockId = lockId,
+                    Usage = "Testing."
+                });
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+        }
+
         private Address GenerateLockAddress(Address from, Address to, Hash lockId)
         {
             var bytes = Address.TakeByAddressLength(ByteArrayHelpers.Combine(
@@ -106,7 +139,7 @@ namespace AElf.Contracts.Token
             return Address.FromBytes(bytes);
         }
 
-        private static User GenerateNewUser()
+        private static User GenerateUser()
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
             var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
