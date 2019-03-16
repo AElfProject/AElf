@@ -53,7 +53,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                //TODO: BestChain hash not equal situation not covered [Case]
                 Logger.LogWarning(
                     $"Attempting to retrieve executable transactions while best chain records don't macth.");
                 return new ExecutableTransactionSet()
@@ -199,6 +198,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 await _transactionManager.AddTransactionAsync(transaction);
+
+                if (_bestChainHash == Hash.Empty)
+                {
+                    continue;
+                }
 
                 var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
                 CheckPrefixForOne(receipt, prefix, _bestChainHeight);
