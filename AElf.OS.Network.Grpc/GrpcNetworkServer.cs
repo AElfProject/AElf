@@ -17,7 +17,7 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
-        public IPeerPool PeerPool { get; }
+        private readonly IPeerPool _peerPool;
         
         private readonly NetworkOptions _networkOptions;
 
@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Grpc
         {
             _serverService = serverService;
             _authInterceptor = authInterceptor;
-            PeerPool = peerPool;
+            _peerPool = peerPool;
             _networkOptions = options.Value;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
@@ -62,7 +62,7 @@ namespace AElf.OS.Network.Grpc
             // Add the provided boot nodes
             if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(PeerPool.AddPeerAsync).ToList();
+                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
@@ -82,7 +82,7 @@ namespace AElf.OS.Network.Grpc
                 // if server already shutdown, we continue and clear the channels.
             }
 
-            foreach (var peer in PeerPool.GetPeers(true))
+            foreach (var peer in _peerPool.GetPeers(true))
             {
                 if (gracefulDisconnect)
                 {

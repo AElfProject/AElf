@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
@@ -15,7 +16,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash);
     }
 
-    public class BlockchainStateMergingService:IBlockchainStateMergingService
+    public class BlockchainStateMergingService : IBlockchainStateMergingService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainStateManager _blockchainStateManager;
@@ -32,6 +33,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+
             Logger.LogInformation(chainStateInfo.ToString());
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
                 ? ChainConsts.GenesisBlockHeight
@@ -41,6 +43,11 @@ namespace AElf.Kernel.SmartContract.Application
             var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ??
                          new List<Hash>();
 
+            if (chainStateInfo.Status != ChainStateMergingStatus.Common)
+            {
+                hashes.Add(chainStateInfo.MergingBlockHash);
+            }
+
             hashes.Reverse();
 
             hashes.Add(lastIrreversibleBlockHash);
@@ -49,6 +56,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 try
                 {
+                    Logger.LogTrace(() => $"chain state info : {chainStateInfo}");
                     Logger.LogInformation($"Merging state for block {hash} at height: {height}");
                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
                 }
