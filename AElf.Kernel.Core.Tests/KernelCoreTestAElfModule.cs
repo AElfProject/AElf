@@ -1,14 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
-using NSubstitute.Extensions;
 using Volo.Abp;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
@@ -47,7 +43,6 @@ namespace AElf.Kernel
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-
         }
     }
 }

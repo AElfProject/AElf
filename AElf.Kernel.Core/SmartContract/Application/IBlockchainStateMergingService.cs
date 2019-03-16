@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 try
                 {
-                    Logger.LogTrace(() => $"chain state info : {chainStateInfo}");
+                    //Logger.LogTrace(() => $"chain state info : {chainStateInfo}");
                     Logger.LogInformation($"Merging state for block {hash} at height: {height}");
                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
                 }
