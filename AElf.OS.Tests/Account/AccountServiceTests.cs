@@ -25,15 +25,6 @@ namespace AElf.OS.Account
         }
 
         [Fact]
-        public async Task GetPublicKey_NotExist()
-        {
-            //delete NodeAccount first
-            
-            var publicKey = await _accountService.GetPublicKeyAsync();
-            Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
-        }
-
-        [Fact]
         public async Task GetAccountTest()
         {
             var account = await _accountService.GetAccountAsync();

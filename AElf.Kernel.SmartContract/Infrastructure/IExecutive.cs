@@ -20,6 +20,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         //ulong GetFee(string methodName);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         object GetReturnValue(string methodName, byte[] bytes);
+        byte[] GetFileDescriptorSet();
 
     }
 }

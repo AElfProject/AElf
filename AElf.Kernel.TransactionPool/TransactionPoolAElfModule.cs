@@ -7,6 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.TransactionPool
 {
+    [DependsOn(typeof(CoreKernelAElfModule))]
     public class TransactionPoolAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
