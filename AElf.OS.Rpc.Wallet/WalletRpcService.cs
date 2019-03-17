@@ -20,13 +20,6 @@ namespace AElf.OS.Rpc.Wallet
         private AElfKeyStore KeyStore =>
             _ks ?? (_ks = new AElfKeyStore(Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet")));
 
-        private readonly ChainOptions _chainOptions;
-
-        public WalletRpcService(IOptionsSnapshot<ChainOptions> options)
-        {
-            _chainOptions = options.Value;
-        }
-
         [JsonRpcMethod("ListAccounts")]
         public async Task<List<string>> ListAccounts()
         {
