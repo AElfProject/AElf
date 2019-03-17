@@ -22,6 +22,24 @@ namespace AElf.Kernel
         {
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
+        }
+
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+        }
+    }
+    
+    [DependsOn(
+        typeof(AbpEventBusModule),
+        typeof(TestBaseKernelAElfModule))]
+    public class KernelMinerTestAElfModule : AElfModule
+    {
+        delegate void MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
+            ref List<Transaction> generatedTransactions);
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+            services.AddTransient<BlockValidationProvider>();
             
             services.AddTransient(provider =>
             {
