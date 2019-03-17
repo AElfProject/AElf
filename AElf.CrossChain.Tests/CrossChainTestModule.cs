@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
@@ -39,6 +40,18 @@ namespace AElf.CrossChain
                 mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
                     .Returns(Address.Generate);
                 return mockSmartContractAddressService.Object;
+            });
+            context.Services.AddTransient(provider =>
+            {
+                var mockBlockChainService = new Mock<IBlockchainService>();
+                mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(() =>
+                {
+                    var chain = new Chain();
+                    var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
+                    chain.LastIrreversibleBlockHeight = crossChainTestHelper.FakeLibHeight;
+                    return Task.FromResult(chain);
+                });
+                return mockBlockChainService.Object;
             });
         }
     }

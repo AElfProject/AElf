@@ -70,6 +70,9 @@ namespace AElf.Contract.CrossChain.Tests
                 ParentChainBlockData = {parentChainBlockData}
             };
 
+            var parentChainIdInState = await Tester.CallContractMethodAsync(CrossChainContractAddress,
+                CrossChainConsts.GetParentChainIdMethodName);
+            
             var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, crossChainBlockData);
             
@@ -286,6 +289,8 @@ namespace AElf.Contract.CrossChain.Tests
             var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
+            var indexingRes = await Tester.GetTransactionResultAsync(indexingTx.GetHash());
+            Assert.True(indexingRes.Status == TransactionResultStatus.Mined);
             var balance = await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.LockedBalance), sideChainId);
             Assert.Equal(lockedToken - 1, balance.DeserializeToInt64());
@@ -396,7 +401,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     ParentChainHeight = 1,
                     ParentChainId = parentChainId,
-                    SideChainTransactionsRoot = merkleTreeRoot
+                    //SideChainTransactionsRoot = merkleTreeRoot
                 }
             };
             long sideChainHeight = 1;
@@ -438,7 +443,10 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     ParentChainHeight = parentChainHeight,
                     ParentChainId = parentChainId,
-                    SideChainTransactionsRoot = merkleTreeRoot
+                    CrossChainExtraData = new CrossChainExtraData
+                    {
+                        SideChainTransactionsRoot = merkleTreeRoot
+                    }
                 }
             };
             long sideChainHeight = 1;

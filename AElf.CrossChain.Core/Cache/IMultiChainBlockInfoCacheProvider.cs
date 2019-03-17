@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
@@ -10,6 +11,7 @@ namespace AElf.CrossChain.Cache
 
         bool ContainsChain(int remoteChainId);
         int Size { get; }
+        IEnumerable<int> CachedChainIds { get; }
     }
     
     public class MultiChainBlockInfoCacheProvider : IMultiChainBlockInfoCacheProvider, ISingletonDependency
@@ -21,6 +23,8 @@ namespace AElf.CrossChain.Cache
         }
 
         public int Size => _blockInfoCaches.Count;
+        public IEnumerable<int> CachedChainIds => _blockInfoCaches.Keys.ToList();
+
         public void AddBlockInfoCache(int remoteChainId, BlockInfoCache blockInfoCache)
         {
             if (blockInfoCache == null)

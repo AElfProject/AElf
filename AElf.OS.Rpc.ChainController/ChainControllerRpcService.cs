@@ -33,6 +33,7 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
+        
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
@@ -65,7 +66,8 @@ namespace AElf.OS.Rpc.ChainController
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            
+            var crossChainContractAddress =
+                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
             var response = new JObject
             {
                 [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
@@ -73,6 +75,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
+                [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
             };
 
@@ -270,9 +273,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraDatas.Any()
-                        ? Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex()
-                        : "",
+                    ["Extra"] = blockInfo.Header.BlockExtraDatas.ToString(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),

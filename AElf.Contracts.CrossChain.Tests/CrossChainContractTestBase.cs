@@ -24,7 +24,6 @@ namespace AElf.Contract.CrossChain.Tests
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
         protected Address ConsensusContractAddress;
-        protected Address AuthorizationContractAddress;
         public CrossChainContractTestBase()
         {
             Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
@@ -32,7 +31,7 @@ namespace AElf.Contract.CrossChain.Tests
             CrossChainContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(CrossChainContract).FullName));
             TokenContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
             ConsensusContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(ConsensusContract).FullName));
-            AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
+//            AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
         }
 
         protected async Task ApproveBalance(long amount)
@@ -70,8 +69,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize),
-                ConsensusContractAddress, TokenContractAddress, AuthorizationContractAddress,
-                parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
+                ConsensusContractAddress, TokenContractAddress, parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
             var tx3 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Issue),
                 new IssueInput
                 {
@@ -80,7 +78,7 @@ namespace AElf.Contract.CrossChain.Tests
                     To = Tester.GetCallOwnerAddress(),
                     Memo = "Initial tokens for testing cross chain contract."
                 });
-            await Tester.MineAsync(new List<Transaction> {tx1, tx2, tx3});
+            await Tester.MineAsync(new List<Transaction> {tx1, tx2,tx3});
         }
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
