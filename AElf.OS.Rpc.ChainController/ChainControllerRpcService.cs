@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
@@ -28,6 +29,7 @@ namespace AElf.OS.Rpc.ChainController
     {
         public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
+        public ITransactionReadOnlyExecutionService TransactionReadOnlyExecutionService { get; set; }
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
@@ -131,6 +133,19 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             return response?.ToHex();
+        }
+
+        [JsonRpcMethod("GetFileDescriptorSet", "address")]
+        public async Task<byte[]> GetFileDescriptorSet(string address)
+        {
+            try
+            {
+                return await this.GetFileDescriptorSetAsync(Address.Parse(address));
+            }
+            catch(Exception e)
+            {
+                throw new JsonRpcServiceException(Error.NotFound, e.Message);
+            }
         }
 
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
