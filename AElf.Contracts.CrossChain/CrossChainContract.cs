@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
@@ -14,19 +15,18 @@ namespace AElf.Contracts.CrossChain
     {
         private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
 
-        public void Initialize(Address consensusContractAddress, Address tokenContractAddress,
-            Address authorizationContractAddress, int parentChainId)
+        public void Initialize(Address consensusContractAddress, Address tokenContractAddress, int parentChainId)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContract.Value = consensusContractAddress;
             State.TokenContract.Value = tokenContractAddress;
-            State.AuthorizationContract.Value = authorizationContractAddress;
+            //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = parentChainId;
         }
 
         [View]
-        public ulong CurrentSideChainSerialNumber()
+        public long CurrentSideChainSerialNumber()
         {
             return State.SideChainSerialNumber.Value;
         }
@@ -59,7 +59,8 @@ namespace AElf.Contracts.CrossChain
             // no need to check authority since invoked in transaction from normal address
             Assert(
                 request.SideChainStatus == SideChainStatus.Apply && request.Proposer != null &&
-                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0, "Invalid chain creation request.");
+                Context.Sender.Equals(request.Proposer) && request.LockedTokenAmount > 0 &&
+                request.LockedTokenAmount > request.IndexingPrice, "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
@@ -115,11 +116,14 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
+//            var miners = State.ConsensusContract.GetCurrentMiners();
+//            Console.WriteLine(miners.PublicKeys.ToString());
             // fire event
             Context.FireEvent(new SideChainCreationRequested
             {
                 ChainId = chainId,
-                Creator = Context.Sender
+                Creator = Context.Sender,
+                Miners = new Miners()
             });
             return chainId;
         }
@@ -211,13 +215,20 @@ namespace AElf.Contracts.CrossChain
         {
             var height = State.CurrentSideChainHeight[chainId];
             Assert(height != 0);
-            return State.CurrentSideChainHeight[chainId];
+            return height;
         }
 
         [View]
         public long GetParentChainHeight()
         {
             return State.CurrentParentChainHeight.Value;
+        }
+
+        public int GetParentChainId()
+        {
+            var parentChainId = State.ParentChainId.Value;
+            Assert(parentChainId != 0);
+            return parentChainId;
         }
 
         [View]
@@ -233,7 +244,8 @@ namespace AElf.Contracts.CrossChain
         public SideChainIdAndHeightDict GetSideChainIdAndHeight()
         {
             var dict = new SideChainIdAndHeightDict();
-            for (var i = 1UL; i < State.SideChainSerialNumber.Value; i++)
+            var serialNumber = State.SideChainSerialNumber.Value;
+            for (long i = 1; i <= serialNumber; i++)
             {
                 int chainId = ChainHelpers.GetChainId(i);
                 var sideChainInfo = State.SideChainInfos[chainId];
@@ -328,9 +340,17 @@ namespace AElf.Contracts.CrossChain
                     AddIndexedTxRootMerklePathInParentChain(indexedBlockInfo.Key, indexedBlockInfo.Value);
                 }
 
-                State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
-                    blockInfo.Root.SideChainTransactionsRoot;
+                // send consensus data shared from main chain  
+                if (blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
+                {
+                    State.ConsensusContract.UpdateMainChainConsensus(bytes.ToByteArray());
+                }
+
                 State.CurrentParentChainHeight.Value = parentChainHeight;
+               
+                if (blockInfo.Root.CrossChainExtraData != null)
+                    State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
+                        blockInfo.Root.CrossChainExtraData.SideChainTransactionsRoot;
             }
         }
 
@@ -375,15 +395,16 @@ namespace AElf.Contracts.CrossChain
                 // indexing fee
                 var indexingPrice = info.IndexingPrice;
                 var lockedToken = State.IndexingBalance[chainId];
-                // locked token not enough 
+
+                lockedToken -= indexingPrice;
+                State.IndexingBalance[chainId] = lockedToken;
+                
                 if (lockedToken < indexingPrice)
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
-                    State.SideChainInfos[chainId] = info;
-                    continue;
                 }
+                State.SideChainInfos[chainId] = info;
 
-                State.IndexingBalance[chainId] = lockedToken - indexingPrice;
                 State.TokenContract.Transfer(new TransferInput
                 {
                     To = Context.Sender,
@@ -392,7 +413,7 @@ namespace AElf.Contracts.CrossChain
                     Memo = "Index fee."
                 });
 
-                State.CurrentSideChainHeight[chainId] = target;
+                State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.Add(blockInfo);
                 //binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 //indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
@@ -460,6 +481,12 @@ namespace AElf.Contracts.CrossChain
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
 
+//            var balance = State.TokenContract.GetBalance(new GetBalanceInput
+//            {
+//                Owner = Context.Sender,
+//                Symbol = "ELF"
+//            });
+//            Console.WriteLine($"{balance.Balance} Balance.");
             // update locked token balance
             State.TokenContract.TransferFrom(new TransferFromInput
             {

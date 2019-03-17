@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
@@ -103,13 +104,16 @@ namespace AElf.OS.Node.Application
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
         private ISmartContractAddressService _smartContractAddressService;
+        private readonly IServiceContainer<INodePlugin> _nodePlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService)
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService, 
+            IServiceContainer<INodePlugin> nodePlugins)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
             _smartContractAddressService = smartContractAddressService;
+            _nodePlugins = nodePlugins;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -144,6 +148,11 @@ namespace AElf.OS.Node.Application
 
             await _networkServer.StartAsync();
 
+            foreach (var nodePlugin in _nodePlugins)
+            {
+                var task = nodePlugin.StartAsync(dto.ChainId);
+            }
+            
             return context;
         }
 
@@ -170,6 +179,11 @@ namespace AElf.OS.Node.Application
             await _networkServer.StopAsync();
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
+            
+            foreach (var nodePlugin in _nodePlugins)
+            {
+                var task = nodePlugin.ShutdownAsync();
+            }
         }
     }
 }

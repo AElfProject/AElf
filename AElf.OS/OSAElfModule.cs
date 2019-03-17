@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common.Application;
+using AElf.CrossChain.Grpc;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Handlers;
@@ -16,6 +17,7 @@ namespace AElf.OS
     [DependsOn(
         typeof(CoreOSAElfModule),
         typeof(GrpcNetworkModule),
+        typeof(GrpcCrossChainAElfModule),
         //RPC modules
         typeof(NetRpcAElfModule),
         typeof(ChainControllerRpcModule),

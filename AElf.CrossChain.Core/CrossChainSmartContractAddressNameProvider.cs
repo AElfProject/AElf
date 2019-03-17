@@ -1,7 +1,6 @@
 using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain

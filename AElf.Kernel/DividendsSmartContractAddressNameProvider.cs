@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract
 {
     public class DividendsSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.Contracts.Dividends.DividendsContract");
+        public static readonly Hash     Name = Hash.FromString("AElf.Contracts.Dividends.DividendsContract");
         public Hash ContractName => Name;
     }
 }

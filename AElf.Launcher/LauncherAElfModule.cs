@@ -1,5 +1,7 @@
-﻿using AElf.Common;
+using System;
+using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -7,6 +9,7 @@ using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using SideChain = AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
@@ -20,7 +23,6 @@ using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -68,7 +70,11 @@ namespace AElf.Launcher
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var config = context.Services.GetConfiguration();
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]));
+            Configure<ChainOptions>(option =>
+            {
+                option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
+                option.IsSideChain = Convert.ToBoolean(config["IsSideChain"]);
+            });
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
@@ -84,16 +90,19 @@ namespace AElf.Launcher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
-                ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
-                DividendsSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
-                ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
-                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            if (chainOptions.IsSideChain)
+            {
+                dto.InitializationSmartContracts.AddGenesisSmartContract(typeof(SideChain.ConsensusContract));
+                ConsensusSmartContractAddressNameProvider.Name = Hash.FromString(typeof(SideChain.ConsensusContract).FullName);
+            }
+            else
+                dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
+            
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(Hash.FromString(typeof(CrossChainContract).FullName));
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
