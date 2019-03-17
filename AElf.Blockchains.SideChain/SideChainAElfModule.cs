@@ -8,6 +8,7 @@ using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;

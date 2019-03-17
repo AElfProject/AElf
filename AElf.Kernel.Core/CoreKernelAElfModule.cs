@@ -28,12 +28,7 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             
-            
-            
             var services = context.Services;
-            
-            var config = services.GetConfiguration();
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]));
 
             services.AddAssemblyOf<CoreKernelAElfModule>();
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();

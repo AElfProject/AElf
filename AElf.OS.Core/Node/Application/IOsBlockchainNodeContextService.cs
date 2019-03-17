@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -12,6 +13,7 @@ using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
@@ -43,42 +45,12 @@ namespace AElf.OS.Node.Application
     public static class GenesisSmartContractDtoExtensions
     {
         public static void AddGenesisSmartContract(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Type smartContractType)
+            Type smartContractType, Hash name = null)
         {
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
                 SmartContractType = smartContractType,
-                SystemSmartContractName = Hash.FromString(smartContractType.FullName)
-            });
-        }
-
-
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
-        {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                SmartContractType = typeof(T),
-                SystemSmartContractName = Hash.FromString(typeof(T).FullName)
-            });
-        }
-
-        //TODO: AddGenesisSmartContract no case cover [Case]
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Hash name)
-        {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                SmartContractType = typeof(T),
                 SystemSmartContractName = name
-            });
-        }
-
-        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
-        {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                SmartContractType = typeof(T),
-                SystemSmartContractName = ConsensusSmartContractAddressNameProvider.Name
             });
         }
 
@@ -89,6 +61,19 @@ namespace AElf.OS.Node.Application
             {
                 AddGenesisSmartContract(genesisSmartContracts, smartContractType);
             }
+        }
+
+
+        //TODO: AddGenesisSmartContract no case cover [Case]
+        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            Hash name = null)
+        {
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name);
+        }
+
+        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
+        {
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name);
         }
     }
 
@@ -107,7 +92,7 @@ namespace AElf.OS.Node.Application
         private readonly IServiceContainer<INodePlugin> _nodePlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService, 
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
             IServiceContainer<INodePlugin> nodePlugins)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
@@ -152,7 +137,7 @@ namespace AElf.OS.Node.Application
             {
                 var task = nodePlugin.StartAsync(dto.ChainId);
             }
-            
+
             return context;
         }
 
@@ -179,7 +164,7 @@ namespace AElf.OS.Node.Application
             await _networkServer.StopAsync();
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
-            
+
             foreach (var nodePlugin in _nodePlugins)
             {
                 var task = nodePlugin.ShutdownAsync();

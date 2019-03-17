@@ -4,6 +4,7 @@ using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
@@ -11,14 +12,14 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel
 {
     [DependsOn(
-        typeof(CoreKernelAElfModule), 
-        typeof(ChainControllerAElfModule), 
+        typeof(CoreKernelAElfModule),
+        typeof(ChainControllerAElfModule),
         typeof(SmartContractAElfModule),
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule))]
+        typeof(TransactionPoolAElfModule),
+        typeof(TokenKernelAElfModule))]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {
-
     }
 }

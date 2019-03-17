@@ -12,6 +12,8 @@ using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
 using AElf.TestBase;
 using Google.Protobuf;
 using Shouldly;
@@ -27,11 +29,10 @@ namespace AElf.Contract.CrossChain.Tests
         public CrossChainContractTestBase()
         {
             Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
-            CrossChainContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(CrossChainContract).FullName));
-            TokenContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
-            ConsensusContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(ConsensusContract).FullName));
-//            AuthorizationContractAddress = Tester.GetContractAddress(Hash.FromString(typeof(AuthorizationContract).FullName));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes()));
+            CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
+            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+            ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
         }
 
         protected async Task ApproveBalance(long amount)

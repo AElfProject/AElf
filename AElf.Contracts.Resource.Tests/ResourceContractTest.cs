@@ -11,6 +11,8 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Types.CSharp;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,7 +22,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Resource.Tests
 {
-    public class ResourceContractTest: ContractTestBase<ResourceContractTestAElfModule>
+    public class ResourceContractTest : ContractTestBase<ResourceContractTestAElfModule>
     {
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair;
@@ -33,12 +35,13 @@ namespace AElf.Contracts.Resource.Tests
         public ResourceContractTest()
         {
             var contractArray = Tester.GetDefaultContractTypes();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray.ToArray()));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray));
 
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
-            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
-            ResourceContractAddress = Tester.GetContractAddress(typeof(ResourceContract));
-            FeeReceiverContractAddress = Tester.GetContractAddress(typeof(FeeReceiverContract));
+            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+            ResourceContractAddress = Tester.GetContractAddress(ResourceSmartContractAddressNameProvider.Name);
+            FeeReceiverContractAddress =
+                Tester.GetContractAddress(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             FeeKeyPair = CryptoHelpers.GenerateKeyPair();
             FoundationKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -47,9 +50,11 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Deploy_Contracts()
         {
-            var tokenTx = await  Tester.GenerateTransactionAsync(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
+            var tokenTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
+                nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-            var resourceTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress, nameof(ISmartContractZero.DeploySmartContract), 2,
+            var resourceTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
+                nameof(ISmartContractZero.DeploySmartContract), 2,
                 File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
 
             await Tester.MineAsync(new List<Transaction> {tokenTx, resourceTx});
@@ -72,7 +77,7 @@ namespace AElf.Contracts.Resource.Tests
                     IsBurnable = false
                 });
             initResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //init balance for Tester
             await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.Issue), new IssueInput
@@ -85,13 +90,15 @@ namespace AElf.Contracts.Resource.Tests
 
             //init fee receiver contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
-            var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Initialize),
+            var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.Initialize),
                 TokenContractAddress, foundationAddress);
             feeReceiverResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //init resource contract
             var feeAddress = Tester.GetAddress(FeeKeyPair);
-            var resourceResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.Initialize),
+            var resourceResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.Initialize),
                 TokenContractAddress, feeAddress, feeAddress);
             resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -103,14 +110,17 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.GetElfTokenAddress));
+            var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.GetElfTokenAddress));
             addressResult.DeserializeToString().ShouldBe(TokenContractAddress.GetFormatted());
 
             var foundationAddress = Tester.GetAddress(FoundationKeyPair).GetFormatted();
-            var address1Result = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.GetFoundationAddress));
+            var address1Result = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.GetFoundationAddress));
             address1Result.DeserializeToString().ShouldBe(foundationAddress);
 
-            var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.GetOwedToFoundation));
+            var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.GetOwedToFoundation));
             balanceResult.DeserializeToInt64().ShouldBe(0);
         }
 
@@ -120,7 +130,8 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             var anotherUser = Tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
-            var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Withdraw),
+            var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.Withdraw),
                 100);
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
             withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
@@ -132,7 +143,8 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
-            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Withdraw),
+            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.Withdraw),
                 100);
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
             withdrawResult.Error.Contains("Too much to withdraw.").ShouldBeTrue();
@@ -144,7 +156,8 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
-            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Withdraw),
+            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.Withdraw),
                 0);
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -155,7 +168,8 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
-            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.WithdrawAll));
+            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                nameof(FeeReceiverContract.WithdrawAll));
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -163,10 +177,11 @@ namespace AElf.Contracts.Resource.Tests
         public async Task FeeReceiver_Burn()
         {
             await Initialize_Resource();
-            
+
             //Give FeeReceiver address some token for burn operation
             var balance = 5;
-            var transferResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Transfer),
+            var transferResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.Transfer),
                 new TransferInput()
                 {
                     Symbol = "ELF",
@@ -175,26 +190,30 @@ namespace AElf.Contracts.Resource.Tests
                     Memo = "Just for burn test"
                 });
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //Check balance before burn
-            var feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
-            {
-                Owner = FeeReceiverContractAddress,
-                Symbol = "ELF"
-            });
+            var feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContract.GetBalance), new GetBalanceInput
+                {
+                    Owner = FeeReceiverContractAddress,
+                    Symbol = "ELF"
+                });
             var balance1 = feeReceiverBalance.DeserializeToPbMessage<GetBalanceOutput>().Balance;
             balance1.ShouldBe(balance);
 
             //Action burn
-            var burnResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress, nameof(FeeReceiverContract.Burn));
+            var burnResult =
+                await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                    nameof(FeeReceiverContract.Burn));
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //Check burned balance.
-            feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
-            {
-                Owner = FeeReceiverContractAddress,
-                Symbol = "ELF"
-            });
+            feeReceiverBalance = await Tester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContract.GetBalance), new GetBalanceInput
+                {
+                    Owner = FeeReceiverContractAddress,
+                    Symbol = "ELF"
+                });
             var balance2 = feeReceiverBalance.DeserializeToPbMessage<GetBalanceOutput>().Balance;
             balance2.ShouldBeLessThan(balance1);
         }
@@ -209,15 +228,18 @@ namespace AElf.Contracts.Resource.Tests
             await Initialize_Resource();
 
             //verify result
-            var tokenAddress = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetElfTokenAddress));
+            var tokenAddress = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetElfTokenAddress));
             tokenAddress.DeserializeToString().ShouldBe(TokenContractAddress.GetFormatted());
 
             var address = Tester.GetAddress(FeeKeyPair);
             var feeAddressString = address.GetFormatted();
-            var feeAddress = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetFeeAddress));
+            var feeAddress =
+                await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetFeeAddress));
             feeAddress.DeserializeToString().ShouldBe(feeAddressString);
 
-            var controllerAddress = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetResourceControllerAddress));
+            var controllerAddress = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetResourceControllerAddress));
             controllerAddress.DeserializeToString().ShouldBe(feeAddressString);
         }
 
@@ -226,7 +248,8 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var cpuConverter = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetConverter), "Cpu");
+            var cpuConverter = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetConverter), "Cpu");
             var cpuString = cpuConverter.DeserializeToString();
             var cpuObj = JsonConvert.DeserializeObject<JObject>(cpuString);
             cpuObj["ResBalance"].ToObject<long>().ShouldBe(1000_000L);
@@ -239,7 +262,8 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var exchangeResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetExchangeBalance), "Cpu");
+            var exchangeResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetExchangeBalance), "Cpu");
             exchangeResult.DeserializeToInt64().ShouldBe(1000_000L);
         }
 
@@ -248,7 +272,8 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var elfResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetElfBalance), "Cpu");
+            var elfResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetElfBalance), "Cpu");
             elfResult.DeserializeToInt64().ShouldBe(1000_000L);
         }
 
@@ -261,11 +286,12 @@ namespace AElf.Contracts.Resource.Tests
             var issueResult = await receiver.ExecuteContractWithMiningAsync(ResourceContractAddress,
                 nameof(ResourceContract.IssueResource),
                 "Cpu", 100_000L);
-            
+
             issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //check result
-            var cpuConverter = await receiver.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetConverter), "Cpu");
+            var cpuConverter = await receiver.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetConverter), "Cpu");
             var cpuString = cpuConverter.DeserializeToString();
             var cpuObj = JsonConvert.DeserializeObject<JObject>(cpuString);
             cpuObj["ResBalance"].ToObject<long>().ShouldBe(1000_000L + 100_000L);
@@ -307,14 +333,16 @@ namespace AElf.Contracts.Resource.Tests
 
             //Check result
             var tokenBalance =
-                await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
-                {
-                    Owner = ownerAddress,
-                    Symbol = "ELF"
-                });
+                await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
+                    new GetBalanceInput
+                    {
+                        Owner = ownerAddress,
+                        Symbol = "ELF"
+                    });
             tokenBalance.DeserializeToPbMessage<GetBalanceOutput>().Balance.ShouldBe(1000_000L - paidElf);
 
-            var cpuBalance = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            var cpuBalance = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 ownerAddress, "Cpu");
             cpuBalance.DeserializeToInt64().ShouldBeGreaterThan(0L);
         }
@@ -386,28 +414,33 @@ namespace AElf.Contracts.Resource.Tests
             await Buy_Resource_WithEnough_Token(1000L);
 
             var ownerAddress = Tester.GetAddress(Tester.KeyPair);
-            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 ownerAddress, "Cpu");
             var resourceBalance1 = resourceResult.DeserializeToInt64();
 
             //Action
-            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.LockResource),
                 100L, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Verify
-            resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 ownerAddress, "Cpu");
             var resourceBalance2 = resourceResult.DeserializeToInt64();
             resourceBalance1.ShouldBe(resourceBalance2 + 100L);
 
-            var lockedResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserLockedBalance),
+            var lockedResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserLockedBalance),
                 ownerAddress, "Cpu");
             var lockedBalance = lockedResult.DeserializeToInt64();
             lockedBalance.ShouldBe(100L);
 
             var controllerAddress = Tester.GetAddress(FeeKeyPair);
-            var controllerResourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            var controllerResourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 controllerAddress, "Cpu");
             var controllerBalance = controllerResourceResult.DeserializeToInt64();
             controllerBalance.ShouldBe(100L);
@@ -418,10 +451,12 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Initialize_Resource();
 
-            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.LockResource),
                 1000L, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            lockResult.Error.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.").ShouldBe(true);
+            lockResult.Error.Contains("System.OverflowException: Arithmetic operation resulted in an overflow.")
+                .ShouldBe(true);
         }
 
         [Fact]
@@ -429,33 +464,39 @@ namespace AElf.Contracts.Resource.Tests
         {
             await Buy_Resource_WithEnough_Token(1000L);
             var ownerAddress = Tester.GetAddress(Tester.KeyPair);
-            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            var resourceResult = await Tester.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 ownerAddress, "Cpu");
             var userBalance0 = resourceResult.DeserializeToInt64();
 
             //Action
-            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.LockResource),
                 100L, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var controllerAddress = Tester.GetAddress(FeeKeyPair);
             var receiver = Tester.CreateNewContractTester(FeeKeyPair);
-            var unlockResult = await receiver.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.UnlockResource),
+            var unlockResult = await receiver.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.UnlockResource),
                 ownerAddress, 50L, "Cpu");
             unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Verify
-            resourceResult = await receiver.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            resourceResult = await receiver.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 ownerAddress, "Cpu");
             var userBalance1 = resourceResult.DeserializeToInt64();
             userBalance0.ShouldBe(userBalance1 + 50L);
 
-            var resource1Result = await receiver.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserBalance),
+            var resource1Result = await receiver.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserBalance),
                 controllerAddress, "Cpu");
             var controllerBalance = resource1Result.DeserializeToInt64();
             controllerBalance.ShouldBe(50L);
 
-            var lockedResult = await receiver.CallContractMethodAsync(ResourceContractAddress, nameof(ResourceContract.GetUserLockedBalance),
+            var lockedResult = await receiver.CallContractMethodAsync(ResourceContractAddress,
+                nameof(ResourceContract.GetUserLockedBalance),
                 ownerAddress, "Cpu");
             var lockedBalance = lockedResult.DeserializeToInt64();
             lockedBalance.ShouldBe(50L);
@@ -468,11 +509,13 @@ namespace AElf.Contracts.Resource.Tests
             var ownerAddress = Tester.GetAddress(Tester.KeyPair);
 
             //Action
-            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.LockResource),
                 100L, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.UnlockResource),
+            var unlockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.UnlockResource),
                 ownerAddress, 50L, "Cpu");
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.Contains("Only the resource controller can perform this action.").ShouldBeTrue();
@@ -485,12 +528,14 @@ namespace AElf.Contracts.Resource.Tests
             var ownerAddress = Tester.GetAddress(Tester.KeyPair);
 
             //Action
-            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.LockResource),
+            var lockResult = await Tester.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.LockResource),
                 100L, "Cpu");
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var receiver = Tester.CreateNewContractTester(FeeKeyPair);
-            var unlockResult = await receiver.ExecuteContractWithMiningAsync(ResourceContractAddress, nameof(ResourceContract.UnlockResource),
+            var unlockResult = await receiver.ExecuteContractWithMiningAsync(ResourceContractAddress,
+                nameof(ResourceContract.UnlockResource),
                 ownerAddress, 200L, "Cpu");
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.Contains("Arithmetic operation resulted in an overflow.").ShouldBeTrue();
@@ -515,7 +560,8 @@ namespace AElf.Contracts.Resource.Tests
                     Spender = ResourceContractAddress,
                     Symbol = "ELF"
                 });
-            Console.WriteLine($"Allowance Query: {ResourceContractAddress} = {allowanceResult1.DeserializeToPbMessage<GetAllowanceOutput>().Allowance}");
+            Console.WriteLine(
+                $"Allowance Query: {ResourceContractAddress} = {allowanceResult1.DeserializeToPbMessage<GetAllowanceOutput>().Allowance}");
         }
 
         #endregion

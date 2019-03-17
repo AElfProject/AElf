@@ -12,6 +12,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -56,6 +57,7 @@ namespace AElf.OS.Rpc.ChainController
             return await Task.FromResult(commandArray);
         }
 
+        //TODO: should not hard code, from SmartContractAddressService
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
