@@ -17,7 +17,7 @@ namespace AElf.Cluster.Application
     {
         public async Task StartAsync(BlockchainApplicationStartDto blockchainApplicationStartDto)
         {
-            await new WebHostBuilder()
+            var builder = new WebHostBuilder()
                 .ConfigureAppConfiguration(config => { config.AddJsonFile("appsettings.json"); })
                 .UseKestrel((builderContext, options) =>
                 {
@@ -30,8 +30,8 @@ namespace AElf.Cluster.Application
                 {
                     services.Configure<ChainOptions>(o =>
                         o.ChainId = blockchainApplicationStartDto.ChainId);
-                })
-                .Build().RunAsync();
+                });
+            await builder.Build().RunAsync();
         }
     }
 }
