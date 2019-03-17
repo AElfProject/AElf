@@ -17,18 +17,14 @@ namespace AElf.OS
     [DependsOn(
         typeof(CoreOSAElfModule),
         typeof(GrpcNetworkModule),
-        typeof(GrpcCrossChainAElfModule),
-        //RPC modules
-        typeof(NetRpcAElfModule),
-        typeof(ChainControllerRpcModule),
-        typeof(WalletRpcModule))]
+        typeof(GrpcCrossChainAElfModule)
+    )]
     public class OSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            
-            
+
 
             context.Services.AddAssemblyOf<OSAElfModule>();
 
