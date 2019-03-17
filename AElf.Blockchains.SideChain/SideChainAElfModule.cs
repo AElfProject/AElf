@@ -1,5 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.Dividends;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource;
