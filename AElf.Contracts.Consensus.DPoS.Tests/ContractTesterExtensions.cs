@@ -132,7 +132,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name));
 
             await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendsContract.Initialize),
+                nameof(DividendContract.Initialize),
                 contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
                 contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name));
         }
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 list =>
                 {
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 });
 
             // Initial token.
@@ -605,7 +605,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendsContract.CheckDividendsOfPreviousTerm));
+                nameof(DividendContract.CheckDividendsOfPreviousTerm));
             return LongList.Parser.ParseFrom(bytes);
         }
 

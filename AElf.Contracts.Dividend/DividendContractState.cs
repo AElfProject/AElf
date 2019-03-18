@@ -9,7 +9,6 @@ namespace AElf.Contracts.Dividend
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Func<long> GetCurrentRoundNumber { get; set; }
         public Func<long> GetCurrentTermNumber { get; set; }
         public Func<long, Round> GetRoundInfo { get; set; }
         public Func<string, Tickets> GetTicketsInformation { get; set; }

@@ -101,7 +101,7 @@ namespace AElf.Launcher
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);

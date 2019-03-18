@@ -7,7 +7,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Dividend
 {
-    public partial class DividendsContract
+    public partial class DividendContract
     {
         /// <summary>
         /// Get dividends of a specific term.

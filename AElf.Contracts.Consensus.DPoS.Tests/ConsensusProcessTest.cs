@@ -117,7 +117,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(), initialTransactions.Transactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(),
+                initialTransactions.Transactions.First().MethodName);
             Assert.Equal(Address.FromPublicKey(testers.Testers[0].KeyPair.PublicKey),
                 initialTransactions.Transactions.First().From);
         }
@@ -175,7 +176,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
             // Act
-            var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformationAsync(stubExtraInformation);
+            var newConsensusInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(stubExtraInformation);
 
             // Assert
             Assert.NotNull(newConsensusInformation);
@@ -199,7 +201,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var triggerInformationForNormalBlock =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
-            var newInformation = await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
+            var newInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
 
             // Act
             var validationResult = await testers.Testers[0].ValidateConsensusAsync(newInformation);
@@ -251,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.True(command.CountingMilliseconds > 0);
             Assert.Equal(4000, command.TimeoutMilliseconds);
         }
-        
+
         [Fact]
         public async Task NextRound_GetNewConsensusInformation()
         {
@@ -268,12 +271,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
-            var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
+            var newConsensusInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
-            Assert.Equal(2L,  newConsensusInformation.Round.RoundNumber);
+            Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
         }
-        
+
         [Fact]
         public async Task NextRound_GenerateConsensusTransactions()
         {
@@ -290,10 +294,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
-            var consensusTransactions = await testers.Testers[1].GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
+            var consensusTransactions = await testers.Testers[1]
+                .GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.NextRound.ToString(),  consensusTransactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.NextRound.ToString(), consensusTransactions.First().MethodName);
         }
 
         [Fact]
@@ -401,33 +406,34 @@ namespace AElf.Contracts.Consensus.DPoS
                 voteTxs.Add(await voter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.Vote), candidate.PublicKey, 1, 100));
             }
+
             await initialMiners.MineAsync(voteTxs);
 
             await initialMiners.RunConsensusAsync(1, true);
-            
+
             // Check term number.
             {
                 var round = await starter.GetCurrentRoundInformationAsync();
                 Assert.Equal(2L, round.TermNumber);
             }
-            
+
+            // Current term number is 2. So only if the blockchain age is in range (`DaysEachTerm` * 2, `DaysEachTerm` * 3],
+            // can one miner change term to 3rd term.
             await initialMiners.ProduceNormalBlocks(minersCount,
                 DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 1).ToTimestamp());
 
-            {
-                var extraBlockMiner = initialMiners.AnyOne();
-                var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 2).ToTimestamp();
-                var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
-                var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
-                
-                // Term changed.
-                Assert.Equal(3L, consensusInformation.Round.TermNumber);
-                
-                // Miners changed to candidates.
-                var miners = consensusInformation.Round.RealTimeMinersInformation.Keys.ToList().ToMiners();
-                Assert.Equal(candidates.Select(m => m.PublicKey).ToList().ToMiners().GetMinersHash(),
-                    miners.GetMinersHash());
-            }
+            var extraBlockMiner = initialMiners.AnyOne();
+            var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 2).ToTimestamp();
+            var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
+            var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+
+            // Term changed.
+            Assert.Equal(3L, consensusInformation.Round.TermNumber);
+
+            // Miners changed to candidates.
+            var miners = consensusInformation.Round.RealTimeMinersInformation.Keys.ToList().ToMiners();
+            Assert.Equal(candidates.Select(m => m.PublicKey).ToList().ToMiners().GetMinersHash(),
+                miners.GetMinersHash());
         }
 
         private DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
@@ -476,8 +482,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public List<ECKeyPair> MinersKeyPairs { get; set; } = new List<ECKeyPair>();
 
-        public List<ContractTester<DPoSContractTestAElfModule>> Testers { get; set; } = new List<ContractTester<DPoSContractTestAElfModule>>();
-        
+        public List<ContractTester<DPoSContractTestAElfModule>> Testers { get; set; } =
+            new List<ContractTester<DPoSContractTestAElfModule>>();
+
         public ContractTester<DPoSContractTestAElfModule> SingleTester { get; set; }
 
         public Address ConsensusContractAddress { get; set; }
@@ -497,7 +504,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }
-        
+
         public void InitialSingleTester()
         {
             SingleTester = new ContractTester<DPoSContractTestAElfModule>(ChainId, CryptoHelpers.GenerateKeyPair());
