@@ -8,6 +8,9 @@
         <Exec Command="yarn install" />
         <Exec Condition="'$(OS)' != 'Windows_NT'" Command="cp -f node_modules/aelf-sdk/dist/aelf.js Scripts/aelf.js" />
         <Exec Condition="'$(OS)' == 'Windows_NT'" Command="copy /b/v/y node_modules\aelf-sdk\dist\aelf.js Scripts\aelf.js" />
+        <ItemGroup>
+            <Content Include="Scripts\aelf.js" CopyToOutputDirectory="PreserveNewest" />
+        </ItemGroup>
     </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
@@ -32,12 +35,6 @@
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Scripts\helpers.js" />
-        <EmbeddedResource Include="Scripts\crypto.js" />
-        <EmbeddedResource Include="Scripts\requestor.js" />
-        <EmbeddedResource Include="Scripts\init-chain.js" />
-        <EmbeddedResource Include="Scripts\contract.js" />
-        <EmbeddedResource Include="Scripts\proposal.js" />
-        <EmbeddedResource Include="Scripts\cross-chain.js" />
+        <None Include="Scripts\**" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 </Project>
