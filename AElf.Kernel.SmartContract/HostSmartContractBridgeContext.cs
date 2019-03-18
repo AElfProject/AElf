@@ -14,6 +14,7 @@ namespace AElf.Kernel.SmartContract
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ISmartContractExecutiveService smartContractExecutiveService)
@@ -85,8 +86,12 @@ namespace AElf.Kernel.SmartContract
         //TODO: Add test case Call [Case]
         public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
         {
+            
+            
             var svc = _smartContractExecutiveService;
-            var transactionContext = new TransactionContext()
+
+            
+            var transactionContext = new TransactionContext
             {
                 Transaction = new Transaction()
                 {
@@ -94,7 +99,12 @@ namespace AElf.Kernel.SmartContract
                     To = address,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-                }
+                },
+                PreviousBlockHash = this.TransactionContext.PreviousBlockHash,
+                CurrentBlockTime = CurrentBlockTime,
+                BlockHeight = this.TransactionContext.BlockHeight,
+                //Trace = trace,
+                CallDepth = 0,
             };
 
             var chainContext = new ChainContext()
