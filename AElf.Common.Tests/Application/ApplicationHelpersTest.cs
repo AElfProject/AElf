@@ -1,9 +1,10 @@
 using System;
 using System.IO;
-using Xunit;
+using AElf.Common.Application;
 using Shouldly;
+using Xunit;
 
-namespace AElf.Common.Application
+namespace AElf.Common
 {
     public class ApplicationHelpersTest
     {

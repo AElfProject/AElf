@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
-using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
     public class TieredStateCache : IStateCache
     {
