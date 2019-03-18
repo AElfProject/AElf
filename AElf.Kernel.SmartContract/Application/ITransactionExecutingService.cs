@@ -137,6 +137,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txCtxt.Trace.StdErr += ex + "\n";
+                throw;
             }
             finally
             {
@@ -175,7 +176,7 @@ namespace AElf.Kernel.SmartContract.Application
                     txRes.DeferredTxnId = deferredTxn.GetHash();
                 }
 
-                return txRes; 
+                return txRes;
             }
 
             return new TransactionResult()
