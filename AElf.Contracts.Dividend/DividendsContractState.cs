@@ -5,7 +5,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Contracts.Dividends
+namespace AElf.Contracts.Dividend
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {

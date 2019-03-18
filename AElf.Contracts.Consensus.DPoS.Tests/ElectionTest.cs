@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;

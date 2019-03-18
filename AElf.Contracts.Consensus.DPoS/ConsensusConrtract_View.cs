@@ -23,6 +23,12 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
+        public Round GetCurrentRoundInformation()
+        {
+            return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
+        }
+
+        [View]
         public long GetCurrentTermNumber()
         {
             return State.CurrentTermNumberField.Value;
@@ -48,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return State.CandidatesField.Value;
         }
-        
+
         [View]
         public string GetCandidatesListToFriendlyString()
         {
@@ -97,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return result;
                 }
-                
+
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
             }
@@ -178,7 +184,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return null;
             }
-            
+
             foreach (var transactionId in tickets.VoteToTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
@@ -188,7 +194,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 }
             }
-                
+
             foreach (var transactionId in tickets.VoteFromTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
@@ -197,7 +203,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     tickets.VotingRecords.Add(votingRecord);
                 }
             }
-                
+
             tickets.VotingRecordsCount = (long) tickets.VotingRecords.Count;
             return tickets;
         }
@@ -213,7 +219,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return State.VotingRecordsMap[transactionId];
         }
-        
+
         [View]
         public long QueryObtainedNotExpiredVotes(string publicKey)
         {
@@ -244,7 +250,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             var tickets = GetTicketsInformation(publicKey);
-            
+
             var count = tickets.VotingRecords.Count;
             var take = Math.Min(length - startIndex, count - startIndex);
 
@@ -304,7 +310,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
-            
+
             var tickets = GetTicketsInformation(publicKey);
 
             foreach (var votingRecord in tickets.VotingRecords)
@@ -379,7 +385,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TicketsDictionary
                 {
                     Maps = {dict},
-                    
+
                 };
             }
 
@@ -404,7 +410,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 
@@ -429,7 +439,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 

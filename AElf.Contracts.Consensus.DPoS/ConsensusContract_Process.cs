@@ -259,11 +259,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        public Round GetCurrentRoundInformation()
-        {
-            return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
-        }
-
         public bool TryToGetPreviousRoundInformation(out Round roundInformation)
         {
             if (TryToGetRoundNumber(out var roundNumber))

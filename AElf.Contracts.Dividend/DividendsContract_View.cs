@@ -5,7 +5,7 @@ using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.Dividends
+namespace AElf.Contracts.Dividend
 {
     public partial class DividendsContract
     {
