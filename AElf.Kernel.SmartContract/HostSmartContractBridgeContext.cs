@@ -82,6 +82,7 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
+        //TODO: Add test case Call [Case]
         public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
         {
             var svc = _smartContractExecutiveService;

@@ -7,6 +7,7 @@ namespace AElf.Kernel
 {
     public partial class Proposal
     {
+        //TODO: Add case to GetHash [Case]
         public Hash GetHash()
         {
             using (var mm = new MemoryStream())
