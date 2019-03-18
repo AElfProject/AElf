@@ -27,7 +27,7 @@
         chain = {
             contractZero: getContractZero(cRes),
             // authorizationContract: getAuthorization(cRes),
-            // crossChainContract: getCrossChain(cRes)
+            crossChainContract: getCrossChain(cRes)
         };
     }
 })();

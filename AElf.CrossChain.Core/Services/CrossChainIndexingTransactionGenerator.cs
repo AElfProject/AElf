@@ -12,6 +12,7 @@ using AElf.Kernel.Types;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -23,6 +24,8 @@ namespace AElf.CrossChain
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
+        public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
+
         public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService,
             ISmartContractAddressService smartContractAddressService)
         {
@@ -30,32 +33,41 @@ namespace AElf.CrossChain
             _smartContractAddressService = smartContractAddressService;
         }
 
-        private async Task<IEnumerable<Transaction>> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
+        private IEnumerable<Transaction> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
-            // todo: should use pre block hash here, not prefix
-            var crossChainBlockData = new CrossChainBlockData();
-            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(null, refBlockNumber);
-            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(null, refBlockNumber);
-            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-
+//            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
+//            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
+//            if (parentChainBlockData.Count == 0 && sideChainBlockData.Count == 0)
+//                return generatedTransactions;
+//            
+//            var crossChainBlockData = new CrossChainBlockData();
+//            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
+//            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
+            
+            var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
-            var generatedTransactions = new List<Transaction>
+            Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
+            
+            // should return the same data already filled in block header.
+            var filledCrossChainBlockData =
+                _crossChainService.GetCrossChainBlockDataFilledInBlock(previousBlockHash, refBlockNumber);
+            
+            // filledCrossChainBlockData == null means no cross chain data filled in this block.
+            if (filledCrossChainBlockData != null)
             {
-                GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
-                    previousBlockPrefix, crossChainBlockData)
-            };
+                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                    previousBlockPrefix, filledCrossChainBlockData));
+            }
+            
             return generatedTransactions;
         }
 
         public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
-            generatedTransactions.AddRange(
-                AsyncHelper.RunSync(
-                    () => GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash)));
+            generatedTransactions.AddRange(GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash));
         }
 
         /// <summary>
@@ -65,7 +77,7 @@ namespace AElf.CrossChain
         /// <param name="methodName"></param>
         /// <param name="refBlockNumber"></param>
         /// <param name=""></param>
-        /// <param name="refBlockPrefix"></param>
+        /// <param name="refBlockPrefix"></param> 
         /// <param name="params"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,

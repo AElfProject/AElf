@@ -7,8 +7,8 @@ namespace AElf.CLI.Commands.CrossChain
     [Verb("gen-cert", HelpText = "Generate certificate for cross chain communication.")]
     public class CertificateGenerationOption : BaseOption
     {
-        [Value(0, HelpText = "Chain id.", Required = true)]
-        public string ChainId { get; set; }
+        [Value(0, HelpText = "Name.", Required = true)]
+        public string Name { get; set; }
 
         [Value(1, HelpText = "Ip address for this node.", Required = true)]
         public string Ip { get; set; }
@@ -25,15 +25,15 @@ namespace AElf.CLI.Commands.CrossChain
 
         public override void Execute()
         {
-            GenerateCertificate(_option.ChainId, _option.Ip);
+            GenerateCertificate(_option.Name, _option.Ip);
         }
 
-        private void GenerateCertificate(string chainId, string ip)
+        private void GenerateCertificate(string name, string ip)
         {
-            Pem.WriteCertificate(_option.DataDir, chainId, ip);
+            Pem.WriteCertificate(_option.DataDir, name, ip);
             Console.WriteLine(
                 $"New generated certificate file with \n" +
-                $"ChainId : {chainId} \n" +
+                $"Name : {name} \n" +
                 $"IP : {ip} \n" +
                 $"Stored in {_option.CertificateDir}");
         }

@@ -10,6 +10,7 @@ namespace AElf.CrossChain
     {
         private readonly Dictionary<int, long> _sideChainIdHeights = new Dictionary<int, long>();
         private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
+        public long FakeLibHeight { get; private set;}
         private readonly Dictionary<long, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<long, CrossChainBlockData>();
         public void AddFakeSideChainIdHeight(int sideChainId, long height)
         {
@@ -92,8 +93,11 @@ namespace AElf.CrossChain
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return null;
             }
-
             return null;
+        }
+        public void SetFakeLibHeight(long height)
+        {
+            FakeLibHeight = height;
         }
     }
 }
