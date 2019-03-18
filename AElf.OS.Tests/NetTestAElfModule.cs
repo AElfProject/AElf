@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -21,16 +22,6 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-//            context.Services.AddTransient<IBlockchainExecutingService>(p =>
-//            {
-//                var mockExec = new Mock<IBlockchainExecutingService>();
-//                mockExec.Setup(exec =>
-//                        exec.ExecuteBlocksAttachedToLongestChain(It.IsAny<Chain>(),
-//                            It.IsAny<BlockAttachOperationStatus>()))
-//                    .Returns<Chain, BlockAttachOperationStatus>((c, a) => Task.FromResult(new List<ChainBlockLink>()));
-//                return mockExec.Object;
-//            });
-
             context.Services.AddTransient<ForkDownloadJob>();
 
             context.Services.AddSingleton<INetworkService, NetworkService>();
@@ -38,39 +29,40 @@ namespace AElf.OS
             context.Services.AddSingleton<IPeerPool>(o =>
             {
                 var blockchainService = context.Services.GetRequiredServiceLazy<IBlockchainService>().Value;
+                var genService = context.Services.GetRequiredServiceLazy<IBlockGenerationService>().Value;
 
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
                 peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
-                    .Returns<Hash, int>((hash, cnt) =>
+                    .Returns<Hash, int>(async (hash, cnt) => 
                     {
                         var blockList = new List<Block>();
 
-                        var chain = blockchainService.GetChainAsync().Result;
+                        var chain = await blockchainService.GetChainAsync();
                         var previousBlockHash = chain.BestChainHash;
+                        long height = chain.BestChainHeight;
+
                         for (var i = chain.BestChainHeight; i < chain.BestChainHeight + 5; i++)
                         {
-                            var blk = new Block
+                            var newBlock = await genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
                             {
-                                Header = new BlockHeader
-                                {
-                                    ChainId = chain.Id,
-                                    Height = i + 1,
-                                    PreviousBlockHash = previousBlockHash
-                                },
-                                Body = new BlockBody()
-                            };
+                                PreviousBlockHash = previousBlockHash,
+                                PreviousBlockHeight = height,
+                                BlockTime = DateTime.UtcNow
+                            });
 
-                            blockList.Add(blk);
-                            previousBlockHash = blk.GetHash();
+                            previousBlockHash = newBlock.GetHash();
+                            height++;
+                            
+                            blockList.Add(newBlock);
                         }
 
-                        return Task.FromResult(blockList);
+                        return blockList;
                     });
 
                 Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
                 peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
-                    .Returns<string>((adr) => peerMock.Object);
+                    .Returns<string>(adr => peerMock.Object);
                 peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
                     .Returns(new List<IPeer> {peerMock.Object});
 

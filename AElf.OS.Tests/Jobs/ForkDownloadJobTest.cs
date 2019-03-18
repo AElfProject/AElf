@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Shouldly;
@@ -17,8 +18,7 @@ namespace AElf.OS.Jobs
             _job = GetRequiredService<ForkDownloadJob>();
         }
 
-        // TODO: Should use real BlockchainExecutingService, and mock complete block
-        [Fact(Skip="Should mock complete block")]
+        [Fact]
         public async Task ExecSyncJob_ShouldSyncChain()
         {
             var initialState = await _blockChainService.GetChainAsync();
