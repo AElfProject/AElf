@@ -39,14 +39,13 @@ namespace AElf.Kernel.Blockchain.Application
 
     public static class BlockchainServiceExtensions
     {
-        public static async Task<BlockHeader> GetBestChainLastBlock(this IBlockchainService blockchainService)
+        public static async Task<BlockHeader> GetBestChainLastBlockHeaderAsync(this IBlockchainService blockchainService)
         {
             var chain = await blockchainService.GetChainAsync();
             return await blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash);
         }
         
-        
-        public static async Task<Block> GetBlockByHeightAsync(this IBlockchainService blockchainService,long height)
+        public static async Task<Block> GetBlockByHeightInBestChainBranchAsync(this IBlockchainService blockchainService,long height)
         {
             var chain = await blockchainService.GetChainAsync();
             var hash = await blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
@@ -242,7 +241,7 @@ namespace AElf.Kernel.Blockchain.Application
             var previousBlockHash = firstHash;
             for (var i = 1; i <= count; i++)
             {
-                var block = await this.GetBlockByHeightAsync(first.Height + i);
+                var block = await this.GetBlockByHeightInBestChainBranchAsync(first.Height + i);
                 if (block == null || block.Header.PreviousBlockHash != previousBlockHash)
                     break;
 

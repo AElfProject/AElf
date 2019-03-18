@@ -465,7 +465,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var mockChain = await MockNewChain();
             
-            var result = await _fullBlockchainService.GetBlockByHeightAsync(mockChain.BestBranchBlocks[3].Height);
+            var result = await _fullBlockchainService.GetBlockByHeightInBestChainBranchAsync(mockChain.BestBranchBlocks[3].Height);
             result.ShouldNotBeNull();
             result.GetHash().ShouldBe(mockChain.BestBranchBlocks[3].GetHash());
         }
@@ -475,7 +475,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var mockChain = await MockNewChain();
             
-            var result = await _fullBlockchainService.GetBlockByHeightAsync(15);
+            var result = await _fullBlockchainService.GetBlockByHeightInBestChainBranchAsync(15);
             result.ShouldBeNull();
         }
 
@@ -556,7 +556,7 @@ namespace AElf.Kernel.Blockchain.Application
             var chain = await _fullBlockchainService.GetChainAsync();
             await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
 
-            var result = await _fullBlockchainService.GetBestChainLastBlock();
+            var result = await _fullBlockchainService.GetBestChainLastBlockHeaderAsync();
             result.Height.ShouldBe(mockChain.BestBranchBlocks.Last().Height);
             result.GetHash().ShouldBe(mockChain.BestBranchBlocks.Last().GetHash());
         }
