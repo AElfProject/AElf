@@ -18,7 +18,6 @@ namespace AElf.CrossChain.Cache
             CrossChainConsts.MinimalBlockInfoCacheThreshold;
         private readonly long _initTargetHeight;
         
-
         public BlockInfoCache(long chainHeight)
         {
             _initTargetHeight = chainHeight;
@@ -26,10 +25,10 @@ namespace AElf.CrossChain.Cache
 
         public long TargetChainHeight()
         {
-            var lastQueuedHeight = LastOneHeightInQueue();
-            if (lastQueuedHeight != 0)
-                return lastQueuedHeight + 1;
-            var lastCachedBlockInfo = LastBlockInfoInCache();
+            var lastQueuedBlockInfo = ToBeIndexedBlockInfoQueue.LastOrDefault();
+            if (lastQueuedBlockInfo != null)
+                return lastQueuedBlockInfo.Height + 1;
+            var lastCachedBlockInfo = CachedIndexedBlockInfoQueue.LastOrDefault();
             if (lastCachedBlockInfo != null) 
                 return lastCachedBlockInfo.Height + 1;
             return _initTargetHeight;
@@ -56,7 +55,8 @@ namespace AElf.CrossChain.Cache
             // clear outdated data
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
-            if (cachedInQueue && !(isCacheSizeLimited && LastOneHeightInQueue() < height + CrossChainConsts.MinimalBlockInfoCacheThreshold))
+            var lastQueuedHeight = ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height ?? 0;
+            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConsts.MinimalBlockInfoCacheThreshold))
             {
                 var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, 
                     CrossChainConsts.WaitingIntervalInMillisecond);
@@ -65,7 +65,6 @@ namespace AElf.CrossChain.Cache
                 return res;
             }
             
-            // this is because of rollback 
             blockInfo = LastBlockInfoInCache(height);
             if (blockInfo != null)
                 return !isCacheSizeLimited ||
@@ -79,15 +78,9 @@ namespace AElf.CrossChain.Cache
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        private IBlockInfo LastBlockInfoInCache(long height = 0)
+        private IBlockInfo LastBlockInfoInCache(long height)
         {
-            return height == 0 ? CachedIndexedBlockInfoQueue.LastOrDefault() 
-                : CachedIndexedBlockInfoQueue.LastOrDefault(c => c.Height == height);
-        }
-
-        private long LastOneHeightInQueue()
-        {
-            return ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height ?? 0;
+            return CachedIndexedBlockInfoQueue.LastOrDefault(c => c.Height == height);
         }
         
         /// <summary>

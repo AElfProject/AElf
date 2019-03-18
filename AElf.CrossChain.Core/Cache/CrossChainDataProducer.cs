@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using AElf.Common;
+using AElf.CrossChain.Cache.Exception;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
@@ -7,6 +11,7 @@ namespace AElf.CrossChain.Cache
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
+        public ILogger<CrossChainDataProducer> Logger { get; set; }
         public CrossChainDataProducer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
         {
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
@@ -24,12 +29,17 @@ namespace AElf.CrossChain.Cache
             return res;
         }
 
-        public long GetChainHeightNeededForCache(int chainId)
+        public long GetChainHeightNeeded(int chainId)
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)
-                throw new Exception("Chain data cache not found.");
+                throw new ChainCacheNotFoundException($"Chain {ChainHelpers.ConvertChainIdToBase58(chainId)} cache not found.");
             return blockInfoCache.TargetChainHeight();
+        }
+
+        public IEnumerable<int> GetCachedChainIds()
+        {
+            return _multiChainBlockInfoCacheProvider.CachedChainIds;
         }
     }
 }
