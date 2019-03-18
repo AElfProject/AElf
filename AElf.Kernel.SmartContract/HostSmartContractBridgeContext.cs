@@ -15,16 +15,16 @@ namespace AElf.Kernel.SmartContract
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ITransactionExecutingService _transactionExecutingService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            ITransactionExecutingService transactionExecutingService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _transactionExecutingService = transactionExecutingService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
         public ITransactionContext TransactionContext { get; set; }
@@ -90,52 +90,32 @@ namespace AElf.Kernel.SmartContract
         //TODO: Add test case Call [Case]
         public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
         {
-            var svc = _smartContractExecutiveService;
-
-            var transactionContext = new TransactionContext
+            TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
-                Transaction = new Transaction()
+                var chainContext = new ChainContext()
+                {
+                    BlockHash = this.TransactionContext.PreviousBlockHash,
+                    BlockHeight = this.TransactionContext.BlockHeight - 1,
+                    StateCache = stateCache
+                };
+
+                var tx = new Transaction()
                 {
                     From = this.Self,
                     To = address,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-                },
-                PreviousBlockHash = this.TransactionContext.PreviousBlockHash,
-                CurrentBlockTime = CurrentBlockTime,
-                BlockHeight = this.TransactionContext.BlockHeight,
-                //Trace = trace,
-                CallDepth = 0,
-            };
-
-            var chainContext = new ChainContext()
-            {
-                BlockHash = this.TransactionContext.PreviousBlockHash,
-                BlockHeight = this.TransactionContext.BlockHeight - 1,
-                StateCache = stateCache
-            };
-            AsyncHelper.RunSync(async () =>
-            {
-                var executive = await svc.GetExecutiveAsync(chainContext, address);
-                executive.SetDataCache(stateCache);
-                try
-                {
-                    // view only, write actions need to be sent via SendInline
-                    await executive.SetTransactionContext(transactionContext).Apply();
-                }
-                finally
-                {
-                    await svc.PutExecutiveAsync(address, executive);
-                }
+                };
+                return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
             });
 
-            if (!transactionContext.Trace.IsSuccessful())
+            if (!trace.IsSuccessful())
             {
                 throw new Exception("Contract reading call failed.");
             }
 
             var decoder = ReturnTypeHelper.GetDecoder<T>();
-            return decoder(transactionContext.Trace.ReturnValue.ToByteArray());
+            return decoder(trace.ReturnValue.ToByteArray());
         }
 
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
