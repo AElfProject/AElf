@@ -22,10 +22,10 @@ message ToUpdate {
     int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
     int32 PromiseTinyBlocks = 4;// This value is 1 by default, except this miner wanna produce tiny blocks in one time slot.
     Hash PreviousInValue = 5;// Publish previous in value for validating previous signature and previous out value.
-    repeated SplitInValue SplitedInValues = 6;// For others to recover his in value of current round.
+    repeated SplittedInValue SplittedInValues = 6;// For others to recover his in value of current round.
 }
 
-message SplitInValue {
+message SplittedInValue {
     string PublicKey = 1;
     Hash SplitedInValue = 2;
 }

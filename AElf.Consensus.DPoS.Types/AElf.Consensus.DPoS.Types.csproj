@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
@@ -23,6 +24,10 @@
       <Content Include="..\protobuf\consensus_dpos.proto">
         <Link>Protobuf/Proto/consensus_dpos.proto</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Moserware.SecretSplitter" Version="0.12.0" />
     </ItemGroup>
 
 </Project>
