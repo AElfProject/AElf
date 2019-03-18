@@ -4,7 +4,7 @@ FILE_NAME="ChakraCore.dll"
 TO_FILE=$1${FILE_NAME}
 FROM_FILE=
 
-if [ -d "./ChakraCoreFiless" ]; then
+if [ -d "./ChakraCoreFiles" ]; then
     mkdir -p scripts/.tmp/chakracore/
     cp -r ./ChakraCoreFiles scripts/.tmp/chakracore/
 else
