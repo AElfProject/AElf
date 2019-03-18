@@ -81,8 +81,9 @@ namespace AElf.Kernel
 
                 var transaction = GenerateTransaction();
                 var transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Failed);
-                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, GenerateTransaction(),
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
                     transactionResult);
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
                 {
@@ -111,8 +112,9 @@ namespace AElf.Kernel
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())}
                 };
                 var transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, GenerateTransaction(),
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
                     transactionResult);
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
                 {
@@ -141,8 +143,9 @@ namespace AElf.Kernel
                     Topics = {ByteString.CopyFrom(Hash.FromString("ErrorEvent").DumpByteArray())}
                 };
                 var transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, GenerateTransaction(),
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
                     transactionResult);
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
                 {
@@ -170,8 +173,9 @@ namespace AElf.Kernel
                     Data = ByteString.CopyFrom(ParamsPacker.Pack(5))
                 };
                 var transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await AttachBlock(chain.BestChainHeight, chain.LongestChainHash, GenerateTransaction(),
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash ,transaction,
                     transactionResult);
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
                 {
@@ -189,9 +193,9 @@ namespace AElf.Kernel
 
         #region check methods
 
-        private async Task LibShouldBe(long libHeight, Hash libHash)
+        private void LibShouldBe(long libHeight, Hash libHash)
         {
-            var chain = await _blockchainService.GetChainAsync();
+            var chain = _blockchainService.GetChainAsync().Result;
             chain.LastIrreversibleBlockHeight.ShouldBe(libHeight);
             chain.LastIrreversibleBlockHash.ShouldBe(libHash);
         }
@@ -233,13 +237,15 @@ namespace AElf.Kernel
                 var block = await AttachBlock(currentHeight, currentHash, transaction, transactionResult);
                 currentHeight = block.Height;
                 currentHash = block.GetHash();
-            }
-//
-            chain = await _blockchainService.GetChainAsync();
-//            await _blockchainService.SetBestChainAsync(chain, currentHeight, currentHash);
 
-            var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 5, chain.BestChainHash);
-            await _blockchainService.SetIrreversibleBlockAsync(chain, 5, libHash);
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetBestChainAsync(chain, currentHeight, currentHash);
+
+                if (currentHeight < 6)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, currentHeight, currentHash);
+                }
+            }
 
             return chain;
         }
@@ -292,7 +298,6 @@ namespace AElf.Kernel
             await _blockchainService.AddBlockAsync(newBlock);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-            await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
             
             await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
 

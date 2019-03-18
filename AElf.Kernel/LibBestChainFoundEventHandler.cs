@@ -66,13 +66,12 @@ namespace AElf.Kernel
                         if (contractEvent.Address != address || !contractEvent.Topics.Contains(ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                             continue;
 
-                        //TODO: HandleEventAsync SetIrreversible logc not covered. [Case]
                         var indexingEventData = ExtractLibFoundData(contractEvent);
                         var offset = (long) indexingEventData[0];
                         var libHeight = eventData.BlockHeight - offset;
                         var chain = await _blockchainService.GetChainAsync();
                         var libHash =
-                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
+                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.LongestChainHash);
 
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, libHash);
                         Logger.LogInformation("Lib setting finished.");
