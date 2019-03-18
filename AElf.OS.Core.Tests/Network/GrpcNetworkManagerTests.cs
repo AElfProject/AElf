@@ -77,7 +77,7 @@ namespace AElf.OS.Network
                 mockBlockService.Setup(bs => bs.GetBlockByHeightInBestChainBranchAsync(It.IsAny<long>()))
                     .Returns<long>(h => Task.FromResult(blockList.FirstOrDefault(bl => bl.Height == h)));
                 
-                mockBlockService.Setup(bs => bs.GetBlocksInBestChainAsync(It.IsAny<Hash>(), It.IsAny<int>()))
+                mockBlockService.Setup(bs => bs.GetBlocksInBestChainBranchAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                     .Returns<Hash, int>((h, cnt) => Task.FromResult(blockList));
             }
 
