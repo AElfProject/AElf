@@ -16,6 +16,6 @@ for i in *Tests ; do
   if [[ $? -ne 0 ]] ; then
     exit 1
   fi
-  sleep 0.05
+  sleep 0.1
 
 done
