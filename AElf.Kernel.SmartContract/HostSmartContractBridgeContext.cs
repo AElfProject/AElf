@@ -6,21 +6,25 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
-    public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext
+    public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        
+        private readonly ITransactionExecutingService _transactionExecutingService;
+
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ISmartContractExecutiveService smartContractExecutiveService,
+            ITransactionExecutingService transactionExecutingService)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _smartContractExecutiveService = smartContractExecutiveService;
+            _transactionExecutingService = transactionExecutingService;
         }
 
         public ITransactionContext TransactionContext { get; set; }
@@ -86,11 +90,8 @@ namespace AElf.Kernel.SmartContract
         //TODO: Add test case Call [Case]
         public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
         {
-            
-            
             var svc = _smartContractExecutiveService;
 
-            
             var transactionContext = new TransactionContext
             {
                 Transaction = new Transaction()

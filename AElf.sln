@@ -208,7 +208,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TestBase", "AEl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain.Tests", "AElf.Contracts.CrossChain.Tests\AElf.Contracts.CrossChain.Tests.csproj", "{1AB21B04-6593-4F63-B2BB-5C6939A764FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Test", "AElf.Common.Test\AElf.Common.Test.csproj", "{2A442741-0593-415F-B801-3AA553E547AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Tests", "AElf.Common.Tests\AElf.Common.Tests.csproj", "{2A442741-0593-415F-B801-3AA553E547AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
