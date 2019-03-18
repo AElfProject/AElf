@@ -12,7 +12,7 @@ namespace AElf.Contracts.Dividend
         public Func<long> GetCurrentRoundNumber { get; set; }
         public Func<long> GetCurrentTermNumber { get; set; }
         public Func<long, Round> GetRoundInfo { get; set; }
-        public Func<string, Tickets> GetTicketsInfo { get; set; }
+        public Func<string, Tickets> GetTicketsInformation { get; set; }
         public Func<long> GetBlockchainAge { get; set; }
     }
 

@@ -91,8 +91,8 @@ namespace AElf.Contracts.Dividend
         [View]
         public long GetAllAvailableDividends(string publicKey)
         {
-            var ticketsInformation = State.ConsensusContract.GetTicketsInfo(publicKey);
-            if (ticketsInformation == null || ticketsInformation.VotingRecords.Any())
+            var ticketsInformation = State.ConsensusContract.GetTicketsInformation(publicKey);
+            if (ticketsInformation == null || !ticketsInformation.VotingRecords.Any())
             {
                 return 0;
             }

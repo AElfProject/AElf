@@ -580,6 +580,22 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetVotingRecord), txId);
             return VotingRecord.Parser.ParseFrom(bytes);
         }
+        
+        public static async Task<Tickets> GetPageableTicketsInfo( this ContractTester<DPoSContractTestAElfModule> contractTester, string publicKey, int startIndex, int length)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetPageableTicketsInfo), publicKey, startIndex, length);
+            return Tickets.Parser.ParseFrom(bytes);
+        }
+
+        public static async Task<Tickets> GetPageableNotWithdrawnTicketsInfo(
+            this ContractTester<DPoSContractTestAElfModule> contractTester, string publicKey, int startIndex,
+            int length)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetPageableNotWithdrawnTicketsInfo), publicKey, startIndex, length);
+            return Tickets.Parser.ParseFrom(bytes);
+        }
 
         #endregion
 
