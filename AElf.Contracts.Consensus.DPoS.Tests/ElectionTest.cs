@@ -459,7 +459,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentTermNumber = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
             var termTotalWeights = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetTermTotalWeights), currentTermNumber)).DeserializeToInt64();
+                nameof(DividendContract.GetTermTotalWeights), currentTermNumber)).DeserializeToInt64();
             termTotalWeights.ShouldBe(votingRecordList[0].Weight + votingRecordList[1].Weight +
                                       votingRecordList[2].Weight + votingRecordList[3].Weight +
                                       votingRecordList[4].Weight);
@@ -470,11 +470,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             //Check duration day 
             var getDurationDays1 = (await voter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetDurationDays), votingRecordList[0], blockAge + 365)).DeserializeToInt64();
+                nameof(DividendContract.GetDurationDays), votingRecordList[0], blockAge + 365)).DeserializeToInt64();
             getDurationDays1.ShouldBe((long)lockTimes[0]);
             
             var getDurationDays2 = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetDurationDays), votingRecordList[3], blockAge + 365)).DeserializeToInt64();
+                nameof(DividendContract.GetDurationDays), votingRecordList[3], blockAge + 365)).DeserializeToInt64();
             getDurationDays2.ShouldBe(blockAge + 365);
             
             //Withdraw all 
@@ -500,7 +500,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentTermNumber1 = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
             var termTotalWeights1 = (await voter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetTermTotalWeights), currentTermNumber1)).DeserializeToInt64();
+                nameof(DividendContract.GetTermTotalWeights), currentTermNumber1)).DeserializeToInt64();
             termTotalWeights1.ShouldBeLessThan(termTotalWeights);
         }
 

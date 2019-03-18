@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
 {
-    public partial class DividendsContract : CSharpSmartContract<DividendsContractState>
+    public partial class DividendContract : CSharpSmartContract<DividendsContractState>
     {
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress)
         {
