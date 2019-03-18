@@ -37,7 +37,7 @@ namespace AElf.Contracts.CrossChain
                 Status = ProposalStatus.ToBeDecided,
                 Proposer = Context.Sender
             };
-            State.AuthorizationContract.Propose(proposal);
+            //State.AuthorizationContract.Propose(proposal);
             return proposal.GetHash();
         }
 
@@ -50,29 +50,29 @@ namespace AElf.Contracts.CrossChain
         }
         private void CheckAuthority(Address fromAddress = null)
         {
-            Assert(fromAddress == null || fromAddress.Equals(Context.Sender), "Not authorized transaction.");
-            if (Context.Transaction.Sigs.Count == 1)
-                // No need to verify signature again if it is not multi sig account.
-                return;
-            var auth = State.AuthorizationContract.GetAuthorization(Context.Sender);
-
-            // Get tx hash
-            var hash = Context.TransactionId.DumpByteArray();
-
-            // Get pub keys
-            var publicKeys = new List<byte[]>();
-            foreach (var sig in Context.Transaction.Sigs)
-            {
-                var publicKey = Context.RecoverPublicKey(sig.ToByteArray(), hash);
-                Assert (publicKey != null, "Invalid signature."); // this should never happen.
-                publicKeys.Add(publicKey);
-            }
-            
-            // review correctness
-            uint provided = publicKeys
-                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
-                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
-            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval.");
+//            Assert(fromAddress == null || fromAddress.Equals(Context.Sender), "Not authorized transaction.");
+//            if (Context.Transaction.Sigs.Count == 1)
+//                // No need to verify signature again if it is not multi sig account.
+//                return;
+//            var auth = State.AuthorizationContract.GetAuthorization(Context.Sender);
+//
+//            // Get tx hash
+//            var hash = Context.TransactionId.DumpByteArray();
+//
+//            // Get pub keys
+//            var publicKeys = new List<byte[]>();
+//            foreach (var sig in Context.Transaction.Sigs)
+//            {
+//                var publicKey = Context.RecoverPublicKey(sig.ToByteArray(), hash);
+//                Assert (publicKey != null, "Invalid signature."); // this should never happen.
+//                publicKeys.Add(publicKey);
+//            }
+//            
+//            // review correctness
+//            uint provided = publicKeys
+//                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
+//                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
+//            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval.");
         }
     }
 }

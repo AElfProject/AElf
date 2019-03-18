@@ -7,6 +7,9 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
+using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Xunit;
 
@@ -20,7 +23,7 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task InitialChainTest()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync(typeof(BasicContractZero));
+            await tester.InitialChainAsync();
 
             var chain = await tester.GetChainAsync();
             var longestChainHeight = chain.LongestChainHeight;
@@ -32,9 +35,9 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task MineTest()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync(typeof(BasicContractZero));
+            await tester.InitialChainAsync();
 
-            var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
+            var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
             // Create a transaction to deploy token contract.
             var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
@@ -57,12 +60,12 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task MultipleNodesTest()
         {
             var tester1 = new ContractTester<ContractTestAElfModule>();
-            await tester1.InitialChainAsync(typeof(BasicContractZero));
+            await tester1.InitialChainAsync();
 
             var tester2 = new ContractTester<ContractTestAElfModule>();
-            await tester2.InitialChainAsync(typeof(BasicContractZero));
+            await tester2.InitialChainAsync();
 
-            var zeroContractAddress = tester1.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
+            var zeroContractAddress = tester1.GetContractAddress(Hash.Empty);
 
             var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
@@ -81,10 +84,10 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task AddABlockTest()
         {
             var tester1 = new ContractTester<ContractTestAElfModule>();
-            await tester1.InitialChainAsync(typeof(BasicContractZero));
+            await tester1.InitialChainAsync();
 
             var tester2 = new ContractTester<ContractTestAElfModule>();
-            await tester2.InitialChainAsync(typeof(BasicContractZero));
+            await tester2.InitialChainAsync();
 
             var zeroContractAddress = tester1.GetZeroContractAddress();
             var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
@@ -113,9 +116,15 @@ namespace AElf.Contracts.TestBase.Tests
 
             var callerKeyPair = CryptoHelpers.GenerateKeyPair();
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
-            await tester.InitialChainAsync(typeof(BasicContractZero), typeof(ConsensusContract), typeof(TokenContract));
+            await tester.InitialChainAsync(list =>
+            {
+                list.AddGenesisSmartContract<ConsensusContract>(
+                    ConsensusSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<TokenContract>(
+                    TokenSmartContractAddressNameProvider.Name);
+            }); //, typeof(ConsensusContract), typeof(TokenContract));
 
-            var tokenContractAddress = tester.GetContractAddress(Hash.FromString(typeof(TokenContract).FullName));
+            var tokenContractAddress = tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             var txToInitialize =
                 await tester.GenerateTransactionAsync(tokenContractAddress, "Initialize", "ELF", "ELF Token",
                     totalSupply, 2U);
@@ -134,9 +143,9 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task GetTransactionResultTest()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync(typeof(BasicContractZero));
+            await tester.InitialChainAsync();
 
-            var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
+            var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
             var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
@@ -151,8 +160,8 @@ namespace AElf.Contracts.TestBase.Tests
         public async Task CreateContractTesterTest()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync(typeof(BasicContractZero));
-            var zeroContractAddress = tester.GetContractAddress(Hash.FromString(typeof(BasicContractZero).FullName));
+            await tester.InitialChainAsync();
+            var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
             var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", 2,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 

@@ -6,6 +6,6 @@ namespace AElf.CrossChain.Grpc
 //        public ICrossChainDataConsumer CrossChainDataConsumer { get; set; }
 //        public ICrossChainDataProducer CrossChainDataProducer { get; set; }
         
-        public ICrossChainCommunicationContext CrossChainCommunicationContext { get; set; }
+        public ICrossChainCommunicationContext CrossChainCommunicationContextDto { get; set; }
     }
 }

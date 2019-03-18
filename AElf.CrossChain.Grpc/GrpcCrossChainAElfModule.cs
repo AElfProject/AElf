@@ -1,9 +1,12 @@
-using AElf.CrossChain.Grpc.Server;
+using System.Linq;
+using AElf.Common.Application;
+using AElf.Cryptography.Certificate;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Grpc
 {
     [DependsOn(typeof(CrossChainAElfModule))]
     public class GrpcCrossChainAElfModule : AElfModule
@@ -11,9 +14,21 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<CrossChainGrpcServer>();
-            var configuration = context.Services.GetConfiguration();
-            Configure<CrossChainGrpcConfigOption>(configuration.GetSection("CrossChainGrpc"));
+            var configuration = services.GetConfiguration();
+            var crossChainConfiguration =
+                configuration.GetChildren().FirstOrDefault(child => child.Key.Equals("CrossChain"));
+            if (crossChainConfiguration == null)
+                return;
+            var grpcCrossChainConfiguration =
+                crossChainConfiguration.GetChildren().FirstOrDefault(child => child.Key.Equals("Grpc"));
+            if(grpcCrossChainConfiguration == null)
+                return;
+            Configure<GrpcCrossChainConfigOption>(grpcCrossChainConfiguration);
+            services.AddTransient<INodePlugin, GrpcCrossChainServerClient>();
+            services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
+            services.AddSingleton<GrpcCrossChainServerClient>();
+            var keyStore = new CertificateStore(ApplicationHelper.AppDataPath);
+            context.Services.AddSingleton<ICertificateStore>(keyStore);
         }
     }
 }

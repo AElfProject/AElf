@@ -11,7 +11,11 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
+using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -124,13 +128,13 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             await contractTester.ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.Initialize),
-                contractTester.GetContractAddress(typeof(TokenContract)),
-                contractTester.GetContractAddress(typeof(DividendsContract)));
+                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name),
+                contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name));
 
             await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
                 nameof(DividendsContract.Initialize),
-                contractTester.GetContractAddress(typeof(ConsensusContract)),
-                contractTester.GetContractAddress(typeof(TokenContract)));
+                contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
+                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name));
         }
 
         #endregion
@@ -140,13 +144,13 @@ namespace AElf.Contracts.Consensus.DPoS
         public static Address GetTokenContractAddress(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(TokenContract));
+            return contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 
         public static Address GetDividendsContractAddress(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(DividendsContract));
+            return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
 
 
@@ -161,7 +165,12 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
-            await starter.InitialChainAsync(typeof(TokenContract), typeof(DividendsContract));
+            await starter.InitialChainAsync(
+                list =>
+                {
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
+                });
 
             // Initial token.
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create), new CreateInput

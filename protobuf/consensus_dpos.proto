@@ -191,4 +191,5 @@ message DPoSTriggerInformation {
 
     Hash CurrentInValue = 6;// To calculate Out Value and generate hash chunks to other online miners.
     Hash PreviousInValue = 7;// Publish In Value of previous round for validating the miner's signature.
+    int64 InitialTermNumber = 8;
 }

@@ -12,6 +12,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -37,13 +38,11 @@ namespace AElf.OS.Rpc.ChainController
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
-        private readonly ChainOptions _chainOptions;
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
 
-        public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
+        public ChainControllerRpcService()
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
-            _chainOptions = options.Value;
         }
 
         [JsonRpcMethod("GetCommands")]
@@ -57,6 +56,7 @@ namespace AElf.OS.Rpc.ChainController
             return await Task.FromResult(commandArray);
         }
 
+        //TODO: should not hard code, from SmartContractAddressService
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
@@ -66,6 +66,8 @@ namespace AElf.OS.Rpc.ChainController
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            var crossChainContractAddress =
+                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
             
             var response = new JObject
             {
@@ -75,7 +77,8 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
                 [SmartContract.GenesisFeeReceiverContractAssemblyName] = feeReceiverContractAddress?.GetFormatted(),
-                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
+                [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
+                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
 
             return Task.FromResult(response);
@@ -272,9 +275,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["SideChainTransactionsRoot"] = blockInfo.Header.BlockExtraDatas.Any()
-                        ? Hash.LoadByteArray(blockInfo.Header.BlockExtraDatas?[0].ToByteArray())?.ToHex()
-                        : "",
+                    ["Extra"] = blockInfo.Header.BlockExtraDatas.ToString(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
