@@ -111,7 +111,7 @@ namespace AElf.Kernel.SmartContract
 
             if (!trace.IsSuccessful())
             {
-                throw new Exception("Contract reading call failed.");
+                throw new ContractCallException(trace.StdErr);
             }
 
             var decoder = ReturnTypeHelper.GetDecoder<T>();
