@@ -467,15 +467,6 @@ namespace AElf.Contracts.Consensus.DPoS
             //Change term and set block age
             await Miners.ChangeTermAsync(MiningInterval);
             await Starter.SetBlockchainAgeAsync(blockAge + 365);
-
-            //Check duration day 
-            var getDurationDays1 = (await voter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetDurationDays), votingRecordList[0], blockAge + 365)).DeserializeToInt64();
-            getDurationDays1.ShouldBe((long)lockTimes[0]);
-            
-            var getDurationDays2 = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetDurationDays), votingRecordList[3], blockAge + 365)).DeserializeToInt64();
-            getDurationDays2.ShouldBe(blockAge + 365);
             
             //Withdraw all 
             var withdrawResult =
@@ -501,7 +492,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
             var termTotalWeights1 = (await voter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                 nameof(DividendsContract.GetTermTotalWeights), currentTermNumber1)).DeserializeToInt64();
-            termTotalWeights1.ShouldBeLessThan(termTotalWeights);
+            termTotalWeights1.ShouldBe(votingRecordList[3].Weight+votingRecordList[4].Weight);
         }
 
         private static User GenerateNewUser()
