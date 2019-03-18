@@ -44,7 +44,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 {
                     IsBootMiner = _dpoSOptions.IsBootMiner,
                     PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                    Timestamp = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                    InitialTermNumber = _dpoSOptions.InitialTermNumber
                 }.ToByteArray();
             }
             
@@ -56,6 +57,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                         Timestamp = DateTime.UtcNow.ToTimestamp(),
                         Miners = {_dpoSOptions.InitialMiners},
+                        InitialTermNumber = _dpoSOptions.InitialTermNumber,
                         IsBootMiner = _dpoSOptions.IsBootMiner,
                         MiningInterval = _dpoSOptions.MiningInterval
                     }.ToByteArray();

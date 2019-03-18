@@ -12,12 +12,6 @@
         <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
-        <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
-        <ProjectReference Include="..\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />
-        <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
-        <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
         <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
         <ProjectReference Include="..\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
         <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
@@ -25,7 +19,6 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0-dev-00024" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.14.0" />
         <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>

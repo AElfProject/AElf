@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Kernel.Miner
 {
-    public class SystemTransactionGenerationServiceTests: AElfKernelTestBase
+    public class SystemTransactionGenerationServiceTests: AElfMinerTestBase
     {
         private ISystemTransactionGenerator _systemTransactionGenerator;
         private SystemTransactionGenerationService _systemTransactionGenerationService;

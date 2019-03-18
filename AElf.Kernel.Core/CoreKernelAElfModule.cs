@@ -27,6 +27,7 @@ namespace AElf.Kernel
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();

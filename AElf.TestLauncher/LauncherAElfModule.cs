@@ -9,6 +9,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
@@ -34,7 +35,7 @@ namespace AElf.TestLauncher
 {
     [DependsOn(
         typeof(AbpAutofacModule),
-        typeof(AbpAspNetCoreMvcModule),
+        //typeof(AbpAspNetCoreMvcModule),
         //typeof(RuntimeSetupAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
