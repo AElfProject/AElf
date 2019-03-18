@@ -12,6 +12,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Domain;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
@@ -38,13 +39,11 @@ namespace AElf.OS.Rpc.ChainController
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
-        private readonly ChainOptions _chainOptions;
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
 
-        public ChainControllerRpcService(IOptionsSnapshot<ChainOptions> options)
+        public ChainControllerRpcService()
         {
             Logger = NullLogger<ChainControllerRpcService>.Instance;
-            _chainOptions = options.Value;
         }
 
         [JsonRpcMethod("GetCommands")]
@@ -58,6 +57,7 @@ namespace AElf.OS.Rpc.ChainController
             return await Task.FromResult(commandArray);
         }
 
+        //TODO: should not hard code, from SmartContractAddressService
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
@@ -76,7 +76,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
                 [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
-                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(_chainOptions.ChainId)
+                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
 
             return Task.FromResult(response);

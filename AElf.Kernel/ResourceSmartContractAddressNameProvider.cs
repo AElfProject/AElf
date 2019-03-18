@@ -1,12 +1,12 @@
 using AElf.Common;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel
 {
     public class ResourceSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.Contracts.Resource.ResourceContract");
+        public static readonly Hash Name = Hash.FromString("AElf.ContractsNames.Resource");
         public Hash ContractName => Name;
     }
 }
