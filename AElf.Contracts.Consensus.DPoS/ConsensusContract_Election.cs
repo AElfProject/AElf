@@ -215,7 +215,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotesCountField.Value += 1;
 
             // Update the amount of tickets.
-            State.TicketsCountField.Value += 1;
+            State.TicketsCountField.Value += votingRecord.Count;
 
             // Add this voting record to voting records map.
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
