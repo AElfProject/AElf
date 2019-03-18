@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+FILE_NAME="ChakraCore.dll"
+TO_FILE=$1${FILE_NAME}
+FROM_FILE=
+
 if [ -d "./ChakraCoreFiless" ]; then
     mkdir -p scripts/.tmp/chakracore/
     cp -r ./ChakraCoreFiles scripts/.tmp/chakracore/
@@ -6,9 +11,6 @@ else
     wget https://aka.ms/chakracore/cc_linux_x64_1_11_1
     tar xf cc_linux_x64_1_11_1
 fi
-FILE_NAME="ChakraCore.dll"
-TO_FILE=$1${FILE_NAME}
-FROM_FILE=
 
 if [[ -f "$TO_FILE" ]]; then
     echo "$TO_FILE exists, no need to download again"
