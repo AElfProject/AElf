@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
@@ -26,7 +27,6 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Chain> GetChainAsync();
 
         Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
-        Task<List<Block>> GetBlocksAsync(Hash firstHash, int count);
 
         Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null);
@@ -39,18 +39,32 @@ namespace AElf.Kernel.Blockchain.Application
 
     public static class BlockchainServiceExtensions
     {
-        public static async Task<BlockHeader> GetBestChainLastBlockHeaderAsync(this IBlockchainService blockchainService)
+        public static async Task<BlockHeader> GetBestChainLastBlockHeaderAsync(
+            this IBlockchainService blockchainService)
         {
             var chain = await blockchainService.GetChainAsync();
             return await blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash);
         }
-        
-        public static async Task<Block> GetBlockByHeightInBestChainBranchAsync(this IBlockchainService blockchainService,long height)
+
+        public static async Task<Block> GetBlockByHeightInBestChainBranchAsync(
+            this IBlockchainService blockchainService, long height)
         {
             var chain = await blockchainService.GetChainAsync();
             var hash = await blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
 
             return await blockchainService.GetBlockByHashAsync(hash);
+        }
+
+        public static async Task<List<Block>> GetBlocksInBestChainAsync(this IBlockchainService blockchainService, Hash firstHash,
+            int count)
+        {
+            var chain = await blockchainService.GetChainAsync();
+            var blockHashes = await blockchainService.GetBlockHashes(
+                chain, firstHash, count, chain.BestChainHash);
+            var list = blockHashes.AsParallel()
+                .Select(async blockHash => await blockchainService.GetBlockByHashAsync(blockHash));
+
+            return (await Task.WhenAll(list)).ToList();
         }
     }
 
@@ -189,7 +203,8 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
             Hash irreversibleBlockHash)
         {
-            Logger.LogInformation($"SetIrreversibleBlockAsync Lib height: {irreversibleBlockHeight}, Lib Hash: {irreversibleBlockHash}");
+            Logger.LogInformation(
+                $"SetIrreversibleBlockAsync Lib height: {irreversibleBlockHeight}, Lib Hash: {irreversibleBlockHash}");
 
             // Create before IChainManager.SetIrreversibleBlockAsync so that we can correctly get the previous LIB info
             var eventDataToPublish = new NewIrreversibleBlockFoundEvent()
@@ -230,27 +245,6 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
-        {
-            var first = await _blockManager.GetBlockHeaderAsync(firstHash);
-
-            if (first == null)
-                return null;
-
-            var blockList = new List<Block>();
-            var previousBlockHash = firstHash;
-            for (var i = 1; i <= count; i++)
-            {
-                var block = await this.GetBlockByHeightInBestChainBranchAsync(first.Height + i);
-                if (block == null || block.Header.PreviousBlockHash != previousBlockHash)
-                    break;
-
-                blockList.Add(block);
-                previousBlockHash = block.GetHash();
-            }
-
-            return blockList;
-        }
 
         public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash)

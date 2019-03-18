@@ -378,7 +378,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_Blocks_ReturnNull()
         {
-            var result = await _fullBlockchainService.GetBlocksAsync(Hash.FromString("not exist"), 3);
+            var result = await _fullBlockchainService.GetBlocksInBestChainAsync(Hash.FromString("not exist"), 3);
             result.ShouldBeNull();
         }
 
@@ -387,21 +387,21 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var mockChain = await MockNewChain();
             
-            var result = await _fullBlockchainService.GetBlocksAsync(mockChain.Chain.BestChainHash, 3);
+            var result = await _fullBlockchainService.GetBlocksInBestChainAsync(mockChain.Chain.BestChainHash, 3);
             result.Count.ShouldBe(0);
             
-            result = await _fullBlockchainService.GetBlocksAsync(mockChain.BestBranchBlocks[2].GetHash(), 3);
+            result = await _fullBlockchainService.GetBlocksInBestChainAsync(mockChain.BestBranchBlocks[2].GetHash(), 3);
             result.Count.ShouldBe(3);
             result[0].GetHash().ShouldBe(mockChain.BestBranchBlocks[3].GetHash());
             result[1].GetHash().ShouldBe(mockChain.BestBranchBlocks[4].GetHash());
             result[2].GetHash().ShouldBe(mockChain.BestBranchBlocks[5].GetHash());
             
-            result = await _fullBlockchainService.GetBlocksAsync(mockChain.BestBranchBlocks[7].GetHash(), 3);
+            result = await _fullBlockchainService.GetBlocksInBestChainAsync(mockChain.BestBranchBlocks[7].GetHash(), 3);
             result.Count.ShouldBe(2);
             result[0].GetHash().ShouldBe(mockChain.BestBranchBlocks[8].GetHash());
             result[1].GetHash().ShouldBe(mockChain.BestBranchBlocks[9].GetHash());
             
-            result = await _fullBlockchainService.GetBlocksAsync(mockChain.LongestBranchBlocks[0].GetHash(), 3);
+            result = await _fullBlockchainService.GetBlocksInBestChainAsync(mockChain.LongestBranchBlocks[0].GetHash(), 3);
             result.Count.ShouldBe(0);
         }
 
