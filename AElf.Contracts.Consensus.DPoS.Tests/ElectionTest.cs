@@ -504,55 +504,6 @@ namespace AElf.Contracts.Consensus.DPoS
             termTotalWeights1.ShouldBeLessThan(termTotalWeights);
         }
 
-        [Fact]
-        public async Task Query_Election_Info()
-        {
-            const long amount = 1000;
-            var lockTimes = new List<int> {90, 180, 365, 730, 1095};
-
-            var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voters = await Starter.GenerateVotersAsync(5);
-            var txResultList = new List<TransactionResult>();
-            var votingRecordList = new List<VotingRecord>();
-
-            for (var i = 0; i < voters.Count; i++)
-            {
-                await Starter.IssueTokenAsync(voters[i].GetCallOwnerAddress(), 10000);
-                var txResult = await voters[i].Vote(candidate.PublicKey, amount, lockTimes[i]);
-                txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                txResultList.Add(txResult);
-            }
-
-            //Change term and query dividends 
-            await Miners.RunConsensusAsync(1, true);
-            var currentTermNumber = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
-
-            await Miners.RunConsensusAsync(1, true);
-            var queryCurrentDividendsForVoters = (await Starter.CallContractMethodAsync(
-                Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QueryCurrentDividendsForVoters))).DeserializeToInt64();
-            queryCurrentDividendsForVoters.ShouldBe((long) (DPoSContractConsts.ElfTokenPerBlock * 0.2));
-
-            var queryCurrentDividends = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QueryCurrentDividends))).DeserializeToInt64();
-            queryCurrentDividends.ShouldBe(DPoSContractConsts.ElfTokenPerBlock);
-
-            // ? 
-            var getTermDividends = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendsContract.GetTermDividends), currentTermNumber)).DeserializeToInt64();
-            getTermDividends.ShouldBeGreaterThan(0L);
-
-            currentTermNumber = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
-
-//            var checkDividendsError = await Starter.ExecuteContractWithMiningAsync(
-//                Starter.GetDividendsContractAddress(),
-//                nameof(DividendsContract.CheckDividends), amount, lockTimes[0], currentTermNumber + 1);
-//            checkDividendsError.Status.ShouldBe(TransactionResultStatus.Failed);
-//            checkDividendsError.Error.Contains("Cannot check dividends of future term.").ShouldBeTrue();
-        }
-
         private static User GenerateNewUser()
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
