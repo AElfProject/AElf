@@ -71,7 +71,8 @@ namespace AElf.Kernel
                         var libHeight = eventData.BlockHeight - offset;
                         var chain = await _blockchainService.GetChainAsync();
                         var libHash =
-                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.LongestChainHash);
+                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight,
+                                chain.LongestChainHash);
 
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, libHash);
                         Logger.LogInformation("Lib setting finished.");
