@@ -16,4 +16,14 @@ namespace AElf.Kernel.SmartContractExecution
     {
         
     }
+
+    public class ExecuteFailedTestBase : AElfIntegratedTest<ExecuteFailedTestAElfModule>
+    {
+        
+    }
+
+    public class ValidateAfterFailedTestBase : AElfIntegratedTest<ValidateAfterFailedTestAElfModule>
+    {
+        
+    }
 }
