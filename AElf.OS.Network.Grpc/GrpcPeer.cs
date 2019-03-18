@@ -71,19 +71,19 @@ namespace AElf.OS.Network.Grpc
             await RequestAsync(_client, c => c.SendTransactionAsync(tx));
         }
         
-        private async Task<T> RequestAsync<T>(PeerService.PeerServiceClient peer, Func<PeerService.PeerServiceClient, AsyncUnaryCall<T>> func)
-            where T : class
+        private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
+            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func)
         {
             try
             {
-                return await func(peer);
+                return await func(client);
             }
             catch (RpcException e)
             {
                 HandleFailure(e);
             }
 
-            return default(T);
+            return default(TResp);
         }
 
         /// <summary>
