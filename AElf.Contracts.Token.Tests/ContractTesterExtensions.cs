@@ -76,5 +76,37 @@ namespace AElf.Contracts.Token
             var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
             return balanceOutput.Balance;
         }
+
+        public static async Task<TransactionResult> Lock(this ContractTester<TokenContractTestAElfModule> contractTester, long amount,
+            Hash lockId)
+        {
+            return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
+                nameof(TokenContract.Lock),
+                new LockInput
+                {
+                    From = contractTester.GetCallOwnerAddress(),
+                    To = contractTester.GetConsensusContractAddress(),
+                    Amount = amount,
+                    Symbol = "ELF",
+                    LockId = lockId,
+                    Usage = "Testing."
+                });
+        }
+
+        public static async Task<TransactionResult> Unlock(this ContractTester<TokenContractTestAElfModule> contractTester, long amount,
+            Hash lockId)
+        {
+            return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
+                nameof(TokenContract.Unlock),
+                new UnlockInput
+                {
+                    From = contractTester.GetCallOwnerAddress(),
+                    To = contractTester.GetConsensusContractAddress(),
+                    Amount = amount,
+                    Symbol = "ELF",
+                    LockId = lockId,
+                    Usage = "Testing."
+                });
+        }
     }
 }

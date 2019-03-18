@@ -110,7 +110,7 @@ namespace AElf.Contracts.Token
 
             // Create token with white list empty.
             await Starter.CreateTokenAsync();
-            
+
             var user = GenerateUser();
 
             var tester = Starter.CreateNewContractTester(user);
@@ -121,18 +121,132 @@ namespace AElf.Contracts.Token
             var lockId = Hash.Generate();
 
             // Lock.
-            var transactionResult = await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Lock),
-                new LockInput
-                {
-                    From = user,
-                    To = ConsensusContractAddress,
-                    Amount = amount,
-                    Symbol = "ELF",
-                    LockId = lockId,
-                    Usage = "Testing."
-                });
-            
+            var transactionResult = await tester.Lock(amount, lockId);
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Not in white list");
+        }
+
+        [Fact]
+        public async Task Lock_With_Insufficient_Balance()
+        {
+            const long amount = 100;
+
+            var tester = await GenerateTesterAndIssueToken(amount);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var transactionResult = await tester.Lock(amount * 2, lockId);
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Insufficient balance");
+        }
+
+        /// <summary>
+        /// It's okay to unlock one locked token to get total several times.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Unlock_Twice_To_Get_Total_Amount_Balance()
+        {
+            const long amount = 100;
+
+            var tester = await GenerateTesterAndIssueToken(amount);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            await tester.Lock(amount, lockId);
+
+            // Unlock half of the amount at first.
+            {
+                var transactionResult = await tester.Unlock(amount / 2, lockId);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            // Unlock another half of the amount.
+            {
+                var transactionResult = await tester.Unlock(amount / 2, lockId);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            // Cannot keep on unlocking.
+            {
+                var transactionResult = await tester.Unlock(1, lockId);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldContain("Insufficient balance");
+            }
+        }
+
+        [Fact]
+        public async Task Unlock_With_Excess_Amount()
+        {
+            const long amount = 100;
+
+            var tester = await GenerateTesterAndIssueToken(amount);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            await tester.Lock(amount, lockId);
+
+            var transactionResult = await tester.Unlock(amount / 2 + amount, lockId);
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Insufficient balance");
+        }
+
+        [Fact]
+        public async Task Unlock_Token_Not_Himself()
+        {
+            const long amount = 100;
+
+            var tester1 = await GenerateTesterAndIssueToken(amount);
+            var tester2 = await GenerateTesterAndIssueToken(amount);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            await tester1.Lock(amount, lockId);
+
+            var transactionResult = await tester2.Unlock(amount, lockId);
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Insufficient balance");
+        }
+
+        [Fact]
+        public async Task Unlock_Token_With_Strange_LockId()
+        {
+            const long amount = 100;
+
+            var tester = await GenerateTesterAndIssueToken(amount);
+
+            // Lock.
+            await tester.Lock(amount, Hash.Generate());
+
+            var transactionResult = await tester.Unlock(amount, Hash.Generate());
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Insufficient balance");
+        }
+
+        private async Task<ContractTester<TokenContractTestAElfModule>> GenerateTesterAndIssueToken(long amount)
+        {
+            // Create token with consensus contract address in white list.
+            await Starter.CreateTokenAsync(ConsensusContractAddress);
+
+            var user = GenerateUser();
+
+            var tester = Starter.CreateNewContractTester(user);
+
+            await Starter.IssueTokenAsync(user, amount);
+
+            return tester;
         }
 
         private Address GenerateLockAddress(Address from, Address to, Hash lockId)
