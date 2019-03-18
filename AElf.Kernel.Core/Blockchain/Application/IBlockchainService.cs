@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -28,7 +29,17 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
 
-        Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
+        /// <summary>
+        /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
+        /// for example, chainBranchBlockHash's height is 5, count is 10, firstHash's height is 2, will only return
+        /// hashes 3, 4, 5
+        /// </summary>
+        /// <param name="chain"></param>
+        /// <param name="firstHash"></param>
+        /// <param name="count"></param>
+        /// <param name="chainBranchBlockHash"></param>
+        /// <returns></returns>
+        Task<List<Hash>> GetBlockHashesAsync(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash = null);
 
         Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash);
@@ -55,11 +66,12 @@ namespace AElf.Kernel.Blockchain.Application
             return await blockchainService.GetBlockByHashAsync(hash);
         }
 
-        public static async Task<List<Block>> GetBlocksInBestChainAsync(this IBlockchainService blockchainService, Hash firstHash,
+        public static async Task<List<Block>> GetBlocksInBestChainAsync(this IBlockchainService blockchainService,
+            Hash firstHash,
             int count)
         {
             var chain = await blockchainService.GetChainAsync();
-            var blockHashes = await blockchainService.GetBlockHashes(
+            var blockHashes = await blockchainService.GetBlockHashesAsync(
                 chain, firstHash, count, chain.BestChainHash);
             var list = blockHashes.AsParallel()
                 .Select(async blockHash => await blockchainService.GetBlockByHashAsync(blockHash));
@@ -153,14 +165,14 @@ namespace AElf.Kernel.Blockchain.Application
 
 
         /// <summary>
-        /// Returns the block with the specified height, searching from <see cref="startBlockHash"/>. If the height
+        /// Returns the block with the specified height, searching from <see cref="chainBranchBlockHash"/>. If the height
         /// is in the irreversible section of the chain, it will get the block from the indexed blocks.
         /// </summary>
         /// <param name="chain">the chain to search</param>
         /// <param name="height">the height of the block</param>
-        /// <param name="startBlockHash">the block from which to start the search.</param>
+        /// <param name="chainBranchBlockHash">the block from which to start the search.</param>
         /// <returns></returns>
-        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash startBlockHash)
+        public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash)
         {
             if (chain.LastIrreversibleBlockHeight >= height)
             {
@@ -170,7 +182,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             // TODO: may introduce cache to improve the performance
 
-            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(startBlockHash);
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
             if (chainBlockLink.Height < height)
                 return null;
             while (true)
@@ -178,8 +190,8 @@ namespace AElf.Kernel.Blockchain.Application
                 if (chainBlockLink.Height == height)
                     return chainBlockLink.BlockHash;
 
-                startBlockHash = chainBlockLink.PreviousBlockHash;
-                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(startBlockHash);
+                chainBranchBlockHash = chainBlockLink.PreviousBlockHash;
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
             }
         }
 
@@ -246,7 +258,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
 
-        public async Task<List<Hash>> GetBlockHashes(Chain chain, Hash firstHash, int count,
+        public async Task<List<Hash>> GetBlockHashesAsync(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash)
         {
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
@@ -256,14 +268,41 @@ namespace AElf.Kernel.Blockchain.Application
 
             var height = first.Height + count;
 
-            var last = await GetBlockHashByHeightAsync(chain, height, chainBranchBlockHash);
+            var chainBranchBlockHashKey = chainBranchBlockHash.ToStorageKey();
 
-            if (last == null)
-                throw new InvalidOperationException("not support");
+            ChainBlockLink chainBlockLink = null;
 
+            if (chain.Branches.ContainsKey(chainBranchBlockHashKey))
+            {
+                if (height > chain.Branches[chainBranchBlockHashKey])
+                {
+                    height = chain.Branches[chainBranchBlockHashKey];
+                    count =(int) (height - first.Height);
+                }
+            }
+            else
+            {
+                var branchChainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
+                if (height > branchChainBlockLink.Height)
+                {
+                    height = branchChainBlockLink.Height;
+                    chainBlockLink = branchChainBlockLink;
+                    count =(int) (height - first.Height);
+                }
+            }
+
+            
+            if (chainBlockLink == null)
+            {
+                var last = await GetBlockHashByHeightAsync(chain, height, chainBranchBlockHash);
+
+                if (last == null)
+                    throw new InvalidOperationException("not support");
+
+                chainBlockLink = await _chainManager.GetChainBlockLinkAsync(last);
+            }
+            
             var hashes = new List<Hash>();
-
-            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(last);
 
             hashes.Add(chainBlockLink.BlockHash);
             for (var i = 0; i < count - 1; i++)
