@@ -15,11 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Protobuf\Proto" />
-    </ItemGroup>
-    <ItemGroup>
         <Content Include="..\protobuf\descriptor_equivalent.proto">
-            <Link>Protobuf/Proto/descriptor_equivalent.proto</Link>
+            <Link>Protobuf/descriptor_equivalent.proto</Link>
         </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
