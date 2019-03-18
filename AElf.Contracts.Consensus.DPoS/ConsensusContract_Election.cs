@@ -127,7 +127,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Symbol = "ELF",
                 LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
                 Amount = DPoSContractConsts.LockTokenForElection,
-                Usage = "Unlock tickets."
+                Usage = "Unlock and quit election."
             });
 
             return new ActionResult {Success = true};

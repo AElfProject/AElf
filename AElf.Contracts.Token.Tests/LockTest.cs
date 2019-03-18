@@ -144,7 +144,7 @@ namespace AElf.Contracts.Token
         }
 
         /// <summary>
-        /// It's okay to unlock one locked token to get total several times.
+        /// It's okay to unlock one locked token to get total amount via several times.
         /// </summary>
         /// <returns></returns>
         [Fact]
