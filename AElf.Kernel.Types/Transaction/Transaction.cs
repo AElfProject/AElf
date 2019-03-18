@@ -13,6 +13,7 @@ namespace AElf.Kernel
             return Hash.FromRawBytes(GetSignatureData());
         }
 
+        //TODO: Add case GetHashBytes [Case]
         public byte[] GetHashBytes()
         {
             return SHA256.Create().ComputeHash(GetSignatureData());

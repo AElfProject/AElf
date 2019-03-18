@@ -5,6 +5,7 @@ namespace AElf.Kernel
 {
     public partial class StatePath : IHashProvider
     {
+        //Add StatePath->GetHash [Case]
         public Hash GetHash()
         {
             if (Path == null)

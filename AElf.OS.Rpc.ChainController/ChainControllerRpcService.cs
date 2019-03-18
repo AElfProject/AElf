@@ -119,6 +119,7 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
+        //TODO: Add case CallReadOnly [Case]
         [JsonRpcMethod("Call", "rawTransaction")]
         public async Task<string> CallReadOnly(string rawTransaction)
         {
@@ -198,6 +199,7 @@ namespace AElf.OS.Rpc.ChainController
             return response;
         }
 
+        //TODO: Add test cases GetTransactionsResult to cover all logic [Case]
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
         public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {

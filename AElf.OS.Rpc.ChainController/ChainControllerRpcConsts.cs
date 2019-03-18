@@ -10,7 +10,7 @@ namespace AElf.OS.Rpc.ChainController
         public const string GenesisCrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public const string GenesisAuthorizationContractAssemblyName = "AElf.Contracts.Authorization";
         public const string GenesisResourceContractAssemblyName = "AElf.Contracts.Resource";
-        public const string GenesisDividendsContractAssemblyName = "AElf.Contracts.Dividends";
+        public const string GenesisDividendsContractAssemblyName = "AElf.Contracts.Dividend";
         public const string CrossChainContractAssemblyName = "AElf.Contracts.CrossChain";
         public const string GenesisFeeReceiverContractAssemblyName = "AElf.Contracts.Resource.FeeReceiver";
     }

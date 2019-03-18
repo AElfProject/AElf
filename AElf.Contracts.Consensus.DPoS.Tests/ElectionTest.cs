@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -78,8 +78,12 @@ namespace AElf.Contracts.Consensus.DPoS
             // The starter transfer 200_000L
             var candidateInfo = GenerateNewUser();
             await Starter.IssueTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection * 2);
-            var balance = await Starter.GetBalanceAsync(candidateInfo);
-            balance.ShouldBe(DPoSContractConsts.LockTokenForElection * 2);
+
+            // Check balance.
+            {
+                var balance = await Starter.GetBalanceAsync(candidateInfo);
+                balance.ShouldBe(DPoSContractConsts.LockTokenForElection * 2);
+            }
 
             var candidate = Starter.CreateNewContractTester(candidateInfo);
 
@@ -94,17 +98,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 var candidatesList = await candidate.GetCandidatesListAsync();
                 candidatesList.Values.ToList().Contains(candidateInfo).ShouldBeTrue();
             }
+            
+            // Check balance.
+            {
+                var balance = await Starter.GetBalanceAsync(candidateInfo);
+                balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
+            }
 
             // Announce election again.
             {
                 var result = await candidate.AnnounceElectionAsync("AElfinAgain");
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
-            }
-
-            // Check balance.
-            {
-                balance = await Starter.GetBalanceAsync(candidateInfo);
-                balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
             }
 
             // Check candidate list again.
