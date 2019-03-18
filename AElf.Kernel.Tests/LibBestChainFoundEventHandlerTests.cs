@@ -190,55 +190,6 @@ namespace AElf.Kernel
 
                 LibShouldBe(10, libHash);
             }
-
-            {
-                // Receive event, and block is in the longest chain, not best chain
-                //             BestChainHeight: 15
-                //          LongestChainHeight: 20
-                // LastIrreversibleBlockHeight: 11
-                var chain = await _blockchainService.GetChainAsync();
-
-                var offset = 1;
-                var logEvent = new LogEvent
-                {
-                    Address = _consensusAddress,
-                    Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    Data = ByteString.CopyFrom(ParamsPacker.Pack(offset))
-                };
-
-                var currentHeight = chain.LastIrreversibleBlockHeight;
-                var currentHash = chain.LastIrreversibleBlockHash;
-
-                BestChainFoundEventData eventData = null;
-                var lastBestBlockHeader = await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash);
-
-                for (var i = 0; i < 10; i++)
-                {
-                    var tx = GenerateTransaction();
-                    var txResult = GenerateTransactionResult(tx, TransactionResultStatus.Mined, logEvent);
-                    var block = await AttachBlock(currentHeight, currentHash, tx, txResult);
-                    await _transactionResultService.AddTransactionResultAsync(txResult, lastBestBlockHeader);
-                    currentHeight = block.Height;
-                    currentHash = block.GetHash();
-
-                    if (i == 1)
-                    {
-                        eventData = new BestChainFoundEventData
-                        {
-                            BlockHash = currentHash,
-                            BlockHeight = currentHeight,
-                            ExecutedBlocks = new List<Hash> {currentHash}
-                        };
-                    }
-                }
-                
-                chain = await _blockchainService.GetChainAsync();
-                var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 11, chain.LongestChainHash);
-                
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
-
-                LibShouldBe(11, libHash);
-            }
         }
 
         #region check methods
