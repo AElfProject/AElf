@@ -501,7 +501,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
             var termTotalWeights1 = (await voter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                 nameof(DividendContract.GetTermTotalWeights), currentTermNumber1)).DeserializeToInt64();
-            termTotalWeights1.ShouldBeLessThan(termTotalWeights);
+            termTotalWeights1.ShouldBe(votingRecordList[3].Weight+votingRecordList[4].Weight);
         }
 
         private static User GenerateNewUser()

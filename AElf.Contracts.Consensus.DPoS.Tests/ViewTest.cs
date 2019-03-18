@@ -26,7 +26,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private readonly List<ContractTester<DPoSContractTestAElfModule>> Miners;
         
-        private List<TransactionResult>_txResultList ;
         private List<VotingRecord> _votingRecordList ;
         private List<ContractTester<DPoSContractTestAElfModule>> _voterList;
         private List<ContractTester<DPoSContractTestAElfModule>> _candidateLists;
@@ -70,11 +69,6 @@ namespace AElf.Contracts.Consensus.DPoS
             await Miners.ChangeTermAsync(MiningInterval);
             await Starter.SetBlockchainAgeAsync(_blockAge + 365);
             
-            //Withdraw all
-            var withdrawResult =
-                await _voterList[0].ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.WithdrawAll));
-            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
             //Check duration day 
             var getDurationDays1 = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                 nameof(DividendContract.GetDurationDays), _votingRecordList[0], _blockAge + 365)).DeserializeToInt64();
@@ -92,22 +86,35 @@ namespace AElf.Contracts.Consensus.DPoS
             //QueryObtainedNotExpiredVotes
             var notExpireVotes = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.QueryObtainedNotExpiredVotes), _candidateLists[0].PublicKey)).DeserializeToInt64();
-            notExpireVotes.ShouldBe(2000);
-            
+            notExpireVotes.ShouldBe(2000L);
+           
             //QueryObtainedVotes
             var obtainedVotes = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.QueryObtainedVotes), _candidateLists[0].PublicKey)).DeserializeToInt64();
-            obtainedVotes.ShouldBe(5000);
+            obtainedVotes.ShouldBe(5000L);   
             
             //GetTicketsInformation
-            var ticketsInfo = await _voterList[0].GetTicketsInformationAsync();
-            ticketsInfo.VotedTickets.ShouldBe(Amount);
-            ticketsInfo.ObtainedTickets.ShouldBe(obtainedVotes);
-            ticketsInfo.VotingRecordsCount.ShouldBe(5L);
-            ticketsInfo.PublicKey.ShouldBe(_voterList[0].PublicKey);
+            var candidateTicketsInfo = await _candidateLists[0].GetTicketsInformationAsync();
+            candidateTicketsInfo.VotedTickets.ShouldBe(0L);
+            candidateTicketsInfo.ObtainedTickets.ShouldBe(5000L);
+            candidateTicketsInfo.VotingRecordsCount.ShouldBe(5L);
+            candidateTicketsInfo.VoteFromTransactions.Count.ShouldBe(5);
+            
+            var voterTicketsInfo = await _voterList[0].GetTicketsInformationAsync();
+            voterTicketsInfo.VotedTickets.ShouldBe(5000L);
+            voterTicketsInfo.ObtainedTickets.ShouldBe(0L);
+            voterTicketsInfo.VotingRecordsCount.ShouldBe(5L);
+            voterTicketsInfo.VoteToTransactions.Count.ShouldBe(5);
             
             //GetPageableTicketsInfo
+            
+            //Withdraw all
+            var withdrawResult =
+                await _voterList[0].ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.WithdrawAll));
+            withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
             //GetPageableNotWithdrawnTicketsInfo
+            
             //GetPageableTicketsHistories
 
         }
@@ -173,7 +180,6 @@ namespace AElf.Contracts.Consensus.DPoS
         private async Task Vote()
         {
             _lockTimes = new List<int> {90, 180, 365, 730, 1095};
-            _txResultList = new List<TransactionResult>();
             _votingRecordList = new List<VotingRecord>();
             _candidateLists = await Starter.GenerateCandidatesAsync(5);
             _voterList = await Starter.GenerateVotersAsync(5);
@@ -184,11 +190,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 
                 for (int j = 0; j < _candidateLists.Count; j++)
                 {
+                    
                     var txResult = await _voterList[i].Vote(_candidateLists[i].PublicKey, Amount, _lockTimes[j]);
                     txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    _txResultList.Add(txResult);
 
-                    var votingRecord = await _voterList[i].GetVotingRecord(_txResultList[j].TransactionId);
+                    var votingRecord = await _voterList[i].GetVotingRecord(txResult.TransactionId);
                     _votingRecordList.Add(votingRecord);
                 }
             }
