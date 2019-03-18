@@ -8,12 +8,12 @@
         <Exec Command="yarn install" />
     </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
-        <Exec Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
+        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
     </Target>
     <Target Name="CopyChakraCoreToPublish" AfterTargets="Publish">
-        <Exec Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\" />
+        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\" />
     </Target>
-    <ItemGroup>
+    <ItemGroup> 
         <PackageReference Include="Alba.CsConsoleFormat" Version="1.0.0" />
         <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
         <PackageReference Include="BouncyCastle.NetCore" Version="1.8.3" />

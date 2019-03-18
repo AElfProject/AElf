@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,10 @@ namespace AElf.Kernel.SmartContract
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
+            
+            services.AddTransient<ISmartContractBridgeService, SmartContractBridgeService>();
+            services.AddTransient<ISmartContractExecutiveService, SmartContractExecutiveService>();
+            services.AddTransient<IHostSmartContractBridgeContext, HostSmartContractBridgeContext>();
         }
     }
 }

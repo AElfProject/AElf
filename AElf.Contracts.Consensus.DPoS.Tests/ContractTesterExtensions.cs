@@ -177,17 +177,18 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = "ELF",
                 Decimals = 2,
-                IsBurnable = false,
+                IsBurnable = true,
                 Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteList = { starter.GetConsensusContractAddress()}
             });
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
                 To = starter.GetDividendsContractAddress(),
-                Memo = "Set dividends."
+                Memo = "Set dividends.",
             });
 
             // Initial consensus contract.
@@ -200,10 +201,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToMiners()
                         .GenerateFirstRoundOfNewTerm(miningInterval));
             }
-
-            // Set consensus contract address to token contract.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(
-                nameof(TokenContract.SetConsensusContractAddress), starter.GetConsensusContractAddress());
         }
 
         /// <summary>

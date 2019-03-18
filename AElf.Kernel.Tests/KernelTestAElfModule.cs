@@ -10,12 +10,12 @@ namespace AElf.Kernel
 {
     [DependsOn(
         typeof(KernelAElfModule),
+        typeof(ConsensusAElfModule),
+        typeof(KernelCoreTestAElfModule),
         typeof(SmartContractTestAElfModule),
         typeof(SmartContractExecutionTestAElfModule),
         typeof(TransactionPoolTestAElfModule),
-        typeof(ChainControllerTestAElfModule),
-        typeof(ConsensusAElfModule),
-        typeof(KernelCoreTestAElfModule))]
+        typeof(ChainControllerTestAElfModule))]
     public class KernelTestAElfModule : AElfModule
     {
     }
