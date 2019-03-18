@@ -21,25 +21,60 @@ namespace AElf.CrossChain
             _crossChainBlockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
         }
-        
-        [Fact(Skip = "Return value would be null.")]
-        public async Task FillExtraData_WithoutData()
-        {
-            var header = new BlockHeader
-            {
-                Height = 1
-            };
-            await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
-            Assert.Empty(header.BlockExtraDatas);
-        }
-        
-        
+       
         [Fact]
         public async Task FillExtraData_GenesisHeight()
         {
             var header = new BlockHeader
             {
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 1
+            };
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            Assert.Empty(bytes);
+        }
+        
+        [Fact]
+        public async Task FillExtraData_WithoutCacheData()
+        {
+            var header = new BlockHeader
+            {
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                Height = 2
+            };
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            Assert.Empty(bytes);
+        }
+        
+        [Fact]
+        public async Task FillExtraData_WithoutSideChainCacheData()
+        {
+            int chainId1 = ChainHelpers.GetRandomChainId();
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
+            var fakeParentChainBlockDataList = new List<IBlockInfo>();
+
+            for (int i = 0; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 1; i++)
+            {
+                fakeParentChainBlockDataList.Add(new ParentChainBlockData
+                {
+                    Root = new ParentChainBlockRootInfo
+                    {
+                        ParentChainHeight = i + 1,
+                        ParentChainId = chainId1
+                    }
+                });
+            }
+
+            AddFakeCacheData(new Dictionary<int, List<IBlockInfo>>
+            {
+                {chainId1, fakeParentChainBlockDataList}
+            });
+            _crossChainTestHelper.SetFakeLibHeight(1);
+
+            var header = new BlockHeader
+            {
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                Height = 2
             };
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
@@ -121,7 +156,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.SetFakeLibHeight(1);
             var header = new BlockHeader
             {
-                PreviousBlockHash = Hash.FromString("PrevioudHash"),
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
                 Height = 2
             };
 

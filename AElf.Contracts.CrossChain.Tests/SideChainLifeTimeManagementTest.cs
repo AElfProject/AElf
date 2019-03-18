@@ -125,8 +125,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Failed);
         }
         
-        //TODO: fix the cross chain test case
-        [Fact(Skip = "After change to token name provider, it failed")]
+        [Fact]
         public async Task Request_SideChain_Creation_Twice()
         {
             await Initialize(1000);
@@ -137,7 +136,7 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
-                IndexingPrice = lockedTokenAmount,
+                IndexingPrice = 1,
                 Proposer = CrossChainContractTestHelper.GetAddress(),
                 LockedTokenAmount = lockedTokenAmount
             };
