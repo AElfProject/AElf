@@ -7,6 +7,7 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Shouldly;
@@ -70,13 +71,6 @@ namespace AElf.Contracts.Token
                 balance.ShouldBe(0);
             }
 
-            // Check balance of lock address after locking.
-            {
-                var balance =
-                    await tester.GetBalanceAsync(GenerateLockAddress(user, ConsensusContractAddress, lockId));
-                balance.ShouldBe(amount);
-            }
-
             // Unlock.
             await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Unlock),
                 new UnlockInput
@@ -93,13 +87,6 @@ namespace AElf.Contracts.Token
             {
                 var balance = await tester.GetBalanceAsync(user);
                 balance.ShouldBe(amount);
-            }
-
-            // Check balance of lock address after unlocking.
-            {
-                var balance =
-                    await tester.GetBalanceAsync(GenerateLockAddress(user, ConsensusContractAddress, lockId));
-                balance.ShouldBe(0);
             }
         }
 
@@ -247,15 +234,6 @@ namespace AElf.Contracts.Token
             await Starter.IssueTokenAsync(user, amount);
 
             return tester;
-        }
-
-        private Address GenerateLockAddress(Address from, Address to, Hash lockId)
-        {
-            var bytes = Address.TakeByAddressLength(ByteArrayHelpers.Combine(
-                from.DumpByteArray().Take(TypeConsts.AddressHashLength / 3).ToArray(),
-                to.DumpByteArray().Take(TypeConsts.AddressHashLength / 3).ToArray(),
-                lockId.DumpByteArray()));
-            return Address.FromBytes(bytes);
         }
 
         private static User GenerateUser()

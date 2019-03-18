@@ -63,8 +63,10 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
-            var lockAddress = GenerateLockAddress(input.From, input.To, input.LockId);
-            DoTransfer(input.From, lockAddress, input.Symbol, input.Amount, input.Usage);
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
+            // Transfer token to virtual address.
+            DoTransfer(input.From, virtualAddress, input.Symbol, input.Amount, input.Usage);
             return Nothing.Instance;
         }
 
@@ -72,8 +74,14 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
-            var lockAddress = GenerateLockAddress(input.From, input.To, input.LockId);
-            DoTransfer(lockAddress, input.From, input.Symbol, input.Amount, input.Usage);
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
+            {
+                To = input.From,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage,
+            });
             return Nothing.Instance;
         }
 
