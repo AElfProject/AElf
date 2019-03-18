@@ -273,9 +273,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var ticketsOfVoter = await voter.GetTicketsInformationAsync();
             ticketsOfVoter.VotedTickets.ShouldBe(1000L);
-            var voterCount = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+            var ticketsCount = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetTicketsCount))).DeserializeToInt64();
+            ticketsCount.ShouldBe(1000L);
+            var votesCount = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetVotesCount))).DeserializeToInt64();
-            voterCount.ShouldBe(5L);
+            votesCount.ShouldBe(5L);
 
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
             balance.ShouldBe(0L);
