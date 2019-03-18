@@ -10,6 +10,7 @@ using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
+    //TODO: Add test cases for CrossChainEventHelper [Case]
     public static class CrossChainEventHelper
     {
         public static bool TryGetLogEventInBlock(IBlock block, out LogEvent logEvent)

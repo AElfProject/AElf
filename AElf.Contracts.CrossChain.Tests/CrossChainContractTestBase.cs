@@ -63,7 +63,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Symbol = "ELF",
                     Decimals = 2,
-                    IsBurnable = false,
+                    IsBurnable = true,
                     Issuer = Tester.GetCallOwnerAddress(),
                     TokenName = "elf token",
                     TotalSupply = tokenAmount
