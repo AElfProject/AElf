@@ -11,6 +11,7 @@
     <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
     <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
+    <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
     <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
