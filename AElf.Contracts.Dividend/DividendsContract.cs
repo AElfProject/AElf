@@ -23,7 +23,8 @@ namespace AElf.Contracts.Dividend
 
         public void SendDividends(Address targetAddress, long amount)
         {
-            Assert(amount > 0, "Invalid amount.");
+            if (amount <= 0)
+                return;
 
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
