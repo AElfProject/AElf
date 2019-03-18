@@ -7,6 +7,8 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Token;
+using AElf.OS.Node.Application;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -22,7 +24,10 @@ namespace AElf.Contracts.Token
         public LockTest()
         {
             Starter = new ContractTester<TokenContractTestAElfModule>();
-            AsyncHelper.RunSync(() => Starter.InitialChainAsync(typeof(TokenContract)));
+            AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
+            {
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+            }));
         }
 
         [Fact]

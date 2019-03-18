@@ -10,6 +10,8 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Types.CSharp;
 
 namespace AElf.Contracts.Token
@@ -19,13 +21,13 @@ namespace AElf.Contracts.Token
         public static Address GetTokenContractAddress(
             this ContractTester<TokenContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(TokenContract));
+            return contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 
         public static Address GetDividendsContractAddress(
             this ContractTester<TokenContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(DividendsContract));
+            return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
 
         public static async Task CreateTokenAsync(this ContractTester<TokenContractTestAElfModule> starter,
