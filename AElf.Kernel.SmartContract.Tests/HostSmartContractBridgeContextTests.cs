@@ -79,6 +79,23 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
+        public void Send_VirtualInline_Success()
+        {
+            var from = Hash.Generate();
+            var to = Address.Genesis;
+            var methodName = "TestVirtualInline";
+            var arg = "Arg";
+            _bridgeContext.SendVirtualInline(from, to, methodName, arg);
+
+            var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
+            inlineTransaction.Count.ShouldBe(1);
+            inlineTransaction[0].From.ShouldNotBe(_bridgeContext.Self);
+            inlineTransaction[0].To.ShouldBe(to);
+            inlineTransaction[0].MethodName.ShouldBe(methodName);
+            inlineTransaction[0].Params.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(arg)));
+        }
+
+        [Fact]
         public void Get_GetPreviousBlock_Success()
         {
             var newBlock = new Block
