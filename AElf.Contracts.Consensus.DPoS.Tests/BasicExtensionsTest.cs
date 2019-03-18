@@ -11,17 +11,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class BasicExtensionsTest
     {
-        [Fact]
-        public void Test()
-        {
-            var keyPair = CryptoHelpers.GenerateKeyPair();
-            var message = Hash.FromString("123").Value.ToArray();
-            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, message);
-            var result = CryptoHelpers.RecoverPublicKey(signature, message, out var recoveredPublicKey);
-            Assert.True(result);
-            Assert.Equal(keyPair.PublicKey.ToHex(), recoveredPublicKey.ToHex());
-        }
-        
         /// <summary>
         /// Really basic tests about time stuff.
         /// </summary>
