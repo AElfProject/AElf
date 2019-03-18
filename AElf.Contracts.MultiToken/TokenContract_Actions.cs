@@ -7,9 +7,9 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Contracts.MultiToken
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>
+    public partial class TokenContract : TokenContractContainer.TokenContractBase
     {
-        public Nothing Create(CreateInput input)
+        public override Nothing Create(CreateInput input)
         {
             Assert(!string.IsNullOrEmpty(input.Symbol) & input.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
@@ -36,7 +36,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing Issue(IssueInput input)
+        public override Nothing Issue(IssueInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender, "Sender is not allowed to issue this token.");
@@ -47,14 +47,14 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing Transfer(TransferInput input)
+        public override Nothing Transfer(TransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return Nothing.Instance;
         }
 
-        public Nothing TransferFrom(TransferFromInput input)
+        public override Nothing TransferFrom(TransferFromInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -69,7 +69,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing Approve(ApproveInput input)
+        public override Nothing Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
@@ -84,7 +84,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing UnApprove(UnApproveInput input)
+        public override Nothing UnApprove(UnApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
@@ -100,7 +100,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing Burn(BurnInput input)
+        public override Nothing Burn(BurnInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
@@ -117,7 +117,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override Nothing ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
@@ -128,7 +128,7 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public Nothing ClaimTransactionFees(ClaimTransactionFeesInput input)
+        public override Nothing ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
             Assert(input.Symbol == State.NativeTokenSymbol.Value, "The specified token is not the native token.");
             var feePoolAddressNotSet =
@@ -147,10 +147,11 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
-        public void SetConsensusContractAddress(Address consensusContractAddress)
+        public override Nothing SetConsensusContractAddress(Address consensusContractAddress)
         {
             Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
             State.ConsensusContractAddress.Value = consensusContractAddress;
+            return Nothing.Instance;
         }
 
         #region ForTests

@@ -7,13 +7,13 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract
     {
         [View]
-        public TokenInfo GetTokenInfo(GetTokenInfoInput input)
+        public override TokenInfo GetTokenInfo(GetTokenInfoInput input)
         {
             return State.TokenInfos[input.Symbol];
         }
 
         [View]
-        public GetBalanceOutput GetBalance(GetBalanceInput input)
+        public override GetBalanceOutput GetBalance(GetBalanceInput input)
         {
             return new GetBalanceOutput()
             {
@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [View]
-        public GetAllowanceOutput GetAllowance(GetAllowanceInput input)
+        public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
         {
             return new GetAllowanceOutput()
             {

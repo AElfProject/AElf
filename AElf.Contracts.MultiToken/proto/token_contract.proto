@@ -1,8 +1,44 @@
 syntax = "proto3";
 
 import "common.proto";
+import "aelf_options.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+
+service TokenContract {
+    option (aelf.state_type) = "AElf.Contracts.MultiToken.TokenContractState";
+    // Actions
+    rpc Create (CreateInput) returns (Nothing) {
+    }
+    rpc Issue (IssueInput) returns (Nothing) {
+    }
+    rpc Transfer (TransferInput) returns (Nothing) {
+    }
+    rpc TransferFrom (TransferFromInput) returns (Nothing) {
+    }
+    rpc Approve (ApproveInput) returns (Nothing) {
+    }
+    rpc UnApprove (UnApproveInput) returns (Nothing) {
+    }
+    rpc Burn (BurnInput) returns (Nothing) {
+    }
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (Nothing) {
+    }
+    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (Nothing) {
+    }
+    rpc SetConsensusContractAddress (Address) returns (Nothing) {
+    }
+    // Views
+    rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+}
 
 message TokenInfo {
     string symbol = 1;
