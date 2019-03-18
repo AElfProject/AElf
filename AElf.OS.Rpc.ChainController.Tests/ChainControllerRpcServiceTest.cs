@@ -284,6 +284,29 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseStatus.ShouldBe(TransactionResultStatus.Mined.ToString());
         }
 
+        [Fact]
+        public async Task Get_Failed_TransactionResult_Success()
+        {
+            // Generate a transaction and broadcast
+            var chain = await _blockchainService.GetChainAsync();
+            var transactionList = await GenerateTwoInitializeTransaction(chain);
+            await BroadcastTransactions(transactionList);
+
+            var block = await MinedOneBlock(chain);
+
+            // After executed
+            var transactionHex = transactionList[1].GetHash().ToHex();
+            var response = await JsonCallAsJObject("/chain", "GetTransactionResult",
+                new {transactionId = transactionHex});
+            var responseTransactionId = response["result"]["TransactionId"].ToString();
+            var responseStatus = response["result"]["Status"].ToString();
+            var responseErrorMessage = response["result"]["Error"].ToString();
+
+            responseTransactionId.ShouldBe(transactionHex);
+            responseStatus.ShouldBe(TransactionResultStatus.Failed.ToString());
+            responseErrorMessage.Contains("Already initialized.").ShouldBeTrue();
+        }
+        
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1083")]
         public async Task Get_NotExisted_TransactionResult()
         {
@@ -358,6 +381,32 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             var message = response["error"]["message"].ToString();
             message.ShouldBe(Error.Message[Error.NotFound]);
+        }
+
+        [Fact]
+        public async Task Get_TransactionsResult_With_InvalidParameter()
+        {
+            var block = new Block
+            {
+                Header = new BlockHeader(),
+                BlockHashToHex = "Test"
+            };
+            var blockHash = block.GetHash().ToHex();
+            
+            var response1 = await JsonCallAsJObject("/chain", "GetTransactionsResult",
+                new {blockHash, offset = -3, num = 10});
+            response1["error"]["code"].ShouldNotBeNull();
+            response1["error"]["message"].ToString().Contains("Offset must greater than or equal to 0").ShouldBeTrue();
+            
+            var response2 = await JsonCallAsJObject("/chain", "GetTransactionsResult",
+                new {blockHash, offset = 0, num = -5});
+            response2["error"]["code"].ShouldNotBeNull();
+            response2["error"]["message"].ToString().Contains("Not found").ShouldBeTrue();
+            
+            var response3 = await JsonCallAsJObject("/chain", "GetTransactionsResult",
+                new {blockHash, offset = 0, num = 120});
+            response3["error"]["code"].ShouldNotBeNull();
+            response3["error"]["message"].ToString().Contains("Not found").ShouldBeTrue();
         }
 
         [Fact]
@@ -496,6 +545,39 @@ namespace AElf.OS.Rpc.ChainController.Tests
             transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContract.Transfer));
         }
 
+        [Fact]
+        public async Task Get_FileDescriptorSet_Success()
+        {
+            // Generate a transaction and broadcast
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = await GenerateTransferTransaction(chain);
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            
+            await MinedOneBlock(chain);
+            
+            //No result
+            var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
+                new {address = transaction.To.GetFormatted()});
+            response["result"].ToString().ShouldBeEmpty();
+        }
+
+        [Fact]
+        public async Task Get_FileDescriptorSet_Failed()
+        {
+            var addressInfo = Address.Generate().GetFormatted();
+            var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
+                new {address = addressInfo});
+            response["error"]["code"].To<long>().ShouldBe(Error.NotFound);
+            response["error"]["message"].ToString().ShouldBe(Error.Message[Error.NotFound]);
+
+            addressInfo = "invalid address";
+            var response1 = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
+                new {address = addressInfo});
+            response1["error"]["code"].To<long>().ShouldBe(Error.NotFound);
+            response1["error"]["message"].ToString().ShouldBe(Error.Message[Error.NotFound]);
+
+
+        }
         #endregion
 
         #region Wallet cases
@@ -605,13 +687,35 @@ namespace AElf.OS.Rpc.ChainController.Tests
             return transaction;
         }
 
+        private async Task<List<Transaction>> GenerateTwoInitializeTransaction(Chain chain)
+        {
+            var transactionList = new List<Transaction>();
+            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+
+            for (int i = 0; i < 2; i++)
+            {
+                var transaction = GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
+                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                    nameof(TokenContract.Initialize),
+                    "AELF", "elf token", 1000_000, 2);
+
+                var signature =
+                    CryptoHelpers.SignWithPrivateKey(_userEcKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+
+                transactionList.Add(transaction); 
+            }
+            
+            return transactionList;
+        }
+
         private async Task<Transaction> GenerateViewTransaction(Chain chain, string method, params object[] paramArray)
         {
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
             var transaction = GenerateTransaction(chain, Address.FromPublicKey(_userEcKeyPair.PublicKey),
                 _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
-                nameof(TokenContract.BalanceOf),
+                method,
                 paramArray);
 
             return transaction;
