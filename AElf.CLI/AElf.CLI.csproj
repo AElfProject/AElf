@@ -6,6 +6,8 @@
     </PropertyGroup>
     <Target Name="InstallAElfJS" AfterTargets="BeforeBuild">
         <Exec Command="yarn install" />
+        <Exec Condition="'$(OS)' != 'Windows_NT'" Command="cp -f node_modules/aelf-sdk/dist/aelf.js Scripts/aelf.js" />
+        <Exec Condition="'$(OS)' == 'Windows_NT'" Command="copy /b/v/y node_modules\aelf-sdk\dist\aelf.js Scripts\aelf.js" />
     </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
@@ -13,7 +15,8 @@
     <Target Name="CopyChakraCoreToPublish" AfterTargets="Publish">
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\" />
     </Target>
-    <ItemGroup> 
+    <ItemGroup>
+        <PackageReference Condition="'$(OS)' == 'Windows_NT'" Include="Microsoft.ChakraCore" Version="1.11.7" />
         <PackageReference Include="Alba.CsConsoleFormat" Version="1.0.0" />
         <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
         <PackageReference Include="BouncyCastle.NetCore" Version="1.8.3" />
@@ -29,7 +32,6 @@
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Scripts\aelf.js" />
         <EmbeddedResource Include="Scripts\helpers.js" />
         <EmbeddedResource Include="Scripts\crypto.js" />
         <EmbeddedResource Include="Scripts\requestor.js" />
