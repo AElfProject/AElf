@@ -24,6 +24,7 @@ namespace AElf.Contracts.MultiToken
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
         {
+            Assert(from != to, "Can't do transfer to sender itself.");
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance.");
             var balanceOfReceiver = State.Balances[to][symbol];
@@ -37,6 +38,12 @@ namespace AElf.Contracts.MultiToken
                 Amount = amount,
                 Memo = memo
             });
+        }
+
+        private void AssertLockAddress(string symbol, Address address)
+        {
+            var symbolState = State.LockWhiteLists[symbol];
+            Assert(symbolState != null && symbolState[address], "Not in white list.");
         }
     }
 }
