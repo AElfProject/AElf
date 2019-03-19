@@ -53,8 +53,7 @@ namespace AElf.Types.CSharp
 
         public byte[] Execute(byte[] input)
         {
-            var bytesValue = BytesValue.Parser.ParseFrom(input);
-            var inputObj = method.RequestMarshaller.Deserializer(bytesValue.Value.ToByteArray());
+            var inputObj = method.RequestMarshaller.Deserializer(input);
             var response = handler(inputObj);
             return method.ResponseMarshaller.Serializer(response);
         }
