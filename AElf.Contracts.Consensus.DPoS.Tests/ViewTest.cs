@@ -47,11 +47,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Query_basic_Info()
         {
+            await Vote();
         }
 
         [Fact]
         public async Task Query_Candidate_Info()
         {
+            await Vote();
         }
 
         [Fact]
@@ -172,18 +174,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     nameof(DividendContract.CheckDividends), Amount, _lockTimes[0], previousTermNumber + 1))
                 .DeserializeToInt64();
             checkDividendsError.ShouldBe(0L);
-
-            //Change block age
-            await Starter.SetBlockchainAgeAsync(10);
-            //Get available dividends
-            var getAvailableDividends = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetAvailableDividends), _votingRecordList[0])).DeserializeToInt64();
-            getAvailableDividends.ShouldBeGreaterThan(0);
-
-            //Get all available dividends
-            var getAllAvailableDividends = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetAllAvailableDividends), _voterList[0].PublicKey)).DeserializeToInt64();
-            getAllAvailableDividends.ShouldBeGreaterThan(0);
         }
 
         private async Task Vote()
