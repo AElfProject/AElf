@@ -1,6 +1,4 @@
-using AElf.Common;
-
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
     public interface IChainContext<T> : IChainContext where T : IStateCache
     {

@@ -1,6 +1,6 @@
 using AElf.Common;
 
-namespace AElf.Kernel.SmartContractExecution.Application
+namespace AElf.Kernel.SmartContract.Application
 {
     public class ChainContextWithTieredStateCache : IChainContext<TieredStateCache>
     {
