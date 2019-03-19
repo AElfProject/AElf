@@ -4,14 +4,6 @@ FILE_NAME="ChakraCore.dll"
 TO_FILE=$1${FILE_NAME}
 FROM_FILE=
 
-if [ -d "$HOME/.chakracore/ChakraCoreFiles" ]; then
-    echo "HOME/.chakracore/ChakraCoreFiles exists...."
-    mkdir -p scripts/.tmp/chakracore/
-    cp -r $HOME/.chakracore/ChakraCoreFiles scripts/.tmp/chakracore/
-    exit
-fi
-
-
 if [[ -f "$TO_FILE" ]]; then
     echo "$TO_FILE exists, no need to download again"
     exit
@@ -38,6 +30,11 @@ GET_OS()
 
 GET_OS
 
+if [ -f "$HOME/.chakracore/ChakraCore.dll" ]; then
+    cp $HOME/.chakracore/${TO_FILE}  ${TO_FILE}
+    exit
+fi
+
 WORK_PATH=`pwd`
 SCRIPTS_PATH=$(cd "$(dirname "$0")";pwd)
 DOWNLOAD_PATH=${SCRIPTS_PATH}/.tmp/chakracore
@@ -51,5 +48,5 @@ if [[ ! -f "$CHAKRACORE_FILE" ]]; then
 fi
 
 cd ${WORK_PATH}
-cp -r $DOWNLOAD_PATH/* $HOME/.chakracore/
-cp ${CHAKRACORE_FILE} ${TO_FILE}
+cp ${CHAKRACORE_FILE}  $HOME/.chakracore/${TO_FILE}
+cp ${CHAKRACORE_FILE}  ${TO_FILE}
