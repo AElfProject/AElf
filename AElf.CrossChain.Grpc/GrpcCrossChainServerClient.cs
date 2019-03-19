@@ -9,6 +9,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
+    //TODO: Add test cases for GrpcCrossChainServerClient [Case]
     public class GrpcCrossChainServerClient : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly ICrossChainServer _crossChainServer;

@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.Token;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -25,9 +26,9 @@ namespace AElf.Contracts.Genesis
         public BasicContractZeroTest()
         {
             otherOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes().ToArray()));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes()));
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
-            TokenContractAddress = Tester.GetContractAddress(typeof(TokenContract));
+            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 
         [Fact]
@@ -75,7 +76,8 @@ namespace AElf.Contracts.Genesis
             await Deploy_SmartContracts();
 
             var resultUpdate =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
+                    nameof(BasicContractZero.UpdateSmartContract),
                     _contractAddress, File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             resultUpdate.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -95,7 +97,8 @@ namespace AElf.Contracts.Genesis
         public async Task Update_SmartContract_Without_Owner()
         {
             var result =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
+                    nameof(BasicContractZero.UpdateSmartContract),
                     TokenContractAddress,
                     File.ReadAllBytes(typeof(ResourceContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -108,7 +111,8 @@ namespace AElf.Contracts.Genesis
             await Deploy_SmartContracts();
 
             var result =
-                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress, nameof(BasicContractZero.UpdateSmartContract),
+                await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
+                    nameof(BasicContractZero.UpdateSmartContract),
                     _contractAddress, File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Code is not changed.").ShouldBeTrue();
@@ -134,7 +138,8 @@ namespace AElf.Contracts.Genesis
         public async Task Change_Contract_Owner_Without_Permission()
         {
             var resultChangeFailed = await Tester.ExecuteContractWithMiningAsync(BasicZeroContractAddress,
-                nameof(BasicContractZero.ChangeContractOwner), TokenContractAddress, Tester.GetAddress(otherOwnerKeyPair));
+                nameof(BasicContractZero.ChangeContractOwner), TokenContractAddress,
+                Tester.GetAddress(otherOwnerKeyPair));
             resultChangeFailed.Status.ShouldBe(TransactionResultStatus.Failed);
             resultChangeFailed.Error.Contains("no permission.").ShouldBeTrue();
         }

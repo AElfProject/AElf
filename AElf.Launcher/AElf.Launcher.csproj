@@ -5,24 +5,11 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
+    <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
+    <ProjectReference Include="..\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj" />
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
-    <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
-    <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
-    <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
-    <ProjectReference Include="..\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />
-    <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
-    <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
-    <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp3\AElf.Runtime.CSharp3.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
