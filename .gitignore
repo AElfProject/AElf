@@ -280,3 +280,5 @@ yarn.lock
 
 results/coverage.json
 results/coverage.opencover.xml
+
+aelf.js

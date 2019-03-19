@@ -1,5 +1,4 @@
-using System.Reflection;
-using AElf.CLI.JS;
+using System.IO;
 using CommandLine;
 
 namespace AElf.CLI.Commands.Consensus
@@ -9,10 +8,12 @@ namespace AElf.CLI.Commands.Consensus
     {
         [Value(0, HelpText = "The public key of your favorite candidate.", Required = true)]
         public string PublickKey { get; set; } = "";
-    } 
+    }
+
     public class VoteToCommand : Command
     {
         private readonly VoteToOption _option;
+
         public VoteToCommand(VoteToOption option) : base(option)
         {
             _option = option;
@@ -21,8 +22,7 @@ namespace AElf.CLI.Commands.Consensus
         public override void Execute()
         {
             InitChain();
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.proposal.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "proposal.js")));
             _engine.GlobalObject.CallMethod("vote_to", _option.PublickKey);
         }
     }
