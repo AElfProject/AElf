@@ -7,6 +7,7 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
@@ -18,6 +19,15 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class ConsensusProcessTest : ContractTestBase<DPoSContractTestAElfModule>
     {
+        [Fact]
+        public void Test()
+        {
+            var list = SecretSharingHelper.SplitSecret("aelf", 3, 9);
+            Assert.Equal(9, list.Count);
+            var result = SecretSharingHelper.MergeSecret(list.Take(3).ToList(), 3);
+            Assert.Equal("aelf", result);
+        }
+        
         private int _miningInterval = 4000;
 
         [Fact]
