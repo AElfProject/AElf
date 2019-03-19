@@ -145,6 +145,8 @@ namespace AElf.Kernel
             return newBlock;
         }
 
+        #region private methods
+
         private async Task<Chain> CreateChain()
         {
             var genesisBlock = new Block
@@ -192,5 +194,7 @@ namespace AElf.Kernel
 
             return forkBranchBlockList;
         }
+                
+        #endregion
     }
 }

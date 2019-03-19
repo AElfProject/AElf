@@ -19,4 +19,16 @@ namespace AElf.Kernel
     public class KernelTestAElfModule : AElfModule
     {
     }
+    
+    [DependsOn(
+        typeof(KernelAElfModule),
+        typeof(ConsensusAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule),
+        typeof(SmartContractTestAElfModule),
+        typeof(SmartContractExecutionTestAElfModule),
+        typeof(TransactionPoolTestAElfModule),
+        typeof(ChainControllerTestAElfModule))]
+    public class KernelWithChainTestAElfModule : AElfModule
+    {
+    }
 }
