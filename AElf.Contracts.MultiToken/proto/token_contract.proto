@@ -6,7 +6,7 @@ import "aelf_options.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
-    option (aelf.state_type) = "AElf.Contracts.MultiToken.TokenContractState";
+    option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
     // Actions
     rpc Create (CreateInput) returns (Nothing) {
     }

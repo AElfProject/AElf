@@ -130,85 +130,73 @@ namespace AElf.Contracts.MultiToken.Messages {
     /// <summary>Base class for the contract of TokenContract</summary>
     public abstract partial class TokenContractBase : AElf.Sdk.CSharp.CSharpSmartContract<AElf.Contracts.MultiToken.TokenContractState>
     {
-      /// <summary>
-      /// Actions
-      /// </summary>
-      /// <param name="request">The request received from the client.</param>
-      /// <returns>The response to send back to the client (wrapped by a task).</returns>
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Create(global::AElf.Contracts.MultiToken.Messages.CreateInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Create(global::AElf.Contracts.MultiToken.Messages.CreateInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Issue(global::AElf.Contracts.MultiToken.Messages.IssueInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Issue(global::AElf.Contracts.MultiToken.Messages.IssueInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Transfer(global::AElf.Contracts.MultiToken.Messages.TransferInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Transfer(global::AElf.Contracts.MultiToken.Messages.TransferInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing TransferFrom(global::AElf.Contracts.MultiToken.Messages.TransferFromInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing TransferFrom(global::AElf.Contracts.MultiToken.Messages.TransferFromInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Approve(global::AElf.Contracts.MultiToken.Messages.ApproveInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Approve(global::AElf.Contracts.MultiToken.Messages.ApproveInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing UnApprove(global::AElf.Contracts.MultiToken.Messages.UnApproveInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing UnApprove(global::AElf.Contracts.MultiToken.Messages.UnApproveInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Burn(global::AElf.Contracts.MultiToken.Messages.BurnInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing Burn(global::AElf.Contracts.MultiToken.Messages.BurnInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing ChargeTransactionFees(global::AElf.Contracts.MultiToken.Messages.ChargeTransactionFeesInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing ChargeTransactionFees(global::AElf.Contracts.MultiToken.Messages.ChargeTransactionFeesInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing ClaimTransactionFees(global::AElf.Contracts.MultiToken.Messages.ClaimTransactionFeesInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing ClaimTransactionFees(global::AElf.Contracts.MultiToken.Messages.ClaimTransactionFeesInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing SetConsensusContractAddress(global::AElf.Common.Address request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.Nothing SetConsensusContractAddress(global::AElf.Common.Address input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      /// <summary>
-      /// Views
-      /// </summary>
-      /// <param name="request">The request received from the client.</param>
-      /// <returns>The response to send back to the client (wrapped by a task).</returns>
-      public virtual global::AElf.Contracts.MultiToken.Messages.TokenInfo GetTokenInfo(global::AElf.Contracts.MultiToken.Messages.GetTokenInfoInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.TokenInfo GetTokenInfo(global::AElf.Contracts.MultiToken.Messages.GetTokenInfoInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.GetBalanceOutput GetBalance(global::AElf.Contracts.MultiToken.Messages.GetBalanceInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.GetBalanceOutput GetBalance(global::AElf.Contracts.MultiToken.Messages.GetBalanceInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
-      public virtual global::AElf.Contracts.MultiToken.Messages.GetAllowanceOutput GetAllowance(global::AElf.Contracts.MultiToken.Messages.GetAllowanceInput request)
+      public virtual global::AElf.Contracts.MultiToken.Messages.GetAllowanceOutput GetAllowance(global::AElf.Contracts.MultiToken.Messages.GetAllowanceInput input)
       {
         throw new global::System.NotImplementedException();
       }
 
     }
 
-    /// <summary>Creates service definition that can be registered with a server</summary>
-    /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
     public static aelf::ServerServiceDefinition BindService(TokenContractBase serviceImpl)
     {
       return aelf::ServerServiceDefinition.CreateBuilder()
@@ -225,27 +213,6 @@ namespace AElf.Contracts.MultiToken.Messages {
           .AddMethod(__Method_GetTokenInfo, serviceImpl.GetTokenInfo)
           .AddMethod(__Method_GetBalance, serviceImpl.GetBalance)
           .AddMethod(__Method_GetAllowance, serviceImpl.GetAllowance).Build();
-    }
-
-    /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the  service binding logic.
-    /// Note: this method is part of an experimental API that can change or be removed without any prior notice.</summary>
-    /// <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
-    /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
-    public static void BindService(aelf::ServiceBinderBase serviceBinder, TokenContractBase serviceImpl)
-    {
-      serviceBinder.AddMethod(__Method_Create, serviceImpl.Create);
-      serviceBinder.AddMethod(__Method_Issue, serviceImpl.Issue);
-      serviceBinder.AddMethod(__Method_Transfer, serviceImpl.Transfer);
-      serviceBinder.AddMethod(__Method_TransferFrom, serviceImpl.TransferFrom);
-      serviceBinder.AddMethod(__Method_Approve, serviceImpl.Approve);
-      serviceBinder.AddMethod(__Method_UnApprove, serviceImpl.UnApprove);
-      serviceBinder.AddMethod(__Method_Burn, serviceImpl.Burn);
-      serviceBinder.AddMethod(__Method_ChargeTransactionFees, serviceImpl.ChargeTransactionFees);
-      serviceBinder.AddMethod(__Method_ClaimTransactionFees, serviceImpl.ClaimTransactionFees);
-      serviceBinder.AddMethod(__Method_SetConsensusContractAddress, serviceImpl.SetConsensusContractAddress);
-      serviceBinder.AddMethod(__Method_GetTokenInfo, serviceImpl.GetTokenInfo);
-      serviceBinder.AddMethod(__Method_GetBalance, serviceImpl.GetBalance);
-      serviceBinder.AddMethod(__Method_GetAllowance, serviceImpl.GetAllowance);
     }
 
   }
