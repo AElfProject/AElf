@@ -4,6 +4,7 @@ namespace AElf.Common
 {
     public static class ChainHelpers
     {
+        //TODO: move to the test project. or the smart contract can access it.
         public static int GetRandomChainId()
         {
             var random = new Random();
