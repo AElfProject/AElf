@@ -194,8 +194,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private bool ValidateMinersList(Round round1, Round round2)
         {
-            return round1.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() ==
-                   round2.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash();
+            return round1.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
+                   round2.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash();
         }
 
         private bool OutInValueAreNull(Round round)
@@ -226,37 +226,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             if (TryToGetCurrentRoundInformation(out var round))
             {
-                return round.RealTimeMinersInformation.Keys.ToMiners()
+                return round.RealTimeMinersInformation.Keys.ToList().ToMiners()
                     .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), round.RoundNumber, termNumber);
             }
 
             return null;
-        }
-
-        private Round FillOutValueAndSignature(Hash outValue, Hash signature, string publicKey)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                if (currentRoundInStateDB.RealTimeMinersInformation.ContainsKey(publicKey))
-                {
-                    currentRoundInStateDB.RealTimeMinersInformation[publicKey].OutValue = outValue;
-                    currentRoundInStateDB.RealTimeMinersInformation[publicKey].Signature = signature;
-                }
-
-                return currentRoundInStateDB;
-            }
-
-            return new Round();
-        }
-
-        private DateTime GetExtraBlockMiningTime(int miningInterval)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDB))
-            {
-                return currentRoundInStateDB.GetExtraBlockMiningTime(miningInterval);
-            }
-
-            return DateTime.MaxValue;
         }
 
         #endregion
