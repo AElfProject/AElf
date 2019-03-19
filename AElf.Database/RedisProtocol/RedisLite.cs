@@ -245,10 +245,6 @@ namespace AElf.Database.RedisProtocol
             {
                 Quit();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error when trying to Quit(), {ex}");
-            }
             finally
             {
                 SafeConnectionClose();
