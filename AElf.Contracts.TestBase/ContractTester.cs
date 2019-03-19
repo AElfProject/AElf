@@ -290,6 +290,27 @@ namespace AElf.Contracts.TestBase
             return tx;
         }
 
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            IMessage input)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var tx = new Transaction
+            {
+                From = Address.FromPublicKey(KeyPair.PublicKey),
+                To = contractAddress,
+                MethodName = methodName,
+                Params = input.ToByteString(),
+                RefBlockNumber = refBlock.Height,
+                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+            };
+
+            var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
+
+            return tx;
+        }
+
         /// <summary>
         /// Generate a transaction and sign it by provided key pair.
         /// </summary>
@@ -310,6 +331,27 @@ namespace AElf.Contracts.TestBase
                 To = contractAddress,
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                RefBlockNumber = refBlock.Height,
+                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+            };
+
+            var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
+
+            return tx;
+        }
+
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            ECKeyPair ecKeyPair, IMessage input)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var tx = new Transaction
+            {
+                From = Address.FromPublicKey(ecKeyPair.PublicKey),
+                To = contractAddress,
+                MethodName = methodName,
+                Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -373,6 +415,16 @@ namespace AElf.Contracts.TestBase
             return result;
         }
 
+        public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
+            IMessage input)
+        {
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
+            await MineAsync(new List<Transaction> {tx});
+            var result = await GetTransactionResultAsync(tx.GetHash());
+
+            return result;
+        }
+        
         /// <summary>
         /// Generate a tx then package the new tx to a new block.
         /// </summary>
@@ -403,6 +455,25 @@ namespace AElf.Contracts.TestBase
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
             var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+                {
+                    BlockHash = preBlock.GetHash(),
+                    BlockHeight = preBlock.Height
+                },
+                tx,
+                DateTime.UtcNow);
+
+            return transactionTrace.ReturnValue;
+        }
+
+        public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
+            IMessage input)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var transactionReadOnlyExecutionService =
+                Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, input);
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {

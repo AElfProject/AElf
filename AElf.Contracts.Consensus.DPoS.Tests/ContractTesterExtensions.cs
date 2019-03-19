@@ -161,6 +161,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 methodName, objects);
         }
 
+        public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
+            this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, IMessage input)
+        {
+            return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
+                methodName, input);
+        }
+
         public static async Task InitialChainAndTokenAsync(
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
