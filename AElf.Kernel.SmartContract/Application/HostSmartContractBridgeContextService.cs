@@ -16,10 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         public IHostSmartContractBridgeContext Create(ISmartContractContext smartContractContext)
         {
-            var smartContractBridgeService = _serviceProvider.GetService<ISmartContractBridgeService>();
-            var smartContractExecutiveService = _serviceProvider.GetService<ISmartContractExecutiveService>();
-            var context =
-                new HostSmartContractBridgeContext(smartContractBridgeService, smartContractExecutiveService);
+            //Create a new context
+            var context = _serviceProvider.GetService<IHostSmartContractBridgeContext>();
 
             context.SmartContractContext = smartContractContext;
             return context;
