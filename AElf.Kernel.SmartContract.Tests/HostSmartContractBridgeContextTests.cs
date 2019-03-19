@@ -1,14 +1,11 @@
 using System;
 using AElf.Common;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Kernel.Token;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Org.BouncyCastle.Security;
@@ -254,19 +251,7 @@ namespace AElf.Kernel.SmartContract
 
             _bridgeContext.UpdateContract(Address.Zero, registration, null);
         }
-
-        [Fact]
-        public void Call_Test()
-        {
-            var to = Address.Genesis;
-            var methodName = "CurrentContractSerialNumber";
-            _bridgeContext.SendInline(to, methodName, null);
-            var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
-            
-            var stateCache = new NullStateCache();
-            var transactionResult = _bridgeContext.Call<TransactionResult>(stateCache, to, methodName, ParamsPacker.Pack(ByteString.Empty));
-        } 
-
+        
         private IHostSmartContractBridgeContext CreateNewContext()
         {
             _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
