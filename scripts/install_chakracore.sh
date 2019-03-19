@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+CHAKRA_VERSION="1_11_1"
 FILE_NAME="ChakraCore.dll"
 TO_FILE=$1${FILE_NAME}
 FROM_FILE=
@@ -30,8 +31,8 @@ GET_OS()
 
 GET_OS
 
-if [ -f "$HOME/.chakracore/ChakraCore.dll" ]; then
-    cp $HOME/.chakracore/${TO_FILE}  ${TO_FILE}
+if [ -f "$HOME/.chakracore/$CHAKRA_VERSION/ChakraCore.dll" ]; then
+    cp $HOME/.chakracore/$CHAKRA_VERSION/${TO_FILE}  ${TO_FILE}
     exit
 fi
 
@@ -44,11 +45,13 @@ CHAKRACORE_FILE=${DOWNLOAD_PATH}/ChakraCoreFiles/lib/${FROM_FILE}
 if [[ ! -f "$CHAKRACORE_FILE" ]]; then
     rm -rf ${DOWNLOAD_PATH} && mkdir -p ${DOWNLOAD_PATH}
     cd ${DOWNLOAD_PATH}
-    bash ${SCRIPTS_PATH}/download_chakracore.sh 1_11_1
+    bash ${SCRIPTS_PATH}/download_chakracore.sh $CHAKRA_VERSION
 fi
 
 cd ${WORK_PATH}
 if [ -d "$HOME/.chakracore" ]; then
-    cp ${CHAKRACORE_FILE}  $HOME/.chakracore/${TO_FILE}
+    rm -rf $HOME/.chakracore/*
+    mkdir -p $HOME/.chakracore/$CHAKRA_VERSION/
+    cp ${CHAKRACORE_FILE}  $HOME/.chakracore/$CHAKRA_VERSION/${TO_FILE}
 fi
 cp ${CHAKRACORE_FILE}  ${TO_FILE}
