@@ -192,9 +192,6 @@ namespace AElf.Kernel.Blockchain.Application
         /// <returns></returns>
         public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash)
         {
-            // TODO: This logic maybe not exact. 
-            // If search for a branch that is unlinked, the height is less than lib height, but the block not in the branch.
-            // I can also get a block.
             if (chain.LastIrreversibleBlockHeight >= height)
             {
                 // search irreversible section of the chain
@@ -213,6 +210,9 @@ namespace AElf.Kernel.Blockchain.Application
 
                 chainBranchBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
+
+                if (chainBlockLink == null)
+                    return null;
             }
         }
 

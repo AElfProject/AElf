@@ -444,13 +444,13 @@ namespace AElf.Kernel.Blockchain.Application
                     mockChain.ForkBranchBlocks.Last().GetHash()).ContinueWith(p => p.Result.Count.ShouldBe(0));
         }
 
-        [Fact(Skip = "Check the todo in GetBlockHashByHeightAsync")]
+        [Fact]
         public async Task Get_GetBlockHashes_ThrowInvalidOperationException()
         {
             var mockChain = await MockNewChain();
 
             await _fullBlockchainService
-                .GetBlockHashesAsync(mockChain.Chain, mockChain.BestBranchBlocks[0].GetHash(), 2,
+                .GetBlockHashesAsync(mockChain.Chain, mockChain.BestBranchBlocks[4].GetHash(), 2,
                     mockChain.AloneBlocks.Last().GetHash()).ShouldThrowAsync<InvalidOperationException>();
         }
 
