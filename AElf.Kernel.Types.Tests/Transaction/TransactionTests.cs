@@ -18,7 +18,7 @@ namespace AElf.Kernel.Types.Tests
             };
             var hash = transaction.GetHash();
             var hashBytes = transaction.GetHashBytes();
-            var hash1 = Hash.FromRawBytes(hashBytes);
+            var hash1 = Hash.LoadByteArray(hashBytes);
             hash.ShouldBe(hash1);
         }
     }
