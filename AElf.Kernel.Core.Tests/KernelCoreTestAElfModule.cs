@@ -8,6 +8,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -24,8 +25,10 @@ namespace AElf.Kernel
             services.AddTransient<BlockValidationProvider>();
         }
 
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+//            var kernelTestHelper = context.ServiceProvider.GetService<KernelTestHelper>();
+//            AsyncHelper.RunSync(() => kernelTestHelper.CreateChain());
         }
     }
     

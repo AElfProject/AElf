@@ -25,6 +25,7 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(o => o.UseInMemoryDatabase());
 
+            services.AddSingleton<KernelTestHelper>();
         }
     }
 }
