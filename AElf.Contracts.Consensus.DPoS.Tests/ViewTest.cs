@@ -155,11 +155,11 @@ namespace AElf.Contracts.Consensus.DPoS
             // Check Dividends
             var termTotalWeights = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                 nameof(DividendContract.GetTermTotalWeights), previousTermNumber)).DeserializeToInt64();
-            var checkDividends = await Starter.CallContractMethodAsync(
+            var checkDividends = (await Starter.CallContractMethodAsync(
                 Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividends), Amount, _lockTimes[0], previousTermNumber);
+                nameof(DividendContract.CheckDividends), Amount, _lockTimes[0], previousTermNumber)).DeserializeToInt64();
             var dividends = _votingRecordList[0].Weight * getTermDividends / termTotalWeights;
-            checkDividends.DeserializeToInt64().ShouldBe(dividends);
+            checkDividends.ShouldBe(dividends);
 
             // Check Previous Term Dividends
             var votingGains = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
