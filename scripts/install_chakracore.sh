@@ -32,6 +32,7 @@ GET_OS()
 GET_OS
 
 if [ -f "$HOME/.chakracore/$CHAKRA_VERSION/ChakraCore.dll" ]; then
+    echo "$HOME/.chakracore/$CHAKRA_VERSION/ChakraCore.dll exists"
     cp $HOME/.chakracore/$CHAKRA_VERSION/${TO_FILE}  ${TO_FILE}
     exit
 fi
