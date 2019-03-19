@@ -188,7 +188,17 @@ namespace AElf.OS.Rpc.ChainController
                 response["Error"] = transactionResult.Error;
 
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
-            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+            var p = await this.GetTransactionParameters(transaction);
+            try
+            {
+                response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(p);
+            }
+            catch
+            {
+                // Params is not structured but plain string
+                response["Transaction"]["Params"] = p;
+            }
+            
 
             return response;
         }
