@@ -13,7 +13,7 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class FullBlockchainServiceTests : AElfKernelTestBase_Temp
+    public class FullBlockchainServiceTests : AElfKernelWithChainTestBase
     {
         private readonly FullBlockchainService _fullBlockchainService;
         private readonly ITransactionManager _transactionManager;

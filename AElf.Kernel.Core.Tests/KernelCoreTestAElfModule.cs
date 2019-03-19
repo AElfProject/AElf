@@ -22,24 +22,15 @@ namespace AElf.Kernel
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-//            var kernelTestHelper = context.ServiceProvider.GetService<KernelTestHelper>();
-//            AsyncHelper.RunSync(() => kernelTestHelper.CreateChain());
-        }
     }
     
     [DependsOn(
-        typeof(AbpEventBusModule),
-        typeof(TestBaseKernelAElfModule))]
-    // TODO: After refactor, Remove it.
-    public class KernelCoreTestAElfModule_Temp : AElfModule
+        typeof(KernelCoreTestAElfModule))]
+    public class KernelCoreWithChainTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var services = context.Services;
-            services.AddTransient<BlockValidationProvider>();
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -50,8 +41,7 @@ namespace AElf.Kernel
     }
     
     [DependsOn(
-        typeof(AbpEventBusModule),
-        typeof(TestBaseKernelAElfModule))]
+        typeof(KernelCoreTestAElfModule))]
     public class KernelMinerTestAElfModule : AElfModule
     {
         delegate void MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
