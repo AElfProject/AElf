@@ -25,11 +25,5 @@ namespace AElf.Kernel.SmartContract.Sdk
         public int CallDepth { get; set; }
         public Transaction Transaction { get; set; }
         public TransactionTrace Trace { get; set; }
-        
-        public IBlockchainService BlockchainService { get; set; }
-        public Task<Block> GetBlockByHashAsync(Hash blockId)
-        {
-            return BlockchainService.GetBlockByHashAsync(blockId);
-        }
     }
 }

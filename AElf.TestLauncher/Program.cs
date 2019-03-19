@@ -40,7 +40,6 @@ namespace AElf.TestLauncher
 
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
 
-
                 yield return new WebHostBuilder()
                     .ConfigureAppConfiguration(config =>
                     {

@@ -5,7 +5,7 @@ import "common.proto";
 import "crosschain.proto";
 
 message RequestCrossChainBlockData {
-    int32 SideChainId = 1; // parent(own) chain id
+    int32 RemoteChainId = 1; // parent(own) chain id
     int64 NextHeight = 2;
 }
 
@@ -19,22 +19,21 @@ message ResponseParentChainBlockData {
     bool Success = 2;
 }
 
-message IndexingRequestMessage {
-    uint32 Port = 1;
-    string Ip = 2;
-    int32 SideChainId = 3;
+message IndexingHandShake {
+    int32 ListeningPort = 1;
+    int32 ChainId = 2; // side chain shake with parent chain.
 }
 
-message IndexingRequestResult {
+message IndexingHandShakeReply {
     bool Result = 1;
 }
 
 service CrossChainRpc {
     rpc RequestSideChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
-    rpc RequestSideChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
+    rpc RequestIndexingSideChain (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
     rpc RequestParentChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
-    rpc RequestParentChainServerStreaming (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
-    rpc RequestIndexing (IndexingRequestMessage) returns (IndexingRequestResult) {}
+    rpc RequestIndexingParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc CrossChainIndexingShake (IndexingHandShake) returns (IndexingHandShakeReply) {} // only side chain shake with parent chain.
 }
 
 message MerkleProofMessage {

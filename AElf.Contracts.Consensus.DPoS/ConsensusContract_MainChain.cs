@@ -45,18 +45,6 @@ namespace AElf.Contracts.Consensus.DPoS
             miners.TermNumber = 1;
             SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
-            
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
-
-            // Create a new history information.
-            var historyInformation = new CandidateInHistory
-            {
-                PublicKey = senderPublicKey,
-                ProducedBlocks = 1,
-                CurrentAlias = senderPublicKey.Substring(0, DPoSContractConsts.AliasLimit)
-            };
-
-            AddOrUpdateMinerHistoryInformation(historyInformation);
         }
 
         private void UpdateHistoryInformation(Round round)

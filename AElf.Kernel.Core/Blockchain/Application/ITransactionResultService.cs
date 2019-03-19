@@ -41,7 +41,6 @@ namespace AElf.Kernel.Blockchain.Application
             await _transactionResultManager.AddTransactionResultAsync(transactionResult, disambiguatingHash);
         }
 
-        //TODO: Add GetTransactionResultAsync test case to cover 'transactionBlockIndex !=null' situation [Case]
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
             var transactionBlockIndex =

@@ -17,6 +17,9 @@
 
     function getCrossChain(cRes) {
         var crossChainAddress = cRes['AElf.Contracts.CrossChain'];
+        if(!crossChainAddress){
+            return;
+        }
         return aelf.chain.contractAt(crossChainAddress, _account);
     }
     
@@ -27,7 +30,7 @@
         chain = {
             contractZero: getContractZero(cRes),
             // authorizationContract: getAuthorization(cRes),
-            // crossChainContract: getCrossChain(cRes)
+            crossChainContract: getCrossChain(cRes)
         };
     }
 })();

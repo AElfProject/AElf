@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+
+option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+
+service TokenContract {
+    option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
+    // Actions
+    rpc Create (CreateInput) returns (Nothing) {
+    }
+    rpc Issue (IssueInput) returns (Nothing) {
+    }
+    rpc Transfer (TransferInput) returns (Nothing) {
+    }
+    rpc TransferFrom (TransferFromInput) returns (Nothing) {
+    }
+    rpc Approve (ApproveInput) returns (Nothing) {
+    }
+    rpc UnApprove (UnApproveInput) returns (Nothing) {
+    }
+    rpc Lock (LockInput) returns (Nothing) {
+    }
+    rpc Unlock (UnlockInput) returns (Nothing) {
+    }
+    rpc Burn (BurnInput) returns (Nothing) {
+    }
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (Nothing) {
+    }
+    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (Nothing) {
+    }
+    // Views
+    rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message TokenInfo {
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 supply = 3;
+    sint64 totalSupply = 4;
+    sint32 decimals = 5;
+    Address issuer = 6;
+    bool isBurnable = 7;
+}
+
+message Nothing {
+}
+
+message CreateInput {
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    Address issuer = 5;
+    bool isBurnable = 6;
+    repeated Address lockWhiteList = 7;
+}
+
+message IssueInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    Address to = 4;
+}
+
+message TransferInput {
+    Address to = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+    string memo = 4;
+}
+
+message LockInput {
+    Address from = 1; // The one want to lock his token.
+    Address to = 2; // The address in white list.
+    Hash lockId = 3;
+    string symbol = 4;
+    string usage = 5;
+    int64 amount = 6;
+}
+
+message UnlockInput {
+    Address from = 1; // The one want to lock his token.
+    Address to = 2; // The address in white list.
+    Hash lockId = 3;
+    string symbol = 4;
+    string usage = 5;
+    int64 amount = 6;
+}
+
+message TransferFromInput {
+    Address from = 1;
+    Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
+}
+
+message ApproveInput {
+    Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+
+message UnApproveInput {
+    Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+
+message BurnInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ChargeTransactionFeesInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ClaimTransactionFeesInput {
+    string symbol = 1;
+    sint64 height = 2;
+}
+
+message GetMethodFeeInput {
+    string method = 1;
+}
+
+message GetMethodFeeOutput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+message SetMethodFeeInput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+message GetTokenInfoInput {
+    string symbol = 1;
+}
+
+message GetBalanceInput {
+    string symbol = 1;
+    Address owner = 2;
+}
+
+message GetBalanceOutput {
+    string symbol = 1;
+    Address owner = 2;
+    sint64 balance = 3;
+}
+
+message GetAllowanceInput {
+    string symbol = 1;
+    Address owner = 2;
+    Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    string symbol = 1;
+    Address owner = 2;
+    Address spender = 3;
+    sint64 allowance = 4;
+}

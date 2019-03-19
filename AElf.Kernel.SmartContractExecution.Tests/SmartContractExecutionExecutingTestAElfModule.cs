@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -50,6 +54,76 @@ namespace AElf.Kernel.SmartContractExecution
                     });
 
                 return mockService.Object;
+            });
+        }
+    }
+
+    [DependsOn(
+        typeof(SmartContractExecutionTestAElfModule)
+    )]
+    public class ExecuteFailedTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient<IBlockValidationService>(p =>
+            {
+                var mockProvider = new Mock<IBlockValidationService>();
+                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
+                    .ReturnsAsync(true);
+
+                mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
+                    .ReturnsAsync(true);
+
+                return mockProvider.Object;
+            });
+
+            services.AddTransient<IBlockExecutingService>(p =>
+            {
+                var mockService = new Mock<IBlockExecutingService>();
+                mockService.Setup(m =>
+                        m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                    .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
+                    {
+                        Block result;
+                        if (blockHeader.Height == ChainConsts.GenesisBlockHeight)
+                        {
+                            result = new Block {Header = blockHeader};
+                        }
+                        else
+                        {
+                            result = new Block
+                                {Header = new BlockHeader {Time = Timestamp.FromDateTime(DateTime.UtcNow)}};
+                        }
+
+                        return Task.FromResult(result);
+
+                    });
+
+                return mockService.Object;
+            });
+        }
+    }
+
+    [DependsOn(
+        typeof(SmartContractExecutionExecutingTestAElfModule)
+    )]
+    public class ValidateAfterFailedTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient<IBlockValidationService>(p =>
+            {
+                var mockProvider = new Mock<IBlockValidationService>();
+                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
+                    .ReturnsAsync(true);
+                mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
+                    .Returns<IBlock>((block) => Task.FromResult(block.Height == ChainConsts.GenesisBlockHeight));
+
+                return mockProvider.Object;
             });
         }
     }

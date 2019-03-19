@@ -33,6 +33,11 @@ namespace AElf.Contracts.MultiToken
                 State.NativeTokenSymbol.Value = input.Symbol;
             }
 
+            foreach (var address in input.LockWhiteList)
+            {
+                State.LockWhiteLists[input.Symbol][address] = true;
+            }
+            
             return Nothing.Instance;
         }
 
@@ -54,15 +59,37 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
+        public override Nothing Lock(LockInput input)
+        {
+            AssertLockAddress(input.Symbol, input.To);
+            AssertValidToken(input.Symbol, input.Amount);
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
+            // Transfer token to virtual address.
+            DoTransfer(input.From, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            return Nothing.Instance;
+        }
+
+        public override Nothing Unlock(UnlockInput input)
+        {
+            AssertLockAddress(input.Symbol, input.To);
+            AssertValidToken(input.Symbol, input.Amount);
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
+            {
+                To = input.From,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Usage,
+            });
+            return Nothing.Instance;
+        }
+
         public override Nothing TransferFrom(TransferFromInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            Assert(allowance >= input.Amount ||
-                   // If the sender and `to` value are consensus contract address, no need to check the allowance.
-                   (Context.Sender == State.ConsensusContractAddress.Value &&
-                    input.To == State.ConsensusContractAddress.Value && input.Symbol == "ELF"),
-                $"Insufficient allowance.");
+            Assert(allowance >= input.Amount, $"Insufficient allowance.");
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -144,13 +171,6 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
             }
 
-            return Nothing.Instance;
-        }
-
-        public override Nothing SetConsensusContractAddress(Address consensusContractAddress)
-        {
-            Assert(State.ConsensusContractAddress.Value == null, "Consensus contract address already set.");
-            State.ConsensusContractAddress.Value = consensusContractAddress;
             return Nothing.Instance;
         }
 

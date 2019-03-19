@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.OS.Network.Infrastructure;
 
 namespace AElf.OS.Node.Domain
