@@ -518,14 +518,25 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public long QueryCurrentDividendsForVoters()
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
-            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
+            return (long) (QueryCurrentDividends() * DPoSContractConsts.VotersRatio);
         }
 
         [View]
         public long QueryCurrentDividends()
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
+            var currentRoundNumber = GetCurrentRoundNumber();
+            if (currentRoundNumber == 0)
+            {
+                return 0;
+            }
+            
+            var round = State.RoundsMap[currentRoundNumber.ToInt64Value()];
+            if (round == null)
+            {
+                return 0;
+            }
+            
+            var minedBlocks = round.GetMinedBlocks();
             return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
 

@@ -530,13 +530,7 @@ namespace AElf.Consensus.DPoS
 
         public static long GetMinedBlocks(this Round round)
         {
-            var minedBlocks = 0L;
-            foreach (var minerInRound in round.RealTimeMinersInformation)
-            {
-                minedBlocks += minerInRound.Value.ProducedBlocks;
-            }
-
-            return minedBlocks;
+            return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
         public static void AddCandidate(this Candidates candidates, byte[] publicKey)
