@@ -339,7 +339,7 @@ namespace AElf.Contracts.Consensus.DPoS
                                  : GetDividendsForReappointment(minedBlocks) *
                                    continualAppointmentDict[minerInRound.Key] /
                                    totalReappointment);
-                // TODO: Can we ask the miners to claim the rewards ???
+
                 State.DividendContract.SendDividends(
                     Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)), amount);
             }
