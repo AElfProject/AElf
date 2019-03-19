@@ -130,10 +130,11 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
+        //TODO: review the method is safe, and can FromPublicKey accept a different length (may not 32) byte array?
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value).ToArray());
+                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
         }
 
 
@@ -167,8 +168,6 @@ namespace AElf.Kernel.SmartContract
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
-            //method SmartContractContext.DeployContract or it's service 
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
                 throw new NoPermissionException();
