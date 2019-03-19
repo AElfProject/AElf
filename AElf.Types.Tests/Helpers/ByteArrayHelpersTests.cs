@@ -51,5 +51,18 @@ namespace AElf.Types.Tests.Helpers
             subArray1.ShouldBe(byteArray1);
             subArray2.ShouldBe(byteArray2);
         }
+
+        [Fact]
+        public void LeftPadBytes_Test()
+        {
+            var bytes = new byte[] {1, 2, 3, 4};
+            var expectBytes = new byte[] {0, 0, 0, 0, 1, 2, 3, 4};
+
+            var result1 = bytes.LeftPad(8);
+            var result2 = bytes.LeftPad(2);
+
+            result1.ShouldBe(expectBytes);
+            result2.ShouldBe(bytes);
+        }
     }
 }
