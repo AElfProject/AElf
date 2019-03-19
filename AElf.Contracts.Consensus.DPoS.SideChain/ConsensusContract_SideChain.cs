@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -20,13 +21,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.TermNumberFromMainChainField.Value = consensusInformation.Round.TermNumber;
-            State.CurrentMiners.Value = minersKeys.ToMiners(1);
+            State.CurrentMiners.Value = minersKeys.ToList().ToMiners();
         }
         
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToMiners().GetMinersHash() ==
+            if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
                 State.CurrentMiners.Value.GetMinersHash())
             {
                 return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);

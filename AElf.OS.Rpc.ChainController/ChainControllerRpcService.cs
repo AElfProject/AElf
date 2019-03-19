@@ -34,7 +34,6 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
-        
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
@@ -66,8 +65,10 @@ namespace AElf.OS.Rpc.ChainController
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             var crossChainContractAddress =
                 SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
+            
             var response = new JObject
             {
                 [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
@@ -75,6 +76,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
+                [SmartContract.GenesisFeeReceiverContractAssemblyName] = feeReceiverContractAddress?.GetFormatted(),
                 [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };

@@ -8,9 +8,9 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Dividends
+namespace AElf.Contracts.Dividend
 {
-    public partial class DividendsContract : CSharpSmartContract<DividendsContractState>
+    public partial class DividendContract : CSharpSmartContract<DividendsContractState>
     {
         public void Initialize(Address consensusContractAddress, Address tokenContractAddress)
         {
@@ -24,10 +24,8 @@ namespace AElf.Contracts.Dividends
         public void SendDividends(Address targetAddress, long amount)
         {
             if (amount <= 0)
-            {
                 return;
-            }
-            
+
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
             State.TokenContract.Transfer(new TransferInput
