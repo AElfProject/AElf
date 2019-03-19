@@ -2,7 +2,6 @@ using System;
 using AElf.CLI.JS;
 using System.IO;
 using Alba.CsConsoleFormat.Fluent;
-using System.Reflection;
 using AElf.CLI.Utils;
 using AElf.Common;
 using Autofac;
@@ -55,10 +54,9 @@ namespace AElf.CLI.Commands
             Console.WriteLine("Your public key is ");
             _engine.RunScript(@"console.log(_account.keyPair.pub.encode('hex'))");
 
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.init-chain.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "init-chain.js")));
         }
-        
+
         public static string GetCode(string path)
         {
             using (var br = File.OpenRead(path))
@@ -66,14 +64,14 @@ namespace AElf.CLI.Commands
                 return ReadFully(br).ToHex().ToLower();
             }
         }
-        
+
         private static byte[] ReadFully(Stream stream)
         {
-            using (MemoryStream ms = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
-                stream.CopyTo(ms);
-                ms.Position = 0;
-                return ms.ToArray();
+                stream.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+                return memoryStream.ToArray();
             }
         }
 

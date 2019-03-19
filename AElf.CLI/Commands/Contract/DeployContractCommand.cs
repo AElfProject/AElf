@@ -1,6 +1,4 @@
 using System.IO;
-using System.Reflection;
-using AElf.CLI.JS;
 using Alba.CsConsoleFormat.Fluent;
 using CommandLine;
 
@@ -33,10 +31,9 @@ namespace AElf.CLI.Commands.Contract
             {
                 Colors.WriteLine($@"Code file ""{_option.CodeFile}"" doesn't exist.".DarkRed());
             }
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.contract.js"));
-            _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category,
-                GetCode(_option.CodeFile));
+
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "contract.js")));
+            _engine.GlobalObject.CallMethod<int, string>("deployCommand", _option.Category, GetCode(_option.CodeFile));
         }
     }
 }

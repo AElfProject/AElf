@@ -1,5 +1,4 @@
-using System.Reflection;
-using AElf.CLI.JS;
+using System.IO;
 using CommandLine;
 
 namespace AElf.CLI.Commands.Proposal
@@ -22,8 +21,7 @@ namespace AElf.CLI.Commands.Proposal
         public override void Execute()
         {
             InitChain();
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.proposal.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "proposal.js")));
             _engine.GlobalObject.CallMethod("release", _option.ProposalHash);
         }
     }
