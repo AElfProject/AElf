@@ -48,5 +48,7 @@ if [[ ! -f "$CHAKRACORE_FILE" ]]; then
 fi
 
 cd ${WORK_PATH}
-cp ${CHAKRACORE_FILE}  $HOME/.chakracore/${TO_FILE}
+if [ -d "$HOME/.chakracore" ]; then
+    cp ${CHAKRACORE_FILE}  $HOME/.chakracore/${TO_FILE}
+fi
 cp ${CHAKRACORE_FILE}  ${TO_FILE}
