@@ -194,35 +194,6 @@ namespace AElf.Kernel.Blockchain.Application
         #endregion
 
         [Fact]
-        public async Task Create_Chain_Success()
-        {
-            var block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
-            };
-
-            var chain = await _fullBlockchainService.GetChainAsync();
-            chain.ShouldBeNull();
-            var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.ShouldBeNull();
-
-            var createChainResult = await _fullBlockchainService.CreateChainAsync(block);
-
-            chain = await _fullBlockchainService.GetChainAsync();
-            chain.ShouldNotBeNull();
-            chain.ShouldBe(createChainResult);
-
-            existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
-            existBlock.GetHash().ShouldBe(block.GetHash());
-        }
-
-        [Fact]
         public async Task Add_Block_Success()
         {
             var block = new Block

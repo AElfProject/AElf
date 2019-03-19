@@ -59,8 +59,11 @@ namespace AElf.Kernel
         public async Task<Chain> MockChain()
         {
             Chain = await CreateChain();
+
+            var genesisBlock = await BlockchainService.GetBlockByHashAsync(Chain.GenesisBlockHash);
+            BestBranchBlockList.Add(genesisBlock);
             
-            BestBranchBlockList = await AddBestBranch(Chain);
+            BestBranchBlockList.AddRange(await AddBestBranch(Chain));
             
             LongestBranchBlockList =
                 await AddForkBranch(Chain, BestBranchBlockList[7].Height + 1, BestBranchBlockList[7].GetHash());
