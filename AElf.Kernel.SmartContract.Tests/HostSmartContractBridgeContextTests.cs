@@ -251,7 +251,7 @@ namespace AElf.Kernel.SmartContract
 
             _bridgeContext.UpdateContract(Address.Zero, registration, null);
         }
-
+        
         private IHostSmartContractBridgeContext CreateNewContext()
         {
             _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();

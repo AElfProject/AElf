@@ -34,7 +34,6 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
-        
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
@@ -66,6 +65,7 @@ namespace AElf.OS.Rpc.ChainController
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             var crossChainContractAddress =
                 SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.ContractNames.CrossChain")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
             var response = new JObject
@@ -75,6 +75,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
+                [SmartContract.GenesisFeeReceiverContractAssemblyName] = feeReceiverContractAddress?.GetFormatted(),
                 [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
@@ -117,7 +118,6 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        //TODO: Add case CallReadOnly [Case]
         [JsonRpcMethod("Call", "rawTransaction")]
         public async Task<string> CallReadOnly(string rawTransaction)
         {
@@ -143,9 +143,9 @@ namespace AElf.OS.Rpc.ChainController
             {
                 return await this.GetFileDescriptorSetAsync(Address.Parse(address));
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                throw new JsonRpcServiceException(Error.NotFound, e.Message);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
         }
 
@@ -197,7 +197,6 @@ namespace AElf.OS.Rpc.ChainController
             return response;
         }
 
-        //TODO: Add test cases GetTransactionsResult to cover all logic [Case]
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
         public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {

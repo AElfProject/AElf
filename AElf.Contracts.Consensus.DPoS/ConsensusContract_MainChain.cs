@@ -155,7 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Update miners list.
-            SetMiners(round.RealTimeMinersInformation.Keys.ToMiners(round.TermNumber));
+            SetMiners(round.RealTimeMinersInformation.Keys.ToList().ToMiners(round.TermNumber));
 
             // Update term number lookup. (Using term number to get first round number of related term.)
             AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);
@@ -236,8 +236,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 TotalBlocks = minedBlocks,
                 CandidatesSnapshot = {candidateInTerms}
             });
-
-            Console.WriteLine($"Snapshot of term {snapshotTermNumber} taken.");
 
             return new ActionResult {Success = true};
         }
@@ -341,7 +339,7 @@ namespace AElf.Contracts.Consensus.DPoS
                                  : GetDividendsForReappointment(minedBlocks) *
                                    continualAppointmentDict[minerInRound.Key] /
                                    totalReappointment);
-                // TODO: Can we ask the miners to claim the rewards ???
+
                 State.DividendContract.SendDividends(
                     Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)), amount);
             }

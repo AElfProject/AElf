@@ -34,15 +34,18 @@ namespace AElf.OS.Jobs
 
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
 
-                    Logger.LogDebug($"Received [{blocks.FirstOrDefault()},...,{blocks.LastOrDefault()}] ({blocks.Count})");
-
-                    if (blocks.FirstOrDefault() != null)
+                    if (blocks == null || !blocks.Any())
                     {
-                        if (blocks.First().Header.PreviousBlockHash != blockHash)
-                        {
-                            Logger.LogError($"Current job hash : {blockHash}");
-                            throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
-                        }
+                        Logger.LogDebug($"No blocks returned, block-count {{ chain height: {chain.LongestChainHeight} }}.");
+                        break;
+                    }
+
+                    Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
+                    
+                    if (blocks.First().Header.PreviousBlockHash != blockHash)
+                    {
+                        Logger.LogError($"Current job hash : {blockHash}");
+                        throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
                     }
 
                     foreach (var block in blocks)
@@ -55,9 +58,9 @@ namespace AElf.OS.Jobs
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    if (chain.LongestChainHeight >= args.BlockHeight || blocks.Count == 0)
+                    if (chain.LongestChainHeight >= args.BlockHeight)
                     {
-                        Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight}, block-count: {blocks.Count} }}");
+                        Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight} }}");
                         break;
                     }
 
