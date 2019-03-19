@@ -178,7 +178,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public void IsTimeToChangeTermTest()
+        public void IsTimeToChangeTermTest_CannotChange()
         {
             const int minersCount = 17;
             const int miningInterval = 4000;
@@ -194,16 +194,36 @@ namespace AElf.Contracts.Consensus.DPoS
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
-            var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
+            round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
 
             var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
 
-            roundAfter.GenerateNextRoundInformation(terminateTime, startTimestamp, out var secondRound);
+            round.GenerateNextRoundInformation(terminateTime, startTimestamp, out var secondRound);
 
-            var result = roundAfter.IsTimeToChangeTerm(roundAfter, startTimestamp, 1);
+            var result = secondRound.IsTimeToChangeTerm(round, startTimestamp, 1);
 
             Assert.False(result);
+        }
+
+        [Fact]
+        public void IsTimeToChangeTermTest()
+        {
+            const int minersCount = 17;
+            const int miningInterval = 4000;
+
+            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            
+            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+
+            foreach (var minerInRound in round.RealTimeMinersInformation)
+            {
+                round.ApplyNormalConsensusData(minerInRound.Key, Hash.Empty, Hash.Generate(), Hash.Empty,
+                    startTimestamp.ToDateTime().AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1).ToTimestamp());
+            }
+
+            var result = round.IsTimeToChangeTerm(round, startTimestamp, 1);
+
+            Assert.True(result);
         }
 
         [Fact]
