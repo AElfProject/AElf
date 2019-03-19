@@ -11,7 +11,7 @@ namespace AElf.Cryptography.SecretSharing
             const int bitSize = 8;
 
             var bitsSize = (str.Length + 1) * bitSize;
-            var filler = 256 - bitsSize;
+            var filler = (int) SecretSharingConsts.MaxBits - bitsSize;
             var totalBytes = new byte[33]; // 256 / 8 + 1
             var strBytes = Encoding.UTF8.GetBytes(str);
 
@@ -21,12 +21,12 @@ namespace AElf.Cryptography.SecretSharing
             return new BigInteger(totalBytes);
         }
 
-        public static string Decode(this BigInteger integer)
+        public static string ConvertToString(this BigInteger integer)
         {
             var bytes = integer.ToByteArray();
             var chars = Encoding.UTF8.GetChars(bytes);
             var size = 0;
-            for (; size < chars.Length; size++)
+            for (; size < chars.Length; ++size)
             {
                 if (chars[size] == '\0')
                 {
@@ -37,9 +37,9 @@ namespace AElf.Cryptography.SecretSharing
             return new string(chars, 0, size);
         }
         
-        public static BigInteger Abs(this BigInteger integer, BigInteger primeNumber)
+        public static BigInteger Abs(this BigInteger integer)
         {
-            return (integer % primeNumber + primeNumber) % primeNumber;
+            return (integer % SecretSharingConsts.FieldPrime + SecretSharingConsts.FieldPrime) % SecretSharingConsts.FieldPrime;
         }
     }
 }

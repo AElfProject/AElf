@@ -11,9 +11,7 @@ namespace AElf.Cryptography.SecretSharing
     /// </summary>
     public static class SecretSharingHelper
     {
-        private static readonly BigInteger PrimeNumber = BigInteger.Pow(new BigInteger(2), 521) - 1;
-        
-        public static List<string> SplitSecret(string secretMessage, int threshold, int totalParts)
+        public static List<string> EncodeSecret(string secretMessage, int threshold, int totalParts)
         {
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
@@ -33,7 +31,7 @@ namespace AElf.Cryptography.SecretSharing
                 for (var j = 1; j < threshold; j++)
                 {
                     secretBigInteger += coefficients[j] * BigInteger.Pow(new BigInteger(i), j);
-                    secretBigInteger %= PrimeNumber;
+                    secretBigInteger %= SecretSharingConsts.FieldPrime;
                 }
 
                 result.Add(Convert.ToBase64String(secretBigInteger.ToByteArray()));
@@ -43,7 +41,7 @@ namespace AElf.Cryptography.SecretSharing
         }
 
         // The shared parts must be sent in order.
-        public static string MergeSecret(List<string> sharedParts, int threshold)
+        public static string DecodeSecret(List<string> sharedParts, int threshold)
         {
             var result = BigInteger.Zero;
             
@@ -58,25 +56,26 @@ namespace AElf.Cryptography.SecretSharing
                         continue;
                     }
 
-                    var numeratorRhs = j + 1;
-                    var denominatorRhs = Math.Abs(j - i);
-                    numerator = (numerator * numeratorRhs) % PrimeNumber;
-                    denominator = (denominator * denominatorRhs) % PrimeNumber;
-                    var gcd = GCD(numerator, denominator);
-                    numerator /= gcd;
-                    denominator /= gcd;
+                    (numerator, denominator) = MultiplyRational(numerator, denominator, j + 1, j - i);
+//                    var numeratorRhs = j + 1;
+//                    var denominatorRhs = Math.Abs(j - i);
+//                    numerator = (numerator * numeratorRhs) % SecretSharingConsts.FieldPrime;
+//                    denominator = (denominator * denominatorRhs) % SecretSharingConsts.FieldPrime;
+//                    var gcd = GCD(numerator, denominator);
+//                    numerator /= gcd;
+//                    denominator /= gcd;
                 }
 
                 result += RationalToWhole(numerator, denominator);
-                result %= PrimeNumber;
+                result %= SecretSharingConsts.FieldPrime;
             }
 
-            return result.Decode();
+            return result.ConvertToString();
         }
 
         private static BigInteger RationalToWhole(BigInteger numerator, BigInteger denominator)
         {
-            return numerator * Inverse(denominator) % PrimeNumber;
+            return numerator * Inverse(denominator) % SecretSharingConsts.FieldPrime;
         }
 
         private static BigInteger GCD(BigInteger integer1, BigInteger integer2)
@@ -90,18 +89,32 @@ namespace AElf.Cryptography.SecretSharing
             }
         }
 
-        private static (BigInteger gcd, BigInteger integerA, BigInteger integerB) GCD2(BigInteger integer1, BigInteger integer2)
+        private static (BigInteger gcd, BigInteger invA, BigInteger invB) GCD2(BigInteger integer1, BigInteger integer2)
         {
             if (integer2 == 0)
+            {
                 return (integer1, 1, 0);
+            }
+            
             var div = BigInteger.DivRem(integer1, integer2, out var rem);
-            var (gcd, integerA, integerB) = GCD2(integer2, rem);
-            return (gcd, integerB, integerA - integerB * div);
+            var (g, iA, iB) = GCD2(integer2, rem);
+            return (g, iB, iA - iB * div);
         }
 
         private static BigInteger Inverse(BigInteger integer)
         {
-            return BigInteger.Abs(GCD2(PrimeNumber, integer).integerB);
+            return GCD2(SecretSharingConsts.FieldPrime, integer).invB.Abs();
+        }
+        
+        private static (BigInteger numerator, BigInteger denominator) MultiplyRational(
+            BigInteger numeratorLhs, BigInteger denominatorLhs,
+            BigInteger numeratorRhs, BigInteger denominatorRhs)
+        {
+            denominatorRhs = denominatorRhs.Abs();
+            var numerator = numeratorLhs * numeratorRhs % SecretSharingConsts.FieldPrime;
+            var denominator = denominatorLhs * denominatorRhs % SecretSharingConsts.FieldPrime;
+            var gcd = GCD(numerator, denominator);
+            return (numerator / gcd, denominator / gcd);
         }
     }
 }
