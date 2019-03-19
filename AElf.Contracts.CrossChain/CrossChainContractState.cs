@@ -45,6 +45,8 @@ namespace AElf.Contracts.CrossChain
 
         public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
+        
+        public MappedState<int, Miners> SideChainInitialConsensuseInfo { get; set; }
         public MappedState<int, long> IndexingBalance { get; set; }
 
         #endregion

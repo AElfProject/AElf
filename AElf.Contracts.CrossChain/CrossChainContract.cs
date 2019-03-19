@@ -116,15 +116,20 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
-//            var miners = State.ConsensusContract.GetCurrentMiners();
-//            Console.WriteLine(miners.PublicKeys.ToString());
-            // fire event
-            Context.FireEvent(new SideChainCreationRequested
-            {
-                ChainId = chainId,
-                Creator = Context.Sender,
-                Miners = new Miners()
-            });
+            var initialConsensusInfo = State.ConsensusContract.GetCurrentMiners();
+            State.SideChainInitialConsensuseInfo[chainId] = initialConsensusInfo;
+            Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
+                                   string.Join(",",
+                                       initialConsensusInfo.PublicKeys.Select(p =>
+                                           Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)).ToString())));
+            Context.LogDebug(() => $"TermNumber {initialConsensusInfo.TermNumber}");
+            // Event is not used for now.
+//            Context.FireEvent(new SideChainCreationRequested
+//            {
+//                ChainId = chainId,
+//                Creator = Context.Sender,
+//                MinerList = initialConsensusInfo
+//            });
             return chainId;
         }
 
@@ -480,13 +485,6 @@ namespace AElf.Contracts.CrossChain
         private void LockTokenAndResource(SideChainInfo sideChainInfo)
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
-
-//            var balance = State.TokenContract.GetBalance(new GetBalanceInput
-//            {
-//                Owner = Context.Sender,
-//                Symbol = "ELF"
-//            });
-//            Console.WriteLine($"{balance.Balance} Balance.");
             // update locked token balance
             State.TokenContract.TransferFrom(new TransferFromInput
             {

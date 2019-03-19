@@ -11,7 +11,7 @@ namespace AElf.Contracts.CrossChain
         public Address Creator { get; set; }
         public int ChainId { get; set; }
 
-        public Miners Miners { get; set; }
+        public Miners MinerList { get; set; }
     }
 
     public class SideChainCreationRequestApproved : Event

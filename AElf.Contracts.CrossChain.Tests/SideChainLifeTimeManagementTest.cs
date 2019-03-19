@@ -307,7 +307,7 @@ namespace AElf.Contract.CrossChain.Tests
             
         }
         
-        [Fact]
+        [Fact(Skip = "Event is not used.")]
         public async Task Create_SideChain_FireEvent()
         {
             long lockedTokenAmount = 10;           
