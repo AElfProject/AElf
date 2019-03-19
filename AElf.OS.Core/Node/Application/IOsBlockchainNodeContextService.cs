@@ -26,6 +26,8 @@ namespace AElf.OS.Node.Application
     {
         public Type SmartContractType { get; set; }
         public Hash SystemSmartContractName { get; set; }
+
+        public SystemTransactionMethodCallList TransactionMethodCallList { get; set; } = new SystemTransactionMethodCallList();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -111,7 +113,7 @@ namespace AElf.OS.Node.Application
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                     GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName,
-                        dto.SmartContractRunnerCategory)));
+                        dto.SmartContractRunnerCategory, p.TransactionMethodCallList)));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -143,8 +145,10 @@ namespace AElf.OS.Node.Application
 
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName,
-            int category)
+            int category, SystemTransactionMethodCallList transactionMethodCallList = null)
         {
+            if (transactionMethodCallList == null)
+                transactionMethodCallList = new SystemTransactionMethodCallList();
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
@@ -154,7 +158,8 @@ namespace AElf.OS.Node.Application
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code,
+                    transactionMethodCallList))
             };
         }
 
