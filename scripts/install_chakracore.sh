@@ -4,13 +4,12 @@ FILE_NAME="ChakraCore.dll"
 TO_FILE=$1${FILE_NAME}
 FROM_FILE=
 
-if [ -d "./ChakraCoreFiles" ]; then
+if [ -d "$HOME/.chakracore/ChakraCoreFiles" ]; then
     mkdir -p scripts/.tmp/chakracore/
-    cp -r ./ChakraCoreFiles scripts/.tmp/chakracore/
-else
-    wget https://aka.ms/chakracore/cc_linux_x64_1_11_1
-    tar xf cc_linux_x64_1_11_1
+    cp -r $HOME/.chakracore/ChakraCoreFiles scripts/.tmp/chakracore/
+    exit
 fi
+
 
 if [[ -f "$TO_FILE" ]]; then
     echo "$TO_FILE exists, no need to download again"
@@ -51,4 +50,5 @@ if [[ ! -f "$CHAKRACORE_FILE" ]]; then
 fi
 
 cd ${WORK_PATH}
+cp -r $DOWNLOAD_PATH/* $HOME/.chakracore/
 cp ${CHAKRACORE_FILE} ${TO_FILE}
