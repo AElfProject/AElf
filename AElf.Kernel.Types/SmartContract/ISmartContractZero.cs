@@ -8,7 +8,9 @@ namespace AElf.Kernel.KernelAccount
     {
         string GetContractInfo(Address address);
         Address DeploySmartContract(int category, byte[] code);
-        Address DeploySystemSmartContract(Hash name, int category, byte[] code);
+
+        Address DeploySystemSmartContract(Hash name, int category, byte[] code,
+            SystemTransactionMethodCallList transactionMethodCallList);
 
         Address GetContractAddressByName(Hash name);
         SmartContractRegistration GetSmartContractRegistrationByAddress(Address address);
