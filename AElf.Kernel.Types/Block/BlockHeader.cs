@@ -24,7 +24,6 @@ namespace AElf.Kernel
             return _blockHash;
         }
 
-        //TODO: Add case  GetHashBytes to cover '_blockHash == null' [Case]
         public byte[] GetHashBytes()
         {
             if (_blockHash == null)

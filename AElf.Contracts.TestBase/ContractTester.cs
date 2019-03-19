@@ -273,7 +273,7 @@ namespace AElf.Contracts.TestBase
             params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlock();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(KeyPair.PublicKey),
@@ -303,7 +303,7 @@ namespace AElf.Contracts.TestBase
             params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlock();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
@@ -330,7 +330,7 @@ namespace AElf.Contracts.TestBase
         {
             await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var preBlock = await blockchainService.GetBestChainLastBlock();
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
 
             return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
@@ -403,7 +403,7 @@ namespace AElf.Contracts.TestBase
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
             var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
-            var preBlock = await blockchainService.GetBestChainLastBlock();
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
                     BlockHash = preBlock.GetHash(),
@@ -428,7 +428,7 @@ namespace AElf.Contracts.TestBase
         public void SupplyTransactionParameters(ref List<Transaction> transactions)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = AsyncHelper.RunSync(() => blockchainService.GetBestChainLastBlock());
+            var refBlock = AsyncHelper.RunSync(() => blockchainService.GetBestChainLastBlockHeaderAsync());
             foreach (var transaction in transactions)
             {
                 transaction.RefBlockNumber = refBlock.Height;
