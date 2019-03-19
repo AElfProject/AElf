@@ -45,18 +45,6 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task Query_basic_Info()
-        {
-            await Vote();
-        }
-
-        [Fact]
-        public async Task Query_Candidate_Info()
-        {
-            await Vote();
-        }
-
-        [Fact]
         public async Task Query_Tickets_Info()
         {
             await Vote();
@@ -117,8 +105,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var pageAbleNotWithdrawnTicketsInfo = await Starter.GetPageableNotWithdrawnTicketsInfo(_voterList[0].PublicKey,0,0);
             pageAbleNotWithdrawnTicketsInfo.VotedTickets.ShouldBe(1000L);
             pageAbleNotWithdrawnTicketsInfo.VotingRecordsCount.ShouldBe(1L);
-
-            //GetPageableTicketsHistories
         }
 
         [Fact]
