@@ -5,7 +5,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using AElf.Common;
-using Google.Protobuf.Collections;
 using Shouldly;
 
 namespace AElf.Kernel.Types.Tests
@@ -70,6 +69,29 @@ namespace AElf.Kernel.Types.Tests
             serializeData.ShouldNotBe(null);
         }
 
+        [Fact]
+        public void Get_BlockHash()
+        {
+            var blockHeader = new BlockHeader
+            {
+                ChainId = ChainHelpers.GetRandomChainId(),
+                Height = 10,
+                PreviousBlockHash = Hash.Generate(),
+                MerkleTreeRootOfTransactions = Hash.Generate(),
+                MerkleTreeRootOfWorldState = Hash.Generate(),
+                Bloom = ByteString.Empty,
+                BlockExtraDatas = { ByteString.CopyFromUtf8("test")}
+            };
+            var hash = blockHeader.GetHash();
+            hash.ShouldNotBeNull();   
+            
+            var hashBytes = blockHeader.GetHashBytes();
+            hashBytes.Length.ShouldBe(32);
+
+            var hash1 = Hash.LoadByteArray(hashBytes);
+            hash.ShouldBe(hash1);
+        }
+        
         private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
@@ -90,13 +112,13 @@ namespace AElf.Kernel.Types.Tests
             return block;
         }
 
-        private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
+        private (List<Kernel.Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
-            var transactions = new List<Transaction>();
+            var transactions = new List<Kernel.Transaction>();
             var transactionHashes = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
-               var transaction = new Transaction()
+               var transaction = new Kernel.Transaction()
                {
                    From = Address.Generate(),
                    To = Address.Generate(),

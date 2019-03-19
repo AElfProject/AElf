@@ -1,5 +1,4 @@
-using System.Reflection;
-using AElf.CLI.JS;
+using System.IO;
 using CommandLine;
 
 namespace AElf.CLI.Commands.Proposal
@@ -9,10 +8,12 @@ namespace AElf.CLI.Commands.Proposal
     {
         [Value(0, HelpText = "Hash of proposal you want to approve. ", Required = true)]
         public string ProposalHash { get; set; } = "";
-    } 
+    }
+
     public class ApproveCommand : Command
     {
         private readonly ApprovalOption _option;
+
         public ApproveCommand(ApprovalOption option) : base(option)
         {
             _option = option;
@@ -21,8 +22,7 @@ namespace AElf.CLI.Commands.Proposal
         public override void Execute()
         {
             InitChain();
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.proposal.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "proposal.js")));
             _engine.GlobalObject.CallMethod("approve", _option.ProposalHash);
         }
     }

@@ -6,21 +6,22 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
-    public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext
+    public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _smartContractBridgeService = smartContractBridgeService;
-            _smartContractExecutiveService = smartContractExecutiveService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
         public ITransactionContext TransactionContext { get; set; }
@@ -86,55 +87,32 @@ namespace AElf.Kernel.SmartContract
         //TODO: Add test case Call [Case]
         public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
         {
-            
-            
-            var svc = _smartContractExecutiveService;
-
-            
-            var transactionContext = new TransactionContext
+            TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
-                Transaction = new Transaction()
+                var chainContext = new ChainContext()
+                {
+                    BlockHash = this.TransactionContext.PreviousBlockHash,
+                    BlockHeight = this.TransactionContext.BlockHeight - 1,
+                    StateCache = stateCache
+                };
+
+                var tx = new Transaction()
                 {
                     From = this.Self,
                     To = address,
                     MethodName = methodName,
                     Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-                },
-                PreviousBlockHash = this.TransactionContext.PreviousBlockHash,
-                CurrentBlockTime = CurrentBlockTime,
-                BlockHeight = this.TransactionContext.BlockHeight,
-                //Trace = trace,
-                CallDepth = 0,
-            };
-
-            var chainContext = new ChainContext()
-            {
-                BlockHash = this.TransactionContext.PreviousBlockHash,
-                BlockHeight = this.TransactionContext.BlockHeight - 1,
-                StateCache = stateCache
-            };
-            AsyncHelper.RunSync(async () =>
-            {
-                var executive = await svc.GetExecutiveAsync(chainContext, address);
-                executive.SetDataCache(stateCache);
-                try
-                {
-                    // view only, write actions need to be sent via SendInline
-                    await executive.SetTransactionContext(transactionContext).Apply();
-                }
-                finally
-                {
-                    await svc.PutExecutiveAsync(address, executive);
-                }
+                };
+                return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
             });
 
-            if (!transactionContext.Trace.IsSuccessful())
+            if (!trace.IsSuccessful())
             {
-                throw new Exception("Contract reading call failed.");
+                throw new ContractCallException(trace.StdErr);
             }
 
             var decoder = ReturnTypeHelper.GetDecoder<T>();
-            return decoder(transactionContext.Trace.ReturnValue.ToByteArray());
+            return decoder(trace.ReturnValue.ToByteArray());
         }
 
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
@@ -149,10 +127,11 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
+        //TODO: review the method is safe, and can FromPublicKey accept a different length (may not 32) byte array?
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value).ToArray());
+                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
         }
 
 
@@ -186,8 +165,6 @@ namespace AElf.Kernel.SmartContract
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
-            //method SmartContractContext.DeployContract or it's service 
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
                 throw new NoPermissionException();
@@ -204,7 +181,7 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
                 false, null));
         }
     }

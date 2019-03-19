@@ -119,7 +119,6 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        //TODO: Add case CallReadOnly [Case]
         [JsonRpcMethod("Call", "rawTransaction")]
         public async Task<string> CallReadOnly(string rawTransaction)
         {
@@ -145,9 +144,9 @@ namespace AElf.OS.Rpc.ChainController
             {
                 return await this.GetFileDescriptorSetAsync(Address.Parse(address));
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                throw new JsonRpcServiceException(Error.NotFound, e.Message);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
         }
 
@@ -199,7 +198,6 @@ namespace AElf.OS.Rpc.ChainController
             return response;
         }
 
-        //TODO: Add test cases GetTransactionsResult to cover all logic [Case]
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
         public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {

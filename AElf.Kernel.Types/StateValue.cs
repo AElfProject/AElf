@@ -3,7 +3,6 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    //TODO: Add test case StateValue [Case]
     public partial class StateValue
     {
         public bool IsDirty => OriginalValue != CurrentValue;
