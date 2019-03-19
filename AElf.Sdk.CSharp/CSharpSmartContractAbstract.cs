@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
+
+[assembly: InternalsVisibleTo("AElf.Sdk.CSharp.Tests")]
 
 namespace AElf.Sdk.CSharp
 {
