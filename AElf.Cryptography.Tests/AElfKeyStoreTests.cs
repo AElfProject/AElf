@@ -68,7 +68,7 @@ namespace AElf.Cryptography.Tests
                 var address1 = Address.FromPublicKey(keyPair1.PublicKey);
                 var publicKey1 = keyPair1.PublicKey.ToHex();
 
-                // keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
+                keyPair.PrivateKey.ShouldBe(keyPair1.PrivateKey);
 
                 publicKey.ShouldBe(publicKey1);
                 address.ShouldBe(address1);
