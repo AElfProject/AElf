@@ -1,19 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Threading;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
+using Xunit.Abstractions;
 
 namespace AElf.OS
 {
@@ -30,6 +31,7 @@ namespace AElf.OS
             {
                 var blockchainService = context.Services.GetRequiredServiceLazy<IBlockchainService>().Value;
                 var genService = context.Services.GetRequiredServiceLazy<IBlockGenerationService>().Value;
+                var exec = context.Services.GetRequiredServiceLazy<IBlockExecutingService>().Value;
 
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
@@ -51,10 +53,13 @@ namespace AElf.OS
                                 BlockTime = DateTime.UtcNow
                             });
 
-                            previousBlockHash = newBlock.GetHash();
+                            // no choice need to execute the block so that Hash doesn't change
+                            var newNewBlock = await exec.ExecuteBlockAsync(newBlock.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None);
+
+                            previousBlockHash = newNewBlock.GetHash();
                             height++;
                             
-                            blockList.Add(newBlock);
+                            blockList.Add(newNewBlock);
                         }
 
                         return blockList;
