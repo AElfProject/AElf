@@ -3,8 +3,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 
-[assembly: InternalsVisibleTo("AElf.Sdk.CSharp.Tests")]
-
 namespace AElf.Sdk.CSharp
 {
     public abstract class CSharpSmartContractAbstract : CSharpSmartContract
