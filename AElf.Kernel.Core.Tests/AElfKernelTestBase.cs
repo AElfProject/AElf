@@ -6,6 +6,10 @@ namespace AElf.Kernel
     {
     }
     
+    public class AElfKernelTestBase_Temp : AElfIntegratedTest<KernelCoreTestAElfModule_Temp>
+    {
+    }
+    
     public class AElfMinerTestBase : AElfIntegratedTest<KernelMinerTestAElfModule>
     {
     }
