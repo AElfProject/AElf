@@ -177,7 +177,7 @@ namespace AElf.Contracts.MultiToken
         #region ForTests
 
         public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
-            long totalSupply)
+            long totalSupply, Address whiteAddress)
         {
             Create(new CreateInput()
             {
@@ -186,7 +186,8 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = isBurnable,
                 Issuer = issuer,
                 TokenName = tokenName,
-                TotalSupply = totalSupply
+                TotalSupply = totalSupply,
+                LockWhiteList = { whiteAddress}
             });
         }
 

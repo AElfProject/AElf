@@ -5,9 +5,9 @@ using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
-namespace AElf.Contracts.Dividends
+namespace AElf.Contracts.Dividend
 {
-    public partial class DividendsContract
+    public partial class DividendContract
     {
         /// <summary>
         /// Get dividends of a specific term.
@@ -63,24 +63,19 @@ namespace AElf.Contracts.Dividends
                     var totalDividends = State.DividendsMap[i];
                     if (totalDividends > 0)
                     {
-                        Context.LogDebug(()=>$"Getting dividends of {votingRecord.TransactionId.ToHex()}: ");
-                        Context.LogDebug(()=>$"Total weights of term {i}: {totalWeights}");
-                        Context.LogDebug(()=>$"Total dividends of term {i}: {totalDividends}");
-                        Context.LogDebug(()=>$"Weights of this vote: {votingRecord.Weight}");
                         dividends += totalDividends * votingRecord.Weight / totalWeights;
-                        Context.LogDebug(()=>$"Result: {dividends}");
                     }
                 }
             }
 
             return dividends;
         }
-        
+
         public long GetExpireTermNumber(VotingRecord votingRecord, long currentAge)
         {
-            return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / 7;
+            return votingRecord.TermNumber + GetDurationDays(votingRecord, currentAge) / ConsensusDPoSConsts.DaysEachTerm;
         }
-        
+
         public long GetDurationDays(VotingRecord votingRecord, long currentAge)
         {
             var days = currentAge - votingRecord.VoteAge + 1;
@@ -96,18 +91,27 @@ namespace AElf.Contracts.Dividends
         [View]
         public long GetAllAvailableDividends(string publicKey)
         {
-            return State.ConsensusContract.GetTicketsInfo(publicKey).VotingRecords
+            var ticketsInformation = State.ConsensusContract.GetTicketsInformation(publicKey);
+            if (ticketsInformation == null || !ticketsInformation.VotingRecords.Any())
+            {
+                return 0;
+            }
+
+            return ticketsInformation.VotingRecords
                 .Where(vr => vr.From == publicKey)
                 .Aggregate<VotingRecord, long>(0,
                     (current, votingRecord) => current + GetAvailableDividends(votingRecord));
         }
 
         [View]
-        // TODO: Views cannot throw exceptions？
         public long CheckDividends(long ticketsAmount, int lockTime, long termNumber)
         {
             var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber();
-            Assert(termNumber <= currentTermNumber, "Cannot check dividends of future term.");
+            if (termNumber >= currentTermNumber)
+            {
+                return 0;
+            }
+            
             var totalWeights = State.TotalWeightsMap[termNumber];
             if (totalWeights > 0)
             {
@@ -130,7 +134,7 @@ namespace AElf.Contracts.Dividends
 
             if (termNumber < 1)
             {
-                return new LongList {Values = {0}, Remark = "Not found."};
+                return new LongList {Values = {0}};
             }
 
             const long ticketsAmount = 10_000;
