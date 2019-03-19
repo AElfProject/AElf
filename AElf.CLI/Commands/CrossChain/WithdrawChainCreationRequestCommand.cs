@@ -1,5 +1,4 @@
-using System.Reflection;
-using AElf.CLI.JS;
+using System.IO;
 using CommandLine;
 
 namespace AElf.CLI.Commands.CrossChain
@@ -10,10 +9,11 @@ namespace AElf.CLI.Commands.CrossChain
         [Value(0, HelpText = "Chain id.", Required = true)]
         public string ChainId { get; set; }
     }
-    
+
     public class WithdrawChainCreationRequestCommand : Command
     {
         private WithdrawChainCreationRequestOption _option;
+
         public WithdrawChainCreationRequestCommand(WithdrawChainCreationRequestOption option) : base(option)
         {
             _option = option;
@@ -22,8 +22,7 @@ namespace AElf.CLI.Commands.CrossChain
         public override void Execute()
         {
             InitChain();
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.cross-chain.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "cross-chain.js")));
             _engine.GlobalObject.CallMethod("withdraw_chain_creation_request", _option.ChainId);
         }
     }

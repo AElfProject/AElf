@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using AElf.CLI.Commands;
 using AElf.CLI.JS.Crypto;
 using AElf.CLI.JS.IO;
@@ -13,6 +12,7 @@ using ChakraCore.NET;
 using ChakraCore.NET.API;
 using ChakraCore.NET.Debug;
 using ChakraCore.NET.Hosting;
+using Newtonsoft.Json;
 using Console = System.Console;
 
 namespace AElf.CLI.JS
@@ -30,7 +30,6 @@ namespace AElf.CLI.JS
         {
             return new JSObj(_value.ReadProperty<JSValue>(name));
         }
-
 
         public TResult Invoke<T, TResult>(string methodName, T arg)
         {
@@ -59,15 +58,15 @@ namespace AElf.CLI.JS
         private readonly PrettyPrint _prettyPrint;
         private HttpRequestor _requestor;
         private TimerCallsHelper _timerCallsHelper;
+        public string DefaultScriptsPath { get; }
 
         public IServiceNode ServiceNode => _context.ServiceNode;
         public JSValue GlobalObject => _context.GlobalObject;
 
-        public JSEngine(IConsole console, BaseOption option,
-            IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
+        public JSEngine(IConsole console, BaseOption option, IRandomGenerator randomGenerator, IDebugAdapter debugAdapter)
         {
+            DefaultScriptsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Scripts");
             _console = console;
-//            var config = new JavaScriptHostingConfig {DebugAdapter = debugAdapter};
             var config = new JavaScriptHostingConfig();
             _context = JavaScriptHosting.Default.CreateContext(config);
             _context.RegisterEvalService();
@@ -88,21 +87,18 @@ namespace AElf.CLI.JS
 
         private void LoadAelfJs()
         {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.aelf.js"));
+            RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "aelf.js")));
             RunScript(@"Aelf = require('aelf');");
         }
 
         private void LoadHelpersJs()
         {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.helpers.js"));
+            RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "helpers.js")));
         }
 
         private void LoadCryptoJS()
         {
-            RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.crypto.js"));
+            RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "crypto.js")));
         }
 
         private void ExposeCryptoHelpers()
@@ -115,15 +111,12 @@ namespace AElf.CLI.JS
         private void ExposeAccountSaver()
         {
             _context.GlobalObject.Binding.SetMethod<string, string, string, string>("__saveAccount__",
-                (address, privKey, pubKey, password) =>
-                {
-                    Pem.WriteKeyPair(_option.GetPathForAccount(address), privKey, pubKey, password);
-                });
+                (address, privKey, pubKey, password) => { Pem.WriteKeyPair(_option.GetPathForAccount(address), privKey, pubKey, password); });
         }
 
         private void ExposeAElfOption()
         {
-            RunScript($"_config = {Newtonsoft.Json.JsonConvert.SerializeObject(_option)};");
+            RunScript($"_config = {JsonConvert.SerializeObject(_option)};");
         }
 
         private static JavaScriptValue ToJSMethod(IServiceNode node, Action<IEnumerable<JavaScriptValue>> a)
@@ -151,10 +144,7 @@ namespace AElf.CLI.JS
                         var val = (JavaScriptValue) typeof(JSValueBinding)
                             .GetField("jsValue", BindingFlags.NonPublic | BindingFlags.Instance)
                             .GetValue(binding);
-                        Action<string, Action<IEnumerable<JavaScriptValue>>> setMethod = (name, fn) =>
-                        {
-                            valServ.WriteProperty<Action<IEnumerable<JavaScriptValue>>>(val, name, fn);
-                        };
+                        Action<string, Action<IEnumerable<JavaScriptValue>>> setMethod = (name, fn) => { valServ.WriteProperty<Action<IEnumerable<JavaScriptValue>>>(val, name, fn); };
                         foreach (var methodInfo in typeof(IConsole).GetMethods())
                         {
                             setMethod(methodInfo.Name.ToLower(),
@@ -168,18 +158,14 @@ namespace AElf.CLI.JS
         {
             _context.ServiceNode.GetService<IJSValueConverterService>()
                 .RegisterProxyConverter<HttpRequestor>( //register the object converter
-                    (binding, instance, serviceNode) =>
-                    {
-                        binding.SetFunction<JSValue, JSValue>("send", instance.Send);
-                    });
+                    (binding, instance, serviceNode) => { binding.SetFunction<JSValue, JSValue>("send", instance.Send); });
             try
             {
                 RunScript("_requestor = null;");
                 _requestor = new HttpRequestor(_option.Endpoint, _context);
                 _context.GlobalObject.WriteProperty("_requestor", _requestor);
                 RunScript("aelf = new Aelf(_requestor);");
-                RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                    .GetManifestResourceStream("AElf.CLI.Scripts.requestor.js"));
+                RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "requestor.js")));
             }
             catch (Exception)
             {
@@ -191,14 +177,6 @@ namespace AElf.CLI.JS
         {
             _context.GlobalObject.Binding.SetMethod<JSValue, int, int>("__repeatedCalls__",
                 _timerCallsHelper.RepeatedCalls);
-        }
-
-        public void RunScript(Stream stream)
-        {
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                _context.RunScript(reader.ReadToEnd());
-            }
         }
 
         public void RunScript(string jsContent)
