@@ -210,6 +210,9 @@ namespace AElf.Kernel.Blockchain.Application
 
                 chainBranchBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
+
+                if (chainBlockLink == null)
+                    return null;
             }
         }
 

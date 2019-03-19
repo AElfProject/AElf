@@ -11,7 +11,6 @@ namespace AElf.CLI.JS
         TResult Invoke<T, TResult>(string methodName, T arg);
         TResult Invoke<TResult>(string methodName);
         IJSObject InvokeAndGetJSObject(string methodName);
-
         JavaScriptValue Value { get; }
     }
 
@@ -19,9 +18,9 @@ namespace AElf.CLI.JS
     {
         IServiceNode ServiceNode { get; }
         JSValue GlobalObject { get; }
-        void RunScript(Stream stream);
         void RunScript(string jsContent);
         JSValue Evaluate(string script);
         void Execute(string script);
+        string DefaultScriptsPath { get; }
     }
 }

@@ -14,16 +14,13 @@ namespace AElf.Kernel.SmartContract
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ISmartContractExecutiveService smartContractExecutiveService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _smartContractBridgeService = smartContractBridgeService;
-            _smartContractExecutiveService = smartContractExecutiveService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
@@ -130,10 +127,11 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
+        //TODO: review the method is safe, and can FromPublicKey accept a different length (may not 32) byte array?
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value).ToArray());
+                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
         }
 
 
@@ -167,8 +165,6 @@ namespace AElf.Kernel.SmartContract
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            //TODO: only check it in sdk not safe, we should check the security in the implement, in the 
-            //method SmartContractContext.DeployContract or it's service 
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
                 throw new NoPermissionException();
@@ -185,7 +181,7 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
                 false, null));
         }
     }
