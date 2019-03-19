@@ -1,5 +1,4 @@
-using System.Reflection;
-using AElf.CLI.JS;
+using System.IO;
 using CommandLine;
 
 namespace AElf.CLI.Commands
@@ -26,8 +25,7 @@ namespace AElf.CLI.Commands
         public override void Execute()
         {
             InitChain();
-            _engine.RunScript(Assembly.LoadFrom(Assembly.GetAssembly(typeof(JSEngine)).Location)
-                .GetManifestResourceStream("AElf.CLI.Scripts.contract.js"));
+            _engine.RunScript(File.ReadAllText(Path.Combine(_engine.DefaultScriptsPath, "contract.js")));
             _engine.GlobalObject.CallMethod<string, string>("changeOwnerCommand", _option.ContractAddress,
                 _option.NewOwner);
         }
