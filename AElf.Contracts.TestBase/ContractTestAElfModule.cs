@@ -23,6 +23,7 @@ namespace AElf.Contracts.TestBase
 {
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
+        //typeof(CSharpRuntimeAElfModule3),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)

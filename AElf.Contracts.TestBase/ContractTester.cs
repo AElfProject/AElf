@@ -170,7 +170,6 @@ namespace AElf.Contracts.TestBase
         /// Initial a chain with given chain id (passed to ctor),
         /// and produce the genesis block with provided contract types.
         /// </summary>
-        /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
         public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
@@ -186,7 +185,6 @@ namespace AElf.Contracts.TestBase
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
-            //dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await osBlockchainNodeContextService.StartAsync(dto);
         }

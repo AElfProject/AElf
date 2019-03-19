@@ -153,12 +153,11 @@ namespace AElf.Contracts.Consensus.DPoS
             return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
 
-
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
         {
-            return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                methodName, objects);
+            var tokenContractAddress = contractTester.GetTokenContractAddress();
+            return await contractTester.ExecuteContractWithMiningAsync(tokenContractAddress, methodName, objects);
         }
 
         public static async Task InitialChainAndTokenAsync(
