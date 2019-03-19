@@ -86,7 +86,7 @@ namespace AElf.Kernel.SmartContract.Sdk
     }
 
     [Serializable]
-    public class NoPermissionException : Exception
+    public class NoPermissionException : SmartContractBridgeException
     {
         //
         // For guidelines regarding the creation of new exception types, see
@@ -113,5 +113,34 @@ namespace AElf.Kernel.SmartContract.Sdk
         {
         }
     }
-    
+
+
+    [Serializable]
+    public class ContractCallException : SmartContractBridgeException
+    {
+        //
+        // For guidelines regarding the creation of new exception types, see
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
+        // and
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
+        //
+
+        public ContractCallException()
+        {
+        }
+
+        public ContractCallException(string message) : base(message)
+        {
+        }
+
+        public ContractCallException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected ContractCallException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
+        {
+        }
+    }
 }

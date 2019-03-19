@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -256,7 +256,7 @@ namespace AElf.OS.Rpc.ChainController
 
         internal static async Task<Block> GetBlockAtHeight(this ChainControllerRpcService s, long height)
         {
-            return await s.BlockchainService.GetBlockByHeightAsync(height);
+            return await s.BlockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
 
         internal static async Task<JObject> GetTransactionPoolStatusAsync(this ChainControllerRpcService s)
