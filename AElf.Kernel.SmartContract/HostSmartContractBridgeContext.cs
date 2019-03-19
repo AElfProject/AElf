@@ -14,16 +14,13 @@ namespace AElf.Kernel.SmartContract
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ISmartContractExecutiveService smartContractExecutiveService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _smartContractBridgeService = smartContractBridgeService;
-            _smartContractExecutiveService = smartContractExecutiveService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
