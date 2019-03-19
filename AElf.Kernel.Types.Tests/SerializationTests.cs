@@ -14,7 +14,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void FromTo()
         {
-            Transaction t = new Transaction();
+            var t = new Transaction();
             t.From = Address.Generate();
             t.To = Address.Generate();
 

@@ -181,7 +181,7 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
                 false, null));
         }
     }

@@ -9,6 +9,7 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
+    //TODO: Add FuncInfo test case [Case]
     public class FuncInfo<T>
     {
         private readonly ContractReferenceState _owner;

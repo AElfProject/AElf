@@ -88,6 +88,7 @@ namespace AElf.Sdk.CSharp
         /// <param name="propertyName"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
+        //TODO: Add CreateGetFuncFor to cover all logic [Case]
         static Func<T, object> CreateGetFuncFor<T>(string propertyName)
         {
             PropertyInfo prop = typeof(T).GetProperty(propertyName);
