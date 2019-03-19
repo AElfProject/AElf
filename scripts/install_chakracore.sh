@@ -5,6 +5,7 @@ TO_FILE=$1${FILE_NAME}
 FROM_FILE=
 
 if [ -d "$HOME/.chakracore/ChakraCoreFiles" ]; then
+    echo "HOME/.chakracore/ChakraCoreFiles exists...."
     mkdir -p scripts/.tmp/chakracore/
     cp -r $HOME/.chakracore/ChakraCoreFiles scripts/.tmp/chakracore/
     exit
