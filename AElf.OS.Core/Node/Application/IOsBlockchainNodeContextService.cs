@@ -27,7 +27,8 @@ namespace AElf.OS.Node.Application
         public Type SmartContractType { get; set; }
         public Hash SystemSmartContractName { get; set; }
 
-        public SystemTransactionMethodCallList TransactionMethodCallList { get; set; } = new SystemTransactionMethodCallList();
+        public SystemTransactionMethodCallList TransactionMethodCallList { get; set; } =
+            new SystemTransactionMethodCallList();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -47,30 +48,42 @@ namespace AElf.OS.Node.Application
     public static class GenesisSmartContractDtoExtensions
     {
         public static void AddGenesisSmartContract(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Type smartContractType, Hash name = null)
+            Type smartContractType, Hash name = null,
+            SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
                 SmartContractType = smartContractType,
-                SystemSmartContractName = name
+                SystemSmartContractName = name,
+                TransactionMethodCallList = systemTransactionMethodCallList
             });
         }
 
-        public static void AddGenesisSmartContracts(this List<GenesisSmartContractDto> genesisSmartContracts,
-            params Type[] smartContractTypes)
-        {
-            foreach (var smartContractType in smartContractTypes)
-            {
-                AddGenesisSmartContract(genesisSmartContracts, smartContractType);
-            }
-        }
-
-
         //TODO: AddGenesisSmartContract no case cover [Case]
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Hash name = null)
+            Hash name = null, SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
-            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name);
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
+        }
+
+        public static void Add(this SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
+            params object[] objects)
+        {
+            systemTransactionMethodCallList.Value.Add(new SystemTransactionMethodCall()
+            {
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+            });
+        }
+
+        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            Hash name, Action<SystemTransactionMethodCallList> action)
+        {
+            SystemTransactionMethodCallList systemTransactionMethodCallList = new SystemTransactionMethodCallList();
+
+            action?.Invoke(systemTransactionMethodCallList);
+
+            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
 
         public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
