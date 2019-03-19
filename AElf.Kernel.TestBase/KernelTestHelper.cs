@@ -10,8 +10,7 @@ namespace AElf.Kernel
     public class KernelTestHelper
     {
         public IBlockchainService BlockchainService { get; set; }
-
-        public Chain Chain { get; set; }
+        public ITransactionResultService TransactionResultService { get; set; }
 
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -58,30 +57,30 @@ namespace AElf.Kernel
         /// </returns>
         public async Task<Chain> MockChain()
         {
-            Chain = await CreateChain();
+            var chain = await CreateChain();
 
-            var genesisBlock = await BlockchainService.GetBlockByHashAsync(Chain.GenesisBlockHash);
+            var genesisBlock = await BlockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
             BestBranchBlockList.Add(genesisBlock);
             
-            BestBranchBlockList.AddRange(await AddBestBranch(Chain));
+            BestBranchBlockList.AddRange(await AddBestBranch(chain));
             
             LongestBranchBlockList =
-                await AddForkBranch(Chain, BestBranchBlockList[7].Height + 1, BestBranchBlockList[7].GetHash());
+                await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash());
             
             ForkBranchBlockList =
-                await AddForkBranch(Chain, BestBranchBlockList[4].Height + 1, BestBranchBlockList[4].GetHash());
+                await AddForkBranch(chain, BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
             UnlinkedBranchBlockList =
-                await AddForkBranch(Chain, 10, Hash.FromString("UnlinkBlock"));
+                await AddForkBranch(chain, 9, Hash.FromString("UnlinkBlock"));
             // Set lib
-            Chain = await BlockchainService.GetChainAsync();
-            await BlockchainService.SetIrreversibleBlockAsync(Chain, BestBranchBlockList[4].Height,
+            chain = await BlockchainService.GetChainAsync();
+            await BlockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
                 BestBranchBlockList[4].GetHash());
 
-            return Chain;
+            return chain;
         }
         
-        public Transaction GenerateEmptyTransaction()
+        public Transaction GenerateTransaction()
         {
             var transaction = new Transaction
             {
@@ -91,6 +90,59 @@ namespace AElf.Kernel
             };
 
             return transaction;
+        }
+        
+        public TransactionResult GenerateTransactionResult(Transaction transaction, TransactionResultStatus status,
+            LogEvent logEvent = null)
+        {
+            var transactionResult = new TransactionResult
+            {
+                TransactionId = transaction.GetHash(),
+                Status = status
+            };
+
+            if (logEvent != null)
+            {
+                transactionResult.Logs.Add(logEvent);
+            }
+
+            return transactionResult;
+        }
+
+        public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
+            Transaction transaction = null, TransactionResult transactionResult = null)
+        {
+            if (transaction == null)
+            {
+                transaction = GenerateTransaction();
+            }
+
+            if (transactionResult == null)
+            {
+                transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined);
+            }
+
+            var newBlock = new Block
+            {
+                Header = new BlockHeader
+                {
+                    Height = previousBlockHeight + 1,
+                    PreviousBlockHash = previousBlockHash,
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                },
+                Body = new BlockBody()
+            };
+            newBlock.AddTransaction(transaction);
+
+            newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoots();
+
+            await BlockchainService.AddBlockAsync(newBlock);
+            var chain = await BlockchainService.GetChainAsync();
+            await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
+
+            await TransactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
+
+            return newBlock;
         }
 
         private async Task<Chain> CreateChain()
@@ -114,51 +166,28 @@ namespace AElf.Kernel
 
             for (var i = 0; i < 10; i++)
             {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                    },
-                    Body = new BlockBody()
-                };
-                bestBranchBlockList.Add(newBlock);
-
-                await BlockchainService.AddBlockAsync(newBlock);
                 chain = await BlockchainService.GetChainAsync();
-                await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash);
+                bestBranchBlockList.Add(newBlock);
+                
+                chain = await BlockchainService.GetChainAsync();
                 await BlockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
             }
 
             return bestBranchBlockList;
         }
         
-        private async Task<List<Block>> AddForkBranch(Chain chain, long startHeight, Hash startPreviousHash)
+        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash)
         {
             var forkBranchBlockList = new List<Block>();
 
             for (var i = 0; i < 5; i++)
             {
-                var newBlock = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        Height = startHeight,
-                        PreviousBlockHash = startPreviousHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                    },
-                    Body = new BlockBody()
-                };
+                var newBlock = await AttachBlock(previousHeight, previousHash);
                 forkBranchBlockList.Add(newBlock);
 
-                await BlockchainService.AddBlockAsync(newBlock);
-                chain = await BlockchainService.GetChainAsync();
-                await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
-
-                startHeight++;
-                startPreviousHash = newBlock.GetHash();
+                previousHeight++;
+                previousHash = newBlock.GetHash();
             }
 
             return forkBranchBlockList;

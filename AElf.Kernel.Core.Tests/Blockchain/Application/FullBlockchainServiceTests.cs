@@ -37,7 +37,7 @@ namespace AElf.Kernel.Blockchain.Application
             };
             for (var i = 0; i < 3; i++)
             {
-                block.Body.AddTransaction(_kernelTestHelper.GenerateEmptyTransaction());
+                block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
             }
 
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
@@ -82,20 +82,20 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_BlockHash_ByHeight_ReturnNull()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
+
             var result =
-                await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, 14,
-                    _kernelTestHelper.Chain.BestChainHash);
+                await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 14, chain.BestChainHash);
             result.ShouldBeNull();
 
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, 14,
-                _kernelTestHelper.Chain.LongestChainHash);
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 14, chain.LongestChainHash);
             result.ShouldBeNull();
 
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, 14,
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 14,
                 _kernelTestHelper.ForkBranchBlockList.Last().GetHash());
             result.ShouldBeNull();
 
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, 15,
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain, 15,
                 _kernelTestHelper.UnlinkedBranchBlockList.Last().GetHash());
             result.ShouldBeNull();
         }
@@ -103,35 +103,38 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_BlockHash_ByHeight_ReturnHash()
         {
-            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.BestBranchBlockList[8].Height, _kernelTestHelper.Chain.BestChainHash);
+            var chain = await _fullBlockchainService.GetChainAsync();
+
+            var result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain,
+                _kernelTestHelper.BestBranchBlockList[8].Height, chain.BestChainHash);
             result.ShouldBe(_kernelTestHelper.BestBranchBlockList[8].GetHash());
 
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, _kernelTestHelper
-                .LongestBranchBlockList[3].Height, _kernelTestHelper.Chain.LongestChainHash);
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain,
+                _kernelTestHelper.LongestBranchBlockList[3].Height, chain.LongestChainHash);
             result.ShouldBe(_kernelTestHelper.LongestBranchBlockList[3].GetHash());
 
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain, _kernelTestHelper
-                .ForkBranchBlockList[3].Height, _kernelTestHelper.ForkBranchBlockList.Last().GetHash());
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain,
+                _kernelTestHelper.ForkBranchBlockList[3].Height,
+                _kernelTestHelper.ForkBranchBlockList.Last().GetHash());
             result.ShouldBe(_kernelTestHelper.ForkBranchBlockList[3].GetHash());
 
             // search irreversible section of the chain
-            result = await _fullBlockchainService.GetBlockHashByHeightAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.Chain.LastIrreversibleBlockHeight - 1, _kernelTestHelper.Chain.BestChainHash);
+            result = await _fullBlockchainService.GetBlockHashByHeightAsync(chain,
+                chain.LastIrreversibleBlockHeight - 1, chain.BestChainHash);
             result.ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
         }
 
         [Fact]
         public async Task Set_BestChain_Success()
         {
-            _kernelTestHelper.Chain.BestChainHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().Height);
-            _kernelTestHelper.Chain.BestChainHash.ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().GetHash());
-
-            await _fullBlockchainService.SetBestChainAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.Chain.LongestChainHeight,
-                _kernelTestHelper.Chain.LongestChainHash);
-
             var chain = await _fullBlockchainService.GetChainAsync();
+
+            chain.BestChainHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().Height);
+            chain.BestChainHash.ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().GetHash());
+
+            await _fullBlockchainService.SetBestChainAsync(chain, chain.LongestChainHeight, chain.LongestChainHash);
+
+            chain = await _fullBlockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(_kernelTestHelper.LongestBranchBlockList.Last().Height);
             chain.BestChainHash.ShouldBe(_kernelTestHelper.LongestBranchBlockList.Last().GetHash());
         }
@@ -139,10 +142,12 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_GetReservedBlockHashes_ReturnNull()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
+
             var result = await _fullBlockchainService.GetReversedBlockHashes(Hash.FromString("not exist"), 1);
             result.ShouldBeNull();
 
-            result = await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.Chain.GenesisBlockHash, 1);
+            result = await _fullBlockchainService.GetReversedBlockHashes(chain.GenesisBlockHash, 1);
             result.ShouldBeNull();
         }
 
@@ -158,18 +163,22 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_GetReservedBlockHashes_ReturnHashes()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
+
             var result =
-                await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.BestBranchBlockList[5].GetHash(), 3);
+                await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.BestBranchBlockList[5].GetHash(),
+                    3);
             result.Count.ShouldBe(3);
             result[0].ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
             result[1].ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
             result[2].ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
 
-            result = await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.BestBranchBlockList[3].GetHash(), 4);
+            result = await _fullBlockchainService.GetReversedBlockHashes(
+                _kernelTestHelper.BestBranchBlockList[3].GetHash(), 4);
             result.Count.ShouldBe(3);
             result[0].ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
             result[1].ShouldBe(_kernelTestHelper.BestBranchBlockList[1].GetHash());
-            result[2].ShouldBe(_kernelTestHelper.Chain.GenesisBlockHash);
+            result[2].ShouldBe(chain.GenesisBlockHash);
         }
 
         [Fact]
@@ -182,7 +191,9 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_Blocks_ReturnBlocks()
         {
-            var result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(_kernelTestHelper.Chain.BestChainHash, 3);
+            var chain = await _fullBlockchainService.GetChainAsync();
+
+            var result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(chain.BestChainHash, 3);
             result.Count.ShouldBe(0);
 
             result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(
@@ -206,33 +217,27 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_GetBlockHashes_ReturnEmpty()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
             var notExistHash = Hash.FromString("not exist");
 
-            var result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain, notExistHash, 1,
-                _kernelTestHelper.Chain.BestChainHash);
+            var result = await _fullBlockchainService.GetBlockHashesAsync(chain, notExistHash, 1, chain.BestChainHash);
             result.Count.ShouldBe(0);
 
-            result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain, notExistHash, 1,
-                _kernelTestHelper.Chain.LongestChainHash);
+            result = await _fullBlockchainService.GetBlockHashesAsync(chain, notExistHash, 1, chain.LongestChainHash);
             result.Count.ShouldBe(0);
 
-            result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain, notExistHash, 1,
+            result = await _fullBlockchainService.GetBlockHashesAsync(chain, notExistHash, 1,
                 _kernelTestHelper.ForkBranchBlockList.Last().GetHash());
             result.Count.ShouldBe(0);
 
-            await _fullBlockchainService
-                .GetBlockHashesAsync(_kernelTestHelper.Chain, _kernelTestHelper.Chain.BestChainHash, 10,
-                    _kernelTestHelper.Chain.BestChainHash)
+            await _fullBlockchainService.GetBlockHashesAsync(chain, chain.BestChainHash, 10, chain.BestChainHash)
                 .ContinueWith(p => p.Result.Count.ShouldBe(0));
 
-            await _fullBlockchainService
-                .GetBlockHashesAsync(_kernelTestHelper.Chain, _kernelTestHelper.Chain.LongestChainHash, 10,
-                    _kernelTestHelper.Chain.LongestChainHash)
+            await _fullBlockchainService.GetBlockHashesAsync(chain, chain.LongestChainHash, 10, chain.LongestChainHash)
                 .ContinueWith(p => p.Result.Count.ShouldBe(0));
 
-            await _fullBlockchainService
-                .GetBlockHashesAsync(_kernelTestHelper.Chain, _kernelTestHelper.ForkBranchBlockList.Last().GetHash(),
-                    10,
+            await _fullBlockchainService.GetBlockHashesAsync(chain,
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash(), 10,
                     _kernelTestHelper.ForkBranchBlockList.Last().GetHash())
                 .ContinueWith(p => p.Result.Count.ShouldBe(0));
         }
@@ -240,35 +245,44 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_GetBlockHashes_ThrowInvalidOperationException()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
+
             await _fullBlockchainService
-                .GetBlockHashesAsync(_kernelTestHelper.Chain, _kernelTestHelper.BestBranchBlockList[5].GetHash(), 2,
-                    _kernelTestHelper.UnlinkedBranchBlockList.Last().GetHash()).ShouldThrowAsync<InvalidOperationException>();
+                .GetBlockHashesAsync(chain, _kernelTestHelper.BestBranchBlockList[5].GetHash(), 2,
+                    _kernelTestHelper.UnlinkedBranchBlockList.Last().GetHash())
+                .ShouldThrowAsync<InvalidOperationException>();
         }
 
         [Fact]
         public async Task Get_GetBlockHashes_ReturnHashes()
         {
-            var result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.BestBranchBlockList[1].GetHash(), 3, _kernelTestHelper.BestBranchBlockList[6].GetHash());
+            var chain = await _fullBlockchainService.GetChainAsync();
+
+            var result = await _fullBlockchainService.GetBlockHashesAsync(chain,
+                _kernelTestHelper.BestBranchBlockList[1].GetHash(), 3,
+                _kernelTestHelper.BestBranchBlockList[6].GetHash());
             result.Count.ShouldBe(3);
             result[0].ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
             result[1].ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
             result[2].ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
-            
-            result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.BestBranchBlockList[7].GetHash(), 10, _kernelTestHelper.BestBranchBlockList[9].GetHash());
+
+            result = await _fullBlockchainService.GetBlockHashesAsync(chain,
+                _kernelTestHelper.BestBranchBlockList[7].GetHash(), 10,
+                _kernelTestHelper.BestBranchBlockList[9].GetHash());
             result.Count.ShouldBe(2);
             result[0].ShouldBe(_kernelTestHelper.BestBranchBlockList[8].GetHash());
             result[1].ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
-            
-            result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 2, _kernelTestHelper.LongestBranchBlockList[3].GetHash());
+
+            result = await _fullBlockchainService.GetBlockHashesAsync(chain,
+                _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 2,
+                _kernelTestHelper.LongestBranchBlockList[3].GetHash());
             result.Count.ShouldBe(2);
             result[0].ShouldBe(_kernelTestHelper.LongestBranchBlockList[1].GetHash());
             result[1].ShouldBe(_kernelTestHelper.LongestBranchBlockList[2].GetHash());
-            
-            result = await _fullBlockchainService.GetBlockHashesAsync(_kernelTestHelper.Chain,
-                _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 10, _kernelTestHelper.LongestBranchBlockList[3].GetHash());
+
+            result = await _fullBlockchainService.GetBlockHashesAsync(chain,
+                _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 10,
+                _kernelTestHelper.LongestBranchBlockList[3].GetHash());
             result.Count.ShouldBe(3);
             result[0].ShouldBe(_kernelTestHelper.LongestBranchBlockList[1].GetHash());
             result[1].ShouldBe(_kernelTestHelper.LongestBranchBlockList[2].GetHash());
@@ -303,7 +317,7 @@ namespace AElf.Kernel.Blockchain.Application
             };
             for (var i = 0; i < 3; i++)
             {
-                block.Body.AddTransaction(_kernelTestHelper.GenerateEmptyTransaction());
+                block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
             }
 
             await _fullBlockchainService.AddBlockAsync(block);
@@ -326,7 +340,8 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_BlockHeaderByHash_ReturnHeader()
         {
             var blockHeader =
-                await _fullBlockchainService.GetBlockHeaderByHeightAsync(_kernelTestHelper.BestBranchBlockList[2].Height);
+                await _fullBlockchainService.GetBlockHeaderByHeightAsync(
+                    _kernelTestHelper.BestBranchBlockList[2].Height);
             blockHeader.GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
         }
 
@@ -340,30 +355,33 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_BestChain_ReturnBlockHeader()
         {
+            var chain = await _fullBlockchainService.GetChainAsync();
+
             var newBlock = new Block
             {
                 Header = new BlockHeader
                 {
-                    Height = _kernelTestHelper.Chain.BestChainHeight + 1,
+                    Height = chain.BestChainHeight + 1,
                     PreviousBlockHash = Hash.FromString("New Branch")
                 },
                 Body = new BlockBody()
             };
 
             await _fullBlockchainService.AddBlockAsync(newBlock);
-            var chain = await _fullBlockchainService.GetChainAsync();
+            chain = await _fullBlockchainService.GetChainAsync();
             await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
 
             var result = await _fullBlockchainService.GetBestChainLastBlockHeaderAsync();
             result.Height.ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().Height);
             result.GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList.Last().GetHash());
         }
-        
+
         [Fact]
         public async Task Get_BlocksInBestChainBranch_ReturnHashes()
         {
             var result =
-                await _fullBlockchainService.GetBlocksInBestChainBranchAsync(_kernelTestHelper.BestBranchBlockList[0].GetHash(),
+                await _fullBlockchainService.GetBlocksInBestChainBranchAsync(
+                    _kernelTestHelper.BestBranchBlockList[0].GetHash(),
                     2);
             result.Count.ShouldBe(2);
             result[0].GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[1].GetHash());
@@ -376,7 +394,7 @@ namespace AElf.Kernel.Blockchain.Application
             result[1].GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
             result[2].GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[10].GetHash());
         }
-        
+
         [Fact]
         public async Task Get_BlocksInLongestChainBranchAsync_ReturnHashes()
         {

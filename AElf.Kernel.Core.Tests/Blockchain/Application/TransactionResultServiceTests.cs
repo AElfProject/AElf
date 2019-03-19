@@ -120,7 +120,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_TransactionResult_With_PreMiningHash()
         {
-            var tx = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx = _kernelTestHelper.GenerateTransaction();
             var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
             .Header, new[] {tx});
 
@@ -134,7 +134,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_TransactionResult_With_BlockHash()
         {
-            var tx = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx = _kernelTestHelper.GenerateTransaction();
             var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
                 .Header, new[] {tx});
 
@@ -149,7 +149,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_On_BestChain()
         {
-            var tx = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx = _kernelTestHelper.GenerateTransaction();
             var (block11, results11) =
                 GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx},
                     ByteString.CopyFromUtf8("branch_1"));
@@ -181,11 +181,11 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_On_Irreversible_Chain()
         {
-            var tx1 = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx1 = _kernelTestHelper.GenerateTransaction();
             var (block11, results11) =
                 GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx1});
 
-            var tx2 = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx2 = _kernelTestHelper.GenerateTransaction();
             var (block12, results12) =
                 GetNextBlockWithTransactionAndResults(block11.Header, new[] {tx2});
 
@@ -248,7 +248,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_With_Index()
         {
-            var tx = _kernelTestHelper.GenerateEmptyTransaction();
+            var tx = _kernelTestHelper.GenerateTransaction();
             var (block, results) =
                 GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx});
 
