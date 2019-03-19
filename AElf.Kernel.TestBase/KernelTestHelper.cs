@@ -14,12 +14,12 @@ namespace AElf.Kernel
         public Chain Chain { get; set; }
 
         /// <summary>
-        /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
+        /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
         /// </summary>
         public List<Block> BestBranchBlockList { get; set; }
         
         /// <summary>
-        /// 5 Blocks: l -> m  -> n  -> o  -> p 
+        /// 5 Blocks: l -> m -> n -> o -> p 
         /// </summary>
         public List<Block> LongestBranchBlockList { get; set; }
         

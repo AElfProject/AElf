@@ -17,8 +17,6 @@ namespace AElf.Kernel
         typeof(TestBaseKernelAElfModule))]
     public class KernelCoreTestAElfModule : AElfModule
     {
-        delegate void MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
-            ref List<Transaction> generatedTransactions);
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;

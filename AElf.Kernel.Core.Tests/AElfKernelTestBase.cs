@@ -9,4 +9,8 @@ namespace AElf.Kernel
     public class AElfMinerTestBase : AElfIntegratedTest<KernelMinerTestAElfModule>
     {
     }
+    
+    public class AElfKernelCreateChainTestBase : AElfIntegratedTest<KernelCoreCreateChainTestModule>
+    {
+    }
 }
