@@ -15,6 +15,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types.CSharp;
@@ -555,10 +556,14 @@ namespace AElf.OS.Rpc.ChainController.Tests
             
             await MinedOneBlock(chain);
             
-            //No result
+            //Result empty
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = transaction.To.GetFormatted()});
             response["result"].ToString().ShouldBeEmpty();
+            
+            //Result not empty
+            //TODO: Add logic to cover query with data case [Case] 
+            //BODY: Will complete this logic after contract changed to grpc style. 
         }
 
         [Fact]
@@ -575,8 +580,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 new {address = addressInfo});
             response1["error"]["code"].To<long>().ShouldBe(Error.NotFound);
             response1["error"]["message"].ToString().ShouldBe(Error.Message[Error.NotFound]);
-
-
         }
         #endregion
 
