@@ -54,7 +54,6 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
-        //TODO: Add test case UpdateContractAsync [Case]
         public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged, Hash name)
         {
