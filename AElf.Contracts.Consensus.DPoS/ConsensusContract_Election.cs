@@ -90,7 +90,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.Lock(new LockInput()
+            State.TokenContract.Lock.Send(new LockInput()
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -121,7 +121,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.CandidatesField.Value = candidates;
 
-            State.TokenContract.Unlock(new UnlockInput
+            State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.Lock(new LockInput
+            State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -330,7 +330,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Sub weight.
             State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
             // Transfer token back to voter.
-            State.TokenContract.Unlock(new UnlockInput
+            State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -387,7 +387,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
                 }
 
-                State.TokenContract.Unlock(new UnlockInput
+                State.TokenContract.Unlock.Send(new UnlockInput
                 {
                     From = Context.Sender,
                     To = Context.Self,
