@@ -16,7 +16,7 @@ install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
   - export LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH
-  - bash scripts/install_chakracore.sh
+  - bash scripts/install_chakracore.sh 1_11_1
 script:
   - bash scripts/build.sh
   - bash scripts/test.sh
