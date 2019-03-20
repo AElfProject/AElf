@@ -5,6 +5,7 @@ import "kernel.proto";
 import "consensus.proto";
 import "consensus_dpos.proto";
 import "aelf_options.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.DPoS";
 
@@ -12,11 +13,11 @@ service ConsensusContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.DPoSContractState";
     // Actions
     // -> MainChain
-    rpc Initialize (InitializeInput) returns (Nothing) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc SetBlockchainAge (SInt64Value) returns (Nothing) {
+    rpc SetBlockchainAge (SInt64Value) returns (google.protobuf.Empty) {
     }
-    rpc NextTerm (Round) returns (Nothing) {
+    rpc NextTerm (Round) returns (google.protobuf.Empty) {
     }
     rpc SnapshotForTerm (TermInfo) returns (ActionResult) {
     }
@@ -27,24 +28,24 @@ service ConsensusContract {
     // -> Election
     rpc AnnounceElection (Alias) returns (ActionResult) {
     }
-    rpc QuitElection (Nothing) returns (ActionResult) {
+    rpc QuitElection (google.protobuf.Empty) returns (ActionResult) {
     }
     rpc Vote (VoteInput) returns (Hash) {
     }
     rpc ReceiveDividendsByTransactionId (Hash) returns (ActionResult) {
     }
-    rpc ReceiveAllDividends (Nothing) returns (ActionResult) {
+    rpc ReceiveAllDividends (google.protobuf.Empty) returns (ActionResult) {
     }
     rpc WithdrawByTransactionId (Hash) returns (Tickets) {
     }
-    rpc WithdrawAll (Nothing) returns (Tickets) {
+    rpc WithdrawAll (google.protobuf.Empty) returns (Tickets) {
     }
     // -> Process
-    rpc InitialConsensus (Round) returns (Nothing) {
+    rpc InitialConsensus (Round) returns (google.protobuf.Empty) {
     }
-    rpc UpdateValue (ToUpdate) returns (Nothing) {
+    rpc UpdateValue (ToUpdate) returns (google.protobuf.Empty) {
     }
-    rpc NextRound (Round) returns (Nothing) {
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
@@ -62,25 +63,25 @@ service ConsensusContract {
     rpc GetRoundInformation (SInt64Value) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentRoundNumber (Nothing) returns (SInt64Value) {
+    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentRoundInformation (Nothing) returns (Round) {
+    rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentTermNumber (Nothing) returns (SInt64Value) {
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
     rpc IsCandidate (PublicKey) returns (BoolValue) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesList (Nothing) returns (StringList) {
+    rpc GetCandidatesList (google.protobuf.Empty) returns (StringList) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidates (Nothing) returns (Candidates) {
+    rpc GetCandidates (google.protobuf.Empty) returns (Candidates) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesListToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc GetCandidatesListToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetCandidateHistoryInformation (PublicKey) returns (CandidateInHistory) {
@@ -89,10 +90,10 @@ service ConsensusContract {
     rpc GetCandidateHistoryInfoToFriendlyString (PublicKey) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesHistoryInfo (Nothing) returns (CandidateInHistoryDictionary) {
+    rpc GetCandidatesHistoryInfo (google.protobuf.Empty) returns (CandidateInHistoryDictionary) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesHistoryInfoToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc GetCandidatesHistoryInfoToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateInHistoryDictionary) {
@@ -101,10 +102,10 @@ service ConsensusContract {
     rpc GetPageableCandidatesHistoryInfoToFriendlyString (PageInfo) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiners (Nothing) returns (Miners) {
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMinersToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc GetCurrentMinersToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetTicketsInformation (PublicKey) returns (Tickets) {
@@ -146,13 +147,13 @@ service ConsensusContract {
     rpc GetPageableElectionInfoToFriendlyString (PageableElectionInfoInput) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-    rpc GetBlockchainAge (Nothing) returns (SInt64Value) {
+    rpc GetBlockchainAge (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentVictories (Nothing) returns (StringList) {
+    rpc GetCurrentVictories (google.protobuf.Empty) returns (StringList) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentVictoriesToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc GetCurrentVictoriesToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetTermSnapshot (SInt64Value) returns (TermSnapshot) {
@@ -167,31 +168,27 @@ service ConsensusContract {
     rpc GetTermNumberByRoundNumber (SInt64Value) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesCount (Nothing) returns (SInt64Value) {
+    rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetTicketsCount (Nothing) returns (SInt64Value) {
+    rpc GetTicketsCount (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc QueryCurrentDividendsForVoters (Nothing) returns (SInt64Value) {
+    rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc QueryCurrentDividends (Nothing) returns (SInt64Value) {
+    rpc QueryCurrentDividends (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc QueryAliasesInUse (Nothing) returns (StringList) {
+    rpc QueryAliasesInUse (google.protobuf.Empty) returns (StringList) {
         option (aelf.is_view) = true;
     }
     rpc QueryMinedBlockCountInCurrentTerm (PublicKey) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc QueryAliasesInUseToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc QueryAliasesInUseToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-}
-
-message Nothing {
-
 }
 
 message InitializeInput {

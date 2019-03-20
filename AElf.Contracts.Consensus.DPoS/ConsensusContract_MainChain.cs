@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public override Nothing Initialize(InitializeInput input)
+        public override Empty Initialize(InitializeInput input)
         {
             var tokenContractAddress = input.TokenContractAddress;
             var dividendsContractAddress = input.DividendsContractAddress;
@@ -20,17 +20,17 @@ namespace AElf.Contracts.Consensus.DPoS
             State.DividendContract.Value = dividendsContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing SetBlockchainAge(SInt64Value input)
+        public override Empty SetBlockchainAge(SInt64Value input)
         {
             var age = input.Value;
             Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
                     "No permission to change blockchain age."));
             State.AgeField.Value = age;
-            return Nothing.Instance;
+            return new Empty();
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public override Nothing NextTerm(Round input)
+        public override Empty NextTerm(Round input)
         {            // Count missed time slot of current round.
             CountMissedTimeSlots();
 
@@ -173,7 +173,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
             TryToFindLIB();
-            return Nothing.Instance;
+            return new Empty();
         }
 
         /// <summary>

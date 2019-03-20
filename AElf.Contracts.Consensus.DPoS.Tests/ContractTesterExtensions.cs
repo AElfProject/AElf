@@ -382,7 +382,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var termNumberBytes = await miners.AnyOne().CallContractMethodAsync(
                     miners.AnyOne().GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetCurrentTermNumber),
-                    Nothing.Instance);
+                    new Empty());
             var termNumber = SInt64Value.Parser.ParseFrom(termNumberBytes).Value;
 
             var nextTermTx = await miners.AnyOne().GenerateTransactionAsync(
@@ -436,7 +436,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract
-                .GetCurrentRoundInformation), Nothing.Instance);
+                .GetCurrentRoundInformation), new Empty());
             return Round.Parser.ParseFrom(result.ReturnValue);
         }
 
@@ -444,7 +444,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract
-                .GetCurrentTermNumber), Nothing.Instance);
+                .GetCurrentTermNumber), new Empty());
             return SInt64Value.Parser.ParseFrom(result.ReturnValue).Value;
         }
 
@@ -528,7 +528,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> candidate)
         {
             return await candidate.ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QuitElection), Nothing.Instance);
+                nameof(ConsensusContract.QuitElection), new Empty());
         }
 
         public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateCandidatesAsync(
@@ -600,7 +600,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCandidatesList), Nothing.Instance);
+                nameof(ConsensusContract.GetCandidatesList), new Empty());
             return StringList.Parser.ParseFrom(bytes);
         }
 
@@ -608,7 +608,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCandidates), Nothing.Instance);
+                nameof(ConsensusContract.GetCandidates), new Empty());
             return Candidates.Parser.ParseFrom(bytes);
         }
 

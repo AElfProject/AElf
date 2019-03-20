@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     {
         #region InitialDPoS
 
-        public override Nothing InitialConsensus(Round input)
+        public override Empty InitialConsensus(Round input)
         {
             Assert(input.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             input.BlockchainAge = 1;
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-            return Nothing.Instance;
+            return new Empty();
         }
 
         private void SetAliases(Round round)
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         
         #region UpdateValue
 
-        public override Nothing UpdateValue(ToUpdate input)
+        public override Empty UpdateValue(ToUpdate input)
         {
             var toUpdate = input;
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
@@ -86,13 +86,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
-            return Nothing.Instance;
+            return new Empty();
         }
         #endregion
 
         #region NextRound
 
-        public override Nothing NextRound(Round input)
+        public override Empty NextRound(Round input)
         {
             var round = input;
             if (TryToGetRoundNumber(out var roundNumber))
@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
-            return Nothing.Instance;
+            return new Empty();
         }
         
         private bool TryToUpdateRoundNumber(long roundNumber)

@@ -2,33 +2,34 @@ syntax = "proto3";
 
 import "common.proto";
 import "aelf_options.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
     option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
     // Actions
-    rpc Create (CreateInput) returns (Nothing) {
+    rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc Issue (IssueInput) returns (Nothing) {
+    rpc Issue (IssueInput) returns (google.protobuf.Empty) {
     }
-    rpc Transfer (TransferInput) returns (Nothing) {
+    rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
     }
-    rpc TransferFrom (TransferFromInput) returns (Nothing) {
+    rpc TransferFrom (TransferFromInput) returns (google.protobuf.Empty) {
     }
-    rpc Approve (ApproveInput) returns (Nothing) {
+    rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
-    rpc UnApprove (UnApproveInput) returns (Nothing) {
+    rpc UnApprove (UnApproveInput) returns (google.protobuf.Empty) {
     }
-    rpc Lock (LockInput) returns (Nothing) {
+    rpc Lock (LockInput) returns (google.protobuf.Empty) {
     }
-    rpc Unlock (UnlockInput) returns (Nothing) {
+    rpc Unlock (UnlockInput) returns (google.protobuf.Empty) {
     }
-    rpc Burn (BurnInput) returns (Nothing) {
+    rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (Nothing) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.Empty) {
     }
-    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (Nothing) {
+    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -50,9 +51,6 @@ message TokenInfo {
     sint32 decimals = 5;
     Address issuer = 6;
     bool isBurnable = 7;
-}
-
-message Nothing {
 }
 
 message CreateInput {

@@ -5,15 +5,16 @@ import "kernel.proto";
 import "aelf_options.proto";
 import "consensus_dpos.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Dividend";
 
 service DividendContract {
     option (aelf.csharp_state) = "AElf.Contracts.Dividend.DividendsContractState";
     // Actions
-    rpc Initialize (InitializeInput) returns (Nothing) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc SendDividends (SendDividendsInput) returns (Nothing) {
+    rpc SendDividends (SendDividendsInput) returns (google.protobuf.Empty) {
     }
     rpc TransferDividends (VotingRecord) returns (SInt64Value) {
     }
@@ -50,15 +51,12 @@ service DividendContract {
     rpc CheckDividends (CheckDividendsInput) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc CheckDividendsOfPreviousTerm (Nothing) returns (LongList) {
+    rpc CheckDividendsOfPreviousTerm (google.protobuf.Empty) returns (LongList) {
         option (aelf.is_view) = true;
     }
-    rpc CheckDividendsOfPreviousTermToFriendlyString (Nothing) returns (FriendlyString) {
+    rpc CheckDividendsOfPreviousTermToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-}
-
-message Nothing {
 }
 
 message InitializeInput {

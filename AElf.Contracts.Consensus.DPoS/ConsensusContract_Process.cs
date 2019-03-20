@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region InitialDPoS
 
-        public override Nothing InitialConsensus(Round input)
+        public override Empty InitialConsensus(Round input)
         {
             Assert(input.RoundNumber == 1, "Incorrect round information: invalid round number.");
 
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Consensus.DPoS
             input.BlockchainAge = 1;
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-            return Nothing.Instance;
+            return new Empty();
         }
 
         private void SetAliases(Round round)
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #region UpdateValue
 
-        public override Nothing UpdateValue(ToUpdate input)
+        public override Empty UpdateValue(ToUpdate input)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
                    input.RoundId == currentRound.RoundId, "Round Id not matched.");
@@ -87,14 +87,14 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
-            return Nothing.Instance;
+            return new Empty();
         }
 
         #endregion
 
         #region NextRound
 
-        public override Nothing NextRound(Round input)
+        public override Empty NextRound(Round input)
         {
             if (TryToGetRoundNumber(out var roundNumber))
             {
@@ -116,7 +116,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
-            return Nothing.Instance;
+            return new Empty();
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)

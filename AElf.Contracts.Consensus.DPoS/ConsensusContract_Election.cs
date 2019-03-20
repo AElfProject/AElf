@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public override ActionResult QuitElection(Nothing input)
+        public override ActionResult QuitElection(Empty input)
         {
             var candidates = State.CandidatesField.Value;
 
@@ -257,7 +257,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        public override ActionResult ReceiveAllDividends(Nothing input)
+        public override ActionResult ReceiveAllDividends(Empty input)
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
 
@@ -344,7 +344,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         // ReSharper disable PossibleNullReferenceException
-        public override Tickets WithdrawAll(Nothing input)
+        public override Tickets WithdrawAll(Empty input)
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;

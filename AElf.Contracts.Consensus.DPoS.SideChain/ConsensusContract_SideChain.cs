@@ -8,21 +8,21 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public partial class ConsensusContract
     {
-        public override Nothing UpdateMainChainConsensus(DPoSInformation input)
+        public override Empty UpdateMainChainConsensus(DPoSInformation input)
         {
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.
             
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if(input == null || input == new DPoSInformation())
-                return Nothing.Instance;
+                return new Empty();
             var consensusInformation = input;
             if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
-                return Nothing.Instance;
+                return new Empty();
             Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.TermNumberFromMainChainField.Value = consensusInformation.Round.TermNumber;
             State.CurrentMiners.Value = minersKeys.ToList().ToMiners();
-            return Nothing.Instance;
+            return new Empty();
         }
         
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,

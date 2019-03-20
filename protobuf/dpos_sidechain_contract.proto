@@ -5,19 +5,20 @@ import "kernel.proto";
 import "consensus.proto";
 import "consensus_dpos.proto";
 import "aelf_options.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.DPoS.SideChain";
 
 service ConsensusContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.SideChain.DPoSContractState";
     // Actions
-    rpc InitialConsensus (Round) returns (Nothing) {
+    rpc InitialConsensus (Round) returns (google.protobuf.Empty) {
     }
-    rpc UpdateValue (ToUpdate) returns (Nothing) {
+    rpc UpdateValue (ToUpdate) returns (google.protobuf.Empty) {
     }
-    rpc NextRound (Round) returns (Nothing) {
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
     }
-    rpc UpdateMainChainConsensus (DPoSInformation) returns (Nothing) {
+    rpc UpdateMainChainConsensus (DPoSInformation) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
@@ -32,7 +33,4 @@ service ConsensusContract {
     rpc ValidateConsensus (DPoSInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
-}
-
-message Nothing {
 }

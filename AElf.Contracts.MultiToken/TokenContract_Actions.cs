@@ -3,13 +3,14 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractContainer.TokenContractBase
     {
-        public override Nothing Create(CreateInput input)
+        public override Empty Create(CreateInput input)
         {
             Assert(!string.IsNullOrEmpty(input.Symbol) & input.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
@@ -38,10 +39,10 @@ namespace AElf.Contracts.MultiToken
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
             
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Issue(IssueInput input)
+        public override Empty Issue(IssueInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender, "Sender is not allowed to issue this token.");
@@ -49,17 +50,17 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = input.Amount;
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Transfer(TransferInput input)
+        public override Empty Transfer(TransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Lock(LockInput input)
+        public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
@@ -67,10 +68,10 @@ namespace AElf.Contracts.MultiToken
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
             DoTransfer(input.From, virtualAddress, input.Symbol, input.Amount, input.Usage);
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Unlock(UnlockInput input)
+        public override Empty Unlock(UnlockInput input)
         {
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
@@ -82,10 +83,10 @@ namespace AElf.Contracts.MultiToken
                 Amount = input.Amount,
                 Memo = input.Usage,
             });
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing TransferFrom(TransferFromInput input)
+        public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -93,10 +94,10 @@ namespace AElf.Contracts.MultiToken
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Approve(ApproveInput input)
+        public override Empty Approve(ApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
@@ -108,10 +109,10 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing UnApprove(UnApproveInput input)
+        public override Empty UnApprove(UnApproveInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
@@ -124,10 +125,10 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Amount = amountOrAll
             });
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing Burn(BurnInput input)
+        public override Empty Burn(BurnInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IsBurnable, "The token is not burnable.");
@@ -141,10 +142,10 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Amount = input.Amount
             });
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override Empty ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
@@ -152,10 +153,10 @@ namespace AElf.Contracts.MultiToken
             State.Balances[fromAddress][input.Symbol] = State.Balances[fromAddress][input.Symbol].Sub(input.Amount);
             State.ChargedFees[fromAddress][input.Symbol] =
                 State.ChargedFees[fromAddress][input.Symbol].Add(input.Amount);
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing ClaimTransactionFees(ClaimTransactionFeesInput input)
+        public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
             Assert(input.Symbol == State.NativeTokenSymbol.Value, "The specified token is not the native token.");
             var feePoolAddressNotSet =
@@ -171,7 +172,7 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
             }
 
-            return Nothing.Instance;
+            return new Empty();
         }
 
         #region ForTests

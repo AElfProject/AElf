@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -15,17 +16,17 @@ namespace AElf.Contracts.Consensus.DPoS
             return TryToGetRoundInformation(input.Value, out var roundInfo) ? roundInfo : null;
         }
 
-        public override SInt64Value GetCurrentRoundNumber(Nothing input)
+        public override SInt64Value GetCurrentRoundNumber(Empty input)
         {
             return new SInt64Value() {Value = State.CurrentRoundNumberField.Value};
         }
 
-        public override Round GetCurrentRoundInformation(Nothing input)
+        public override Round GetCurrentRoundInformation(Empty input)
         {
             return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
         }
 
-        public override SInt64Value GetCurrentTermNumber(Nothing input)
+        public override SInt64Value GetCurrentTermNumber(Empty input)
         {
             return new SInt64Value() {Value = State.CurrentTermNumberField.Value};
         }
@@ -35,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new BoolValue() {Value = State.CandidatesField.Value.PublicKeys.Contains(input.Hex)};
         }
 
-        public override StringList GetCandidatesList(Nothing input)
+        public override StringList GetCandidatesList(Empty input)
         {
             var list = new StringList
             {
@@ -44,12 +45,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return list;
         }
 
-        public override Candidates GetCandidates(Nothing input)
+        public override Candidates GetCandidates(Empty input)
         {
             return State.CandidatesField.Value;
         }
 
-        public override FriendlyString GetCandidatesListToFriendlyString(Nothing input)
+        public override FriendlyString GetCandidatesListToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = GetCandidatesList(input).ToString()};
         }
@@ -73,7 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new FriendlyString() {Value = GetCandidateHistoryInformation(input).ToString()};
         }
 
-        public override CandidateInHistoryDictionary GetCandidatesHistoryInfo(Nothing input)
+        public override CandidateInHistoryDictionary GetCandidatesHistoryInfo(Empty input)
         {
             var result = new CandidateInHistoryDictionary();
 
@@ -101,7 +102,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        public override FriendlyString GetCandidatesHistoryInfoToFriendlyString(Nothing input)
+        public override FriendlyString GetCandidatesHistoryInfoToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = GetCandidatesHistoryInfo(input).ToString()};
         }
@@ -143,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new FriendlyString() {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
         }
 
-        public override Miners GetCurrentMiners(Nothing input)
+        public override Miners GetCurrentMiners(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumberField.Value;
             if (currentTermNumber == 0)
@@ -156,7 +157,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return currentMiners;
         }
 
-        public override FriendlyString GetCurrentMinersToFriendlyString(Nothing input)
+        public override FriendlyString GetCurrentMinersToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = GetCurrentMiners(input).ToString()};
         }
@@ -442,19 +443,19 @@ namespace AElf.Contracts.Consensus.DPoS
             return new FriendlyString() {Value = GetPageableElectionInfo(input).ToString()};
         }
 
-        public override SInt64Value GetBlockchainAge(Nothing input)
+        public override SInt64Value GetBlockchainAge(Empty input)
         {
             return new SInt64Value() {Value = State.AgeField.Value};
         }
 
-        public override StringList GetCurrentVictories(Nothing input)
+        public override StringList GetCurrentVictories(Empty input)
         {
             return TryToGetVictories(out var victories)
                 ? new StringList {Values = {victories.PublicKeys}}
                 : new StringList();
         }
 
-        public override FriendlyString GetCurrentVictoriesToFriendlyString(Nothing input)
+        public override FriendlyString GetCurrentVictoriesToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = GetCurrentVictories(input).ToString()};
         }
@@ -484,23 +485,23 @@ namespace AElf.Contracts.Consensus.DPoS
             return new SInt64Value(){Value = roundNumber};
         }
 
-        public override SInt64Value GetVotesCount(Nothing input)
+        public override SInt64Value GetVotesCount(Empty input)
         {
             return new SInt64Value() {Value = State.VotesCountField.Value};
         }
 
-        public override SInt64Value GetTicketsCount(Nothing input)
+        public override SInt64Value GetTicketsCount(Empty input)
         {
             return new SInt64Value() {Value = State.TicketsCountField.Value};
         }
 
-        public override SInt64Value QueryCurrentDividendsForVoters(Nothing input)
+        public override SInt64Value QueryCurrentDividendsForVoters(Empty input)
         {
             return new SInt64Value()
                 {Value = (long) (QueryCurrentDividends(input).Value * DPoSContractConsts.VotersRatio)};
         }
 
-        public override SInt64Value QueryCurrentDividends(Nothing input)
+        public override SInt64Value QueryCurrentDividends(Empty input)
         {
             var currentRoundNumber = GetCurrentRoundNumber(input);
             if (currentRoundNumber.Value == 0)
@@ -518,7 +519,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new SInt64Value() {Value = minedBlocks * DPoSContractConsts.ElfTokenPerBlock};
         }
 
-        public override StringList QueryAliasesInUse(Nothing input)
+        public override StringList QueryAliasesInUse(Empty input)
         {
             var candidates = State.CandidatesField.Value;
             var result = new StringList();
@@ -536,7 +537,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override SInt64Value QueryMinedBlockCountInCurrentTerm(PublicKey input)
         {
-            var round = State.RoundsMap[GetCurrentRoundNumber(Nothing.Instance).Value.ToInt64Value()];
+            var round = State.RoundsMap[GetCurrentRoundNumber(new Empty()).Value.ToInt64Value()];
             if (round != null)
             {
                 if (round.RealTimeMinersInformation.ContainsKey(input.Hex))
@@ -548,7 +549,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new SInt64Value();
         }
 
-        public override FriendlyString QueryAliasesInUseToFriendlyString(Nothing input)
+        public override FriendlyString QueryAliasesInUseToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = QueryAliasesInUse(input).ToString()};
         }

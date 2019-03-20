@@ -12,22 +12,22 @@ namespace AElf.Contracts.Dividend
 {
     public partial class DividendContract : DividendContractContainer.DividendContractBase
     {
-        public override Nothing Initialize(InitializeInput input)
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContract.Value = input.ConsensusContractAddress;
             State.TokenContract.Value = input.TokenContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
-            return Nothing.Instance;
+            return new Empty();
         }
 
-        public override Nothing SendDividends(SendDividendsInput input)
+        public override Empty SendDividends(SendDividendsInput input)
         {
             var targetAddress = input.To;
             var amount = input.Amout;
             if (amount <= 0)
-                return Nothing.Instance;
+                return new Empty();
 
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
@@ -38,7 +38,7 @@ namespace AElf.Contracts.Dividend
                 Symbol = "ELF",
                 Memo = "Send dividends."
             });
-            return Nothing.Instance;
+            return new Empty();
         }
 
         /// <summary>
@@ -65,10 +65,10 @@ namespace AElf.Contracts.Dividend
             var voteInfo= new VoteInfo()
             {
                 Record = votingRecord,
-                Age = State.ConsensusContract.GetBlockchainAge.Call(Nothing.Instance).Value
+                Age = State.ConsensusContract.GetBlockchainAge.Call(new Empty()).Value
             };
             var endTermNumber = Math.Min(GetExpireTermNumber(voteInfo).Value,
-                State.ConsensusContract.GetCurrentTermNumber.Call(Nothing.Instance).Value - 1);
+                State.ConsensusContract.GetCurrentTermNumber.Call(new Empty()).Value - 1);
 
             // Record last requested dividends term number.
             var actualTermNumber = startTermNumber;

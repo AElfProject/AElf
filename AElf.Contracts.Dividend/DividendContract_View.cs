@@ -6,6 +6,7 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
 {
@@ -59,10 +60,10 @@ namespace AElf.Contracts.Dividend
             var voteInfo = new VoteInfo()
             {
                 Record = votingRecord,
-                Age = State.ConsensusContract.GetBlockchainAge.Call(Nothing.Instance).Value
+                Age = State.ConsensusContract.GetBlockchainAge.Call(new Empty()).Value
             };
             var end = Math.Min(GetExpireTermNumber(voteInfo).Value,
-                State.ConsensusContract.GetCurrentTermNumber.Call(Nothing.Instance).Value - 1);
+                State.ConsensusContract.GetCurrentTermNumber.Call(new Empty()).Value - 1);
 
             for (var i = start; i <= end; i++)
             {
@@ -120,7 +121,7 @@ namespace AElf.Contracts.Dividend
             var termNumber = input.TermNumber;
             var ticketsAmount = input.TicketsAmount;
             var lockTime = input.LockTime;
-            var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber.Call(Nothing.Instance).Value;
+            var currentTermNumber = State.ConsensusContract.GetCurrentTermNumber.Call(new Empty()).Value;
             if (termNumber >= currentTermNumber)
             {
                 return new SInt64Value();
@@ -141,9 +142,9 @@ namespace AElf.Contracts.Dividend
             return new SInt64Value();
         }
 
-        public override LongList CheckDividendsOfPreviousTerm(Nothing input)
+        public override LongList CheckDividendsOfPreviousTerm(Empty input)
         {
-            var termNumber = State.ConsensusContract.GetCurrentTermNumber.Call(Nothing.Instance).Value - 1;
+            var termNumber = State.ConsensusContract.GetCurrentTermNumber.Call(new Empty()).Value - 1;
             var result = new LongList();
 
             if (termNumber < 1)
@@ -166,7 +167,7 @@ namespace AElf.Contracts.Dividend
             return result;
         }
 
-        public override FriendlyString CheckDividendsOfPreviousTermToFriendlyString(Nothing input)
+        public override FriendlyString CheckDividendsOfPreviousTermToFriendlyString(Empty input)
         {
             return new FriendlyString() {Value = CheckDividendsOfPreviousTerm(input).ToString()};
         }
