@@ -7,7 +7,6 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
