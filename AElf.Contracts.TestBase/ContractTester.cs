@@ -185,8 +185,11 @@ namespace AElf.Contracts.TestBase
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
             };
-            
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             await osBlockchainNodeContextService.StartAsync(dto);

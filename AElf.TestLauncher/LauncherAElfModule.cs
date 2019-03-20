@@ -84,9 +84,17 @@ namespace AElf.TestLauncher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
+            
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+
+            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
+                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
 
             var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add("CreateNativeToken", new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(Contracts.MultiToken.TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -99,7 +107,7 @@ namespace AElf.TestLauncher
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
             
-            tokenContractCallList.Add("IssueNativeToken", new IssueNativeTokenInput
+            tokenContractCallList.Add(nameof(Contracts.MultiToken.TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
@@ -107,10 +115,9 @@ namespace AElf.TestLauncher
                 Memo = "Set dividends.",
             });
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
-                ConsensusSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(

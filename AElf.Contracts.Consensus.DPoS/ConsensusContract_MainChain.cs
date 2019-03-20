@@ -10,13 +10,22 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
+        public void Initialize(Address tokenContractAddress, Address dividendContractAddress)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.TokenContract.Value = tokenContractAddress;
-            State.DividendContract.Value = dividendsContractAddress;
+            State.DividendContract.Value = dividendContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
+        }
+
+        public void InitializeWithContractSystemNames(Hash tokenContractSystemName, Hash dividendContractSystemName)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.TokenContract.Value = State.BasicContractZero.GetContractAddressByName(tokenContractSystemName);
+            State.DividendContract.Value =  State.BasicContractZero.GetContractAddressByName(dividendContractSystemName);
+            State.Initialized.Value = true;
         }
 
         public void SetBlockchainAge(long age)

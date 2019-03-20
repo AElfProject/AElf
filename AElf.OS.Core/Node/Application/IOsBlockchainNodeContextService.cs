@@ -85,10 +85,12 @@ namespace AElf.OS.Node.Application
 
             genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
-        
-        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
+
+        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
-            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name);
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name,
+                systemTransactionMethodCallList);
         }
     }
 

@@ -20,6 +20,16 @@ namespace AElf.Contracts.Dividend
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
+        
+        public void InitializeWithContractSystemNames(Hash consensusContractAddress, Hash tokenContractSystemName)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.TokenContract.Value = State.BasicContractZero.GetContractAddressByName(tokenContractSystemName);
+            State.ConsensusContract.Value =  State.BasicContractZero.GetContractAddressByName(consensusContractAddress);
+            State.Initialized.Value = true;
+            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
+        }
 
         public void SendDividends(Address targetAddress, long amount)
         {
