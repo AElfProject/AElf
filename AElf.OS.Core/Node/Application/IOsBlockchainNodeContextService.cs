@@ -112,7 +112,7 @@ namespace AElf.OS.Node.Application
                 .Select(p =>
                 {
                     var cat = dto.SmartContractRunnerCategory;
-                    if (p.SmartContractType.Name == "TokenContract")
+                    if (p.SmartContractType.Name == "TokenContract" || p.SmartContractType.Name == "ConsensusContract")
                     {
                         cat = 3;
                     }
