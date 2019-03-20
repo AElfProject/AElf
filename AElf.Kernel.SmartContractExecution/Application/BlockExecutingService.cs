@@ -59,9 +59,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 PreviousHash = blockHeader.PreviousBlockHash
             };
             var nonCancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None);
+                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
             var cancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken);
+                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false);
 
             foreach (var returnSet in nonCancellableReturnSets)
             {
