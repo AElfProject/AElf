@@ -6,4 +6,9 @@ namespace AElf.Kernel
     {
 
     }
+    
+    public class KernelWithChainTestBase : AElfIntegratedTest<KernelWithChainTestAElfModule>
+    {
+
+    }
 }

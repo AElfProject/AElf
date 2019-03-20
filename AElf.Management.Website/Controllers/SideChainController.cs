@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using AElf.Configuration;
+﻿using System.Threading.Tasks;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;
 using AElf.Management.Website.Models;
@@ -22,7 +20,6 @@ namespace AElf.Management.Website.Controllers
         [HttpPost("{chainId}")]
         public async Task<ApiEmptyResult> Post(string chainId, [FromBody] DeployArg arg)
         {
-            Console.WriteLine(JsonSerializer.Instance.Serialize(arg));
             arg.MainChainId = chainId;
             await _sideChainService.Deploy(arg);
             return ApiEmptyResult.Default;

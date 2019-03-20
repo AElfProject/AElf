@@ -13,31 +13,23 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class TransactionResultServiceTests : AElfKernelTestBase
+    public class TransactionResultServiceTests : AElfKernelWithChainTestBase
     {
+        private readonly KernelTestHelper _kernelTestHelper;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transacionBlockIndexManager;
         private readonly ILocalEventBus _localEventBus;
-        private Block GenesisBlock { get; }
-
+        
         public TransactionResultServiceTests()
         {
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _transacionBlockIndexManager = GetRequiredService<ITransactionBlockIndexManager>();
             _localEventBus = GetRequiredService<ILocalEventBus>();
-            GenesisBlock = new Block()
-            {
-                Header = new BlockHeader()
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
         }
 
         private async Task AddTransactionResultsWithPreMiningAsync(Block block, IEnumerable<TransactionResult> results)
@@ -128,9 +120,9 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_TransactionResult_With_PreMiningHash()
         {
-            await _blockchainService.CreateChainAsync(GenesisBlock);
-            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
-            var (block, results) = GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx});
+            var tx = _kernelTestHelper.GenerateTransaction();
+            var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
+            .Header, new[] {tx});
 
             var result = results.First();
             await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
@@ -142,9 +134,9 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_TransactionResult_With_BlockHash()
         {
-            await _blockchainService.CreateChainAsync(GenesisBlock);
-            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
-            var (block, results) = GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx});
+            var tx = _kernelTestHelper.GenerateTransaction();
+            var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
+                .Header, new[] {tx});
 
             var result = results.First();
             // Complete block
@@ -157,13 +149,12 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_On_BestChain()
         {
-            await _blockchainService.CreateChainAsync(GenesisBlock);
-            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
+            var tx = _kernelTestHelper.GenerateTransaction();
             var (block11, results11) =
-                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx},
+                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx},
                     ByteString.CopyFromUtf8("branch_1"));
             var (block21, results21) =
-                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx},
+                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx},
                     ByteString.CopyFromUtf8("branch_2"));
 
             // Add branch 1
@@ -190,12 +181,11 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_On_Irreversible_Chain()
         {
-            await _blockchainService.CreateChainAsync(GenesisBlock);
-            var tx1 = GetDummyTransactionWithMethodNameAsId("tx1");
+            var tx1 = _kernelTestHelper.GenerateTransaction();
             var (block11, results11) =
-                GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx1});
+                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx1});
 
-            var tx2 = GetDummyTransactionWithMethodNameAsId("tx2");
+            var tx2 = _kernelTestHelper.GenerateTransaction();
             var (block12, results12) =
                 GetNextBlockWithTransactionAndResults(block11.Header, new[] {tx2});
 
@@ -258,20 +248,20 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Query_TransactionResult_With_Index()
         {
-            await _blockchainService.CreateChainAsync(GenesisBlock);
-            var tx = GetDummyTransactionWithMethodNameAsId("tx1");
-            var (block, results) = GetNextBlockWithTransactionAndResults(GenesisBlock.Header, new[] {tx});
+            var tx = _kernelTestHelper.GenerateTransaction();
+            var (block, results) =
+                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx});
 
             var result = results.First();
             // Complete block
             await AddTransactionResultsWithPostMiningAsync(block, new[] {result});
-            
+
             var transactionBlockIndex = new TransactionBlockIndex()
             {
                 BlockHash = block.GetHash()
             };
             await _transacionBlockIndexManager.SetTransactionBlockIndexAsync(tx.GetHash(), transactionBlockIndex);
-            
+
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
         }

@@ -42,7 +42,6 @@ namespace AElf.Types.CSharp
             {
                 output.WriteMessage((IMessage)value);
             }
-            //TODO:  Add case to cover IsUserType [Case]
             else if (type.IsUserType())
             {
                 output.WriteMessage(((UserType)value).ToPbMessage());

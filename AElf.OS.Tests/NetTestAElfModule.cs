@@ -60,13 +60,13 @@ namespace AElf.OS
             var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
             var genService = context.ServiceProvider.GetRequiredService<IBlockGenerationService>();
             var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
+            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             
             var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
             var previousBlockHash = chain.BestChainHash;
             long height = chain.BestChainHeight;
 
-            var originalBlock = AsyncHelper.RunSync(() => blockchainService.GetBlockByHashAsync(chain.BestChainHash));
-            _blockList.Add(originalBlock);
+            _blockList.AddRange(osTestHelper.BestBranchBlockList);
 
             for (var i = chain.BestChainHeight; i < chain.BestChainHeight + 10; i++)
             {
