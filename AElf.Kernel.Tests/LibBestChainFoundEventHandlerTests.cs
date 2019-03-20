@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.BackgroundJobs;
 using Xunit;
 
 namespace AElf.Kernel
@@ -22,7 +21,9 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
         private readonly KernelTestHelper _kernelTestHelper;
-
+        private IBackgroundJobStore _jobStore;
+        private readonly LastIrreversibleBlockJob _job;
+        
         private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
 
         public LibBestChainFoundEventHandlerTests()
@@ -34,6 +35,8 @@ namespace AElf.Kernel
 
             _smartContractAddressService.SetAddress(ConsensusSmartContractAddressNameProvider.Name,
                 _consensusAddress);
+            _jobStore = GetRequiredService<IBackgroundJobStore>();
+            _job = GetRequiredService<LastIrreversibleBlockJob>();
         }
 
         [Fact]
@@ -49,6 +52,9 @@ namespace AElf.Kernel
 
                 var eventData = new BestChainFoundEventData();
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -66,6 +72,9 @@ namespace AElf.Kernel
                     ExecutedBlocks = new List<Hash>()
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -92,6 +101,9 @@ namespace AElf.Kernel
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -124,6 +136,9 @@ namespace AElf.Kernel
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -155,6 +170,9 @@ namespace AElf.Kernel
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -165,11 +183,12 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
+                var offset = 5;
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    Data = ByteString.CopyFrom(ParamsPacker.Pack(5))
+                    Data = ByteString.CopyFrom(ParamsPacker.Pack(offset))
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
@@ -187,6 +206,11 @@ namespace AElf.Kernel
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(1);
+
+                _job.Execute(new LastIrreversibleBlockJobArgs {BlockHeight = newBlock.Height - offset});
 
                 LibShouldBe(10, libHash);
             }
