@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract
             var to = Address.Genesis;
             var methodName = "TestSendInline";
             var arg = "Arg";
-            _bridgeContext.SendInline(to, methodName, arg);
+            _bridgeContext.SendInline(to, methodName, ByteString.CopyFrom(ParamsPacker.Pack(arg)));
 
             var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
@@ -85,7 +85,7 @@ namespace AElf.Kernel.SmartContract
             var to = Address.Genesis;
             var methodName = "TestVirtualInline";
             var arg = "Arg";
-            _bridgeContext.SendVirtualInline(from, to, methodName, arg);
+            _bridgeContext.SendVirtualInline(from, to, methodName, ByteString.CopyFrom(ParamsPacker.Pack(arg)));
 
             var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
