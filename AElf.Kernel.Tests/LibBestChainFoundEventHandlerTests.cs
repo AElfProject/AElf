@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.BackgroundJobs;
 using Xunit;
 
 namespace AElf.Kernel
@@ -23,20 +22,24 @@ namespace AElf.Kernel
         private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
         private readonly ITransactionResultService _transactionResultService;
         private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
-        
+        private IBackgroundJobStore _jobStore;
+        private readonly LastIrreversibleBlockJob _job;
+
         public LibBestChainFoundEventHandlerTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _libBestChainFoundEventHandler = GetRequiredService<LibBestChainFoundEventHandler>();
-            _transactionResultService = GetRequiredService<ITransactionResultService>();;
+            _transactionResultService = GetRequiredService<ITransactionResultService>();
+            _jobStore = GetRequiredService<IBackgroundJobStore>();
+            _job = GetRequiredService<LastIrreversibleBlockJob>();
         }
 
         [Fact]
         public async Task Test_HandleEvent()
         {
             await PrepareTestData();
-            
+
             {
                 // Null event
                 //             BestChainHeight: 11
@@ -49,6 +52,9 @@ namespace AElf.Kernel
                 var eventData = new BestChainFoundEventData();
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -60,12 +66,15 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var eventData = new BestChainFoundEventData
                 {
                     ExecutedBlocks = new List<Hash>()
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -93,6 +102,9 @@ namespace AElf.Kernel
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -104,7 +116,7 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var transaction = GenerateTransaction();
                 var logEvent = new LogEvent
                 {
@@ -124,9 +136,12 @@ namespace AElf.Kernel
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
-            
+
             {
                 // Event from consensus smart contract, not contains 'LIBFound'
                 //             BestChainHeight: 14
@@ -135,7 +150,7 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var transaction = GenerateTransaction();
                 var logEvent = new LogEvent
                 {
@@ -155,6 +170,9 @@ namespace AElf.Kernel
                 };
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
 
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(0);
+
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -166,14 +184,15 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
 
                 var transaction = GenerateTransaction();
+                var offset = 5;
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    Data = ByteString.CopyFrom(ParamsPacker.Pack(5))
+                    Data = ByteString.CopyFrom(ParamsPacker.Pack(offset))
                 };
                 var transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash ,transaction,
+                var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transaction,
                     transactionResult);
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
@@ -183,10 +202,15 @@ namespace AElf.Kernel
                     BlockHeight = newBlock.Height,
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
-                
+
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+
+                var jobs = await _jobStore.GetWaitingJobsAsync(2);
+                jobs.Count.ShouldBe(1);
+
+                _job.Execute(new LastIrreversibleBlockJobArgs {BlockHeight = newBlock.Height - offset});
 
                 LibShouldBe(10, libHash);
             }
@@ -202,7 +226,7 @@ namespace AElf.Kernel
         }
 
         #endregion
-        
+
         #region private methods
 
         /// <summary>
@@ -294,19 +318,18 @@ namespace AElf.Kernel
                 Body = new BlockBody()
             };
             newBlock.AddTransaction(transaction);
-            
+
             newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoots();
-            
+
             await _blockchainService.AddBlockAsync(newBlock);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-            
+
             await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
 
             return newBlock;
         }
 
         #endregion
-        
     }
 }
