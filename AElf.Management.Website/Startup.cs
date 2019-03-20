@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
 
 namespace AElf.Management.Website
 {
@@ -28,7 +29,7 @@ namespace AElf.Management.Website
             {
                 options.UseAutofac();
             });
-
+            
             return services.BuildAutofacServiceProvider();
         }
 
@@ -56,6 +57,8 @@ namespace AElf.Management.Website
 
             //app.UseHttpsRedirection();
             app.UseMvc();
+            
+            app.InitializeApplication();
         }
     }
 }
