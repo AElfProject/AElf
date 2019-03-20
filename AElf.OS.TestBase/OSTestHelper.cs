@@ -19,6 +19,7 @@ using AElf.Kernel.Types.SmartContract;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -137,13 +138,14 @@ namespace AElf.OS
                 MethodName = methodName,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray())
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray()),
+                Time = Timestamp.FromDateTime(DateTime.UtcNow)
             };
 
             return transaction;
         }
 
-        public async Task BroadcastTransaction(List<Transaction> transactions)
+        public async Task BroadcastTransactions(List<Transaction> transactions)
         {
             var transactionsReceivedEvent = new TransactionsReceivedEvent
             {
@@ -153,8 +155,15 @@ namespace AElf.OS
             await _txHub.HandleTransactionsReceivedAsync(transactionsReceivedEvent);
         }
 
-        public async Task<Block> MinedOneBlock(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<Block> MinedOneBlock(Hash previousBlockHash = null, long previousBlockHeight = 0)
         {
+            if (previousBlockHash == null || previousBlockHeight == 0)
+            {
+                var chain = _blockchainService.GetChainAsync().Result;
+                previousBlockHash = chain.BestChainHash;
+                previousBlockHeight = chain.BestChainHeight;
+            }
+
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
 
@@ -215,7 +224,7 @@ namespace AElf.OS
             {
                 var chain = await _blockchainService.GetChainAsync();
                 var transaction = await GenerateTransferTransaction();
-                await BroadcastTransaction(new List<Transaction> {transaction});
+                await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
                 
                 bestBranchBlockList.Add(block);
@@ -230,8 +239,8 @@ namespace AElf.OS
 
             for (var i = 0; i < 5; i++)
             {
-                var transaction = await GenerateTransferTransaction();
-                await BroadcastTransaction(new List<Transaction> {transaction});
+//                var transaction = await GenerateTransferTransaction();
+//                await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(previousHash,previousHeight);
                 
                 forkBranchBlockList.Add(block);
