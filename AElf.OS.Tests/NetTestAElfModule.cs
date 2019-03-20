@@ -66,9 +66,7 @@ namespace AElf.OS
             var previousBlockHash = chain.BestChainHash;
             long height = chain.BestChainHeight;
 
-            //var originalBlock = AsyncHelper.RunSync(() => blockchainService.GetBlockByHashAsync(chain.BestChainHash));
             _blockList.AddRange(osTestHelper.BestBranchBlockList);
-            //_blockList.Add(originalBlock);
 
             for (var i = chain.BestChainHeight; i < chain.BestChainHeight + 10; i++)
             {
