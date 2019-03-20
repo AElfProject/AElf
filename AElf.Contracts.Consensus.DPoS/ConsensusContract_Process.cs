@@ -74,6 +74,8 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
+            
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = toUpdate.ActualMiningTime;
 
             // One cannot publish his in value sometime, like in his first round.
             if (toUpdate.PreviousInValue != Hash.Empty)
@@ -125,7 +127,6 @@ namespace AElf.Contracts.Consensus.DPoS
             State.CurrentRoundNumberField.Value = roundNumber;
             return true;
         }
-
 
         #endregion
 
@@ -256,12 +257,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return false;
-        }
-
-        [View]
-        public Round GetCurrentRoundInformation()
-        {
-            return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
         }
 
         public bool TryToGetPreviousRoundInformation(out Round roundInformation)
