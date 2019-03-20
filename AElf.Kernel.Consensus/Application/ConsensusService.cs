@@ -17,7 +17,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    //TODO: ConsensusService no cases covered, need add cases. [Case]
     public class ConsensusService : IConsensusService
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -73,6 +72,10 @@ namespace AElf.Kernel.Consensus.Application
                 blockMiningEventData);
         }
 
+        /*
+         * TODO Add ConsensusService test cases [Case]
+         * BODY 1. ValidateConsensusBeforeExecutionAsync \r\n 2. GetNewConsensusInformationAsync \r\n 3. GenerateConsensusTransactionsAsync
+         */
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(Hash preBlockHash, long preBlockHeight,
             byte[] consensusExtraData)
         {

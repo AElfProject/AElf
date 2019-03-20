@@ -4,6 +4,7 @@ using AElf.Kernel.Consensus.Application;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
 {
+    //TODO: Add ConsensusValidationProvider test cases [Case]
     public class ConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
