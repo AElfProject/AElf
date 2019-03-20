@@ -14,6 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
@@ -165,15 +166,8 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
-            await starter.InitialChainAsync(
-                list =>
-                {
-                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
-                });
-
-            // Initial token.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create), new CreateInput
+            var tokenContractCallList = new SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -181,15 +175,25 @@ namespace AElf.Contracts.Consensus.DPoS
                 Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                LockWhiteList = { starter.GetConsensusContractAddress()}
+                LockWhiteListSystemContractNames = {ConsensusSmartContractAddressNameProvider.Name},
+                ZeroContractAddress = starter.GetZeroContractAddress()
             });
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
+            
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
-                To = starter.GetDividendsContractAddress(),
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
+            
+            await starter.InitialChainAsync(
+                list =>
+                {
+                    // Dividends contract must be deployed before token contract.
+                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+                });
 
             // Initial consensus contract.
             await starter.InitializeAsync();

@@ -24,7 +24,9 @@ message CreateInput {
     sint32 decimals = 4;
     Address issuer = 5;
     bool is_burnable = 6;
-    repeated Address lockWhiteList = 7;
+    repeated Address lock_white_list_addresses = 7;
+    repeated Hash lock_white_list_system_contract_names = 8;
+    Address zero_contract_address = 9;
 }
 
 message IssueInput {
@@ -32,6 +34,7 @@ message IssueInput {
     sint64 amount = 2;
     string memo = 3;
     Address to = 4;
+    Hash to_system_contract_name = 5;
 }
 
 message LockInput {

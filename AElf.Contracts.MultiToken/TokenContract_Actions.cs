@@ -31,9 +31,19 @@ namespace AElf.Contracts.MultiToken
             {
                 // The first created token will be the native token
                 State.NativeTokenSymbol.Value = input.Symbol;
+                
+                // Only the first created token can use system contract name to set white list,
+                // and update the state of BasicContractZero
+                foreach (var systemContractName in input.LockWhiteListSystemContractNames)
+                {
+                    Assert(input.ZeroContractAddress != null, "Need to provide the address of basic zero contract.");
+                    State.BasicContractZero.Value = input.ZeroContractAddress;
+                    var address = State.BasicContractZero.GetContractAddressByName(systemContractName);
+                    State.LockWhiteLists[input.Symbol][address] = true;
+                }
             }
 
-            foreach (var address in input.LockWhiteList)
+            foreach (var address in input.LockWhiteListAddresses)
             {
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
@@ -43,11 +53,16 @@ namespace AElf.Contracts.MultiToken
 
         public Nothing Issue(IssueInput input)
         {
+            Assert(input.ToSystemContractName != null || input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Issuer == Context.Sender, "Sender is not allowed to issue this token.");
+            Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == State.BasicContractZero.Value, "Sender is not allowed to issue this token.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
+            if (input.ToSystemContractName != null)
+            {
+                input.To = State.BasicContractZero.GetContractAddressByName(input.ToSystemContractName);
+            }
             State.Balances[input.To][input.Symbol] = input.Amount;
             return Nothing.Instance;
         }
@@ -187,7 +202,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = issuer,
                 TokenName = tokenName,
                 TotalSupply = totalSupply,
-                LockWhiteList = { whiteAddress}
+                LockWhiteListAddresses = { whiteAddress}
             });
         }
 
