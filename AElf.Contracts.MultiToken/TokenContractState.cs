@@ -19,7 +19,6 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-
         public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }

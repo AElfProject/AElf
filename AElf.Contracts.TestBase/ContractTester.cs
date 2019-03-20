@@ -483,24 +483,36 @@ namespace AElf.Contracts.TestBase
         /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes()
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer)
         {
             return list =>
             {
+                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, o =>
                 {
-                    o.Add(nameof(TokenContract.Issue),new CreateInput
+                    o.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
                     {
-                        Symbol = "ELF_Test",
+                        Symbol = "ELF",
                         Decimals = 2,
+                        Issuer = issuer,
                         IsBurnable = true,
-                        Issuer = GetCallOwnerAddress(),
                         TokenName = "elf token",
                         TotalSupply = 1000_000L
                     });
+                    o.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+                    {
+                        Symbol = "ELF",
+                        Amount = 200_000L,
+                        ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+                    });
+                    o.Add(nameof(TokenContract.Issue), new IssueInput
+                    {
+                        Symbol = "ELF",
+                        Amount = 800_000L,
+                        To = GetCallOwnerAddress()
+                    });
                 });
-                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);

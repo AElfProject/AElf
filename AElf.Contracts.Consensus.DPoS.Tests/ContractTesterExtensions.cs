@@ -167,23 +167,31 @@ namespace AElf.Contracts.Consensus.DPoS
             int miningInterval = 0)
         {
             var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
+            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
                 IsBurnable = true,
-                Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
+                Issuer = starter.GetCallOwnerAddress(),
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                LockWhiteListSystemContractNames = {ConsensusSmartContractAddressNameProvider.Name},
-                ZeroContractAddress = starter.GetZeroContractAddress()
+                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
             
+            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection * 20,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                Memo = "Issue ",
+            });
+            
+            // For testing.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 10,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                Amount = DPoSContractConsts.LockTokenForElection * 80,
+                To = starter.GetCallOwnerAddress(),
                 Memo = "Set dividends.",
             });
             
@@ -423,19 +431,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
         }
 
-        public static async Task<TransactionResult> IssueTokenAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester,
-            Address receiverAddress, long amount)
-        {
-            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue),
-                new IssueInput
-                {
-                    To = receiverAddress,
-                    Amount = amount,
-                    Symbol = "ELF",
-                });
-        }
-
         public static async Task<List<TransactionResult>> TransferTokenAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester,
             List<Address> receiverAddresses, long amount)
@@ -505,7 +500,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var candidateKeyPair = CryptoHelpers.GenerateKeyPair();
                 transferTxs.Add(await starter.GenerateTransactionAsync(starter.GetTokenContractAddress(),
-                    nameof(TokenContract.Issue), starter.KeyPair, new IssueInput
+                    nameof(TokenContract.Transfer), starter.KeyPair, new TransferInput
                     {
                         To = Address.FromPublicKey(candidateKeyPair.PublicKey),
                         Amount = DPoSContractConsts.LockTokenForElection + 100,
@@ -538,7 +533,7 @@ namespace AElf.Contracts.Consensus.DPoS
             for (var i = 0; i < number; i++)
             {
                 var voter = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
-                await starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 1000L);
+                await starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 1000L);
                 voters.Add(voter);
             }
 

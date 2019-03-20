@@ -84,22 +84,22 @@ namespace AElf.TestLauncher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
+
             var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add("Create", new CreateInput
+            tokenContractCallList.Add("CreateNativeToken", new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
                 IsBurnable = true,
-                Issuer = Address.Generate(),
                 TokenName = "elf token",
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                LockWhiteListSystemContractNames = {ConsensusSmartContractAddressNameProvider.Name},
-                ZeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
-                    .GetZeroSmartContractAddress()
+                // Set the contract zero address as the issuer temporarily.
+                Issuer = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
+                    .GetZeroSmartContractAddress(),
+                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
             
-            tokenContractCallList.Add("Issue", new IssueInput
+            tokenContractCallList.Add("IssueNativeToken", new IssueNativeTokenInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
