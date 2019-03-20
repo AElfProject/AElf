@@ -63,8 +63,6 @@ namespace AElf.OS.Node.Application
             }
         }
 
-
-        //TODO: AddGenesisSmartContract no case cover [Case]
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name = null)
         {
