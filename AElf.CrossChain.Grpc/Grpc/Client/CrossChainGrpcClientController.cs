@@ -76,7 +76,7 @@ namespace AElf.CrossChain.Grpc
 
         public void RequestCrossChainIndexing()
         {
-            Logger.LogTrace("Request cross chain indexing ..");
+            //Logger.LogTrace("Request cross chain indexing ..");
             var chainIds = _crossChainDataProducer.GetCachedChainIds();
             foreach (var chainId in chainIds)
             {
