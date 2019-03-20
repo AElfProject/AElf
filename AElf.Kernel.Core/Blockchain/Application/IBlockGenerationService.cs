@@ -87,7 +87,7 @@ namespace AElf.Kernel.Blockchain.Application
             bmt.AddNodes(allExecutedTransactionIds);
             blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
 
-            _blockExtraDataService.FillMktRootExtraDataForTransactionStatus(blockHeader,
+            _blockExtraDataService.FillMerkleTreeRootExtraDataForTransactionStatus(blockHeader,
                 blockExecutionReturnSet.Select(executionReturn =>
                     (executionReturn.TransactionId, executionReturn.Status)));
             
