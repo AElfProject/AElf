@@ -13,7 +13,7 @@
         </ItemGroup>
     </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
-        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
+        <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh 1_11_1  $(OutDir)" />
     </Target>
     <Target Name="CopyChakraCoreToPublish" AfterTargets="Publish">
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\" />
