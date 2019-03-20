@@ -14,7 +14,7 @@ namespace AElf.OS.Rpc
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
-        //typeof(OSCoreTestAElfModule),
+        //typeof(OSCoreTestAElfModule)
         typeof(OSCoreWithChainTestAElfModule)
     )]
     public class TestBaseRpcAElfModule : AElfModule

@@ -424,7 +424,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var block = await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
-                new {blockHeight = 3, includeTransactions = true});
+                new {blockHeight = 13, includeTransactions = true});
             var responseResult = response["result"];
 
             responseResult["BlockHash"].ToString().ShouldBe(block.GetHash().ToHex());
@@ -462,7 +462,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             var response = await JsonCallAsJObject("/chain", "GetChainStatus");
             response["result"]["Branches"].ShouldNotBeNull();
-            Convert.ToInt32(response["result"]["BestChainHeight"]).ShouldBe(2);
+            Convert.ToInt32(response["result"]["BestChainHeight"]).ShouldBe(12);
         }
 
         [Fact]
@@ -479,7 +479,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
-                new {blockHeight = 3, includeTransactions = true});
+                new {blockHeight = 13, includeTransactions = true});
             var responseResult = response["result"];
             var blockHash = responseResult["BlockHash"].ToString();
 
@@ -487,7 +487,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 new {blockHash = blockHash});
             response1["result"].ShouldNotBeNull();
             response1["result"]["BlockHash"].ToString().ShouldBe(blockHash);
-            response1["result"]["BlockHeight"].To<int>().ShouldBe(3);
+            response1["result"]["BlockHeight"].To<int>().ShouldBe(13);
             response1["result"]["Changes"].ShouldNotBeNull();
         }
 
@@ -505,7 +505,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             await MinedOneBlock(chain);
 
             var response = await JsonCallAsJObject("/chain", "GetBlockInfo",
-                new {blockHeight = 3, includeTransactions = true});
+                new {blockHeight = 13, includeTransactions = true});
             var responseResult = response["result"];
             var blockHash = responseResult["BlockHash"].ToString();
 
@@ -520,7 +520,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 new {blockHash = blockHash});
             response1["result"].ShouldNotBeNull();
             response1["result"]["BlockHash"].ToString().ShouldBe(blockHash);
-            response1["result"]["BlockHeight"].To<int>().ShouldBe(3);
+            response1["result"]["BlockHeight"].To<int>().ShouldBe(13);
             response1["result"]["Changes"].ShouldNotBeNull();
         }
 
