@@ -12,9 +12,9 @@ namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
-        public IBlockchainService BlockchainService { get; set; }
-        public ITransactionResultService TransactionResultService { get; set; }
-        public IChainManager ChainManager { get; set; }
+        private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionResultService _transactionResultService;
+        private readonly IChainManager _chainManager;
 
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -36,12 +36,18 @@ namespace AElf.Kernel
         /// </summary>
         public List<Block> UnlinkedBranchBlockList { get; set; }
 
-        public KernelTestHelper()
+        public KernelTestHelper(IBlockchainService blockchainService,
+            ITransactionResultService transactionResultService,
+            IChainManager chainManager)
         {
             BestBranchBlockList = new List<Block>();
             LongestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
             UnlinkedBranchBlockList = new List<Block>();
+
+            _blockchainService = blockchainService;
+            _transactionResultService = transactionResultService;
+            _chainManager = chainManager;
         }
 
         /// <summary>
@@ -63,7 +69,7 @@ namespace AElf.Kernel
         {
             var chain = await CreateChain();
 
-            var genesisBlock = await BlockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
+            var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
             BestBranchBlockList.Add(genesisBlock);
             
             BestBranchBlockList.AddRange(await AddBestBranch(chain));
@@ -73,8 +79,8 @@ namespace AElf.Kernel
 
             foreach (var block in LongestBranchBlockList)
             {
-                var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(block.GetHash());
-                await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+                await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionFailed);
             }
             
@@ -84,8 +90,8 @@ namespace AElf.Kernel
             UnlinkedBranchBlockList =
                 await AddForkBranch(chain, 9, Hash.FromString("UnlinkBlock"));
             // Set lib
-            chain = await BlockchainService.GetChainAsync();
-            await BlockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
+            chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
                 BestBranchBlockList[4].GetHash());
 
             return chain;
@@ -174,13 +180,13 @@ namespace AElf.Kernel
 
             var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
 
-            await BlockchainService.AddBlockAsync(newBlock);
-            var chain = await BlockchainService.GetChainAsync();
-            await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
+            await _blockchainService.AddBlockAsync(newBlock);
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 
             foreach (var transactionResult in transactionResults)
             {
-                await TransactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
+                await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
 
             return newBlock;
@@ -189,14 +195,14 @@ namespace AElf.Kernel
         public async Task<Block> AttachBlockToBestChain(List<Transaction> transactions = null,
             List<TransactionResult> transactionResults = null)
         {
-            var chain = await BlockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             var block = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transactions, transactionResults);
 
-            chain = await BlockchainService.GetChainAsync();
-            await BlockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
+            chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
 
-            var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(block.GetHash());
-            await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+            var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+            await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             return block;
@@ -215,7 +221,7 @@ namespace AElf.Kernel
                 },
                 Body = new BlockBody()
             };
-            var chain = await BlockchainService.CreateChainAsync(genesisBlock);
+            var chain = await _blockchainService.CreateChainAsync(genesisBlock);
             return chain;
         }
         
@@ -225,16 +231,16 @@ namespace AElf.Kernel
 
             for (var i = 0; i < 10; i++)
             {
-                chain = await BlockchainService.GetChainAsync();
+                chain = await _blockchainService.GetChainAsync();
                 var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash);
                 bestBranchBlockList.Add(newBlock);
                 
-                var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(newBlock.GetHash());
-                await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
+                await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionSuccess);
                 
-                chain = await BlockchainService.GetChainAsync();
-                await BlockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
             }
 
             return bestBranchBlockList;

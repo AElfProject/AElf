@@ -35,7 +35,6 @@ namespace AElf.OS
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
-
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         
         /// <summary>
@@ -71,7 +70,6 @@ namespace AElf.OS
             _smartContractAddressService = smartContractAddressService;
             _staticChainInformationProvider = staticChainInformationProvider;
             _txHub = txHub;
-            
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
