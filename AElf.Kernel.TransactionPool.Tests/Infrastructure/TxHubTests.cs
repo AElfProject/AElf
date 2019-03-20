@@ -104,15 +104,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
                 var transactionNotInPool = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
-//                var newBlock = await AddBlock(new List<Transaction>
-//                {
-//                    transactionValid,
-//                    transactionNotInPool
-//                });
-//
-//                await _blockchainService.AddBlockAsync(newBlock);
-//                await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-//                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
                 var newBlock = await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction>
                 {
                     transactionValid,
