@@ -71,7 +71,7 @@ enum TransactionType {
     ContractTransaction = 0;
     DposTransaction = 1;
     MsigTransaction = 2;
-    ContractDeployTransaction=3;
+    ContractDeployTransaction = 3;
 }
 
 enum TransactionResultStatus {
@@ -147,7 +147,7 @@ message LogEvent {
     bytes Data = 3;
 }
 
-message TransactionLogEvent{
+message TransactionLogEvent {
     Hash Transaction = 1;
     LogEvent LogEvent = 2;
 }
@@ -156,7 +156,7 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
-message BlockExtraData{
+message BlockExtraData {
     Hash SideChainTransactionsRoot = 1;
     bytes ConsensusInformation = 2;
 }
@@ -198,7 +198,7 @@ enum DataAccessMode {
     AccountSpecific = 2;
 }
 
-message BinaryMerkleTree{
+message BinaryMerkleTree {
     repeated Hash Nodes = 1;
     Hash Root = 2;
     int32 LeafCount = 3;
@@ -226,13 +226,13 @@ message BlockAbstract {
 enum BlockValidationResult {
     // The chosen one!
     Success = 0;
-    
+
     // Cache them.
     NotMiner = 11;
     InvalidTimeSlot = 12;
     FailedToCheckConsensusInvalidation = 13;
     DoingRollback = 14;
-    
+
     // Discard.
     BlockIsNull = 101;
     SameWithCurrentRound = 102;
@@ -245,7 +245,7 @@ enum BlockValidationResult {
     NotImplementConsensus = 109;
 }
 
-message VersionedState{
+message VersionedState {
     string Key = 1;
     bytes Value = 2;
     int64 BlockHeight = 3;
@@ -253,14 +253,14 @@ message VersionedState{
     Hash OriginBlockHash = 5;
 }
 
-message BlockStateSet{
+message BlockStateSet {
     Hash BlockHash = 1;
     Hash PreviousHash = 2;
     int64 BlockHeight = 3;
     map<string, bytes> Changes = 4;
 }
 
-message TransactionExecutingStateSet{
+message TransactionExecutingStateSet {
     int64 Version = 1;
     map<string, bytes> Writes = 2;
     map<string, bool> Reads = 3;
@@ -272,7 +272,7 @@ enum ChainStateMergingStatus {
     Merged = 2;
 }
 
-message ChainStateInfo{
+message ChainStateInfo {
     int32 ChainId = 1;
     Hash BlockHash = 2;
     int64 BlockHeight = 3;
@@ -285,20 +285,20 @@ message ActionResult {
     string ErrorMessage = 2;
 }
 
-enum ChainBlockLinkExecutionStatus{
+enum ChainBlockLinkExecutionStatus {
     ExecutionNone = 0;
     ExecutionSuccess = 1;
     ExecutionFailed = 2;
 }
 
-message ChainBlockLink{
+message ChainBlockLink {
     Hash BlockHash = 1;
     int64 Height = 2;
     Hash PreviousBlockHash = 3;
     ChainBlockLinkExecutionStatus ExecutionStatus = 4;
     bool IsIrreversibleBlock = 5;
     bool IsLinked = 6;
-    bool IsLightBlock = 7;//no block body
+    bool IsLightBlock = 7; //no block body
 }
 
 message Chain {
@@ -314,15 +314,24 @@ message Chain {
     int64 BestChainHeight = 10;
 }
 
-message ChainBlockIndex{
+message ChainBlockIndex {
     Hash BlockHash = 1;
 }
 
-message TransactionBlockIndex{
+message TransactionBlockIndex {
     Hash BlockHash = 1;
 }
 
 message BranchSwitch {
     repeated Hash RollBack = 1;
     repeated Hash RollForward = 2;
+}
+
+message SystemTransactionMethodCall {
+    string MethodName = 1;
+    bytes Params = 2;
+}
+
+message SystemTransactionMethodCallList {
+    repeated SystemTransactionMethodCall Value = 1;
 }

@@ -62,6 +62,7 @@ namespace AElf.Types.CSharp
             return null;
         }
 
+        //TODO: Add ReadFromStream case to cover all logic [Case]
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             uint length = 1;

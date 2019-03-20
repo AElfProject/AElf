@@ -65,7 +65,21 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
-        public Address DeploySystemSmartContract(Hash name, int category, byte[] code)
+        public Address DeploySystemSmartContract(Hash name, int category, byte[] code,
+            SystemTransactionMethodCallList transactionMethodCallList)
+        {
+            var address = PrivateDeploySystemSmartContract(name, category, code);
+
+            foreach (var methodCall in transactionMethodCallList.Value)
+            {
+                Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+            }
+
+            return address;
+        }
+
+
+        private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
@@ -118,8 +132,9 @@ namespace AElf.Contracts.Genesis
 
         public Address DeploySmartContract(int category, byte[] code)
         {
-            return DeploySystemSmartContract(null, category, code);
+            return DeploySystemSmartContract(null, category, code, new SystemTransactionMethodCallList());
         }
+
 
         public byte[] UpdateSmartContract(Address contractAddress, byte[] code)
         {

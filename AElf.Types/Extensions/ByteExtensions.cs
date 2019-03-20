@@ -11,10 +11,12 @@ namespace AElf.Common
             return Base58CheckEncoding.EncodePlain(value);
         }
 
+        //TODO: Add ToPlainBase58 case [Case]
         public static string ToPlainBase58(this ByteString value)
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
+        
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {
