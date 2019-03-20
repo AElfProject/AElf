@@ -20,10 +20,10 @@ namespace AElf.Management.Website.Controllers
 
         [HttpGet]
         [Route("poolsize/{chainId}")]
-        public async Task<ApiResult<ulong>> PoolSize(string chainId)
+        public async Task<ApiResult<int>> PoolSize(string chainId)
         {
             var result = await _transactionService.GetPoolSize(chainId);
-            return new ApiResult<ulong>(result);
+            return new ApiResult<int>(result);
         }
 
         [HttpGet]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Authorization;
@@ -9,6 +10,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.CrossChain;
@@ -557,23 +559,25 @@ namespace AElf.Contracts.TestBase
         {
             return list =>
             {
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+                //TODO: support initialize method, make the tester auto issue elf token
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, o =>
+                {
+                    o.Add(nameof(TokenContract.Issue),new CreateInput
+                    {
+                        Symbol = "ELF_Test",
+                        Decimals = 2,
+                        IsBurnable = true,
+                        Issuer = GetCallOwnerAddress(),
+                        TokenName = "elf token",
+                        TotalSupply = 1000_000L
+                    });
+                });
                 list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
-            /*
-            return new List<Type>
-            {
-                typeof(TokenContract),
-                typeof(CrossChainContract),
-                typeof(AuthorizationContract),
-                typeof(ResourceContract),
-                typeof(DividendsContract),
-                typeof(FeeReceiverContract)
-            }*/
         }
     }
 }
