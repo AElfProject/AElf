@@ -73,19 +73,8 @@ namespace AElf.Kernel.SmartContract
                 TransactionContext.Transaction.GetHash().DumpByteArray());
         }
 
-        public void SendInline(Address toAddress, string methodName, params object[] args)
-        {
-            TransactionContext.Trace.InlineTransactions.Add(new Transaction()
-            {
-                From = Self,
-                To = toAddress,
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
-            });
-        }
-
         //TODO: Add test case Call [Case]
-        public T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args)
+        public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
@@ -101,7 +90,7 @@ namespace AElf.Kernel.SmartContract
                     From = this.Self,
                     To = address,
                     MethodName = methodName,
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+                    Params = args
                 };
                 return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
             });
@@ -115,15 +104,26 @@ namespace AElf.Kernel.SmartContract
             return decoder(trace.ReturnValue.ToByteArray());
         }
 
+        public void SendInline(Address toAddress, string methodName, ByteString args)
+        {
+            TransactionContext.Trace.InlineTransactions.Add(new Transaction()
+            {
+                From = Self,
+                To = toAddress,
+                MethodName = methodName,
+                Params = args
+            });
+        }
+
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName,
-            params object[] args)
+            ByteString args)
         {
             TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
                 From = ConvertVirtualAddressToContractAddress(fromVirtualAddress),
                 To = toAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args))
+                Params = args
             });
         }
 
@@ -181,7 +181,7 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
                 false, null));
         }
     }
