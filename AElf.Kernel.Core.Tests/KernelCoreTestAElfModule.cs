@@ -10,6 +10,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -23,15 +24,10 @@ namespace AElf.Kernel
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>(); 
         }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-        }
     }
     
     [DependsOn(
-        typeof(AbpEventBusModule),
-        typeof(TestBaseKernelAElfModule))]
+        typeof(KernelCoreTestAElfModule))]
     public class KernelMinerTestAElfModule : AElfModule
     {
         delegate void MockGenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
