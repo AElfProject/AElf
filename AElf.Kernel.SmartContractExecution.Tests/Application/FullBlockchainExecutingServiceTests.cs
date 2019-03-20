@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -9,35 +10,28 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public sealed class FullBlockchainExecutingServiceTests : SmartContractExecutionTestBase
+    public sealed class FullBlockchainExecutingServiceTests : SmartContractExecutionExecutingTestBase
     {
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
-        private readonly IFullBlockchainService _fullBlockchainService;
-        private readonly ILocalEventBus _localEventBus;
+        private readonly IBlockchainService _blockchainService;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public FullBlockchainExecutingServiceTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
-            _fullBlockchainService = GetRequiredService<IFullBlockchainService>();
-            _localEventBus = GetRequiredService<ILocalEventBus>();
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task Attach_Block_To_Chain_ReturnNull()
         {
-            var chain = await CreateNewChain();
+            var chain = await _blockchainService.GetChainAsync();
 
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = 2,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, Hash.Empty,
+                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
 
-            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
@@ -47,52 +41,22 @@ namespace AElf.Kernel.SmartContractExecution.Application
         [Fact]
         public async Task Attach_Block_To_Chain_FoundBestChain()
         {
-            var eventMessage = new BestChainFoundEventData();
-            _localEventBus.Subscribe<BestChainFoundEventData>(message =>
-            {
-                eventMessage = message;
-                return Task.CompletedTask;
-            });
+            var chain = await _blockchainService.GetChainAsync();
 
-            var chain = await CreateNewChain();
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
+                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
 
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = chain.LongestChainHeight + 1,
-                    PreviousBlockHash = chain.LongestChainHash
-                },
-                Body = new BlockBody()
-            };
-
-            await _fullBlockchainService.AddBlockAsync( newBlock);
-            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newBlock);
+            await _blockchainService.AddBlockAsync(newBlock);
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-            attachResult.Count.ShouldBe(2);
 
-            attachResult.Last().Height.ShouldBe(2u);
+            attachResult.Count.ShouldBe(1);
+            attachResult.Last().Height.ShouldBe(newBlock.Height);
 
-            //event was async, wait
-            await Task.Delay(10);
-            //TODO: fix the best chain not equal to height 2
-            //eventMessage.BlockHeight.ShouldBe(newBlock.Header.Height);
-        }
-
-        private async Task<Chain> CreateNewChain()
-        {
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
-            var chain = await _fullBlockchainService.CreateChainAsync( genesisBlock);
-            return chain;
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(newBlock.GetHash());
+            chain.BestChainHeight.ShouldBe(newBlock.Height);
         }
     }
 }

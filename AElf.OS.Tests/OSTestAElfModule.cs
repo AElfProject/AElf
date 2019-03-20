@@ -31,7 +31,7 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(OSAElfModule),
-        typeof(OSCoreTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class OSTestAElfModule : AElfModule

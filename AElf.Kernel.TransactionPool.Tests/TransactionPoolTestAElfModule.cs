@@ -16,4 +16,15 @@ namespace AElf.Kernel.TransactionPool
             context.Services.AddSingleton<TxHub>();
         }
     }
+    
+    [DependsOn(
+        typeof(TransactionPoolTestAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule)
+    )]
+    public class TransactionPoolWithChainTestAElfModule: AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
+    }
 }
