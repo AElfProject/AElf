@@ -34,7 +34,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 IsBootMiner = true,
             };
             var bytes = await testers.SingleTester.CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetConsensusCommand, firstTriggerInformation.ToByteArray());
+                ConsensusConsts.GetConsensusCommand, firstTriggerInformation);
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
             var information = DPoSInformation.Parser.ParseFrom(bytes);
             var round = information.Round;
 
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
                 ConsensusConsts.GenerateConsensusTransactions,
-                stubInitialExtraInformation.ToByteArray());
+                stubInitialExtraInformation);
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
