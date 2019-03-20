@@ -1,0 +1,244 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+import "consensus.proto";
+import "consensus_dpos.proto";
+import "aelf_options.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.DPoS";
+
+service ConsensusContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.DPoSContractState";
+    // Actions
+    // -> MainChain
+    rpc Initialize (InitializeInput) returns (Nothing) {
+    }
+    rpc SetBlockchainAge (SInt64Value) returns (Nothing) {
+    }
+    rpc NextTerm (Round) returns (Nothing) {
+    }
+    rpc SnapshotForTerm (TermInfo) returns (ActionResult) {
+    }
+    rpc SnapshotForMiners (TermInfo) returns (ActionResult) {
+    }
+    rpc SendDividends (TermInfo) returns (ActionResult) {
+    }
+    // -> Election
+    rpc AnnounceElection (Alias) returns (ActionResult) {
+    }
+    rpc QuitElection (Nothing) returns (ActionResult) {
+    }
+    rpc Vote (VoteInput) returns (Hash) {
+    }
+    rpc ReceiveDividendsByTransactionId (Hash) returns (ActionResult) {
+    }
+    rpc ReceiveAllDividends (Nothing) returns (ActionResult) {
+    }
+    rpc WithdrawByTransactionId (Hash) returns (Tickets) {
+    }
+    rpc WithdrawAll (Nothing) returns (Tickets) {
+    }
+    // -> Process
+    rpc InitialConsensus (Round) returns (Nothing) {
+    }
+    rpc UpdateValue (ToUpdate) returns (Nothing) {
+    }
+    rpc NextRound (Round) returns (Nothing) {
+    }
+    // Views
+    rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNewConsensusInformation (DPoSTriggerInformation) returns (DPoSInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GenerateConsensusTransactions (DPoSTriggerInformation) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensus (DPoSInformation) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetRoundInformation (SInt64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundNumber (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundInformation (Nothing) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentTermNumber (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsCandidate (PublicKey) returns (BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesList (Nothing) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidates (Nothing) returns (Candidates) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesListToFriendlyString (Nothing) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidateHistoryInformation (PublicKey) returns (CandidateInHistory) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidateHistoryInfoToFriendlyString (PublicKey) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesHistoryInfo (Nothing) returns (CandidateInHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesHistoryInfoToFriendlyString (Nothing) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateInHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidatesHistoryInfoToFriendlyString (PageInfo) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMiners (Nothing) returns (Miners) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMinersToFriendlyString (Nothing) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsInformation (PublicKey) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsInformationToFriendlyString (PublicKey) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingRecord (Hash) returns (VotingRecord) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryObtainedNotExpiredVotes (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryObtainedVotes (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsInfoToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableNotWithdrawnTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableNotWithdrawnTicketsInfoToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsHistories (PageableTicketsInfoInput) returns (TicketsHistories) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsHistoriesToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableElectionInfo (PageableElectionInfoInput) returns (TicketsDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableElectionInfoToFriendlyString (PageableElectionInfoInput) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBlockchainAge (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentVictories (Nothing) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentVictoriesToFriendlyString (Nothing) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermSnapshot (SInt64Value) returns (TermSnapshot) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermSnapshotToFriendlyString (SInt64Value) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAlias (PublicKey) returns (Alias) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermNumberByRoundNumber (SInt64Value) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotesCount (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsCount (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividendsForVoters (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividends (Nothing) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAliasesInUse (Nothing) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMinedBlockCountInCurrentTerm (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAliasesInUseToFriendlyString (Nothing) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message Nothing {
+
+}
+
+message InitializeInput {
+    Address tokenContractAddress = 1;
+    Address dividendsContractAddress = 2;
+}
+
+message TermInfo {
+    sint64 termNumber = 1;
+    sint64 roundNumber = 2;
+}
+
+message VoteInput {
+    string candidatePublicKey = 1;
+    sint64 amount = 2;
+    sint32 lockTime = 3;
+}
+
+message PageInfo {
+    sint32 start = 1;
+    sint32 length = 2;
+}
+
+message PageableTicketsInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    string publicKey = 3;
+}
+
+message PageableElectionInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    sint32 orderBy = 3;
+}
+
+message Alias {
+    string value = 1;
+}
+
+message BoolValue {
+    bool value = 1;
+}
+
+message PublicKey {
+    string hex = 1;
+}
+
+message FriendlyString {
+    string value = 1;
+}

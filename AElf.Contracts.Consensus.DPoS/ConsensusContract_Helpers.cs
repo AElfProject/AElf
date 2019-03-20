@@ -264,7 +264,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public int GetProducerNumber()
         {
-            var round = GetCurrentRoundInformation();
+            var round = GetCurrentRoundInformation(Nothing.Instance);
             return round.RealTimeMinersInformation.Count;
             //return 17 + (DateTime.UtcNow.Year - 2019) * 2;
         }

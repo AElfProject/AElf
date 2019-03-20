@@ -14,8 +14,9 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         private long CurrentAge => State.AgeField.Value;
 
-        public ActionResult AnnounceElection(string alias = "")
+        public override ActionResult AnnounceElection(Alias input)
         {
+            var alias = input.Value;
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
@@ -89,7 +90,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.Lock(new LockInput
+            State.TokenContract.Lock(new LockInput()
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -102,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult QuitElection()
+        public override ActionResult QuitElection(Nothing input)
         {
             var candidates = State.CandidatesField.Value;
 
@@ -133,8 +134,11 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public string Vote(string candidatePublicKey, long amount, int lockTime)
+        public override Hash Vote(VoteInput input)
         {
+            var candidatePublicKey = input.CandidatePublicKey;
+            var amount = input.Amount;
+            var lockTime = input.LockTime;
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
 
@@ -231,13 +235,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
-            return Context.TransactionId.ToHex();
+            return Context.TransactionId;
         }
-
+        
         // ReSharper disable once PossibleNullReferenceException
-        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
+        public override ActionResult ReceiveDividendsByTransactionId(Hash input)
         {
-            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            var txId = input;
+            var votingRecord = State.VotingRecordsMap[txId];
 
             Assert(votingRecord != null,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
@@ -252,7 +257,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        public ActionResult ReceiveAllDividends()
+        public override ActionResult ReceiveAllDividends(Nothing input)
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
 
@@ -274,9 +279,10 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        public Tickets WithdrawByTransactionId(string transactionId)
+        public override Tickets WithdrawByTransactionId(Hash input)
         {
-            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            var txId = input;
+            var votingRecord = State.VotingRecordsMap[txId];
 
             Assert(votingRecord != null,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
@@ -298,7 +304,7 @@ namespace AElf.Contracts.Consensus.DPoS
             votingRecord.WithdrawTimestamp =
                 blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
             votingRecord.IsWithdrawn = true;
-            State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
+            State.VotingRecordsMap[txId] = votingRecord;
 
             // Update total tickets count.
             var ticketsCount = State.TicketsCountField.Value;
@@ -331,14 +337,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 Symbol = "ELF",
                 Amount = votingRecord.Count,
                 LockId = votingRecord.TransactionId,
-                Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                Usage = $"Withdraw locked token of transaction {txId.ToHex()}: {votingRecord}"
             });
 
             return State.TicketsMap[votingRecord.From.ToStringValue()];
         }
 
         // ReSharper disable PossibleNullReferenceException
-        public Tickets WithdrawAll()
+        public override Tickets WithdrawAll(Nothing input)
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;
