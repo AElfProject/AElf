@@ -10,41 +10,46 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
 {
-    public partial class DividendContract : CSharpSmartContract<DividendsContractState>
+    public partial class DividendContract : DividendContractContainer.DividendContractBase
     {
-        public void Initialize(Address consensusContractAddress, Address tokenContractAddress)
+        public override Nothing Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.ConsensusContract.Value = consensusContractAddress;
-            State.TokenContract.Value = tokenContractAddress;
+            State.ConsensusContract.Value = input.ConsensusContractAddress;
+            State.TokenContract.Value = input.TokenContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
+            return Nothing.Instance;
         }
 
-        public void SendDividends(Address targetAddress, long amount)
+        public override Nothing SendDividends(SendDividendsInput input)
         {
+            var targetAddress = input.To;
+            var amount = input.Amout;
             if (amount <= 0)
-                return;
+                return Nothing.Instance;
 
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
-            State.TokenContract.Transfer(new TransferInput
+            State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = targetAddress,
                 Amount = amount,
                 Symbol = "ELF",
                 Memo = "Send dividends."
             });
+            return Nothing.Instance;
         }
-        
+
         /// <summary>
         /// Transfer dividends to miners.
         /// </summary>
         /// <param name="votingRecord"></param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
-        public long TransferDividends(VotingRecord votingRecord)
+        public override SInt64Value TransferDividends(VotingRecord input)
         {
+            var votingRecord = input;
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
             var dividendsOwner = votingRecord.From;
@@ -57,8 +62,13 @@ namespace AElf.Contracts.Dividend
                 startTermNumber = history + 1;
             }
 
-            var endTermNumber = Math.Min(GetExpireTermNumber(votingRecord, State.ConsensusContract.GetBlockchainAge()),
-                State.ConsensusContract.GetCurrentTermNumber() - 1);
+            var voteInfo= new VoteInfo()
+            {
+                Record = votingRecord,
+                Age = State.ConsensusContract.GetBlockchainAge.Call(Nothing.Instance).Value
+            };
+            var endTermNumber = Math.Min(GetExpireTermNumber(voteInfo).Value,
+                State.ConsensusContract.GetCurrentTermNumber.Call(Nothing.Instance).Value - 1);
 
             // Record last requested dividends term number.
             var actualTermNumber = startTermNumber;
@@ -73,7 +83,7 @@ namespace AElf.Contracts.Dividend
                 actualTermNumber = i;
             }
 
-            State.TokenContract.Transfer(new TransferInput
+            State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = dividendsOwnerAddress,
                 Amount = totalDividendsAmount,
@@ -85,43 +95,54 @@ namespace AElf.Contracts.Dividend
 
             State.LastRequestedDividendsMap[votingRecord.TransactionId] = actualTermNumber;
 
-            return totalDividendsAmount;
+            return new SInt64Value() {Value = totalDividendsAmount};
         }
 
-        public long AddDividends(long termNumber, long dividendsAmount)
+        public override SInt64Value AddDividends(AddDividendsInput input)
         {
+            var termNumber = input.TermNumber;
+            var dividendsAmount = input.DividendsAmount;
             var currentDividends = State.DividendsMap[termNumber];
             var finalDividends = currentDividends + dividendsAmount;
             State.DividendsMap[termNumber] = finalDividends;
             Context.LogDebug(()=>$"Dividends of term {termNumber}: {dividendsAmount}");
 
-            return finalDividends;
+            return new SInt64Value() {Value = finalDividends};
         }
 
-        public long AddWeights(long weights, long termNumber)
+        public override SInt64Value AddWeights(WeightsInfo input)
         {
+            var termNumber = input.TermNumber;
+            var weights = input.Weights;
             var currentWeights = State.TotalWeightsMap[termNumber];
             var finalWeights = currentWeights + weights;
             State.TotalWeightsMap[termNumber] = finalWeights;
             Context.LogDebug(()=>$"Weights of term {termNumber}: {finalWeights}.[Add]");
 
-            return finalWeights;
+            return new SInt64Value() {Value = finalWeights};
         }
 
-        public ActionResult KeepWeights(long oldTermNumber)
+        public override ActionResult KeepWeights(SInt64Value input)
         {
+            var oldTermNumber = input.Value;
             var totalWeights = State.TotalWeightsMap[oldTermNumber];
             if (totalWeights > 0)
             {
                 Context.LogDebug(()=>"[Forwarding weights]");
-                AddWeights(totalWeights, oldTermNumber + 1);
+                AddWeights(new WeightsInfo()
+                {
+                    TermNumber = oldTermNumber + 1,
+                    Weights = totalWeights
+                });
             }
 
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SubWeights(long weights, long termNumber)
+        public override ActionResult SubWeights(WeightsInfo input)
         {
+            var termNumber = input.TermNumber;
+            var weights = input.Weights;
             var totalWeights = State.TotalWeightsMap[termNumber];
             Assert(totalWeights > 0, $"Invalid weights of term {termNumber}");
             var newWeights = totalWeights - weights;

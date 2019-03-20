@@ -49,7 +49,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // The candidate announce election.
             var candidate = Starter.CreateNewContractTester(candidateInformation);
-            await candidate.AnnounceElectionAsync("AElfin");
+            var result = await candidate.AnnounceElectionAsync("AElfin");
             var candidatesList = await candidate.GetCandidatesListAsync();
 
             // Check the candidates list.

@@ -1,6 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -9,15 +10,15 @@ namespace AElf.Contracts.Dividend
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Func<long> GetCurrentTermNumber { get; set; }
-        public Func<long, Round> GetRoundInfo { get; set; }
-        public Func<string, Tickets> GetTicketsInformation { get; set; }
-        public Func<long> GetBlockchainAge { get; set; }
+        internal MethodReference<Nothing,SInt64Value> GetCurrentTermNumber { get; set; }
+        internal MethodReference<SInt64Value, Round> GetRoundInformation { get; set; }
+        internal MethodReference<PublicKey, Tickets> GetTicketsInformation { get; set; }
+        internal MethodReference<Nothing,SInt64Value> GetBlockchainAge { get; set; }
     }
 
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<TransferInput> Transfer { get; set; }
+        public MethodReference<TransferInput, Nothing> Transfer { get; set; }
     }
 
     public class DividendsContractState : ContractState
