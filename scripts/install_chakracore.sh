@@ -2,7 +2,7 @@
 
 CHAKRA_VERSION="$1"
 FILE_NAME="ChakraCore.dll"
-TO_FILE=$1${FILE_NAME}
+TO_FILE=$2${FILE_NAME}
 FROM_FILE=
 
 if [[ -f "$TO_FILE" ]]; then
