@@ -27,6 +27,7 @@ namespace AElf.Contracts.Resource.Tests
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1000_0000L,
+                Issuer = starter.GetCallOwnerAddress(),
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
             

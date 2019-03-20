@@ -503,7 +503,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     nameof(TokenContract.Transfer), starter.KeyPair, new TransferInput
                     {
                         To = Address.FromPublicKey(candidateKeyPair.PublicKey),
-                        Amount = DPoSContractConsts.LockTokenForElection + 100,
+                        Amount = DPoSContractConsts.LockTokenForElection,
                         Symbol = "ELF"
                     }));
                 announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
@@ -525,15 +525,22 @@ namespace AElf.Contracts.Consensus.DPoS
             return candidates;
         }
 
+        /// <summary>
+        /// Default pocket money is 10000L.
+        /// </summary>
+        /// <param name="starter"></param>
+        /// <param name="number"></param>
+        /// <param name="pocketMoney"></param>
+        /// <returns></returns>
         public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateVotersAsync(
-            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1)
+            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1, long pocketMoney = 10000L)
         {
             var voters = new List<ContractTester<DPoSContractTestAElfModule>>();
 
             for (var i = 0; i < number; i++)
             {
                 var voter = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
-                await starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 1000L);
+                await starter.TransferTokenAsync(voter.GetCallOwnerAddress(), pocketMoney);
                 voters.Add(voter);
             }
 

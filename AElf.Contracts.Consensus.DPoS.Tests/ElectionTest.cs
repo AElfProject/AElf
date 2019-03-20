@@ -228,10 +228,10 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Vote_Not_Candidate()
         {
-            const long amount = 1000;
+            const long pocketMoney = 10000;
+            const long amount = 10000;
             await Starter.GenerateCandidatesAsync(1);
-            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
-            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+            var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
 
             var notCandidate = GenerateNewUser();
             var result = await voter.Vote(notCandidate, amount, 100);
@@ -245,13 +245,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Vote_Candidate_Without_Enough_Token()
         {
-            const long amount = 100;
+            const long pocketMoney = 10000L;
             const long voteAmount = 200;
+            
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
             var voter = (await Starter.GenerateVotersAsync()).AnyOne();
-            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
 
-            var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
+            var txResult = await voter.Vote(candidate.PublicKey, pocketMoney + voteAmount, 100);
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.Contains("Insufficient balance.").ShouldBeTrue();
 
@@ -262,42 +262,44 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Vote_Same_Candidate_MultipleTimes()
         {
-            const long amount = 1000;
-            const long voteAmount = 200;
+            const long pocketMoney = 10000L;
+            const long voteAmount = 2000;
+            const long votes = 5L;
+            
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
-            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+            var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < votes; i++)
             {
                 var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
                 txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
             var ticketsOfVoter = await voter.GetTicketsInformationAsync();
-            ticketsOfVoter.VotedTickets.ShouldBe(1000L);
+            ticketsOfVoter.VotedTickets.ShouldBe(pocketMoney);
             var ticketsCount = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetTicketsCount))).DeserializeToInt64();
-            ticketsCount.ShouldBe(1000L);
+            ticketsCount.ShouldBe(pocketMoney);
             var votesCount = (await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetVotesCount))).DeserializeToInt64();
-            votesCount.ShouldBe(5L);
+            votesCount.ShouldBe(votes);
 
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
-            balance.ShouldBe(0L);
+            balance.ShouldBe(pocketMoney - voteAmount * votes);
         }
 
         [Fact]
         public async Task Vote_Different_Candidates()
         {
-            const long amount = 1000;
-            const long voteAmount = 200;
+            const long pocketMoney = 10000L;
+            const int votersCount = 5;
+            var voteAmount = pocketMoney / votersCount;
+            
             var candidateLists = await Starter.GenerateCandidatesAsync(5);
 
-            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
-            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), amount);
+            var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < votersCount; i++)
             {
                 var candidate = candidateLists[i];
                 var txResult = await voter.Vote(candidate.PublicKey, voteAmount, 100);
@@ -305,7 +307,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var ticketsOfVoter = await voter.GetTicketsInformationAsync();
-            ticketsOfVoter.VotedTickets.ShouldBe(1000L);
+            ticketsOfVoter.VotedTickets.ShouldBe(voteAmount * votersCount);
 
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());
             balance.ShouldBe(0L);
@@ -361,13 +363,9 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Withdraw_By_TransactionId()
         {
             const int lockTime = 100;
+            const long pocketMoney = 10000L;
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voters = await Starter.GenerateVotersAsync(2);
-
-            foreach (var voter in voters)
-            {
-                await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 10000);
-            }
+            var voters = await Starter.GenerateVotersAsync(2, pocketMoney);
 
             var txResult = await voters[0].Vote(candidate.PublicKey, Amount, lockTime);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -500,12 +498,15 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Receive_Dividends_By_TransactionId()
         {
             const int lockTime = 100;
+            const long pocketMoney = 10000L;
+            
             var candidate = (await Starter.GenerateCandidatesAsync(1))[0];
-            var voterList = await Starter.GenerateVotersAsync(2);
+            var voterList = await Starter.GenerateVotersAsync(2, pocketMoney);
 
-            foreach (var voter in voterList)
+            // Check balance
             {
-                await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 10000);
+                var voteBalance = await Starter.GetBalanceAsync(Starter.GetAddress(voterList[0].KeyPair));
+                voteBalance.ShouldBe(pocketMoney);
             }
 
             var txResult = await voterList[0].Vote(candidate.PublicKey, Amount, lockTime);
@@ -516,7 +517,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Check balance
             {
                 var voteBalance = await Starter.GetBalanceAsync(Starter.GetAddress(voterList[0].KeyPair));
-                voteBalance.ShouldBe(10000 - ticketsCount);
+                voteBalance.ShouldBe(pocketMoney - ticketsCount);
             }
 
             //Change term
@@ -538,7 +539,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             {
                 var voteBalance = await Starter.GetBalanceAsync(Starter.GetAddress(voterList[0].KeyPair));
-                voteBalance.ShouldBe(10000 - ticketsCount);
+                voteBalance.ShouldBe(pocketMoney - ticketsCount);
 
                 //Receive
                 var receiveResult = await voterList[0]
@@ -556,14 +557,15 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Receive_All_Dividends()
         {
+            const long pocketMoney = 10000L;
+
             var lockTimes = new List<int> {90, 180, 365, 730, 1095};
             var candidateList = await Starter.GenerateCandidatesAsync(5);
-            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
+            var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
             var txResultList = new List<TransactionResult>();
             var votingRecordList = new List<VotingRecord>();
             var getAvailableDividendList = new List<long>();
             var availableDividends = 0L;
-            await Starter.TransferTokenAsync(voter.GetCallOwnerAddress(), 10000);
 
             for (int i = 0; i < candidateList.Count; i++)
             {
@@ -585,7 +587,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Miners.ChangeTermAsync(MiningInterval);
             await Starter.SetBlockchainAgeAsync(blockAge + 91);
 
-            for (int i = 0; i < votingRecordList.Count; i++)
+            for (var i = 0; i < votingRecordList.Count; i++)
             {
                 var getAvailableDividend = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                     nameof(DividendContract.GetAvailableDividends), votingRecordList[i])).DeserializeToInt64();
@@ -598,7 +600,7 @@ namespace AElf.Contracts.Consensus.DPoS
             getAllAvailableDividends.ShouldBe(availableDividends);
 
             var voteBalance = await Starter.GetBalanceAsync(Starter.GetAddress(voter.KeyPair));
-            voteBalance.ShouldBe(10000 - ticketsCount);
+            voteBalance.ShouldBe(pocketMoney - ticketsCount);
 
             var receiveResult =
                 await voter.ExecuteConsensusContractMethodWithMiningAsync(
