@@ -10,65 +10,46 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingServiceExecuteFailedTests: ExecuteFailedTestBase
+    public class FullBlockchainExecutingServiceExecuteFailedTests : ExecuteFailedTestBase
     {
         private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainManager _chainManager;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public FullBlockchainExecutingServiceExecuteFailedTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _chainManager = GetRequiredService<IChainManager>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task ExecuteBlocksAttachedToLongestChain_ExecuteFailed()
         {
-            var chain = await CreateNewChain();
+            var chain = await _blockchainService.GetChainAsync();
+            var bestChainHeight = chain.BestChainHeight;
+            var bestChainHash = chain.BestChainHash;
 
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash
-                },
-                Body = new BlockBody()
-            };
-            
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
+                _kernelTestHelper.GenerateTransaction());
+
             await _blockchainService.AddBlockAsync(newBlock);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-            
-            attachResult.Count.ShouldBe(2);
-            attachResult.Last().Height.ShouldBe(2);
+
+            attachResult.Count.ShouldBe(1);
+            attachResult.Last().Height.ShouldBe(16);
             attachResult.Last().BlockHash.ShouldBe(newBlock.GetHash());
 
             chain = await _blockchainService.GetChainAsync();
             var newBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
-            
+
             newBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-            chain.BestChainHash.ShouldBe(chain.GenesisBlockHash);
-            chain.BestChainHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
-        }
-        
-        private async Task<Chain> CreateNewChain()
-        {
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
-            
-            var chain = await _blockchainService.CreateChainAsync( genesisBlock);
-            return chain;
+            chain.BestChainHash.ShouldBe(bestChainHash);
+            chain.BestChainHeight.ShouldBe(bestChainHeight);
         }
     }
 }

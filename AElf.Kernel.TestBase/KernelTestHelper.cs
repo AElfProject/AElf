@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
@@ -11,6 +12,7 @@ namespace AElf.Kernel
     {
         public IBlockchainService BlockchainService { get; set; }
         public ITransactionResultService TransactionResultService { get; set; }
+        public IChainManager ChainManager { get; set; }
 
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -66,6 +68,13 @@ namespace AElf.Kernel
             
             LongestBranchBlockList =
                 await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash());
+
+            foreach (var block in LongestBranchBlockList)
+            {
+                var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(block.GetHash());
+                await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                    ChainBlockLinkExecutionStatus.ExecutionFailed);
+            }
             
             ForkBranchBlockList =
                 await AddForkBranch(chain, BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
@@ -109,19 +118,8 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
-            Transaction transaction = null, TransactionResult transactionResult = null)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, Transaction transaction)
         {
-            if (transaction == null)
-            {
-                transaction = GenerateTransaction();
-            }
-
-            if (transactionResult == null)
-            {
-                transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined);
-            }
-
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -136,6 +134,24 @@ namespace AElf.Kernel
 
             newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoots();
 
+            return newBlock;
+        }
+
+        public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
+            Transaction transaction = null, TransactionResult transactionResult = null)
+        {
+            if (transaction == null)
+            {
+                transaction = GenerateTransaction();
+            }
+
+            if (transactionResult == null)
+            {
+                transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined);
+            }
+
+            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transaction);
+
             await BlockchainService.AddBlockAsync(newBlock);
             var chain = await BlockchainService.GetChainAsync();
             await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
@@ -143,6 +159,22 @@ namespace AElf.Kernel
             await TransactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
 
             return newBlock;
+        }
+
+        public async Task<Block> AttachBlockToBestChain(Transaction transaction = null,
+            TransactionResult transactionResult = null)
+        {
+            var chain = await BlockchainService.GetChainAsync();
+            var block = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transaction, transactionResult);
+            
+            chain = await BlockchainService.GetChainAsync();
+            await BlockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
+            
+            var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(block.GetHash());
+            await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                ChainBlockLinkExecutionStatus.ExecutionSuccess);
+
+            return block;
         }
 
         #region private methods
@@ -171,6 +203,10 @@ namespace AElf.Kernel
                 chain = await BlockchainService.GetChainAsync();
                 var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash);
                 bestBranchBlockList.Add(newBlock);
+                
+                var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(newBlock.GetHash());
+                await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
                 
                 chain = await BlockchainService.GetChainAsync();
                 await BlockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
