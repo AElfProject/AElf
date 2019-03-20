@@ -4,7 +4,6 @@ using AElf.Kernel.Blockchain.Infrastructure;
 
 namespace AElf.Kernel.SmartContractExecution.Domain
 {
-    //TODO Add TransactionTraceManager test cases [Case]
     public class TransactionTraceManager : ITransactionTraceManager
     {
         private readonly IBlockchainStore<TransactionTrace> _transactionTraceStore;
