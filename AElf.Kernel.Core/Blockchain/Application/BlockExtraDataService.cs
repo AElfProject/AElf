@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -40,33 +39,8 @@ namespace AElf.Kernel.Blockchain.Application
                     return blockHeader.BlockExtraDatas[i];
                 }
             }
+
             return null;
         }
-
-        public async Task FillMktRootExtraDataForTransactionStatusAsync(BlockHeader blockHeader,
-            IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
-        {
-            var extraDataCount = blockHeader.BlockExtraDatas.Count;
-            if( extraDataCount != _blockExtraDataProviders.Count && extraDataCount != _blockExtraDataProviders.Count + 1)
-                throw new Exception("Incorrect filled extra data");
-            
-            var nodes = new List<Hash>();
-            foreach (var (transactionId, status) in blockExecutionReturnSet)
-            {
-                nodes.Add(await GetHashCombiningTransactionAndStatus(transactionId, status));
-            }
-            var rootByteString = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash().ToByteString();
-            if (extraDataCount == _blockExtraDataProviders.Count)
-                blockHeader.BlockExtraDatas.Add(rootByteString); // not filled.
-            else
-                blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled
-        }
-        
-        private async Task<Hash> GetHashCombiningTransactionAndStatus(Hash txId,
-            TransactionResultStatus executionReturnStatus)
-        {
-            return Hash.FromTwoHashes(txId, Hash.FromString(executionReturnStatus.ToString()));
-        }
-        
     }
 }
