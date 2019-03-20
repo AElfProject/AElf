@@ -21,21 +21,7 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<BlockValidationProvider>();
-            
-            services.AddTransient(
-                builder =>
-                {
-                   var  dataProvider = new Mock<IBlockExtraDataProvider>();
-                   dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o=>o.Height != 100)))
-                       .Returns(Task.FromResult(ByteString.CopyFromUtf8("not null")));
-
-                   ByteString bs = null;
-                   dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o => o.Height == 100)))
-                       .Returns(Task.FromResult(bs));
-                   
-                   return dataProvider.Object;
-                });
+            services.AddTransient<BlockValidationProvider>(); 
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
@@ -55,6 +41,7 @@ namespace AElf.Kernel
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
             
+            //For system transaction generator testing
             services.AddTransient(provider =>
             {
                 var transactionList = new List<Transaction>
@@ -71,6 +58,21 @@ namespace AElf.Kernel
                     
                 return consensusTransactionGenerator.Object;
             });
+            
+            //For BlockExtraDataService testing.
+            services.AddTransient(
+                builder =>
+                {
+                    var  dataProvider = new Mock<IBlockExtraDataProvider>();
+                    dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o=>o.Height != 100)))
+                        .Returns(Task.FromResult(ByteString.CopyFromUtf8("not null")));
+
+                    ByteString bs = null;
+                    dataProvider.Setup( m=>m.GetExtraDataForFillingBlockHeaderAsync(It.Is<BlockHeader>(o => o.Height == 100)))
+                        .Returns(Task.FromResult(bs));
+                   
+                    return dataProvider.Object;
+                });
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

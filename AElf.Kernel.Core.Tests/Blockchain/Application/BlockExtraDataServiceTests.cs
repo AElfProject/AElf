@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class BlockExtraDataServiceTests: AElfKernelTestBase
+    public class BlockExtraDataServiceTests: AElfMinerTestBase
     {
         private IBlockExtraDataProvider _blockExtraDataProvider;
         private IBlockExtraDataService _blockExtraDataService;
