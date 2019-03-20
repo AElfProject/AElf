@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
@@ -46,9 +47,9 @@ namespace AElf.Kernel.SmartContract.Sdk
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
-
+        T Call<T>(IStateCache stateCache, Address address, string methodName, IMessage input);
         T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args);
-        
+        void SendInline(Address toAddress, string methodName, IMessage input);
         void SendInline(Address toAddress, string methodName, params object[] args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, params object[] args);
