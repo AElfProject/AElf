@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ITransactionExecutingService
     {
         Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader, List<Transaction> transactions,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken, bool throwException = false);
     }
 
     public class TransactionExecutingService : ITransactionExecutingService
@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
-            List<Transaction> transactions, CancellationToken cancellationToken)
+            List<Transaction> transactions, CancellationToken cancellationToken, bool throwException)
         {
             var groupStateCache = new TieredStateCache();
             var groupChainContext = new ChainContextWithTieredStateCache(blockHeader.PreviousBlockHash,
@@ -49,6 +49,10 @@ namespace AElf.Kernel.SmartContract.Application
                     cancellationToken);
                 if (!trace.IsSuccessful())
                 {
+                    if (throwException)
+                    {
+                        Logger.LogError(trace.StdErr);
+                    }
                     trace.SurfaceUpError();
                 }
                 else

@@ -28,7 +28,6 @@ namespace AElf.Kernel.Services
 
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IConsensusService _consensusService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
 
         public ILocalEventBus EventBus { get; set; }
@@ -39,13 +38,12 @@ namespace AElf.Kernel.Services
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IConsensusService consensusService, IBlockchainExecutingService blockchainExecutingService, ITxHub txHub)
+            IBlockchainExecutingService blockchainExecutingService, ITxHub txHub)
         {
             Logger = NullLogger<MinerService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
-            _consensusService = consensusService;
             _blockchainExecutingService = blockchainExecutingService;
             _txHub = txHub;
             _blockchainService = blockchainService;
