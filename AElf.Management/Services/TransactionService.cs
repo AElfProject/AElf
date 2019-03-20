@@ -39,21 +39,21 @@ namespace AElf.Management.Services
                 result.Add(new PoolSizeHistory
                 {
                     Time = Convert.ToDateTime(item[0]),
-                    Size = Convert.ToUInt64(item[1])
+                    Size = Convert.ToUInt32(item[1])
                 });
             }
 
             return result;
         }
 
-        public async Task<ulong> GetPoolSize(string chainId)
+        public async Task<int> GetPoolSize(string chainId)
         {
-            var jsonRpcArg = new JsonRpcArg {Method = "GetTransactionPoolSize"};
+            var jsonRpcArg = new JsonRpcArg {Method = "GetTransactionPoolStatus"};
 
             var state = await HttpRequestHelper.Request<JsonRpcResult<TxPoolSizeResult>>(
                 _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
-            return state.Result.CurrentTransactionPoolSize;
+            return state.Result.Queued;
         }
     }
 }

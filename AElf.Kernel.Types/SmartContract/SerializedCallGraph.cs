@@ -4,7 +4,6 @@ using Google.Protobuf.Collections;
 
 namespace AElf.Kernel.SmartContract
 {
-    //TODO: Add case SerializedCallGraph.Equals [Case]
     public sealed partial class SerializedCallGraph
     {
         bool IEquatable<SerializedCallGraph>.Equals(SerializedCallGraph other)

@@ -12,7 +12,6 @@ namespace AElf.Kernel.Miner.Application
             _systemTransactionGenerators = systemTransactionGenerators;
         }
 
-        //TODO: Add GenerateSystemTransactions test cases [Case]
         public List<Transaction> GenerateSystemTransactions(Address from, long preBlockHeight, Hash preBlockHash)
         {
             var generatedTxns = new List<Transaction>();
