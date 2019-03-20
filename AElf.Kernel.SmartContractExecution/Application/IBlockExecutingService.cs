@@ -75,7 +75,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         break;
                     }
 
-                    //TODO: ExecuteBlock and ValidateBlockAfterExecuteAsync logic need add cases. [Case]
                     if (!await ExecuteBlock(blockLink, linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
