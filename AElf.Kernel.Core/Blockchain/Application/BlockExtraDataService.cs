@@ -43,7 +43,7 @@ namespace AElf.Kernel.Blockchain.Application
             return null;
         }
 
-        public void FillMktRootExtraDataForTransactionStatus(BlockHeader blockHeader,
+        public void FillMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader,
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
         {
             var extraDataCount = blockHeader.BlockExtraDatas.Count;

@@ -75,7 +75,7 @@ namespace AElf.CrossChain
             var parentChainId = await _crossChainContractReader.GetParentChainIdAsync(previousBlockHash, preBlockHeight);
             if (parentChainId == 0)
             {
-                Logger.LogTrace("No configured parent chain");
+                //Logger.LogTrace("No configured parent chain");
                 // no configured parent chain
                 return parentChainBlockData;
             }
