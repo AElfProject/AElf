@@ -16,6 +16,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ActionResult AnnounceElection(string alias = "")
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
@@ -135,6 +140,17 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public string Vote(string candidatePublicKey, long amount, int lockTime)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
+            
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
 
@@ -237,6 +253,11 @@ namespace AElf.Contracts.Consensus.DPoS
         // ReSharper disable once PossibleNullReferenceException
         public ActionResult ReceiveDividendsByTransactionId(string transactionId)
         {
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
 
             Assert(votingRecord != null,
@@ -254,6 +275,11 @@ namespace AElf.Contracts.Consensus.DPoS
         // ReSharper disable once PossibleNullReferenceException
         public ActionResult ReceiveAllDividends()
         {
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
 
             Assert(tickets != null,
@@ -276,6 +302,11 @@ namespace AElf.Contracts.Consensus.DPoS
         // ReSharper disable once PossibleNullReferenceException
         public Tickets WithdrawByTransactionId(string transactionId)
         {
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
             var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
 
             Assert(votingRecord != null,

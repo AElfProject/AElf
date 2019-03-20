@@ -39,5 +39,8 @@ namespace AElf.Contracts.Dividend
         public MappedState<Hash, long> LastRequestedDividendsMap { get; set; }
 
         public SingletonState<string> StarterPublicKey { get; set; }
+
+        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
+        public SingletonState<Hash> TokenContractSystemName { get; set; }
     }
 }

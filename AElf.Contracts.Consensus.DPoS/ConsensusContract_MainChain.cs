@@ -23,8 +23,8 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.TokenContract.Value = State.BasicContractZero.GetContractAddressByName(tokenContractSystemName);
-            State.DividendContract.Value =  State.BasicContractZero.GetContractAddressByName(dividendContractSystemName);
+            State.TokenContractSystemName.Value = tokenContractSystemName;
+            State.DividendContractSystemName.Value = dividendContractSystemName;
             State.Initialized.Value = true;
         }
 
@@ -124,6 +124,14 @@ namespace AElf.Contracts.Consensus.DPoS
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
+
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
+            
             State.DividendContract.KeepWeights(termNumber);
 
             // Update current term number and current round number.
@@ -316,6 +324,12 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
 
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            }
+            
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);

@@ -25,10 +25,9 @@ namespace AElf.Contracts.Dividend
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.TokenContract.Value = State.BasicContractZero.GetContractAddressByName(tokenContractSystemName);
-            State.ConsensusContract.Value =  State.BasicContractZero.GetContractAddressByName(consensusContractAddress);
+            State.TokenContractSystemName.Value = tokenContractSystemName;
+            State.ConsensusContractSystemName.Value = consensusContractAddress;
             State.Initialized.Value = true;
-            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
 
         public void SendDividends(Address targetAddress, long amount)
@@ -36,8 +35,20 @@ namespace AElf.Contracts.Dividend
             if (amount <= 0)
                 return;
 
+            if (State.ConsensusContract.Value == null)
+            {
+                State.ConsensusContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.ConsensusContractSystemName.Value);
+            }
+            
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
+            
             State.TokenContract.Transfer(new TransferInput
             {
                 To = targetAddress,
@@ -55,6 +66,11 @@ namespace AElf.Contracts.Dividend
         // ReSharper disable once InconsistentNaming
         public long TransferDividends(VotingRecord votingRecord)
         {
+            if (State.ConsensusContract.Value == null)
+            {
+                State.ConsensusContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.ConsensusContractSystemName.Value);
+            }
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
             var dividendsOwner = votingRecord.From;
@@ -83,6 +99,11 @@ namespace AElf.Contracts.Dividend
                 actualTermNumber = i;
             }
 
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
             State.TokenContract.Transfer(new TransferInput
             {
                 To = dividendsOwnerAddress,
