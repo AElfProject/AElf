@@ -440,6 +440,7 @@ namespace AElf.Contracts.CrossChain
         /// <param name="path"></param>
         /// <param name="parentChainHeight"></param>
         /// <returns></returns>
+        [View]
         public bool VerifyTransaction(Hash tx, MerklePath path, long parentChainHeight)
         {
             var key = new Int64Value {Value = parentChainHeight};
@@ -449,8 +450,7 @@ namespace AElf.Contracts.CrossChain
             var rootCalculated = path.ComputeRootWith(tx);
             
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
-            Assert(merkleTreeRoot.Equals(rootCalculated), "Verification Failed.");
-            return true;
+            return merkleTreeRoot.Equals(rootCalculated);
         }
 
         #endregion Cross chain actions

@@ -1,5 +1,7 @@
+using System;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.MultiToken
@@ -17,5 +19,14 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
+
+        public MappedState<Hash, CrossChainReceiveInput> VerifiedCrossChainTransferTransaction { get; set; }
+        public CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
     }
+    
+    public class CrossChainContractReferenceState : ContractReferenceState
+    {
+        public Func<Hash, MerklePath, long, bool> VerifyTransaction { get; set; }
+    }
+    
 }

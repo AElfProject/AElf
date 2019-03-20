@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "common.proto";
+import "kernel.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
@@ -72,10 +73,16 @@ message TransferFromInput {
     string memo = 5;
 }
 
-message TransferCrossChainInput{
+message CrossChainTransferInput{
+    int32 toChainId = 1;
+    TransferInput transferInput = 2;
+}
+
+message CrossChainReceiveInput{
     int32 fromChainId = 1;
-    int32 toChainId = 2;
-    TransferInput transferInput = 3;
+    int64 ParentChainHeight = 2;
+    Transaction TransferTransaction = 3;
+    MerklePath MerklePath = 4;
 }
 
 message ApproveInput {
