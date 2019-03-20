@@ -16,6 +16,7 @@ namespace AElf.Common
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
+        
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {

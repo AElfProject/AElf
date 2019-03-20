@@ -23,7 +23,8 @@ namespace AElf.Sdk.CSharp.State
 
         internal T Call(params object[] args)
         {
-            return _owner.Context.Call<T>(_owner.Provider.Cache, _owner.Value, _name, args);
+            return _owner.Context.Call<T>(_owner.Provider.Cache, _owner.Value, _name,
+                ByteString.CopyFrom(ParamsPacker.Pack(args)));
         }
     }
 }

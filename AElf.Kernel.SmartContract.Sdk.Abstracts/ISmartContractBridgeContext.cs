@@ -1,9 +1,14 @@
 using System;
 using System.Runtime.Serialization;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
+    //TODO: this assembly should not reference AElf.Kernel.Types,
+    //BODY: because it may be changed very often, and may introduce new Type, if some DAPP user use it,
+    //it will be very hard to remove the type in the assembly.
+    //we should define a new assembly, it only contains types for smart contract.
     public interface ISmartContractBridgeContext
     {
         int ChainId { get; }
@@ -47,11 +52,11 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
 
-        T Call<T>(IStateCache stateCache, Address address, string methodName, params object[] args);
+        T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args);
         
-        void SendInline(Address toAddress, string methodName, params object[] args);
+        void SendInline(Address toAddress, string methodName, ByteString args);
 
-        void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, params object[] args);
+        void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
 
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
     }

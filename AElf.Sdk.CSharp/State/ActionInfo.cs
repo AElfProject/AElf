@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Reflection;
-using AElf.Common;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
@@ -21,7 +16,8 @@ namespace AElf.Sdk.CSharp.State
 
         internal void Send(params object[] args)
         {
-            _owner.Context.SendInline(_owner.Value, _name, args);
+        
+            _owner.Context.SendInline(_owner.Value, _name, ByteString.CopyFrom(ParamsPacker.Pack(args)));
         }
     }
 }
