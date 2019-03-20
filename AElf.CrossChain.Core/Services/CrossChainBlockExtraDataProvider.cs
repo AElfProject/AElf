@@ -24,7 +24,7 @@ namespace AElf.CrossChain
             if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
                 return ByteString.Empty;
 
-            Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
+            //Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
 
             var newCrossChainBlockData =
                 await _crossChainService.GetNewCrossChainBlockDataAsync(blockHeader.PreviousBlockHash,
