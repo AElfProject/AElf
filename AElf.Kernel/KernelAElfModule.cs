@@ -1,12 +1,11 @@
 ﻿using AElf.Kernel.ChainController;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
@@ -18,8 +17,13 @@ namespace AElf.Kernel
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
-        typeof(TokenKernelAElfModule))]
+        typeof(TokenKernelAElfModule)
+    )]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddTransient<LastIrreversibleBlockJob>();
+        }
     }
 }
