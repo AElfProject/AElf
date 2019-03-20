@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
@@ -89,13 +91,17 @@ namespace AElf.Kernel
             return chain;
         }
         
-        public Transaction GenerateTransaction()
+        public Transaction GenerateTransaction(long refBlockNumber = 0, Hash refBlockHash = null)
         {
             var transaction = new Transaction
             {
                 From = Address.Zero,
                 To = Address.Zero,
-                MethodName = Guid.NewGuid().ToString()
+                MethodName = Guid.NewGuid().ToString(),
+                RefBlockNumber = refBlockNumber,
+                RefBlockPrefix = refBlockHash == null
+                    ? ByteString.Empty
+                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
             };
 
             return transaction;
@@ -118,7 +124,7 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, Transaction transaction)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions)
         {
             var newBlock = new Block
             {
@@ -130,7 +136,10 @@ namespace AElf.Kernel
                 },
                 Body = new BlockBody()
             };
-            newBlock.AddTransaction(transaction);
+            foreach (var transaction in transactions)
+            {
+                newBlock.AddTransaction(transaction);
+            }
 
             newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoots();
 
@@ -138,38 +147,54 @@ namespace AElf.Kernel
         }
 
         public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
-            Transaction transaction = null, TransactionResult transactionResult = null)
+            List<Transaction> transactions = null, List<TransactionResult> transactionResults = null)
         {
-            if (transaction == null)
+            if (transactions == null || transactions.Count == 0)
             {
-                transaction = GenerateTransaction();
+                transactions = new List<Transaction>();
             }
 
-            if (transactionResult == null)
+            if (transactions.Count == 0)
             {
-                transactionResult = GenerateTransactionResult(transaction, TransactionResultStatus.Mined);
+                transactions.Add(GenerateTransaction());
             }
 
-            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transaction);
+            if (transactionResults == null)
+            {
+                transactionResults = new List<TransactionResult>();
+            }
+
+            if (transactionResults.Count == 0)
+            {
+                foreach (var transaction in transactions)
+                {
+                    transactionResults.Add(GenerateTransactionResult(transaction, TransactionResultStatus.Mined));
+                }
+            }
+
+            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
 
             await BlockchainService.AddBlockAsync(newBlock);
             var chain = await BlockchainService.GetChainAsync();
             await BlockchainService.AttachBlockToChainAsync(chain, newBlock);
 
-            await TransactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
+            foreach (var transactionResult in transactionResults)
+            {
+                await TransactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
+            }
 
             return newBlock;
         }
 
-        public async Task<Block> AttachBlockToBestChain(Transaction transaction = null,
-            TransactionResult transactionResult = null)
+        public async Task<Block> AttachBlockToBestChain(List<Transaction> transactions = null,
+            List<TransactionResult> transactionResults = null)
         {
             var chain = await BlockchainService.GetChainAsync();
-            var block = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transaction, transactionResult);
-            
+            var block = await AttachBlock(chain.BestChainHeight, chain.BestChainHash, transactions, transactionResults);
+
             chain = await BlockchainService.GetChainAsync();
             await BlockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
-            
+
             var chainBlockLink = await ChainManager.GetChainBlockLinkAsync(block.GetHash());
             await ChainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);

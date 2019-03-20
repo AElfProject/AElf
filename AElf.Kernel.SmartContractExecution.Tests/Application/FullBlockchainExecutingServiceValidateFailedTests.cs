@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -28,7 +29,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var chain = await _blockchainService.GetChainAsync();
             var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
-                _kernelTestHelper.GenerateTransaction());
+                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
             
             await _blockchainService.AddBlockAsync(newBlock);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);

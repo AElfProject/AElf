@@ -22,16 +22,16 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
         private readonly KernelTestHelper _kernelTestHelper;
-        
+
         private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
-        
+
         public LibBestChainFoundEventHandlerTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _libBestChainFoundEventHandler = GetRequiredService<LibBestChainFoundEventHandler>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
-            
+
             _smartContractAddressService.SetAddress(ConsensusSmartContractAddressNameProvider.Name,
                 _consensusAddress);
         }
@@ -60,7 +60,7 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var eventData = new BestChainFoundEventData
                 {
                     ExecutedBlocks = new List<Hash>()
@@ -79,9 +79,10 @@ namespace AElf.Kernel
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
-                var transactionResult = _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Failed);
-                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
-                    transactionResult);
+                var transactionResult =
+                    _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Failed);
+                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash, new
+                    List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
@@ -102,16 +103,17 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var transaction = _kernelTestHelper.GenerateTransaction();
                 var logEvent = new LogEvent
                 {
                     Address = Address.FromString("TokenContract"),
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())}
                 };
-                var transactionResult = _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
-                    transactionResult);
+                var transactionResult =
+                    _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
+                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash,
+                    new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
@@ -124,7 +126,7 @@ namespace AElf.Kernel
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
-            
+
             {
                 // Event from consensus smart contract, not contains 'LIBFound'
                 //             BestChainHeight: 14
@@ -132,16 +134,17 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
-                
+
                 var transaction = _kernelTestHelper.GenerateTransaction();
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
                     Topics = {ByteString.CopyFrom(Hash.FromString("ErrorEvent").DumpByteArray())}
                 };
-                var transactionResult = _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash, transaction,
-                    transactionResult);
+                var transactionResult =
+                    _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
+                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash,
+                    new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
@@ -168,9 +171,10 @@ namespace AElf.Kernel
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
                     Data = ByteString.CopyFrom(ParamsPacker.Pack(5))
                 };
-                var transactionResult = _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
-                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.BestChainHash ,transaction,
-                    transactionResult);
+                var transactionResult =
+                    _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
+                var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.BestChainHash,
+                    new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var eventData = new BestChainFoundEventData
@@ -179,7 +183,7 @@ namespace AElf.Kernel
                     BlockHeight = newBlock.Height,
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
-                
+
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
                 await _libBestChainFoundEventHandler.HandleEventAsync(eventData);

@@ -17,11 +17,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;
+        private readonly KernelTestHelper _kernelTestHelper;
         
         public TxHubTests()
         {
             _txHub = GetRequiredService<TxHub>();
             _blockchainService = GetRequiredService<IBlockchainService>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
 
             AsyncHelper.RunSync(CreateNewChain);
         }
@@ -42,7 +44,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 TransactionPoolSizeShouldBe(0);
             }
 
-            var transactionHeight100 = GenerateTransaction(100);
+            var transactionHeight100 = _kernelTestHelper.GenerateTransaction(100);
             {
                 // Receive a feature transaction twice
                 // Chain:
@@ -84,7 +86,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //          AllTransaction: 2
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -102,7 +104,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 0
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
-                var transactionNotInPool = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionNotInPool = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
                 var newBlock = await AddBlock(new List<Transaction>
                 {
@@ -154,8 +156,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //          AllTransaction: 3
                 //   ExecutableTransaction: 1
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
-                var transactionInvalid = GenerateTransaction(chain.BestChainHeight - 1);
+                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -212,7 +214,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var bestChainHeight = chain.BestChainHeight;
                 for (var i = 0; i < ChainConsts.ReferenceBlockValidPeriod + 1; i++)
                 {
-                    var transaction = GenerateTransaction(bestChainHeight + i);
+                    var transaction = _kernelTestHelper.GenerateTransaction(bestChainHeight + i);
                     await AddBlock(new List<Transaction> {transaction});
                     chain = await _blockchainService.GetChainAsync();
                     await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
@@ -313,21 +315,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return newBlock;
         }
 
-        private Transaction GenerateTransaction(long refBlockNumber, Hash refBlockHash = null)
-        {
-            var transaction = new Transaction
-            {
-                From = Address.Zero,
-                To = Address.Zero,
-                MethodName = Guid.NewGuid().ToString(),
-                RefBlockNumber = refBlockNumber,
-                RefBlockPrefix = refBlockHash == null
-                    ? ByteString.Empty
-                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
-            };
-
-            return transaction;
-        }
+//        private Transaction GenerateTransaction(long refBlockNumber, Hash refBlockHash = null)
+//        {
+//            var transaction = new Transaction
+//            {
+//                From = Address.Zero,
+//                To = Address.Zero,
+//                MethodName = Guid.NewGuid().ToString(),
+//                RefBlockNumber = refBlockNumber,
+//                RefBlockPrefix = refBlockHash == null
+//                    ? ByteString.Empty
+//                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
+//            };
+//
+//            return transaction;
+//        }
 
         #endregion
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var bestChainHash = chain.BestChainHash;
 
             var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
-                _kernelTestHelper.GenerateTransaction());
+                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
 
             await _blockchainService.AddBlockAsync(newBlock);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
