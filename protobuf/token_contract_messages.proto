@@ -72,6 +72,12 @@ message TransferFromInput {
     string memo = 5;
 }
 
+message TransferCrossChainInput{
+    int32 fromChainId = 1;
+    int32 toChainId = 2;
+    TransferInput transferInput = 3;
+}
+
 message ApproveInput {
     Address spender = 1;
     string symbol = 2;

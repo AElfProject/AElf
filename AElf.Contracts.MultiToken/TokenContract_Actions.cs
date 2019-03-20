@@ -59,6 +59,18 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
+        public Nothing TransferCrossChain(TransferCrossChainInput input)
+        {
+            AssertValidToken(input.TransferInput.Symbol, input.TransferInput.Amount);
+            var burnInput = new BurnInput
+            {
+                Amount = input.TransferInput.Amount,
+                Symbol = input.TransferInput.Symbol
+            };
+            Burn(burnInput);
+            return Nothing.Instance;
+        }
+        
         public Nothing Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol, input.To);
