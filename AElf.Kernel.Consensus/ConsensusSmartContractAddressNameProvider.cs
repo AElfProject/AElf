@@ -7,7 +7,7 @@ namespace AElf.Kernel.Consensus
 {
     public class ConsensusSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
-        public static readonly Hash Name = Hash.FromString("AElf.Contracts.Consensus.DPoS.ConsensusContract");
+        public static Hash Name = Hash.FromString("AElf.ContractNames.Consensus");
 
         public Hash ContractName => Name;
     }

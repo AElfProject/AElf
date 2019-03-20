@@ -23,6 +23,12 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [View]
+        public Round GetCurrentRoundInformation()
+        {
+            return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
+        }
+
+        [View]
         public long GetCurrentTermNumber()
         {
             return State.CurrentTermNumberField.Value;
@@ -48,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return State.CandidatesField.Value;
         }
-        
+
         [View]
         public string GetCandidatesListToFriendlyString()
         {
@@ -97,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return result;
                 }
-                
+
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
             }
@@ -125,16 +131,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
                 if (historyInformation == null)
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
+                    result.Maps.Add(candidate, new CandidateInHistory());
                     return result;
                 }
 
-                var tickets = State.TicketsMap[candidate.ToStringValue()];
-                if (tickets == null)
+                var tickets = State.TicketsMap[candidate.ToStringValue()] ?? new Tickets
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
-                    return result;
-                }
+                    PublicKey = candidate,
+                    ObtainedTickets = 0
+                };
 
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
@@ -179,7 +184,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return null;
             }
-            
+
             foreach (var transactionId in tickets.VoteToTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
@@ -189,7 +194,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 }
             }
-                
+
             foreach (var transactionId in tickets.VoteFromTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
@@ -198,7 +203,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     tickets.VotingRecords.Add(votingRecord);
                 }
             }
-                
+
             tickets.VotingRecordsCount = (long) tickets.VotingRecords.Count;
             return tickets;
         }
@@ -214,7 +219,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return State.VotingRecordsMap[transactionId];
         }
-        
+
         [View]
         public long QueryObtainedNotExpiredVotes(string publicKey)
         {
@@ -245,7 +250,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
         {
             var tickets = GetTicketsInformation(publicKey);
-            
+
             var count = tickets.VotingRecords.Count;
             var take = Math.Min(length - startIndex, count - startIndex);
 
@@ -256,7 +261,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -287,7 +291,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -307,7 +310,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
-            
+
             var tickets = GetTicketsInformation(publicKey);
 
             foreach (var votingRecord in tickets.VotingRecords)
@@ -382,7 +385,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TicketsDictionary
                 {
                     Maps = {dict},
-                    
+
                 };
             }
 
@@ -407,7 +410,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 
@@ -432,14 +439,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 
-            return new TicketsDictionary
-            {
-                Remark = "Failed to get election information."
-            };
+            return new TicketsDictionary();
         }
 
         [View]
@@ -510,14 +518,25 @@ namespace AElf.Contracts.Consensus.DPoS
         [View]
         public long QueryCurrentDividendsForVoters()
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
-            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
+            return (long) (QueryCurrentDividends() * DPoSContractConsts.VotersRatio);
         }
 
         [View]
         public long QueryCurrentDividends()
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
+            var currentRoundNumber = GetCurrentRoundNumber();
+            if (currentRoundNumber == 0)
+            {
+                return 0;
+            }
+            
+            var round = State.RoundsMap[currentRoundNumber.ToInt64Value()];
+            if (round == null)
+            {
+                return 0;
+            }
+            
+            var minedBlocks = round.GetMinedBlocks();
             return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
         }
 

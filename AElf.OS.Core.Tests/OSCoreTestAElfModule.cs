@@ -11,6 +11,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
@@ -56,13 +57,13 @@ namespace AElf.OS
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
-            
+
             context.Services.AddTransient<IAccountService>(o =>
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                     Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
-                
+
                 mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
                 )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
                 {
@@ -132,7 +133,8 @@ namespace AElf.OS
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+                TokenSmartContractAddressNameProvider.Name);
 
             var transactions =
                 InitChainHelper.GetGenesisTransactions(chainId, account,

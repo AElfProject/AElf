@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
@@ -11,7 +11,11 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
+using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -124,13 +128,13 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             await contractTester.ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.Initialize),
-                contractTester.GetContractAddress(typeof(TokenContract)),
-                contractTester.GetContractAddress(typeof(DividendsContract)));
-            
+                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name),
+                contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name));
+
             await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendsContract.Initialize),
-                contractTester.GetContractAddress(typeof(ConsensusContract)),
-                contractTester.GetContractAddress(typeof(TokenContract)));
+                nameof(DividendContract.Initialize),
+                contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
+                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name));
         }
 
         #endregion
@@ -140,15 +144,15 @@ namespace AElf.Contracts.Consensus.DPoS
         public static Address GetTokenContractAddress(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(TokenContract));
+            return contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
-        
+
         public static Address GetDividendsContractAddress(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(typeof(DividendsContract));
+            return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
-        
+
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
@@ -161,24 +165,30 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
-            await starter.InitialChainAsync(typeof(TokenContract), typeof(DividendsContract));
+            await starter.InitialChainAsync(
+                list =>
+                {
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                });
 
             // Initial token.
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
-                IsBurnable = false,
+                IsBurnable = true,
                 Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteList = { starter.GetConsensusContractAddress()}
             });
             await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 10,
                 To = starter.GetDividendsContractAddress(),
-                Memo = "Set dividends."
+                Memo = "Set dividends.",
             });
 
             // Initial consensus contract.
@@ -188,13 +198,9 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 // Initial consensus information.
                 await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.InitialConsensus),
-                    minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToMiners()
+                    minersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
                         .GenerateFirstRoundOfNewTerm(miningInterval));
             }
-
-            // Set consensus contract address to token contract.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(
-                nameof(TokenContract.SetConsensusContractAddress), starter.GetConsensusContractAddress());
         }
 
         /// <summary>
@@ -202,10 +208,11 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         /// <param name="miners"></param>
         /// <param name="blocksCount"></param>
+        /// <param name="fakeTimestamp"></param>
         /// <returns></returns>
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ProduceNormalBlocks(
             this List<ContractTester<DPoSContractTestAElfModule>> miners,
-            int blocksCount)
+            int blocksCount, Timestamp fakeTimestamp = null)
         {
             var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
             var startMiner = round.RealTimeMinersInformation.Values.OrderBy(v => v.Order)
@@ -223,6 +230,12 @@ namespace AElf.Contracts.Consensus.DPoS
             var finalMinerPublicKey = "";
             for (var i = startOrder; i < endOrder + 1; i++)
             {
+                var timestamp = DateTime.UtcNow.ToTimestamp();
+                if (fakeTimestamp != null)
+                {
+                    timestamp = fakeTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+                }
+
                 var currentMinerPublicKey = round.RealTimeMinersInformation.Values.First(v => v.Order == i).PublicKey;
                 var currentMiner = miners.First(m => m.PublicKey == currentMinerPublicKey);
                 var (block, tx) = await currentMiner.ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
@@ -232,7 +245,8 @@ namespace AElf.Contracts.Consensus.DPoS
                         PreviousInValue = Hash.Generate(),
                         RoundId = round.RoundId,
                         Signature = Hash.Generate(),
-                        PromiseTinyBlocks = 1
+                        PromiseTinyBlocks = 1,
+                        ActualMiningTime = timestamp
                     });
                 finalMinerPublicKey = currentMinerPublicKey;
                 foreach (var otherMiner in miners.Where(m => m.PublicKey != currentMinerPublicKey))
@@ -253,7 +267,8 @@ namespace AElf.Contracts.Consensus.DPoS
         /// <param name="roundsCount"></param>
         /// <param name="changeTermFinally"></param>
         /// <returns></returns>
-        public static async Task<ContractTester<DPoSContractTestAElfModule>> RunConsensusAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
+        public static async Task<ContractTester<DPoSContractTestAElfModule>> RunConsensusAsync(
+            this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int roundsCount, bool changeTermFinally = false)
         {
             var finalExtraBlockProducer = new ContractTester<DPoSContractTestAElfModule>();
@@ -291,6 +306,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return finalExtraBlockProducer;
         }
 
+        public static async Task MineAsync(this List<ContractTester<DPoSContractTestAElfModule>> miners,
+            List<Transaction> txs)
+        {
+            var block = await miners.First().MineAsync(txs);
+            foreach (var miner in miners.Skip(1))
+            {
+                await miner.ExecuteBlock(block, txs);
+            }
+        }
+
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeRoundAsync(
             this List<ContractTester<DPoSContractTestAElfModule>> miners)
         {
@@ -311,6 +336,13 @@ namespace AElf.Contracts.Consensus.DPoS
             return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
         }
 
+        /// <summary>
+        /// Just change the term number and set dividends stuff, don't update miners list.
+        /// </summary>
+        /// <param name="miners"></param>
+        /// <param name="miningInterval"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Txs of changing term executing failed.</exception>
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeTermAsync(
             this List<ContractTester<DPoSContractTestAElfModule>> miners,
             int miningInterval)
@@ -319,11 +351,12 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentTermNumber = await miners.AnyOne().GetCurrentTermNumber();
 
             var extraBlockProducer = round.GetExtraBlockProducerInformation();
-            var nextRound = miners.Select(m => m.PublicKey).ToMiners()
+            var nextRound = miners.Select(m => m.PublicKey).ToList().ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, round.RoundNumber, currentTermNumber);
 
             var termNumber = (await miners.AnyOne().CallContractMethodAsync(
-                miners.AnyOne().GetConsensusContractAddress(), nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
+                    miners.AnyOne().GetConsensusContractAddress(), nameof(ConsensusContract.GetCurrentTermNumber)))
+                .DeserializeToInt64();
 
             var nextTermTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
@@ -350,6 +383,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     throw new Exception($"Failed to execute {transaction.MethodName} tx.");
                 }
             }
+
             foreach (var otherMiner in miners.Where(m => m.PublicKey != extraBlockProducer.PublicKey))
             {
                 await otherMiner.ExecuteBlock(block, txs);
@@ -376,24 +410,26 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester,
             Address receiverAddress, long amount)
         {
-            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer), new TransferInput
-            {
-                To = receiverAddress,
-                Amount = amount,
-                Symbol = "ELF",
-            });
+            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer),
+                new TransferInput
+                {
+                    To = receiverAddress,
+                    Amount = amount,
+                    Symbol = "ELF",
+                });
         }
-        
+
         public static async Task<TransactionResult> IssueTokenAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester,
             Address receiverAddress, long amount)
         {
-            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
-            {
-                To = receiverAddress,
-                Amount = amount,
-                Symbol = "ELF",
-            });
+            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue),
+                new IssueInput
+                {
+                    To = receiverAddress,
+                    Amount = amount,
+                    Symbol = "ELF",
+                });
         }
 
         public static async Task<List<TransactionResult>> TransferTokenAsync(
@@ -490,14 +526,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return candidates;
         }
 
-        public static List<ContractTester<DPoSContractTestAElfModule>> GenerateVoters(
-            this ContractTester<DPoSContractTestAElfModule> starter, int number)
+        public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateVotersAsync(
+            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1)
         {
             var voters = new List<ContractTester<DPoSContractTestAElfModule>>();
 
             for (var i = 0; i < number; i++)
             {
-                voters.Add(starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair()));
+                var voter = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+                await starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 1000L);
+                voters.Add(voter);
             }
 
             return voters;
@@ -538,20 +576,39 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<VotingRecord> GetVotingRecord(
             this ContractTester<DPoSContractTestAElfModule> contractTester, Hash txId)
         {
-            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(), nameof(ConsensusContract.GetVotingRecord),txId);
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetVotingRecord), txId);
             return VotingRecord.Parser.ParseFrom(bytes);
+        }
+        
+        public static async Task<Tickets> GetPageableTicketsInfo( this ContractTester<DPoSContractTestAElfModule> contractTester, string publicKey, int startIndex, int length)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetPageableTicketsInfo), publicKey, startIndex, length);
+            return Tickets.Parser.ParseFrom(bytes);
+        }
+
+        public static async Task<Tickets> GetPageableNotWithdrawnTicketsInfo(
+            this ContractTester<DPoSContractTestAElfModule> contractTester, string publicKey, int startIndex,
+            int length)
+        {
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetPageableNotWithdrawnTicketsInfo), publicKey, startIndex, length);
+            return Tickets.Parser.ParseFrom(bytes);
         }
 
         #endregion
-        
+
         #region Dividends
+
         public static async Task<LongList> CheckDividendsOfPreviousTerm(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            var bytes  = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(), nameof(DividendsContract.CheckDividendsOfPreviousTerm));
+            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(),
+                nameof(DividendContract.CheckDividendsOfPreviousTerm));
             return LongList.Parser.ParseFrom(bytes);
         }
-        
+
         #endregion
 
         public static async Task SetBlockchainAgeAsync(this ContractTester<DPoSContractTestAElfModule> starter,

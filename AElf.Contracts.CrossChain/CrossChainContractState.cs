@@ -18,10 +18,15 @@ namespace AElf.Contracts.CrossChain
     {
         public Action<TransferInput> Transfer { get; set; }
         public Action<TransferFromInput> TransferFrom { get; set; }
+        
+        public Func<GetBalanceInput, GetBalanceOutput> GetBalance { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState
     {
+        public Action<byte[]> UpdateMainChainConsensus { get; set; }
+        
+        public Func<Miners> GetCurrentMiners { get; set; }
         public Func<long> GetCurrentRoundNumber { get; set; }
         public Func<long, Round> GetRoundInformation { get; set; }
     }
@@ -29,10 +34,10 @@ namespace AElf.Contracts.CrossChain
     public class CrossChainContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        public AuthorizationContractReferenceState AuthorizationContract { get; set; }
+        //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
         public ConsensusContractReferenceState ConsensusContract { get; set; }
-        public UInt64State SideChainSerialNumber { get; set; }
+        public Int64State SideChainSerialNumber { get; set; }
         
         public MappedState<long, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }
 

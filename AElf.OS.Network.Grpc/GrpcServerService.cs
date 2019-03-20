@@ -150,7 +150,7 @@ namespace AElf.OS.Network.Grpc
 
             var blockList = new BlockList();
             
-            var blocks = await _blockChainService.GetBlocksAsync(request.PreviousBlockHash, request.Count);
+            var blocks = await _blockChainService.GetBlocksInBestChainBranchAsync(request.PreviousBlockHash, request.Count);
 
             if (blocks == null)
                 return blockList;

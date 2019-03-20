@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 
@@ -41,61 +42,48 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<Block> RequestBlockAsync(Hash hash)
         {
-            try
-            {
-                BlockRequest request = new BlockRequest {Hash = hash};
-                var blockReply = await _client.RequestBlockAsync(request);
-                return blockReply?.Block;
-            }
-            catch (RpcException e)
-            {
-                HandleFailure(e);
-            }
-
-            return null;
+            var blockRequest = new BlockRequest { Hash = hash };
+            
+            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest));
+            
+            return blockReply?.Block;
         }
 
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
-            try
-            {
-                var list = await _client.RequestBlocksAsync(new BlocksRequest {PreviousBlockHash = firstHash, Count = count});
+            var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
+            
+            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest));
 
-                if (list == null)
-                    return new List<Block>();
+            if (list == null)
+                return new List<Block>();
 
-                return list.Blocks.Select(b => b).ToList();
-            }
-            catch (RpcException e)
-            {
-                HandleFailure(e);
-            }
-
-            return new List<Block>();
+            return list.Blocks.ToList();
         }
 
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            try
-            {
-                await _client.AnnounceAsync(header);
-            }
-            catch (RpcException e)
-            {
-                HandleFailure(e);
-            }
+            await RequestAsync(_client, c => c.AnnounceAsync(header));
         }
 
         public async Task SendTransactionAsync(Transaction tx)
         {
+            await RequestAsync(_client, c => c.SendTransactionAsync(tx));
+        }
+        
+        private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
+            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func)
+        {
             try
             {
-                await _client.SendTransactionAsync(tx);
+                return await func(client);
             }
             catch (RpcException e)
             {
                 HandleFailure(e);
             }
+
+            return default(TResp);
         }
 
         /// <summary>
@@ -127,7 +115,7 @@ namespace AElf.OS.Network.Grpc
             }
             else
             {
-                throw rpcException;
+                throw new NetworkException("Call to peer failed", rpcException);
             }
         }
 

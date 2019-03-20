@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
+using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -19,8 +22,10 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
@@ -49,7 +54,7 @@ namespace AElf.Contracts.TestBase
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
-        private IAbpApplicationWithInternalServiceProvider Application { get; } 
+        private IAbpApplicationWithInternalServiceProvider Application { get; }
 
         public ECKeyPair KeyPair { get; }
 
@@ -75,16 +80,18 @@ namespace AElf.Contracts.TestBase
                             var mockService = new Mock<IAccountService>();
                             mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                                 Task.FromResult(CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, data)));
-                
-                            mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
+
+                            mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
+                                It.IsAny<byte[]>()
                             )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
                             {
-                                var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+                                var recoverResult =
+                                    CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
                                 return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
                             });
 
                             mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(KeyPair.PublicKey);
-                
+
                             return mockService.Object;
                         });
                     }
@@ -100,7 +107,7 @@ namespace AElf.Contracts.TestBase
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                     Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
-                
+
                 mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
                 )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
                 {
@@ -109,22 +116,22 @@ namespace AElf.Contracts.TestBase
                 });
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
-                
+
                 return mockService.Object;
             });
-            
+
             Application = application;
-            
+
             KeyPair = keyPair;
         }
-        
+
         private ContractTester(IAbpApplicationWithInternalServiceProvider application, int chainId)
         {
             application.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
-            
+
             Application = application;
         }
-        
+
         /// <summary>
         /// Use default chain id.
         /// </summary>
@@ -140,32 +147,34 @@ namespace AElf.Contracts.TestBase
                         var mockService = new Mock<IAccountService>();
                         mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                             Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
-                
-                        mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
+
+                        mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
+                            It.IsAny<byte[]>()
                         )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
                         {
-                            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+                            var recoverResult =
+                                CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
                             return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
                         });
 
                         mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
-                
+
                         return mockService.Object;
                     });
                 });
-            
+
             Application.Initialize();
 
             KeyPair = keyPair;
         }
-        
+
         /// <summary>
         /// Initial a chain with given chain id (passed to ctor),
         /// and produce the genesis block with provided contract types.
         /// </summary>
         /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task InitialChainAsync(params Type[] contractTypes)
+        public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
@@ -178,11 +187,12 @@ namespace AElf.Contracts.TestBase
             };
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
-            dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+            //dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await osBlockchainNodeContextService.StartAsync(dto);
         }
-        
+
         /// <summary>
         /// Use randomized ECKeyPair.
         /// </summary>
@@ -207,7 +217,7 @@ namespace AElf.Contracts.TestBase
         {
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
-        
+
         /// <summary>
         /// Same key pair, different chain.
         /// </summary>
@@ -223,24 +233,16 @@ namespace AElf.Contracts.TestBase
             var accountService = Application.ServiceProvider.GetRequiredService<IAccountService>();
             return await accountService.GetPublicKeyAsync();
         }
-        
+
         public Address GetContractAddress(Hash name)
         {
             var smartContractAddressService =
                 Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-            return name == Hash.FromString(typeof(BasicContractZero).FullName)
+            return name == Hash.Empty
                 ? smartContractAddressService.GetZeroSmartContractAddress()
                 : smartContractAddressService.GetAddressByContractName(name);
         }
 
-        public Address GetContractAddress(Type contractType)
-        {
-            var smartContractAddressService =
-                Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-            return contractType == typeof(BasicContractZero)
-                ? smartContractAddressService.GetZeroSmartContractAddress()
-                : smartContractAddressService.GetAddressByContractName(Hash.FromString(contractType.FullName));
-        }
 
         public Address GetZeroContractAddress()
         {
@@ -256,7 +258,7 @@ namespace AElf.Contracts.TestBase
             return smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                 .Name);
         }
-        
+
         public Address GetCallOwnerAddress()
         {
             return Address.FromPublicKey(KeyPair.PublicKey);
@@ -269,10 +271,11 @@ namespace AElf.Contracts.TestBase
         /// <param name="methodName"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, params object[] objects)
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlock();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(KeyPair.PublicKey),
@@ -297,11 +300,12 @@ namespace AElf.Contracts.TestBase
         /// <param name="ecKeyPair"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair,
+        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            ECKeyPair ecKeyPair,
             params object[] objects)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlock();
+            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
@@ -328,7 +332,7 @@ namespace AElf.Contracts.TestBase
         {
             await AddTransactionsAsync(txs);
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var preBlock = await blockchainService.GetBestChainLastBlock();
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
 
             return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
@@ -370,7 +374,7 @@ namespace AElf.Contracts.TestBase
 
             return result;
         }
-        
+
         /// <summary>
         /// Generate a tx then package the new tx to a new block.
         /// </summary>
@@ -378,7 +382,8 @@ namespace AElf.Contracts.TestBase
         /// <param name="methodName"></param>
         /// <param name="objects"></param>
         /// <returns></returns>
-        public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress, string methodName,
+        public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
+            string methodName,
             params object[] objects)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
@@ -400,7 +405,7 @@ namespace AElf.Contracts.TestBase
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
             var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
-            var preBlock = await blockchainService.GetBestChainLastBlock();
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
                     BlockHash = preBlock.GetHash(),
@@ -421,11 +426,11 @@ namespace AElf.Contracts.TestBase
                 transaction.Sigs.Add(ByteString.CopyFrom(signature));
             }
         }
-        
+
         public void SupplyTransactionParameters(ref List<Transaction> transactions)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = AsyncHelper.RunSync(() => blockchainService.GetBestChainLastBlock());
+            var refBlock = AsyncHelper.RunSync(() => blockchainService.GetBestChainLastBlockHeaderAsync());
             foreach (var transaction in transactions)
             {
                 transaction.RefBlockNumber = refBlock.Height;
@@ -479,16 +484,28 @@ namespace AElf.Contracts.TestBase
         /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public List<Type> GetDefaultContractTypes()
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes()
         {
-            return new List<Type>
+            return list =>
             {
-                typeof(TokenContract),
-                typeof(CrossChainContract),
-                typeof(AuthorizationContract),
-                typeof(ResourceContract),
-                typeof(DividendsContract),
-                typeof(FeeReceiverContract)
+                //TODO: support initialize method, make the tester auto issue elf token
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, o =>
+                {
+                    o.Add(nameof(TokenContract.Issue),new CreateInput
+                    {
+                        Symbol = "ELF_Test",
+                        Decimals = 2,
+                        IsBurnable = true,
+                        Issuer = GetCallOwnerAddress(),
+                        TokenName = "elf token",
+                        TotalSupply = 1000_000L
+                    });
+                });
+                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
+                    .Name);
+                list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
         }
     }

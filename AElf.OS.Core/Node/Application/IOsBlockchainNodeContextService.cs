@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -10,7 +11,9 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
@@ -23,6 +26,9 @@ namespace AElf.OS.Node.Application
     {
         public Type SmartContractType { get; set; }
         public Hash SystemSmartContractName { get; set; }
+
+        public SystemTransactionMethodCallList TransactionMethodCallList { get; set; } =
+            new SystemTransactionMethodCallList();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -42,52 +48,47 @@ namespace AElf.OS.Node.Application
     public static class GenesisSmartContractDtoExtensions
     {
         public static void AddGenesisSmartContract(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Type smartContractType)
+            Type smartContractType, Hash name = null,
+            SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
             genesisSmartContracts.Add(new GenesisSmartContractDto()
             {
                 SmartContractType = smartContractType,
-                SystemSmartContractName = Hash.FromString(smartContractType.FullName)
-            });
-        }
-
-
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
-        {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                SmartContractType = typeof(T),
-                SystemSmartContractName = Hash.FromString(typeof(T).FullName)
+                SystemSmartContractName = name,
+                TransactionMethodCallList = systemTransactionMethodCallList
             });
         }
 
         //TODO: AddGenesisSmartContract no case cover [Case]
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Hash name)
+            Hash name = null, SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
+        }
+
+        public static void Add(this SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
+            params object[] objects)
+        {
+            systemTransactionMethodCallList.Value.Add(new SystemTransactionMethodCall()
             {
-                SmartContractType = typeof(T),
-                SystemSmartContractName = name
+                MethodName = methodName,
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             });
+        }
+
+        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            Hash name, Action<SystemTransactionMethodCallList> action)
+        {
+            SystemTransactionMethodCallList systemTransactionMethodCallList = new SystemTransactionMethodCallList();
+
+            action?.Invoke(systemTransactionMethodCallList);
+
+            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
 
         public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
         {
-            genesisSmartContracts.Add(new GenesisSmartContractDto()
-            {
-                SmartContractType = typeof(T),
-                SystemSmartContractName = ConsensusSmartContractAddressNameProvider.Name
-            });
-        }
-
-        public static void AddGenesisSmartContracts(this List<GenesisSmartContractDto> genesisSmartContracts,
-            params Type[] smartContractTypes)
-        {
-            foreach (var smartContractType in smartContractTypes)
-            {
-                AddGenesisSmartContract(genesisSmartContracts, smartContractType);
-            }
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name);
         }
     }
 
@@ -103,13 +104,16 @@ namespace AElf.OS.Node.Application
         private IBlockchainNodeContextService _blockchainNodeContextService;
         private IAElfNetworkServer _networkServer;
         private ISmartContractAddressService _smartContractAddressService;
+        private readonly IServiceContainer<INodePlugin> _nodePlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
-            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService)
+            IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
+            IServiceContainer<INodePlugin> nodePlugins)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
             _smartContractAddressService = smartContractAddressService;
+            _nodePlugins = nodePlugins;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -122,7 +126,7 @@ namespace AElf.OS.Node.Application
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                     GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName,
-                        dto.SmartContractRunnerCategory)));
+                        dto.SmartContractRunnerCategory, p.TransactionMethodCallList)));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -144,13 +148,20 @@ namespace AElf.OS.Node.Application
 
             await _networkServer.StartAsync();
 
+            foreach (var nodePlugin in _nodePlugins)
+            {
+                var task = nodePlugin.StartAsync(dto.ChainId);
+            }
+
             return context;
         }
 
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName,
-            int category)
+            int category, SystemTransactionMethodCallList transactionMethodCallList = null)
         {
+            if (transactionMethodCallList == null)
+                transactionMethodCallList = new SystemTransactionMethodCallList();
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
@@ -160,7 +171,8 @@ namespace AElf.OS.Node.Application
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code,
+                    transactionMethodCallList))
             };
         }
 
@@ -170,6 +182,11 @@ namespace AElf.OS.Node.Application
             await _networkServer.StopAsync();
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
+
+            foreach (var nodePlugin in _nodePlugins)
+            {
+                var task = nodePlugin.ShutdownAsync();
+            }
         }
     }
 }

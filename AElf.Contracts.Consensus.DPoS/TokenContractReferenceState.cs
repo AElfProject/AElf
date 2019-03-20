@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<TransferFromInput> TransferFrom { get; set; }
-        public Action<TransferInput> Transfer { get; set; }
+        public Action<LockInput> Lock { get; set; }
+        public Action<UnlockInput> Unlock { get; set; }
     }
 }

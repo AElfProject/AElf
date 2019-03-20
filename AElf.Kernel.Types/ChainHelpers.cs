@@ -4,13 +4,14 @@ namespace AElf.Common
 {
     public static class ChainHelpers
     {
+        //TODO: move to the test project. or the smart contract can access it.
         public static int GetRandomChainId()
         {
             var random = new Random();
-            return GetChainId((ulong) random.Next(195112, 11316496));
+            return GetChainId(random.Next(195112, 11316496));
         }
 
-        public static int GetChainId(ulong serialNumber)
+        public static int GetChainId(long serialNumber)
         {
             // For 4 base58 chars use following range (2111 ~ zzzz):
             // Max: 57*58*58*58+57*58*58+57*58+57 = 11316496 (zzzz)

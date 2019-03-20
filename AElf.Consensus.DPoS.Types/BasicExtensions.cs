@@ -92,7 +92,7 @@ namespace AElf.Consensus.DPoS
             if (round.RealTimeMinersInformation.Count < 2)
             {
                 // Just appoint the mining interval for single miner.
-                return 1000;
+                return 4000;
             }
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
@@ -325,8 +325,9 @@ namespace AElf.Consensus.DPoS
 
             var miningInterval = round.GetMiningInterval();
             nextRound.RoundNumber = round.RoundNumber + 1;
+            nextRound.TermNumber = round.TermNumber;
             nextRound.BlockchainAge =
-                (long) (blockchainStartTimestamp.ToDateTime() - timestamp.ToDateTime()).TotalMinutes;
+                (long) (timestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes;
 
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
@@ -493,8 +494,8 @@ namespace AElf.Consensus.DPoS
 
         public static Hash GetMinersHash(this Miners miners)
         {
-            return Hash.FromString(miners.PublicKeys.OrderBy(p => p.Take(1))
-                .Aggregate("", (current, publicKey) => current + publicKey));
+            var orderedMiners = miners.PublicKeys.OrderBy(p => p);
+            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
 
         public static bool IsTimeToChangeTerm(this Round round, Round previousRound, Timestamp blockchainStartTimestamp,
@@ -507,16 +508,29 @@ namespace AElf.Consensus.DPoS
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
+        
+        /// <summary>
+        /// If DaysEachTerm == 7:
+        /// 1, 1, 1 => 0 != 1 - 1 => false
+        /// 1, 2, 1 => 0 != 1 - 1 => false
+        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
+        /// 1, 9, 2 => 1 != 2 - 1 => false
+        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
+        /// </summary>
+        /// <param name="blockchainStartTimestamp"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="blockProducedTimestamp"></param>
+        /// <returns></returns>
+        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
+            long termNumber)
+        {
+            return (long) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes /
+                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
+        }
 
         public static long GetMinedBlocks(this Round round)
         {
-            var minedBlocks = 0L;
-            foreach (var minerInRound in round.RealTimeMinersInformation)
-            {
-                minedBlocks += minerInRound.Value.ProducedBlocks;
-            }
-
-            return minedBlocks;
+            return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
         public static void AddCandidate(this Candidates candidates, byte[] publicKey)
@@ -543,28 +557,14 @@ namespace AElf.Consensus.DPoS
             return lockExpiredAge <= currentAge;
         }
 
-        /// <summary>
-        /// If DaysEachTerm == 7:
-        /// 1, 1, 1 => 0 != 1 - 1 => false
-        /// 1, 2, 1 => 0 != 1 - 1 => false
-        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
-        /// 1, 9, 2 => 1 != 2 - 1 => false
-        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
-        /// </summary>
-        /// <param name="blockchainStartTimestamp"></param>
-        /// <param name="termNumber"></param>
-        /// <param name="blockProducedTimestamp"></param>
-        /// <returns></returns>
-        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber)
+        public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
         {
-            return (long) (blockProducedTimestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes /
-                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
-        }
-
-        public static Miners ToMiners(this IEnumerable<string> minerPublicKeys, long termNumber = 0)
-        {
-            return new Miners {PublicKeys = {minerPublicKeys}, TermNumber = termNumber};
+            return new Miners
+            {
+                PublicKeys = {minerPublicKeys},
+                Addresses = {minerPublicKeys.Select(p => Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)))},
+                TermNumber = termNumber
+            };
         }
 
         private static int GetModulus(long longValue, int intValue)

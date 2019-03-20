@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
+    </ItemGroup>
+
+</Project>

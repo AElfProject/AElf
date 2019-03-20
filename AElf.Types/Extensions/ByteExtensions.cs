@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
@@ -13,10 +11,12 @@ namespace AElf.Common
             return Base58CheckEncoding.EncodePlain(value);
         }
 
+        //TODO: Add ToPlainBase58 case [Case]
         public static string ToPlainBase58(this ByteString value)
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
+        
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {
@@ -78,6 +78,16 @@ namespace AElf.Common
         public static byte[] CalculateHash(this byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
+        }
+
+        public static byte[] LeftPad(this byte[] bytes, int length)
+        {
+            if (length <= bytes.Length)
+                return bytes;
+
+            var paddedBytes = new byte[length];
+            Buffer.BlockCopy(bytes, 0, paddedBytes, length - bytes.Length, bytes.Length);
+            return paddedBytes;
         }
     }
 }

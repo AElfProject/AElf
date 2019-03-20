@@ -101,7 +101,7 @@ namespace AElf.CrossChain
             };
 
 
-            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
 
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
@@ -255,7 +255,7 @@ namespace AElf.CrossChain
         public async Task ValidateParentChainBlock_WithWrongIndex()
         {
             int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
             var blockInfoCache = new List<IBlockInfo>();
             var cachingCount = 5;
             for (int i = 0; i < cachingCount; i++)
@@ -425,7 +425,7 @@ namespace AElf.CrossChain
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockInfo>();            
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
 
             var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock +
                                CrossChainConsts.MinimalBlockInfoCacheThreshold;

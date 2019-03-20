@@ -45,6 +45,7 @@ namespace AElf.Runtime.CSharp
             return blackListed;
         }
 
+        //TODO: Add CodeCheck test case [Case]
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));

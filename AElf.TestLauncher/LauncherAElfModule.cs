@@ -1,6 +1,6 @@
 ﻿using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
@@ -9,6 +9,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
@@ -34,7 +35,7 @@ namespace AElf.TestLauncher
 {
     [DependsOn(
         typeof(AbpAutofacModule),
-        typeof(AbpAspNetCoreMvcModule),
+        //typeof(AbpAspNetCoreMvcModule),
         //typeof(RuntimeSetupAElfModule),
         typeof(DPoSConsensusAElfModule),
         typeof(KernelAElfModule),
@@ -86,7 +87,7 @@ namespace AElf.TestLauncher
                 ConsensusSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
