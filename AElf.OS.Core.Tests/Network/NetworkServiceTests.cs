@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using Moq;
 using Xunit;
 
 namespace AElf.OS.Network
@@ -10,13 +12,15 @@ namespace AElf.OS.Network
     public class NetworkServiceTests : OSCoreNetworkServiceTestBase
     {
         private readonly INetworkService _networkService;
+        private readonly IPeerPool _peerPool;
 
         public NetworkServiceTests()
         {
             _networkService = GetRequiredService<INetworkService>();
+            _peerPool = GetRequiredService<IPeerPool>();
         }
-        
-        /** GetBlocks **/
+
+        #region GetBlocks
 
         [Fact]
         public async Task GetBlocks_FromAnyone_ReturnsBlocks()
@@ -59,8 +63,17 @@ namespace AElf.OS.Network
             Assert.Null(blocks2);
         }
         
-        /** GetBlockByHash **/
-        
+        [Fact]
+        public async Task GetBlocks_FaultyPeer_ReturnsNull()
+        {
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "failed_peer");
+            Assert.Null(block);
+        }
+
+        #endregion GetBlocks
+
+        #region GetBlockByHash
+
         [Fact]
         public async Task GetBlockByHash_UnfindablePeer_ReturnsNull()
         {
@@ -109,5 +122,36 @@ namespace AElf.OS.Network
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "failed_peer");
             Assert.Null(block);
         }
+
+        #endregion GetBlockByHash
+
+        #region Broadcasts
+
+        [Fact]
+        public async Task BroadcastAnnounceAsync_OnePeerThrows_ShouldNotBlockOthers()
+        {
+            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader());
+            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
+        }
+        
+        [Fact]
+        public async Task BroadcastTransactionAsync_OnePeerThrows_ShouldNotBlockOthers()
+        {
+            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader());
+            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
+        }
+
+        #endregion Broadcasts
+        
+        #region GetPeers
+
+        [Fact]
+        public void GetPeers_ShouldIncludeFailing()
+        {
+            Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
+        }
+        
+        #endregion GetPeers
+        
     }
 }
