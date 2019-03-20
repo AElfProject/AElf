@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CHAKRA_VERSION="1_11_1"
+CHAKRA_VERSION="$1"
 FILE_NAME="ChakraCore.dll"
 TO_FILE=$1${FILE_NAME}
 FROM_FILE=
@@ -33,7 +33,7 @@ GET_OS
 
 if [ -f "$HOME/.chakracore/$CHAKRA_VERSION/ChakraCore.dll" ]; then
     echo "$HOME/.chakracore/$CHAKRA_VERSION/ChakraCore.dll exists"
-    cp $HOME/.chakracore/$CHAKRA_VERSION/${TO_FILE}  ${TO_FILE}
+    cp $HOME/.chakracore/$CHAKRA_VERSION/${FILE_NAME}  ${FILE_NAME}
     exit
 fi
 
@@ -53,6 +53,8 @@ cd ${WORK_PATH}
 if [ -d "$HOME/.chakracore" ]; then
     rm -rf $HOME/.chakracore/*
     mkdir -p $HOME/.chakracore/$CHAKRA_VERSION/
-    cp ${CHAKRACORE_FILE}  $HOME/.chakracore/$CHAKRA_VERSION/${TO_FILE}
+    cp ${CHAKRACORE_FILE}  $HOME/.chakracore/$CHAKRA_VERSION/${FILE_NAME}
+    cp ${CHAKRACORE_FILE}  ${FILE_NAME}
+    exit
 fi
 cp ${CHAKRACORE_FILE}  ${TO_FILE}
