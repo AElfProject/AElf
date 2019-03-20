@@ -1,27 +1,23 @@
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Genesis;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
-using AElf.Database;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Infrastructure;
+using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.DPoS.Application;
+using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.Consensus.DPoS.Tests
+namespace AElf.Kernel.Consensus.DPoS
 {
     [DependsOn(
         typeof(KernelCoreTestAElfModule),
@@ -36,6 +32,71 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
+            //Account service
+            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            context.Services.AddTransient(o =>
+            {
+                var mockService = new Mock<IAccountService>();
+                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
+                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+
+                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
+                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
+                {
+                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
+                });
+
+                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
+
+                return mockService.Object;
+            });
+            context.Services.AddTransient(o =>
+            {
+                var transactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
+                transactionReadOnlyExecutionService.Setup( m=>m.ExecuteAsync(It.IsAny<ChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
+                    .Returns(Task.FromResult(new TransactionTrace()));
+                
+                return transactionReadOnlyExecutionService;
+            });
+            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
+            context.Services.AddTransient(o =>
+            {
+                var blockChainService = new Mock<IBlockchainService>();
+                blockChainService.Setup( m=>m.GetChainAsync()).Returns(
+                    Task.FromResult(new Chain()
+                    {
+                        BestChainHash = Hash.Generate(),
+                        BestChainHeight = 100,
+                        Id = 1234
+                    }));
+
+                return blockChainService.Object;
+            });
+            context.Services.AddTransient(o => Mock.Of<ConsensusControlInformation>());
+            context.Services.AddTransient(o =>
+            {
+                var smartContractAddressService = new Mock<ISmartContractAddressService>();
+                smartContractAddressService.Setup( m=>m.GetAddressByContractName(It.IsAny<Hash>()))
+                    .Returns(Address.Generate()); 
+                
+                return smartContractAddressService.Object;
+            });
+
+            Configure<DPoSOptions>(o =>
+            {
+                o.InitialMiners = new List<string>()
+                {
+                    ecKeyPair.PublicKey.ToHex()
+                };
+                o.InitialTermNumber = 1;
+                o.MiningInterval = 2000;
+                o.IsBootMiner = true;
+            });
+            context.Services.AddTransient<IConsensusService, ConsensusService>();
+            context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
+            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
         }
     }
 }
