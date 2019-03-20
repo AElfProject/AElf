@@ -25,9 +25,7 @@ using Volo.Abp.Threading;
 namespace AElf.OS
 {
     [DependsOn(
-        typeof(CoreOSAElfModule),
-        typeof(DPoSContractTestAElfModule),
-        typeof(KernelTestAElfModule)
+        typeof(OSTestBaseAElfModule)
     )]
     public class OSCoreTestAElfModule : AElfModule
     {
@@ -119,31 +117,43 @@ namespace AElf.OS
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var chainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
-            var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
-                .Value.NodeAccount);
+//            var chainId = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value.ChainId;
+//            var account = Address.Parse(context.ServiceProvider.GetService<IOptionsSnapshot<AccountOptions>>()
+//                .Value.NodeAccount);
+//
+//            var info = context.ServiceProvider.GetService<IStaticChainInformationProvider>();
+//
+//            var dto = new OsBlockchainNodeContextStartDto
+//            {
+//                ZeroSmartContract = typeof(BasicContractZero),
+//                ChainId = chainId,
+//            };
+//
+//            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+//
+//            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+//                TokenSmartContractAddressNameProvider.Name);
+//
+//            var transactions =
+//                InitChainHelper.GetGenesisTransactions(chainId, account,
+//                    info.GetSystemContractAddressInGenesisBlock(2));
+//
+//            dto.InitializationTransactions = transactions;
+//
+//            var blockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
+//            AsyncHelper.RunSync(() => blockchainNodeContextService.StartAsync(dto));
+        }
+    }
 
-            var info = context.ServiceProvider.GetService<IStaticChainInformationProvider>();
-
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ZeroSmartContract = typeof(BasicContractZero),
-                ChainId = chainId,
-            };
-
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
-
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name);
-
-            var transactions =
-                InitChainHelper.GetGenesisTransactions(chainId, account,
-                    info.GetSystemContractAddressInGenesisBlock(2));
-
-            dto.InitializationTransactions = transactions;
-
-            var blockchainNodeContextService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
-            AsyncHelper.RunSync(() => blockchainNodeContextService.StartAsync(dto));
+    [DependsOn(
+        typeof(OSCoreTestAElfModule)
+    )]
+    public class OSCoreWithChainTestAElfModule : AElfModule
+    {
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
+            AsyncHelper.RunSync(() => osTestHelper.MockChain());
         }
     }
 }
