@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.Core.Testing" Version="1.19.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
         <PackageReference Include="Moq" Version="4.10.1" />
         <PackageReference Include="xunit" Version="2.4.1" />
