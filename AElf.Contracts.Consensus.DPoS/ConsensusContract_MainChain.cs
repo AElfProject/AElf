@@ -176,6 +176,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(round), "Failed to add round information.");
 
+            Context.LogDebug(() => $"Changing term number to {round.TermNumber}");
             TryToFindLIB();
         }
 

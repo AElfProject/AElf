@@ -115,11 +115,11 @@ namespace AElf.TestLauncher
                 Memo = "Set dividends.",
             });
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
