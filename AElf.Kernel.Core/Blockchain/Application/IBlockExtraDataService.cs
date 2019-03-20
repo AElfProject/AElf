@@ -18,7 +18,7 @@ namespace AElf.Kernel.Blockchain.Application
         /// <returns></returns>
         ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader);
 
-        void FillMktRootExtraDataForTransactionStatus(BlockHeader blockHeader,
+        void FillMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader,
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet);
     }
 }
