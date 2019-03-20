@@ -70,8 +70,7 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null,
-            bool tryOthersIfFail = false)
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null, bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peerPubKey))
@@ -109,8 +108,7 @@ namespace AElf.OS.Network.Application
             return null;
         }
 
-        public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null,
-            bool tryOthersIfSpecifiedFails = false)
+        public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
             return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
@@ -163,8 +161,7 @@ namespace AElf.OS.Network.Application
             return await RequestAsync(peer, p => p.RequestBlockAsync(hash));
         }
 
-        private async Task<T> RequestAsync<T>(IPeer peer, Func<IPeer, Task<T>> func)
-            where T : class
+        private async Task<T> RequestAsync<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
         {
             try
             {
@@ -175,6 +172,14 @@ namespace AElf.OS.Network.Application
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
                 return null;
             }
+        }
+
+        public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
+        {
+            var peer = !peerPubKey.IsNullOrEmpty()
+                ? _peerPool.FindPeerByPublicKey(peerPubKey)
+                : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
+            return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
     }
 }

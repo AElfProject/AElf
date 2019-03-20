@@ -59,7 +59,7 @@ namespace AElf.OS.Jobs
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    if (chain.LongestChainHeight >= args.BlockHeight)
+                    if (chain.LongestChainHeight >= await NetworkService.GetBestChainHeightAsync())
                     {
                         Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight} }}");
                         break;
