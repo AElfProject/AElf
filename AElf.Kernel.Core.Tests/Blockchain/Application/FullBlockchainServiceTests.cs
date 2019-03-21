@@ -448,5 +448,20 @@ namespace AElf.Kernel.Blockchain.Application
             chain.Branches.Count.ShouldBe(1);
             chain.NotLinkedBlocks.Count.ShouldBe(3);
         }
+        
+        [Fact]
+        public async Task Set_IrreversibleBlock_HigherThanBranch()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            
+            await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[10]
+                .Height, _kernelTestHelper.BestBranchBlockList[10].GetHash());
+            
+            chain = await _fullBlockchainService.GetChainAsync();
+            chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].GetHash());
+            chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].Height);
+            chain.Branches.Count.ShouldBe(1);
+            chain.NotLinkedBlocks.Count.ShouldBe(3);
+        }
     }
 }

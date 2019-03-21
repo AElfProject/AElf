@@ -255,22 +255,23 @@ namespace AElf.Kernel.Blockchain.Application
             var toCleanBranchKeys = new List<string>();
             foreach (var branch in chain.Branches)
             {
-                if (branch.Key != bestChainKey)
+                if (branch.Key == bestChainKey)
                 {
-                    var blockHash = await GetBlockHashByHeightAsync(chain, irreversibleBlockHeight + 1,
-                        Hash.LoadHex(branch.Key));
-                    if (blockHash == null)
+                    continue;
+                }
+
+                var blockHash = await GetBlockHashByHeightAsync(chain, irreversibleBlockHeight + 1,
+                    Hash.LoadHex(branch.Key));
+                if (blockHash != null)
+                {
+                    var blockHeader = await GetBlockHeaderByHashAsync(blockHash);
+                    if (blockHeader.PreviousBlockHash == irreversibleBlockHash)
                     {
                         continue;
                     }
-
-                    var blockHeader = await GetBlockHeaderByHashAsync(blockHash);
-
-                    if (blockHeader.PreviousBlockHash != irreversibleBlockHash)
-                    {
-                        toCleanBranchKeys.Add(branch.Key);
-                    }
                 }
+
+                toCleanBranchKeys.Add(branch.Key);
             }
 
             var toCleanNotLinkedKeys = new List<string>();
