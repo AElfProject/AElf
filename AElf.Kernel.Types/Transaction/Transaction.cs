@@ -24,14 +24,13 @@ namespace AElf.Kernel
             if (To == null)
             {
                 throw new InvalidOperationException($"Transaction.To cannot be empty: {this}");
-                
             }
+
             var txData = new Transaction
             {
                 From = From.Clone(),
                 To = To.Clone(),
-                MethodName = MethodName,
-                Type = Type
+                MethodName = MethodName
             };
             if (Params.Length != 0)
                 txData.Params = Params;

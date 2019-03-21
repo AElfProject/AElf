@@ -15,8 +15,7 @@ message Transaction {
     bytes Params = 7;
     uint64 Fee = 8;
     repeated bytes Sigs = 9;
-    TransactionType Type = 10;
-    google.protobuf.Timestamp Time = 11;
+    google.protobuf.Timestamp Time = 10;
 }
 
 enum TransactionStatus {
@@ -65,13 +64,6 @@ message StateChange {
 
 message TransactionList {
     repeated Transaction Transactions = 1;
-}
-
-enum TransactionType {
-    ContractTransaction = 0;
-    DposTransaction = 1;
-    MsigTransaction = 2;
-    ContractDeployTransaction = 3;
 }
 
 enum TransactionResultStatus {
