@@ -9,7 +9,6 @@
       <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.Token\AElf.Contracts.Token.csproj" />
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />

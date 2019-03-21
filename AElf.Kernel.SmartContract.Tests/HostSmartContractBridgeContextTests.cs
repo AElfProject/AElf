@@ -198,7 +198,7 @@ namespace AElf.Kernel.SmartContract
 
             Should.Throw<InvalidParameterException>(() =>
                 _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(), null));
+                    new SmartContractRegistration(){Category = -1}, null));
         }
 
         [Fact]
@@ -230,7 +230,7 @@ namespace AElf.Kernel.SmartContract
             _bridgeContext.SmartContractContext = smartContractContext;
             Should.Throw<InvalidParameterException>(() =>
                 _bridgeContext.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(), null));
+                    new SmartContractRegistration(){Category = -1}, null));
         }
 
         [Fact]
