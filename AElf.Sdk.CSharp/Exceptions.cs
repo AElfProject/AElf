@@ -1,31 +1,62 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace AElf.Sdk.CSharp
 {
+    [Serializable]
     public class BaseAElfException : Exception
     {
+        //
+        // For guidelines regarding the creation of new exception types, see
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
+        // and
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
+        //
+
+        public BaseAElfException()
+        {
+        }
+
         public BaseAElfException(string message) : base(message)
         {
         }
-    }
 
-    public class AssertionError : BaseAElfException
-    {
-        public AssertionError(string message) : base(message)
+        public BaseAElfException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected BaseAElfException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }
 
-    public class InternalError : BaseAElfException
+    [Serializable]
+    public class AssertionException : Exception
     {
-        public InternalError(string message) : base(message)
+        //
+        // For guidelines regarding the creation of new exception types, see
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/cpgenref/html/cpconerrorraisinghandlingguidelines.asp
+        // and
+        //    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dncscol/html/csharp07192001.asp
+        //
+
+        public AssertionException()
         {
         }
-    }
 
-    public class ContractCallError : BaseAElfException
-    {
-        public ContractCallError(string message) : base(message)
+        public AssertionException(string message) : base(message)
+        {
+        }
+
+        public AssertionException(string message, Exception inner) : base(message, inner)
+        {
+        }
+
+        protected AssertionException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context)
         {
         }
     }

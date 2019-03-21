@@ -13,7 +13,7 @@ namespace AElf.Contracts.CrossChain
     public partial class CrossChainContract
     {
         private Hash Propose(string proposalName, int waitingPeriod, Address fromAddress,
-            Address targetAddress, string invokingMethod, params object[] args)
+            Address targetAddress, string invokingMethod, IMessage input)
         {
             // packed txn
             byte[] txnData = new Transaction
@@ -21,7 +21,7 @@ namespace AElf.Contracts.CrossChain
                 From = fromAddress,
                 To = targetAddress,
                 MethodName = invokingMethod,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
+                Params = input.ToByteString(),
                 Type = TransactionType.MsigTransaction,
                 Time = Timestamp.FromDateTime(Context.CurrentBlockTime)
             }.ToByteArray();

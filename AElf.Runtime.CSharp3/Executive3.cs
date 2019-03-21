@@ -141,7 +141,7 @@ namespace AElf.Runtime.CSharp
                 {
                     throw new RuntimeException($"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
                 }
-                
+
                 try
                 {
                     var tx = CurrentTransactionContext.Transaction;
@@ -158,6 +158,11 @@ namespace AElf.Runtime.CSharp
                 {
                     CurrentTransactionContext.Trace.StdErr += ex.InnerException;
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                }
+                catch (AssertionException ex)
+                {
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
                 }
                 catch (Exception ex)
                 {

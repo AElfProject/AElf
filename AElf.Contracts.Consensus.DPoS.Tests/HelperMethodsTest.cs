@@ -40,13 +40,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task RunConsensusTest()
         {
-            const int minersCount = 17;
+            const int minersCount = 3;
             const int miningInterval = 4000;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
 
             var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
             await starter.InitialChainAndTokenAsync(minersKeyPairs, miningInterval);
-            var miners = Enumerable.Range(0, 17)
+            var miners = Enumerable.Range(0, minersCount)
                 .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
 
             await miners.RunConsensusAsync(1);

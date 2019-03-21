@@ -35,6 +35,7 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public ISmartContractAddressService SmartContractAddressService { get; set; }
+        //TODO: should not directly use BlockStateSets
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 

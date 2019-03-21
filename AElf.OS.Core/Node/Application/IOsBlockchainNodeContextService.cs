@@ -74,15 +74,6 @@ namespace AElf.OS.Node.Application
                 Params = input?.ToByteString() ?? ByteString.Empty
             });
         }
-        public static void Add(this SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
-            params object[] objects)
-        {
-            systemTransactionMethodCallList.Value.Add(new SystemTransactionMethodCall()
-            {
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
-            });
-        }
 
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name, Action<SystemTransactionMethodCallList> action)
