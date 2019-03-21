@@ -26,7 +26,7 @@ namespace AElf.Contracts.Genesis
         public BasicContractZeroTest()
         {
             otherOwnerKeyPair = CryptoHelpers.GenerateKeyPair();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes()));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress())));
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }

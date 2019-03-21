@@ -10,20 +10,30 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public void Initialize(Address tokenContractAddress, Address dividendsContractAddress)
+        public void Initialize(Address tokenContractAddress, Address dividendContractAddress)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.TokenContract.Value = tokenContractAddress;
-            State.DividendContract.Value = dividendsContractAddress;
+            State.DividendContract.Value = dividendContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
         }
 
+        public void InitializeWithContractSystemNames(Hash tokenContractSystemName, Hash dividendContractSystemName)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.TokenContractSystemName.Value = tokenContractSystemName;
+            State.DividendContractSystemName.Value = dividendContractSystemName;
+            State.Initialized.Value = true;
+        }
+
+        // TODO: Remove this method after testing.
         public void SetBlockchainAge(long age)
         {
-            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
-                    "No permission to change blockchain age."));
+//            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
+//                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+//                    "No permission to change blockchain age."));
             State.AgeField.Value = age;
         }
 
@@ -45,6 +55,16 @@ namespace AElf.Contracts.Consensus.DPoS
             miners.TermNumber = 1;
             SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
+
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            // TODO: This judgement can be removed with `Initialize` method.
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
         }
 
         private void UpdateHistoryInformation(Round round)
@@ -108,13 +128,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 AddOrUpdateMinerHistoryInformation(historyInformation);
             }
         }
-        
+
         public void NextTerm(Round round)
         {
             // Count missed time slot of current round.
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
+
             State.DividendContract.KeepWeights(termNumber);
 
             // Update current term number and current round number.
@@ -167,6 +188,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(round), "Failed to add round information.");
 
+            Context.LogDebug(() => $"Changing term number to {round.TermNumber}");
             TryToFindLIB();
         }
 
@@ -357,8 +379,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ActionResult {Success = true};
         }
-        
-        
+
+
         /// <summary>
         /// Normally this process contained in NextRound method.
         /// </summary>

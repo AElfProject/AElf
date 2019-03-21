@@ -91,7 +91,11 @@ namespace AElf.Kernel.SmartContract.Application
                 };
             }
 
-            var trace = new TransactionTrace()
+            if (transaction.To == null || transaction.From == null)
+            {
+                throw new Exception($"error tx: {transaction}");
+            }
+            var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
             };
