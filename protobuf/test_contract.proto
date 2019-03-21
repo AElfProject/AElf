@@ -4,7 +4,7 @@ option csharp_namespace = "AElf.Runtime.CSharp3.Tests.TestContract";
 import "aelf_options.proto";
 
 service TestContract {
-    option (aelf.state_type) = "AElf.Runtime.CSharp3.Tests.TestContract.TestContractState";
+    option (aelf.csharp_state) = "AElf.Runtime.CSharp3.Tests.TestContract.TestContractState";
     rpc Increment (IncrementInput) returns (IncrementOutput) {}
 }
 

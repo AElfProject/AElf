@@ -131,6 +131,15 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg, Address address)
         {
+            if (reg == null)
+            {
+                throw new ArgumentNullException(nameof(reg));
+            }
+
+            if (address == null)
+            {
+                throw new ArgumentNullException(nameof(address));
+            }
             var pool = GetPool(address);
 
             if (!pool.TryTake(out var executive))
@@ -178,7 +187,7 @@ namespace AElf.Kernel.SmartContract.Application
                 From = Address.Zero,
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
+                Params = address.ToByteString()
             };
             var trace = new TransactionTrace()
             {

@@ -36,6 +36,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -183,12 +184,16 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
+                SmartContractRunnerCategory = 30 //30 means use default assembly loader context, for code coverage
             };
 
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
             
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
@@ -267,15 +272,8 @@ namespace AElf.Contracts.TestBase
             return Address.FromPublicKey(KeyPair.PublicKey);
         }
 
-        /// <summary>
-        /// Generate a transaction and sign it.
-        /// </summary>
-        /// <param name="contractAddress"></param>
-        /// <param name="methodName"></param>
-        /// <param name="objects"></param>
-        /// <returns></returns>
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -284,7 +282,7 @@ namespace AElf.Contracts.TestBase
                 From = Address.FromPublicKey(KeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -301,11 +299,10 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="ecKeyPair"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            ECKeyPair ecKeyPair,
-            params object[] objects)
+            ECKeyPair ecKeyPair, IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -314,7 +311,7 @@ namespace AElf.Contracts.TestBase
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -366,12 +363,12 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             await MineAsync(new List<Transaction> {tx});
             var result = await GetTransactionResultAsync(tx.GetHash());
 
@@ -379,17 +376,16 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Generate a tx then package the new tx to a new block.
+        ///  Generate a tx then package the new tx to a new block.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName,
-            params object[] objects)
+            string methodName,IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
@@ -399,15 +395,15 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, input);
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
@@ -487,36 +483,38 @@ namespace AElf.Contracts.TestBase
         /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer)
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply, out long dividend, out long balanceOfStarter)
         {
+            totalSupply = 1000_000L;
+            dividend = 200_000L;
+            balanceOfStarter = 800_000L;
+            var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                Issuer = issuer,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply
+            });
+            callList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = dividend,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+            });
+            callList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = balanceOfStarter,
+                To = GetCallOwnerAddress()
+            });
             return list =>
             {
                 list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, o =>
-                {
-                    o.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
-                    {
-                        Symbol = "ELF",
-                        Decimals = 2,
-                        Issuer = issuer,
-                        IsBurnable = true,
-                        TokenName = "elf token",
-                        TotalSupply = 1000_000L
-                    });
-                    o.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-                    {
-                        Symbol = "ELF",
-                        Amount = 200_000L,
-                        ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
-                    });
-                    o.Add(nameof(TokenContract.Issue), new IssueInput
-                    {
-                        Symbol = "ELF",
-                        Amount = 800_000L,
-                        To = GetCallOwnerAddress()
-                    });
-                });
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, callList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);

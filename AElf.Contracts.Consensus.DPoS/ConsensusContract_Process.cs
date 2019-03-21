@@ -15,19 +15,20 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         #region InitialDPoS
 
-        public void InitialConsensus(Round firstRound)
+        public override Empty InitialConsensus(Round input)
         {
-            Assert(firstRound.RoundNumber == 1, "Incorrect round information: invalid round number.");
+            Assert(input.RoundNumber == 1, "Incorrect round information: invalid round number.");
 
-            Assert(firstRound.RealTimeMinersInformation.Any(), "Incorrect round information: no miner.");
+            Assert(input.RealTimeMinersInformation.Any(), "Incorrect round information: no miner.");
 
-            InitialSettings(firstRound);
+            InitialSettings(input);
 
-            SetAliases(firstRound);
+            SetAliases(input);
 
-            firstRound.BlockchainAge = 1;
+            input.BlockchainAge = 1;
 
-            Assert(TryToAddRoundInformation(firstRound), "Failed to add round information.");
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+            return new Empty();
         }
 
         private void SetAliases(Round round)
@@ -55,10 +56,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #region UpdateValue
 
-        public void UpdateValue(ToUpdate toUpdate)
+        public override Empty UpdateValue(ToUpdate input)
         {
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   toUpdate.RoundId == currentRound.RoundId, "Round Id not matched.");
+                   input.RoundId == currentRound.RoundId, "Round Id not matched.");
 
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
 
@@ -66,54 +67,56 @@ namespace AElf.Contracts.Consensus.DPoS
 
             if (round.RoundNumber != 1)
             {
-                round.RealTimeMinersInformation[publicKey].Signature = toUpdate.Signature;
+                round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             }
 
-            round.RealTimeMinersInformation[publicKey].OutValue = toUpdate.OutValue;
+            round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
 
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
-            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
+            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
             
-            round.RealTimeMinersInformation[publicKey].ActualMiningTime = toUpdate.ActualMiningTime;
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
 
             // One cannot publish his in value sometime, like in his first round.
-            if (toUpdate.PreviousInValue != Hash.Empty)
+            if (input.PreviousInValue != Hash.Empty)
             {
-                round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = input.PreviousInValue;
             }
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
+            return new Empty();
         }
 
         #endregion
 
         #region NextRound
 
-        public void NextRound(Round round)
+        public override Empty NextRound(Round input)
         {
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                Assert(roundNumber < round.RoundNumber, "Incorrect round number for next round.");
+                Assert(roundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
-            round.ExtraBlockProducerOfPreviousRound = senderPublicKey;
+            input.ExtraBlockProducerOfPreviousRound = senderPublicKey;
 
             // Update the age of this blockchain
-            State.AgeField.Value = round.BlockchainAge;
+            State.AgeField.Value = input.BlockchainAge;
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
 
-            UpdateHistoryInformation(round);
+            UpdateHistoryInformation(input);
 
-            Assert(TryToAddRoundInformation(round), "Failed to add round information.");
-            Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+            Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
+            return new Empty();
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)
@@ -142,9 +145,9 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public long GetLIBOffset()
+        public override SInt64Value GetLIBOffset(Empty input)
         {
-            return CalculateLIB(out var offset) ? offset : 0;
+            return new SInt64Value() {Value = CalculateLIB(out var offset) ? offset : 0};
         }
 
         private bool CalculateLIB(out long offset)
@@ -319,14 +322,14 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Transaction GenerateTransaction(string methodName, List<object> parameters)
+        private Transaction GenerateTransaction(string methodName, IMessage parameter)
         {
             var tx = new Transaction
             {
                 From = Context.Sender,
                 To = Context.Self,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
+                Params = parameter.ToByteString()
             };
 
             return tx;

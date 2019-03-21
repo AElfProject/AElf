@@ -13,7 +13,7 @@ namespace AElf.Contracts.CrossChain
     public partial class CrossChainContract
     {
         private Hash Propose(string proposalName, int waitingPeriod, Address fromAddress,
-            Address targetAddress, string invokingMethod, params object[] args)
+            Address targetAddress, string invokingMethod, IMessage input)
         {
             // packed txn
             byte[] txnData = new Transaction
@@ -21,7 +21,7 @@ namespace AElf.Contracts.CrossChain
                 From = fromAddress,
                 To = targetAddress,
                 MethodName = invokingMethod,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(args)),
+                Params = input.ToByteString(),
                 Type = TransactionType.MsigTransaction,
                 Time = Timestamp.FromDateTime(Context.CurrentBlockTime)
             }.ToByteArray();
@@ -41,13 +41,13 @@ namespace AElf.Contracts.CrossChain
             return proposal.GetHash();
         }
 
-        private bool IsMiner()
-        {
-            var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
-            var round = State.ConsensusContract.GetRoundInformation(roundNumber);
-            var miners = new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
-            return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
-        }
+//        private bool IsMiner()
+//        {
+//            var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
+//            var round = State.ConsensusContract.GetRoundInformation(roundNumber);
+//            var miners = new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
+//            return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
+//        }
         private void CheckAuthority(Address fromAddress = null)
         {
 //            Assert(fromAddress == null || fromAddress.Equals(Context.Sender), "Not authorized transaction.");

@@ -42,7 +42,7 @@ namespace AElf.OS.Node.Application
 
         public Type ZeroSmartContract { get; set; }
 
-        public int SmartContractRunnerCategory { get; set; } = 2; //TODO: change to 0
+        public int SmartContractRunnerCategory { get; set; } = 3; //TODO: change to 0
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -65,17 +65,16 @@ namespace AElf.OS.Node.Application
         {
             genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
         }
-        
-        public static void Add(this SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,	
-            params object[] objects)	
-        {	
-            systemTransactionMethodCallList.Value.Add(new SystemTransactionMethodCall()	
-            {	
-                MethodName = methodName,	
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))	
-            });	
+        public static void Add(this SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
+            IMessage input)
+        {
+            systemTransactionMethodCallList.Value.Add(new SystemTransactionMethodCall()
+            {
+                MethodName = methodName,
+                Params = input?.ToByteString() ?? ByteString.Empty
+            });
         }
-        
+
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name, Action<SystemTransactionMethodCallList> action)
         {
@@ -127,8 +126,10 @@ namespace AElf.OS.Node.Application
 
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
-                    GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName,
-                        dto.SmartContractRunnerCategory, p.TransactionMethodCallList)));
+                {
+                    return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
+                        p.TransactionMethodCallList);
+                }));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -171,8 +172,13 @@ namespace AElf.OS.Node.Application
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(systemContractName, category, code,
-                    transactionMethodCallList))
+                Params = new SystemContractDeploymentInput()
+                {
+                    Name = systemContractName,
+                    Category = category,
+                    Code = ByteString.CopyFrom(code),
+                    TransactionMethodCallList = transactionMethodCallList
+                }.ToByteString()
             };
         }
 

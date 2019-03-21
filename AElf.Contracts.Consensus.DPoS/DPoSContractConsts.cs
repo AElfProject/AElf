@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
         
         #region Dividends Settings
 
-        public const long ElfTokenPerBlock = 10000;
+        public const long ElfTokenPerBlock = 100;
         public const double MinersBasicRatio = 0.4;
         public const double MinersVotesRatio = 0.1;
         public const double MinersReappointmentRatio = 0.1;

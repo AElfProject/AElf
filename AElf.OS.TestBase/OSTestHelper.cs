@@ -4,14 +4,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.Token;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -118,15 +121,15 @@ namespace AElf.OS
             var transaction = GenerateTransaction(accountAddress,
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 nameof(TokenContract.Transfer),
-                Address.FromPublicKey(newUserKeyPair.PublicKey), 10);
+                new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
 
             return transaction;
         }
-        
-        public Transaction GenerateTransaction(Address from, Address to,string methodName, params object[] objects)
+
+        public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;
             var transaction = new Transaction
@@ -134,7 +137,7 @@ namespace AElf.OS
                 From = from,
                 To = to,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray()),
                 Time = Timestamp.FromDateTime(DateTime.UtcNow)
@@ -181,37 +184,31 @@ namespace AElf.OS
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
 
+            var ownAddress = await _accountService.GetAccountAsync();
+            var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
+            {
+                Symbol = "ELF",
+                TokenName = "ELF_Token",
+                TotalSupply = 1000_0000L,
+                Decimals = 2,
+                Issuer =  ownAddress,
+                IsBurnable = true
+            });
+            callList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = 1000_0000L,
+                To = ownAddress,
+                Memo = "Issue"
+            });
+            
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
+                DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name);
-
-            var accountAddress = await _accountService.GetAccountAsync();
-            var transactions = GetGenesisTransactions(accountAddress,
-                _staticChainInformationProvider.GetSystemContractAddressInGenesisBlock(2));
-
-            dto.InitializationTransactions = transactions;
+                TokenSmartContractAddressNameProvider.Name, callList);
 
             await _osBlockchainNodeContextService.StartAsync(dto);
-        }
-
-        private Transaction[] GetGenesisTransactions(Address account, Address tokenAddress)
-        {
-            var transactions = new List<Transaction>
-            {
-                GetTransactionForTokenInitialize(account, tokenAddress)
-            };
-
-            return transactions.ToArray();
-        }
-
-        private Transaction GetTransactionForTokenInitialize(Address account, Address tokenAddress)
-        {
-            return new Transaction()
-            {
-                From = account,
-                To = tokenAddress,
-                MethodName = nameof(ITokenContract.Initialize),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack("ELF", "ELF_Token", 100000, 8))
-            };
         }
 
         private async Task<List<Block>> AddBestBranch()
