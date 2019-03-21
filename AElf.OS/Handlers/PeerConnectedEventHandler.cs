@@ -42,13 +42,6 @@ namespace AElf.OS.Handlers
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
 
-            var peerInPool = PeerPool.FindPeerByPublicKey(senderPubKey);
-            if (peerInPool != null)
-            {
-                peerInPool.CurrentBlockHash = blockHash;
-                peerInPool.CurrentBlockHeight = blockHeight;
-            }
-
             Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
             var chain = await BlockchainService.GetChainAsync();

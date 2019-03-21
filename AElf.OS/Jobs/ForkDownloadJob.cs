@@ -26,7 +26,7 @@ namespace AElf.OS.Jobs
             {
                 var count = NetworkOptions.Value.BlockIdRequestCount;
                 var chain = await BlockchainService.GetChainAsync();
-
+                
                 var blockHash = chain.LastIrreversibleBlockHash;
 
                 while (true)
@@ -51,6 +51,10 @@ namespace AElf.OS.Jobs
 
                     foreach (var block in blocks)
                     {
+                        var localBlock = await BlockchainService.GetBlockByHashAsync(block.GetHash());
+                        if (localBlock != null)
+                            continue;
+
                         chain = await BlockchainService.GetChainAsync();
                         Logger.LogDebug($"Processing {block}. Chain is {{ longest: {chain.LongestChainHash}, best: {chain.BestChainHash} }} ");
 
