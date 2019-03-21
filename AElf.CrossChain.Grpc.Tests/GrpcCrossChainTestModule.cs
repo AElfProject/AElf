@@ -1,6 +1,7 @@
 using AElf.Common;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -18,11 +19,27 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            var configuration = services.GetConfiguration();
+            Configure<GrpcCrossChainConfigOption>(option =>
+            {
+                option.LocalClient = true;
+                option.LocalServer = true;
+                option.LocalServerPort = 5000;
+                option.LocalServerIP = "127.0.0.1";
+                option.LocalCertificateFileName = "AELF";
+                option.RemoteParentChainNodeIp = "127.0.0.1";
+                option.RemoteParentChainNodePort = 5000;
+                option.RemoteParentCertificateFileName = "AELF";
+            });
+            
             Configure<ChainOptions>(option =>
             {
-                option.ChainId = ChainHelpers.ConvertBase58ToChainId(configuration["ChainId"]);
+                option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
             });
+            
+            services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
+            services.AddTransient<INodePlugin, GrpcCrossChainServerNodePlugin>();
+            services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
+            services.AddSingleton<GrpcCrossChainClientNodePlugin>();
 
             context.Services.AddSingleton(provider =>
             {
