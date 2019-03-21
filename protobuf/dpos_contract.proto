@@ -47,6 +47,8 @@ service ConsensusContract {
     }
     rpc NextRound (Round) returns (google.protobuf.Empty) {
     }
+    rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
+    }
     // Views
     rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
