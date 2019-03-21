@@ -119,25 +119,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 methodName, objects);
         }
 
-        /// <summary>
-        /// Initial consensus contract and dividends contract.
-        /// </summary>
-        /// <param name="contractTester"></param>
-        /// <returns></returns>
-        public static async Task InitializeAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester)
-        {
-            await contractTester.ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.Initialize),
-                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name),
-                contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name));
-
-            await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendContract.Initialize),
-                contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
-                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name));
-        }
-
         #endregion
 
         #region Handle Token
@@ -166,6 +147,14 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+
+            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
+                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
+            
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
@@ -199,12 +188,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                 });
-
-            // Initial consensus contract.
-            await starter.InitializeAsync();
 
             if (minersKeyPairs != null)
             {

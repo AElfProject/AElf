@@ -28,11 +28,12 @@ namespace AElf.Contracts.Consensus.DPoS
             State.Initialized.Value = true;
         }
 
+        // TODO: Remove this method after testing.
         public void SetBlockchainAge(long age)
         {
-            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
-                    "No permission to change blockchain age."));
+//            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
+//                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+//                    "No permission to change blockchain age."));
             State.AgeField.Value = age;
         }
 
@@ -56,10 +57,14 @@ namespace AElf.Contracts.Consensus.DPoS
             SetMiningInterval(firstRound.GetMiningInterval());
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.DividendContract.Value =
-                State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
-            State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            // TODO: This judgement can be removed with `Initialize` method.
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
         }
 
         private void UpdateHistoryInformation(Round round)
