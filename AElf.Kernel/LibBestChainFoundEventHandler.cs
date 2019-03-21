@@ -8,6 +8,7 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -24,6 +25,7 @@ namespace AElf.Kernel
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
+        public IBackgroundJobManager BackgroundJobManager { get; set; }
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -55,11 +57,13 @@ namespace AElf.Kernel
                         Logger.LogTrace($"Transaction result is null, transactionHash: {transactionHash}");
                         continue;
                     }
+
                     if (result.Status == TransactionResultStatus.Failed)
                     {
                         Logger.LogTrace($"Transaction failed, transactionHash: {transactionHash}, error: {result.Error}");
                         continue;
                     }
+
                     foreach (var contractEvent in result.Logs)
                     {
                         var address = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
@@ -69,12 +73,11 @@ namespace AElf.Kernel
                         var indexingEventData = ExtractLibFoundData(contractEvent);
                         var offset = (long) indexingEventData[0];
                         var libHeight = eventData.BlockHeight - offset;
-                        var chain = await _blockchainService.GetChainAsync();
-                        var libHash =
-                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
-                        await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, libHash);
-                        Logger.LogInformation("Lib setting finished.");
+                        await BackgroundJobManager.EnqueueAsync(new LastIrreversibleBlockJobArgs
+                        {
+                            BlockHeight = libHeight
+                        });
                     }
                 }
             }

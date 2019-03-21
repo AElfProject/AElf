@@ -10,12 +10,15 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(
-        typeof(SmartContractExecutionTestAElfModule)
+        typeof(SmartContractExecutionTestAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule)
     )]
     public class SmartContractExecutionExecutingTestAElfModule : AElfModule
     {
@@ -27,9 +30,9 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
-                        It.IsAny<CancellationToken>(), true))
+                        It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                     .Returns<BlockHeader, List<Transaction>,
-                        CancellationToken>((blockHeader, transactions, cancellationToken) =>
+                        CancellationToken,bool>((blockHeader, transactions, cancellationToken, throwException) =>
                     {
                         var returnSets = new List<ExecutionReturnSet>();
 
@@ -56,10 +59,19 @@ namespace AElf.Kernel.SmartContractExecution
                 return mockService.Object;
             });
         }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var kernelTestHelper = context.ServiceProvider.GetService<KernelTestHelper>();
+            for (var i = 0; i < 4; i++)
+            {
+                AsyncHelper.RunSync(() => kernelTestHelper.AttachBlockToBestChain());
+            }
+        }
     }
 
     [DependsOn(
-        typeof(SmartContractExecutionTestAElfModule)
+        typeof(SmartContractExecutionExecutingTestAElfModule)
     )]
     public class ExecuteFailedTestAElfModule : AElfModule
     {

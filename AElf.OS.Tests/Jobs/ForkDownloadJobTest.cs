@@ -19,19 +19,19 @@ namespace AElf.OS.Jobs
         [Fact]
         public async Task ExecSyncJob_ShouldSyncChain()
         {
-            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 3 });
+            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 12 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(6);
+            chain.BestChainHeight.ShouldBe(15);
         }
         
         [Fact]
         public async Task ExecSyncJob_QueryTooMuch_ShouldSyncChain()
         {
-            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 15 });
+            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 25 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(11);
+            chain.BestChainHeight.ShouldBe(15);
         }
         
         [Fact]
@@ -41,17 +41,17 @@ namespace AElf.OS.Jobs
             _job.Execute(new ForkDownloadJobArgs { BlockHeight = 3 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(6);
+            chain.BestChainHeight.ShouldBe(15);
         }
         
         [Fact]
         public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
         {
-            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 5 });
-            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 10 });
+            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 12 });
+            _job.Execute(new ForkDownloadJobArgs { BlockHeight = 15 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(11);
+            chain.BestChainHeight.ShouldBe(15);
         }
     }
 }

@@ -48,7 +48,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     InitialTermNumber = _dpoSOptions.InitialTermNumber
                 }.ToByteArray();
             }
-            
+
+            //TODO Add GetTriggerInformation switch test cases [Case]
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:

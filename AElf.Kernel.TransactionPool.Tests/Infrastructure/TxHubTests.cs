@@ -13,17 +13,17 @@ using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public class TxHubTests : TransactionPoolTestBase
+    public class TxHubTests : TransactionPoolWithChainTestBase
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;
+        private readonly KernelTestHelper _kernelTestHelper;
         
         public TxHubTests()
         {
             _txHub = GetRequiredService<TxHub>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-
-            AsyncHelper.RunSync(CreateNewChain);
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
         
         [Fact]
@@ -32,7 +32,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 // Empty transaction pool
                 // Chain:
-                //         BestChainHeight: 1
+                //         BestChainHeight: 11
                 // TxHub:
                 //         BestChainHeight: 0
                 //          AllTransaction: 0
@@ -42,11 +42,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 TransactionPoolSizeShouldBe(0);
             }
 
-            var transactionHeight100 = GenerateTransaction(100);
+            var transactionHeight100 = _kernelTestHelper.GenerateTransaction(100);
             {
                 // Receive a feature transaction twice
                 // Chain:
-                //         BestChainHeight: 1
+                //         BestChainHeight: 11
                 // TxHub:
                 //         BestChainHeight: 0
                 //          AllTransaction: 1
@@ -78,13 +78,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 // Receive a valid transaction 
                 // Chain:
-                //         BestChainHeight: 1
+                //         BestChainHeight: 11
                 // TxHub:
                 //         BestChainHeight: 0
                 //          AllTransaction: 2
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -97,22 +97,18 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 // Receive a block
                 // Chain:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 // TxHub:
                 //         BestChainHeight: 0
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
-                var transactionNotInPool = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionNotInPool = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
-                var newBlock = await AddBlock(new List<Transaction>
+                var newBlock = await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction>
                 {
                     transactionValid,
                     transactionNotInPool
                 });
-
-                await _blockchainService.AddBlockAsync(newBlock);
-                await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-                await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
@@ -126,9 +122,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 // Receive best chain found event
                 // Chain:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 // TxHub:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
@@ -148,14 +144,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 // Receive a valid transaction and a invalid transaction
                 // Chain:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 // TxHub:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 //          AllTransaction: 3
                 //   ExecutableTransaction: 1
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
-                var transactionInvalid = GenerateTransaction(chain.BestChainHeight - 1);
+                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -178,9 +174,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 // Receive lib found event
                 // Chain:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 // TxHub:
-                //         BestChainHeight: 2
+                //         BestChainHeight: 12
                 //          AllTransaction: 3
                 //   ExecutableTransaction: 1
                 await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
@@ -203,17 +199,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 // After 65 blocks
                 // Chain:
-                //         BestChainHeight: 67
+                //         BestChainHeight: 78
                 // TxHub:
-                //         BestChainHeight: 67
+                //         BestChainHeight: 78
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
                 var bestChainHeight = chain.BestChainHeight;
                 for (var i = 0; i < ChainConsts.ReferenceBlockValidPeriod + 1; i++)
                 {
-                    var transaction = GenerateTransaction(bestChainHeight + i);
-                    await AddBlock(new List<Transaction> {transaction});
+                    var transaction = _kernelTestHelper.GenerateTransaction(bestChainHeight + i);
+                    await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction> {transaction});
                     chain = await _blockchainService.GetChainAsync();
                     await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
                     {
@@ -267,66 +263,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 executableTxSet.Transactions.Count.ShouldBe(0);
             }
-        }
-
-        #endregion
-
-        #region private methods
-
-        private async Task<Chain> CreateNewChain()
-        {
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = ChainConsts.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
-            var chain = await _blockchainService.CreateChainAsync(genesisBlock);
-            return chain;
-        }
-
-        private async Task<Block> AddBlock(List<Transaction> transactions)
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
-            };
-            foreach (var tx in transactions)
-            {
-                newBlock.Body.AddTransaction(tx);
-            }
-
-            await _blockchainService.AddBlockAsync(newBlock);
-            await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-            await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
-
-            return newBlock;
-        }
-
-        private Transaction GenerateTransaction(long refBlockNumber, Hash refBlockHash = null)
-        {
-            var transaction = new Transaction
-            {
-                From = Address.Zero,
-                To = Address.Zero,
-                MethodName = Guid.NewGuid().ToString(),
-                RefBlockNumber = refBlockNumber,
-                RefBlockPrefix = refBlockHash == null
-                    ? ByteString.Empty
-                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
-            };
-
-            return transaction;
         }
 
         #endregion

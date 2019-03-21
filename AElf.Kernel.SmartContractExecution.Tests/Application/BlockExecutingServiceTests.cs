@@ -15,7 +15,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class BlockExecutingServiceTests : SmartContractExecutionExecutingGrouperTestBase
+    public class BlockExecutingServiceTests : SmartContractExecutionExecutingTestBase
     {
         private readonly BlockExecutingService _blockExecutingService;
         private readonly IBlockManager _blockManager;

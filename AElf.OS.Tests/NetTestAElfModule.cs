@@ -33,6 +33,7 @@ namespace AElf.OS
             {
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
+                peerMock.Setup(p => p.CurrentBlockHeight).Returns(15);
                 peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                     .Returns<Hash, int>((hash, cnt) => 
                     {
@@ -60,13 +61,13 @@ namespace AElf.OS
             var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
             var genService = context.ServiceProvider.GetRequiredService<IBlockGenerationService>();
             var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
+            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             
             var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
             var previousBlockHash = chain.BestChainHash;
             long height = chain.BestChainHeight;
 
-            var originalBlock = AsyncHelper.RunSync(() => blockchainService.GetBlockByHashAsync(chain.BestChainHash));
-            _blockList.Add(originalBlock);
+            _blockList.AddRange(osTestHelper.BestBranchBlockList);
 
             for (var i = chain.BestChainHeight; i < chain.BestChainHeight + 10; i++)
             {

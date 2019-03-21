@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
@@ -58,7 +59,8 @@ namespace AElf.OS.Jobs
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    if (chain.LongestChainHeight >= args.BlockHeight)
+                    var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                    if (chain.LongestChainHeight >= peerBestChainHeight)
                     {
                         Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight} }}");
                         break;
