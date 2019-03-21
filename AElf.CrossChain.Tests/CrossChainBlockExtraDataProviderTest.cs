@@ -95,19 +95,19 @@ namespace AElf.CrossChain
                 new SideChainBlockData
                 {
                     SideChainHeight = 1,
-                    TransactionMKRoot = fakeMerkleTreeRoot1,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                     SideChainId = chainId1
                 },
                 new SideChainBlockData
                 {
                     SideChainHeight = 1,
-                    TransactionMKRoot = fakeMerkleTreeRoot2,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
                     SideChainId = chainId2
                 },
                 new SideChainBlockData
                 {
                     SideChainHeight = 1,
-                    TransactionMKRoot = fakeMerkleTreeRoot3,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
                     SideChainId = chainId3
                 }
             };
@@ -125,19 +125,19 @@ namespace AElf.CrossChain
                 list1.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
-                    TransactionMKRoot = fakeMerkleTreeRoot1,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                     SideChainId = chainId1
                 });
                 list2.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
-                    TransactionMKRoot = fakeMerkleTreeRoot2,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
                     SideChainId = chainId2
                 });
                 list3.Add(new SideChainBlockData
                 {
                     SideChainHeight = i,
-                    TransactionMKRoot = fakeMerkleTreeRoot3,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
                     SideChainId = chainId3
                 });
                 
@@ -163,7 +163,7 @@ namespace AElf.CrossChain
             var sideChainTxMerkleTreeRoot =
                 await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             var merkleTreeRoot = new BinaryMerkleTree()
-                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMKRoot))
+                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
                 .ComputeRootHash();
             var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);

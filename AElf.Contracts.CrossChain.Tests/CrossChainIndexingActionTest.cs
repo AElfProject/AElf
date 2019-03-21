@@ -27,7 +27,7 @@ namespace AElf.Contract.CrossChain.Tests
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 1,
                 SideChainId = sideChainId,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
             var parentChainBlockData = new ParentChainBlockData
             {
@@ -278,7 +278,7 @@ namespace AElf.Contract.CrossChain.Tests
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 1,
                 SideChainId = sideChainId,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
             
             var crossChainBlockData = new CrossChainBlockData
@@ -335,7 +335,7 @@ namespace AElf.Contract.CrossChain.Tests
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 1,
                 SideChainId = sideChainId1,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
             
             var sideChainBlockData2 = new SideChainBlockData
@@ -343,7 +343,7 @@ namespace AElf.Contract.CrossChain.Tests
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 2, // wrong height
                 SideChainId = sideChainId2,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
 
             int fakeChainId = 124;
@@ -353,7 +353,7 @@ namespace AElf.Contract.CrossChain.Tests
                 BlockHeaderHash = fakeSideChainBlockHash,
                 SideChainHeight = 1,
                 SideChainId = fakeChainId,
-                TransactionMKRoot = fakeTxMerkleTreeRoot
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
             var crossChainBlockData = new CrossChainBlockData
             {

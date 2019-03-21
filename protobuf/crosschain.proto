@@ -9,7 +9,7 @@ import "kernel.proto";
 message SideChainBlockData {
     int64 SideChainHeight = 1;
     Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
+    Hash TransactionMerkleTreeRoot = 3;
     int32 SideChainId = 4;
 }
 
