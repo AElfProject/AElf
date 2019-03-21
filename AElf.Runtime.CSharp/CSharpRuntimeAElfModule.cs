@@ -18,10 +18,10 @@ namespace AElf.Runtime.CSharp
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryThree>(provider =>
+            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryZero>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryThree(
+                return new SmartContractRunnerForCategoryZero(
                     option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(),
                     option.Value.BlackList, option.Value.WhiteList);
             });

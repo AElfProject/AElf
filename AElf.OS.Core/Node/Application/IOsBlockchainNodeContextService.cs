@@ -42,7 +42,7 @@ namespace AElf.OS.Node.Application
 
         public Type ZeroSmartContract { get; set; }
 
-        public int SmartContractRunnerCategory { get; set; } = 3; //TODO: change to 0
+        public int SmartContractRunnerCategory { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions

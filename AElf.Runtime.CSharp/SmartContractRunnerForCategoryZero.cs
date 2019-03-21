@@ -19,9 +19,9 @@ using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp
 {
-    public class SmartContractRunnerForCategoryThree : ISmartContractRunner
+    public class SmartContractRunnerForCategoryZero : ISmartContractRunner
     {
-        public int Category { get; protected set; } = 3;
+        public int Category { get; protected set; }
         private readonly ISdkStreamManager _sdkStreamManager;
 
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
@@ -34,7 +34,7 @@ namespace AElf.Runtime.CSharp
         private readonly AssemblyChecker _assemblyChecker;
 
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        public SmartContractRunnerForCategoryThree(
+        public SmartContractRunnerForCategoryZero(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins,
             IEnumerable<string> blackList = null,

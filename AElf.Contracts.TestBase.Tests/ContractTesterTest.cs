@@ -20,7 +20,7 @@ namespace AElf.Contracts.TestBase.Tests
     public class ContractTesterTest
     {
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
-        private int DefaultCategory { get; } = 3;
+        private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
         [Fact]
         public async Task InitialChainTest()
@@ -46,7 +46,7 @@ namespace AElf.Contracts.TestBase.Tests
                 "DeploySmartContract", 
                 new ContractDeploymentInput()
                 {
-                    Category = 3,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
 
@@ -79,7 +79,7 @@ namespace AElf.Contracts.TestBase.Tests
                 "DeploySmartContract", 
                 new ContractDeploymentInput()
                 {
-                    Category = 3,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
 
@@ -107,7 +107,7 @@ namespace AElf.Contracts.TestBase.Tests
                 "DeploySmartContract",
                 new ContractDeploymentInput()
                 {
-                    Category = 3,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
 
@@ -186,7 +186,7 @@ namespace AElf.Contracts.TestBase.Tests
                 "DeploySmartContract",
                 new ContractDeploymentInput()
                 {
-                    Category = 3,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
 
