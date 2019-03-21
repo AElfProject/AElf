@@ -233,12 +233,8 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
-            Hash irreversibleBlockHash)
+        public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash)
         {
-            Logger.LogInformation(
-                $"SetIrreversibleBlockAsync Lib height: {irreversibleBlockHeight}, Lib Hash: {irreversibleBlockHash}");
-
             // Create before IChainManager.SetIrreversibleBlockAsync so that we can correctly get the previous LIB info
             var eventDataToPublish = new NewIrreversibleBlockFoundEvent()
             {

@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -20,29 +22,46 @@ namespace AElf.OS.Jobs
 
         protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
         {
-            Logger.LogDebug($"Fork job: {{ target: {args.BlockHeight}, peer: {args.SuggestedPeerPubKey} }}");
+            Logger.LogDebug($"Start job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
+            var chain = await BlockchainService.GetChainAsync();
             try
             {
+                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.LongestChainHeight < 5)
+                {
+                    var peerBlockHash = Hash.LoadHex(args.BlockHash);
+                    var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
+                    if (peerBlock != null)
+                    {
+                        Logger.LogDebug($"Block {peerBlockHash} already know.");
+                        return;
+                    }
+
+                    peerBlock = await NetworkService.GetBlockByHashAsync(peerBlockHash);
+                    var status = await AttachBlockToChain(peerBlock);
+                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
+                    {
+                        return;
+                    }
+                }
+
                 var count = NetworkOptions.Value.BlockIdRequestCount;
-                var chain = await BlockchainService.GetChainAsync();
-                
                 var blockHash = chain.LastIrreversibleBlockHash;
+                Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
 
                 while (true)
                 {
                     Logger.LogDebug($"Request blocks start with {blockHash}");
 
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
-
                     if (blocks == null || !blocks.Any())
                     {
-                        Logger.LogDebug($"No blocks returned, block-count {{ chain height: {chain.LongestChainHeight} }}.");
+                        Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                         break;
                     }
 
                     Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
-                    
+
                     if (blocks.First().Header.PreviousBlockHash != blockHash)
                     {
                         Logger.LogError($"Current job hash : {blockHash}");
@@ -51,22 +70,14 @@ namespace AElf.OS.Jobs
 
                     foreach (var block in blocks)
                     {
-                        var localBlock = await BlockchainService.GetBlockByHashAsync(block.GetHash());
-                        if (localBlock != null)
-                            continue;
-
-                        chain = await BlockchainService.GetChainAsync();
-                        Logger.LogDebug($"Processing {block}. Chain is {{ longest: {chain.LongestChainHash}, best: {chain.BestChainHash} }} ");
-
-                        await BlockchainService.AddBlockAsync(block);
-                        var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
-                        await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                        Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                        await AttachBlockToChain(block);
                     }
 
+                    chain = await BlockchainService.GetChainAsync();
                     var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
                     if (chain.LongestChainHeight >= peerBestChainHeight)
                     {
-                        Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight} }}");
                         break;
                     }
 
@@ -77,6 +88,19 @@ namespace AElf.OS.Jobs
             {
                 Logger.LogError(e, $"Failed to finish download job");
             }
+            finally
+            {
+                Logger.LogDebug($"Finishing job, longest chain height: {chain.LongestChainHeight}");
+            }
+        }
+
+        private async Task<BlockAttachOperationStatus> AttachBlockToChain(Block block)
+        {
+            var chain = await BlockchainService.GetChainAsync();
+            await BlockchainService.AddBlockAsync(block);
+            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
+            await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            return status;
         }
     }
 }

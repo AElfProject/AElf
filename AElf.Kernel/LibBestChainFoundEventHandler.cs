@@ -8,7 +8,6 @@ using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -25,7 +24,6 @@ namespace AElf.Kernel
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
-        public IBackgroundJobManager BackgroundJobManager { get; set; }
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -72,12 +70,14 @@ namespace AElf.Kernel
 
                         var indexingEventData = ExtractLibFoundData(contractEvent);
                         var offset = (long) indexingEventData[0];
-                        var libHeight = eventData.BlockHeight - offset;
+                        var libHeight = block.Height - offset;
 
-                        await BackgroundJobManager.EnqueueAsync(new LastIrreversibleBlockJobArgs
-                        {
-                            BlockHeight = libHeight
-                        });
+                        var chain = await _blockchainService.GetChainAsync();
+                        var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
+
+                        Logger.LogInformation($"Lib setting start, block: {block.BlockHashToHex}, tx: {transactionHash}, offset: {offset}, lib height: {libHeight}, lib hash: {blockHash}");
+                        await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);
+                        Logger.LogInformation($"Lib setting finished.");
                     }
                 }
             }

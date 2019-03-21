@@ -40,8 +40,7 @@ namespace AElf.Kernel.SmartContract.Application
                 : chainStateInfo.BlockHeight + 1;
             var count = lastIrreversibleBlockHeight - firstHeightToMerge;
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ??
-                         new List<Hash>();
+            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ?? new List<Hash>();
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
             {
