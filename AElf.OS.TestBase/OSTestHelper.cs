@@ -139,8 +139,7 @@ namespace AElf.OS
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray()),
-                Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
             };
 
             return transaction;

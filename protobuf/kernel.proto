@@ -15,7 +15,6 @@ message Transaction {
     bytes Params = 7;
     uint64 Fee = 8;
     repeated bytes Sigs = 9;
-    google.protobuf.Timestamp Time = 10;
 }
 
 enum TransactionStatus {
@@ -312,11 +311,6 @@ message ChainBlockIndex {
 
 message TransactionBlockIndex {
     Hash BlockHash = 1;
-}
-
-message BranchSwitch {
-    repeated Hash RollBack = 1;
-    repeated Hash RollForward = 2;
 }
 
 message SystemTransactionMethodCall {
