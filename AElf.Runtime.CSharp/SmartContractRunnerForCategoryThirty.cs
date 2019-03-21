@@ -10,7 +10,7 @@ namespace AElf.Runtime.CSharp
             IEnumerable<string> blackList = null, IEnumerable<string> whiteList = null) : base(sdkDir, executivePlugins,
             blackList, whiteList)
         {
-            Category = 30;
+            Category = KernelConstants.CodeCoverageRunnerCategory;
         }
     }
 }

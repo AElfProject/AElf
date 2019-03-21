@@ -42,7 +42,7 @@ namespace AElf.Contracts.Genesis
                 nameof(ISmartContractZero.DeploySmartContract),
                 new ContractDeploymentInput()
                 {
-                    Category = 0, // test the default runner
+                    Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                     Code =ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)) 
                 });
             var contractAddressArray = resultDeploy.ReturnValue.ToByteArray();

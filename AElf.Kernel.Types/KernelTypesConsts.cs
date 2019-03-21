@@ -8,5 +8,7 @@ namespace AElf
         public const long ReferenceBlockValidPeriod = 64;
         public const int ProtocolVersion = 1;
         public const int DefaultRunnerCategory = 0;
+        public const int CodeCoverageRunnerCategory = 30;
+
     }
 }
