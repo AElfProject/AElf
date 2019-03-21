@@ -35,7 +35,7 @@ namespace AElf.Contract.CrossChain.Tests
                     Owner = Address.FromPublicKey(Tester.KeyPair.PublicKey),
                     Symbol = "ELF"
                 }));
-            Assert.True(balanceResult.Balance == 1000_000L);
+            Assert.Equal(_balanceOfStarter, balanceResult.Balance);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -483,7 +483,7 @@ namespace AElf.Contract.CrossChain.Tests
             };
             
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.CreateSideChain),
+                nameof(CrossChainContract.RequestChainCreation),
                 null,
                 sideChainInfo);
             await MineAsync(new List<Transaction> {tx1});
@@ -501,17 +501,15 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = chainId
                 });
-            var txResult2 =
-                await ExecuteContractWithMiningAsync(CrossChainContractAddress, 
+            var disposedChainIdBytes =
+                await CallContractMethodAsync(CrossChainContractAddress, 
                     nameof(CrossChainContract.DisposeSideChain), 
                     new SInt32Value()
                     {
                         Value = chainId
                     });
-            object[] data = ParamsPacker.Unpack(txResult2.Logs.First().Data.ToByteArray(),
-                new[] {typeof(int)});
-            var disposedChainId = (int) data[0];
-            Assert.True(chainId == disposedChainId);
+            var disposedChainId = SInt64Value.Parser.ParseFrom(disposedChainIdBytes).Value;
+            Assert.Equal(chainId, disposedChainId);
         }
 
         [Fact]

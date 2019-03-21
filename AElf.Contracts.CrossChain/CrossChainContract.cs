@@ -191,7 +191,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty DisposeSideChain(SInt32Value input)
+        public override SInt64Value DisposeSideChain(SInt32Value input)
         {
             var chainId = input.Value;
             // side chain disposal should be triggered by multi sig txn from system address.
@@ -209,7 +209,7 @@ namespace AElf.Contracts.CrossChain
             {
                 ChainId = chainId
             });
-            return new Empty();
+            return new SInt64Value {Value = chainId};
         }
 
         public override SInt32Value GetChainStatus(SInt32Value input)
