@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
@@ -17,8 +18,9 @@ namespace AElf.Contracts.Consensus.DPoS
             const long age = 100L;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
             await starter.InitialChainAndTokenAsync();
-            await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.SetBlockchainAge),
-                age);
+            await starter.ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.SetBlockchainAge),
+                new SInt64Value(){Value = age});
 
             // Starter can set blockchain age.
             {

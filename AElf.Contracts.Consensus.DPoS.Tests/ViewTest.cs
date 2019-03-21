@@ -7,6 +7,7 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Crypto.Engines;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -98,7 +99,9 @@ namespace AElf.Contracts.Consensus.DPoS
             //Withdraw all
             var withdrawResult =
                 await _voterList[0]
-                    .ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.WithdrawAll));
+                    .ExecuteConsensusContractMethodWithMiningAsync(
+                        nameof(ConsensusContract.WithdrawAll),
+                        new Empty());
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //GetPageableNotWithdrawnTicketsInfo

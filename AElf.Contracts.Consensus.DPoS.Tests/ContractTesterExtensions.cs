@@ -504,7 +504,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     Owner = targetAddress,
                     Symbol = "ELF"
                 });
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+            var balanceOutput = GetBalanceOutput.Parser.ParseFrom(bytes);
             return balanceOutput.Balance;
         }
 
