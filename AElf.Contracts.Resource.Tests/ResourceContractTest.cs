@@ -370,7 +370,7 @@ namespace AElf.Contracts.Resource.Tests
                 nameof(ResourceContract.BuyResource),
                 "TestResource", 100L);
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            buyResult.Error.Contains("Incorrect resource type.").ShouldBeTrue();
+            buyResult.Error.ShouldContain("Incorrect resource type.");
         }
 
         [Fact]

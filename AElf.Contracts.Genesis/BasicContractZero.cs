@@ -1,13 +1,14 @@
 using System;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
+    public class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase, ISmartContractZero
     {
         #region Views
 

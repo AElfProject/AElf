@@ -146,6 +146,23 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         private async Task<ByteString> ExecuteContractAsync(Address fromAddress,
+            IChainContext chainContext, string consensusMethodName, IMessage input)
+        {
+            var tx = new Transaction
+            {
+                From = fromAddress,
+                To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
+                    .Name),
+                MethodName = consensusMethodName,
+                Params = input?.ToByteString() ?? ByteString.Empty
+            };
+
+            var transactionTrace =
+                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            return transactionTrace.ReturnValue;
+        }
+
+        private async Task<ByteString> ExecuteContractAsync(Address fromAddress,
             IChainContext chainContext, string consensusMethodName, params object[] objects)
         {
             var tx = new Transaction

@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(ISmartContractZero.GetContractAddressByName),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(smartContractAddressNameProvider.ContractName))
+                Params = smartContractAddressNameProvider.ContractName.ToByteString()
             };
 
             var transactionResult =
@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();
 
-            var address = transactionResult.ReturnValue.DeserializeToPbMessage<Address>();
+            var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
 
             if (address != null)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);

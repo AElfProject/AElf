@@ -109,26 +109,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 methodName, input);
         }
 
-        public static async Task<TransactionResult> ExecuteConsensusContractMethodWithMiningAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
-        {
-            return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetConsensusContractAddress(),
-                methodName, objects);
-        }
         public static async Task<(Block, Transaction)> ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, IMessage input)
         {
             return await contractTester.ExecuteContractWithMiningReturnBlockAsync(
                 contractTester.GetConsensusContractAddress(),
                 methodName, input);
-        }
-
-        public static async Task<(Block, Transaction)> ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
-        {
-            return await contractTester.ExecuteContractWithMiningReturnBlockAsync(
-                contractTester.GetConsensusContractAddress(),
-                methodName, objects);
         }
 
         /// <summary>
@@ -169,13 +155,6 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
-        }
-
-        public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, params object[] objects)
-        {
-            var tokenContractAddress = contractTester.GetTokenContractAddress();
-            return await contractTester.ExecuteContractWithMiningAsync(tokenContractAddress, methodName, objects);
         }
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
@@ -419,7 +398,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var transactionResult = await extraBlockMiner.GetTransactionResultAsync(transaction.GetHash());
                 if (transactionResult.Status != TransactionResultStatus.Mined)
                 {
-                    throw new Exception($"Failed to execute {transaction.MethodName} tx.");
+                    throw new Exception($"Failed to execute {transaction.MethodName} tx. {transactionResult.Error}");
                 }
             }
 
@@ -503,7 +482,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     Owner = targetAddress,
                     Symbol = "ELF"
                 });
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+            var balanceOutput = GetBalanceOutput.Parser.ParseFrom(bytes);
             return balanceOutput.Balance;
         }
 

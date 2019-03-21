@@ -22,7 +22,6 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.TestBase
 {
     [DependsOn(
-        typeof(CSharpRuntimeAElfModule),
         typeof(CSharpRuntimeAElfModule3),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
