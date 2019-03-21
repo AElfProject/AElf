@@ -35,17 +35,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var user = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
             await user.SetBlockchainAgeAsync(age + 100);
-
-            // While others can't.
-            {
-                var blockchainAge = SInt64Value.Parser.ParseFrom(await user.CallContractMethodAsync(
-                    starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge),
-                    new Empty())).Value;
-
-                // Still 100.
-                blockchainAge.ShouldBe(age);
-            }
         }
 
         [Fact]

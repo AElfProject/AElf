@@ -24,13 +24,19 @@ namespace AElf.Contracts.Token
         private Address BasicZeroContractAddress { get; set; }
         private Address TokenContractAddress { get; set; }
 
-        private const string Symbol = "ELFTEST";
+        private const string SymbolForTestingInitialLogic = "ELFTEST";
+        private const string DefaultSymbol = "ELF";
 
         private const int DefaultCategory = 3;
 
+        private static long _totalSupply;
+        private static long _balanceOfStarter;
+
         public TokenContractTest()
         {
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress())));
+            AsyncHelper.RunSync(() =>
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                    out _, out _balanceOfStarter)));
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             _spenderKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -92,7 +98,7 @@ namespace AElf.Contracts.Token
             var tx = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Create),
                 new CreateInput
                 {
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     Decimals = 2,
                     IsBurnable = true,
                     Issuer = Tester.GetCallOwnerAddress(),
@@ -102,7 +108,7 @@ namespace AElf.Contracts.Token
             var issueTx = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Issue),
                 new IssueInput
                 {
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     Amount = 1000_000L,
                     To = Tester.GetCallOwnerAddress(),
                     Memo = "Issue token to starter himself."
@@ -111,7 +117,7 @@ namespace AElf.Contracts.Token
             var result = GetBalanceOutput.Parser.ParseFrom(await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                 new GetBalanceInput
                 {
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     Owner = Tester.GetCallOwnerAddress()
                 }));
             result.Balance.ShouldBe(1000_000L);
@@ -123,7 +129,7 @@ namespace AElf.Contracts.Token
             var tx = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Create),
                 new CreateInput
                 {
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     Decimals = 2,
                     IsBurnable = true,
                     Issuer = Address.FromPublicKey(_spenderKeyPair.PublicKey),
@@ -136,9 +142,9 @@ namespace AElf.Contracts.Token
                 nameof(TokenContract.GetTokenInfo),
                 new GetTokenInfoInput
                 {
-                    Symbol = "ELF"
+                    Symbol = SymbolForTestingInitialLogic
                 }));
-            tokenInfo.Symbol.ShouldBe("ELF");
+            tokenInfo.Symbol.ShouldBe(SymbolForTestingInitialLogic);
             tokenInfo.Decimals.ShouldBe(2);
             tokenInfo.IsBurnable.ShouldBe(true);
             tokenInfo.Issuer.ShouldBe(Address.FromPublicKey(_spenderKeyPair.PublicKey));
@@ -156,7 +162,7 @@ namespace AElf.Contracts.Token
             var result = await other.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.Create), new CreateInput
                 {
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     Decimals = 2,
                     IsBurnable = false,
                     Issuer = Address.FromPublicKey(_spenderKeyPair.PublicKey),
@@ -178,7 +184,7 @@ namespace AElf.Contracts.Token
                 {
                     Amount = 1000L,
                     Memo = "transfer test",
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     To = Tester.GetAddress(toAddress)
                 });
 
@@ -186,17 +192,17 @@ namespace AElf.Contracts.Token
                 await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                     new GetBalanceInput
                     {
-                        Symbol = Symbol,
+                        Symbol = SymbolForTestingInitialLogic,
                         Owner = Tester.GetCallOwnerAddress()
                     }));
             var result2 = GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                     new GetBalanceInput
                     {
-                        Symbol = Symbol,
+                        Symbol = SymbolForTestingInitialLogic,
                         Owner = Tester.GetAddress(toAddress)
                     }));
-            result1.Balance.ShouldBe(1000_000L - 1000L);
+            result1.Balance.ShouldBe(_totalSupply - 1000L);
             result2.Balance.ShouldBe(1000L);
         }
 
@@ -214,7 +220,7 @@ namespace AElf.Contracts.Token
                 {
                     Amount = 1000L,
                     Memo = "transfer test",
-                    Symbol = Symbol,
+                    Symbol = SymbolForTestingInitialLogic,
                     To = from.GetAddress(toAddress)
                 });
             result.Result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -222,7 +228,7 @@ namespace AElf.Contracts.Token
                 new GetBalanceInput
                 {
                     Owner = from.GetAddress(fromAddress),
-                    Symbol = "ELF"
+                    Symbol = DefaultSymbol
                 })).Balance;
             balance.ShouldBe(0L);
             result.Result.Error.Contains($"Insufficient balance").ShouldBeTrue();
@@ -239,7 +245,7 @@ namespace AElf.Contracts.Token
             var result1 = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.Approve), new ApproveInput
                 {
-                    Symbol = Symbol,
+                    Symbol = DefaultSymbol,
                     Amount = 2000L,
                     Spender = spender
                 });
@@ -250,7 +256,7 @@ namespace AElf.Contracts.Token
                 {
                     Owner = owner,
                     Spender = spender,
-                    Symbol = "ELF"
+                    Symbol = DefaultSymbol
                 }));
             allowanceOutput.Allowance.ShouldBe(2000L);
         }
@@ -267,7 +273,7 @@ namespace AElf.Contracts.Token
                     new UnApproveInput
                     {
                         Amount = 1000L,
-                        Symbol = Symbol,
+                        Symbol = DefaultSymbol,
                         Spender = spender
                     });
             result2.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -277,7 +283,7 @@ namespace AElf.Contracts.Token
                 {
                     Owner = owner,
                     Spender = spender,
-                    Symbol = "ELF"
+                    Symbol = DefaultSymbol
                 }));
             allowanceOutput.Allowance.ShouldBe(2000L - 1000L);
         }
@@ -296,7 +302,7 @@ namespace AElf.Contracts.Token
                     {
                         Owner = owner,
                         Spender = spender,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
             allowanceOutput.Allowance.ShouldBe(0L);
             var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
@@ -304,7 +310,7 @@ namespace AElf.Contracts.Token
                 {
                     Amount = 1000L,
                     Spender = spender,
-                    Symbol = Symbol
+                    Symbol = SymbolForTestingInitialLogic
                 });
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -325,7 +331,7 @@ namespace AElf.Contracts.Token
                         Amount = 1000L,
                         From = owner,
                         Memo = "test",
-                        Symbol = Symbol,
+                        Symbol = DefaultSymbol,
                         To = spenderAddress
                     });
             result2.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -335,7 +341,7 @@ namespace AElf.Contracts.Token
                 {
                     Owner = owner,
                     Spender = spenderAddress,
-                    Symbol = "ELF",
+                    Symbol = DefaultSymbol,
                 }));
             allowanceOutput2.Allowance.ShouldBe(2000L - 1000L);
 
@@ -344,7 +350,7 @@ namespace AElf.Contracts.Token
                     new GetBalanceInput
                     {
                         Owner = spenderAddress,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
             allowanceOutput3.Balance.ShouldBe(1000L);
         }
@@ -364,7 +370,7 @@ namespace AElf.Contracts.Token
                         Amount = 1000L,
                         From = owner,
                         Memo = "transfer from test",
-                        Symbol = Symbol,
+                        Symbol = DefaultSymbol,
                         To = spender
                     });
             result2.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -376,7 +382,7 @@ namespace AElf.Contracts.Token
                     {
                         Owner = owner,
                         Spender = spender,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
             allowanceOutput2.Allowance.ShouldBe(2000L);
 
@@ -385,7 +391,7 @@ namespace AElf.Contracts.Token
                     new GetBalanceInput
                     {
                         Owner = spender,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
             balanceOutput3.Balance.ShouldBe(0L);
         }
@@ -403,7 +409,7 @@ namespace AElf.Contracts.Token
                     {
                         Owner = owner,
                         Spender = spender,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
             allowanceOutput.Allowance.ShouldBe(0L);
 
@@ -416,7 +422,7 @@ namespace AElf.Contracts.Token
                         Amount = 1000L,
                         From = owner,
                         Memo = "transfer from test",
-                        Symbol = Symbol,
+                        Symbol = DefaultSymbol,
                         To = spender
                     });
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -430,16 +436,16 @@ namespace AElf.Contracts.Token
             await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Burn), new BurnInput
             {
                 Amount = 3000L,
-                Symbol = Symbol
+                Symbol = DefaultSymbol
             });
             var balance = GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                     new GetBalanceInput
                     {
                         Owner = Tester.GetCallOwnerAddress(),
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
-            balance.Balance.ShouldBe(1000_000L - 3000L);
+            balance.Balance.ShouldBe(_balanceOfStarter - 3000L);
         }
 
         [Fact]
@@ -451,7 +457,7 @@ namespace AElf.Contracts.Token
             var result = await burner.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Burn),
                 new BurnInput
                 {
-                    Symbol = Symbol,
+                    Symbol = DefaultSymbol,
                     Amount = 3000L
                 });
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -468,13 +474,13 @@ namespace AElf.Contracts.Token
                     nameof(TokenContract.ChargeTransactionFees), new ChargeTransactionFeesInput
                     {
                         Amount = 10L,
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     });
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             await Tester.ExecuteContractWithMiningAsync(TokenContractAddress, nameof(TokenContract.Transfer),
                 new TransferInput
                 {
-                    Symbol = "ELF",
+                    Symbol = DefaultSymbol,
                     Amount = 1000L,
                     Memo = "transfer test",
                     To = Tester.GetAddress(_spenderKeyPair)
@@ -484,9 +490,9 @@ namespace AElf.Contracts.Token
                     new GetBalanceInput
                     {
                         Owner = Tester.GetCallOwnerAddress(),
-                        Symbol = "ELF"
+                        Symbol = DefaultSymbol
                     }));
-            balanceOutput.Balance.ShouldBe(1000_000L - 1000L - 10L);
+            balanceOutput.Balance.ShouldBe(_balanceOfStarter - 1000L - 10L);
         }
 
         [Fact]
@@ -496,7 +502,7 @@ namespace AElf.Contracts.Token
             var result = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.ClaimTransactionFees), new ClaimTransactionFeesInput
                 {
-                    Symbol = "ELF",
+                    Symbol = DefaultSymbol,
                     Height = 1L
                 });
             result.Status.ShouldBe(TransactionResultStatus.Failed);
