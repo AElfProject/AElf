@@ -13,6 +13,8 @@ namespace AElf.OS.Jobs
 {
     public class ForkDownloadJob : AsyncBackgroundJob<ForkDownloadJobArgs>
     {
+        private const long InitialSyncLimit = 10;
+        
         public IBlockchainService BlockchainService { get; set; }
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
@@ -28,12 +30,16 @@ namespace AElf.OS.Jobs
                 var chain = await BlockchainService.GetChainAsync();
 
                 var blockHash = chain.LastIrreversibleBlockHash;
+                var blockHeight = chain.LastIrreversibleBlockHeight;
 
+                var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                
                 while (true)
                 {
                     Logger.LogDebug($"Request blocks start with {blockHash}");
-
-                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
+                    
+                    var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
+                    var blocks = await NetworkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
 
                     if (blocks == null || !blocks.Any())
                     {
@@ -59,14 +65,16 @@ namespace AElf.OS.Jobs
                         await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
                     }
 
-                    var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                    peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
                     if (chain.LongestChainHeight >= peerBestChainHeight)
                     {
                         Logger.LogDebug($"Finishing job: {{ chain height: {chain.LongestChainHeight} }}");
                         break;
                     }
 
-                    blockHash = blocks.Last().GetHash();
+                    var lastBlock = blocks.Last();
+                    blockHash = lastBlock.GetHash();
+                    blockHeight = lastBlock.Height;
                 }
             }
             catch (Exception e)
