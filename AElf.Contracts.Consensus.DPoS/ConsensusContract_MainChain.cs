@@ -71,9 +71,9 @@ namespace AElf.Contracts.Consensus.DPoS
             if (State.DividendContract.Value == null)
             {
                 State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
                 State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
         }
 

@@ -322,14 +322,14 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Transaction GenerateTransaction(string methodName, List<object> parameters)
+        private Transaction GenerateTransaction(string methodName, IMessage parameter)
         {
             var tx = new Transaction
             {
                 From = Context.Sender,
                 To = Context.Self,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
+                Params = parameter.ToByteString()
             };
 
             return tx;

@@ -45,7 +45,7 @@ namespace AElf.Contracts.Dividend
             if (State.ConsensusContract.Value == null)
             {
                 State.ConsensusContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.ConsensusContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
             }
             
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
@@ -53,7 +53,7 @@ namespace AElf.Contracts.Dividend
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
             
             State.TokenContract.Transfer.Send(new TransferInput
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Dividend
             if (State.ConsensusContract.Value == null)
             {
                 State.ConsensusContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.ConsensusContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
             }
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
@@ -116,7 +116,7 @@ namespace AElf.Contracts.Dividend
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
             
             State.TokenContract.Transfer.Send(new TransferInput

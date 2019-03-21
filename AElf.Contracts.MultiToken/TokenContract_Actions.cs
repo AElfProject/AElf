@@ -46,7 +46,7 @@ namespace AElf.Contracts.MultiToken
             var whiteList = new List<Address>();
             foreach (var systemContractName in input.LockWhiteSystemContractNameList)
             {
-                var address = State.BasicContractZero.GetContractAddressByName(systemContractName);
+                var address = State.BasicContractZero.GetContractAddressByName.Call(systemContractName);
                 whiteList.Add(address);
             }
             var createInput = new CreateInput
@@ -84,7 +84,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = input.Memo,
-                To = State.BasicContractZero.GetContractAddressByName(input.ToSystemContractName)
+                To = State.BasicContractZero.GetContractAddressByName.Call(input.ToSystemContractName)
             };
             return Issue(issueInput);
         }
