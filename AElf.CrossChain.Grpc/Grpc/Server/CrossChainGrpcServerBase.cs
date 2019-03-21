@@ -189,7 +189,7 @@ namespace AElf.CrossChain.Grpc
             var binaryMerkleTree = new BinaryMerkleTree();
             foreach (var blockInfo in indexedSideChainBlockDataResult)
             {
-                binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
+                binaryMerkleTree.AddNode(blockInfo.TransactionMerkleTreeRoot);
             }
 
             binaryMerkleTree.ComputeRootHash();
@@ -253,7 +253,7 @@ namespace AElf.CrossChain.Grpc
                 {
                     SideChainHeight = block.Height,
                     BlockHeaderHash = block.GetHash(),
-                    TransactionMKRoot = block.Header.MerkleTreeRootOfTransactions,
+                    TransactionMerkleTreeRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header),
                     SideChainId = sideChainId
                 }
             };

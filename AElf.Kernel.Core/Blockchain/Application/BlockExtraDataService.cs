@@ -63,7 +63,18 @@ namespace AElf.Kernel.Blockchain.Application
             else
                 blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled
         }
-        
+
+        /// <summary>
+        /// Extract merkle tree root from header extra data.
+        /// </summary>
+        /// <param name="blockHeader"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">The size of header extra data is incorrect.</exception>
+        public ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader)
+        {
+            return blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count];
+        }
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {
