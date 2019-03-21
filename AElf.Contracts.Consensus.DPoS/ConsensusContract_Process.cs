@@ -145,9 +145,9 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public long GetLIBOffset()
+        public override SInt64Value GetLIBOffset(Empty input)
         {
-            return CalculateLIB(out var offset) ? offset : 0;
+            return new SInt64Value() {Value = CalculateLIB(out var offset) ? offset : 0};
         }
 
         private bool CalculateLIB(out long offset)
