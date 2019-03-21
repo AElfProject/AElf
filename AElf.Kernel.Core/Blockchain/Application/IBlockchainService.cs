@@ -285,7 +285,10 @@ namespace AElf.Kernel.Blockchain.Application
                 }
             }
 
-            await _chainManager.CleanBranches(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
+            await _chainManager.CleanBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
+            
+            // Remove Blocks
+            //await RemoveBlocksAsync();
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
@@ -419,6 +422,15 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Chain> GetChainAsync()
         {
             return await _chainManager.GetAsync();
+        }
+
+        private async Task RemoveBlocksAsync(List<Hash> blockHashs)
+        {
+            foreach (var blockHash in blockHashs)
+            {
+                await _chainManager.RemoveChainBlockLinkAsync(blockHash);
+                await _blockManager.RemoveBlockAsync(blockHash);
+            }
         }
     }
 }

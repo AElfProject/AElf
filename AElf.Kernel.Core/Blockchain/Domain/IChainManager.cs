@@ -26,6 +26,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<Chain> CreateAsync(Hash genesisBlock);
         Task<Chain> GetAsync();
         Task<ChainBlockLink> GetChainBlockLinkAsync(Hash blockHash);
+        Task RemoveChainBlockLinkAsync(Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
         Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
@@ -33,7 +34,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
-        Task CleanBranches(Chain chain, List<string> branchKeys, List<string> notLinkedKeys);
+        Task CleanBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -123,6 +124,11 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
+        }
+
+        public async Task RemoveChainBlockLinkAsync(Hash blockHash)
+        {
+            await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + blockHash.ToStorageKey());
         }
 
         public async Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight)
@@ -291,7 +297,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return ChainId;
         }
 
-        public async Task CleanBranches(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
+        public async Task CleanBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
         {
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
             foreach (var key in branchKeys)
