@@ -70,12 +70,12 @@ namespace AElf.Kernel
 
                         var indexingEventData = ExtractLibFoundData(contractEvent);
                         var offset = (long) indexingEventData[0];
-                        var libHeight = block.Height - offset;
+                        var libHeight = eventData.BlockHeight - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
-                        Logger.LogInformation($"Lib setting start, block: {block.BlockHashToHex}, tx: {transactionHash}, offset: {offset}, lib height: {libHeight}, lib hash: {blockHash}");
+                        Logger.LogInformation($"Lib setting start, block: {block.BlockHashToHex}, height: {block.Height}, tx: {transactionHash}, offset: {offset}, lib height: {libHeight}, lib hash: {blockHash}");
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);
                         Logger.LogInformation($"Lib setting finished.");
                     }

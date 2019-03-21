@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Jobs
 {
-    public class ForkDownloadJob : AsyncBackgroundJob<ForkDownloadJobArgs>
+    public class BlockSyncJob : AsyncBackgroundJob<BlockSyncJobArgs>
     {
         private const long InitialSyncLimit = 10;
         public IBlockchainService BlockchainService { get; set; }
@@ -21,9 +21,9 @@ namespace AElf.OS.Jobs
         public INetworkService NetworkService { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
-        protected override async Task ExecuteAsync(ForkDownloadJobArgs args)
+        protected override async Task ExecuteAsync(BlockSyncJobArgs args)
         {
-            Logger.LogDebug($"Start job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
+            Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
             var chain = await BlockchainService.GetChainAsync();
             try
@@ -93,11 +93,11 @@ namespace AElf.OS.Jobs
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Failed to finish download job");
+                Logger.LogError(e, $"Failed to finish block sync job");
             }
             finally
             {
-                Logger.LogDebug($"Finishing job, longest chain height: {chain.LongestChainHeight}");
+                Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
             }
         }
 

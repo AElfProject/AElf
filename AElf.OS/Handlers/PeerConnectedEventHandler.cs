@@ -44,7 +44,7 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            await BackgroundJobManager.EnqueueAsync(new ForkDownloadJobArgs
+            await BackgroundJobManager.EnqueueAsync(new BlockSyncJobArgs
             {
                 SuggestedPeerPubKey = senderPubKey,
                 BlockHash = blockHash.ToHex(),
