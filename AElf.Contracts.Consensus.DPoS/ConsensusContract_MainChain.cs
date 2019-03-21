@@ -54,6 +54,12 @@ namespace AElf.Contracts.Consensus.DPoS
             miners.TermNumber = 1;
             SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
+
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.DividendContract.Value =
+                State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+            State.TokenContract.Value =
+                State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
         }
 
         private void UpdateHistoryInformation(Round round)
@@ -124,13 +130,6 @@ namespace AElf.Contracts.Consensus.DPoS
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            if (State.DividendContract.Value == null)
-            {
-                State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
-            }
 
             State.DividendContract.KeepWeights(termNumber);
 
@@ -323,12 +322,6 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
-
-            if (State.DividendContract.Value == null)
-            {
-                State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
-            }
 
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,

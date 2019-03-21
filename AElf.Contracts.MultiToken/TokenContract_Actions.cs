@@ -76,7 +76,6 @@ namespace AElf.Contracts.MultiToken
 
         public Nothing IssueNativeToken(IssueNativeTokenInput input)
         {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             Assert(input.ToSystemContractName != null, "To address not filled.");
             Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
             var issueInput = new IssueInput
