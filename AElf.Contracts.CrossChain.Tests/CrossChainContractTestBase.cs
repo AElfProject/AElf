@@ -60,9 +60,21 @@ namespace AElf.Contract.CrossChain.Tests
         {
             var tx = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize),
-                ConsensusContractAddress, TokenContractAddress, parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId);
-
-            await Tester.MineAsync(new List<Transaction> {tx});
+                new AElf.Contracts.CrossChain.InitializeInput()
+                {
+                    ConsensusContractAddress = ConsensusContractAddress,
+                    TokenContractAddress = TokenContractAddress,
+                    ParentChainId = parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId
+                });
+            var tx3 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Issue),
+                new IssueInput
+                {
+                    Symbol = "ELF",
+                    Amount = tokenAmount,
+                    To = Tester.GetCallOwnerAddress(),
+                    Memo = "Initial tokens for testing cross chain contract."
+                });
+            await Tester.MineAsync(new List<Transaction> {tx1, tx2,tx3});
         }
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
@@ -84,7 +96,11 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.CreateSideChain), chainId);
+                nameof(CrossChainContract.CreateSideChain),
+                new SInt32Value()
+                {
+                    Value = chainId
+                });
             await Tester.MineAsync(new List<Transaction> {tx2});
             return chainId;
         }
@@ -94,16 +110,16 @@ namespace AElf.Contract.CrossChain.Tests
             return await Tester.MineAsync(txs);
         }
         
-        protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, params object[] objects)
+        protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, IMessage input)
         {
-            return await Tester.ExecuteContractWithMiningAsync(contractAddress, methodName, objects);
+            return await Tester.ExecuteContractWithMiningAsync(contractAddress, methodName, input);
         }
 
-        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair = null, params object[] objects)
+        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair, IMessage input)
         {
             return ecKeyPair == null
-                ? await Tester.GenerateTransactionAsync(contractAddress, methodName, objects)
-                : await Tester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, objects);
+                ? await Tester.GenerateTransactionAsync(contractAddress, methodName, input)
+                : await Tester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
         }
 
         protected async Task<TransactionResult> GetTransactionResult(Hash txId)
@@ -112,11 +128,11 @@ namespace AElf.Contract.CrossChain.Tests
         }
 
         protected async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
-            return await Tester.CallContractMethodAsync(contractAddress, methodName, objects);
+            return await Tester.CallContractMethodAsync(contractAddress, methodName, input);
         }
-        
+
         protected byte[] GetFriendlyBytes(int value)
         {
             byte[] bytes = BitConverter.GetBytes(value);

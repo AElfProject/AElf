@@ -43,22 +43,22 @@ namespace AElf.Contracts.Token
         }
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
-            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, IMessage parameter)
+            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, IMessage input)
         {
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                methodName, parameter);
+                methodName, input);
         }
 
         public static async Task<long> GetBalanceAsync(this ContractTester<TokenContractTestAElfModule> contractTester,
             Address targetAddress)
         {
-            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
+            var balanceOutput =GetBalanceOutput.Parser.ParseFrom(
+                await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
                 nameof(TokenContract.GetBalance), new GetBalanceInput
                 {
                     Owner = targetAddress,
                     Symbol = "ELF"
-                });
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+                }));
             return balanceOutput.Balance;
         }
 

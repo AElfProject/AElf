@@ -272,34 +272,6 @@ namespace AElf.Contracts.TestBase
             return Address.FromPublicKey(KeyPair.PublicKey);
         }
 
-        /// <summary>
-        /// Generate a transaction and sign it.
-        /// </summary>
-        /// <param name="contractAddress"></param>
-        /// <param name="methodName"></param>
-        /// <param name="objects"></param>
-        /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            params object[] objects)
-        {
-            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var tx = new Transaction
-            {
-                From = Address.FromPublicKey(KeyPair.PublicKey),
-                To = contractAddress,
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
-            };
-
-            var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
-
-            return tx;
-        }
-
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
             IMessage input)
         {
@@ -327,30 +299,8 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="ecKeyPair"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            ECKeyPair ecKeyPair,
-            params object[] objects)
-        {
-            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var tx = new Transaction
-            {
-                From = Address.FromPublicKey(ecKeyPair.PublicKey),
-                To = contractAddress,
-                MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
-                RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
-            };
-
-            var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
-
-            return tx;
-        }
-
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
             ECKeyPair ecKeyPair, IMessage input)
         {
@@ -413,18 +363,8 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
-            params object[] objects)
-        {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
-            await MineAsync(new List<Transaction> {tx});
-            var result = await GetTransactionResultAsync(tx.GetHash());
-
-            return result;
-        }
-
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
             IMessage input)
         {
@@ -434,19 +374,18 @@ namespace AElf.Contracts.TestBase
 
             return result;
         }
-        
+
         /// <summary>
-        /// Generate a tx then package the new tx to a new block.
+        ///  Generate a tx then package the new tx to a new block.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName,
-            params object[] objects)
+            string methodName,IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 

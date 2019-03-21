@@ -5,6 +5,7 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -24,14 +25,27 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Starter can set blockchain age.
             {
-                var blockchainAge = (await starter.CallContractMethodAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToInt64();
+                var blockchainAge = SInt64Value.Parser.ParseFrom(await starter.CallContractMethodAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetBlockchainAge),
+                    new Empty())).Value;
 
                 blockchainAge.ShouldBe(age);
             }
 
             var user = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
             await user.SetBlockchainAgeAsync(age + 100);
+
+            // While others can't.
+            {
+                var blockchainAge = SInt64Value.Parser.ParseFrom(await user.CallContractMethodAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetBlockchainAge),
+                    new Empty())).Value;
+
+                // Still 100.
+                blockchainAge.ShouldBe(age);
+            }
         }
 
         [Fact]

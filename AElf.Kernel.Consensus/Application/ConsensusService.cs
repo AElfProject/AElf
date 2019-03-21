@@ -86,9 +86,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            var validationResult = (await ExecuteContractAsync(address,
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData))
-                .DeserializeToPbMessage<ValidationResult>();
+            var validationResult =ValidationResult.Parser.ParseFrom(
+                    await ExecuteContractAsync(address,
+                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData));
 
             if (!validationResult.Success)
             {
@@ -129,10 +129,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions =
+            var generatedTransactions =TransactionList.Parser.ParseFrom(
                 (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                    _consensusInformationGenerationService.GetTriggerInformation()))
-                .DeserializeToPbMessage<TransactionList>()
+                    _consensusInformationGenerationService.GetTriggerInformation())))
                 .Transactions
                 .ToList();
 
