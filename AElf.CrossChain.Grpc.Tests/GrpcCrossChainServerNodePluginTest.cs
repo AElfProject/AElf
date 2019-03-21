@@ -32,5 +32,11 @@ namespace AElf.CrossChain.Grpc
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
         }
+        
+        [Fact]
+        public async Task Server_Shutdown_Test()
+        {
+            await _grpcCrossChainServerNodePlugin.ShutdownAsync();
+        }
     }
 }
