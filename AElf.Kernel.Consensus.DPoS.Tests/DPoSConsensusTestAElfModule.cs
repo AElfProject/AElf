@@ -9,12 +9,14 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.OS;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
@@ -31,8 +33,6 @@ namespace AElf.Kernel.Consensus.DPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
-            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
             //Account service
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
             context.Services.AddTransient(o =>
@@ -52,38 +52,19 @@ namespace AElf.Kernel.Consensus.DPoS
 
                 return mockService.Object;
             });
-            context.Services.AddTransient(o =>
+            context.Services.AddTransient(builder =>
             {
-                var transactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
-                transactionReadOnlyExecutionService.Setup( m=>m.ExecuteAsync(It.IsAny<ChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
-                    .Returns(Task.FromResult(new TransactionTrace()));
+                var consensusService = new Mock<IConsensusService>();
+                consensusService.Setup(m=>m.ValidateConsensusBeforeExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                        It.IsAny<byte[]>()))
+                    .Returns(Task.FromResult(true));
+                consensusService.Setup(m=>m.ValidateConsensusAfterExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                        It.IsAny<byte[]>()))
+                    .Returns(Task.FromResult(true));
                 
-                return transactionReadOnlyExecutionService;
-            });
-            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
-            context.Services.AddTransient(o =>
-            {
-                var blockChainService = new Mock<IBlockchainService>();
-                blockChainService.Setup( m=>m.GetChainAsync()).Returns(
-                    Task.FromResult(new Chain()
-                    {
-                        BestChainHash = Hash.Generate(),
-                        BestChainHeight = 100,
-                        Id = 1234
-                    }));
-
-                return blockChainService.Object;
+                return consensusService.Object;
             });
             context.Services.AddTransient(o => Mock.Of<ConsensusControlInformation>());
-            context.Services.AddTransient(o =>
-            {
-                var smartContractAddressService = new Mock<ISmartContractAddressService>();
-                smartContractAddressService.Setup( m=>m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(Address.Generate()); 
-                
-                return smartContractAddressService.Object;
-            });
-
             Configure<DPoSOptions>(o =>
             {
                 o.InitialMiners = new List<string>()
@@ -94,9 +75,8 @@ namespace AElf.Kernel.Consensus.DPoS
                 o.MiningInterval = 2000;
                 o.IsBootMiner = true;
             });
-            context.Services.AddTransient<IConsensusService, ConsensusService>();
-            context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
         }
     }
 }
