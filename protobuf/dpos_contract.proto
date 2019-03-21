@@ -6,6 +6,7 @@ import "consensus.proto";
 import "consensus_dpos.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.DPoS";
 
@@ -74,7 +75,7 @@ service ConsensusContract {
     rpc GetCurrentTermNumber (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc IsCandidate (PublicKey) returns (BoolValue) {
+    rpc IsCandidate (PublicKey) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
     rpc GetCandidatesList (google.protobuf.Empty) returns (StringList) {
@@ -228,10 +229,6 @@ message PageableElectionInfoInput {
 
 message Alias {
     string value = 1;
-}
-
-message BoolValue {
-    bool value = 1;
 }
 
 message PublicKey {
