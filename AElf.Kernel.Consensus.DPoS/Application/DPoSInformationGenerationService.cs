@@ -49,7 +49,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 };
             }
 
-            //TODO Add GetTriggerInformation switch test cases [Case]
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:

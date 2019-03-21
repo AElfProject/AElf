@@ -11,7 +11,11 @@ service TokenContract {
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
+    rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
+    }
     rpc Issue (IssueInput) returns (google.protobuf.Empty) {
+    }
+    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
     }
@@ -63,11 +67,28 @@ message CreateInput {
     repeated Address lockWhiteList = 7;
 }
 
+message CreateNativeTokenInput {
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    Address issuer = 5;
+    bool isBurnable = 6;
+    repeated Hash lockWhiteSystemContractNameList = 7;
+}
+
 message IssueInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
     Address to = 4;
+}
+
+message IssueNativeTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    Hash toSystemContractName = 4;
 }
 
 message TransferInput {

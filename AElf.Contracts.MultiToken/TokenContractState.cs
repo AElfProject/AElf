@@ -1,3 +1,4 @@
+using System;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
@@ -13,9 +14,11 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, Address, string, long> Allowances { get; set; }
         public MappedState<Address, string, long> ChargedFees { get; set; }
         public SingletonState<Address> FeePoolAddress { get; set; }
+
         /// <summary>
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
+        public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }

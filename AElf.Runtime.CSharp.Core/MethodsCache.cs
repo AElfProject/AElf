@@ -18,7 +18,7 @@ namespace AElf.Runtime.CSharp.Core
             _contractInstance = contractInstance;
             foreach (var m in abi.Methods)
             {
-                _abiMap.Add(m.Name, m);
+                _abiMap.TryAdd(m.Name, m);
             }
 
             foreach (var m in contractInstance.GetType().GetRuntimeMethods().Where(m => m.IsPublic && !m.IsStatic))

@@ -31,7 +31,7 @@ namespace AElf.OS.Jobs
             _job.Execute(new ForkDownloadJobArgs { BlockHeight = 25 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(21);
+            chain.BestChainHeight.ShouldBe(15);
         }
         
         [Fact]
@@ -41,7 +41,7 @@ namespace AElf.OS.Jobs
             _job.Execute(new ForkDownloadJobArgs { BlockHeight = 3 });
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(11);
+            chain.BestChainHeight.ShouldBe(15);
         }
         
         [Fact]

@@ -241,7 +241,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             for (int i = 0; i < _voterList.Count; i++)
             {
-                await Starter.IssueTokenAsync(_voterList[i].GetCallOwnerAddress(), 100000);
+                await Starter.TransferTokenAsync(_voterList[i].GetCallOwnerAddress(), 100000);
 
                 for (int j = 0; j < _candidateLists.Count; j++)
                 {

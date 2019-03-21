@@ -35,16 +35,17 @@ namespace AElf.Contracts.Token
             params Address[] whiteAddresses)
         {
             // Initial token.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create), new CreateInput
-            {
-                Symbol = "ELF",
-                Decimals = 2,
-                IsBurnable = true,
-                Issuer = starter.GetCallOwnerAddress(),
-                TokenName = "elf token",
-                TotalSupply = 100_000,
-                LockWhiteList = {whiteAddresses.ToList()}
-            });
+            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create),
+                new CreateInput
+                {
+                    Symbol = "ELF",
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = starter.GetCallOwnerAddress(),
+                    TokenName = "elf token",
+                    TotalSupply = 100_000,
+                    LockWhiteList = {whiteAddresses.ToList()},
+                });
         }
 
         public static async Task IssueTokenAsync(this ContractTester<TokenContractTestAElfModule> starter, Address to,

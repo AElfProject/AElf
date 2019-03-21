@@ -29,7 +29,7 @@ namespace AElf.Contract.CrossChain.Tests
         public CrossChainContractTestBase()
         {
             Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes()));
+            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress())));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
@@ -56,19 +56,9 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task Initialize(long tokenAmount, int parentChainId = 0)
+        protected async Task InitializeCrossChainContract(int parentChainId = 0)
         {
-            var tx1 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Create),
-                new CreateInput
-                {
-                    Symbol = "ELF",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    Issuer = Tester.GetCallOwnerAddress(),
-                    TokenName = "elf token",
-                    TotalSupply = tokenAmount
-                });
-            var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
+            var tx = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize),
                 new AElf.Contracts.CrossChain.InitializeInput()
                 {
@@ -89,7 +79,7 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            await Initialize(1000, parentChainId);
+            await InitializeCrossChainContract(parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
             var sideChainInfo = new SideChainInfo

@@ -27,6 +27,7 @@ namespace AElf.Contracts.Dividend
         public BoolState Initialized { get; set; }
         public ConsensusContractReferenceState ConsensusContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
+        public BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         // Term Number -> Dividends Amount
         public MappedState<long, long> DividendsMap { get; set; }
@@ -40,5 +41,8 @@ namespace AElf.Contracts.Dividend
         public MappedState<Hash, long> LastRequestedDividendsMap { get; set; }
 
         public SingletonState<string> StarterPublicKey { get; set; }
+
+        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
+        public SingletonState<Hash> TokenContractSystemName { get; set; }
     }
 }

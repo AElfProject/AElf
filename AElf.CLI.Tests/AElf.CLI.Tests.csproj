@@ -4,7 +4,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
-    <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh $(OutDir)" />
+    <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="bash ../scripts/install_chakracore.sh 1_11_1 $(OutDir)" />
   </Target>
   <ItemGroup>
     <PackageReference Condition=" '$(OS)' == 'Windows_NT' " Include="Microsoft.ChakraCore" Version="1.11.7" />

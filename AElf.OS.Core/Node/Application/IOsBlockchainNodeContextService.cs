@@ -94,9 +94,11 @@ namespace AElf.OS.Node.Application
             genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
 
-        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts)
+        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+            SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
-            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name);
+            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name,
+                systemTransactionMethodCallList);
         }
     }
 
@@ -159,10 +161,9 @@ namespace AElf.OS.Node.Application
             var context = new OsBlockchainNodeContext
             {
                 BlockchainNodeContext =
-                    await _blockchainNodeContextService.StartAsync(blockchainNodeContextStartDto)
+                    await _blockchainNodeContextService.StartAsync(blockchainNodeContextStartDto),
+                AElfNetworkServer = _networkServer
             };
-
-            context.AElfNetworkServer = _networkServer;
 
             await _networkServer.StartAsync();
 
@@ -173,7 +174,6 @@ namespace AElf.OS.Node.Application
 
             return context;
         }
-
 
         private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName,
             int category, SystemTransactionMethodCallList transactionMethodCallList = null)

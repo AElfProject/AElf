@@ -98,10 +98,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            await EventBus.PublishAsync(new TransactionsReceivedEvent()
-            {
-                Transactions = new List<Transaction> {tx}
-            });
+            _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
 
             return new VoidReply();
         }
@@ -131,12 +128,12 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null)
+            if (request == null || request.Hash == null) 
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.Peer} requested block {request.Hash}.");
+            
             var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
-
 
             Logger.LogDebug($"Sending {block} to {context.Peer}.");
 
@@ -145,7 +142,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null)
+            if (request == null || request.PreviousBlockHash == null) 
                 return new BlockList();
 
             var blockList = new BlockList();

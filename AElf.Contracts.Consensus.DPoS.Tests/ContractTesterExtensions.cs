@@ -14,6 +14,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types.CSharp;
@@ -102,6 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
         #endregion
 
         #region Basic
+        
         public static async Task<TransactionResult> ExecuteConsensusContractMethodWithMiningAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester, string methodName, IMessage input)
         {
@@ -173,34 +175,50 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
-            await starter.InitialChainAsync(
-                list =>
+            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
+                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
                 {
-                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
-
-            // Initial token.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create), new CreateInput
+            
+            var tokenContractCallList = new SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
                 IsBurnable = true,
-                Issuer = starter.GetCallOwnerAddress(),
                 TokenName = "elf token",
+                Issuer = starter.GetCallOwnerAddress(),
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                LockWhiteList = { starter.GetConsensusContractAddress()}
+                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
+            
+            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 10,
-                To = starter.GetDividendsContractAddress(),
+                Amount = DPoSContractConsts.LockTokenForElection * 20,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                Memo = "Issue ",
+            });
+            
+            // For testing.
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection * 80,
+                To = starter.GetCallOwnerAddress(),
                 Memo = "Set dividends.",
             });
-
-            // Initial consensus contract.
-            await starter.InitializeAsync();
+            
+            await starter.InitialChainAsync(
+                list =>
+                {
+                    // Dividends contract must be deployed before token contract.
+                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+                });
 
             if (minersKeyPairs != null)
             {
@@ -444,19 +462,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
         }
 
-        public static async Task<TransactionResult> IssueTokenAsync(
-            this ContractTester<DPoSContractTestAElfModule> contractTester,
-            Address receiverAddress, long amount)
-        {
-            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue),
-                new IssueInput
-                {
-                    To = receiverAddress,
-                    Amount = amount,
-                    Symbol = "ELF",
-                });
-        }
-
         public static async Task<List<TransactionResult>> TransferTokenAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester,
             List<Address> receiverAddresses, long amount)
@@ -527,10 +532,10 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var candidateKeyPair = CryptoHelpers.GenerateKeyPair();
                 transferTxs.Add(await starter.GenerateTransactionAsync(starter.GetTokenContractAddress(),
-                    nameof(TokenContract.Issue), starter.KeyPair, new IssueInput
+                    nameof(TokenContract.Transfer), starter.KeyPair, new TransferInput
                     {
                         To = Address.FromPublicKey(candidateKeyPair.PublicKey),
-                        Amount = DPoSContractConsts.LockTokenForElection + 100,
+                        Amount = DPoSContractConsts.LockTokenForElection,
                         Symbol = "ELF"
                     }));
                 announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
@@ -553,15 +558,22 @@ namespace AElf.Contracts.Consensus.DPoS
             return candidates;
         }
 
+        /// <summary>
+        /// Default pocket money is 10000L.
+        /// </summary>
+        /// <param name="starter"></param>
+        /// <param name="number"></param>
+        /// <param name="pocketMoney"></param>
+        /// <returns></returns>
         public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateVotersAsync(
-            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1)
+            this ContractTester<DPoSContractTestAElfModule> starter, int number = 1, long pocketMoney = 10000L)
         {
             var voters = new List<ContractTester<DPoSContractTestAElfModule>>();
 
             for (var i = 0; i < number; i++)
             {
                 var voter = starter.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
-                await starter.IssueTokenAsync(voter.GetCallOwnerAddress(), 1000L);
+                await starter.TransferTokenAsync(voter.GetCallOwnerAddress(), pocketMoney);
                 voters.Add(voter);
             }
 

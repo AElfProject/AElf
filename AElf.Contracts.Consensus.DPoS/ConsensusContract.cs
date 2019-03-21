@@ -130,8 +130,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(InitialConsensus),
-                                new List<object> {round})
+                            GenerateTransaction(nameof(InitialConsensus), round)
                         }
                     };
                 case DPoSBehaviour.UpdateValue:
@@ -140,19 +139,15 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(UpdateValue),
-                                new List<object>
-                                {
-                                    new ToUpdate
-                                    {
-                                        OutValue = minerInRound.OutValue,
-                                        Signature = minerInRound.Signature,
-                                        PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                                        RoundId = round.RoundId,
-                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
-                                        ActualMiningTime = minerInRound.ActualMiningTime
-                                    }
-                                }),
+                            GenerateTransaction(nameof(UpdateValue), new ToUpdate
+                            {
+                                OutValue = minerInRound.OutValue,
+                                Signature = minerInRound.Signature,
+                                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
+                                RoundId = round.RoundId,
+                                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                                ActualMiningTime = minerInRound.ActualMiningTime
+                            }),
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -160,8 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextRound),
-                                new List<object> {round})
+                            GenerateTransaction(nameof(NextRound), round)
                         }
                     };
                 case DPoSBehaviour.NextTerm:
@@ -171,11 +165,13 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction("NextTerm",
-                                new List<object> {round}),
-                            GenerateTransaction("SnapshotForMiners", new List<object> {termNumber, roundNumber}),
-                            GenerateTransaction("SnapshotForTerm", new List<object> {termNumber, roundNumber}),
-                            GenerateTransaction("SendDividends", new List<object> {termNumber, roundNumber})
+                            GenerateTransaction("NextTerm", round),
+                            GenerateTransaction("SnapshotForMiners",
+                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
+                            GenerateTransaction("SnapshotForTerm",
+                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
+                            GenerateTransaction("SendDividends",
+                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
                         }
                     };
                 case DPoSBehaviour.Invalid:

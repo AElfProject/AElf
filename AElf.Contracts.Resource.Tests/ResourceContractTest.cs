@@ -36,8 +36,7 @@ namespace AElf.Contracts.Resource.Tests
 
         public ResourceContractTest()
         {
-            var contractArray = Tester.GetDefaultContractTypes();
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(contractArray));
+            AsyncHelper.RunSync(() => Tester.InitialChainAndTokenAsync());
 
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
@@ -75,29 +74,6 @@ namespace AElf.Contracts.Resource.Tests
         [Fact]
         public async Task Initialize_Resource()
         {
-            //init token contract
-            var initResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContract.Create), new CreateInput
-                {
-                    Symbol = "ELF",
-                    TokenName = "elf token",
-                    Issuer = Tester.GetCallOwnerAddress(),
-                    TotalSupply = 1000_000L,
-                    Decimals = 2,
-                    IsBurnable = true
-                });
-            initResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            //init balance for Tester
-            await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContract.Issue), new IssueInput
-                {
-                    Symbol = "ELF",
-                    Amount = 1000_000L,
-                    Memo = "Initial balance for testing resource contract.",
-                    To = Tester.GetCallOwnerAddress()
-                });
-
             //init fee receiver contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -435,7 +411,7 @@ namespace AElf.Contracts.Resource.Tests
                     Amount = 100L
                 });
             buyResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            buyResult.Error.Contains("Incorrect resource type.").ShouldBeTrue();
+            buyResult.Error.ShouldContain("Incorrect resource type.");
         }
 
         [Fact]
