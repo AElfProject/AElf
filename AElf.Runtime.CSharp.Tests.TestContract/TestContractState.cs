@@ -1,7 +1,7 @@
 using AElf.Common;
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Runtime.CSharp3.Tests.TestContract
+namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class TestContractState : ContractState
     {

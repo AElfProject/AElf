@@ -14,7 +14,7 @@ namespace AElf.Kernel.Blockchain.Domain
     {
         public static long BlockHeight(this int index)
         {
-            return ChainConsts.GenesisBlockHeight + index;
+            return KernelConstants.GenesisBlockHeight + index;
         }
     }
 
@@ -47,24 +47,24 @@ namespace AElf.Kernel.Blockchain.Domain
             var createChainResult = await _chainManager.CreateAsync(_genesis);
             chain = await _chainManager.GetAsync();
             chain.ShouldBe(createChainResult);
-            chain.LongestChainHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
+            chain.LongestChainHeight.ShouldBe(KernelConstants.GenesisBlockHeight);
             chain.LongestChainHash.ShouldBe(_genesis);
             chain.BestChainHash.ShouldBe(_genesis);
-            chain.BestChainHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
+            chain.BestChainHeight.ShouldBe(KernelConstants.GenesisBlockHeight);
             chain.GenesisBlockHash.ShouldBe(_genesis);
             chain.LastIrreversibleBlockHash.ShouldBe(_genesis);
-            chain.LastIrreversibleBlockHeight.ShouldBe(ChainConsts.GenesisBlockHeight);
+            chain.LastIrreversibleBlockHeight.ShouldBe(KernelConstants.GenesisBlockHeight);
             chain.Branches.Count.ShouldBe(1);
-            chain.Branches[_genesis.ToStorageKey()].ShouldBe(ChainConsts.GenesisBlockHeight);
+            chain.Branches[_genesis.ToStorageKey()].ShouldBe(KernelConstants.GenesisBlockHeight);
 
             var blockLink = await _chainManager.GetChainBlockLinkAsync(_genesis);
             blockLink.BlockHash.ShouldBe(_genesis);
-            blockLink.Height.ShouldBe(ChainConsts.GenesisBlockHeight);
+            blockLink.Height.ShouldBe(KernelConstants.GenesisBlockHeight);
             blockLink.PreviousBlockHash.ShouldBe(Hash.Empty);
             blockLink.IsLinked.ShouldBeTrue();
             blockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
 
-            var chainBlockIndex = await _chainManager.GetChainBlockIndexAsync(ChainConsts.GenesisBlockHeight);
+            var chainBlockIndex = await _chainManager.GetChainBlockIndexAsync(KernelConstants.GenesisBlockHeight);
             chainBlockIndex.BlockHash.ShouldBe(_genesis);
         }
 

@@ -14,7 +14,7 @@ namespace AElf.Kernel
 //                return transaction.ExpiryBlockNumber;
 //            }
 
-            return transaction.RefBlockNumber + ChainConsts.ReferenceBlockValidPeriod;
+            return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
         public static int Size(this Transaction transaction)
         {

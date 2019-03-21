@@ -34,8 +34,6 @@ namespace AElf.Contracts.Resource.Tests
         private Address ResourceContractAddress;
         private Address FeeReceiverContractAddress;
 
-        private const int DefaultCategory = 3;
-
         public ResourceContractTest()
         {
             AsyncHelper.RunSync(() => Tester.InitialChainAndTokenAsync());
@@ -57,14 +55,14 @@ namespace AElf.Contracts.Resource.Tests
                 nameof(ISmartContractZero.DeploySmartContract),
                 new ContractDeploymentInput()
                 {
-                    Category = DefaultCategory,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
             var resourceTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
                 nameof(ISmartContractZero.DeploySmartContract),
                 new ContractDeploymentInput()
                 {
-                    Category = DefaultCategory,
+                    Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
                 });
 
