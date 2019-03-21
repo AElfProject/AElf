@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
@@ -11,12 +12,14 @@ namespace AElf.CrossChain.Grpc
         private readonly INodePlugin _grpcCrossChainServerNodePlugin;
         private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
         private readonly ChainOptions _chainOptions;
+        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
         public GrpcCrossChainClientNodePluginTest()
         {
             _grpcCrossChainServerNodePlugin = GetRequiredService<INodePlugin>();
             _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
             _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+            _grpcCrossChainConfigOption = GetRequiredService<IOptionsSnapshot<GrpcCrossChainConfigOption>>().Value;
         }
 
         [Fact]
@@ -31,6 +34,26 @@ namespace AElf.CrossChain.Grpc
         {
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
+        }
+
+        [Fact]
+        public async Task GrpcServeNewChainReceivedEventTest()
+        {
+            var receivedEventData = new GrpcServeNewChainReceivedEvent
+            {
+                LocalChainId = _chainOptions.ChainId,
+                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
+                {
+                    RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
+                    RemoteIsSideChain = false,
+                    TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
+                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
+                    LocalChainId = _chainOptions.ChainId,
+                    CertificateFileName = _grpcCrossChainConfigOption.RemoteParentCertificateFileName,
+                    LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
+                }
+            };
+            await _grpcCrossChainClientNodePlugin.HandleEventAsync(receivedEventData);
         }
     }
 }
