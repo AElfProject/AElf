@@ -81,7 +81,7 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, int count, string peerPubKey = null, bool tryOthersIfFail = false)
+        public async Task<List<Block>> GetBlocksAsync(Hash blockHash, long height, int count, string peerPubKey = null, bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peerPubKey))
@@ -107,8 +107,13 @@ namespace AElf.OS.Network.Application
                     return null;
                 }
             }
-
-            foreach (var peer in _peerPool.GetPeers())
+            
+            // shuffle the peers that can give us the blocks
+            var shuffledPeers = _peerPool.GetPeers()
+                .Where(p => p.CurrentBlockHeight >= height)
+                .OrderBy(a => Guid.NewGuid());
+                
+            foreach (var peer in shuffledPeers)
             {
                 var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(blockHash, count));
 
