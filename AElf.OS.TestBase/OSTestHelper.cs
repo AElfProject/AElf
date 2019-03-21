@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -118,7 +119,7 @@ namespace AElf.OS
             var transaction = GenerateTransaction(accountAddress,
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 nameof(TokenContract.Transfer),
-                Address.FromPublicKey(newUserKeyPair.PublicKey), 10);
+                new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
@@ -126,7 +127,7 @@ namespace AElf.OS
             return transaction;
         }
         
-        public Transaction GenerateTransaction(Address from, Address to,string methodName, params object[] objects)
+        public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;
             var transaction = new Transaction
@@ -134,7 +135,7 @@ namespace AElf.OS
                 From = from,
                 To = to,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.DumpByteArray().Take(4).ToArray()),
                 Time = Timestamp.FromDateTime(DateTime.UtcNow)
@@ -209,8 +210,16 @@ namespace AElf.OS
             {
                 From = account,
                 To = tokenAddress,
-                MethodName = nameof(ITokenContract.Initialize),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack("ELF", "ELF_Token", 100000, 8))
+                MethodName = nameof(TokenContract.Create),
+                Params = new CreateInput
+                {
+                    Symbol = "ELF",
+                    TokenName = "ELF_Token",
+                    TotalSupply = 100_0000L,
+                    Decimals = 8,
+                    Issuer = account,
+                    IsBurnable = true
+                }.ToByteString(),
             };
         }
 
