@@ -255,10 +255,15 @@ namespace AElf.Kernel.Blockchain.Application
             var toCleanBranchKeys = new List<string>();
             foreach (var branch in chain.Branches)
             {
-                if (branch.Key != bestChainKey && branch.Value <= irreversibleBlockHeight)
+                if (branch.Key != bestChainKey)
                 {
                     var blockHash = await GetBlockHashByHeightAsync(chain, irreversibleBlockHeight + 1,
                         Hash.LoadHex(branch.Key));
+                    if (blockHash == null)
+                    {
+                        continue;
+                    }
+
                     var blockHeader = await GetBlockHeaderByHashAsync(blockHash);
 
                     if (blockHeader.PreviousBlockHash != irreversibleBlockHash)
