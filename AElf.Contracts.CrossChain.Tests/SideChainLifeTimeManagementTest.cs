@@ -35,7 +35,7 @@ namespace AElf.Contract.CrossChain.Tests
                     Owner = Address.FromPublicKey(Tester.KeyPair.PublicKey),
                     Symbol = "ELF"
                 }));
-            Assert.True(balanceResult.Balance == 1000_000L);
+            Assert.Equal(_balanceOfStarter, balanceResult.Balance);
             var sideChainInfo = new SideChainInfo
             {
                 SideChainStatus = SideChainStatus.Apply,
@@ -483,7 +483,7 @@ namespace AElf.Contract.CrossChain.Tests
             };
             
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.CreateSideChain),
+                nameof(CrossChainContract.RequestChainCreation),
                 null,
                 sideChainInfo);
             await MineAsync(new List<Transaction> {tx1});
