@@ -4,7 +4,6 @@ using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
-using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
