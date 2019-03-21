@@ -7,6 +7,7 @@ using Google.Protobuf;
 namespace AElf.Kernel.Consensus.DPoS.Application
 {
     // ReSharper disable once InconsistentNaming
+    //TODO Add ConsensusExtraDataProvider case [Case]
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;

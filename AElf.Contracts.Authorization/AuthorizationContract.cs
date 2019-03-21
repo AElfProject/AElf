@@ -5,16 +5,17 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Authorization
 {
-    public partial class AuthorizationContract : CSharpSmartContract<AuthorizationContractState>
+    public partial class AuthorizationContract : AuthorizationContractContainer.AuthorizationContractBase
     {
         #region View
 
-        [View]
-        public Proposal GetProposal(Hash proposalHash)
+        public override Proposal GetProposal(Hash input)
         {
+            var proposalHash = input;
             var proposal = State.Proposals[proposalHash];
             Assert(proposal != null, "Not found proposal.");
 
@@ -44,9 +45,9 @@ namespace AElf.Contracts.Authorization
             return proposal;
         }
 
-        [View]
-        public Kernel.Authorization GetAuthorization(Address address)
+        public override Kernel.Authorization GetAuthorization(Address input)
         {
+            var address = input;
             // case 1: get authorization of normal multi sig account
             if (!address.Equals(Context.Genesis))
             {
@@ -76,8 +77,9 @@ namespace AElf.Contracts.Authorization
 
         #region Actions
 
-        public byte[] CreateMultiSigAccount(Kernel.Authorization authorization)
+        public override Address CreateMultiSigAccount(Kernel.Authorization input)
         {
+            var authorization = input;
             Assert(authorization.Reviewers.Count > 0 && authorization.Reviewers.All(r => r.PubKey.Length > 0),
                 "Invalid authorization for multi signature.");
             Address multiSigAccount = authorization.MultiSigAccount ??
@@ -96,11 +98,12 @@ namespace AElf.Contracts.Authorization
 
             authorization.MultiSigAccount = multiSigAccount;
             State.MultiSig[multiSigAccount] = authorization;
-            return multiSigAccount.DumpByteArray();
+            return multiSigAccount;
         }
 
-        public byte[] Propose(Proposal proposal)
+        public override Hash Propose(Proposal input)
         {
+            var proposal = input;
             // check validity of proposal
             Assert(
                 proposal.Name != null
@@ -120,11 +123,12 @@ namespace AElf.Contracts.Authorization
             var auth = GetAuthorization(proposal.MultiSigAccount);
             CheckAuthority(proposal, auth);
             State.Proposals[hash] = proposal;
-            return hash.DumpByteArray();
+            return hash;
         }
 
-        public bool SayYes(Approval approval)
+        public override BoolValue SayYes(Approval input)
         {
+            var approval = input;
             // check validity of proposal 
             Hash hash = approval.ProposalHash;
 
@@ -158,11 +162,12 @@ namespace AElf.Contracts.Authorization
                 State.Proposals[hash] = proposal;
             }
 
-            return true;
+            return new BoolValue() {Value = true};
         }
 
-        public byte[] Release(Hash proposalHash)
+        public override Hash Release(Hash input)
         {
+            var proposalHash = input;
             var proposal = State.Proposals[proposalHash];
             Assert(proposal != null, "Proposal not found.");
             // check expired time of proposal
@@ -184,20 +189,21 @@ namespace AElf.Contracts.Authorization
             Context.SendDeferredTransaction(proposedTxn);
             proposal.Status = ProposalStatus.Released;
             State.Proposals[proposalHash] = proposal;
-            return proposedTxn.GetHash().DumpByteArray();
+            return proposedTxn.GetHash();
         }
 
         #endregion
 
-        public bool IsMultiSigAccount(Address address)
+        public override BoolValue IsMultiSigAccount(Address input)
         {
+            var address = input;
             var authorization = State.MultiSig[address];
             if (address.Equals(Context.Genesis) || authorization != null)
             {
-                return true;
+                return new BoolValue() {Value = true};
             }
 
-            return false;
+            return new BoolValue() {Value = false};
         }
 
         /*private bool GetAuth(Address address, out Authorization authorization)

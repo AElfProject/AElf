@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Configuration;
 using AElf.Management.Helper;
 using AElf.Management.Interfaces;
 using AElf.Management.Models;

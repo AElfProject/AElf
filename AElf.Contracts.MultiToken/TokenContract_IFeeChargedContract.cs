@@ -1,6 +1,7 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel.Types.SmartContract;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -16,10 +17,10 @@ namespace AElf.Contracts.MultiToken
             };
         }
 
-        public Nothing SetMethodFee(SetMethodFeeInput input)
+        public Empty SetMethodFee(SetMethodFeeInput input)
         {
             State.MethodFees[input.Method] = input.Fee;
-            return Nothing.Instance;
+            return new Empty();
         }
     }
 }

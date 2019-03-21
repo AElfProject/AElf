@@ -8,8 +8,8 @@ namespace AElf.Contracts.Resource
 {
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<TransferInput> Transfer { get; set; }
-        public Action<TransferFromInput> TransferFrom { get; set; }
+        internal MethodReference<TransferInput, Empty> Transfer { get; set; }
+        internal MethodReference<TransferFromInput, Empty> TransferFrom { get; set; }
     }
     
     public class ResourceContractState : ContractState

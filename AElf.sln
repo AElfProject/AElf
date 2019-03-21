@@ -158,7 +158,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividends", "AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend", "AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Rpc", "AElf.Test.Rpc", "{E4D6568F-622A-4685-B95B-0F2FF1315ECE}"
 EndProject
@@ -247,6 +247,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.SideChain", "AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj", "{CB758566-4212-4ECB-8210-2934FAD44941}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Blockchains", "AElf.Blockchains", "{8EF44709-4B5E-489B-A945-EDCB2D1A69C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -618,6 +620,10 @@ Global
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -703,5 +709,6 @@ Global
 		{BAE34041-C603-4A7D-BE25-5DD48BD4391E} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 		{6D907620-FE59-4C55-86CD-8299278BC06A} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 		{CB758566-4212-4ECB-8210-2934FAD44941} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

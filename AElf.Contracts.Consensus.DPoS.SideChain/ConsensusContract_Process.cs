@@ -14,20 +14,21 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     public partial class ConsensusContract
     {
         #region InitialDPoS
-        
-        public void InitialConsensus(Round firstRound)
+
+        public override Empty InitialConsensus(Round input)
         {
-            Assert(firstRound.RoundNumber == 1,
+            Assert(input.RoundNumber == 1,
                 "It seems that the term number of initial term is incorrect.");
 
-            Assert(firstRound.RealTimeMinersInformation.Any(), "No miners in round information.");
+            Assert(input.RealTimeMinersInformation.Any(), "No miners in round information.");
             
-            InitialSettings(firstRound);
+            InitialSettings(input);
 
-            SetAliases(firstRound);
+            SetAliases(input);
 
-            firstRound.BlockchainAge = 1;
-            Assert(TryToAddRoundInformation(firstRound), "Failed to add round information.");
+            input.BlockchainAge = 1;
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+            return new Empty();
         }
 
         private void SetAliases(Round round)
@@ -54,9 +55,10 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         #endregion
         
         #region UpdateValue
-        
-        public void UpdateValue(ToUpdate toUpdate)
+
+        public override Empty UpdateValue(ToUpdate input)
         {
+            var toUpdate = input;
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
                    toUpdate.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
 
@@ -84,13 +86,15 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
+            return new Empty();
         }
         #endregion
 
         #region NextRound
 
-        public void NextRound(Round round)
+        public override Empty NextRound(Round input)
         {
+            var round = input;
             if (TryToGetRoundNumber(out var roundNumber))
             {
                 Assert(roundNumber < round.RoundNumber, "Incorrect round number for next round.");
@@ -111,6 +115,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
+            return new Empty();
         }
         
         private bool TryToUpdateRoundNumber(long roundNumber)

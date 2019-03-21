@@ -59,6 +59,7 @@ namespace AElf.Cryptography
 
         public bool IsOpen { get; }
 
+        //TODO: Add OpenAsync to coverwith Timeout = false case [Case]
         public async Task<Errors> OpenAsync(string address, string password, bool withTimeout = true)
         {
             try
