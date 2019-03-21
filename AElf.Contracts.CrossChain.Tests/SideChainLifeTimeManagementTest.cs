@@ -501,17 +501,15 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = chainId
                 });
-            var txResult2 =
-                await ExecuteContractWithMiningAsync(CrossChainContractAddress, 
+            var disposedChainIdBytes =
+                await CallContractMethodAsync(CrossChainContractAddress, 
                     nameof(CrossChainContract.DisposeSideChain), 
                     new SInt32Value()
                     {
                         Value = chainId
                     });
-            object[] data = ParamsPacker.Unpack(txResult2.Logs.First().Data.ToByteArray(),
-                new[] {typeof(int)});
-            var disposedChainId = (int) data[0];
-            Assert.True(chainId == disposedChainId);
+            var disposedChainId = SInt64Value.Parser.ParseFrom(disposedChainIdBytes).Value;
+            Assert.Equal(chainId, disposedChainId);
         }
 
         [Fact]
