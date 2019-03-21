@@ -15,6 +15,7 @@ namespace AElf.OS.Jobs
 {
     public class ForkDownloadJob : AsyncBackgroundJob<ForkDownloadJobArgs>
     {
+        private const long InitialSyncLimit = 10;
         public IBlockchainService BlockchainService { get; set; }
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
@@ -45,15 +46,19 @@ namespace AElf.OS.Jobs
                     }
                 }
 
-                var count = NetworkOptions.Value.BlockIdRequestCount;
                 var blockHash = chain.LastIrreversibleBlockHash;
                 Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
 
+                var blockHeight = chain.LastIrreversibleBlockHeight;
+                var count = NetworkOptions.Value.BlockIdRequestCount;
+                var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
                 while (true)
                 {
                     Logger.LogDebug($"Request blocks start with {blockHash}");
+                    
+                    var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
+                    var blocks = await NetworkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
 
-                    var blocks = await NetworkService.GetBlocksAsync(blockHash, count, args.SuggestedPeerPubKey);
                     if (blocks == null || !blocks.Any())
                     {
                         Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
@@ -75,13 +80,15 @@ namespace AElf.OS.Jobs
                     }
 
                     chain = await BlockchainService.GetChainAsync();
-                    var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                    peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
                     if (chain.LongestChainHeight >= peerBestChainHeight)
                     {
                         break;
                     }
 
-                    blockHash = blocks.Last().GetHash();
+                    var lastBlock = blocks.Last();
+                    blockHash = lastBlock.GetHash();
+                    blockHeight = lastBlock.Height;
                 }
             }
             catch (Exception e)
