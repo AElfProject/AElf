@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
                 MethodName = nameof(ISmartContractZero.GetContractAddressByName),
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(smartContractAddressNameProvider.ContractName))
+                Params = smartContractAddressNameProvider.ContractName.ToByteString()
             };
 
             var transactionResult =
