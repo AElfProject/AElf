@@ -2,6 +2,7 @@
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {
@@ -9,26 +10,23 @@ namespace AElf.Contracts.Resource.FeeReceiver
     /// This contracts controls how the fees collected from resource trading can be used. Current rule says
     /// 50% of the fees will be burned and the other 50% distributed to the foundation.
     /// </summary>
-    public class FeeReceiverContract: CSharpSmartContract<FeeReceiverContractState>
+    public class FeeReceiverContract: FeeReceiverContractContainer.FeeReceiverContractBase
     {
         #region Views
 
-        [View]
-        public string GetElfTokenAddress()
+        public override Address GetElfTokenAddress(Empty input)
         {
-            return State.TokenContract.Value.GetFormatted();
+            return State.TokenContract.Value;
         }
 
-        [View]
-        public string GetFoundationAddress()
+        public override Address GetFoundationAddress(Empty input)
         {
-            return State.FoundationAddress.Value.GetFormatted();
+            return State.FoundationAddress.Value;
         }
 
-        [View]
-        public long GetOwedToFoundation()
+        public override SInt64Value GetOwedToFoundation(Empty input)
         {
-            return State.OwedToFoundation.Value;
+            return new SInt64Value() {Value = State.OwedToFoundation.Value};
         }
 
         #endregion Views
@@ -38,29 +36,32 @@ namespace AElf.Contracts.Resource.FeeReceiver
         /// <summary>
         /// Initializes this contract.
         /// </summary>
-        /// <param name="elfTokenAddress">The address of the native ELF token.</param>
-        /// <param name="foundationAddress">The address of the foundation.</param>
-        public void Initialize(Address elfTokenAddress, Address foundationAddress)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty Initialize(InitializeInput input)
         {
             var initialized = State.Initialized.Value;
             Assert(!initialized, "Already initialized.");
-            State.TokenContract.Value = elfTokenAddress;
-            State.FoundationAddress.Value = foundationAddress;
+            State.TokenContract.Value = input.ElfTokenAddress;
+            State.FoundationAddress.Value = input.FoundationAddress;
             State.Initialized.Value = true;
+            return new Empty();
         }
 
         /// <summary>
         /// Withdraw specific amount owed to the foundation. Only foundation can perform this action.
         /// </summary>
-        /// <param name="amount"></param>
-        public void Withdraw(long amount)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty Withdraw(SInt64Value input)
         {
+            var amount = input.Value;
             Assert(Context.Sender == State.FoundationAddress.Value, "Only foundation can withdraw token.");
             var owed = State.OwedToFoundation.Value;
             Assert(owed >= amount, "Too much to withdraw.");
             if (amount > 0)
             {
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FoundationAddress.Value,
                     Amount = amount,
@@ -68,23 +69,28 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 });
             }
             State.OwedToFoundation.Value = owed.Sub(amount);
+            return new Empty();
         }
 
         /// <summary>
         /// Withdraw all amount owed to the foundation. Only foundation can perform this action.
         /// </summary>
-        public void WithdrawAll()
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty WithdrawAll(Empty input)
         {
             var owed = State.OwedToFoundation.Value;
-            Withdraw(owed);
+            return Withdraw(new SInt64Value() {Value = owed});
         }
 
         /// <summary>
         /// Burn half of raw tokens and set the other half as owed to foundation. Anyone can perform this action.
         /// </summary>
-        public void Burn()
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty Burn(Empty input)
         {
-            var bal = State.TokenContract.GetBalance(new GetBalanceInput
+            var bal = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = Context.Self,
                 Symbol = "ELF"
@@ -94,7 +100,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var half = preBurnAmount.Div(2);
             if (half > 0)
             {
-                State.TokenContract.Burn(new BurnInput
+                State.TokenContract.Burn.Send(new BurnInput
                 {
                     Symbol = "ELF",
                     Amount = half
@@ -102,6 +108,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             }
             owed = owed.Add(half);
             State.OwedToFoundation.Value = owed;
+            return new Empty();
         }
 
         #endregion Actions
