@@ -111,5 +111,8 @@ namespace AElf.Contracts.Consensus.DPoS
         public MappedState<Int64Value, Int64Value> TermToFirstRoundMap { get; set; }
 
         public SingletonState<string> StarterPublicKey { get; set; }
+
+        public SingletonState<Hash> DividendContractSystemName { get; set; }
+        public SingletonState<Hash> TokenContractSystemName { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
@@ -27,11 +28,6 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable
             };
-            if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
-            {
-                // The first created token will be the native token
-                State.NativeTokenSymbol.Value = input.Symbol;
-            }
 
             foreach (var address in input.LockWhiteList)
             {
@@ -41,15 +37,55 @@ namespace AElf.Contracts.MultiToken
             return Nothing.Instance;
         }
 
+        public Nothing CreateNativeToken(CreateNativeTokenInput input)
+        {
+            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
+            State.NativeTokenSymbol.Value = input.Symbol;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            var whiteList = new List<Address>();
+            foreach (var systemContractName in input.LockWhiteSystemContractNameList)
+            {
+                var address = State.BasicContractZero.GetContractAddressByName(systemContractName);
+                whiteList.Add(address);
+            }
+            var createInput = new CreateInput
+            {
+                Symbol = input.Symbol,
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                Issuer = input.Issuer,
+                Decimals = input.Decimals,
+                IsBurnable = true,
+                LockWhiteList = {whiteList}
+            };
+            return Create(createInput);
+        }
+
         public Nothing Issue(IssueInput input)
         {
+            Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Issuer == Context.Sender, "Sender is not allowed to issue this token.");
+            Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
+                "Sender is not allowed to issue this token.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = input.Amount;
             return Nothing.Instance;
+        }
+
+        public Nothing IssueNativeToken(IssueNativeTokenInput input)
+        {
+            Assert(input.ToSystemContractName != null, "To address not filled.");
+            Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
+            var issueInput = new IssueInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Memo,
+                To = State.BasicContractZero.GetContractAddressByName(input.ToSystemContractName)
+            };
+            return Issue(issueInput);
         }
 
         public Nothing Transfer(TransferInput input)
