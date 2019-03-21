@@ -93,7 +93,6 @@ namespace AElf.CrossChain
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
                 Params = input.ToByteString(),
-                Time = Timestamp.FromDateTime(DateTime.UtcNow)
             };
         }
     }

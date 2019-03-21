@@ -323,7 +323,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 From = Context.Sender,
                 To = Context.Self,
                 MethodName = methodName,
-                Type = TransactionType.DposTransaction,
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
             };
 
