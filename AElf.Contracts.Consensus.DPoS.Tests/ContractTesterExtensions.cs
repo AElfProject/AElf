@@ -633,7 +633,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividendsOfPreviousTerm));
+                nameof(DividendContract.CheckDividendsOfPreviousTerm), new Empty());
             return LongList.Parser.ParseFrom(bytes);
         }
 
@@ -659,7 +659,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static async Task<long> GetLIBOffset(this ContractTester<DPoSContractTestAElfModule> miner)
         {
-            return (await miner.CallContractMethodAsync(miner.GetConsensusContractAddress(), nameof(GetLIBOffset)))
+            return (await miner.CallContractMethodAsync(miner.GetConsensusContractAddress(), nameof(GetLIBOffset), new Empty()))
                 .DeserializeToInt64();
         }
 

@@ -8,7 +8,7 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract
     {
         [View]
-        public GetMethodFeeOutput GetMethodFee(GetMethodFeeInput input)
+        public override GetMethodFeeOutput GetMethodFee(GetMethodFeeInput input)
         {
             return new GetMethodFeeOutput()
             {
@@ -16,8 +16,8 @@ namespace AElf.Contracts.MultiToken
                 Fee = State.MethodFees[input.Method]
             };
         }
-
-        public Empty SetMethodFee(SetMethodFeeInput input)
+        
+        public override Empty SetMethodFee(SetMethodFeeInput input)
         {
             State.MethodFees[input.Method] = input.Fee;
             return new Empty();

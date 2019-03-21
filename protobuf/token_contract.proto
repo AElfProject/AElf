@@ -35,6 +35,8 @@ service TokenContract {
     }
     rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
     }
+    rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -45,6 +47,9 @@ service TokenContract {
     rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
+    rpc GetMethodFee (GetMethodFeeInput) returns (GetMethodFeeOutput) {
+    }
+
 }
 
 message TokenInfo {

@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Token;
 using AElf.Types.CSharp;
+using Google.Protobuf;
 using Xunit;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -25,6 +26,8 @@ namespace AElf.Contracts.Token
 
         private const string Symbol = "ELFTEST";
 
+        private const int DefaultCategory = 3;
+
         public TokenContractTest()
         {
             AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress())));
@@ -37,7 +40,7 @@ namespace AElf.Contracts.Token
         public async Task Deploy_TokenContract()
         {
             var tx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
-                nameof(ISmartContractZero.DeploySmartContract), 2,
+                nameof(ISmartContractZero.DeploySmartContract), DefaultCategory,
                 File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
 
             await Tester.MineAsync(new List<Transaction> {tx});
@@ -48,17 +51,15 @@ namespace AElf.Contracts.Token
         [Fact]
         public async Task Deploy_TokenContract_Twice()
         {
-            var bytes1 = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
-                nameof(ISmartContractZero.DeploySmartContract), 2,
-                File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-
-            var otherKeyPair = CryptoHelpers.GenerateKeyPair();
-            var other = Tester.CreateNewContractTester(otherKeyPair);
-            var bytes2 = await other.CallContractMethodAsync(BasicZeroContractAddress,
-                nameof(ISmartContractZero.DeploySmartContract), 2,
-                File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
-
-            bytes1.ShouldNotBeSameAs(bytes2);
+            var bytes = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
+                nameof(ISmartContractZero.DeploySystemSmartContract), new SystemContractDeploymentInput
+                {
+                    Category = DefaultCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                }
+            );
+            // Failed to deploy.
+            Assert.Empty(bytes);
         }
 
         [Fact]
@@ -89,7 +90,7 @@ namespace AElf.Contracts.Token
                     Symbol = Symbol,
                     Owner = Tester.GetCallOwnerAddress()
                 });
-            var result = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+            var result = GetBalanceOutput.Parser.ParseFrom(bytes);
             result.Balance.ShouldBe(1000_000L);
         }
 
@@ -475,12 +476,15 @@ namespace AElf.Contracts.Token
         {
             await Initialize_TokenContract();
 
-            var resultGet = await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
-                {
-                    Method = nameof(TokenContract.Transfer)
-                });
-            resultGet.DeserializeToPbMessage<GetMethodFeeOutput>().Fee.ShouldBe(0L);
+            {
+                var resultGetBytes = await Tester.CallContractMethodAsync(TokenContractAddress,
+                    nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
+                    {
+                        Method = nameof(TokenContract.Transfer)
+                    });
+                var resultGet = GetMethodFeeOutput.Parser.ParseFrom(resultGetBytes);
+                resultGet.Fee.ShouldBe(0L);
+            }
 
             var resultSet = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetMethodFee), new SetMethodFeeInput
@@ -490,12 +494,15 @@ namespace AElf.Contracts.Token
                 });
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var resultGet1 = await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
-                {
-                    Method = nameof(TokenContract.Transfer)
-                });
-            resultGet1.DeserializeToPbMessage<GetMethodFeeOutput>().Fee.ShouldBe(10L);
+            {
+                var resultGetBytes = await Tester.CallContractMethodAsync(TokenContractAddress,
+                    nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
+                    {
+                        Method = nameof(TokenContract.Transfer)
+                    });
+                var resultGet = GetMethodFeeOutput.Parser.ParseFrom(resultGetBytes);
+                resultGet.Fee.ShouldBe(10L);
+            }
         }
     }
 }

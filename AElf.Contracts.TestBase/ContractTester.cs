@@ -456,27 +456,8 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            params object[] objects)
-        {
-            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var transactionReadOnlyExecutionService =
-                Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
-            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
-                {
-                    BlockHash = preBlock.GetHash(),
-                    BlockHeight = preBlock.Height
-                },
-                tx,
-                DateTime.UtcNow);
-
-            return transactionTrace.ReturnValue;
-        }
-
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             IMessage input)
         {
