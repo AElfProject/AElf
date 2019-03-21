@@ -49,7 +49,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task FillExtraData_WithoutSideChainCacheData()
         {
-            int chainId1 = ChainHelpers.GetRandomChainId();
+            int chainId1 = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
             var fakeParentChainBlockDataList = new List<IBlockInfo>();
 
@@ -87,9 +87,9 @@ namespace AElf.CrossChain
             var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
             var fakeMerkleTreeRoot3 = Hash.FromString("fakeMerkleTreeRoot3");
 
-            int chainId1 = ChainHelpers.GetRandomChainId();
-            int chainId2 = ChainHelpers.GetRandomChainId();
-            int chainId3 = ChainHelpers.GetRandomChainId();
+            int chainId1 = ChainHelpers.ConvertBase58ToChainId("2112");
+            int chainId2 = ChainHelpers.ConvertBase58ToChainId("2113");
+            int chainId3 = ChainHelpers.ConvertBase58ToChainId("2114");
             var fakeSideChainBlockDataList = new List<SideChainBlockData>
             {
                 new SideChainBlockData

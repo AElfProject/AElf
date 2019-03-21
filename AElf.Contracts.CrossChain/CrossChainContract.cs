@@ -436,18 +436,20 @@ namespace AElf.Contracts.CrossChain
         /// <summary>
         /// Cross chain txn verification.
         /// </summary>
-        /// <param name="tx"></param>
+        /// <param name="txId"></param>
         /// <param name="path"></param>
         /// <param name="parentChainHeight"></param>
         /// <returns></returns>
         [View]
-        public bool VerifyTransaction(Hash tx, MerklePath path, long parentChainHeight)
+        public bool VerifyTransaction(Hash txId, MerklePath path, long parentChainHeight)
         {
             var key = new Int64Value {Value = parentChainHeight};
             var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var rootCalculated = path.ComputeRootWith(tx);
+            var rootCalculated =
+                path.ComputeRootWith(
+                    Hash.FromTwoHashes(txId, Hash.FromString(TransactionResultStatus.Mined.ToString())));
             
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return merkleTreeRoot.Equals(rootCalculated);

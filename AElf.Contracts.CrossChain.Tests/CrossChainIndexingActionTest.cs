@@ -428,12 +428,14 @@ namespace AElf.Contract.CrossChain.Tests
             int parentChainId = 123;
             long lockedToken = 10;
             var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
-            var txHash = Hash.FromString("sideChainBlockHash");
+            var txId = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            binaryMerkleTree.AddNodes(new[] {txHash, fakeHash1, fakeHash2});
+            var hash = Hash.FromTwoHashes(txId, Hash.FromString(TransactionResultStatus.Mined.ToString()));
+            
+            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             var parentChainHeight = 1;
@@ -449,8 +451,6 @@ namespace AElf.Contract.CrossChain.Tests
                     }
                 }
             };
-            long sideChainHeight = 1;
-            parentChainBlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
             var crossChainBlockData = new CrossChainBlockData
             {
                 ParentChainBlockData = {parentChainBlockData}
@@ -460,9 +460,8 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
-            var merklePathForFakeHash1 = binaryMerkleTree.GenerateMerklePath(1);
             var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                CrossChainConsts.VerifyTransactionMethodName, fakeHash1, merklePathForFakeHash1, parentChainHeight);
+                CrossChainConsts.VerifyTransactionMethodName, txId, merklePath, parentChainHeight);
             Assert.True(BitConverter.ToBoolean(txRes.ReturnValue.ToByteArray()));
         }
         #endregion

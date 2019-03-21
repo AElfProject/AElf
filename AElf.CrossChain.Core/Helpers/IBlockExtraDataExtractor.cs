@@ -9,7 +9,6 @@ namespace AElf.CrossChain
     public interface IBlockExtraDataExtractor
     {
         CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header);
-
         Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header);
         ByteString ExtractOtherExtraData(string symbol, BlockHeader header);
     }
