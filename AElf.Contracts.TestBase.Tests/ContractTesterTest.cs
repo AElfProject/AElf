@@ -161,8 +161,13 @@ namespace AElf.Contracts.TestBase.Tests
             await tester.InitialChainAsync();
 
             var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
-            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract", DefaultCategory,
-                File.ReadAllBytes(typeof(TokenContract).Assembly.Location));
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, "DeploySmartContract",
+                new ContractDeploymentInput
+                {
+                    Category = DefaultCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                }
+            );
 
             await tester.MineAsync(new List<Transaction> {tx});
 

@@ -279,10 +279,10 @@ namespace AElf.Contracts.Consensus.DPoS
             var ticketsOfVoter = await voter.GetTicketsInformationAsync();
             ticketsOfVoter.VotedTickets.ShouldBe(pocketMoney);
             var ticketsCount = SInt64Value.Parser.ParseFrom(await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetTicketsCount))).Value;
+                nameof(ConsensusContract.GetTicketsCount), new Empty())).Value;
             ticketsCount.ShouldBe(pocketMoney);
             var votesCount = SInt64Value.Parser.ParseFrom(await voter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetVotesCount))).Value;
+                nameof(ConsensusContract.GetVotesCount), new Empty())).Value;
             votesCount.ShouldBe(votes);
 
             var balance = await Starter.GetBalanceAsync(voter.GetCallOwnerAddress());

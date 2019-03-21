@@ -18,6 +18,7 @@ using AElf.TestBase;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
+using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Contract.CrossChain.Tests
 {
@@ -59,22 +60,14 @@ namespace AElf.Contract.CrossChain.Tests
         protected async Task InitializeCrossChainContract(int parentChainId = 0)
         {
             var tx = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.Initialize),
-                new AElf.Contracts.CrossChain.InitializeInput()
+                nameof(CrossChainContract.Initialize), new InitializeInput
                 {
                     ConsensusContractAddress = ConsensusContractAddress,
                     TokenContractAddress = TokenContractAddress,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId
                 });
-            var tx3 = await Tester.GenerateTransactionAsync(TokenContractAddress, nameof(TokenContract.Issue),
-                new IssueInput
-                {
-                    Symbol = "ELF",
-                    Amount = tokenAmount,
-                    To = Tester.GetCallOwnerAddress(),
-                    Memo = "Initial tokens for testing cross chain contract."
-                });
-            await Tester.MineAsync(new List<Transaction> {tx1, tx2,tx3});
+
+            await Tester.MineAsync(new List<Transaction> {tx});
         }
 
         protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
