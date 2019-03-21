@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -54,6 +55,19 @@ namespace AElf.CrossChain.Grpc
                 }
             };
             await _grpcCrossChainClientNodePlugin.HandleEventAsync(receivedEventData);
+        }
+
+        [Fact]
+        public async Task BestChainFoundEventTest()
+        {
+            var bestChainFoundEventData = new BestChainFoundEventData();
+            await _grpcCrossChainClientNodePlugin.HandleEventAsync(bestChainFoundEventData);
+        }
+
+        [Fact]
+        public async Task Client_Shutdown_Test()
+        {
+            //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
         }
     }
 }
