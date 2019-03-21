@@ -60,6 +60,8 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
+
+            var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
             var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);

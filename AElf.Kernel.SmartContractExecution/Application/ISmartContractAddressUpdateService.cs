@@ -65,7 +65,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var address = Address.Parser.ParseFrom(transactionResult.ReturnValue);
 
-            if (address != null)
+            if (!address.Value.IsEmpty)
                 _smartContractAddressService.SetAddress(smartContractAddressNameProvider.ContractName, address);
         }
     }
