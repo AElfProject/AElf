@@ -187,7 +187,7 @@ namespace AElf.Kernel.SmartContract.Application
                 From = Address.Zero,
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(address))
+                Params = address.ToByteString()
             };
             var trace = new TransactionTrace()
             {
