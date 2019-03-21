@@ -6,6 +6,6 @@ namespace AElf.Contracts.MultiToken
 {
     public class BasicContractZeroReferenceState : ContractReferenceState
     {
-        public Func<Hash, Address> GetContractAddressByName { get; set; }
+        internal MethodReference<Hash, Address> GetContractAddressByName { get; set; }
     }
 }

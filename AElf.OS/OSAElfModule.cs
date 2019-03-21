@@ -25,13 +25,12 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();
-            context.Services.AddTransient<ForkDownloadJob>();
+            context.Services.AddTransient<BlockSyncJob>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);

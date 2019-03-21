@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -44,56 +46,56 @@ namespace AElf.CrossChain
 
         private byte[] CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
         {
-            if (methodName == CrossChainConsts.GetParentChainIdMethodName)
+            if (methodName == nameof(CrossChainContract.GetParentChainId))
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
-                if (parentChainId != 0) 
-                    return ReturnTypeHelper.GetEncoder<int>()(parentChainId);
+                if (parentChainId != 0)
+                    return new SInt32Value {Value = parentChainId}.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return null;
             }
             
-            if (methodName == CrossChainConsts.GetParentChainHeightMethodName)
+            if (methodName == nameof(CrossChainContract.GetParentChainHeight))
             {
-                return _parentChainIdHeight.Count == 0 ? null : ReturnTypeHelper.GetEncoder<long>()(_parentChainIdHeight.Values.First());
+                return _parentChainIdHeight.Count == 0
+                    ? null
+                    : new SInt64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
             }
 
-            if (methodName == CrossChainConsts.GetSideChainHeightMethodName)
+            if (methodName == nameof(CrossChainContract.GetSideChainHeight))
             {
-                int sideChainId =
-                    (int) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(int)})[0];
+                int sideChainId = SInt32Value.Parser.ParseFrom(transaction.Params).Value;
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
                 if (exist)
-                    return ReturnTypeHelper.GetEncoder<long>()(sideChainHeight);
+                    return new SInt64Value{Value = sideChainHeight}.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return null;
+                return new SInt64Value().ToByteArray();
             }
 
-            if (methodName == CrossChainConsts.GetAllChainsIdAndHeightMethodName)
+            if (methodName == nameof(CrossChainContract.GetAllChainsIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
                 dict.IdHeighDict.Add(_parentChainIdHeight);
-                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
+                return dict.ToByteArray();
             }
 
-            if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
+            if (methodName == nameof(CrossChainContract.GetSideChainIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
-                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
+                return dict.ToByteArray();
             }
             
-            if (methodName == CrossChainConsts.GetIndexedCrossChainBlockDataByHeight)
+            if (methodName == nameof(CrossChainContract.GetIndexedCrossChainBlockDataByHeight))
             {
-                long height =
-                    (long) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(long)})[0];
+                long height = SInt64Value.Parser.ParseFrom(transaction.Params).Value;
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return ReturnTypeHelper.GetEncoder<CrossChainBlockData>()(crossChainBlockData);
+                    return crossChainBlockData.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
-                return null;
+                return new CrossChainBlockData().ToByteArray();
             }
-            return null;
+            return new byte[0];
         }
         public void SetFakeLibHeight(long height)
         {

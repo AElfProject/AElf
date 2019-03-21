@@ -335,3 +335,33 @@ message SystemTransactionMethodCall {
 message SystemTransactionMethodCallList {
     repeated SystemTransactionMethodCall Value = 1;
 }
+
+message ContractDeploymentInput {
+    sint32 category = 1;
+    bytes code = 2;
+}
+
+message SystemContractDeploymentInput {
+    sint32 category = 1;
+    bytes code = 2;
+    Hash name = 3;
+    SystemTransactionMethodCallList transactionMethodCallList = 4;
+}
+
+message ContractUpdateInput {
+    Address address = 1;
+    bytes code = 2;
+}
+
+message ChangeContractOwnerInput {
+    Address contractAddress = 1;
+    Address newOwner = 2;
+}
+
+message ContractInfo
+{
+    uint64 SerialNumber=1;
+    Address Owner = 2;
+    int32 Category = 3;
+    Hash CodeHash = 4;
+}

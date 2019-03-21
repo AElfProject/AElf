@@ -46,9 +46,7 @@ namespace AElf.Kernel.Consensus.DPoS
         [Fact]
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
-            var byteArray = _consensusInformationGenerationService.GetTriggerInformation();
-            byteArray.ShouldNotBeNull();
-            var dPoSTriggerInformation = byteArray.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.PublicKey.ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
             dPoSTriggerInformation.IsBootMiner.ShouldBeTrue();
             dPoSTriggerInformation.Miners.Count.ShouldBe(0);
@@ -60,10 +58,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.InitialConsensus);
             
-            var byteArray = consensusInformationGenerationService.GetTriggerInformation();
-            
-            byteArray.ShouldNotBeNull();
-            var dPoSTriggerInformation = byteArray.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.Miners.Count.ShouldBeGreaterThanOrEqualTo(1);
             dPoSTriggerInformation.Miners[0].ShouldBe(_minerKeyPair.PublicKey.ToHex());
             dPoSTriggerInformation.MiningInterval.ShouldBe(2000);
@@ -75,15 +70,11 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
             
-            var byteArray = consensusInformationGenerationService.GetTriggerInformation();
-            byteArray.ShouldNotBeNull();
-            var dPoSTriggerInformation = byteArray.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.CurrentInValue.ShouldNotBeNull();
             dPoSTriggerInformation.PreviousInValue.ShouldBe(Hash.Empty);
             
-            var byteArray1 = consensusInformationGenerationService.GetTriggerInformation();
-            byteArray1.ShouldNotBeNull();
-            var dPoSTriggerInformation1 = byteArray1.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation1 = consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation1.PreviousInValue.ShouldBe(dPoSTriggerInformation.CurrentInValue);
         }
         
@@ -93,9 +84,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
             
-            var byteArray = consensusInformationGenerationService.GetTriggerInformation();
-            byteArray.ShouldNotBeNull();
-            var dPoSTriggerInformation = byteArray.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ShouldBe(publicKey.ToHex());
         }
@@ -106,9 +95,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
             
-            var byteArray = consensusInformationGenerationService.GetTriggerInformation();
-            byteArray.ShouldNotBeNull();
-            var dPoSTriggerInformation = byteArray.DeserializeToPbMessage<DPoSTriggerInformation>();
+            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ShouldBe(publicKey.ToHex());
         }

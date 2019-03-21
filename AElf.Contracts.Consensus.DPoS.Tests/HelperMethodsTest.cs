@@ -1,9 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -17,13 +19,16 @@ namespace AElf.Contracts.Consensus.DPoS
             const long age = 100L;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
             await starter.InitialChainAndTokenAsync();
-            await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.SetBlockchainAge),
-                age);
+            await starter.ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.SetBlockchainAge),
+                new SInt64Value(){Value = age});
 
             // Starter can set blockchain age.
             {
-                var blockchainAge = (await starter.CallContractMethodAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge))).DeserializeToInt64();
+                var blockchainAge = SInt64Value.Parser.ParseFrom(await starter.CallContractMethodAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetBlockchainAge),
+                    new Empty())).Value;
 
                 blockchainAge.ShouldBe(age);
             }
@@ -35,13 +40,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task RunConsensusTest()
         {
-            const int minersCount = 17;
+            const int minersCount = 3;
             const int miningInterval = 4000;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
 
             var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
             await starter.InitialChainAndTokenAsync(minersKeyPairs, miningInterval);
-            var miners = Enumerable.Range(0, 17)
+            var miners = Enumerable.Range(0, minersCount)
                 .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
 
             await miners.RunConsensusAsync(1);

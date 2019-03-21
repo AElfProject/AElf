@@ -6,11 +6,10 @@ namespace AElf.Kernel.KernelAccount
 {
     public interface ISmartContractZero : ISmartContract
     {
-        string GetContractInfo(Address address);
-        Address DeploySmartContract(int category, byte[] code);
+        ContractInfo GetContractInfo(Address address);
+        Address DeploySmartContract(ContractDeploymentInput input);
 
-        Address DeploySystemSmartContract(Hash name, int category, byte[] code,
-            SystemTransactionMethodCallList transactionMethodCallList);
+        Address DeploySystemSmartContract(SystemContractDeploymentInput input);
 
         Address GetContractAddressByName(Hash name);
         SmartContractRegistration GetSmartContractRegistrationByAddress(Address address);

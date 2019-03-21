@@ -36,12 +36,11 @@ namespace AElf.Kernel.SmartContract.Application
 
             Logger.LogInformation(chainStateInfo.ToString());
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? ChainConsts.GenesisBlockHeight
+                ? KernelConstants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
             var count = lastIrreversibleBlockHeight - firstHeightToMerge;
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ??
-                         new List<Hash>();
+            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ?? new List<Hash>();
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
             {

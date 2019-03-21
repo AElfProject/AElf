@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "common.proto";
+import "auth.proto";
+import "aelf_options.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Authorization";
+
+service AuthorizationContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Authorization.AuthorizationContractState";
+    // Actions
+    rpc CreateMultiSigAccount (Authorization) returns (Address) {
+    }
+    rpc Propose (Proposal) returns (Hash) {
+    }
+    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
+    }
+    rpc Release (Hash) returns (Hash) {
+    }
+    // Views
+    rpc GetProposal (Hash) returns (Proposal) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAuthorization (Address) returns (Authorization) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsMultiSigAccount (Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}

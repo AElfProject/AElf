@@ -45,7 +45,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void LogDebug(Func<string> func)
         {
+#if DEBUG
             Logger.LogDebug(func());
+#endif
         }
 
         public async Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,

@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+import "aelf_options.proto";
+import "consensus_dpos.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Dividend";
+
+service DividendContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Dividend.DividendsContractState";
+    // Actions
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    }
+    rpc SendDividends (SendDividendsInput) returns (google.protobuf.Empty) {
+    }
+    rpc TransferDividends (VotingRecord) returns (SInt64Value) {
+    }
+    rpc AddDividends (AddDividendsInput) returns (SInt64Value) {
+    }
+    rpc AddWeights (WeightsInfo) returns (SInt64Value) {
+    }
+    rpc KeepWeights (SInt64Value) returns (ActionResult) {
+    }
+    rpc SubWeights (WeightsInfo) returns (ActionResult) {
+    }
+    // Views
+    rpc GetTermDividends (SInt64Value) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermTotalWeights (SInt64Value) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetLatestRequestDividendsTermNumber (VotingRecord) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAvailableDividends (VotingRecord) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetExpireTermNumber (VoteInfo) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDurationDays (VoteInfo) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllAvailableDividends (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckDividends (CheckDividendsInput) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckDividendsOfPreviousTerm (google.protobuf.Empty) returns (LongList) {
+        option (aelf.is_view) = true;
+    }
+    rpc CheckDividendsOfPreviousTermToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    Address tokenContractAddress = 1;
+    Address consensusContractAddress = 2;
+}
+
+message InitializeWithContractSystemNamesInput {
+    Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
+}
+
+message SendDividendsInput {
+    Address to = 1;
+    sint64 amount = 2;
+}
+
+message AddDividendsInput {
+    sint64 termNumber = 1;
+    sint64 dividendsAmount = 2;
+}
+
+message WeightsInfo {
+    sint64 termNumber = 1;
+    sint64 weights = 2;
+}
+
+message VoteInfo {
+    VotingRecord record = 1;
+    sint64 age = 2;
+}
+
+message PublicKey {
+    string hex = 1;
+}
+
+message CheckDividendsInput {
+    sint64 termNumber = 1;
+    sint64 ticketsAmount = 2;
+    sint32 lockTime = 3;
+}
+
+message FriendlyString {
+    string value = 1;
+}

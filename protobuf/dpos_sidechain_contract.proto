@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "kernel.proto";
+import "consensus.proto";
+import "consensus_dpos.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.DPoS.SideChain";
+
+service ConsensusContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.SideChain.DPoSContractState";
+    // Actions
+    rpc InitialConsensus (Round) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateValue (ToUpdate) returns (google.protobuf.Empty) {
+    }
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateMainChainConsensus (DPoSInformation) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNewConsensusInformation (DPoSTriggerInformation) returns (DPoSInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GenerateConsensusTransactions (DPoSTriggerInformation) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensus (DPoSInformation) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+}
