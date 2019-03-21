@@ -127,15 +127,7 @@ namespace AElf.OS.Node.Application
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                 {
-                    var cat = dto.SmartContractRunnerCategory;
-                    if (p.SmartContractType.Name == "TokenContract" ||
-                        p.SmartContractType.Name == "ConsensusContract" ||
-                        p.SmartContractType.Name == "DividendContract")
-                    {
-                        cat = 3;
-                    }
-
-                    return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, cat,
+                    return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
                         p.TransactionMethodCallList);
                 }));
 
