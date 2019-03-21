@@ -155,7 +155,7 @@ namespace AElf.Contracts.Resource
 
             if (elfForRes > 0)
             {
-                State.TokenContract.TransferFrom(new TransferFromInput
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
                     To = Context.Self,
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Resource
 
             if (fees > 0)
             {
-                State.TokenContract.TransferFrom(new TransferFromInput
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
                     To = State.FeeAddress.Value,
@@ -207,7 +207,7 @@ namespace AElf.Contracts.Resource
             var amount = elfToReceive.Sub(fees);
             if (amount > 0)
             {
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = Context.Sender,
                     Amount = amount,
@@ -218,7 +218,7 @@ namespace AElf.Contracts.Resource
 
             if (fees > 0)
             {
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FeeAddress.Value,
                     Symbol = "ELF",
