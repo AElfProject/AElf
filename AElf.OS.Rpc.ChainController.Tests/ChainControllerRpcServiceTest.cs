@@ -19,8 +19,10 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -556,7 +558,9 @@ namespace AElf.OS.Rpc.ChainController.Tests
             //Result empty
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = transaction.To.GetFormatted()});
-            response["result"].ToString().ShouldBeEmpty();
+            //response["result"].ToString().ShouldBeEmpty();
+
+            var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response["result"].ToString()));
             
             //Result not empty
             //TODO: Add logic to cover query with data case [Case] 
