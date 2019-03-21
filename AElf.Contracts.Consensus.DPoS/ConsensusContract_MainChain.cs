@@ -12,6 +12,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
+        // TODO: Remove this.
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -23,14 +24,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Empty();
         }
         
-        // TODO: Add this method.
-        public void InitializeWithContractSystemNames(Hash tokenContractSystemName, Hash dividendContractSystemName)
+        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
         {
+            var tokenContractSystemName = input.TokenContractSystemName;
+            var dividendContractSystemName = input.DividendsContractSystemName;
             Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = tokenContractSystemName;
             State.DividendContractSystemName.Value = dividendContractSystemName;
             State.Initialized.Value = true;
+            return new Empty();
         }
 
         // TODO: Remove this method after testing.

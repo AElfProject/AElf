@@ -146,13 +146,13 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 0)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
-
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
+                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                {
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
             
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput

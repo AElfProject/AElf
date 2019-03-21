@@ -36,6 +36,7 @@ using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Launcher
 {
@@ -96,11 +97,19 @@ namespace AElf.Launcher
             
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
 
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
+                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                {
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
 
             if (chainOptions.IsSideChain)
             {

@@ -12,6 +12,7 @@ namespace AElf.Contracts.Dividend
 {
     public partial class DividendContract : DividendContractContainer.DividendContractBase
     {
+        // TODO: Remove this.
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -22,16 +23,16 @@ namespace AElf.Contracts.Dividend
             return new Empty();
         }
         
-        // TODO: Add a new method.
-        public void InitializeWithContractSystemNames(InitializeWithContractSystemNames input)
+        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
         {
-            var consensusContractAddress = input.consensusContractSystemName;
-            var tokenContractSystemName = input.tokenContractSystemName;
+            var consensusContractAddress = input.ConsensusContractSystemName;
+            var tokenContractSystemName = input.TokenContractSystemName;
             Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = tokenContractSystemName;
             State.ConsensusContractSystemName.Value = consensusContractAddress;
             State.Initialized.Value = true;
+            return new Empty();
         }
 
         public override Empty SendDividends(SendDividendsInput input)

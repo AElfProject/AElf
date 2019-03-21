@@ -36,6 +36,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -188,7 +189,11 @@ namespace AElf.Contracts.TestBase
 
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
             
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
