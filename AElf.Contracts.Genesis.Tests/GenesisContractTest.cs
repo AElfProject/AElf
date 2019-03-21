@@ -92,8 +92,7 @@ namespace AElf.Contracts.Genesis
                     });
             resultUpdate.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var updateAddressArray = resultUpdate.ReturnValue.ToByteArray();
-            var updateAddress = Address.FromBytes(updateAddressArray);
+            var updateAddress = Address.Parser.ParseFrom(resultUpdate.ReturnValue);
             updateAddress.ShouldBe(_contractAddress);
 
             var resultHashByteString = await Tester.CallContractMethodAsync(BasicZeroContractAddress,
