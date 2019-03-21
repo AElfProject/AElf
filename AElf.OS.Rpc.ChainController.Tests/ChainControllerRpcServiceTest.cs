@@ -304,7 +304,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             responseTransactionId.ShouldBe(transactionHex);
             responseStatus.ShouldBe(TransactionResultStatus.Failed.ToString());
-            responseErrorMessage.Contains("Already initialized.").ShouldBeTrue();
+            responseErrorMessage.Contains("Token already exists.").ShouldBeTrue();
         }
         
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1083")]
@@ -674,7 +674,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                     nameof(TokenContract.Create), new CreateInput
                     {
-                        Symbol = $"ELF{i}",
+                        Symbol = $"ELF",
                         TokenName= $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
