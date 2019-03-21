@@ -11,16 +11,16 @@ namespace AElf.Contracts.CrossChain
 {
     public class AuthorizationContractReferenceState : ContractReferenceState
     {
-        public Action<Proposal> Propose { get; set; }
-        public Func<Address, Authorization> GetAuthorization { get; set; }
+        internal MethodReference<Proposal,Hash> Propose { get; set; }
+        internal MethodReference<Address, Kernel.Authorization> GetAuthorization { get; set; }
     }
 
     public class TokenContractReferenceState : ContractReferenceState
     {
-        public Action<TransferInput> Transfer { get; set; }
-        public Action<TransferFromInput> TransferFrom { get; set; }
+        internal MethodReference<TransferInput,Empty> Transfer { get; set; }
+        internal MethodReference<TransferFromInput,Empty> TransferFrom { get; set; }
         
-        public Func<GetBalanceInput, GetBalanceOutput> GetBalance { get; set; }
+        internal MethodReference<GetBalanceInput, GetBalanceOutput> GetBalance { get; set; }
     }
 
     public class ConsensusContractReferenceState : ContractReferenceState

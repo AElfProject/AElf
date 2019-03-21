@@ -154,7 +154,7 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfos[chainId] = sideChainInfo;
             }
 
-            State.TokenContract.TransferFrom(new TransferFromInput
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -410,7 +410,7 @@ namespace AElf.Contracts.CrossChain
                 }
                 State.SideChainInfos[chainId] = info;
 
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = Context.Sender,
                     Symbol = "ELF",
@@ -493,7 +493,7 @@ namespace AElf.Contracts.CrossChain
 //            });
 //            Console.WriteLine($"{balance.Balance} Balance.");
             // update locked token balance
-            State.TokenContract.TransferFrom(new TransferFromInput
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -517,7 +517,7 @@ namespace AElf.Contracts.CrossChain
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
             if (balance != 0)
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = sideChainInfo.Proposer,
                     Amount = balance,
