@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types", "AElf.K
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis.Tests", "AElf.Contracts.Genesis.Tests\AElf.Contracts.Genesis.Tests.csproj", "{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Token.Tests", "AElf.Contracts.Token.Tests\AElf.Contracts.Token.Tests.csproj", "{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution", "AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj", "{7ECFDC4C-4685-40AC-81D5-AB10461D299E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract", "AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj", "{05996EDC-D17E-4DC4-82C0-EDD4408E5F8A}"

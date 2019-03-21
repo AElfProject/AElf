@@ -84,7 +84,7 @@ namespace AElf.CrossChain
             var readOnlyTransaction = GenerateReadOnlyTransaction(
                 nameof(CrossChainContract.GetParentChainId),
                 new Empty());
-            return (await ReadByTransactionAsync<SInt32Value>(readOnlyTransaction, blockHash, blockHeight)).Value;
+            return (await ReadByTransactionAsync<SInt32Value>(readOnlyTransaction, blockHash, blockHeight))?.Value ?? 0;
         }
 
         public async Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(Hash blockHash, long blockHeight)

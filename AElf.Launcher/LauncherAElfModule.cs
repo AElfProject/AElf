@@ -145,7 +145,7 @@ namespace AElf.Launcher
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                TotalSupply = 10_0000_0000,
                 // Set the contract zero address as the issuer temporarily.
                 Issuer = issuer,
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
@@ -154,7 +154,7 @@ namespace AElf.Launcher
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 10,
+                Amount = 2_0000_0000,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
