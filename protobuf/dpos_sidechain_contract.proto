@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-import "common.proto";
 import "kernel.proto";
 import "consensus.proto";
 import "consensus_dpos.proto";
