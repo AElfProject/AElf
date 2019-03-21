@@ -41,8 +41,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
             State.NativeTokenSymbol.Value = input.Symbol;
-            var contractZeroAddress = Context.GetZeroSmartContractAddress();
-            State.BasicContractZero.Value = contractZeroAddress;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             var whiteList = new List<Address>();
             foreach (var systemContractName in input.LockWhiteSystemContractNameList)
             {
@@ -77,6 +76,7 @@ namespace AElf.Contracts.MultiToken
 
         public Nothing IssueNativeToken(IssueNativeTokenInput input)
         {
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             Assert(input.ToSystemContractName != null, "To address not filled.");
             Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
             var issueInput = new IssueInput

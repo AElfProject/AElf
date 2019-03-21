@@ -2,7 +2,6 @@
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Token;
@@ -10,7 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -22,13 +20,11 @@ using AElf.OS.Rpc.Net;
 using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
-using AElf.RuntimeSetup;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
-using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
@@ -84,42 +80,13 @@ namespace AElf.TestLauncher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
 
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
-
-            var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(Contracts.MultiToken.TokenContract.CreateNativeToken), new CreateNativeTokenInput
-            {
-                Symbol = "ELF",
-                Decimals = 2,
-                IsBurnable = true,
-                TokenName = "elf token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                // Set the contract zero address as the issuer temporarily.
-                Issuer = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
-                    .GetZeroSmartContractAddress(),
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
-            });
-            
-            tokenContractCallList.Add(nameof(Contracts.MultiToken.TokenContract.IssueNativeToken), new IssueNativeTokenInput
-            {
-                Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 10,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
-                Memo = "Set dividends.",
-            });
-
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
+                TokenSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
+                DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(

@@ -117,7 +117,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 AddOrUpdateMinerHistoryInformation(historyInformation);
             }
         }
-        
+
         public void NextTerm(Round round)
         {
             // Count missed time slot of current round.
@@ -131,7 +131,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 State.DividendContract.Value =
                     State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
             }
-            
+
             State.DividendContract.KeepWeights(termNumber);
 
             // Update current term number and current round number.
@@ -329,7 +329,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 State.DividendContract.Value =
                     State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
             }
-            
+
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
@@ -381,8 +381,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ActionResult {Success = true};
         }
-        
-        
+
+
         /// <summary>
         /// Normally this process contained in NextRound method.
         /// </summary>
