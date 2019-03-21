@@ -55,7 +55,7 @@ namespace AElf.Types.CSharp
         {
             var inputObj = method.RequestMarshaller.Deserializer(input);
             var response = handler(inputObj);
-            return method.ResponseMarshaller.Serializer(response);
+            return response != null ? method.ResponseMarshaller.Serializer(response) : null;
         }
 
         public object ReturnBytesToObject(byte[] returnBytes)

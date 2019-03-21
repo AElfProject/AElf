@@ -131,6 +131,15 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task<IExecutive> GetExecutiveAsync(SmartContractRegistration reg, Address address)
         {
+            if (reg == null)
+            {
+                throw new ArgumentNullException(nameof(reg));
+            }
+
+            if (address == null)
+            {
+                throw new ArgumentNullException(nameof(address));
+            }
             var pool = GetPool(address);
 
             if (!pool.TryTake(out var executive))
