@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
@@ -86,9 +87,11 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            var validationResult =ValidationResult.Parser.ParseFrom(
-                    await ExecuteContractAsync(address,
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData));
+            //TODO: DPoSTriggerInformation should not be here.
+            var validationResult = ValidationResult.Parser.ParseFrom(
+                await ExecuteContractAsync(address,
+                    chainContext, ConsensusConsts.ValidateConsensus,
+                    DPoSTriggerInformation.Parser.ParseFrom(consensusExtraData)));
 
             if (!validationResult.Success)
             {
@@ -154,23 +157,6 @@ namespace AElf.Kernel.Consensus.Application
                     .Name),
                 MethodName = consensusMethodName,
                 Params = input?.ToByteString() ?? ByteString.Empty
-            };
-
-            var transactionTrace =
-                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
-            return transactionTrace.ReturnValue;
-        }
-
-        private async Task<ByteString> ExecuteContractAsync(Address fromAddress,
-            IChainContext chainContext, string consensusMethodName, params object[] objects)
-        {
-            var tx = new Transaction
-            {
-                From = fromAddress,
-                To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
-                    .Name),
-                MethodName = consensusMethodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
             };
 
             var transactionTrace =
