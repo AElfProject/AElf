@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
@@ -51,36 +52,66 @@ namespace AElf.Contracts.Consensus.DPoS
             await Vote();
 
             // Change the block age 
-            _blockAge = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetBlockchainAge))).DeserializeToInt64();
+            _blockAge = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetBlockchainAge),
+                new Empty())).Value;
             await Miners.ChangeTermAsync(MiningInterval);
             await Starter.SetBlockchainAgeAsync(_blockAge + 180);
 
             //Check duration day 
-            var getDurationDays1 = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetDurationDays), _votingRecordList[0], _blockAge + 180)).DeserializeToInt64();
+            var getDurationDays1 = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetDividendsContractAddress(),
+                nameof(DividendContract.GetDurationDays),
+                new VoteInfo()
+                {
+                    Record =_votingRecordList[0],
+                    Age =_blockAge + 180 
+                })).Value;
             getDurationDays1.ShouldBe(_lockTimes[0]);
 
-            var getDurationDays2 = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetDurationDays), _votingRecordList[2], _blockAge + 180)).DeserializeToInt64();
+            var getDurationDays2 = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetDividendsContractAddress(),
+                nameof(DividendContract.GetDurationDays),
+                new VoteInfo()
+                {
+                  Record  = _votingRecordList[2],
+                  Age = _blockAge + 180
+                })).Value;
             getDurationDays2.ShouldBe(_blockAge + 180);
 
             //GetExpireTermNumber
-            var expireTermNumber = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                    nameof(DividendContract.GetExpireTermNumber), _votingRecordList[0], _blockAge + 180))
-                .DeserializeToInt64();
+            var expireTermNumber = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                    Starter.GetDividendsContractAddress(),
+                    nameof(DividendContract.GetExpireTermNumber),
+                    new VoteInfo()
+                    {
+                        Record =_votingRecordList[0],
+                        Age =_blockAge + 180 
+                    })).Value;
             expireTermNumber.ShouldBe(_votingRecordList[0].TermNumber +
                                       getDurationDays1 / ConsensusDPoSConsts.DaysEachTerm);
 
             //QueryObtainedNotExpiredVotes
-            var notExpireVotes = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.QueryObtainedNotExpiredVotes), _candidateLists[0].PublicKey))
-                .DeserializeToInt64();
+            var notExpireVotes = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                    Starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.QueryObtainedNotExpiredVotes),
+                    new PublicKey()
+                    {
+                        Hex =_candidateLists[0].PublicKey 
+                    }
+                    )).Value;
             notExpireVotes.ShouldBe(1000L);
 
             //QueryObtainedVotes
-            var obtainedVotes = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QueryObtainedVotes), _candidateLists[0].PublicKey)).DeserializeToInt64();
+            var obtainedVotes = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.QueryObtainedVotes),
+                new PublicKey()
+                {
+                    Hex = _candidateLists[0].PublicKey
+                }
+                )).Value;
             obtainedVotes.ShouldBe(3000L);
 
             //GetTicketsInformation
@@ -115,53 +146,89 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             await Vote();
 
-            var previousTermNumber = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentTermNumber))).DeserializeToInt64();
+            var previousTermNumber = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetCurrentTermNumber),
+                new Empty())).Value;
 
             // Change term
             await Miners.RunConsensusAsync(1, true);
 
             //Query dividends
-            var queryCurrentDividendsForVoters = (await Starter.CallContractMethodAsync(
+            var queryCurrentDividendsForVoters = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
                 Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QueryCurrentDividendsForVoters))).DeserializeToInt64();
+                nameof(ConsensusContract.QueryCurrentDividendsForVoters),
+                    new Empty()
+                )).Value;
             queryCurrentDividendsForVoters.ShouldBe((long) (DPoSContractConsts.ElfTokenPerBlock * 0.2));
 
-            var queryCurrentDividends = (await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QueryCurrentDividends))).DeserializeToInt64();
+            var queryCurrentDividends = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.QueryCurrentDividends),
+                new Empty()
+                )).Value;
             queryCurrentDividends.ShouldBe(DPoSContractConsts.ElfTokenPerBlock);
 
             //Get latest request dividends term number
-            var latestRequestDividendsTermNumber =
+            var latestRequestDividendsTermNumber =SInt64Value.Parser.ParseFrom(
                 (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
                     nameof(DividendContract.GetLatestRequestDividendsTermNumber), _votingRecordList[0]))
-                .DeserializeToInt64();
+                ).Value;
             latestRequestDividendsTermNumber.ShouldBe(_votingRecordList[0].TermNumber);
 
             // Get previous term Dividends
-            var getTermDividends = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetTermDividends), previousTermNumber)).DeserializeToInt64();
+            var getTermDividends =SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetDividendsContractAddress(),
+                nameof(DividendContract.GetTermDividends),
+                new SInt64Value()
+                {
+                    Value =previousTermNumber 
+                })).Value;
             getTermDividends.ShouldBeGreaterThan(0L);
 
             // Check Dividends
-            var termTotalWeights = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.GetTermTotalWeights), previousTermNumber)).DeserializeToInt64();
-            var checkDividends = (await Starter.CallContractMethodAsync(
+            var termTotalWeights = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
                 Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividends), Amount, _lockTimes[0], previousTermNumber)).DeserializeToInt64();
+                nameof(DividendContract.GetTermTotalWeights),
+                new SInt64Value()
+                {
+                    Value = previousTermNumber
+                })).Value;
+            var checkDividends =SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetDividendsContractAddress(),
+                nameof(DividendContract.CheckDividends),
+                new CheckDividendsInput()
+                {
+                    TicketsAmount = Amount,
+                    LockTime = _lockTimes[0],
+                    TermNumber = previousTermNumber
+                })).Value;
             var dividends = _votingRecordList[0].Weight * getTermDividends / termTotalWeights;
             checkDividends.ShouldBe(dividends);
 
             // Check Previous Term Dividends
-            var votingGains = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividends), 10000, 180, previousTermNumber)).DeserializeToInt64();
+            var votingGains = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                Starter.GetDividendsContractAddress(),
+                nameof(DividendContract.CheckDividends),
+                new CheckDividendsInput()
+                {
+                    TicketsAmount = 10000,
+                    LockTime = 180,
+                    TermNumber = previousTermNumber
+                })).Value;
             var checkPreviousTermDividends = await Starter.CheckDividendsOfPreviousTerm();
             checkPreviousTermDividends.Values[1].ShouldBe(votingGains);
 
             //Check the next term dividends
-            var checkDividendsError = (await Starter.CallContractMethodAsync(Starter.GetDividendsContractAddress(),
-                    nameof(DividendContract.CheckDividends), Amount, _lockTimes[0], previousTermNumber + 1))
-                .DeserializeToInt64();
+            var checkDividendsError = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
+                    Starter.GetDividendsContractAddress(),
+                    nameof(DividendContract.CheckDividends),
+                    new CheckDividendsInput()
+                    {
+                        TicketsAmount = Amount,
+                        LockTime = _lockTimes[0],
+                        TermNumber = previousTermNumber + 1
+                    })).Value;
             checkDividendsError.ShouldBe(0L);
         }
 

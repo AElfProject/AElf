@@ -135,10 +135,15 @@ namespace AElf.Contracts.Consensus.DPoS
                         contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name)
                 });
 
-            await contractTester.ExecuteContractWithMiningAsync(contractTester.GetDividendsContractAddress(),
+            await contractTester.ExecuteContractWithMiningAsync(
+                contractTester.GetDividendsContractAddress(),
                 nameof(DividendContract.Initialize),
-                contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
-                contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name));
+                new Dividend.InitializeInput()
+                {
+                    ConsensusContractAddress =
+                        contractTester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name),
+                    TokenContractAddress = contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name)
+                });
         }
 
         #endregion
@@ -499,7 +504,8 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return await candidate.ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
-                nameof(ConsensusContract.AnnounceElection), alias);
+                nameof(ConsensusContract.AnnounceElection),
+                new Alias() {Value = alias});
         }
 
         public static async Task<TransactionResult> QuitElectionAsync(
@@ -528,7 +534,8 @@ namespace AElf.Contracts.Consensus.DPoS
                         Symbol = "ELF"
                     }));
                 announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.AnnounceElection), candidateKeyPair, $"{i}"));
+                    nameof(ConsensusContract.AnnounceElection),
+                    candidateKeyPair, new Alias() {Value = $"{i}"}));
                 candidatesKeyPairs.Add(candidateKeyPair);
             }
 
@@ -644,8 +651,10 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<LongList> CheckDividendsOfPreviousTerm(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividendsOfPreviousTerm));
+            var bytes = await contractTester.CallContractMethodAsync(
+                contractTester.GetDividendsContractAddress(),
+                nameof(DividendContract.CheckDividendsOfPreviousTerm),
+                new Empty());
             return LongList.Parser.ParseFrom(bytes);
         }
 
@@ -671,8 +680,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static async Task<long> GetLIBOffset(this ContractTester<DPoSContractTestAElfModule> miner)
         {
-            return (await miner.CallContractMethodAsync(miner.GetConsensusContractAddress(), nameof(GetLIBOffset)))
-                .DeserializeToInt64();
+            return SInt64Value.Parser.ParseFrom((await miner.CallContractMethodAsync(
+                    miner.GetConsensusContractAddress(), 
+                    nameof(ConsensusContract.GetLIBOffset),
+                    new Empty()
+                    ))).Value;
         }
 
         #endregion

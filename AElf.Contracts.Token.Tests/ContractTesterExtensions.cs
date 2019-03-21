@@ -13,6 +13,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types.CSharp;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Token
 {
@@ -58,22 +59,22 @@ namespace AElf.Contracts.Token
         }
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
-            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, params object[] objects)
+            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, IMessage input)
         {
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                methodName, objects);
+                methodName, input);
         }
 
         public static async Task<long> GetBalanceAsync(this ContractTester<TokenContractTestAElfModule> contractTester,
             Address targetAddress)
         {
-            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
+            var balanceOutput =GetBalanceOutput.Parser.ParseFrom(
+                await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
                 nameof(TokenContract.GetBalance), new GetBalanceInput
                 {
                     Owner = targetAddress,
                     Symbol = "ELF"
-                });
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+                }));
             return balanceOutput.Balance;
         }
 

@@ -29,7 +29,8 @@ namespace AElf.Contracts.Dividend
             if (amount <= 0)
                 return new Empty();
 
-            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
+            Assert(Context.Sender == State.ConsensusContract.Value,
+                $"Only consensus contract can transfer dividends. {Context.Sender} {State.ConsensusContract.Value}");
 
             State.TokenContract.Transfer.Send(new TransferInput
             {
@@ -50,7 +51,8 @@ namespace AElf.Contracts.Dividend
         public override SInt64Value TransferDividends(VotingRecord input)
         {
             var votingRecord = input;
-            Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
+            Assert(Context.Sender == State.ConsensusContract.Value,
+                $"Only consensus contract can transfer dividends. {Context.Sender} {State.ConsensusContract.Value}");
 
             var dividendsOwner = votingRecord.From;
             var dividendsOwnerAddress = Address.FromPublicKey(ByteArrayHelpers.FromHexString(dividendsOwner));

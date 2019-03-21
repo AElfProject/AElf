@@ -404,8 +404,15 @@ namespace AElf.Contracts.Consensus.DPoS
             var voteTxs = new List<Transaction>();
             foreach (var candidate in candidates)
             {
-                voteTxs.Add(await voter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.Vote), candidate.PublicKey, 1, 100));
+                voteTxs.Add(await voter.GenerateTransactionAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.Vote),
+                    new VoteInput()
+                    {
+                        CandidatePublicKey = candidate.PublicKey,
+                        Amount = 1,
+                        LockTime = 100
+                    }));
             }
 
             await initialMiners.MineAsync(voteTxs);
