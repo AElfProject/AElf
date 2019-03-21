@@ -113,7 +113,14 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError($"Received null announcement or header from {context.Peer}.");
                 return Task.FromResult(new VoidReply());
             }
-            
+
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            if (peerInPool != null)
+            {
+                peerInPool.CurrentBlockHash = an.BlockHash;
+                peerInPool.CurrentBlockHeight = an.BlockHeight;
+            }
+
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
             
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
