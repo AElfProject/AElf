@@ -1,6 +1,6 @@
 using AElf.Sdk.CSharp;
 
-namespace AElf.Runtime.CSharp3.Tests.TestContract
+namespace AElf.Runtime.CSharp.Tests.TestContract
 {
     public class ContractApi : TestContractContainer.TestContractBase
     {
