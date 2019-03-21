@@ -398,7 +398,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var transactionResult = await extraBlockMiner.GetTransactionResultAsync(transaction.GetHash());
                 if (transactionResult.Status != TransactionResultStatus.Mined)
                 {
-                    throw new Exception($"Failed to execute {transaction.MethodName} tx.");
+                    throw new Exception($"Failed to execute {transaction.MethodName} tx. {transactionResult.Error}");
                 }
             }
 
