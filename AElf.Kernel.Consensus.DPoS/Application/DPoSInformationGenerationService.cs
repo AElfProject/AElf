@@ -36,7 +36,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
-        public byte[] GetTriggerInformation()
+        public DPoSTriggerInformation GetTriggerInformation()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                     Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
                     InitialTermNumber = _dpoSOptions.InitialTermNumber
-                }.ToByteArray();
+                };
             }
 
             //TODO Add GetTriggerInformation switch test cases [Case]
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         InitialTermNumber = _dpoSOptions.InitialTermNumber,
                         IsBootMiner = _dpoSOptions.IsBootMiner,
                         MiningInterval = _dpoSOptions.MiningInterval
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.UpdateValue:
                     if (_inValue == null)
                     {
@@ -73,7 +73,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             Timestamp = DateTime.UtcNow.ToTimestamp(),
                             PreviousInValue = Hash.Empty,
                             CurrentInValue = _inValue
-                        }.ToByteArray();
+                        };
                     }
                     
                     var previousInValue = _inValue;
@@ -84,19 +84,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         Timestamp = DateTime.UtcNow.ToTimestamp(),
                         PreviousInValue = previousInValue,
                         CurrentInValue = _inValue
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.NextRound:
                     return new DPoSTriggerInformation
                     {
                         PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                         Timestamp = DateTime.UtcNow.ToTimestamp()
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.NextTerm:
                     return new DPoSTriggerInformation
                     {
                         PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
                         Timestamp = DateTime.UtcNow.ToTimestamp()
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.Invalid:
                     throw new InvalidOperationException();
                 default:
