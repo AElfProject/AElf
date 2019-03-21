@@ -34,7 +34,7 @@
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Compile Include="./Generated/*.cs" />
+            <Compile Include="./Protobuf/Generated/*.cs" />
         </ItemGroup>
     </Target>
 
