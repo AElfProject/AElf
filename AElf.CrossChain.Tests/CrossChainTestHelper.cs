@@ -63,11 +63,10 @@ namespace AElf.CrossChain
 
             if (methodName == CrossChainConsts.GetSideChainHeightMethodName)
             {
-                int sideChainId =
-                    (int) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(int)})[0];
+                int sideChainId = SInt32Value.Parser.ParseFrom(transaction.Params).Value;
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
                 if (exist)
-                    return ReturnTypeHelper.GetEncoder<long>()(sideChainHeight);
+                    return new SInt64Value{Value = sideChainHeight}.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return null;
             }
@@ -77,14 +76,14 @@ namespace AElf.CrossChain
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
                 dict.IdHeighDict.Add(_parentChainIdHeight);
-                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
+                return dict.ToByteArray();
             }
 
             if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
-                return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
+                return dict.ToByteArray();
             }
             
             if (methodName == CrossChainConsts.GetIndexedCrossChainBlockDataByHeight)
@@ -92,7 +91,7 @@ namespace AElf.CrossChain
                 long height =
                     (long) ParamsPacker.Unpack(transaction.Params.ToByteArray(), new[] {typeof(long)})[0];
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
-                    return ReturnTypeHelper.GetEncoder<CrossChainBlockData>()(crossChainBlockData);
+                    return crossChainBlockData.ToByteArray();
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return null;
             }
