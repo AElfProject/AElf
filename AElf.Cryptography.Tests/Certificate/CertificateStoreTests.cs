@@ -59,7 +59,21 @@ namespace AElf.Cryptography.Tests.Certificate
 
             var certificateContent1 = _certStore.LoadCertificate(name);
             certificateContent1.ShouldBe(certificateContent);
+        }
 
+        [Fact]
+        public void Get_EncodedPublicKey()
+        {
+            var generator = new RSAKeyPairGenerator();
+            var rsaKeyPair = generator.Generate();
+            var encodePublicKey = rsaKeyPair.GetEncodedPublicKey();
+            encodePublicKey.ShouldNotBeNull();
+            
+            var rsaKeyPair1 = generator.Generate();
+            var encodePublicKey1 = rsaKeyPair1.GetEncodedPublicKey();
+            encodePublicKey1.ShouldNotBeNull();
+            
+            encodePublicKey.ShouldNotBe(encodePublicKey1);
         }
     }
 }
