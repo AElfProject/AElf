@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -231,7 +232,8 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
+            State.DividendContract.AddWeights.Send(new WeightsInfo()
+                {TermNumber = currentTermNumber + 1, Weights = votingRecord.Weight});
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
@@ -251,7 +253,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
                     "No permission to receive."));
 
-            State.DividendContract.TransferDividends(votingRecord);
+            State.DividendContract.TransferDividends.Send(votingRecord);
 
             return new ActionResult {Success = true};
         }
@@ -272,7 +274,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var votingRecord = State.VotingRecordsMap[transactionId];
                 Assert(votingRecord != null,
                     ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
-                State.DividendContract.TransferDividends(votingRecord);
+                State.DividendContract.TransferDividends.Send(votingRecord);
             }
 
             return new ActionResult {Success = true};
@@ -328,7 +330,12 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Sub weight.
-            State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+            State.DividendContract.SubWeights.Send(
+                new WeightsInfo()
+                {
+                    TermNumber = State.CurrentTermNumberField.Value,
+                    Weights = votingRecord.Weight
+                });
             // Transfer token back to voter.
             State.TokenContract.Unlock.Send(new UnlockInput
             {
@@ -397,7 +404,12 @@ namespace AElf.Contracts.Consensus.DPoS
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
                 });
 
-                State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+                State.DividendContract.SubWeights.Send(
+                    new WeightsInfo()
+                    {
+                        TermNumber = State.CurrentTermNumberField.Value,
+                        Weights = votingRecord.Weight
+                    });
             }
 
             ticketsCount -= withdrawnAmount;

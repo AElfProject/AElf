@@ -65,7 +65,7 @@ message InitializeInput {
 
 message SendDividendsInput {
     Address to = 1;
-    sint64 amout = 2;
+    sint64 amount = 2;
 }
 
 message AddDividendsInput {

@@ -25,7 +25,7 @@ namespace AElf.Contracts.Dividend
         public override Empty SendDividends(SendDividendsInput input)
         {
             var targetAddress = input.To;
-            var amount = input.Amout;
+            var amount = input.Amount;
             if (amount <= 0)
                 return new Empty();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -120,7 +121,7 @@ namespace AElf.Contracts.Consensus.DPoS
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-            State.DividendContract.KeepWeights(termNumber);
+            State.DividendContract.KeepWeights.Send(new SInt64Value() {Value = termNumber});
 
             // Update current term number and current round number.
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
@@ -320,7 +321,12 @@ namespace AElf.Contracts.Consensus.DPoS
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-            State.DividendContract.AddDividends(dividendsTermNumber, GetDividendsForVoters(minedBlocks));
+            State.DividendContract.AddDividends.Send(
+                new AddDividendsInput()
+                {
+                    TermNumber = dividendsTermNumber,
+                    DividendsAmount = GetDividendsForVoters(minedBlocks)
+                });
 
             long totalVotes = 0;
             long totalReappointment = 0;
@@ -351,8 +357,12 @@ namespace AElf.Contracts.Consensus.DPoS
                                    continualAppointmentDict[minerInRound.Key] /
                                    totalReappointment);
 
-                State.DividendContract.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)), amount);
+                State.DividendContract.SendDividends.Send(
+                    new SendDividendsInput()
+                    {
+                        To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)),
+                        Amount = amount
+                    });
             }
 
             if (TryToGetBackups(roundInformation.RealTimeMinersInformation.Keys.ToList(), out var backups))
@@ -361,8 +371,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     var backupCount = (long) backups.Count;
                     var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
-                    State.DividendContract.SendDividends(Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
-                        amount);
+                    State.DividendContract.SendDividends.Send(
+                        new SendDividendsInput()
+                        {
+                            To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
+                            Amount = amount
+                        });
                 }
             }
 
