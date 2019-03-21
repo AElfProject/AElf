@@ -184,7 +184,7 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
+                SmartContractRunnerCategory = 30 //30 means use default assembly loader context, for code coverage
             };
 
             var consensusMethodCallList = new SystemTransactionMethodCallList();

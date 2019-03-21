@@ -25,10 +25,10 @@ namespace AElf.Runtime.CSharp
                     option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(),
                     option.Value.BlackList, option.Value.WhiteList);
             });
-            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryTen>(provider =>
+            context.Services.AddSingleton<ISmartContractRunner, SmartContractRunnerForCategoryThirty>(provider =>
             {
                 var option = provider.GetService<IOptions<RunnerOptions>>();
-                return new SmartContractRunnerForCategoryTen(
+                return new SmartContractRunnerForCategoryThirty(
                     option.Value.SdkDir, provider.GetService<IServiceContainer<IExecutivePlugin>>(), option.Value.BlackList,
                     option.Value.WhiteList);
             });
