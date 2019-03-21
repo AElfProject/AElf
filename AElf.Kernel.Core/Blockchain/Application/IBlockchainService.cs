@@ -248,6 +248,39 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHeight = irreversibleBlockHeight
             };
             await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
+
+            // Clean branches and not linked
+            var bestChainKey = chain.BestChainHash.ToStorageKey();
+
+            var toCleanBranchKeys = new List<string>();
+            foreach (var branch in chain.Branches)
+            {
+                if (branch.Key != bestChainKey && branch.Value <= irreversibleBlockHeight)
+                {
+                    var blockHash = await GetBlockHashByHeightAsync(chain, irreversibleBlockHeight + 1,
+                        Hash.LoadHex(branch.Key));
+                    var blockHeader = await GetBlockHeaderByHashAsync(blockHash);
+
+                    if (blockHeader.PreviousBlockHash != irreversibleBlockHash)
+                    {
+                        toCleanBranchKeys.Add(branch.Key);
+                    }
+                }
+            }
+
+            var toCleanNotLinkedKeys = new List<string>();
+
+            foreach (var notLinkedBranch in chain.NotLinkedBlocks)
+            {
+                var blockLink = await _chainManager.GetChainBlockLinkAsync(Hash.LoadHex(notLinkedBranch.Value));
+                if (blockLink.Height <= irreversibleBlockHeight)
+                {
+                    toCleanNotLinkedKeys.Add(notLinkedBranch.Value);
+                }
+            }
+
+            await _chainManager.CleanBranches(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
