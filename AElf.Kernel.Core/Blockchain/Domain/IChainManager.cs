@@ -300,33 +300,6 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long
             irreversibleBlockHeight)
         {
-            var (toRemoveBlocks, toCleanBranchKeys, toCleanNotLinkedKeys) =
-                await GetToCleanBlocksAndBranchesAsync(chain, irreversibleBlockHash, irreversibleBlockHeight);
-
-            var longestChainKey = chain.LongestChainHash.ToStorageKey();
-            foreach (var key in toCleanBranchKeys)
-            {
-                if (key == longestChainKey)
-                {
-                    chain.LongestChainHash = chain.BestChainHash;
-                    chain.LongestChainHeight = chain.BestChainHeight;
-                }
-                chain.Branches.Remove(key);
-            }
-
-            foreach (var key in toCleanNotLinkedKeys)
-            {
-                chain.NotLinkedBlocks.Remove(key);
-            }
-
-            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
-
-            return toRemoveBlocks;
-        }
-
-        private async Task<(List<Hash>, List<string>, List<string>)> GetToCleanBlocksAndBranchesAsync(Chain chain,
-            Hash irreversibleBlockHash, long irreversibleBlockHeight)
-        {
             var toRemoveBlocks = new List<Hash>();
             var toCleanBranchKeys = new List<string>();
             var toCleanNotLinkedKeys = new List<string>();
@@ -376,7 +349,30 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
             }
 
-            return (toRemoveBlocks, toCleanBranchKeys, toCleanNotLinkedKeys);
+            await RemoveChainBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
+
+            return toRemoveBlocks;
+        }
+
+        private async Task RemoveChainBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
+        {
+            var longestChainKey = chain.LongestChainHash.ToStorageKey();
+            foreach (var key in branchKeys)
+            {
+                if (key == longestChainKey)
+                {
+                    chain.LongestChainHash = chain.BestChainHash;
+                    chain.LongestChainHeight = chain.BestChainHeight;
+                }
+                chain.Branches.Remove(key);
+            }
+
+            foreach (var key in notLinkedKeys)
+            {
+                chain.NotLinkedBlocks.Remove(key);
+            }
+
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
     }
 }
