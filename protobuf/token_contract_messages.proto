@@ -25,7 +25,17 @@ message CreateInput {
     sint32 decimals = 4;
     Address issuer = 5;
     bool is_burnable = 6;
-    repeated Address lockWhiteList = 7;
+    repeated Address lock_white_list = 7;
+}
+
+message CreateNativeTokenInput {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    Address issuer = 5;
+    bool is_burnable = 6;
+    repeated Hash lock_white_system_contract_name_list = 7;
 }
 
 message IssueInput {
@@ -33,6 +43,13 @@ message IssueInput {
     sint64 amount = 2;
     string memo = 3;
     Address to = 4;
+}
+
+message IssueNativeTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    Hash to_system_contract_name = 4;
 }
 
 message LockInput {

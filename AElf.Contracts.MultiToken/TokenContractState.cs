@@ -15,6 +15,7 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, Address, string, long> Allowances { get; set; }
         public MappedState<Address, string, long> ChargedFees { get; set; }
         public SingletonState<Address> FeePoolAddress { get; set; }
+
         /// <summary>
         /// symbol -> address -> is in white list.
         /// </summary>
@@ -22,6 +23,7 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Hash, CrossChainReceiveInput> VerifiedCrossChainTransferTransaction { get; set; }
         public CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
+        public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
     
     public class CrossChainContractReferenceState : ContractReferenceState

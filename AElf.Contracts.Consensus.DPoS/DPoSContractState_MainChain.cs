@@ -4,5 +4,6 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public DividendContractReferenceState DividendContract { get; set; }
         public TokenContractReferenceState TokenContract { get; set; }
+        public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }
