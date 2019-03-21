@@ -72,15 +72,15 @@ namespace AElf.CrossChain
             if (methodName == CrossChainConsts.GetAllChainsIdAndHeightMethodName)
             {
                 var dict = new SideChainIdAndHeightDict();
-                dict.IdHeighDict.Add(_sideChainIdHeights);
-                dict.IdHeighDict.Add(_parentChainIdHeight);
+                dict.IdHeightDict.Add(_sideChainIdHeights);
+                dict.IdHeightDict.Add(_parentChainIdHeight);
                 return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
             }
 
             if (methodName == CrossChainConsts.GetSideChainIdAndHeightMethodName)
             {
                 var dict = new SideChainIdAndHeightDict();
-                dict.IdHeighDict.Add(_sideChainIdHeights);
+                dict.IdHeightDict.Add(_sideChainIdHeights);
                 return ReturnTypeHelper.GetEncoder<SideChainIdAndHeightDict>()(dict);
             }
             

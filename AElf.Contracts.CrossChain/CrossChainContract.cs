@@ -257,7 +257,7 @@ namespace AElf.Contracts.CrossChain
                 if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var height = State.CurrentSideChainHeight[chainId];
-                dict.IdHeighDict.Add(chainId, height);
+                dict.IdHeightDict.Add(chainId, height);
             }
 
             return dict;
@@ -271,7 +271,7 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = State.CurrentParentChainHeight.Value;
-            dict.IdHeighDict.Add(State.ParentChainId.Value, parentChainHeight);
+            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
             return dict;
         }
         
@@ -288,11 +288,17 @@ namespace AElf.Contracts.CrossChain
         }
 
         [View]
-        public MerklePath GetMerklePathByHeight(long selfHeight)
+        public CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(long selfHeight)
         {
+            var boundParentChainHeight = State.ChildHeightToParentChainHeight[selfHeight];
+            Assert(boundParentChainHeight != 0);
             var merklePath = State.TxRootMerklePathInParentChain[selfHeight];
             Assert(merklePath != null);
-            return merklePath;
+            return new CrossChainMerkleProofContext
+            {
+                MerklePathForParentChainRoot = merklePath,
+                BoundParentChainHeight = boundParentChainHeight
+            };
         }
         
         public void RecordCrossChainData(CrossChainBlockData crossChainBlockData)
@@ -332,7 +338,7 @@ namespace AElf.Contracts.CrossChain
                 Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
                 long parentChainHeight = blockInfo.Root.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : CrossChainConsts.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : ChainConsts.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
 
@@ -392,7 +398,7 @@ namespace AElf.Contracts.CrossChain
                 
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
-                    : CrossChainConsts.GenesisBlockHeight;
+                    : ChainConsts.GenesisBlockHeight;
                 long sideChainHeight = blockInfo.SideChainHeight;
                 if (target != sideChainHeight)
                     continue;

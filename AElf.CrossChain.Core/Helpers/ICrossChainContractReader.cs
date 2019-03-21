@@ -80,14 +80,14 @@ namespace AElf.CrossChain
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetSideChainIdAndHeightMethodName);
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
-            return new Dictionary<int, long>(dict.IdHeighDict);
+            return new Dictionary<int, long>(dict.IdHeightDict);
         }
 
         public async Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(CrossChainConsts.GetAllChainsIdAndHeightMethodName);
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
-            return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
+            return dict == null ? null : new Dictionary<int, long>(dict.IdHeightDict);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)

@@ -278,7 +278,7 @@ namespace AElf.Contract.CrossChain.Tests
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
             var bytes = await CallContractMethodAsync(CrossChainContractAddress, CrossChainConsts.GetAllChainsIdAndHeightMethodName);
-            var dict = new Dictionary<int, long>(bytes.DeserializeToPbMessage<SideChainIdAndHeightDict>().IdHeighDict);
+            var dict = new Dictionary<int, long>(bytes.DeserializeToPbMessage<SideChainIdAndHeightDict>().IdHeightDict);
             Assert.True(dict.ContainsKey(chainId));
         }
         

@@ -400,8 +400,7 @@ namespace AElf.Contract.CrossChain.Tests
                 Root = new ParentChainBlockRootInfo
                 {
                     ParentChainHeight = 1,
-                    ParentChainId = parentChainId,
-                    //SideChainTransactionsRoot = merkleTreeRoot
+                    ParentChainId = parentChainId
                 }
             };
             long sideChainHeight = 1;
@@ -416,10 +415,10 @@ namespace AElf.Contract.CrossChain.Tests
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
             var serializedMerklePath = await CallContractMethodAsync(CrossChainContractAddress,
-                CrossChainConsts.GetMerklePathByHeightMethodName, sideChainHeight);
-            var deserializedMerklePath = serializedMerklePath.DeserializeToPbMessage<MerklePath>();
-            Assert.Equal(merklePath, deserializedMerklePath);
-            Assert.Equal(merkleTreeRoot, deserializedMerklePath.ComputeRootWith(txHash));
+                CrossChainConsts.GetBoundParentChainHeightAndMerklePathByHeightMethodName, sideChainHeight);
+            var crossChainMerkleProofContext = serializedMerklePath.DeserializeToPbMessage<CrossChainMerkleProofContext>();
+            Assert.Equal(merklePath, crossChainMerkleProofContext.MerklePathForParentChainRoot);
+            Assert.Equal(merkleTreeRoot, crossChainMerkleProofContext.MerklePathForParentChainRoot.ComputeRootWith(txHash));
         }
 
         [Fact]

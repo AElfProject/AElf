@@ -21,7 +21,7 @@ namespace AElf.CrossChain
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == CrossChainConsts.GenesisBlockHeight)
+            if (blockHeader.Height == ChainConsts.GenesisBlockHeight)
                 return ByteString.Empty;
 
             //Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
