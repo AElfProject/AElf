@@ -324,6 +324,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
                 minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
+                minerInformation += $"\nNOrder:\t{minerInRound.OrderOfNextRound}";
 
                 logs += minerInformation;
             }
