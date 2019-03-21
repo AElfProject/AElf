@@ -16,7 +16,7 @@ using Xunit;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    public class SmartContractRunnerTest: CSharpRuntimeTestBase
+    public sealed class SmartContractRunnerTest: CSharpRuntimeTestBase
     {
         private ISmartContractRunner Runner { get; set; }
         private SmartContractRegistration Reg { get; set; }
@@ -27,7 +27,7 @@ namespace AElf.Runtime.CSharp.Tests
             Runner = GetRequiredService<ISmartContractRunner>();
             Reg = new SmartContractRegistration()
             {
-                Category = 2,
+                Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.CopyFrom(contractCode),
                 CodeHash = Hash.FromRawBytes(contractCode)
             };

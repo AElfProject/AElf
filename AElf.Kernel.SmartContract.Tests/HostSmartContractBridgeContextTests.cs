@@ -212,7 +212,7 @@ namespace AElf.Kernel.SmartContract
 
             var registration = new SmartContractRegistration
             {
-                Category = 2,
+                Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.Empty,
                 CodeHash = Hash.Generate()
             };
@@ -244,7 +244,7 @@ namespace AElf.Kernel.SmartContract
 
             var registration = new SmartContractRegistration
             {
-                Category = 2,
+                Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.Empty,
                 CodeHash = Hash.Empty
             };

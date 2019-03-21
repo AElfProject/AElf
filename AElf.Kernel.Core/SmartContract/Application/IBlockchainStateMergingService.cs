@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             Logger.LogInformation(chainStateInfo.ToString());
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? ChainConsts.GenesisBlockHeight
+                ? KernelConstants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
             var count = lastIrreversibleBlockHeight - firstHeightToMerge;
 
