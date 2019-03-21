@@ -436,6 +436,8 @@ namespace AElf.Kernel.Blockchain.Application
             chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[8].Height);
             chain.Branches.Count.ShouldBe(1);
             chain.NotLinkedBlocks.Count.ShouldBe(5);
+            chain.LongestChainHash.ShouldBe(chain.BestChainHash);
+            chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
             
             await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[10]
                 .Height, _kernelTestHelper.BestBranchBlockList[10].GetHash());

@@ -293,8 +293,15 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task CleanBranches(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
         {
+            var longestChainKey = chain.LongestChainHash.ToStorageKey();
             foreach (var key in branchKeys)
             {
+                if (key == longestChainKey)
+                {
+                    chain.LongestChainHash = chain.BestChainHash;
+                    chain.LongestChainHeight = chain.BestChainHeight;
+                }
+
                 chain.Branches.Remove(key);
             }
 
