@@ -248,6 +248,12 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHeight = irreversibleBlockHeight
             };
             await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
+
+            // Clean branches and not linked
+            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, irreversibleBlockHash, irreversibleBlockHeight);
+            
+            await RemoveBlocksAsync(toCleanBlocks);
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
@@ -380,6 +386,15 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Chain> GetChainAsync()
         {
             return await _chainManager.GetAsync();
+        }
+
+        private async Task RemoveBlocksAsync(List<Hash> blockHashs)
+        {
+            foreach (var blockHash in blockHashs)
+            {
+                await _chainManager.RemoveChainBlockLinkAsync(blockHash);
+                await _blockManager.RemoveBlockAsync(blockHash);
+            }
         }
     }
 }
