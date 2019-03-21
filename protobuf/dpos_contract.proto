@@ -15,6 +15,8 @@ service ConsensusContract {
     // -> MainChain
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
+    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    }
     rpc SetBlockchainAge (SInt64Value) returns (google.protobuf.Empty) {
     }
     rpc NextTerm (Round) returns (google.protobuf.Empty) {
@@ -194,6 +196,11 @@ service ConsensusContract {
 message InitializeInput {
     Address tokenContractAddress = 1;
     Address dividendsContractAddress = 2;
+}
+
+message InitializeWithContractSystemNamesInput {
+    Hash tokenContractSystemName = 1;
+    Hash dividendsContractSystemName = 2;
 }
 
 message TermInfo {

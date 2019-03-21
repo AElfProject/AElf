@@ -31,9 +31,9 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="contractName"></param>
+        /// <param name="chainId"></param>
+        /// <param name="serialNumber"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));

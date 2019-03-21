@@ -57,6 +57,8 @@ namespace AElf.Kernel.SmartContract.Sdk
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
 
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
+
+        Address GetZeroSmartContractAddress();
     }
 
     [Serializable]

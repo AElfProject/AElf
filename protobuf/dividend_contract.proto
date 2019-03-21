@@ -13,6 +13,8 @@ service DividendContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
+    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    }
     rpc SendDividends (SendDividendsInput) returns (google.protobuf.Empty) {
     }
     rpc TransferDividends (VotingRecord) returns (SInt64Value) {
@@ -61,6 +63,11 @@ service DividendContract {
 message InitializeInput {
     Address tokenContractAddress = 1;
     Address consensusContractAddress = 2;
+}
+
+message InitializeWithContractSystemNamesInput {
+    Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
 }
 
 message SendDividendsInput {

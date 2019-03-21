@@ -14,22 +14,32 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public override Empty Initialize(InitializeInput input)
         {
-            var tokenContractAddress = input.TokenContractAddress;
-            var dividendsContractAddress = input.DividendsContractAddress;
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.TokenContract.Value = tokenContractAddress;
-            State.DividendContract.Value = dividendsContractAddress;
+            State.TokenContract.Value = input.TokenContractAddress;
+            // TODO: dividends -> dividend
+            State.DividendContract.Value = input.DividendsContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
             return new Empty();
         }
+        
+        // TODO: Add this method.
+        public void InitializeWithContractSystemNames(Hash tokenContractSystemName, Hash dividendContractSystemName)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.TokenContractSystemName.Value = tokenContractSystemName;
+            State.DividendContractSystemName.Value = dividendContractSystemName;
+            State.Initialized.Value = true;
+        }
 
+        // TODO: Remove this method after testing.
         public override Empty SetBlockchainAge(SInt64Value input)
         {
             var age = input.Value;
-            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
-                    "No permission to change blockchain age."));
+//            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
+//                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+//                    "No permission to change blockchain age."));
             State.AgeField.Value = age;
             return new Empty();
         }
@@ -52,6 +62,16 @@ namespace AElf.Contracts.Consensus.DPoS
             miners.TermNumber = 1;
             SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
+
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            // TODO: This judgement can be removed with `Initialize` method.
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+            }
         }
 
         private void UpdateHistoryInformation(Round round)
@@ -117,10 +137,12 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         public override Empty NextTerm(Round input)
-        {            // Count missed time slot of current round.
+        {
+            // Count missed time slot of current round.
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
+            
             State.DividendContract.KeepWeights.Send(new SInt64Value() {Value = termNumber});
 
             // Update current term number and current round number.
@@ -173,6 +195,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
+            Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLIB();
             return new Empty();
         }
@@ -382,8 +405,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ActionResult {Success = true};
         }
-        
-        
+
+
         /// <summary>
         /// Normally this process contained in NextRound method.
         /// </summary>
