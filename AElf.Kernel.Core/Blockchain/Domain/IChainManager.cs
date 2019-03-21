@@ -301,7 +301,7 @@ namespace AElf.Kernel.Blockchain.Domain
             irreversibleBlockHeight)
         {
             var (toRemoveBlocks, toCleanBranchKeys, toCleanNotLinkedKeys) =
-                await GetToCleanBlocksAndBranches(chain, irreversibleBlockHash, irreversibleBlockHeight);
+                await GetToCleanBlocksAndBranchesAsync(chain, irreversibleBlockHash, irreversibleBlockHeight);
 
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
             foreach (var key in toCleanBranchKeys)
@@ -324,7 +324,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return toRemoveBlocks;
         }
 
-        private async Task<(List<Hash>, List<string>, List<string>)> GetToCleanBlocksAndBranches(Chain chain,
+        private async Task<(List<Hash>, List<string>, List<string>)> GetToCleanBlocksAndBranchesAsync(Chain chain,
             Hash irreversibleBlockHash, long irreversibleBlockHeight)
         {
             var toRemoveBlocks = new List<Hash>();
