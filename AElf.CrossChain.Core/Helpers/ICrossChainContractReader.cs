@@ -130,7 +130,7 @@ namespace AElf.CrossChain
         }
 
         private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, Hash blockHash, long blockHeight)
-        where T: IMessage<T>
+        where T: IMessage<T>, new()
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var trace =
@@ -138,7 +138,7 @@ namespace AElf.CrossChain
 
             if (trace.IsSuccessful())
             {
-                var obj = Activator.CreateInstance<T>();
+                var obj = new T();
                 obj.MergeFrom(trace.ReturnValue);
                 return obj;
             }
