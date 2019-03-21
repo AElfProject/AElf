@@ -17,12 +17,14 @@ namespace AElf.Kernel.Blockchain.Application
     {
         private readonly FullBlockchainService _fullBlockchainService;
         private readonly ITransactionManager _transactionManager;
+        private readonly IChainManager _chainManager;
         private readonly KernelTestHelper _kernelTestHelper;
 
         public FullBlockchainServiceTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
+            _chainManager = GetRequiredService<IChainManager>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
@@ -427,6 +429,14 @@ namespace AElf.Kernel.Blockchain.Application
             chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[6].Height);
             chain.Branches.Count.ShouldBe(2);
             chain.NotLinkedBlocks.Count.ShouldBe(5);
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.ForkBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.ForkBranchBlockList.Last().GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.ForkBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.ForkBranchBlockList.Last().GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
             
             await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[8]
                 .Height, _kernelTestHelper.BestBranchBlockList[8].GetHash());
@@ -438,6 +448,14 @@ namespace AElf.Kernel.Blockchain.Application
             chain.NotLinkedBlocks.Count.ShouldBe(5);
             chain.LongestChainHash.ShouldBe(chain.BestChainHash);
             chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.LongestBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.LongestBranchBlockList.Last().GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.LongestBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.LongestBranchBlockList.Last().GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
             
             await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[10]
                 .Height, _kernelTestHelper.BestBranchBlockList[10].GetHash());
@@ -447,6 +465,14 @@ namespace AElf.Kernel.Blockchain.Application
             chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].Height);
             chain.Branches.Count.ShouldBe(1);
             chain.NotLinkedBlocks.Count.ShouldBe(3);
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.UnlinkedBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _fullBlockchainService.GetBlockByHashAsync(_kernelTestHelper.UnlinkedBranchBlockList[1].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.UnlinkedBranchBlockList[0].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
+            await _chainManager.GetChainBlockLinkAsync(_kernelTestHelper.UnlinkedBranchBlockList[1].GetHash())
+                .ContinueWith(b => b.Result.ShouldBeNull());
         }
         
         [Fact]
