@@ -16,8 +16,7 @@ namespace AElf.Kernel
          typeof(SmartContractTestAElfModule),
          typeof(SmartContractExecutionTestAElfModule),
          typeof(TransactionPoolTestAElfModule),
-         typeof(ChainControllerTestAElfModule),
-         typeof(AbpBackgroundJobsModule)
+         typeof(ChainControllerTestAElfModule)
      )]
     public class KernelTestAElfModule : AElfModule
     {

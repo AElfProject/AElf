@@ -26,7 +26,7 @@ namespace AElf.OS
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<ForkDownloadJob>();
+            context.Services.AddTransient<BlockSyncJob>();
             context.Services.AddSingleton<INetworkService, NetworkService>();
 
             context.Services.AddSingleton<IPeerPool>(o =>
