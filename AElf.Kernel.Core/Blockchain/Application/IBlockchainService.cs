@@ -250,45 +250,9 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
 
             // Clean branches and not linked
-            var bestChainKey = chain.BestChainHash.ToStorageKey();
-
-            var toCleanBranchKeys = new List<string>();
-            foreach (var branch in chain.Branches)
-            {
-                if (branch.Key == bestChainKey)
-                {
-                    continue;
-                }
-
-                var blockHash = await GetBlockHashByHeightAsync(chain, irreversibleBlockHeight + 1,
-                    Hash.LoadHex(branch.Key));
-                if (blockHash != null)
-                {
-                    var blockHeader = await GetBlockHeaderByHashAsync(blockHash);
-                    if (blockHeader.PreviousBlockHash == irreversibleBlockHash)
-                    {
-                        continue;
-                    }
-                }
-
-                toCleanBranchKeys.Add(branch.Key);
-            }
-
-            var toCleanNotLinkedKeys = new List<string>();
-
-            foreach (var notLinkedBranch in chain.NotLinkedBlocks)
-            {
-                var blockLink = await _chainManager.GetChainBlockLinkAsync(Hash.LoadHex(notLinkedBranch.Value));
-                if (blockLink.Height <= irreversibleBlockHeight)
-                {
-                    toCleanNotLinkedKeys.Add(notLinkedBranch.Value);
-                }
-            }
-
-            await _chainManager.CleanBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
+            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, irreversibleBlockHash, irreversibleBlockHeight);
             
-            // Remove Blocks
-            //await RemoveBlocksAsync();
+            await RemoveBlocksAsync(toCleanBlocks);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }

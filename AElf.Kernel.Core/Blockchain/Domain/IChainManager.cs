@@ -34,7 +34,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
-        Task CleanBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys);
+        Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -297,26 +297,86 @@ namespace AElf.Kernel.Blockchain.Domain
             return ChainId;
         }
 
-        public async Task CleanBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
+        public async Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long
+            irreversibleBlockHeight)
         {
+            var (toRemoveBlocks, toCleanBranchKeys, toCleanNotLinkedKeys) =
+                await GetToCleanBlocksAndBranches(chain, irreversibleBlockHash, irreversibleBlockHeight);
+
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
-            foreach (var key in branchKeys)
+            foreach (var key in toCleanBranchKeys)
             {
                 if (key == longestChainKey)
                 {
                     chain.LongestChainHash = chain.BestChainHash;
                     chain.LongestChainHeight = chain.BestChainHeight;
                 }
-
                 chain.Branches.Remove(key);
             }
 
-            foreach (var key in notLinkedKeys)
+            foreach (var key in toCleanNotLinkedKeys)
             {
                 chain.NotLinkedBlocks.Remove(key);
             }
-            
+
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+            return toRemoveBlocks;
+        }
+
+        private async Task<(List<Hash>, List<string>, List<string>)> GetToCleanBlocksAndBranches(Chain chain,
+            Hash irreversibleBlockHash, long irreversibleBlockHeight)
+        {
+            var toRemoveBlocks = new List<Hash>();
+            var toCleanBranchKeys = new List<string>();
+            var toCleanNotLinkedKeys = new List<string>();
+
+            var bestChainKey = chain.BestChainHash.ToStorageKey();
+
+            foreach (var branch in chain.Branches)
+            {
+                if (branch.Key == bestChainKey)
+                {
+                    continue;
+                }
+
+                var toRemoveBlocksTemp = new List<Hash>();
+                var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
+                while (true)
+                {
+                    if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
+                    {
+                        toRemoveBlocksTemp.Clear();
+                        break;
+                    }
+
+                    if (chainBlockLink.IsIrreversibleBlock)
+                    {
+                        break;
+                    }
+
+                    toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
+                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                }
+
+                if (toRemoveBlocksTemp.Count > 0)
+                {
+                    toRemoveBlocks.AddRange(toRemoveBlocksTemp);
+                    toCleanBranchKeys.Add(branch.Key);
+                }
+            }
+
+            foreach (var notLinkedBranch in chain.NotLinkedBlocks)
+            {
+                var blockLink = await GetChainBlockLinkAsync(notLinkedBranch.Value);
+                if (blockLink.Height <= irreversibleBlockHeight)
+                {
+                    toRemoveBlocks.Add(blockLink.BlockHash);
+                    toCleanNotLinkedKeys.Add(notLinkedBranch.Value);
+                }
+            }
+
+            return (toRemoveBlocks, toCleanBranchKeys, toCleanNotLinkedKeys);
         }
     }
 }
