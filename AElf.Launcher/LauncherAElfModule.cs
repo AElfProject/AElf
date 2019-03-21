@@ -5,6 +5,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.CrossChain;
@@ -13,6 +14,7 @@ using AElf.Kernel.Consensus;
 using SideChain = AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -91,18 +93,28 @@ namespace AElf.Launcher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
+            
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                TokenSmartContractAddressNameProvider.Name, DividendsSmartContractAddressNameProvider.Name);
+
+            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
+                ConsensusSmartContractAddressNameProvider.Name, TokenSmartContractAddressNameProvider.Name);
 
             if (chainOptions.IsSideChain)
             {
                 dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
             }
             else
-                dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+                dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name);
+            var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
+                .GetZeroSmartContractAddress();
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(zeroContractAddress));
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
@@ -115,6 +127,30 @@ namespace AElf.Launcher
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
+        private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer)
+        {
+            var tokenContractCallList = new SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                // Set the contract zero address as the issuer temporarily.
+                Issuer = issuer,
+                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+            });
+            
+            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection * 10,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                Memo = "Set dividends.",
+            });
+            return tokenContractCallList;
+        }
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

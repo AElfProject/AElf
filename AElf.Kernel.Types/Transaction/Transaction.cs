@@ -21,6 +21,11 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
+            if (To == null)
+            {
+                throw new InvalidOperationException($"Transaction.To cannot be empty: {this}");
+                
+            }
             var txData = new Transaction
             {
                 From = From.Clone(),

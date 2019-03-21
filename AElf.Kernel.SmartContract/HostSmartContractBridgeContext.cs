@@ -134,6 +134,10 @@ namespace AElf.Kernel.SmartContract
                 virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
         }
 
+        public Address GetZeroSmartContractAddress()
+        {
+            return _smartContractBridgeService.GetZeroSmartContractAddress();
+        }
 
         public Block GetPreviousBlock()
         {
