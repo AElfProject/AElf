@@ -2,10 +2,7 @@ syntax = "proto3";
 
 import "common.proto";
 import "auth.proto";
-import "consensus.proto";
-import "consensus_dpos.proto";
 import "aelf_options.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Authorization";

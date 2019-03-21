@@ -17,14 +17,8 @@
       <Content Include="..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </Content>
-      <Content Include="..\protobuf\consensus_dpos.proto">
-        <Link>Protobuf/Proto/consensus_dpos.proto</Link>
-      </Content>
       <Content Include="..\protobuf\authorization_contract.proto">
         <Link>Protobuf/Proto/authorization_contract.proto</Link>
-      </Content>
-      <Content Include="..\protobuf\kernel.proto">
-        <Link>Protobuf/Proto/kernel.proto</Link>
       </Content>
         <Content Include="..\protobuf\auth.proto">
             <Link>Protobuf/Proto/auth.proto</Link>
