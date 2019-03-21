@@ -483,36 +483,38 @@ namespace AElf.Contracts.TestBase
         /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer)
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply, out long dividend, out long balanceOfStarter)
         {
+            totalSupply = 1000_000L;
+            dividend = 200_000L;
+            balanceOfStarter = 800_000L;
+            var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                Issuer = issuer,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply
+            });
+            callList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = dividend,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+            });
+            callList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = balanceOfStarter,
+                To = GetCallOwnerAddress()
+            });
             return list =>
             {
                 list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, o =>
-                {
-                    o.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
-                    {
-                        Symbol = "ELF",
-                        Decimals = 2,
-                        Issuer = issuer,
-                        IsBurnable = true,
-                        TokenName = "elf token",
-                        TotalSupply = 1000_000L
-                    });
-                    o.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-                    {
-                        Symbol = "ELF",
-                        Amount = 200_000L,
-                        ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
-                    });
-                    o.Add(nameof(TokenContract.Issue), new IssueInput
-                    {
-                        Symbol = "ELF",
-                        Amount = 800_000L,
-                        To = GetCallOwnerAddress()
-                    });
-                });
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, callList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);

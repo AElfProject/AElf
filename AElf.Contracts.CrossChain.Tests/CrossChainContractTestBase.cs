@@ -16,6 +16,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.TestBase;
 using Google.Protobuf;
+using Secp256k1Net;
 using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
@@ -30,7 +31,9 @@ namespace AElf.Contract.CrossChain.Tests
         public CrossChainContractTestBase()
         {
             Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
-            AsyncHelper.RunSync(() => Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress())));
+            AsyncHelper.RunSync(() =>
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _, out _,
+                    out _)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
