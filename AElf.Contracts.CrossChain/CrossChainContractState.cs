@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -24,11 +25,7 @@ namespace AElf.Contracts.CrossChain
 
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Action<byte[]> UpdateMainChainConsensus { get; set; }
-        
-        public Func<Miners> GetCurrentMiners { get; set; }
-        public Func<long> GetCurrentRoundNumber { get; set; }
-        public Func<long, Round> GetRoundInformation { get; set; }
+        public MethodReference<DPoSInformation, Empty> UpdateMainChainConsensus { get; set; }
     }
 
     public class CrossChainContractState : ContractState

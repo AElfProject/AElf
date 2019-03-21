@@ -41,13 +41,13 @@ namespace AElf.Contracts.CrossChain
             return proposal.GetHash();
         }
 
-        private bool IsMiner()
-        {
-            var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
-            var round = State.ConsensusContract.GetRoundInformation(roundNumber);
-            var miners = new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
-            return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
-        }
+//        private bool IsMiner()
+//        {
+//            var roundNumber = State.ConsensusContract.GetCurrentRoundNumber();
+//            var round = State.ConsensusContract.GetRoundInformation(roundNumber);
+//            var miners = new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
+//            return miners.PublicKeys.Any(p => ByteArrayHelpers.FromHexString(p).BytesEqual(Context.RecoverPublicKey()));
+//        }
         private void CheckAuthority(Address fromAddress = null)
         {
 //            Assert(fromAddress == null || fromAddress.Equals(Context.Sender), "Not authorized transaction.");
