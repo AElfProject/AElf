@@ -55,8 +55,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests", "AElf.Sdk.CSharp.Tests\AElf.Sdk.CSharp.Tests.csproj", "{F3F761B4-914A-4190-93B1-F874CEE9149E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core", "AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{D40BEB6B-C370-4A8E-A628-47B6842C975A}"
@@ -356,10 +354,6 @@ Global
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
