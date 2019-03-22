@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AElf.Common;
 
 namespace AElf.Kernel
 {
@@ -11,11 +10,5 @@ namespace AElf.Kernel
         long Height { get; set; }
         byte[] GetHashBytes();
         Block Clone();
-    }
-
-    public interface IBlockIndex
-    {
-        Hash Hash { get; }
-        long Height { get; }
     }
 }
