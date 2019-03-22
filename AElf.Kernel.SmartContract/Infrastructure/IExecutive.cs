@@ -18,7 +18,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
         Task Apply();
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
-        object GetReturnValue(string methodName, byte[] bytes);
         byte[] GetFileDescriptorSet();
 
     }

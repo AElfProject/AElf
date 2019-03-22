@@ -3,22 +3,6 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
-    public class InmemoryStateCache : IStateCache
-    {
-        private Dictionary<StatePath, byte[]> _data = new Dictionary<StatePath, byte[]>();
-
-        public bool TryGetValue(StatePath key, out byte[] value)
-        {
-            return _data.TryGetValue(key, out value);
-        }
-
-        public byte[] this[StatePath key]
-        {
-            get => TryGetValue(key, out var value) ? value : null;
-            set => _data[key] = value;
-        }
-    }
-
     public class CachedStateProvider : IStateProvider
     {
         public ITransactionContext TransactionContext
@@ -34,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Sdk
             _inner = inner;
         }
 
-        public IStateCache Cache { get; set; } = new InmemoryStateCache();
+        public IStateCache Cache { get; set; } = new InMemoryStateCache();
 
         public async Task<byte[]> GetAsync(StatePath path)
         {
@@ -48,6 +32,23 @@ namespace AElf.Kernel.SmartContract.Sdk
             Cache[path] = bytes;
 
             return bytes;
+        }
+        
+        private class InMemoryStateCache : IStateCache
+        {
+            private readonly Dictionary<StatePath, byte[]> _data = 
+                new Dictionary<StatePath, byte[]>();
+
+            public bool TryGetValue(StatePath key, out byte[] value)
+            {
+                return _data.TryGetValue(key, out value);
+            }
+
+            public byte[] this[StatePath key]
+            {
+                get => TryGetValue(key, out var value) ? value : null;
+                set => _data[key] = value;
+            }
         }
     }
 }
