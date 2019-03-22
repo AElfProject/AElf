@@ -8,6 +8,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -161,12 +162,12 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
-                var offset = 5;
+                var offset = 5L;
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
                     Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    Data = ByteString.CopyFrom(ParamsPacker.Pack(offset))
+                    Data = new Int64Value {Value = offset}.ToByteString()
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
