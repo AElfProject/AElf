@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return;
             }
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) mergeCount);
+            var hashes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
                 hashes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));

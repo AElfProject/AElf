@@ -146,10 +146,10 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await _fullBlockchainService.GetChainAsync();
 
-            var result = await _fullBlockchainService.GetReversedBlockHashes(Hash.FromString("not exist"), 1);
+            var result = await _fullBlockchainService.GetReversedBlockIndexes(Hash.FromString("not exist"), 1);
             result.Count.ShouldBe(0);
 
-            result = await _fullBlockchainService.GetReversedBlockHashes(chain.GenesisBlockHash, 1);
+            result = await _fullBlockchainService.GetReversedBlockIndexes(chain.GenesisBlockHash, 1);
             result.Count.ShouldBe(0);
         }
 
@@ -157,7 +157,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Get_ReversedBlockHashes_ReturnEmpty()
         {
             var result =
-                await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.BestBranchBlockList[2].GetHash(),
+                await _fullBlockchainService.GetReversedBlockIndexes(_kernelTestHelper.BestBranchBlockList[2].GetHash(),
                     0);
             result.Count.ShouldBe(0);
         }
@@ -168,14 +168,14 @@ namespace AElf.Kernel.Blockchain.Application
             var chain = await _fullBlockchainService.GetChainAsync();
 
             var result =
-                await _fullBlockchainService.GetReversedBlockHashes(_kernelTestHelper.BestBranchBlockList[5].GetHash(),
+                await _fullBlockchainService.GetReversedBlockIndexes(_kernelTestHelper.BestBranchBlockList[5].GetHash(),
                     3);
             result.Count.ShouldBe(3);
             result[0].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
             result[1].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
             result[2].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
 
-            result = await _fullBlockchainService.GetReversedBlockHashes(
+            result = await _fullBlockchainService.GetReversedBlockIndexes(
                 _kernelTestHelper.BestBranchBlockList[3].GetHash(), 4);
             result.Count.ShouldBe(3);
             result[0].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());

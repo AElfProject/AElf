@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Chain> GetChainAsync();
 
-        Task<List<IBlockIndex>> GetReversedBlockHashes(Hash lastBlockHash, int count);
+        Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count);
 
         /// <summary>
         /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
@@ -255,7 +255,7 @@ namespace AElf.Kernel.Blockchain.Application
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
-        public async Task<List<IBlockIndex>> GetReversedBlockHashes(Hash lastBlockHash, int count)
+        public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
         {
             var hashes = new List<IBlockIndex>();
             if (count == 0)
