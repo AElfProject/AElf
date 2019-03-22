@@ -24,7 +24,7 @@
     }
     
     if (aelf.isConnected()) {
-        console.log("connect..");
+        console.log("connect...");
 
         var cRes = aelf.chain.connectChain();
         chain = {
