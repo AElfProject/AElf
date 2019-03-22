@@ -3,10 +3,10 @@ using AElf.Common;
 
 namespace AElf.Kernel
 {
-    public partial class StatePath : IHashProvider
+    public partial class StatePath 
     {
         //Add StatePath->GetHash [Case]
-        public Hash GetHash()
+        /*public Hash GetHash()
         {
             if (Path == null)
             {
@@ -14,6 +14,6 @@ namespace AElf.Kernel
             }
 
             return Hash.FromMessage(this);
-        }
+        }*/
     }
 }
