@@ -1,5 +1,6 @@
 version: 1.0.0.{build}
 skip_tags: true
+os: Windows Server 2012 R2
 image: Visual Studio 2017
 build:
   publish_nuget: true
@@ -8,10 +9,10 @@ configuration:
   - Debug
 platform:
   - Any CPU
-
 install:
   - choco install vcredist2017
   - ps: dotnet --info
+  - ps: node --version
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: dir c:\
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
@@ -19,8 +20,8 @@ install:
 
   
 build_script:
-  - cmd: dotnet build AElf.Console.sln
-  - cmd: dotnet build AElf.sln
-  - cmd: dotnet test AElf.sln
-  - cmd: dotnet build AElf.Management.sln
-  - cmd: dotnet test AElf.Management.sln
+  - ps: dotnet build AElf.Console.sln
+  - ps: dotnet build AElf.sln
+  - ps: dotnet test AElf.sln
+  - ps: dotnet build AElf.Management.sln
+  - ps: dotnet test AElf.Management.sln
