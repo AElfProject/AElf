@@ -616,6 +616,49 @@ namespace AElf.Consensus.DPoS
             };
         }
 
+        /// <summary>
+        /// Check the equality of time slots of miners.
+        /// Also, the mining interval shouldn't be 0.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <returns></returns>
+        public static bool CheckTimeSlots(this Round round)
+        {
+            var miners = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
+            if (miners.Count == 1)
+            {
+                // No need to check single node.
+                return true;
+            }
+
+            if (miners.Any(m => m.ExpectedMiningTime == null))
+            {
+                return false;
+            }
+
+            var baseMiningInterval =
+                (miners[1].ExpectedMiningTime.ToDateTime() - miners[0].ExpectedMiningTime.ToDateTime())
+                .TotalMilliseconds;
+            
+            if (baseMiningInterval <= 0)
+            {
+                return false;
+            }
+            
+            for (var i = 1; i < miners.Count - 1; i++)
+            {
+                var miningInterval =
+                    (miners[i + 1].ExpectedMiningTime.ToDateTime() - miners[i].ExpectedMiningTime.ToDateTime())
+                    .TotalMilliseconds;
+                if (Math.Abs(miningInterval - baseMiningInterval) > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private static int GetAbsModulus(long longValue, int intValue)
         {
             return Math.Abs((int) longValue % intValue);

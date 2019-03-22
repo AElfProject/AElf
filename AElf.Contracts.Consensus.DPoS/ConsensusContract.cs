@@ -182,6 +182,11 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
+            
+            if (!input.Round.CheckTimeSlots())
+            {
+                return new ValidationResult {Success = false, Message = "Incorrect time slots."};
+            }
 
             var behaviour = input.Behaviour;
 
@@ -242,7 +247,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
         {
-            // TODO: To implement.
+            if (!input.Round.CheckTimeSlots())
+            {
+                return new ValidationResult {Success = false, Message = "Incorrect time slots."};
+            }
             return new ValidationResult {Success = true};
         }
 
