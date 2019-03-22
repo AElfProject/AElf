@@ -239,7 +239,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ValidationResult {Success = true};
         }
-        
+
         /// <summary>
         /// Get next consensus behaviour of the caller based on current state.
         /// This method can be tested by testing GetConsensusCommand.
@@ -311,11 +311,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
                 }
+
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
-                minerInformation += $"\nNOrder:\t{minerInRound.OrderOfNextRound}";
+                minerInformation += $"\nProms:\t {minerInRound.PromisedTinyBlocks}";
+                minerInformation += $"\nNOrder:\t {minerInRound.OrderOfNextRound}";
 
                 logs += minerInformation;
             }
