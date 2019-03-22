@@ -29,7 +29,10 @@ service ConsensusContract {
     rpc GenerateConsensusTransactions (DPoSTriggerInformation) returns (TransactionList) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateConsensus (DPoSInformation) returns (ValidationResult) {
+    rpc ValidateConsensusBeforeExecution (DPoSInformation) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusAfterExecution (DPoSInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
 }

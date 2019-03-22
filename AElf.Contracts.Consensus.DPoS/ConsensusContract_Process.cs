@@ -77,7 +77,15 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
             
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
+            
+            round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
 
+            foreach (var changeOrderInformation in input.ChangedOrders)
+            {
+                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =
+                    changeOrderInformation.NewOrder;
+            }
+            
             // One cannot publish his in value sometime, like in his first round.
             if (input.PreviousInValue != Hash.Empty)
             {
@@ -147,7 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override SInt64Value GetLIBOffset(Empty input)
         {
-            return new SInt64Value() {Value = CalculateLIB(out var offset) ? offset : 0};
+            return new SInt64Value {Value = CalculateLIB(out var offset) ? offset : 0};
         }
 
         private bool CalculateLIB(out long offset)
