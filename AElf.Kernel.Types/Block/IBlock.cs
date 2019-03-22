@@ -9,8 +9,13 @@ namespace AElf.Kernel
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
         long Height { get; set; }
-        string BlockHashToHex { get; set; }
         byte[] GetHashBytes();
         Block Clone();
+    }
+
+    public interface IBlockIndex
+    {
+        Hash Hash { get; }
+        long Height { get; }
     }
 }

@@ -5,14 +5,6 @@ namespace AElf.Kernel
 {
     public static class BlockBodyExtensions
     {
-        /// <summary>
-        /// Set block header hash
-        /// </summary>
-        /// <param name="blockHeaderHash"></param>
-        public static void Complete(this BlockBody blockBody, Hash blockHeaderHash)
-        {
-            blockBody.BlockHeader = blockHeaderHash;
-        }
 
         /// <summary>
         /// Calculate merkle tree root of transaction and side chain block info. 
