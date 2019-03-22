@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -502,6 +504,43 @@ namespace AElf.Contract.CrossChain.Tests
             var verified = BoolValue.Parser.ParseFrom(txRes.ReturnValue).Value;
             Assert.True(verified);
         }
+       
+        #endregion
+
+        #region Cross chain transfer.
+        
+        // todo : Move this to token contract tests.
+        
+        [Fact]
+        public async Task CrossChainTransfer()
+        {
+            int toChainId = 123;
+            var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
+                nameof(TokenContract.CrossChainTransfer), null, new CrossChainTransferInput
+                {
+                    ToChainId = toChainId,
+                    Amount = 100_000,
+                    Symbol = "ELF",
+                    To = Tester.GetCallOwnerAddress()
+                });
+            await Tester.MineAsync(new List<Transaction> {crossChainTransferTransaction});
+            var txResult = await Tester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
+            Assert.True(txResult.Status == TransactionResultStatus.Mined);
+            
+            var balanceResult = await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
+                new GetBalanceInput
+                {
+                    Owner = Tester.GetCallOwnerAddress(),
+                    Symbol = "ELF"
+                });
+            var balance = GetBalanceOutput.Parser.ParseFrom(balanceResult);
+            Assert.True(balance.Balance == Tester.InitialBalanceOfStarter - 100_000);
+        }
+        
+        [Fact]
+        public void CrossChainReceive(){}
+        
+
         #endregion
     }
 }

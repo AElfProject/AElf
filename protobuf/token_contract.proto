@@ -12,6 +12,8 @@ service TokenContract {
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
+    rpc InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput) returns(google.protobuf.Empty){
+    }
     rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc Issue (IssueInput) returns (google.protobuf.Empty) {
@@ -37,6 +39,10 @@ service TokenContract {
     rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
     }
     rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
+    }
+    rpc CrossChainTransfer(CrossChainTransferInput) returns(google.protobuf.Empty){
+    }
+    rpc CrossChainReceiveToken(CrossChainReceiveTokenInput) returns (google.protobuf.Empty){
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -199,12 +205,17 @@ message GetAllowanceOutput {
     sint64 allowance = 4;
 }
 
-message CrossChainTransferInput{
-    int32 toChainId = 1;
-    TransferInput transferInput = 2;
+message InitializeWithContractSystemNamesInput {
+    Hash crossChainContractSystemName = 1;
 }
-
-message CrossChainReceiveInput{
+message CrossChainTransferInput{
+    Address to = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+    string memo = 4;
+    int32 toChainId = 5;
+}
+message CrossChainReceiveTokenInput{
     int32 fromChainId = 1;
     int64 ParentChainHeight = 2;
     Transaction TransferTransaction = 3;

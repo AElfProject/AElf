@@ -27,6 +27,11 @@ namespace AElf.Contracts.CrossChain
             return new Empty();
         }
 
+        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
+        {
+            return base.InitializeWithContractSystemNames(input);
+        }
+
         public override SInt64Value CurrentSideChainSerialNumber(Empty input)
         {
             return new SInt64Value() {Value = State.SideChainSerialNumber.Value};
@@ -121,7 +126,7 @@ namespace AElf.Contracts.CrossChain
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = State.ConsensusContract.GetCurrentMiners(new Empty());
-            State.SideChainInitialConsensuseInfo[chainId] = initialConsensusInfo;
+            State.SideChainInitialConsensusInfo[chainId] = initialConsensusInfo;
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
                                        initialConsensusInfo.PublicKeys.Select(p =>
@@ -443,6 +448,47 @@ namespace AElf.Contracts.CrossChain
             //binaryMerkleTree.ComputeRootHash();
             //return binaryMerkleTree.Root;
         }
+        
+//        public override Empty CrossChainTransfer(CrossChainTransferInput input)
+//        {
+//            var burnInput = new BurnInput
+//            {
+//                Amount = input.Amount,
+//                Symbol = input.Symbol
+//            };
+//            State.TokenContract.Burn.Send(burnInput);
+//            return new Empty();
+//        }
+//
+//        public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
+//        {
+//            var transferTransaction = input.TransferTransaction;
+//            var transferTransactionHash = transferTransaction.GetHash();
+//
+//            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
+//                "Token already claimed.");
+//            
+//            var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
+//
+//            var symbol = crossChainTransferInput.Symbol;
+//            var amount = crossChainTransferInput.Amount;
+//            var receivingAddress = crossChainTransferInput.To;
+//            var targetChainId = crossChainTransferInput.ToChainId;
+//            Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
+//                "Unable to receive cross chain token.");
+//            AssertValidToken(symbol, amount);
+//            var verificationResult = VerifyTransaction(new VerifyTransactionInput
+//            {
+//                TransactionId = transferTransactionHash, 
+//                MerklePath = input.MerklePath,
+//                ParentChainHeight = input.ParentChainHeight
+//            });
+//            Assert(verificationResult.Value, "Verification failed.");
+//            State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
+//            var balanceOfReceiver = State.Balances[receivingAddress][symbol];
+//            State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
+//            return new Empty();
+//        }
 
         /// <summary>
         /// Cross chain txn verification.
