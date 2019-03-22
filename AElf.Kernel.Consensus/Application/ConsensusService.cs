@@ -87,11 +87,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            //TODO: DPoSTriggerInformation should not be here.
             var validationResult = ValidationResult.Parser.ParseFrom(
-                await ExecuteContractAsync(address,
-                    chainContext, ConsensusConsts.ValidateConsensus,
-                    DPoSTriggerInformation.Parser.ParseFrom(consensusExtraData)));
+                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensus,
+                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
 
             if (!validationResult.Success)
             {
