@@ -78,6 +78,7 @@ namespace AElf.CLI.JS
             ExposeCryptoHelpers();
             ExposeAElfOption();
             LoadCryptoJS();
+            LoadEncodingJS();
             LoadAelfJs();
             LoadHelpersJs();
             ExposeHttpRequestorToContext();
@@ -99,6 +100,11 @@ namespace AElf.CLI.JS
         private void LoadCryptoJS()
         {
             RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "crypto.js")));
+        }
+
+        private void LoadEncodingJS()
+        {
+            RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "encoding.js")));
         }
 
         private void ExposeCryptoHelpers()
