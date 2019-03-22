@@ -70,7 +70,7 @@ namespace AElf.Kernel
 
                         var indexingEventData = ExtractLibFoundData(contractEvent);
                         var offset = (long) indexingEventData[0];
-                        var libHeight = eventData.BlockHeight - offset;
+                        var libHeight = block.Height - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);

@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Chain> GetChainAsync();
 
-        Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
+        Task<List<KeyValuePair<Hash, long>>> GetReversedBlockHashes(Hash lastBlockHash, int count);
 
         /// <summary>
         /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
@@ -253,30 +253,25 @@ namespace AElf.Kernel.Blockchain.Application
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
-        public async Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count)
+        public async Task<List<KeyValuePair<Hash, long>>> GetReversedBlockHashes(Hash lastBlockHash, int count)
         {
+            var hashes = new List<KeyValuePair<Hash, long>>();
             if (count == 0)
-                return new List<Hash>();
-
-            var hashes = new List<Hash>();
+                return hashes;
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(lastBlockHash);
-
             if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                 return null;
 
-            hashes.Add(chainBlockLink.PreviousBlockHash);
-
+            hashes.Add(new KeyValuePair<Hash, long>(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             for (var i = 0; i < count - 1; i++)
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-
                 if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                     break;
 
-                hashes.Add(chainBlockLink.PreviousBlockHash);
+                hashes.Add(new KeyValuePair<Hash, long>(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             }
-
             return hashes;
         }
 

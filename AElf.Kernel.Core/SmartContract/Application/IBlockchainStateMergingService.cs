@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
@@ -22,8 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainStateManager _blockchainStateManager;
         public ILogger<BlockchainStateMergingService> Logger { get; set; }
 
-        public BlockchainStateMergingService(IBlockchainService blockchainService,
-            IBlockchainStateManager blockchainStateManager)
+        public BlockchainStateMergingService(IBlockchainService blockchainService, IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockchainStateManager = blockchainStateManager;
@@ -33,35 +31,30 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-
-            Logger.LogInformation(chainStateInfo.ToString());
-            var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? ChainConsts.GenesisBlockHeight
-                : chainStateInfo.BlockHeight + 1;
+            var firstHeightToMerge = chainStateInfo.BlockHeight == 0L ? ChainConsts.GenesisBlockHeight : chainStateInfo.BlockHeight + 1;
             var count = lastIrreversibleBlockHeight - firstHeightToMerge;
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ?? new List<Hash>();
+            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ?? new List<KeyValuePair<Hash, long>>();
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
             {
-                hashes.Add(chainStateInfo.MergingBlockHash);
+                hashes.Add(new KeyValuePair<Hash, long>(chainStateInfo.MergingBlockHash, -1));
             }
 
             hashes.Reverse();
 
-            hashes.Add(lastIrreversibleBlockHash);
+            hashes.Add(new KeyValuePair<Hash, long>(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
-            foreach (var (hash, height) in hashes.Select((x, i) => (x, i + firstHeightToMerge)))
+            foreach (var (hash, height) in hashes.Select(x => (x.Key, x.Value)))
             {
                 try
                 {
-                    Logger.LogTrace(() => $"chain state info : {chainStateInfo}");
-                    Logger.LogInformation($"Merging state for block {hash} at height: {height}");
+                    Logger.LogDebug($"Merging state {chainStateInfo} for block {hash} at height {height}");
                     await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e.Message);
+                    Logger.LogError(e, $"Exception while merge state {chainStateInfo} for block {hash} at height {height}");
                 }
             }
         }
