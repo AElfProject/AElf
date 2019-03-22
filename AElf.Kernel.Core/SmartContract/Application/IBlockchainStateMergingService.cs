@@ -60,6 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
                 catch (Exception e)
                 {
                     Logger.LogError(e, $"Exception while merge state {chainStateInfo} for block {hash} at height {height}");
+                    break;
                 }
             }
         }

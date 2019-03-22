@@ -45,6 +45,8 @@ namespace AElf.Kernel
 
             foreach (var executedBlock in eventData.ExecutedBlocks)
             {
+                Logger.LogTrace($"Check event for block {executedBlock}" );
+
                 var block = await _blockchainService.GetBlockByHashAsync(executedBlock);
                 foreach (var transactionHash in block.Body.Transactions)
                 {
@@ -74,9 +76,8 @@ namespace AElf.Kernel
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
-                        Logger.LogInformation($"Lib setting start, block: {block}, tx: {transactionHash}, offset: {offset}");
+                        Logger.LogInformation($"Lib setting, block: {block}, tx: {transactionHash}, offset: {offset}");
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);
-                        Logger.LogInformation($"Lib setting finished.");
                     }
                 }
             }

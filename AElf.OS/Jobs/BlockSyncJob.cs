@@ -34,7 +34,7 @@ namespace AElf.OS.Jobs
                     var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
                     if (peerBlock != null)
                     {
-                        Logger.LogDebug($"Block {peerBlockHash} already know.");
+                        Logger.LogDebug($"Block {peerBlock} already know.");
                         return;
                     }
 
