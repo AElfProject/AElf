@@ -17,16 +17,16 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
         public override Empty InitialConsensus(Round input)
         {
-            Assert(input.RoundNumber == 1,
-                "It seems that the term number of initial term is incorrect.");
+            Assert(input.RoundNumber == 1, "Incorrect round information: invalid round number.");
 
-            Assert(input.RealTimeMinersInformation.Any(), "No miners in round information.");
-            
+            Assert(input.RealTimeMinersInformation.Any(), "Incorrect round information: no miner.");
+
             InitialSettings(input);
 
             SetAliases(input);
 
             input.BlockchainAge = 1;
+
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             return new Empty();
         }
@@ -45,22 +45,21 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 index++;
             }
         }
-        
+
         public void SetAlias(string publicKey, string alias)
         {
             State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
             State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
         }
-        
+
         #endregion
-        
+
         #region UpdateValue
 
         public override Empty UpdateValue(ToUpdate input)
         {
-            var toUpdate = input;
             Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   toUpdate.RoundId == currentRound.RoundId, DPoSContractConsts.RoundIdNotMatched);
+                   input.RoundId == currentRound.RoundId, "Round Id not matched.");
 
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
 
@@ -68,56 +67,66 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             if (round.RoundNumber != 1)
             {
-                round.RealTimeMinersInformation[publicKey].Signature = toUpdate.Signature;
+                round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             }
 
-            round.RealTimeMinersInformation[publicKey].OutValue = toUpdate.OutValue;
+            round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
 
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
-            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = toUpdate.PromiseTinyBlocks;
+            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
+            
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
+            
+            round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
 
-            // One cannot publish his in value sometime, like in his first round.
-            if (toUpdate.PreviousInValue != Hash.Empty)
+            foreach (var changeOrderInformation in input.ChangedOrders)
             {
-                round.RealTimeMinersInformation[publicKey].PreviousInValue = toUpdate.PreviousInValue;
+                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =
+                    changeOrderInformation.NewOrder;
             }
             
+            // One cannot publish his in value sometime, like in his first round.
+            if (input.PreviousInValue != Hash.Empty)
+            {
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = input.PreviousInValue;
+            }
+
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
             TryToFindLIB();
             return new Empty();
         }
+
         #endregion
 
         #region NextRound
 
         public override Empty NextRound(Round input)
         {
-            var round = input;
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                Assert(roundNumber < round.RoundNumber, "Incorrect round number for next round.");
+                Assert(roundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
-            round.ExtraBlockProducerOfPreviousRound = senderPublicKey;
+            input.ExtraBlockProducerOfPreviousRound = senderPublicKey;
 
             // Update the age of this blockchain
-            State.AgeField.Value = round.BlockchainAge;
+            State.AgeField.Value = input.BlockchainAge;
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
 
-            UpdateHistoryInformation(round);
+            UpdateHistoryInformation(input);
 
-            Assert(TryToAddRoundInformation(round), "Failed to add round information.");
-            Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+            Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
             TryToFindLIB();
             return new Empty();
         }
-        
+
         private bool TryToUpdateRoundNumber(long roundNumber)
         {
             var oldRoundNumber = State.CurrentRoundNumberField.Value;
@@ -130,9 +139,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return true;
         }
 
-
         #endregion
-        
+
         public void TryToFindLIB()
         {
             if (CalculateLIB(out var offset))
@@ -159,18 +167,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
                 if (minersCount == 1)
                 {
+                    // Single node will set every previous block as LIB.
                     offset = 1;
                     return true;
                 }
-                
+
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
                 var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
 
                 var senderPublicKey = Context.RecoverPublicKey().ToHex();
-                var senderOrder = currentRoundMiners[senderPublicKey].Order;
-                if (validMinersCountOfCurrentRound > minimumCount)
+                if (validMinersCountOfCurrentRound >= minimumCount)
                 {
-                    offset = senderOrder;
+                    offset = minimumCount;
                     return true;
                 }
 
@@ -202,7 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
                         if (publicKeys.Count >= minimumCount)
                         {
-                            offset = validMinersCountOfCurrentRound +  i;
+                            offset = minimumCount;
                             return true;
                         }
                     }
@@ -212,7 +220,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-         private bool TryToAddRoundInformation(Round round)
+        private bool TryToAddRoundInformation(Round round)
         {
             var ri = State.RoundsMap[round.RoundNumber.ToInt64Value()];
             if (ri != null)
@@ -235,7 +243,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             State.RoundsMap[round.RoundNumber.ToInt64Value()] = round;
             return true;
         }
-        
+
         public bool TryToGetRoundNumber(out long roundNumber)
         {
             roundNumber = State.CurrentRoundNumberField.Value;
@@ -309,21 +317,22 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
             {
-                return currentRoundInStateDatabase.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
+                return currentRoundInStateDatabase.RealTimeMinersInformation.Values.Count(info =>
+                           info.OutValue != null) + 1 ==
                        round.RealTimeMinersInformation.Values.Count(info => info.OutValue != null);
             }
 
             return false;
         }
 
-        private Transaction GenerateTransaction(string methodName, List<object> parameters)
+        private Transaction GenerateTransaction(string methodName, IMessage parameter)
         {
             var tx = new Transaction
             {
                 From = Context.Sender,
                 To = Context.Self,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(parameters.ToArray()))
+                Params = parameter.ToByteString()
             };
 
             return tx;

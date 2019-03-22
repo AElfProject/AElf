@@ -260,9 +260,39 @@ namespace AElf.Consensus.DPoS
                 .AddMilliseconds(miningInterval);
         }
 
+        public static ToUpdate GenerateToUpdate(this Round round, string publicKey)
+        {
+            if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                return null;
+            }
+            
+            var changeOrders = new List<ChangeOrderInformation>();
+            foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.TuneOrderOfNextRound != 0)
+                .ToDictionary(m => m.PublicKey, m => m.TuneOrderOfNextRound))
+            {
+                changeOrders.Add(new ChangeOrderInformation {PublickKey = tune.Key, NewOrder = tune.Value});
+            }
+
+            var minerInRound = round.RealTimeMinersInformation[publicKey];
+            return new ToUpdate
+            {
+                OutValue = minerInRound.OutValue,
+                Signature = minerInRound.Signature,
+                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
+                RoundId = round.RoundId,
+                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                ActualMiningTime = minerInRound.ActualMiningTime,
+                OrderOfNextRound = minerInRound.OrderOfNextRound,
+                ChangedOrders = {changeOrders}
+            };
+        }
+        
+
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
             Hash outValue, Hash signature, Timestamp timestamp)
         {
+            round.ClearTuneOrderOfNextRound();
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 round.RealTimeMinersInformation[publicKey].ActualMiningTime = timestamp;
@@ -282,7 +312,7 @@ namespace AElf.Consensus.DPoS
                     BitConverter.ToInt64(
                         BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
                         0);
-                var orderOfNextRound = Math.Abs(GetModulus(sigNum, minersCount));
+                var orderOfNextRound = GetAbsModulus(sigNum, minersCount) + 1;
 
                 // Check the existence of conflicts about OrderOfNextRound.
                 // If so, modify others'.
@@ -295,9 +325,12 @@ namespace AElf.Consensus.DPoS
 
                     for (var i = minerInRound.Order + 1; i < minersCount * 2 + 1; i++)
                     {
-                        if (round.RealTimeMinersInformation.Values.All(m => m.OrderOfNextRound != i))
+                        var maybeNewOrder = i % minersCount + 1;
+                        if (round.RealTimeMinersInformation.Values.All(m =>
+                            m.OrderOfNextRound != maybeNewOrder && m.TuneOrderOfNextRound != maybeNewOrder))
                         {
-                            round.RealTimeMinersInformation[minerInRound.PublicKey].OrderOfNextRound = i % minersCount;
+                            round.RealTimeMinersInformation[minerInRound.PublicKey].TuneOrderOfNextRound =
+                                maybeNewOrder;
                         }
                     }
                 }
@@ -306,6 +339,14 @@ namespace AElf.Consensus.DPoS
             }
 
             return round;
+        }
+
+        private static void ClearTuneOrderOfNextRound(this Round round)
+        {
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
+            {
+                minerInRound.TuneOrderOfNextRound = 0;
+            }
         }
 
         public static bool GenerateNextRoundInformation(this Round round, Timestamp timestamp,
@@ -327,7 +368,8 @@ namespace AElf.Consensus.DPoS
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.TermNumber = round.TermNumber;
             nextRound.BlockchainAge =
-                (long) (timestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime()).TotalMinutes;
+                (long) (timestamp.ToDateTime() - blockchainStartTimestamp.ToDateTime())
+                .TotalMinutes; // TODO: Change to TotalDays after testing.
 
             // Set next round miners' information of miners successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
@@ -337,29 +379,31 @@ namespace AElf.Consensus.DPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order + miningInterval),
-                    PromisedTinyBlocks = 1
+                    ExpectedMiningTime = timestamp.GetArrangedTimestamp(order, miningInterval),
+                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks
                 };
             }
 
-            // Set miners' information of miners missed their time slot in this round.
+            // Set miners' information of miners missed their time slot in current round.
             var minersNotMinedCurrentRound =
                 round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound == 0).ToList();
             var minersCount = round.RealTimeMinersInformation.Count;
-            var missedOrders = Enumerable.Range(1, minersCount).Where(i =>
-                !round.RealTimeMinersInformation.Values.Select(m => m.OrderOfNextRound).ToList().Contains(i)).ToList();
+            var occupiedOrders = round.RealTimeMinersInformation.Values.Select(m => m.OrderOfNextRound).ToList();
+            var ableOrders = Enumerable.Range(1, minersCount).Where(i => !occupiedOrders.Contains(i)).ToList();
             for (var i = 0; i < minersNotMinedCurrentRound.Count; i++)
             {
-                var order = missedOrders[i];
-                nextRound.RealTimeMinersInformation[minersNotMinedCurrentRound[i].PublicKey] = new MinerInRound
+                var order = ableOrders[i];
+                var minerInRound = minersNotMinedCurrentRound[i];
+                nextRound.RealTimeMinersInformation[minerInRound.PublicKey] = new MinerInRound
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = GetTimestampWithOffset(timestamp, miningInterval * order),
-                    PromisedTinyBlocks = 1
+                    ExpectedMiningTime = timestamp.GetArrangedTimestamp(order, miningInterval),
+                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                 };
             }
 
+            // Calculate extra block producer order and set the producer.
             var extraBlockProducerOrder = round.CalculateNextExtraBlockProducerOrder();
             var expectedExtraBlockProducer =
                 nextRound.RealTimeMinersInformation.Values.FirstOrDefault(m => m.Order == extraBlockProducerOrder);
@@ -375,6 +419,11 @@ namespace AElf.Consensus.DPoS
             return true;
         }
 
+        private static Timestamp GetArrangedTimestamp(this Timestamp timestamp, int order, int miningInterval)
+        {
+            return GetTimestampWithOffset(timestamp, miningInterval * order);
+        }
+
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
         {
             var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
@@ -388,7 +437,7 @@ namespace AElf.Consensus.DPoS
             var sigNum = BitConverter.ToInt64(
                 BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
             var blockProducerCount = round.RealTimeMinersInformation.Count;
-            var order = GetModulus(sigNum, blockProducerCount);
+            var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;
         }
 
@@ -508,7 +557,7 @@ namespace AElf.Consensus.DPoS
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
             return approvalsCount >= minimumCount;
         }
-        
+
         /// <summary>
         /// If DaysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
@@ -545,7 +594,7 @@ namespace AElf.Consensus.DPoS
             var result2 = candidates.Addresses.Remove(Address.FromPublicKey(publicKey));
             return result1 && result2;
         }
-        
+
         public static bool IsExpired(this VotingRecord votingRecord, long currentAge)
         {
             var lockExpiredAge = votingRecord.VoteAge;
@@ -567,9 +616,9 @@ namespace AElf.Consensus.DPoS
             };
         }
 
-        private static int GetModulus(long longValue, int intValue)
+        private static int GetAbsModulus(long longValue, int intValue)
         {
-            return Math.Abs((int) (longValue %  intValue));
+            return Math.Abs((int) longValue % intValue);
         }
 
         /// <summary>
