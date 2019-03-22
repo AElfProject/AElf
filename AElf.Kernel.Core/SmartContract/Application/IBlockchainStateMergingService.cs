@@ -32,18 +32,23 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L ? ChainConsts.GenesisBlockHeight : chainStateInfo.BlockHeight + 1;
-            var count = lastIrreversibleBlockHeight - firstHeightToMerge;
+            var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
+            if (mergeCount < 0)
+            {
+                Logger.LogWarning($"Last merge height: {chainStateInfo.BlockHeight}, lib height: {lastIrreversibleBlockHeight}, needn't merge");
+                return;
+            }
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ?? new List<KeyValuePair<Hash, long>>();
+            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) mergeCount) ?? new List<KeyValuePair<Hash, long>>();
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
-            {
                 hashes.Add(new KeyValuePair<Hash, long>(chainStateInfo.MergingBlockHash, -1));
-            }
 
             hashes.Reverse();
 
             hashes.Add(new KeyValuePair<Hash, long>(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
+
+            Logger.LogTrace($"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {hashes.Count}");
 
             foreach (var (hash, height) in hashes.Select(x => (x.Key, x.Value)))
             {
