@@ -134,21 +134,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
                     };
                 case DPoSBehaviour.UpdateValue:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey];
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(UpdateValue), new ToUpdate
-                            {
-                                OutValue = minerInRound.OutValue,
-                                Signature = minerInRound.Signature,
-                                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                                RoundId = round.RoundId,
-                                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
-                                ActualMiningTime = minerInRound.ActualMiningTime,
-                                OrderOfNextRound = minerInRound.OrderOfNextRound
-                            }),
+                            GenerateTransaction(nameof(UpdateValue), round.GenerateToUpdate(publicKey))
                         }
                     };
                 case DPoSBehaviour.NextRound:

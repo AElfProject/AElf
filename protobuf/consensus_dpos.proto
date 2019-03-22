@@ -25,6 +25,12 @@ message ToUpdate {
     google.protobuf.Timestamp ActualMiningTime = 6;
     repeated SplittedInValue SplittedInValues = 7;// For others to recover his in value of current round.
     int32 OrderOfNextRound = 8;
+    repeated ChangeOrderInformation ChangedOrders = 9;
+}
+
+message ChangeOrderInformation {
+    string PublickKey = 1;
+    int32 NewOrder = 2;
 }
 
 message SplittedInValue {
@@ -126,7 +132,8 @@ message MinerInRound {
     string Alias = 17;
     Hash PreviousInValue = 18;
     int32 OrderOfNextRound = 19;
-    google.protobuf.Timestamp ActualMiningTime = 20;// Miners must fill actual mining time when they do the mining.
+    int32 TuneOrderOfNextRound = 20;
+    google.protobuf.Timestamp ActualMiningTime = 21;// Miners must fill actual mining time when they do the mining.
 }
 
 // The information of a candidate.

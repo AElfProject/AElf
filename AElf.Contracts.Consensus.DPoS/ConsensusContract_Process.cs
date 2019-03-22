@@ -79,6 +79,12 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
             
             round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
+
+            foreach (var changeOrderInformation in input.ChangedOrders)
+            {
+                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =
+                    changeOrderInformation.NewOrder;
+            }
             
             // One cannot publish his in value sometime, like in his first round.
             if (input.PreviousInValue != Hash.Empty)
