@@ -74,7 +74,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                             CurrentInValue = _inValue
                         };
                     }
-                    
+
                     var previousInValue = _inValue;
                     _inValue = Hash.Generate();
                     return new DPoSTriggerInformation
@@ -101,6 +101,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public IMessage ConvertBlockExtraData(byte[] blockExtraData)
+        {
+            return DPoSTriggerInformation.Parser.ParseFrom(blockExtraData);
         }
     }
 }
