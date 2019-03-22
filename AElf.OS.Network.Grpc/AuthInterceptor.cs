@@ -22,6 +22,8 @@ namespace AElf.OS.Network.Grpc
 
                 if (peer == null)
                     return Task.FromResult<TResponse>(null);
+                
+                context.RequestHeaders.Add(new Metadata.Entry(GrpcConsts.PeerInfoMetadataKey, $"{peer}"));
             }
             
             return continuation(request, context);

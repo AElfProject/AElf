@@ -31,7 +31,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _peerPool.RemovePeerAsync(address);
+            return await _peerPool.RemovePeerByAddressAsync(address);
         }
 
         public List<string> GetPeers()
