@@ -16,7 +16,7 @@ install:
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: dir c:\
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\protoc\
-  - cmd: set PATH=%PATH%;c:\protoc\
+  - cmd: set PATH=%PATH%;c:\protoc\bin\
 
   
 build_script:
