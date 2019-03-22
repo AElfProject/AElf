@@ -134,20 +134,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
                     };
                 case DPoSBehaviour.UpdateValue:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey];
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(UpdateValue), new ToUpdate
-                            {
-                                OutValue = minerInRound.OutValue,
-                                Signature = minerInRound.Signature,
-                                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                                RoundId = round.RoundId,
-                                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
-                                ActualMiningTime = minerInRound.ActualMiningTime
-                            }),
+                            GenerateTransaction(nameof(UpdateValue), round.GenerateToUpdate(publicKey))
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -181,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public override ValidationResult ValidateConsensus(DPoSInformation input)
+        public override ValidationResult ValidateConsensusBeforeExecution(DPoSInformation input)
         {
             var publicKey = input.SenderPublicKey;
 
@@ -248,7 +239,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new ValidationResult {Success = true};
         }
-        
+
+        public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
+        {
+            // TODO: To implement.
+            return new ValidationResult {Success = true};
+        }
+
         /// <summary>
         /// Get next consensus behaviour of the caller based on current state.
         /// This method can be tested by testing GetConsensusCommand.
@@ -320,11 +317,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
                 }
+
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
-                minerInformation += $"\nNOrder:\t{minerInRound.OrderOfNextRound}";
+                minerInformation += $"\nProms:\t {minerInRound.PromisedTinyBlocks}";
+                minerInformation += $"\nNOrder:\t {minerInRound.OrderOfNextRound}";
 
                 logs += minerInformation;
             }

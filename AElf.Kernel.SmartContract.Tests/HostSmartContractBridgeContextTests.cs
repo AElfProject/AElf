@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Security;
 using Shouldly;
 using Xunit;
@@ -68,14 +69,15 @@ namespace AElf.Kernel.SmartContract
             var to = Address.Genesis;
             var methodName = "TestSendInline";
             var arg = "Arg";
-            _bridgeContext.SendInline(to, methodName, ByteString.CopyFrom(ParamsPacker.Pack(arg)));
+            var argBytes = new StringValue {Value = arg}.ToByteString();
+            _bridgeContext.SendInline(to, methodName, argBytes);
 
             var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
             inlineTransaction[0].From.ShouldBe(_bridgeContext.Self);
             inlineTransaction[0].To.ShouldBe(to);
             inlineTransaction[0].MethodName.ShouldBe(methodName);
-            inlineTransaction[0].Params.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(arg)));
+            inlineTransaction[0].Params.ShouldBe(argBytes);
         }
 
         [Fact]
@@ -85,14 +87,15 @@ namespace AElf.Kernel.SmartContract
             var to = Address.Genesis;
             var methodName = "TestVirtualInline";
             var arg = "Arg";
-            _bridgeContext.SendVirtualInline(from, to, methodName, ByteString.CopyFrom(ParamsPacker.Pack(arg)));
+            var argBytes = new StringValue {Value = arg}.ToByteString();
+            _bridgeContext.SendVirtualInline(from, to, methodName, argBytes);
 
             var inlineTransaction = _bridgeContext.TransactionContext.Trace.InlineTransactions;
             inlineTransaction.Count.ShouldBe(1);
             inlineTransaction[0].From.ShouldNotBe(_bridgeContext.Self);
             inlineTransaction[0].To.ShouldBe(to);
             inlineTransaction[0].MethodName.ShouldBe(methodName);
-            inlineTransaction[0].Params.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(arg)));
+            inlineTransaction[0].Params.ShouldBe(argBytes);
         }
 
         [Fact]
