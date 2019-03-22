@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.MultiToken.Messages.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -35,6 +37,12 @@ namespace AElf.Contracts.MultiToken
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
             
+            return new Empty();
+        }
+
+        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
+        {
+            State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
             return new Empty();
         }
         
@@ -99,17 +107,17 @@ namespace AElf.Contracts.MultiToken
         
         public Empty CrossChainTransfer(CrossChainTransferInput input)
         {
-            AssertValidToken(input.TransferInput.Symbol, input.TransferInput.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
             var burnInput = new BurnInput
             {
-                Amount = input.TransferInput.Amount,
-                Symbol = input.TransferInput.Symbol
+                Amount = input.Amount,
+                Symbol = input.Symbol
             };
             Burn(burnInput);
             return new Empty();
         }
 
-        public Empty CrossChainReceive(CrossChainReceiveInput input)
+        public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
             var transferTransaction = input.TransferTransaction;
             var transferTransactionHash = transferTransaction.GetHash();
@@ -117,20 +125,18 @@ namespace AElf.Contracts.MultiToken
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
                 "Token already claimed.");
             
-            var crossChainTransferInput = (CrossChainTransferInput) ParamsPacker.Unpack(transferTransaction.Params.ToByteArray(),
-                new[] {typeof(CrossChainTransferInput)})[0];
-
-            var symbol = crossChainTransferInput.TransferInput.Symbol;
-            var amount = crossChainTransferInput.TransferInput.Amount;
-            var receivingAddress = crossChainTransferInput.TransferInput.To;
+            var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
+            var symbol = crossChainTransferInput.Symbol;
+            var amount = crossChainTransferInput.Amount;
+            var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
             Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to receive cross chain token.");
             AssertValidToken(symbol, amount);
             var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction(transferTransactionHash, input.MerklePath,
-                    input.ParentChainHeight);
-            Assert(verificationResult, "Verification failed.");
+                State.CrossChainContractReferenceState.VerifyTransaction.Call(new VerifyTransactionInput{TransactionId = transferTransactionHash, 
+                    MerklePath = input.MerklePath, ParentChainHeight = input.ParentChainHeight});
+            Assert(verificationResult.Value, "Verification failed.");
             State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);

@@ -1,8 +1,10 @@
 using System;
 using AElf.Common;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -21,14 +23,15 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
 
-        public MappedState<Hash, CrossChainReceiveInput> VerifiedCrossChainTransferTransaction { get; set; }
+        public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         public CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
+        public SingletonState<Hash> CrossChainContractSystemName { get; set; }
         public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
     
     public class CrossChainContractReferenceState : ContractReferenceState
     {
-        public Func<Hash, MerklePath, long, bool> VerifyTransaction { get; set; }
+        internal MethodReference<VerifyTransactionInput, BoolValue> VerifyTransaction { get; set; }
     }
     
 }
