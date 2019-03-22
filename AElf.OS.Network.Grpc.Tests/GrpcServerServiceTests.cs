@@ -55,7 +55,7 @@ namespace AElf.OS.Network
             await _service.Announce(new PeerNewBlockAnnouncement { BlockHeight = 10, BlockHash = hash}, BuildServerCallContext());
             
             Assert.NotNull(received);
-            Assert.Equal(received.Announce.BlockHeight, 10);
+            Assert.Equal(10, received.Announce.BlockHeight);
             Assert.Equal(received.Announce.BlockHash, hash);
         }
         
@@ -76,7 +76,7 @@ namespace AElf.OS.Network
             await _service.SendTransaction(tx, BuildServerCallContext());
             
             Assert.NotNull(received?.Transactions);
-            Assert.Equal(received.Transactions.Count(), 1);
+            Assert.Equal(1, received.Transactions.Count());
             Assert.Equal(received.Transactions.First().From, tx.From);
         }
         
@@ -152,7 +152,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConsts.PubkeyMetadataKey, "peerPubKey"}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         

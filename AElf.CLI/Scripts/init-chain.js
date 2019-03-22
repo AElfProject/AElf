@@ -17,11 +17,14 @@
 
     function getCrossChain(cRes) {
         var crossChainAddress = cRes['AElf.Contracts.CrossChain'];
+        if(!crossChainAddress){
+            return;
+        }
         return aelf.chain.contractAt(crossChainAddress, _account);
     }
     
     if (aelf.isConnected()) {
-        console.log("connect..");
+        console.log("connect...");
 
         var cRes = aelf.chain.connectChain();
         chain = {

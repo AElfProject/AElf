@@ -413,7 +413,7 @@ public class AuthorizationTest : AuthroizationContractTestBase
                 To = ContractHelpers.GetGenesisBasicContractAddress(Mock.ChainId),
                 MethodName = "DeploySmartContract",
                 Params = ByteString.CopyFrom(ParamsPacker.Pack(1, code)),
-                Type = TransactionType.MsigTransaction
+
             };
             return tx;
         }

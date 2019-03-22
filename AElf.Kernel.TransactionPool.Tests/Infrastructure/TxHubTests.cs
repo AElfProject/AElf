@@ -206,7 +206,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
                 var bestChainHeight = chain.BestChainHeight;
-                for (var i = 0; i < ChainConsts.ReferenceBlockValidPeriod + 1; i++)
+                for (var i = 0; i < KernelConstants.ReferenceBlockValidPeriod + 1; i++)
                 {
                     var transaction = _kernelTestHelper.GenerateTransaction(bestChainHeight + i);
                     await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction> {transaction});

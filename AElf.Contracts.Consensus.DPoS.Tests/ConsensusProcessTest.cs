@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 IsBootMiner = true,
             };
             var bytes = await testers.SingleTester.CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetConsensusCommand, firstTriggerInformation.ToByteArray());
+                ConsensusConsts.GetConsensusCommand, firstTriggerInformation);
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
@@ -66,7 +66,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
             var information = DPoSInformation.Parser.ParseFrom(bytes);
             var round = information.Round;
 
@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
                 ConsensusConsts.GenerateConsensusTransactions,
-                stubInitialExtraInformation.ToByteArray());
+                stubInitialExtraInformation);
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
@@ -205,7 +205,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
 
             // Act
-            var validationResult = await testers.Testers[0].ValidateConsensusAsync(newInformation);
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
 
             // Assert
             Assert.True(validationResult?.Success);
@@ -403,8 +403,15 @@ namespace AElf.Contracts.Consensus.DPoS
             var voteTxs = new List<Transaction>();
             foreach (var candidate in candidates)
             {
-                voteTxs.Add(await voter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.Vote), candidate.PublicKey, 1, 100));
+                voteTxs.Add(await voter.GenerateTransactionAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.Vote),
+                    new VoteInput()
+                    {
+                        CandidatePublicKey = candidate.PublicKey,
+                        Amount = 1,
+                        LockTime = 100
+                    }));
             }
 
             await initialMiners.MineAsync(voteTxs);

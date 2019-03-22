@@ -13,6 +13,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.Types.CSharp;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Token
 {
@@ -30,27 +31,10 @@ namespace AElf.Contracts.Token
             return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
 
-        public static async Task CreateTokenAsync(this ContractTester<TokenContractTestAElfModule> starter,
-            params Address[] whiteAddresses)
-        {
-            // Initial token.
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Create),
-                new CreateInput
-                {
-                    Symbol = "ELF",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    Issuer = starter.GetCallOwnerAddress(),
-                    TokenName = "elf token",
-                    TotalSupply = 100_000,
-                    LockWhiteList = {whiteAddresses.ToList()},
-                });
-        }
-
-        public static async Task IssueTokenAsync(this ContractTester<TokenContractTestAElfModule> starter, Address to,
+        public static async Task TransferTokenAsync(this ContractTester<TokenContractTestAElfModule> starter, Address to,
             long amount)
         {
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Issue), new IssueInput
+            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer), new TransferInput
             {
                 Symbol = "ELF",
                 Amount = amount,
@@ -59,34 +43,39 @@ namespace AElf.Contracts.Token
         }
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
-            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, params object[] objects)
+            this ContractTester<TokenContractTestAElfModule> contractTester, string methodName, IMessage input)
         {
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                methodName, objects);
+                methodName, input);
         }
 
         public static async Task<long> GetBalanceAsync(this ContractTester<TokenContractTestAElfModule> contractTester,
             Address targetAddress)
         {
-            var bytes = await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
+            var balanceOutput =GetBalanceOutput.Parser.ParseFrom(
+                await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
                 nameof(TokenContract.GetBalance), new GetBalanceInput
                 {
                     Owner = targetAddress,
                     Symbol = "ELF"
-                });
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+                }));
             return balanceOutput.Balance;
         }
 
         public static async Task<TransactionResult> Lock(this ContractTester<TokenContractTestAElfModule> contractTester, long amount,
-            Hash lockId)
+            Hash lockId, Address lockToAddress = null)
         {
+            if (lockToAddress == null)
+            {
+                lockToAddress = contractTester.GetConsensusContractAddress();
+            }
+            
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
                 nameof(TokenContract.Lock),
                 new LockInput
                 {
                     From = contractTester.GetCallOwnerAddress(),
-                    To = contractTester.GetConsensusContractAddress(),
+                    To = lockToAddress,
                     Amount = amount,
                     Symbol = "ELF",
                     LockId = lockId,

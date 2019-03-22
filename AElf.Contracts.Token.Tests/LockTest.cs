@@ -1,12 +1,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
@@ -25,9 +28,38 @@ namespace AElf.Contracts.Token
         public LockTest()
         {
             Starter = new ContractTester<TokenContractTestAElfModule>();
+            var tokenContractCallList = new SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                Issuer = Starter.GetCallOwnerAddress(),
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+            });
+            
+            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection * 20,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                Memo = "Issue ",
+            });
+            
+            // For testing.
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = DPoSContractConsts.LockTokenForElection * 80,
+                To = Starter.GetCallOwnerAddress(),
+                Memo = "Set dividends.",
+            });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
             }));
         }
 
@@ -36,14 +68,11 @@ namespace AElf.Contracts.Token
         {
             const long amount = 100;
 
-            // Create token with consensus contract address in white list.
-            await Starter.CreateTokenAsync(ConsensusContractAddress);
-
             var user = GenerateUser();
 
             var tester = Starter.CreateNewContractTester(user);
 
-            await Starter.IssueTokenAsync(user, amount);
+            await Starter.TransferTokenAsync(user, amount);
 
             // Check balance before locking.
             {
@@ -95,20 +124,17 @@ namespace AElf.Contracts.Token
         {
             const long amount = 100;
 
-            // Create token with white list empty.
-            await Starter.CreateTokenAsync();
-
             var user = GenerateUser();
 
             var tester = Starter.CreateNewContractTester(user);
 
-            await Starter.IssueTokenAsync(user, amount);
+            await Starter.TransferTokenAsync(user, amount);
 
             // Try to lock.
             var lockId = Hash.Generate();
 
             // Lock.
-            var transactionResult = await tester.Lock(amount, lockId);
+            var transactionResult = await tester.Lock(amount, lockId, Address.Generate());
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Not in white list");
@@ -224,14 +250,11 @@ namespace AElf.Contracts.Token
 
         private async Task<ContractTester<TokenContractTestAElfModule>> GenerateTesterAndIssueToken(long amount)
         {
-            // Create token with consensus contract address in white list.
-            await Starter.CreateTokenAsync(ConsensusContractAddress);
-
             var user = GenerateUser();
 
             var tester = Starter.CreateNewContractTester(user);
 
-            await Starter.IssueTokenAsync(user, amount);
+            await Starter.TransferTokenAsync(user, amount);
 
             return tester;
         }

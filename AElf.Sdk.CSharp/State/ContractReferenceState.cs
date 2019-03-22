@@ -12,6 +12,7 @@ namespace AElf.Sdk.CSharp.State
     {
         private Dictionary<string, PropertyInfo> _actionProperties;
         private Dictionary<string, PropertyInfo> _funcProperties;
+        private Dictionary<string, PropertyInfo> _methodReferenceProperties;
 
         private readonly MethodInfo _send =
             typeof(ActionInfo).GetMethod(nameof(ActionInfo.Send),
@@ -25,9 +26,17 @@ namespace AElf.Sdk.CSharp.State
 
         private void DetectPropertyInfos()
         {
-            _actionProperties = this.GetType().GetProperties().Where(x => x.PropertyType.IsAction())
+            _actionProperties = this.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(x => x.PropertyType.IsAction())
                 .ToDictionary(x => x.Name, x => x);
-            _funcProperties = this.GetType().GetProperties().Where(x => x.PropertyType.IsFunc())
+            _funcProperties = this.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(x => x.PropertyType.IsFunc())
+                .ToDictionary(x => x.Name, x => x);
+            _methodReferenceProperties = this.GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(x => x.PropertyType.IsMethodReference())
                 .ToDictionary(x => x.Name, x => x);
         }
 
@@ -54,6 +63,14 @@ namespace AElf.Sdk.CSharp.State
                 var parameterTypes = propertyInfo.PropertyType.GenericTypeArguments;
                 parameterTypes = parameterTypes.Take(parameterTypes.Length - 1).ToArray();
                 propertyInfo.SetValue(this, GetDelegate(instance, methodInfo, parameterTypes));
+            }
+            foreach (var kv in _methodReferenceProperties)
+            {
+                var name = kv.Key;
+                var propertyInfo = kv.Value;
+                var propertyType = kv.Value.PropertyType;
+                var instance = Activator.CreateInstance(propertyType, this, name);
+                propertyInfo.SetValue(this, instance);
             }
         }
 

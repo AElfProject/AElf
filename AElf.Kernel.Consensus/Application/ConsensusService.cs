@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
@@ -86,22 +87,38 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            var validationResult = (await ExecuteContractAsync(address,
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData))
-                .DeserializeToPbMessage<ValidationResult>();
+            var validationResult = ValidationResult.Parser.ParseFrom(
+                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
+                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
 
             if (!validationResult.Success)
             {
-                Logger.LogError($"Consensus validating failed: {validationResult.Message}");
+                Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
             }
 
             return validationResult.Success;
         }
 
-        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight, byte[] consensusExtraData)
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight,
+            byte[] consensusExtraData)
         {
-            // TODO: Need to implement a contract method.
-            return true;
+            var address = await _accountService.GetAccountAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
+
+            var validationResult = ValidationResult.Parser.ParseFrom(
+                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
+                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
+
+            if (!validationResult.Success)
+            {
+                Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
+            }
+
+            return validationResult.Success;
         }
 
         public async Task<byte[]> GetNewConsensusInformationAsync()
@@ -129,10 +146,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions =
+            var generatedTransactions =TransactionList.Parser.ParseFrom(
                 (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                    _consensusInformationGenerationService.GetTriggerInformation()))
-                .DeserializeToPbMessage<TransactionList>()
+                    _consensusInformationGenerationService.GetTriggerInformation())))
                 .Transactions
                 .ToList();
 
@@ -146,7 +162,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         private async Task<ByteString> ExecuteContractAsync(Address fromAddress,
-            IChainContext chainContext, string consensusMethodName, params object[] objects)
+            IChainContext chainContext, string consensusMethodName, IMessage input)
         {
             var tx = new Transaction
             {
@@ -154,7 +170,7 @@ namespace AElf.Kernel.Consensus.Application
                 To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                     .Name),
                 MethodName = consensusMethodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+                Params = input?.ToByteString() ?? ByteString.Empty
             };
 
             var transactionTrace =
