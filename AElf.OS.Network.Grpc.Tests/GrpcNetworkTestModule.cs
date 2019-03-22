@@ -20,7 +20,7 @@ namespace AElf.OS.Network
             base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            pool.AddPeer(new GrpcPeer(new Channel("127.0.0.1:", ChannelCredentials.Insecure), null, "peerPubKey", "127.0.0.1:666"));
+            pool.AddPeer(new GrpcPeer(new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure), null, GrpcTestConstants.FakePubKey, GrpcTestConstants.FakeListeningPort));
         }
     }
 }
