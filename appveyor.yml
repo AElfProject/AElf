@@ -2,27 +2,26 @@ version: 1.0.0.{build}
 skip_tags: true
 image: Visual Studio 2017
 build:
-publish_nuget: true
-verbosity: minimal
-
+  publish_nuget: true
+  verbosity: minimal
 configuration:
-- Debug
-
+  - Debug
 platform:
- - Any CPU
- 
-install:
-- choco install vcredist2017
-- ps: dotnet --info
-- ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
-- cmd: dir c:\
-- cmd: unzip c:\protoc-3.7.0-win64.zip -d c:\
-- cmd: copy c:\bin\protoc.exe c:\Windows
+  - Any CPU
 
+install:
+  - choco install vcredist2017
+  - ps: dotnet --info
+  - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
+  - cmd: dir c:\
+  - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
+  - cmd: copy c:\bin\protoc.exe   c:\Windows
+
+  
 build_script:
-- ps: dotnet build AElf.Console.sln
-- ps: dotnet test AElf.Console.sln
-- ps: dotnet build AElf.sln
-- ps: dotnet test AElf.sln
-- ps: dotnet build AElf.Management.sln
-- ps: dotnet test AElf.Management.sln
+  - ps: dotnet build AElf.Console.sln
+  - ps: dotnet test AElf.Console.sln
+  - ps: dotnet build AElf.sln
+  - ps: dotnet test AElf.sln
+  - ps: dotnet build AElf.Management.sln
+  - ps: dotnet test AElf.Management.sln
