@@ -10,11 +10,11 @@ namespace AElf.CLI.Commands
         [Value(0, HelpText = "The address of the contract.", Required = true)]
         public string Contract { get; set; } = "";
 
-        [Value(1, HelpText = "The particular method of the contract.", Required = true)]
+        [Value(1, HelpText = "The particular method of the contract.", Default = "")]
         public string Method { get; set; } = "";
 
-        [Value(2, HelpText = "The parameters for the method in json array format.", Default = "[]")]
-        public string Params { get; set; } = "[]";
+        [Value(2, HelpText = "The input for the method in json format.", Default = "")]
+        public string Input { get; set; } = "";
     }
 
     public class SendTransactionCommand : Command
@@ -43,31 +43,57 @@ namespace AElf.CLI.Commands
             InitChain();
             try
             {
-                // Get contract and method
+                // Get contract
                 _engine.RunScript($@"
                     var contract = aelf.chain.contractAt('{_option.Contract}', _account);
-                    var method = contract['{_option.Method}'];
+                    if(!contract)
+                        throw new Error('Failed to initialize contract at {_option.Contract}. Make sure the address is a valid one.');
                 ");
 
-                // Prepare arguments
-                _engine.RunScript($@"
-                    var methodargs = JSON.parse('{_option.Params}');
-                ");
-                _engine.RunScript($@"
-                    var methodAbi = contract.abi.Methods.find(x => x.Name === '{_option.Method}');
-                ");
-                var inputCount = _engine.Evaluate("methodargs").ReadProperty<int>("length");
-                var reqCount = _engine.Evaluate("methodAbi.Params").ReadProperty<int>("length");
-                if (inputCount != reqCount)
+                // No method specified
+                if (string.IsNullOrWhiteSpace(_option.Method))
                 {
-                    Colors.WriteLine(
-                        $@"Method ""{_option.Method}"" on contract ""{_option.Contract}"" requires {reqCount} input arguments."
-                            .DarkRed());
+                    _engine.Execute($@"
+                        if(contract){{
+                            var names = contract.service.methodsArray.map(x=>x.name).join('\n');
+                            'Method name is required for sending a transaction:\n' + names + '\n';
+                        }}
+                    ");
                     return;
                 }
 
+                _engine.RunScript($@"
+                    var method = contract['{_option.Method}'];
+                    if(!method){{
+                        var names = contract.service.methodsArray.map(x=>x.name).join('\n');
+                        throw new Error('Method {_option.Method} is not found in the contract at {_option.Contract}.\n'
+                            + 'Valid method names are:\n'+names);
+                    }}
+                ");
+
+                // No input is given
+                if (string.IsNullOrWhiteSpace(_option.Input))
+                {
+                    _engine.Execute($@"
+                        if(method)
+                            method.inputTypeInfo;
+                    ");
+                    return;
+                }
+
+                // Check param fields
+                _engine.RunScript($@"
+                    var input = {_option.Input};
+                    var keys = Object.keys(input);
+                    for(var i = 0; i < keys.length; i++){{
+                        if(!method.inputTypeInfo.fields.hasOwnProperty(keys[i])){{
+                            throw new Error('Invalid field name: '+keys[i]);
+                        }}
+                    }}
+                ");
+
                 // Execute
-                _engine.Execute(@"method.apply(null, methodargs);");
+                _engine.Execute($@"method(input);");
             }
             catch (JavaScriptException e)
             {
