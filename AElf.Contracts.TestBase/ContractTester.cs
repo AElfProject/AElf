@@ -494,6 +494,10 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
             
             var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new AElf.Contracts.MultiToken.Messages.InitializeWithContractSystemNamesInput
+            {
+                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
+            });
             callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",

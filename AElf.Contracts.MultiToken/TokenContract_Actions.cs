@@ -105,7 +105,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         
-        public Empty CrossChainTransfer(CrossChainTransferInput input)
+        public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
             var burnInput = new BurnInput

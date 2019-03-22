@@ -16,8 +16,6 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
-    }
     rpc RequestChainCreation (SideChainInfo) returns (SInt32Value) {
     }
     rpc WithdrawRequest (SInt32Value) returns (google.protobuf.Empty) {
@@ -32,9 +30,11 @@ service CrossChainContract {
     }
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
-    }    
+
     // Views
+    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    } 
     rpc CurrentSideChainSerialNumber (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
@@ -74,8 +74,8 @@ service CrossChainContract {
 }
 
 message InitializeInput {
-    Address consensusContractAddress = 1;
-    Address tokenContractAddress = 2;
+    Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
     sint32 parentChainId = 3;
 }
 
@@ -88,9 +88,4 @@ message VerifyTransactionInput {
     Hash transactionId = 1;
     MerklePath merklePath = 2;
     sint64 parentChainHeight = 3;
-}
-
-message InitializeWithContractSystemNamesInput {
-    Hash tokenContractSystemName = 1;
-    Hash consensusContractSystemName = 2;
 }

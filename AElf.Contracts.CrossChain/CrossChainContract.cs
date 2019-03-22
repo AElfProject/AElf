@@ -19,38 +19,13 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
-            State.ConsensusContract.Value = input.ConsensusContractAddress;
-            State.TokenContract.Value = input.TokenContractAddress;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
+            State.TokenContractSystemName.Value = input.TokenContractSystemName;
             //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             return new Empty();
-        }
-
-        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
-        {
-            return base.InitializeWithContractSystemNames(input);
-        }
-
-        public override SInt64Value CurrentSideChainSerialNumber(Empty input)
-        {
-            return new SInt64Value() {Value = State.SideChainSerialNumber.Value};
-        }
-
-        public override SInt64Value LockedToken(SInt32Value input)
-        {
-            var info = State.SideChainInfos[input.Value];
-            Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
-            return new SInt64Value() {Value = info.LockedTokenAmount};
-        }
-
-        public override Address LockedAddress(SInt32Value input)
-        {
-            var info = State.SideChainInfos[input.Value];
-            Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
-            return info.Proposer;
         }
 
         #region Side chain lifetime actions
@@ -125,7 +100,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
-            var initialConsensusInfo = State.ConsensusContract.GetCurrentMiners(new Empty());
+            var initialConsensusInfo = GetCurrentMiners();
             State.SideChainInitialConsensusInfo[chainId] = initialConsensusInfo;
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
@@ -133,12 +108,12 @@ namespace AElf.Contracts.CrossChain
                                            Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)).ToString())));
             Context.LogDebug(() => $"TermNumber {initialConsensusInfo.TermNumber}");
             // Event is not used for now.
-//            Context.FireEvent(new SideChainCreationRequested
-//            {
-//                ChainId = chainId,
-//                Creator = Context.Sender,
-//                MinerList = initialConsensusInfo
-//            });
+            Context.FireEvent(new SideChainCreationRequested
+            {
+                ChainId = chainId,
+                Creator = Context.Sender,
+                MinerList = initialConsensusInfo
+            });
             return new SInt32Value() {Value = chainId};
         }
 
@@ -164,7 +139,7 @@ namespace AElf.Contracts.CrossChain
                 State.SideChainInfos[chainId] = sideChainInfo;
             }
 
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -221,69 +196,6 @@ namespace AElf.Contracts.CrossChain
             });
             return new SInt64Value {Value = chainId};
         }
-
-        public override SInt32Value GetChainStatus(SInt32Value input)
-        {
-            var info = State.SideChainInfos[input.Value];
-            Assert(info != null, "Not existed side chain.");
-            return new SInt32Value() {Value = (int) info.SideChainStatus};
-        }
-
-        public override SInt64Value GetSideChainHeight(SInt32Value input)
-        {
-            var height = State.CurrentSideChainHeight[input.Value];
-            Assert(height != 0);
-            return new SInt64Value() {Value = height};
-        }
-
-        public override SInt64Value GetParentChainHeight(Empty input)
-        {
-            return new SInt64Value() {Value = State.CurrentParentChainHeight.Value};
-        }
-
-        public override SInt32Value GetParentChainId(Empty input)
-        {
-            var parentChainId = State.ParentChainId.Value;
-            Assert(parentChainId != 0);
-            return new SInt32Value() {Value = parentChainId};
-        }
-
-        public override SInt64Value LockedBalance(SInt32Value input)
-        {
-            var chainId = input.Value;
-            var sideChainInfo = State.SideChainInfos[chainId];
-            Assert(sideChainInfo != null, "Not existed side chain.");
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
-            return new SInt64Value() {Value = State.IndexingBalance[chainId]};
-        }
-
-        public override SideChainIdAndHeightDict GetSideChainIdAndHeight(Empty input)
-        {
-            var dict = new SideChainIdAndHeightDict();
-            var serialNumber = State.SideChainSerialNumber.Value;
-            for (long i = 1; i <= serialNumber; i++)
-            {
-                int chainId = ChainHelpers.GetChainId(i);
-                var sideChainInfo = State.SideChainInfos[chainId];
-                if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
-                    continue;
-                var height = State.CurrentSideChainHeight[chainId];
-                dict.IdHeightDict.Add(chainId, height);
-            }
-
-            return dict;
-        }
-
-        public override SideChainIdAndHeightDict GetAllChainsIdAndHeight(Empty input)
-        {
-            var dict = GetSideChainIdAndHeight(new Empty());
-
-            if (State.ParentChainId.Value == 0)
-                return dict;
-            var parentChainHeight = State.CurrentParentChainHeight.Value;
-            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
-            return dict;
-        }
         
         #endregion Side chain lifetime actions
 
@@ -294,20 +206,6 @@ namespace AElf.Contracts.CrossChain
             var indexedCrossChainBlockData = State.IndexedCrossChainBlockData[input.Value];
             Assert(indexedCrossChainBlockData != null);
             return indexedCrossChainBlockData;
-        }
-
-        [View]
-        public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(SInt64Value input)
-        {
-            var boundParentChainHeight = State.ChildHeightToParentChainHeight[input.Value];
-            Assert(boundParentChainHeight != 0);
-            var merklePath = State.TxRootMerklePathInParentChain[input.Value];
-            Assert(merklePath != null);
-            return new CrossChainMerkleProofContext
-            {
-                MerklePathForParentChainRoot = merklePath,
-                BoundParentChainHeight = boundParentChainHeight
-            };
         }
 
         public override Empty RecordCrossChainData(CrossChainBlockData input)
@@ -427,7 +325,7 @@ namespace AElf.Contracts.CrossChain
                 }
                 State.SideChainInfos[chainId] = info;
 
-                State.TokenContract.Transfer.Send(new TransferInput
+                Transfer(new TransferInput
                 {
                     To = Context.Sender,
                     Symbol = "ELF",
@@ -449,142 +347,6 @@ namespace AElf.Contracts.CrossChain
             //return binaryMerkleTree.Root;
         }
         
-//        public override Empty CrossChainTransfer(CrossChainTransferInput input)
-//        {
-//            var burnInput = new BurnInput
-//            {
-//                Amount = input.Amount,
-//                Symbol = input.Symbol
-//            };
-//            State.TokenContract.Burn.Send(burnInput);
-//            return new Empty();
-//        }
-//
-//        public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
-//        {
-//            var transferTransaction = input.TransferTransaction;
-//            var transferTransactionHash = transferTransaction.GetHash();
-//
-//            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
-//                "Token already claimed.");
-//            
-//            var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
-//
-//            var symbol = crossChainTransferInput.Symbol;
-//            var amount = crossChainTransferInput.Amount;
-//            var receivingAddress = crossChainTransferInput.To;
-//            var targetChainId = crossChainTransferInput.ToChainId;
-//            Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
-//                "Unable to receive cross chain token.");
-//            AssertValidToken(symbol, amount);
-//            var verificationResult = VerifyTransaction(new VerifyTransactionInput
-//            {
-//                TransactionId = transferTransactionHash, 
-//                MerklePath = input.MerklePath,
-//                ParentChainHeight = input.ParentChainHeight
-//            });
-//            Assert(verificationResult.Value, "Verification failed.");
-//            State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
-//            var balanceOfReceiver = State.Balances[receivingAddress][symbol];
-//            State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
-//            return new Empty();
-//        }
-
-        /// <summary>
-        /// Cross chain txn verification.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        [View]
-        public override BoolValue VerifyTransaction(VerifyTransactionInput input)
-        {
-            var parentChainHeight = input.ParentChainHeight;
-            var path = input.MerklePath;
-            var tx = input.TransactionId;
-            var key = new Int64Value {Value = parentChainHeight};
-            var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
-            Assert(merkleTreeRoot != null,
-                $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var rootCalculated =
-                path.ComputeRootWith(
-                    Hash.FromTwoHashes(input.TransactionId, Hash.FromString(TransactionResultStatus.Mined.ToString())));
-            
-            //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
-            return new BoolValue {Value =merkleTreeRoot.Equals(rootCalculated)};
-        }
-
         #endregion Cross chain actions
-
-        #region Private actions
-
-        /// <summary>
-        /// Bind parent chain height together with self height.
-        /// </summary>
-        /// <param name="childHeight"></param>
-        /// <param name="parentHeight"></param>
-        private void BindParentChainHeight(long childHeight, long parentHeight)
-        {
-            Assert(State.ChildHeightToParentChainHeight[childHeight] == 0,
-                $"Already bound at height {childHeight} with parent chain");
-            State.ChildHeightToParentChainHeight[childHeight] = parentHeight;
-        }
-
-        /// <summary>
-        /// Record merkle path of self chain block, which is from parent chain. 
-        /// </summary>
-        /// <param name="height"></param>
-        /// <param name="path"></param>
-        private void AddIndexedTxRootMerklePathInParentChain(long height, MerklePath path)
-        {
-            var existing = State.TxRootMerklePathInParentChain[height];
-            Assert(existing == null,
-                $"Merkle path already bound at height {height}.");
-            State.TxRootMerklePathInParentChain[height] = path;
-        }
-
-        private void LockTokenAndResource(SideChainInfo sideChainInfo)
-        {
-            //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
-            // update locked token balance
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                To = Context.Self,
-                Amount = sideChainInfo.LockedTokenAmount,
-                Symbol = "ELF"
-            });
-            var chainId = sideChainInfo.SideChainId;
-            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
-            // Todo: enable resource
-            // lock 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
-        }
-
-        private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
-        {
-            //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
-            // unlock token
-            var chainId = sideChainInfo.SideChainId;
-            var balance = State.IndexingBalance[chainId];
-            if (balance != 0)
-                State.TokenContract.Transfer.Send(new TransferInput
-                {
-                    To = sideChainInfo.Proposer,
-                    Amount = balance,
-                    Symbol = "ELF"
-                });
-            State.IndexingBalance[chainId] = 0;
-
-            // unlock resource 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
-        }
-
-        #endregion
     }
 }

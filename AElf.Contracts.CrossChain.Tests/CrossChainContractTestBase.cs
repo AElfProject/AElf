@@ -68,8 +68,8 @@ namespace AElf.Contract.CrossChain.Tests
             var tx = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize), new InitializeInput
                 {
-                    ConsensusContractAddress = ConsensusContractAddress,
-                    TokenContractAddress = TokenContractAddress,
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId
                 });
 
