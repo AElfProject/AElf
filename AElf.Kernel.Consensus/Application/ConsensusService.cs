@@ -88,21 +88,37 @@ namespace AElf.Kernel.Consensus.Application
             };
 
             var validationResult = ValidationResult.Parser.ParseFrom(
-                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensus,
+                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
                     _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
 
             if (!validationResult.Success)
             {
-                Logger.LogError($"Consensus validating failed: {validationResult.Message}");
+                Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
             }
 
             return validationResult.Success;
         }
 
-        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight, byte[] consensusExtraData)
+        public async Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight,
+            byte[] consensusExtraData)
         {
-            // TODO: Need to implement a contract method.
-            return true;
+            var address = await _accountService.GetAccountAsync();
+            var chainContext = new ChainContext
+            {
+                BlockHash = preBlockHash,
+                BlockHeight = preBlockHeight
+            };
+
+            var validationResult = ValidationResult.Parser.ParseFrom(
+                await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
+                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
+
+            if (!validationResult.Success)
+            {
+                Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
+            }
+
+            return validationResult.Success;
         }
 
         public async Task<byte[]> GetNewConsensusInformationAsync()

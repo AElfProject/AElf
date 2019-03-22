@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public override ValidationResult ValidateConsensus(DPoSInformation input)
+        public override ValidationResult ValidateConsensusBeforeExecution(DPoSInformation input)
         {
             var publicKey = input.SenderPublicKey;
 
@@ -237,6 +237,12 @@ namespace AElf.Contracts.Consensus.DPoS
                     throw new ArgumentOutOfRangeException();
             }
 
+            return new ValidationResult {Success = true};
+        }
+
+        public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
+        {
+            // TODO: To implement.
             return new ValidationResult {Success = true};
         }
 

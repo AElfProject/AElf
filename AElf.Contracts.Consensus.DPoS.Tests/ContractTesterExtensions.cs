@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.DPoS
             DPoSInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.ValidateConsensus, information);
+                ConsensusConsts.ValidateConsensusBeforeExecution, information);
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
