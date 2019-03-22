@@ -329,7 +329,6 @@ namespace AElf.Consensus.DPoS
                         if (round.RealTimeMinersInformation.Values.All(m =>
                             m.OrderOfNextRound != maybeNewOrder && m.TuneOrderOfNextRound != maybeNewOrder))
                         {
-                            Console.WriteLine("arrange order to " + maybeNewOrder);
                             round.RealTimeMinersInformation[minerInRound.PublicKey].TuneOrderOfNextRound =
                                 maybeNewOrder;
                         }
@@ -366,10 +365,6 @@ namespace AElf.Consensus.DPoS
             // TODO: Check: No order conflicts for next round.
 
             var miningInterval = round.GetMiningInterval();
-            if (miningInterval == 0)
-            {
-                Console.WriteLine("fuck.");
-            }
             nextRound.RoundNumber = round.RoundNumber + 1;
             nextRound.TermNumber = round.TermNumber;
             nextRound.BlockchainAge =
@@ -420,8 +415,6 @@ namespace AElf.Consensus.DPoS
             {
                 expectedExtraBlockProducer.IsExtraBlockProducer = true;
             }
-
-            Console.WriteLine(nextRound.ToString());
 
             return true;
         }
