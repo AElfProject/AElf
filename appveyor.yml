@@ -19,9 +19,9 @@ install:
 
   
 build_script:
-  - ps: cmd /c dotnet build AElf.Console.sln
-  - ps: cmd /c dotnet test AElf.Console.sln
-  - ps: cmd /c dotnet build AElf.sln
-  - ps: cmd /c dotnet test AElf.sln
-  - ps: cmd /c dotnet build AElf.Management.sln
-  - ps: cmd /c dotnet test AElf.Management.sln
+  - cmd: dotnet build AElf.Console.sln
+  - cmd: dotnet test AElf.Console.sln
+  - cmd: dotnet build AElf.sln
+  - cmd: dotnet test AElf.sln
+  - cmd: dotnet build AElf.Management.sln
+  - cmd: dotnet test AElf.Management.sln
