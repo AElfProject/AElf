@@ -11,148 +11,57 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     // ReSharper disable UnusedMember.Global
-    public partial class ConsensusContract : CSharpSmartContract<DPoSContractState>, IConsensusSmartContract
+    public partial class ConsensusContract : ConsensusContractContainer.ConsensusContractBase
     {
         // This file contains implementations of IConsensusSmartContract.
-        
-        [View]
-        public byte[] GetConsensusCommand(byte[] consensusTriggerInformation)
+
+        public override ConsensusCommand GetConsensusCommand(DPoSTriggerInformation input)
         {
-            var payload = DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
-
             // Some basic checks.
-            Assert(payload.PublicKey.Any(), "Trigger information should contain public key.");
-            Assert(payload.Timestamp != null, "Trigger information should contain timestamp.");
+            Assert(input.PublicKey.Any(), "Trigger information should contain public key.");
+            Assert(input.Timestamp != null, "Trigger information should contain timestamp.");
 
-            var publicKey = payload.PublicKey;
-            var timestamp = payload.Timestamp;
-
-            if (timestamp == null)
-            {
-                return null;
-            }
+            var publicKey = input.PublicKey;
+            var timestamp = input.Timestamp;
 
             Context.LogDebug(() => GetLogStringForOneRound(publicKey));
 
             var behaviour = GetBehaviour(publicKey, timestamp, out var round, out var minerInRound);
 
             TryToGetMiningInterval(out var miningInterval);
-
-            switch (behaviour)
-            {
-                case DPoSBehaviour.InitialConsensus:
-                    Context.LogDebug(() => "About to initial DPoS information.");
-                    return new ConsensusCommand
-                    {
-                        // For now, only if one node configured himself as a boot miner can he actually create the first block,
-                        // which block height is 2.
-                        CountingMilliseconds = payload.IsBootMiner
-                            ? DPoSContractConsts.BootMinerWaitingMilliseconds
-                            : int.MaxValue,
-                        // No need to limit the mining time for the first block a chain.
-                        TimeoutMilliseconds = int.MaxValue,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.UpdateValue:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to produce a normal block.");
-
-                    var expectedMiningTime = round.GetExpectedMiningTime(publicKey);
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = (int) (expectedMiningTime.ToDateTime() - timestamp.ToDateTime())
-                            .TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.NextRound:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to terminate current round.");
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(publicKey, timestamp).ToDateTime() -
-                                   timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.NextTerm:
-                    Assert(miningInterval != 0, "Failed to get mining interval.");
-
-                    Context.LogDebug(() => "About to terminate current term.");
-
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(publicKey, timestamp).ToDateTime() -
-                                   timestamp.ToDateTime()).TotalMilliseconds,
-                        TimeoutMilliseconds = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                case DPoSBehaviour.Invalid:
-                    return new ConsensusCommand
-                    {
-                        CountingMilliseconds = int.MaxValue,
-                        TimeoutMilliseconds = 0,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    }.ToByteArray();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, timestamp, input.IsBootMiner);
         }
 
-        [View]
-        public byte[] GetNewConsensusInformation(byte[] consensusTriggerInformation)
+        public override DPoSInformation GetNewConsensusInformation(DPoSTriggerInformation input)
         {
-            var payload = DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
-
             // Some basic checks.
-            Assert(payload.PublicKey.Any(), "Data to request consensus information should contain public key.");
-            Assert(payload.Timestamp != null, "Data to request consensus information should contain timestamp.");
+            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
+            Assert(input.Timestamp != null, "Data to request consensus information should contain timestamp.");
 
-            var publicKey = payload.PublicKey;
-            var timestamp = payload.Timestamp;
+            var publicKey = input.PublicKey;
+            var timestamp = input.Timestamp;
 
             var behaviour = GetBehaviour(publicKey, timestamp, out var round, out _);
 
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
-                    var miningInterval = payload.MiningInterval;
-                    var initialMiners = payload.Miners;
-                    var firstRound = initialMiners.ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
+                    var miningInterval = input.MiningInterval;
+                    var initialMiners = input.Miners;
+                    var firstRound = initialMiners.ToList().ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = firstRound,
                         Behaviour = behaviour
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.UpdateValue:
-                    Assert(payload.CurrentInValue != null && payload.CurrentInValue != null,
+                    Assert(input.CurrentInValue != null && input.CurrentInValue != null,
                         "Current in value should be valid.");
 
-                    var previousInValue = payload.PreviousInValue;
+                    var previousInValue = input.PreviousInValue;
 
-                    var inValue = payload.CurrentInValue;
+                    var inValue = input.CurrentInValue;
 
                     var outValue = Hash.FromMessage(inValue);
 
@@ -171,7 +80,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                         Round = round.ApplyNormalConsensusData(publicKey, previousInValue, outValue, signature,
                             timestamp),
                         Behaviour = behaviour
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
                     Assert(GenerateNextRoundInformation(round, timestamp, blockchainStartTimestamp, out var nextRound),
@@ -181,39 +90,27 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                         SenderPublicKey = publicKey,
                         Round = nextRound,
                         Behaviour = behaviour
-                    }.ToByteArray();
-                case DPoSBehaviour.NextTerm:
-                    return new DPoSInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = GenerateFirstRoundOfNextTerm(),
-                        Behaviour = behaviour
-                    }.ToByteArray();
+                    };
                 case DPoSBehaviour.Invalid:
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
                         Behaviour = behaviour
-                    }.ToByteArray();
+                    };
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        [View]
-        public TransactionList GenerateConsensusTransactions(byte[] consensusTriggerInformation)
+        public override TransactionList GenerateConsensusTransactions(DPoSTriggerInformation input)
         {
-            var payload = DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
-
             // Some basic checks.
-            Assert(payload.PublicKey.Any(), "Data to request consensus information should contain public key.");
-            Assert(payload.Timestamp != null, "Data to request consensus information should contain timestamp.");
+            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
+            Assert(input.Timestamp != null, "Data to request consensus information should contain timestamp.");
 
-            var publicKey = payload.PublicKey;
+            var publicKey = input.PublicKey;
 
-            var consensusInformationBytes = GetNewConsensusInformation(consensusTriggerInformation);
-
-            var consensusInformation = DPoSInformation.Parser.ParseFrom(consensusInformationBytes);
+            var consensusInformation = GetNewConsensusInformation(input);
 
             var round = consensusInformation.Round;
 
@@ -222,33 +119,19 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
-                    round.TermNumber = payload.InitialTermNumber; // use main chain term number to initialize
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(InitialConsensus),
-                                new List<object> {round})
+                            GenerateTransaction(nameof(InitialConsensus), round)
                         }
                     };
                 case DPoSBehaviour.UpdateValue:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey];
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(UpdateValue),
-                                new List<object>
-                                {
-                                    new ToUpdate
-                                    {
-                                        OutValue = minerInRound.OutValue,
-                                        Signature = minerInRound.Signature,
-                                        PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                                        RoundId = round.RoundId,
-                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
-                                    }
-                                }),
+                            GenerateTransaction(nameof(UpdateValue), round.GenerateToUpdate(publicKey))
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -256,22 +139,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextRound),
-                                new List<object> {round})
-                        }
-                    };
-                case DPoSBehaviour.NextTerm:
-                    Assert(TryToGetRoundNumber(out var roundNumber), "Failed to get current round number.");
-                    Assert(TryToGetTermNumber(out var termNumber), "Failed to get current term number.");
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction("NextTerm",
-                                new List<object> {round}),
-                            GenerateTransaction("SnapshotForMiners", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SnapshotForTerm", new List<object> {roundNumber, termNumber}),
-                            GenerateTransaction("SendDividends", new List<object> {roundNumber, termNumber})
+                            GenerateTransaction(nameof(NextRound), round)
                         }
                     };
                 case DPoSBehaviour.Invalid:
@@ -281,12 +149,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             }
         }
 
-        [View]
-        public ValidationResult ValidateConsensus(byte[] consensusInformation)
+        public override ValidationResult ValidateConsensusBeforeExecution(DPoSInformation input)
         {
-            var information = DPoSInformation.Parser.ParseFrom(consensusInformation);
-
-            var publicKey = information.SenderPublicKey;
+            var publicKey = input.SenderPublicKey;
 
             // Validate the sender.
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
@@ -295,7 +160,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
 
-            var behaviour = information.Behaviour;
+            var behaviour = input.Behaviour;
 
             var successToGetCurrentRound = currentRound != null;
 
@@ -310,12 +175,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                             {Success = false, Message = "Failed to get current round information."};
                     }
 
-                    if (!RoundIdMatched(information.Round))
+                    if (!RoundIdMatched(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
-                    if (!NewOutValueFilled(information.Round))
+                    if (!NewOutValueFilled(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
@@ -329,17 +194,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     }
 
                     // None of in values should be filled.
-                    if (!InValueIsNull(information.Round))
+                    if (!InValueIsNull(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
-                    }
-
-                    break;
-                case DPoSBehaviour.NextTerm:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
                     }
 
                     break;
@@ -351,7 +208,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             return new ValidationResult {Success = true};
         }
-        
+
+        public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
+        {
+            // TODO: To implement.
+            return new ValidationResult {Success = true};
+        }
+
         /// <summary>
         /// Get next consensus behaviour of the caller based on current state.
         /// This method can be tested by testing GetConsensusCommand.
@@ -423,10 +286,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 {
                     minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
                 }
+
                 minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
                 minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
                 minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t{minerInRound.PromisedTinyBlocks}";
+                minerInformation += $"\nProms:\t {minerInRound.PromisedTinyBlocks}";
+                minerInformation += $"\nNOrder:\t {minerInRound.OrderOfNextRound}";
 
                 logs += minerInformation;
             }

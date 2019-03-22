@@ -35,6 +35,7 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public ISmartContractAddressService SmartContractAddressService { get; set; }
+        //TODO: should not directly use BlockStateSets
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
@@ -60,6 +61,8 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
+
+            var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
             var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
@@ -67,7 +70,7 @@ namespace AElf.OS.Rpc.ChainController
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             var crossChainContractAddress =
-                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
+                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.ContractNames.CrossChain")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
             
             var response = new JObject
             {
@@ -193,7 +196,17 @@ namespace AElf.OS.Rpc.ChainController
                 response["Error"] = transactionResult.Error;
 
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
-            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+            var p = await this.GetTransactionParameters(transaction);
+            try
+            {
+                response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(p);
+            }
+            catch
+            {
+                // Params is not structured but plain string
+                response["Transaction"]["Params"] = p;
+            }
+            
 
             return response;
         }

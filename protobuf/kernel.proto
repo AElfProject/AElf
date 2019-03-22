@@ -15,8 +15,6 @@ message Transaction {
     bytes Params = 7;
     uint64 Fee = 8;
     repeated bytes Sigs = 9;
-    TransactionType Type = 10;
-    google.protobuf.Timestamp Time = 11;
 }
 
 enum TransactionStatus {
@@ -65,13 +63,6 @@ message StateChange {
 
 message TransactionList {
     repeated Transaction Transactions = 1;
-}
-
-enum TransactionType {
-    ContractTransaction = 0;
-    DposTransaction = 1;
-    MsigTransaction = 2;
-    ContractDeployTransaction = 3;
 }
 
 enum TransactionResultStatus {
@@ -322,11 +313,6 @@ message TransactionBlockIndex {
     Hash BlockHash = 1;
 }
 
-message BranchSwitch {
-    repeated Hash RollBack = 1;
-    repeated Hash RollForward = 2;
-}
-
 message SystemTransactionMethodCall {
     string MethodName = 1;
     bytes Params = 2;
@@ -334,4 +320,34 @@ message SystemTransactionMethodCall {
 
 message SystemTransactionMethodCallList {
     repeated SystemTransactionMethodCall Value = 1;
+}
+
+message ContractDeploymentInput {
+    sint32 category = 1;
+    bytes code = 2;
+}
+
+message SystemContractDeploymentInput {
+    sint32 category = 1;
+    bytes code = 2;
+    Hash name = 3;
+    SystemTransactionMethodCallList transactionMethodCallList = 4;
+}
+
+message ContractUpdateInput {
+    Address address = 1;
+    bytes code = 2;
+}
+
+message ChangeContractOwnerInput {
+    Address contractAddress = 1;
+    Address newOwner = 2;
+}
+
+message ContractInfo
+{
+    uint64 SerialNumber=1;
+    Address Owner = 2;
+    int32 Category = 3;
+    Hash CodeHash = 4;
 }

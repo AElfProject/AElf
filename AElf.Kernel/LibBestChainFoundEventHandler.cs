@@ -69,9 +69,8 @@ namespace AElf.Kernel
                         if (contractEvent.Address != address || !contractEvent.Topics.Contains(_libTopicFlag))
                             continue;
 
-                        var indexingEventData = ExtractLibFoundData(contractEvent);
-                        var offset = (long) indexingEventData[0];
-                        var libHeight = block.Height - offset;
+                        var offset = ExtractLibOffset(contractEvent);
+                        var libHeight = eventData.BlockHeight - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
@@ -83,9 +82,10 @@ namespace AElf.Kernel
             }
         }
 
-        private object[] ExtractLibFoundData(LogEvent logEvent)
+        // TODO: Reimplement this if we can remove Unpack method.
+        private long ExtractLibOffset(LogEvent logEvent)
         {
-            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)});
+            return (long) ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)})[0];
         }
     }
 }

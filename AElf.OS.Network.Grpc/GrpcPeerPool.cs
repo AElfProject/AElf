@@ -48,31 +48,6 @@ namespace AElf.OS.Network.Grpc
             return await DialAsync(address);
         }
 
-        public async Task<bool> RemovePeerAsync(string address)
-        {
-            var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerIpAddress == address).Value;
-
-            if (peer == null)
-            {
-                Logger.LogWarning($"Could not find peer {address}.");
-                return false;
-            }
-
-            try
-            {
-                await peer.SendDisconnectAsync();
-            }
-            catch (RpcException e)
-            {
-                Logger.LogError(e, $"Error sending disconnect peer {address}.");
-            }
-            
-            // todo factor
-            await peer.StopAsync();
-
-            return _authenticatedPeers.TryRemove(peer.PubKey, out _);
-        }
-
         private async Task<bool> DialAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
@@ -129,25 +104,9 @@ namespace AElf.OS.Network.Grpc
             
             peer.DisconnectionEvent += PeerOnDisconnectionEvent;
 
-            Logger.LogTrace($"Connected to {pubKey} ({ipAddress}).");
+            Logger.LogTrace($"Connected to {peer}.");
 
             return true;
-        }
-
-        private void PeerOnDisconnectionEvent(object sender, EventArgs e)
-        {
-            if (!(sender is GrpcPeer p)) 
-                return;
-            
-            if (_authenticatedPeers.TryRemove(p.PubKey, out GrpcPeer removed))
-            {
-                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
-                Logger.LogDebug($"Removed peer {removed.PubKey} - {removed}");
-            }
-            else
-            {
-                Logger.LogDebug($"Removed peer {p.PubKey}");
-            }
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -215,7 +174,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ListeningPort = _networkOptions.ListeningPort,
                 PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
-                Version = ChainConsts.ProtocolVersion,
+                Version = KernelConstants.ProtocolVersion,
             };
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
@@ -230,14 +189,52 @@ namespace AElf.OS.Network.Grpc
             return hsk;
         }
 
-        public async Task ProcessDisconnection(string pubKey)
-        {            
-            if (_authenticatedPeers.TryRemove(pubKey, out GrpcPeer peer))
+        public async Task<bool> RemovePeerByAddressAsync(string address)
+        {
+            var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerIpAddress == address).Value;
+
+            if (peer != null) 
+                return await RemovePeerAsync(peer.PubKey, true) != null;
+            
+            Logger.LogWarning($"Could not find peer {address}.");
+            
+            return false;
+        }
+        
+        private async void PeerOnDisconnectionEvent(object sender, EventArgs e)
+        {
+            if (sender is GrpcPeer p)
+                await RemovePeerAsync(p.PubKey, false);
+        }
+
+        public async Task<IPeer> RemovePeerAsync(string publicKey, bool sendDisconnect)
+        {
+            if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
             {
-                // todo factor
-                peer.DisconnectionEvent -= PeerOnDisconnectionEvent;
-                await peer.StopAsync();
+                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
+                
+                if (sendDisconnect)
+                {
+                    try
+                    {
+                        await removed.SendDisconnectAsync();
+                    }
+                    catch (RpcException e)
+                    {
+                        Logger.LogError(e, $"Error sending disconnect to peer {removed}.");
+                    }
+                }
+                
+                await removed.StopAsync();
+                
+                Logger.LogDebug($"Removed peer {removed}");
             }
+            else
+            {
+                Logger.LogDebug($"Could not find {publicKey}");
+            }
+
+            return removed;
         }
     }
 }

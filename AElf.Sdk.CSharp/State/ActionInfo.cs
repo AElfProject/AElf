@@ -16,7 +16,6 @@ namespace AElf.Sdk.CSharp.State
 
         internal void Send(params object[] args)
         {
-        
             _owner.Context.SendInline(_owner.Value, _name, ByteString.CopyFrom(ParamsPacker.Pack(args)));
         }
     }

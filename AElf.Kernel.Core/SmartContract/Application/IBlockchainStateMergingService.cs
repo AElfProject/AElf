@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-            var firstHeightToMerge = chainStateInfo.BlockHeight == 0L ? ChainConsts.GenesisBlockHeight : chainStateInfo.BlockHeight + 1;
+            var firstHeightToMerge = chainStateInfo.BlockHeight == 0L ? KernelConstants.GenesisBlockHeight : chainStateInfo.BlockHeight + 1;
             var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
             if (mergeCount < 0)
             {

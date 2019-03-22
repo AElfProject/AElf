@@ -74,6 +74,36 @@ namespace AElf.Kernel.SmartContract
         }
 
         //TODO: Add test case Call [Case]
+        public T Call<T>(IStateCache stateCache, Address address, string methodName, IMessage input)
+        {
+            TransactionTrace trace = AsyncHelper.RunSync(async () =>
+            {
+                var chainContext = new ChainContext()
+                {
+                    BlockHash = this.TransactionContext.PreviousBlockHash,
+                    BlockHeight = this.TransactionContext.BlockHeight - 1,
+                    StateCache = stateCache
+                };
+
+                var tx = new Transaction()
+                {
+                    From = this.Self,
+                    To = address,
+                    MethodName = methodName,
+                    Params = input?.ToByteString() ?? ByteString.Empty
+                };
+                return await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, CurrentBlockTime);
+            });
+
+            if (!trace.IsSuccessful())
+            {
+                throw new ContractCallException(trace.StdErr);
+            }
+
+            var decoder = ReturnTypeHelper.GetDecoder<T>();
+            return decoder(trace.ReturnValue.ToByteArray());
+        }
+
         public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
@@ -147,19 +177,7 @@ namespace AElf.Kernel.SmartContract
 
         public bool VerifySignature(Transaction tx)
         {
-            if (tx.Sigs == null || tx.Sigs.Count == 0)
-            {
-                return false;
-            }
-
-            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
-            {
-                var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
-                    tx.GetHash().DumpByteArray(), out var pubKey);
-                return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
-            }
-
-            return true;
+            return tx.VerifySignature();
         }
 
         public void SendDeferredTransaction(Transaction deferredTxn)

@@ -10,7 +10,6 @@ using Google.Protobuf;
 namespace AElf.Sdk.CSharp
 {
     public partial class CSharpSmartContract<TContractState> : CSharpSmartContractAbstract
-        where TContractState : ContractState
     {
         internal override void SetStateProvider(IStateProvider stateProvider)
         {
