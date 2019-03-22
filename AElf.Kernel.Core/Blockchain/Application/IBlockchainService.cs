@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Chain> GetChainAsync();
 
-        Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
+        Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count);
 
         /// <summary>
         /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
@@ -233,7 +233,8 @@ namespace AElf.Kernel.Blockchain.Application
             await _chainManager.SetBestChainAsync(chain, bestChainHeight, bestChainHash);
         }
 
-        public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash)
+        public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
+            Hash irreversibleBlockHash)
         {
             // Create before IChainManager.SetIrreversibleBlockAsync so that we can correctly get the previous LIB info
             var eventDataToPublish = new NewIrreversibleBlockFoundEvent()
@@ -243,38 +244,35 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = irreversibleBlockHash,
                 BlockHeight = irreversibleBlockHeight
             };
-            await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
 
-            // Clean branches and not linked
-            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, irreversibleBlockHash, irreversibleBlockHeight);
-            
+            // Clean last branches and not linked
+            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, chain.LastIrreversibleBlockHash,
+                chain.LastIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
+
+            await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
-        public async Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count)
+        public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
         {
+            var hashes = new List<IBlockIndex>();
             if (count == 0)
-                return new List<Hash>();
-
-            var hashes = new List<Hash>();
+                return hashes;
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(lastBlockHash);
-
             if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
-                return null;
+                return hashes;
 
-            hashes.Add(chainBlockLink.PreviousBlockHash);
-
+            hashes.Add(new BlockIndex(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             for (var i = 0; i < count - 1; i++)
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-
                 if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                     break;
 
-                hashes.Add(chainBlockLink.PreviousBlockHash);
+                hashes.Add(new BlockIndex(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             }
 
             return hashes;
