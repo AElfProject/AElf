@@ -69,7 +69,7 @@ namespace AElf.Kernel
                         if (contractEvent.Address != address || !contractEvent.Topics.Contains(ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                             continue;
 
-                        var offset = Int64Value.Parser.ParseFrom(contractEvent.Data).Value;
+                        var offset = ExtractLibOffset(contractEvent);
                         var libHeight = eventData.BlockHeight - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
@@ -81,6 +81,12 @@ namespace AElf.Kernel
                     }
                 }
             }
+        }
+
+        // TODO: Reimplement this if we can remove Unpack method.
+        private long ExtractLibOffset(LogEvent logEvent)
+        {
+            return (long) ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)})[0];
         }
     }
 }
