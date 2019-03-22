@@ -14,7 +14,7 @@ namespace AElf.Kernel.Blockchain.Helpers
             {
                 Header = new BlockHeader
                 {
-                    Height = ChainConsts.GenesisBlockHeight,
+                    Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),

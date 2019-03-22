@@ -47,7 +47,7 @@ namespace AElf.Kernel.Blockchain.Application
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
         {
             var extraDataCount = blockHeader.BlockExtraDatas.Count;
-            if( blockHeader.Height != ChainConsts.GenesisBlockHeight 
+            if( blockHeader.Height != KernelConstants.GenesisBlockHeight 
                 && extraDataCount != _blockExtraDataProviders.Count 
                 && extraDataCount != _blockExtraDataProviders.Count + 1)
                 throw new Exception("Incorrect filled extra data");
@@ -58,7 +58,7 @@ namespace AElf.Kernel.Blockchain.Application
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
             }
             var rootByteString = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash().ToByteString();
-            if (blockHeader.Height == ChainConsts.GenesisBlockHeight || extraDataCount == _blockExtraDataProviders.Count)
+            if (blockHeader.Height == KernelConstants.GenesisBlockHeight || extraDataCount == _blockExtraDataProviders.Count)
                 blockHeader.BlockExtraDatas.Add(rootByteString); // not filled.
             else
                 blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled

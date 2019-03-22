@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;

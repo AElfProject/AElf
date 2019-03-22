@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
@@ -86,9 +87,11 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = preBlockHeight
             };
 
-            var validationResult = (await ExecuteContractAsync(address,
-                    chainContext, ConsensusConsts.ValidateConsensus, consensusExtraData))
-                .DeserializeToPbMessage<ValidationResult>();
+            //TODO: DPoSTriggerInformation should not be here.
+            var validationResult = ValidationResult.Parser.ParseFrom(
+                await ExecuteContractAsync(address,
+                    chainContext, ConsensusConsts.ValidateConsensus,
+                    DPoSTriggerInformation.Parser.ParseFrom(consensusExtraData)));
 
             if (!validationResult.Success)
             {
@@ -129,10 +132,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions =
+            var generatedTransactions =TransactionList.Parser.ParseFrom(
                 (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                    _consensusInformationGenerationService.GetTriggerInformation()))
-                .DeserializeToPbMessage<TransactionList>()
+                    _consensusInformationGenerationService.GetTriggerInformation())))
                 .Transactions
                 .ToList();
 
@@ -146,7 +148,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         private async Task<ByteString> ExecuteContractAsync(Address fromAddress,
-            IChainContext chainContext, string consensusMethodName, params object[] objects)
+            IChainContext chainContext, string consensusMethodName, IMessage input)
         {
             var tx = new Transaction
             {
@@ -154,7 +156,7 @@ namespace AElf.Kernel.Consensus.Application
                 To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                     .Name),
                 MethodName = consensusMethodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects))
+                Params = input?.ToByteString() ?? ByteString.Empty
             };
 
             var transactionTrace =

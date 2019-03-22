@@ -25,7 +25,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var registration = new SmartContractRegistration
             {
-                Category = 2,
+                Category = KernelConstants.DefaultRunnerCategory,
                 Code = Hash.FromString("TestPutExecutive").ToByteString(),
                 CodeHash = Hash.FromString("TestPutExecutive")
             };
@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var registration = new SmartContractRegistration
             {
-                Category = 2,
+                Category = KernelConstants.DefaultRunnerCategory,
                 Code = Hash.FromString("TestGetExecutive").ToByteString(),
                 CodeHash = Hash.FromString("TestGetExecutive")
             };

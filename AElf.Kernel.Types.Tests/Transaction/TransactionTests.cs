@@ -14,7 +14,7 @@ namespace AElf.Kernel.Types.Tests
                 From = Address.Generate(),
                 To = Address.Genesis,
                 MethodName = "TestMethod",
-                Type = TransactionType.ContractTransaction
+
             };
             var hash = transaction.GetHash();
             var hashBytes = transaction.GetHashBytes();

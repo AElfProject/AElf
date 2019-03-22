@@ -14,6 +14,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody);
         Task<Block> GetBlockAsync(Hash blockHash);
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
+        Task RemoveBlockAsync(Hash blockHash);
     }
     
     public class BlockManager : IBlockManager
@@ -72,6 +73,13 @@ namespace AElf.Kernel.Blockchain.Domain
         private async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
         {
             return await _blockBodyStore.GetAsync(bodyHash.ToHex());
+        }
+
+        public async Task RemoveBlockAsync(Hash blockHash)
+        {
+            var blockKey = blockHash.ToStorageKey();
+            await _blockHeaderStore.RemoveAsync(blockKey);
+            await _blockBodyStore.RemoveAsync(blockKey);
         }
     }
 }

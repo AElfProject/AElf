@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Dividend;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
@@ -10,31 +12,39 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public void Initialize(Address tokenContractAddress, Address dividendContractAddress)
+        // TODO: Remove this.
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.TokenContract.Value = tokenContractAddress;
-            State.DividendContract.Value = dividendContractAddress;
+            State.TokenContract.Value = input.TokenContractAddress;
+            // TODO: dividends -> dividend
+            State.DividendContract.Value = input.DividendsContractAddress;
             State.Initialized.Value = true;
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
+            return new Empty();
         }
-
-        public void InitializeWithContractSystemNames(Hash tokenContractSystemName, Hash dividendContractSystemName)
+        
+        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
         {
+            var tokenContractSystemName = input.TokenContractSystemName;
+            var dividendContractSystemName = input.DividendsContractSystemName;
             Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = tokenContractSystemName;
             State.DividendContractSystemName.Value = dividendContractSystemName;
             State.Initialized.Value = true;
+            return new Empty();
         }
 
         // TODO: Remove this method after testing.
-        public void SetBlockchainAge(long age)
+        public override Empty SetBlockchainAge(SInt64Value input)
         {
+            var age = input.Value;
 //            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
 //                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
 //                    "No permission to change blockchain age."));
             State.AgeField.Value = age;
+            return new Empty();
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
@@ -61,9 +71,9 @@ namespace AElf.Contracts.Consensus.DPoS
             if (State.DividendContract.Value == null)
             {
                 State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.DividendContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
                 State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName(State.TokenContractSystemName.Value);
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
         }
 
@@ -129,21 +139,21 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        public void NextTerm(Round round)
+        public override Empty NextTerm(Round input)
         {
             // Count missed time slot of current round.
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-
-            State.DividendContract.KeepWeights(termNumber);
+            
+            State.DividendContract.KeepWeights.Send(new SInt64Value() {Value = termNumber});
 
             // Update current term number and current round number.
-            Assert(TryToUpdateTermNumber(round.TermNumber), "Failed to update term number.");
-            Assert(TryToUpdateRoundNumber(round.RoundNumber), "Failed to update round number.");
+            Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
+            Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
             // Reset some fields of first two rounds of next term.
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
+            foreach (var minerInRound in input.RealTimeMinersInformation.Values)
             {
                 minerInRound.MissedTimeSlots = 0;
                 minerInRound.ProducedBlocks = 0;
@@ -152,9 +162,9 @@ namespace AElf.Contracts.Consensus.DPoS
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
 
             // Update produced block number of this node.
-            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            if (input.RealTimeMinersInformation.ContainsKey(senderPublicKey))
             {
-                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
+                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
             }
             else
             {
@@ -176,31 +186,33 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Update miners list.
-            SetMiners(round.RealTimeMinersInformation.Keys.ToList().ToMiners(round.TermNumber));
+            SetMiners(input.RealTimeMinersInformation.Keys.ToList().ToMiners(input.TermNumber));
 
             // Update term number lookup. (Using term number to get first round number of related term.)
-            AddTermNumberToFirstRoundNumber(round.TermNumber, round.RoundNumber);
+            AddTermNumberToFirstRoundNumber(input.TermNumber, input.RoundNumber);
 
             TryToGetCurrentAge(out var blockAge);
             // Update blockchain age of next two rounds.
-            round.BlockchainAge = blockAge;
+            input.BlockchainAge = blockAge;
 
             // Update rounds information of next two rounds.
-            Assert(TryToAddRoundInformation(round), "Failed to add round information.");
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
-            Context.LogDebug(() => $"Changing term number to {round.TermNumber}");
+            Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLIB();
+            return new Empty();
         }
 
         /// <summary>
         /// Take a snapshot of specific term.
-        /// Basically this snapshot is used for getting ranks of candidates of specific term.
+        /// Basically this snapshot is used for getting ranks of candidates of specific term. 
         /// </summary>
-        /// <param name="snapshotTermNumber"></param>
-        /// <param name="lastRoundNumber"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public ActionResult SnapshotForTerm(long snapshotTermNumber, long lastRoundNumber)
+        public override ActionResult SnapshotForTerm(TermInfo input)
         {
+            var snapshotTermNumber = input.TermNumber;
+            var lastRoundNumber = input.RoundNumber;
             if (TryToGetSnapshot(snapshotTermNumber, out _))
             {
                 return new ActionResult
@@ -262,8 +274,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SnapshotForMiners(long previousTermNumber, long lastRoundNumber)
+        public override ActionResult SnapshotForMiners(TermInfo input)
         {
+            var lastRoundNumber = input.RoundNumber;
+            var previousTermNumber = input.TermNumber;
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
 
@@ -323,15 +337,22 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SendDividends(long dividendsTermNumber, long lastRoundNumber)
+        public override ActionResult SendDividends(TermInfo input)
         {
+            var lastRoundNumber = input.RoundNumber;
+            var dividendsTermNumber = input.TermNumber;
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
 
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
                 (current, minerInRound) => current + minerInRound.ProducedBlocks);
-            State.DividendContract.AddDividends(dividendsTermNumber, GetDividendsForVoters(minedBlocks));
+            State.DividendContract.AddDividends.Send(
+                new AddDividendsInput()
+                {
+                    TermNumber = dividendsTermNumber,
+                    DividendsAmount = GetDividendsForVoters(minedBlocks)
+                });
 
             long totalVotes = 0;
             long totalReappointment = 0;
@@ -362,8 +383,12 @@ namespace AElf.Contracts.Consensus.DPoS
                                    continualAppointmentDict[minerInRound.Key] /
                                    totalReappointment);
 
-                State.DividendContract.SendDividends(
-                    Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)), amount);
+                State.DividendContract.SendDividends.Send(
+                    new SendDividendsInput()
+                    {
+                        To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)),
+                        Amount = amount
+                    });
             }
 
             if (TryToGetBackups(roundInformation.RealTimeMinersInformation.Keys.ToList(), out var backups))
@@ -372,8 +397,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     var backupCount = (long) backups.Count;
                     var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
-                    State.DividendContract.SendDividends(Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
-                        amount);
+                    State.DividendContract.SendDividends.Send(
+                        new SendDividendsInput()
+                        {
+                            To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
+                            Amount = amount
+                        });
                 }
             }
 

@@ -35,7 +35,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private long _bestChainHeight = ChainConsts.GenesisBlockHeight - 1;
+        private long _bestChainHeight = KernelConstants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }

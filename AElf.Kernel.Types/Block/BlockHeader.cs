@@ -44,7 +44,7 @@ namespace AElf.Kernel
                 Bloom = Bloom,
                 BlockExtraDatas = {BlockExtraDatas}
             };
-            if (Height > ChainConsts.GenesisBlockHeight)
+            if (Height > KernelConstants.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();

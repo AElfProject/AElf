@@ -17,6 +17,9 @@
 
     function getCrossChain(cRes) {
         var crossChainAddress = cRes['AElf.Contracts.CrossChain'];
+        if(!crossChainAddress){
+            return;
+        }
         return aelf.chain.contractAt(crossChainAddress, _account);
     }
     

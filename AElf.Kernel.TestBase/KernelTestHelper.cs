@@ -216,7 +216,7 @@ namespace AElf.Kernel
             {
                 Header = new BlockHeader
                 {
-                    Height = ChainConsts.GenesisBlockHeight,
+                    Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()
