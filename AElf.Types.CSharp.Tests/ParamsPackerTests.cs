@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Xunit;
 using Google.Protobuf;
 using Shouldly;
