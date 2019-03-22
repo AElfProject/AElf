@@ -16,7 +16,7 @@ namespace AElf.Sdk.CSharp
         {
             if (!asserted)
             {
-                throw new AssertionError(message);
+                throw new AssertionException(message);
             }
         }
 

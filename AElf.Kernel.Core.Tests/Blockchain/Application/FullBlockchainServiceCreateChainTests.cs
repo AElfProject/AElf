@@ -23,7 +23,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 Header = new BlockHeader
                 {
-                    Height = ChainConsts.GenesisBlockHeight,
+                    Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
                 },

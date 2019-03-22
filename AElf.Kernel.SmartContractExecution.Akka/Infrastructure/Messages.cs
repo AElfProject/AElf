@@ -154,15 +154,14 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     {
         public LocalExecuteTransactionsMessage(int chainId, List<Transaction> transactions,
             TaskCompletionSource<List<TransactionTrace>> taskCompletionSource, DateTime currentBlockTime,
-            Hash disambiguationHash = null,
-            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee = false)
+            Hash disambiguationHash = null, bool skipFee = false)
         {
             ChainId = chainId;
             Transactions = transactions;
             TaskCompletionSource = taskCompletionSource;
             CurrentBlockTime = currentBlockTime;
             DisambiguationHash = disambiguationHash;
-            TransactionType = transactionType;
+
             SkipFee = skipFee;
         }
 
@@ -171,7 +170,6 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         public TaskCompletionSource<List<TransactionTrace>> TaskCompletionSource { get; }
         public DateTime CurrentBlockTime { get; set; }
         public Hash DisambiguationHash { get; }
-        public TransactionType TransactionType { get; }
         public bool SkipFee { get; }
     }
 
@@ -270,8 +268,8 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     public class JobExecutionRequest
     {
         public JobExecutionRequest(long requestId, int chainId, List<Transaction> transactions,
-            IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null,
-            TransactionType transactionType = TransactionType.ContractTransaction, bool skipFee=false)
+            IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null, 
+            bool skipFee = false)
         {
             RequestId = requestId;
             ChainId = chainId;
@@ -280,7 +278,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
             Router = router;
             CurrentBlockTime = currentBlockTime;
             DisambiguationHash = disambiguationHash;
-            TransactionType = transactionType;
+
             SkipFee = skipFee;
         }
 
@@ -291,7 +289,6 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         public IActorRef ResultCollector { get; set; }
         public IActorRef Router { get; set; }
         public DateTime CurrentBlockTime { get; set; }
-        public TransactionType TransactionType { get; set; }
         public bool SkipFee { get; set; }
     }
 

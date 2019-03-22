@@ -8,7 +8,7 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {
-    public partial class CSharpSmartContract<TContractState> where TContractState : ContractState
+    public partial class CSharpSmartContract<TContractState> where TContractState : ContractState, new()
     {
         private ISmartContractBridgeContext _context;
 
@@ -26,7 +26,7 @@ namespace AElf.Sdk.CSharp
 
         public CSharpSmartContract()
         {
-            State = Activator.CreateInstance<TContractState>();
+            State = new TContractState();
         }
     }
 }

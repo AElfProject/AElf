@@ -2,91 +2,82 @@
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Resource
 {
-    public partial class ResourceContract: CSharpSmartContract<ResourceContractState>
+    public partial class ResourceContract: ResourceContractContainer.ResourceContractBase
     {
         private static readonly decimal FeeRate = new decimal(5, 0, 0, false, 3);
         
         #region Views
 
-        [View]
-        public string GetElfTokenAddress()
+        public override Address GetElfTokenAddress(Empty input)
         {
-            return State.TokenContract.Value.GetFormatted();
+            return State.TokenContract.Value;
         }
 
-        [View]
-        public string GetFeeAddress()
+        public override Address GetFeeAddress(Empty input)
         {
-            return State.FeeAddress.Value.GetFormatted();
+            return State.FeeAddress.Value;
         }
 
-        [View]
-        public string GetResourceControllerAddress()
+        public override Address GetResourceControllerAddress(Empty input)
         {
-            return State.ResourceControllerAddress.Value.GetFormatted();
+            return State.ResourceControllerAddress.Value;
         }
 
         /// <summary>
         /// Query the converter details, i.e. the resource balance, the elf balance, the weights,
         /// which are the parameters that determine the current price of the resource using Bancor Formula.
         /// </summary>
-        /// <param name="resourceType">The type of the resource.</param>
-        /// <returns>The json representation of the converter.</returns>
-        [View]
-        public string GetConverter(string resourceType)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Converter GetConverter(ResourceId input)
         {
-            return State.Converters[GetConverterKey(resourceType)].ToString();
+            return State.Converters[GetConverterKey(input.Type.ToString())];
         }
 
         /// <summary>
         /// Query the resource balance of a particular user.
         /// </summary>
-        /// <param name="address">The address of the user to query balance for.</param>
-        /// <param name="resourceType">The type of the resource to query for.</param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        [View]
-        public long GetUserBalance(Address address, string resourceType)
+        public override SInt64Value GetUserBalance(UserResourceId input)
         {
-            var urk = new UserResourceKey(address, ParseResourceType(resourceType));
-            return State.UserBalances[urk];
+            var urk = new UserResourceKey(input.Address, ParseResourceType(input.Type.ToString()));
+            return new SInt64Value() {Value = State.UserBalances[urk]};
         }
 
         /// <summary>
         /// Query the locked balance of a user.
         /// </summary>
-        /// <param name="address">The address of the user.</param>
-        /// <param name="resourceType">The type of the locked resource to query for.</param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        [View]
-        public long GetUserLockedBalance(Address address, string resourceType)
+        public override SInt64Value GetUserLockedBalance(UserResourceId input)
         {
-            var urk = new UserResourceKey(address, ParseResourceType(resourceType));
-            return State.LockedUserResources[urk];
+            var urk = new UserResourceKey(input.Address, ParseResourceType(input.Type.ToString()));
+            return new SInt64Value() {Value = State.LockedUserResources[urk]};
         }
 
         /// <summary>
         /// Query the balance of a resource held by the exchange.
         /// </summary>
-        /// <param name="resourceType">The type of the resource.</param>
+        /// <param name="input"></param>
         /// <returns>The balance held by the exchange.</returns>
-        [View]
-        public long GetExchangeBalance(string resourceType)
+        public override SInt64Value GetExchangeBalance(ResourceId input)
         {
-            return State.Converters[GetConverterKey(resourceType)].ResBalance;
+            return new SInt64Value() {Value = State.Converters[GetConverterKey(input.Type.ToString())].ResBalance};
         }
 
         /// <summary>
-        /// Query the native ELF token balance registered in the converter for a particular resource type..
+        /// Query the native ELF token balance registered in the converter for a particular resource type.
         /// </summary>
-        /// <param name="resourceType">The type of the resource</param>
+        /// <param name="input"></param>
         /// <returns>The balance of ELF held in the converter.</returns>
-        [View]
-        public long GetElfBalance(string resourceType)
+        public override SInt64Value GetElfBalance(ResourceId input)
         {
-            return State.Converters[GetConverterKey(resourceType)].ElfBalance;
+            return new SInt64Value() {Value = State.Converters[GetConverterKey(input.Type.ToString())].ElfBalance};
         }
 
         #endregion Views
@@ -96,17 +87,15 @@ namespace AElf.Contracts.Resource
         /// <summary>
         /// Initialize the contract information.
         /// </summary>
-        /// <param name="elfTokenAddress">The address of the native ELF token used to trade resource.</param>
-        /// <param name="feeAddress">The address that receives the exchange fee.</param>
-        /// <param name="resourceControllerAddress">The address of the resource controller who is in charge of issuing
-        /// new resources.</param>
-        public void Initialize(Address elfTokenAddress, Address feeAddress, Address resourceControllerAddress)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty Initialize(InitializeInput input)
         {
             var initialized = State.Initialized.Value;
             Assert(!initialized, "Already initialized.");
-            State.TokenContract.Value = elfTokenAddress;
-            State.FeeAddress.Value = feeAddress;
-            State.ResourceControllerAddress.Value = resourceControllerAddress;
+            State.TokenContract.Value = input.ElfTokenAddress;
+            State.FeeAddress.Value = input.FeeAddress;
+            State.ResourceControllerAddress.Value = input.ResourceControllerAddress;
             foreach (var resourceType in _resourceTypes)
             {
                 var rt = GetConverterKey(resourceType);
@@ -116,20 +105,23 @@ namespace AElf.Contracts.Resource
                     ElfWeight = 500000, // Denominated by 1,000,000
                     ResBalance = 1000000,
                     ResWeight = 500000, // Denominated by 1,000,000
-                    ResourceType = ParseResourceType(resourceType)
+                    Type = ParseResourceType(resourceType)
                 };
             }
 
             State.Initialized.Value = true;
+            return new Empty();
         }
 
         /// <summary>
         /// Issue new resource by resource controller.
         /// </summary>
-        /// <param name="resourceType">The type of resource to issue.</param>
-        /// <param name="delta">The new amount to issue.</param>
-        public void IssueResource(string resourceType, long delta)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty IssueResource(ResourceAmount input)
         {
+            var resourceType = input.Type.ToString();
+            var delta = input.Amount;
             Assert(State.ResourceControllerAddress.Value == Context.Sender,
                 "Only resource controller is allowed to perform this action.");
             AssertCorrectResourceType(resourceType);
@@ -142,16 +134,18 @@ namespace AElf.Contracts.Resource
                 ResourceType = Standardized(resourceType),
                 IssuedAmount = delta
             });
+            return new Empty();
         }
 
         /// <summary>
         /// Buy resource from the Bancor Converter.
         /// </summary>
-        /// <param name="resourceType">The type of the resource to buy.</param>
-        /// <param name="paidElf">The amount of ELF token to pay for the resource. The returned resource amount
-        /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
-        public void BuyResource(string resourceType, long paidElf)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty BuyResource(ResourceAmount input)
         {
+            var resourceType = input.Type.ToString();
+            var paidElf = input.Amount;
             AssertCorrectResourceType(resourceType);
             var fees = (long) (paidElf * FeeRate);
             var elfForRes = paidElf.Sub(fees);
@@ -161,7 +155,7 @@ namespace AElf.Contracts.Resource
 
             if (elfForRes > 0)
             {
-                State.TokenContract.TransferFrom(new TransferFromInput
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
                     To = Context.Self,
@@ -173,7 +167,7 @@ namespace AElf.Contracts.Resource
 
             if (fees > 0)
             {
-                State.TokenContract.TransferFrom(new TransferFromInput
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
                     To = State.FeeAddress.Value,
@@ -190,17 +184,19 @@ namespace AElf.Contracts.Resource
                 PaidElf = paidElf,
                 ReceivedResource = payout
             });
+            return new Empty();
         }
 
         /// <summary>
         /// Sell resource to the Bancor Converter.
         /// </summary>
-        /// <param name="resourceType">The type of the resource to sell.</param>
-        /// <param name="resToSell">The amount of the resource to sell. The returned ELF token amount
-        /// will be determined by the Bancor Formula and the converter parameters at the time of execution.</param>
-        public void SellResource(string resourceType, long resToSell)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty SellResource(ResourceAmount input)
         {
-            var bal = GetUserBalance(Context.Sender, resourceType);
+            var resourceType = input.Type.ToString();
+            var resToSell = input.Amount;
+            var bal = GetUserBalance(new UserResourceId() {Address = Context.Sender, Type = input.Type}).Value;
             Assert(bal >= resToSell, $"Insufficient {resourceType.ToUpper()} balance.");
             AssertCorrectResourceType(resourceType);
             var elfToReceive = this.SellResourceToExchange(resourceType, resToSell);
@@ -211,7 +207,7 @@ namespace AElf.Contracts.Resource
             var amount = elfToReceive.Sub(fees);
             if (amount > 0)
             {
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = Context.Sender,
                     Amount = amount,
@@ -222,7 +218,7 @@ namespace AElf.Contracts.Resource
 
             if (fees > 0)
             {
-                State.TokenContract.Transfer(new TransferInput
+                State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FeeAddress.Value,
                     Symbol = "ELF",
@@ -238,15 +234,18 @@ namespace AElf.Contracts.Resource
                 PaidResource = resToSell,
                 ReceivedElf = elfToReceive
             });
+            return new Empty();
         }
 
         /// <summary>
         /// Lock resource for chain creation.
         /// </summary>
-        /// <param name="amount">The amount of resource to lock.</param>
-        /// <param name="resourceType">The type of the resource to lock.</param>
-        public void LockResource(long amount, string resourceType)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty LockResource(ResourceAmount input)
         {
+            var resourceType = input.Type.ToString();
+            var amount = input.Amount;
             // Transfer from user to resource controller
             var rt = ParseResourceType(resourceType);
             Transfer(Context.Sender, State.ResourceControllerAddress.Value, amount, rt);
@@ -260,16 +259,19 @@ namespace AElf.Contracts.Resource
                 User = Context.Sender,
                 Amount = amount
             });
+            return new Empty();
         }
 
         /// <summary>
         /// Unlock resource for a user. This action is restricted to resource controller only.
         /// </summary>
-        /// <param name="userAddress">The address of the user to unlock the resource for.</param>
-        /// <param name="amount">The amount of resource to unlock.</param>
-        /// <param name="resourceType">The type of the resource to unlock.</param>
-        public void UnlockResource(Address userAddress, long amount, string resourceType)
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty UnlockResource(UserResourceAmount input)
         {
+            var resourceType = input.Type.ToString();
+            var userAddress = input.User;
+            var amount = input.Amount;
             var rca = State.ResourceControllerAddress.Value;
             Assert(Context.Sender == rca, "Only the resource controller can perform this action.");
 
@@ -286,6 +288,7 @@ namespace AElf.Contracts.Resource
                 User = userAddress,
                 Amount = amount
             });
+            return new Empty();
         }
 
         #endregion Actions

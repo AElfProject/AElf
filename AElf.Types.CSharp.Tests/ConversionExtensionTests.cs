@@ -82,5 +82,183 @@ namespace AElf.Types.CSharp.Tests
             var any = byte1.ToAny();
             any.AnyToBytes().ShouldBe(byte1);
         }
+
+        [Fact]
+        // ReSharper disable once InconsistentNaming
+        public void IMessageToPbMessage()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var userTypeHolder = personalData.Pack();
+            ReferenceEquals(userTypeHolder.ToPbMessage(), userTypeHolder).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void Deserialize_Bytes_To_PbMessage()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var userTypeHolder = personalData.Pack();
+            var newUserTypeHolder = userTypeHolder.ToByteArray().DeserializeToPbMessage<UserTypeHolder>();
+            userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void Deserialize_ByteString_To_PbMessage()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var userTypeHolder = personalData.Pack();
+            var newUserTypeHolder = userTypeHolder.ToByteString().DeserializeToPbMessage<UserTypeHolder>();
+            userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void PbMessage_ToAny_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var userTypeHolder = personalData.Pack();
+            var any = userTypeHolder.ToAny();
+            var newUserTypeHolder = new UserTypeHolder();
+            newUserTypeHolder.MergeFrom(any.Value);
+            userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
+        }
+
+        [Fact]
+        public void AnyToPbMessage_Test()
+        {
+            Any any = null;
+            var type = typeof(UserTypeHolder);
+            
+            try
+            {
+                // ReSharper disable once ExpressionIsAlwaysNull
+                any.AnyToPbMessage(type);
+            }
+            catch (Exception e)
+            {
+                e.Message.ShouldBe($"Cannot convert null to {type.FullName}.");
+            }
+            
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var userTypeHolder = personalData.Pack();
+            any = userTypeHolder.ToAny();
+            
+            try
+            {
+                any.AnyToPbMessage(typeof(string));
+            }
+            catch (Exception e)
+            {
+                e.Message.ShouldBe("Type given is not an IMessage.");
+            }
+            
+            try
+            {
+                any.AnyToPbMessage(typeof(Address));
+            }
+            catch (Exception e)
+            {
+                e.Message.ShouldBe(
+                    $"Full type name for {Address.Descriptor.Name} is {Address.Descriptor.FullName}; Any message's type url is {any.TypeUrl}");
+            }
+            var newUserTypeHolder = any.AnyToPbMessage(type);
+            userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void UserType_ToPbMessage_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var pbMessage = personalData.ToPbMessage();
+            pbMessage.ShouldBeOfType<UserTypeHolder>();
+            var userTypeHolder = (UserTypeHolder) pbMessage;
+            userTypeHolder.Fields["Name"].Unpack<StringValue>().Value.ShouldBe("Tom");
+            userTypeHolder.Fields["Sex"].Unpack<StringValue>().Value.ShouldBe("male");
+        }
+
+        [Fact]
+        public void UserType_ToAny_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "Man"
+            };
+            var any = personalData.ToAny();
+
+            var newPersonalData = new PersonalData();
+            newPersonalData.Unpack(any.Unpack<UserTypeHolder>());
+            personalData.Equals(newPersonalData).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void AnyToUserType_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var any = personalData.ToAny();
+
+            var newPersonalData = any.AnyToUserType(typeof(PersonalData));
+            personalData.Equals(newPersonalData).ShouldBeTrue();
+
+            try
+            {
+                any.AnyToUserType(typeof(Address));
+            }
+            catch (Exception e)
+            {
+                e.Message.ShouldBe("Type given is not a UserType.");
+            }
+        }
+
+        [Fact]
+        public void Deserialize_Bytes_To_UserType_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            var newPersonalData = personalData.ToPbMessage().ToByteArray().DeserializeToUserType<PersonalData>();
+            newPersonalData.Equals(personalData).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void Deserialize_ByteString_To_UserType_Test()
+        {
+            var personalData = new PersonalData
+            {
+                Name = "Tom",
+                Sex = "male"
+            };
+            
+            var newPersonalData = personalData.ToPbMessage().ToByteString().DeserializeToUserType<PersonalData>();
+            newPersonalData.Equals(personalData).ShouldBeTrue();
+        }
     }
 }

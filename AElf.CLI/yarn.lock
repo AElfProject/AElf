@@ -2,6 +2,30 @@
 # yarn lockfile v1
 
 
+"@aelfqueen/protobufjs@^6.8.8":
+  version "6.8.8"
+  resolved "https://registry.yarnpkg.com/@aelfqueen/protobufjs/-/protobufjs-6.8.8.tgz#6b9e1206c3cff1a5681830bcde342e0f0c18ad2b"
+  integrity sha512-KNGSfYzOx3kCHQdbTapKw3W01rY1e7JIrRVQn3pWz+/hGOP9ZIGLFYNbAojNOjjk7tLq3b0VwgHUnQTfwJy+LQ==
+  dependencies:
+    "@protobufjs/aspromise" "^1.1.2"
+    "@protobufjs/base64" "^1.1.2"
+    "@protobufjs/codegen" "^2.0.4"
+    "@protobufjs/eventemitter" "^1.1.0"
+    "@protobufjs/fetch" "^1.1.0"
+    "@protobufjs/float" "^1.0.2"
+    "@protobufjs/inquire" "^1.1.0"
+    "@protobufjs/path" "^1.1.2"
+    "@protobufjs/pool" "^1.1.0"
+    "@protobufjs/utf8" "^1.1.0"
+    "@types/long" "^4.0.0"
+    "@types/node" "^10.1.0"
+    long "^4.0.0"
+
+"@aelfqueen/xmlhttprequest@^1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@aelfqueen/xmlhttprequest/-/xmlhttprequest-1.8.1.tgz#33c176bc3182c1c344add2f2efa02dc3e37c603e"
+  integrity sha512-Q45pXQVl67ivw5d70ntZTDbVbACOQjZebM45D5z+8MTkztuv/t30Dc/4jUy4AkdscHMiUohBJGAnzuzTvogPVg==
+
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@protobufjs/aspromise/-/aspromise-1.1.2.tgz#9b8b0cc663d669a7d8f6f5d0893a14d348f30fbf"
@@ -61,15 +85,17 @@
   integrity sha512-1w52Nyx4Gq47uuu0EVcsHBxZFJgurQ+rTKS3qMHxR1GY2T8c2AJYd6vZoZ9q1rupaDjU0yT+Jc2XTyXkjeMA+Q==
 
 "@types/node@^10.1.0":
-  version "10.12.29"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.29.tgz#c2c8d2d27bb55649fbafe8ea1731658421f38acf"
-  integrity sha512-J/tnbnj8HcsBgCe2apZbdUpQ7hs4d7oZNTYA5bekWdP0sr2NGsOpI/HRdDroEi209tEvTcTtxhD0FfED3DhEcw==
+  version "10.14.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.1.tgz#8701cd760acc20beba5ffe0b7a1b879f39cb8c41"
+  integrity sha512-Rymt08vh1GaW4vYB6QP61/5m/CFLGnFZP++bJpWbiNxceNa6RBipDmb413jvtSf/R1gg5a/jQVl2jY4XVRscEA==
 
-aelf-sdk@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.0.3.tgz#0de00848186e5c76540acf60fde85ea91cdeca66"
-  integrity sha512-AL3ebs5M8AsERtHyylpU9eSQMOs4nnNqpuSq9Gki2K/kcroVzcTG0w1v8iRpPOeLTggvO+r2M6XK/Q4Zry3Rxg==
+aelf-sdk@^2.1.7:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.1.7.tgz#09adf6394c92ca50d40ff535fe5a79d0c583a2de"
+  integrity sha512-GdZt06Alfu4ZymHVWLtCPl3OT8YmvIb5rtVOU4MGEaL7jWY9HcaMd6DYiNeuQLfUvENm/SzBNOq0oBcWQK+Abw==
   dependencies:
+    "@aelfqueen/protobufjs" "^6.8.8"
+    "@aelfqueen/xmlhttprequest" "^1.8.1"
     bignumber "^1.1.0"
     bignumber.js "^2.0.7"
     bip39 "^2.5.0"
@@ -78,11 +104,9 @@ aelf-sdk@^2.0.3:
     crypto-js "^3.1.9-1"
     elliptic "^6.4.0"
     js-sha256 "^0.9.0"
-    key-encoder "^1.1.6"
-    protobufjs "git+https://github.com/hzz780/protobuf.js.git"
+    key-encoder "^1.1.7"
     utf8 "^3.0.0"
     xhr2-cookies "^1.1.0"
-    xmlhttprequest "git+https://github.com/hzz780/node-XMLHttpRequest.git"
 
 asn1.js@^5.0.1:
   version "5.0.1"
@@ -245,7 +269,7 @@ js-sha256@^0.9.0:
   resolved "https://registry.yarnpkg.com/js-sha256/-/js-sha256-0.9.0.tgz#0b89ac166583e91ef9123644bd3c5334ce9d0966"
   integrity sha512-sga3MHh9sgQN2+pJ9VYZ+1LPwXOxuBJBA5nrR5/ofPfuiJBE2hnjsaN8se8JznOmGLN2p49Pe5U/ttafcs/apA==
 
-key-encoder@^1.1.6:
+key-encoder@^1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/key-encoder/-/key-encoder-1.1.7.tgz#af139f34910fc7c6f828a02ccf71d8d662d8e495"
   integrity sha512-7qjnX+t+l1kPeozKAm3/UO216/HseXw7xxXd8WkT2i/moFIZIN46RzoaCeScBoEwGF2mUUuPRu4j8EHP0BGfpg==
@@ -288,24 +312,6 @@ pbkdf2@^3.0.9:
     ripemd160 "^2.0.1"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
-
-"protobufjs@git+https://github.com/hzz780/protobuf.js.git":
-  version "6.8.8"
-  resolved "git+https://github.com/hzz780/protobuf.js.git#1477ff111fefadb65934ef68c7c3753a83616fa3"
-  dependencies:
-    "@protobufjs/aspromise" "^1.1.2"
-    "@protobufjs/base64" "^1.1.2"
-    "@protobufjs/codegen" "^2.0.4"
-    "@protobufjs/eventemitter" "^1.1.0"
-    "@protobufjs/fetch" "^1.1.0"
-    "@protobufjs/float" "^1.0.2"
-    "@protobufjs/inquire" "^1.1.0"
-    "@protobufjs/path" "^1.1.2"
-    "@protobufjs/pool" "^1.1.0"
-    "@protobufjs/utf8" "^1.1.0"
-    "@types/long" "^4.0.0"
-    "@types/node" "^10.1.0"
-    long "^4.0.0"
 
 randombytes@^2.0.1:
   version "2.1.0"
@@ -351,7 +357,3 @@ xhr2-cookies@^1.1.0:
   integrity sha1-fXdEnQmZGX8VXLc7I99yUF7YnUg=
   dependencies:
     cookiejar "^2.1.1"
-
-"xmlhttprequest@git+https://github.com/hzz780/node-XMLHttpRequest.git":
-  version "1.8.1"
-  resolved "git+https://github.com/hzz780/node-XMLHttpRequest.git#c86a5214a91020a3332511dc4c711aa248cbce01"

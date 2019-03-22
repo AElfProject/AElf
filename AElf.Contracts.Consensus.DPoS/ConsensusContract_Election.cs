@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -14,8 +15,9 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         private long CurrentAge => State.AgeField.Value;
 
-        public ActionResult AnnounceElection(string alias = "")
+        public override ActionResult AnnounceElection(Alias input)
         {
+            var alias = input.Value;
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
@@ -89,7 +91,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.Lock(new LockInput
+            State.TokenContract.Lock.Send(new LockInput()
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -102,7 +104,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult QuitElection()
+        public override ActionResult QuitElection(Empty input)
         {
             var candidates = State.CandidatesField.Value;
 
@@ -120,7 +122,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.CandidatesField.Value = candidates;
 
-            State.TokenContract.Unlock(new UnlockInput
+            State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -133,8 +135,11 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public string Vote(string candidatePublicKey, long amount, int lockTime)
+        public override Hash Vote(VoteInput input)
         {
+            var candidatePublicKey = input.CandidatePublicKey;
+            var amount = input.Amount;
+            var lockTime = input.LockTime;
             Assert(lockTime.InRange(90, 1095),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Lock days is illegal."));
 
@@ -151,7 +156,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation, "Candidate can't vote."));
 
             // Transfer the tokens to Consensus Contract address.
-            State.TokenContract.Lock(new LockInput
+            State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -227,17 +232,19 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            State.DividendContract.AddWeights(votingRecord.Weight, currentTermNumber + 1);
+            State.DividendContract.AddWeights.Send(new WeightsInfo()
+                {TermNumber = currentTermNumber + 1, Weights = votingRecord.Weight});
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
-            return Context.TransactionId.ToHex();
+            return Context.TransactionId;
         }
-
+        
         // ReSharper disable once PossibleNullReferenceException
-        public ActionResult ReceiveDividendsByTransactionId(string transactionId)
+        public override ActionResult ReceiveDividendsByTransactionId(Hash input)
         {
-            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            var txId = input;
+            var votingRecord = State.VotingRecordsMap[txId];
 
             Assert(votingRecord != null,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
@@ -246,13 +253,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
                     "No permission to receive."));
 
-            State.DividendContract.TransferDividends(votingRecord);
+            State.DividendContract.TransferDividends.Send(votingRecord);
 
             return new ActionResult {Success = true};
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        public ActionResult ReceiveAllDividends()
+        public override ActionResult ReceiveAllDividends(Empty input)
         {
             var tickets = State.TicketsMap[Context.RecoverPublicKey().ToHex().ToStringValue()];
 
@@ -267,16 +274,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 var votingRecord = State.VotingRecordsMap[transactionId];
                 Assert(votingRecord != null,
                     ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
-                State.DividendContract.TransferDividends(votingRecord);
+                State.DividendContract.TransferDividends.Send(votingRecord);
             }
 
             return new ActionResult {Success = true};
         }
 
         // ReSharper disable once PossibleNullReferenceException
-        public Tickets WithdrawByTransactionId(string transactionId)
+        public override Tickets WithdrawByTransactionId(Hash input)
         {
-            var votingRecord = State.VotingRecordsMap[Hash.LoadHex(transactionId)];
+            var txId = input;
+            var votingRecord = State.VotingRecordsMap[txId];
 
             Assert(votingRecord != null,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
@@ -298,7 +306,7 @@ namespace AElf.Contracts.Consensus.DPoS
             votingRecord.WithdrawTimestamp =
                 blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
             votingRecord.IsWithdrawn = true;
-            State.VotingRecordsMap[Hash.LoadHex(transactionId)] = votingRecord;
+            State.VotingRecordsMap[txId] = votingRecord;
 
             // Update total tickets count.
             var ticketsCount = State.TicketsCountField.Value;
@@ -322,23 +330,28 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Sub weight.
-            State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+            State.DividendContract.SubWeights.Send(
+                new WeightsInfo()
+                {
+                    TermNumber = State.CurrentTermNumberField.Value,
+                    Weights = votingRecord.Weight
+                });
             // Transfer token back to voter.
-            State.TokenContract.Unlock(new UnlockInput
+            State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = "ELF",
                 Amount = votingRecord.Count,
                 LockId = votingRecord.TransactionId,
-                Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
+                Usage = $"Withdraw locked token of transaction {txId.ToHex()}: {votingRecord}"
             });
 
             return State.TicketsMap[votingRecord.From.ToStringValue()];
         }
 
         // ReSharper disable PossibleNullReferenceException
-        public Tickets WithdrawAll()
+        public override Tickets WithdrawAll(Empty input)
         {
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var ticketsCount = State.TicketsCountField.Value;
@@ -381,7 +394,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
                 }
 
-                State.TokenContract.Unlock(new UnlockInput
+                State.TokenContract.Unlock.Send(new UnlockInput
                 {
                     From = Context.Sender,
                     To = Context.Self,
@@ -391,7 +404,12 @@ namespace AElf.Contracts.Consensus.DPoS
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
                 });
 
-                State.DividendContract.SubWeights(votingRecord.Weight, State.CurrentTermNumberField.Value);
+                State.DividendContract.SubWeights.Send(
+                    new WeightsInfo()
+                    {
+                        TermNumber = State.CurrentTermNumberField.Value,
+                        Weights = votingRecord.Weight
+                    });
             }
 
             ticketsCount -= withdrawnAmount;

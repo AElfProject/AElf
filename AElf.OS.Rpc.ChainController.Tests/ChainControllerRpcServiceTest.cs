@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.Token;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -18,8 +19,11 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Runtime.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json.Linq;
@@ -40,6 +44,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
         private readonly IAccountService _accountService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly OSTestHelper _osTestHelper;
+
+        private const int DefaultCategory = 3;
 
         public ChainControllerRpcServiceServerTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -106,8 +112,14 @@ namespace AElf.OS.Rpc.ChainController.Tests
             // Deploy a new contact and mined
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
-            var transaction = _osTestHelper.GenerateTransaction(accountAddress,_smartContractAddressService.GetZeroSmartContractAddress(),nameof(ISmartContractZero.DeploySmartContract), 2,
-                File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location));
+            var transaction = _osTestHelper.GenerateTransaction(accountAddress,
+                _smartContractAddressService.GetZeroSmartContractAddress(),
+                nameof(ISmartContractZero.DeploySmartContract),
+                new ContractDeploymentInput
+                {
+                    Category = DefaultCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location))
+                });
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
             transaction.Sigs.Add(ByteString.CopyFrom(signature));
 
@@ -182,7 +194,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate a transaction
             var chain = await _blockchainService.GetChainAsync();
-            var transaction = await GenerateViewTransaction(chain, "Symbol");
+            var transaction = await GenerateViewTransaction(chain, "Symbol", new Empty());
             var transactionHash = transaction.GetHash();
 
             var response = await JsonCallAsJObject("/chain", "Call",
@@ -294,7 +306,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             responseTransactionId.ShouldBe(transactionHex);
             responseStatus.ShouldBe(TransactionResultStatus.Failed.ToString());
-            responseErrorMessage.Contains("Already initialized.").ShouldBeTrue();
+            responseErrorMessage.Contains("Token already exists.").ShouldBeTrue();
         }
         
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1083")]
@@ -523,8 +535,12 @@ namespace AElf.OS.Rpc.ChainController.Tests
         public async Task Transaction_To_JObject()
         {
             var transaction = _osTestHelper.GenerateTransaction(Address.Generate(), Address.Generate(),
-                nameof(TokenContract.Transfer),
-                Address.Generate(), 1000UL);
+                nameof(TokenContract.Transfer), new TransferInput
+                {
+                    Symbol = "ELF",
+                    Amount = 1000L,
+                    To = Address.Generate()
+                });
             var transactionObj = transaction.GetTransactionInfo();
             transactionObj.ShouldNotBeNull();
             transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContract.Transfer));
@@ -542,7 +558,9 @@ namespace AElf.OS.Rpc.ChainController.Tests
             //Result empty
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = transaction.To.GetFormatted()});
-            response["result"].ToString().ShouldBeEmpty();
+            //response["result"].ToString().ShouldBeEmpty();
+
+            var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response["result"].ToString()));
             
             //Result not empty
             //TODO: Add logic to cover query with data case [Case] 
@@ -658,8 +676,15 @@ namespace AElf.OS.Rpc.ChainController.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                    nameof(TokenContract.Initialize),
-                    "AELF", "elf token", 1000_000, 2);
+                    nameof(TokenContract.Create), new CreateInput
+                    {
+                        Symbol = $"ELF",
+                        TokenName= $"elf token {i}",
+                        TotalSupply = 1000_0000,
+                        Decimals = 2,
+                        Issuer = Address.Generate(),
+                        IsBurnable = true
+                    });
 
                 var signature =
                     CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
@@ -671,14 +696,13 @@ namespace AElf.OS.Rpc.ChainController.Tests
             return transactionList;
         }
 
-        private async Task<Transaction> GenerateViewTransaction(Chain chain, string method, params object[] paramArray)
+        private async Task<Transaction> GenerateViewTransaction(Chain chain, string method, IMessage input)
         {
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
             var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                 _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
-                method,
-                paramArray);
+                method, input);
             
             var signature =
                     CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());

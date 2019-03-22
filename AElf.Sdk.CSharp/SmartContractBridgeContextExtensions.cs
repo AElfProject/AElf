@@ -25,7 +25,7 @@ namespace AElf.Sdk.CSharp
         public static void SendInline(this ISmartContractBridgeContext context, Address toAddress, string methodName,
             IMessage message)
         {
-            context.SendInline(toAddress, methodName,ConvertToByteString(message));
+            context.SendInline(toAddress, methodName, ConvertToByteString(message));
         }
 
         public static void SendVirtualInline(this ISmartContractBridgeContext context, Hash fromVirtualAddress,
@@ -37,7 +37,8 @@ namespace AElf.Sdk.CSharp
 
         public static ByteString ConvertToByteString(IMessage message)
         {
-            return ByteString.CopyFrom(ParamsPacker.Pack(message));
+            return message?.ToByteString() ?? ByteString.Empty;
+            //return ByteString.CopyFrom(ParamsPacker.Pack(message));
         }
     }
 }
