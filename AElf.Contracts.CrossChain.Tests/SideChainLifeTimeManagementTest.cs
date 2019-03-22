@@ -317,7 +317,7 @@ namespace AElf.Contract.CrossChain.Tests
             var rawDict = SideChainIdAndHeightDict.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.GetAllChainsIdAndHeight),
                 new Empty()));
-            var dict = new Dictionary<int, long>(rawDict.IdHeighDict);
+            var dict = new Dictionary<int, long>(rawDict.IdHeightDict);
             Assert.True(dict.ContainsKey(chainId));
         }
         

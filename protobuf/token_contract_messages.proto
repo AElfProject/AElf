@@ -90,18 +90,6 @@ message TransferFromInput {
     string memo = 5;
 }
 
-message CrossChainTransferInput{
-    int32 toChainId = 1;
-    TransferInput transferInput = 2;
-}
-
-message CrossChainReceiveInput{
-    int32 fromChainId = 1;
-    int64 ParentChainHeight = 2;
-    Transaction TransferTransaction = 3;
-    MerklePath MerklePath = 4;
-}
-
 message ApproveInput {
     Address spender = 1;
     string symbol = 2;

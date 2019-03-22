@@ -4,6 +4,8 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -104,7 +106,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.TransferInput.Symbol
             };
             Burn(burnInput);
-            return Nothing.Instance;
+            return new Empty();
         }
 
         public Empty CrossChainReceive(CrossChainReceiveInput input)
@@ -132,7 +134,7 @@ namespace AElf.Contracts.MultiToken
             State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
-            return Nothing.Instance;
+            return new Empty();
         }
         
         public override Empty Lock(LockInput input)

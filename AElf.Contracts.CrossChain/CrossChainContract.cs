@@ -120,7 +120,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInfos[chainId] = request;
             State.CurrentSideChainHeight[chainId] = 0;
 
-            var initialConsensusInfo = State.ConsensusContract.GetCurrentMiners();
+            var initialConsensusInfo = State.ConsensusContract.GetCurrentMiners(new Empty());
             State.SideChainInitialConsensuseInfo[chainId] = initialConsensusInfo;
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
@@ -344,7 +344,7 @@ namespace AElf.Contracts.CrossChain
                 Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
                 long parentChainHeight = blockInfo.Root.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : ChainConsts.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : KernelConstants.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
 
@@ -404,7 +404,7 @@ namespace AElf.Contracts.CrossChain
                 
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
-                    : ChainConsts.GenesisBlockHeight;
+                    : KernelConstants.GenesisBlockHeight;
                 long sideChainHeight = blockInfo.SideChainHeight;
                 if (target != sideChainHeight)
                     continue;

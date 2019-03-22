@@ -442,14 +442,14 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
-            var deserializedMerklePath = MerklePath.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.GetMerklePathByHeight),
+            var crossChainMerkleProofContext = CrossChainMerkleProofContext.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.GetBoundParentChainHeightAndMerklePathByHeight),
                 new SInt64Value()
                 {
                     Value = sideChainHeight
                 }));
-            Assert.Equal(merklePath, deserializedMerklePath);
-            Assert.Equal(merkleTreeRoot, deserializedMerklePath.ComputeRootWith(txHash));
+            Assert.Equal(merklePath, crossChainMerkleProofContext.MerklePathForParentChainRoot);
+            Assert.Equal(merkleTreeRoot, crossChainMerkleProofContext.MerklePathForParentChainRoot.ComputeRootWith(txHash));
         }
 
         [Fact]

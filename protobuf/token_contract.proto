@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "common.proto";
+import "kernel.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 
@@ -196,4 +197,16 @@ message GetAllowanceOutput {
     Address owner = 2;
     Address spender = 3;
     sint64 allowance = 4;
+}
+
+message CrossChainTransferInput{
+    int32 toChainId = 1;
+    TransferInput transferInput = 2;
+}
+
+message CrossChainReceiveInput{
+    int32 fromChainId = 1;
+    int64 ParentChainHeight = 2;
+    Transaction TransferTransaction = 3;
+    MerklePath MerklePath = 4;
 }
