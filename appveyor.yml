@@ -16,11 +16,8 @@ build:
   
 install:
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
-  - cmd: dir
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\
   - cmd: copy c:\bin\protoc.exe   c:\Windows
-  - cmd: dir c:\
-  - cmd: echo This is batch again
 
   
 build_script:
