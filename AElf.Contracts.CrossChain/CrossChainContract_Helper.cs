@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.MultiToken.Messages;
+using AElf.CrossChain;
 using AElf.Kernel;
+using AElf.Sdk.CSharp.State;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -69,6 +72,99 @@ namespace AElf.Contracts.CrossChain
 //                .Select(pubKey => auth.Reviewers.FirstOrDefault(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)))
 //                .Where(r => !(r is default(Reviewer))).Aggregate<Reviewer, uint>(0, (current, r) => current + r.Weight);
 //            Assert(provided >= auth.ExecutionThreshold, "Authorization failed without enough approval.");
+        }
+        
+        /// <summary>
+        /// Bind parent chain height together with self height.
+        /// </summary>
+        /// <param name="childHeight"></param>
+        /// <param name="parentHeight"></param>
+        private void BindParentChainHeight(long childHeight, long parentHeight)
+        {
+            Assert(State.ChildHeightToParentChainHeight[childHeight] == 0,
+                $"Already bound at height {childHeight} with parent chain");
+            State.ChildHeightToParentChainHeight[childHeight] = parentHeight;
+        }
+
+        /// <summary>
+        /// Record merkle path of self chain block, which is from parent chain. 
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="path"></param>
+        private void AddIndexedTxRootMerklePathInParentChain(long height, MerklePath path)
+        {
+            var existing = State.TxRootMerklePathInParentChain[height];
+            Assert(existing == null,
+                $"Merkle path already bound at height {height}.");
+            State.TxRootMerklePathInParentChain[height] = path;
+        }
+
+        private void LockTokenAndResource(SideChainInfo sideChainInfo)
+        {
+            //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
+            // update locked token balance
+            TransferFrom(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Amount = sideChainInfo.LockedTokenAmount,
+                Symbol = "ELF"
+            });
+            var chainId = sideChainInfo.SideChainId;
+            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
+            // Todo: enable resource
+            // lock 
+            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
+            {
+                Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
+            }*/
+        }
+
+        private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
+        {
+            //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
+            // unlock token
+            var chainId = sideChainInfo.SideChainId;
+            var balance = State.IndexingBalance[chainId];
+            if (balance != 0)
+                Transfer(new TransferInput
+                {
+                    To = sideChainInfo.Proposer,
+                    Amount = balance,
+                    Symbol = "ELF"
+                });
+            State.IndexingBalance[chainId] = 0;
+
+            // unlock resource 
+            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
+            {
+                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
+            }*/
+        }
+
+        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        {
+            if (state.Value != null)
+                return;
+            state.Value = State.BasicContractZero.GetContractAddressByName.Call(contractSystemName);
+        }
+
+        private void Transfer(TransferInput input)
+        {
+            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            State.TokenContract.Transfer.Send(input);
+        }
+
+        private void TransferFrom(TransferFromInput input)
+        {
+            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            State.TokenContract.TransferFrom.Send(input);
+        }
+
+        private Miners GetCurrentMiners()
+        {
+            ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
+            return State.ConsensusContract.GetCurrentMiners.Call(new Empty());
         }
     }
 }
