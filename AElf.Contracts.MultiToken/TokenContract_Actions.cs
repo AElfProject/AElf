@@ -210,6 +210,14 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
+        
+        public override Empty SetFeePoolAddress(Address address)
+        {
+            var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
+            Assert(notSet, "Not allowed to perform this action.");
+            State.FeePoolAddress.Value = address;
+            return new Empty();
+        }
 
         #region ForTests
 
