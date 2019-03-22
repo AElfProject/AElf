@@ -25,5 +25,5 @@ install:
   
 build_script:
   - ps: dotnet --info
-  - ps: dotnet restore AElf.sln
-  - ps: dotnet build AElf.sln
+  - ps: dotnet restore AElf.Console.sln
+  - ps: dotnet build AElf.Console.sln
