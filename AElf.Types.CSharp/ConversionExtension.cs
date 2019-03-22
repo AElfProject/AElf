@@ -241,15 +241,6 @@ namespace AElf.Types.CSharp
 
         #endregion byte[]
 
-        /* TODO: Add ConversionExtension cases [Case]
-         * BODY:
-         * 1. DeserializeToPbMessage
-         * 2. ToPbMessage
-         * 3. ToAny
-         * 4. AnyToPbMessage
-         * 5. DeserializeToUserType
-         */
-
         #region IMessage
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
@@ -305,7 +296,6 @@ namespace AElf.Types.CSharp
         #endregion IMessage
 
         #region UserType
-        //TODO: Add DeserializeToUserType and DeserializeToUserType cases [Case]
         public static T DeserializeToUserType<T>(this byte[] bytes) where T : UserType, new()
         {
             var obj = new T();
@@ -325,7 +315,6 @@ namespace AElf.Types.CSharp
             return value.Pack();
         }
 
-        //TODO: Add ToAny and AnyToUserType cases [Case]
         public static Any ToAny(this UserType value)
         {
             return Any.Pack(value.ToPbMessage());
