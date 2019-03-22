@@ -24,6 +24,12 @@ namespace AElf.Kernel
             return _blockHash;
         }
 
+        public Hash GetHashWithoutCache()
+        {
+            _blockHash = null;
+            return GetHash();
+        }
+
         public byte[] GetHashBytes()
         {
             if (_blockHash == null)
