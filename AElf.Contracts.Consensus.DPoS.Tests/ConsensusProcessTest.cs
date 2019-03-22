@@ -205,7 +205,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
 
             // Act
-            var validationResult = await testers.Testers[0].ValidateConsensusAsync(newInformation);
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
 
             // Assert
             Assert.True(validationResult?.Success);

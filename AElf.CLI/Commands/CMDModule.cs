@@ -29,6 +29,7 @@ namespace AElf.CLI.Commands
                 [typeof(ChangeContractOwnerOption)] = typeof(ChangeContractOwnerCommand),
                 [typeof(GetAbiOption)] = typeof(GetAbiCommand),
                 [typeof(SendTransactionOption)] = typeof(SendTransactionCommand),
+                [typeof(CallReadOnlyOption)] = typeof(CallReadOnlyCommand),
                 [typeof(GetTxResultOption)] = typeof(GetTxResultCommand),
                 [typeof(GetBlockHeightOption)] = typeof(GetBlockHeightCommand),
                 [typeof(GetBlockInfoOption)] = typeof(GetBlockInfoCommand),

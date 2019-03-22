@@ -89,10 +89,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.1.tgz#8701cd760acc20beba5ffe0b7a1b879f39cb8c41"
   integrity sha512-Rymt08vh1GaW4vYB6QP61/5m/CFLGnFZP++bJpWbiNxceNa6RBipDmb413jvtSf/R1gg5a/jQVl2jY4XVRscEA==
 
-aelf-sdk@^2.0.3:
-  version "2.1.6"
-  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.1.6.tgz#6a4f9d007b2fbf0afde5ef33eef619d46b67ea87"
-  integrity sha512-VHk0ufVCM+D4AYmhrscEbiqKzFZhL2nAFlMtNxexDhfOOibd4B4TQSuWVzrFGsRSPQs+xZsvJNelUFxFy+OHSA==
+aelf-sdk@^2.1.7:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.1.7.tgz#09adf6394c92ca50d40ff535fe5a79d0c583a2de"
+  integrity sha512-GdZt06Alfu4ZymHVWLtCPl3OT8YmvIb5rtVOU4MGEaL7jWY9HcaMd6DYiNeuQLfUvENm/SzBNOq0oBcWQK+Abw==
   dependencies:
     "@aelfqueen/protobufjs" "^6.8.8"
     "@aelfqueen/xmlhttprequest" "^1.8.1"

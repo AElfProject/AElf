@@ -1,7 +1,8 @@
 (function () {
     deployCommand = function (category, code) {
         console.log("Deploying contract ...");
-        var txHash = chain.contractZero.DeploySmartContract(category, code).TransactionId;
+        var input = {category: category, code: global.hexToBase64(code)};
+        var txHash = chain.contractZero.DeploySmartContract(input).TransactionId;
         console.log("TransactionId is: " + txHash);
         // _repeatedCalls(function () {
         //     var res = aelf.chain.getTxResult(txHash);
@@ -13,10 +14,12 @@
         //     }
         //     return res.tx_status !== "Pending";
         // }, 3000);
+
     };
 
     updateCommand = function (address, code) {
-        var txHash = chain.contractZero.UpdateSmartContract(address, code).hash;
+        var input = {address: address, code: global.hexToBase64(code)};
+        var txHash = chain.contractZero.UpdateSmartContract(input).TransactionId;
         console.log("Updating contract ...");
         console.log("TxHash is: " + txHash);
         _repeatedCalls(function () {
@@ -30,9 +33,10 @@
             return res.tx_status !== "Pending";
         }, 3000);
     };
-    
+
     changeOwnerCommand = function (contractAddress, newOwner) {
-        var txHash = chain.contractZero.ChangeContractOwner(contractAddress, newOwner).hash;
+        var input = {contractAddress: contractAddress, newOwner: newOwner};
+        var txHash = chain.contractZero.ChangeContractOwner(input).TransactionId;
         console.log("Changing contract owner ...");
         console.log("TxHash is: " + txHash);
         _repeatedCalls(function () {

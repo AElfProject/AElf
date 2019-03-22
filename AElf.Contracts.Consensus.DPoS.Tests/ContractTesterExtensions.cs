@@ -70,12 +70,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return txs;
         }
 
-        public static async Task<ValidationResult> ValidateConsensusAsync(
+        public static async Task<ValidationResult> ValidateConsensusBeforeExecutionAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.ValidateConsensus, information);
+                ConsensusConsts.ValidateConsensusBeforeExecution, information);
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
