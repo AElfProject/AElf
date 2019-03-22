@@ -176,6 +176,10 @@ namespace AElf.Launcher
                 });
             }
 
+            // Set fee pool address to dividend contract address.
+            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
+                DividendsSmartContractAddressNameProvider.Name);
+
             return tokenContractCallList;
         }
 
