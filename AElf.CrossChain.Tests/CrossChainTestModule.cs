@@ -4,7 +4,6 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -53,6 +52,18 @@ namespace AElf.CrossChain
                 });
                 return mockBlockChainService.Object;
             });
+        }
+    }
+    
+    [DependsOn(
+        typeof(CrossChainAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule)
+    )]
+    public class CrossChainWithChainTestModule: AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            
         }
     }
 }
