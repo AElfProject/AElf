@@ -358,6 +358,7 @@ namespace AElf.Contract.CrossChain.Tests
             
         }
         
+        //TODO: Disable for param packer removing
 //        [Fact]
 //        public async Task Create_SideChain_FireEvent()
 //        {
