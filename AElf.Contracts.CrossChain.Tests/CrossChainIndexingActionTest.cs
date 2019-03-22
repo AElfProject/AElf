@@ -536,9 +536,66 @@ namespace AElf.Contract.CrossChain.Tests
             var balance = GetBalanceOutput.Parser.ParseFrom(balanceResult);
             Assert.True(balance.Balance == Tester.InitialBalanceOfStarter - 100_000);
         }
-        
+
         [Fact]
-        public void CrossChainReceive(){}
+        public async Task CrossChainReceiveToken()
+        {
+            int parentChainId = 123;
+            int chainId = ChainHelpers.ConvertBase58ToChainId("AELF");
+            long lockedToken = 10;
+            var sidechainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            var fakeAddress = Address.FromString("FakeTokenContract");
+            var tx = await GenerateTransactionAsync(fakeAddress, nameof(TokenContract.CrossChainTransfer), null,
+                new CrossChainTransferInput
+                {
+                    Amount = 100_000,
+                    Symbol = "ELF",
+                    To = Tester.GetCallOwnerAddress(),
+                    ToChainId = chainId
+                });
+            var binaryMerkleTree = new BinaryMerkleTree();
+            var fakeHash1 = Hash.FromString("fake1");
+            var fakeHash2 = Hash.FromString("fake2");
+
+            var hash = Hash.FromTwoHashes(tx.GetHash(), Hash.FromString(TransactionResultStatus.Mined.ToString()));
+            
+            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var parentChainHeight = 1;
+            var parentChainBlockData = new ParentChainBlockData
+            {
+                Root = new ParentChainBlockRootInfo
+                {
+                    ParentChainHeight = parentChainHeight,
+                    ParentChainId = parentChainId,
+                    CrossChainExtraData = new CrossChainExtraData
+                    {
+                        SideChainTransactionsRoot = merkleTreeRoot
+                    }
+                }
+            };
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                ParentChainBlockData = {parentChainBlockData}
+            };
+            
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            await MineAsync(new List<Transaction> {indexingTx});
+            
+            var txRes = await ExecuteContractWithMiningAsync(
+                TokenContractAddress,
+                nameof(TokenContract.CrossChainReceiveToken),
+                new CrossChainReceiveTokenInput
+                {
+                    FromChainId = chainId,
+                    MerklePath = merklePath,
+                    ParentChainHeight = parentChainHeight,
+                    TransferTransaction = tx
+                });
+            Assert.True(txRes.Status == TransactionResultStatus.Mined);
+        }
         
 
         #endregion

@@ -494,7 +494,7 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
             
             var callList = new SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new AElf.Contracts.MultiToken.Messages.InitializeWithContractSystemNamesInput
+            callList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });

@@ -12,7 +12,7 @@ service TokenContract {
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput) returns(google.protobuf.Empty){
+    rpc InitializeWithContractSystemNames(TokenContractInitializeInput) returns(google.protobuf.Empty){
     }
     rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
     }
@@ -205,7 +205,7 @@ message GetAllowanceOutput {
     sint64 allowance = 4;
 }
 
-message InitializeWithContractSystemNamesInput {
+message TokenContractInitializeInput {
     Hash crossChainContractSystemName = 1;
 }
 message CrossChainTransferInput{

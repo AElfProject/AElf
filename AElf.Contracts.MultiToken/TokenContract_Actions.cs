@@ -7,7 +7,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using InitializeWithContractSystemNamesInput = AElf.Contracts.MultiToken.Messages.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -40,8 +39,9 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
+        public override Empty InitializeWithContractSystemNames(TokenContractInitializeInput input)
         {
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
             return new Empty();
         }
@@ -133,6 +133,9 @@ namespace AElf.Contracts.MultiToken
             Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to receive cross chain token.");
             AssertValidToken(symbol, amount);
+            if (State.CrossChainContractReferenceState.Value == null)
+                State.CrossChainContractReferenceState.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(new VerifyTransactionInput{TransactionId = transferTransactionHash, 
                     MerklePath = input.MerklePath, ParentChainHeight = input.ParentChainHeight});
