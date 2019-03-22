@@ -147,10 +147,10 @@ namespace AElf.Kernel.Blockchain.Application
             var chain = await _fullBlockchainService.GetChainAsync();
 
             var result = await _fullBlockchainService.GetReversedBlockHashes(Hash.FromString("not exist"), 1);
-            result.ShouldBeNull();
+            result.Count.ShouldBe(0);
 
             result = await _fullBlockchainService.GetReversedBlockHashes(chain.GenesisBlockHash, 1);
-            result.ShouldBeNull();
+            result.Count.ShouldBe(0);
         }
 
         [Fact]
