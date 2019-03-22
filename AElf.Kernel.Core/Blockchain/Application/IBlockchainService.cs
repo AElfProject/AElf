@@ -244,11 +244,11 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHeight = irreversibleBlockHeight
             };
 
-            await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
-
             // Clean last branches and not linked
             var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
+
+            await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
