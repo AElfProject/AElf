@@ -234,7 +234,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                                         Signature = minerInRound.Signature,
                                         PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                                         RoundId = round.RoundId,
-                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks
+                                        PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                                        OrderOfNextRound = minerInRound.OrderOfNextRound
                                     }
                                 }),
                         }

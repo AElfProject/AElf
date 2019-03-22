@@ -24,6 +24,7 @@ message ToUpdate {
     Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp ActualMiningTime = 6;
     repeated SplittedInValue SplittedInValues = 7;// For others to recover his in value of current round.
+    int32 OrderOfNextRound = 8;
 }
 
 message SplittedInValue {

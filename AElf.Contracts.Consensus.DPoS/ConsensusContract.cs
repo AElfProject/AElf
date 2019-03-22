@@ -146,7 +146,8 @@ namespace AElf.Contracts.Consensus.DPoS
                                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                                 RoundId = round.RoundId,
                                 PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
-                                ActualMiningTime = minerInRound.ActualMiningTime
+                                ActualMiningTime = minerInRound.ActualMiningTime,
+                                OrderOfNextRound = minerInRound.OrderOfNextRound
                             }),
                         }
                     };
