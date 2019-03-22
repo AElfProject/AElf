@@ -52,8 +52,6 @@ namespace AElf.Types.CSharp
             }
         }
 
-        public static byte[] Pack(List<object> objs) => Pack(objs.ToArray());
-
         public static object[] Unpack(byte[] bytes, Type[] types)
         {
             if (bytes.Length == 0)

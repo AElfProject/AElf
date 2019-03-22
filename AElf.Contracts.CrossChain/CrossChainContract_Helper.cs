@@ -22,11 +22,7 @@ namespace AElf.Contracts.CrossChain
                 To = targetAddress,
                 MethodName = invokingMethod,
                 Params = input.ToByteString(),
-                Type = TransactionType.MsigTransaction,
-                Time = Timestamp.FromDateTime(Context.CurrentBlockTime)
             }.ToByteArray();
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            //TimeSpan diff = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime() - origin;
             var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
             Proposal proposal = new Proposal
             {

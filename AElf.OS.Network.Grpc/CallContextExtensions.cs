@@ -8,14 +8,14 @@ namespace AElf.OS.Network.Grpc
     {
         public static string GetPublicKey(this ServerCallContext context)
         {
-            try
-            {
-                return context.RequestHeaders.First(entry => entry.Key == GrpcConsts.PubkeyMetadataKey).Value;
-            }
-            catch (InvalidOperationException)
-            {
-                return null;
-            }
+            return context.RequestHeaders
+                .FirstOrDefault(entry => entry.Key == GrpcConsts.PubkeyMetadataKey)?.Value;
+        }
+        
+        public static string GetPeerInfo(this ServerCallContext context)
+        {
+            return context.RequestHeaders
+                .FirstOrDefault(entry => entry.Key == GrpcConsts.PeerInfoMetadataKey)?.Value;
         }
     }
 }

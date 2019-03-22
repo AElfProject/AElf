@@ -6,6 +6,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -68,8 +69,7 @@ namespace AElf.Kernel
                         if (contractEvent.Address != address || !contractEvent.Topics.Contains(ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
                             continue;
 
-                        var indexingEventData = ExtractLibFoundData(contractEvent);
-                        var offset = (long) indexingEventData[0];
+                        var offset = ExtractLibOffset(contractEvent);
                         var libHeight = eventData.BlockHeight - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
@@ -83,9 +83,10 @@ namespace AElf.Kernel
             }
         }
 
-        private object[] ExtractLibFoundData(LogEvent logEvent)
+        // TODO: Reimplement this if we can remove Unpack method.
+        private long ExtractLibOffset(LogEvent logEvent)
         {
-            return ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)});
+            return (long) ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)})[0];
         }
     }
 }

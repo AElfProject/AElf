@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContractExecution.Akka.Infrastructure
 
 //                    _requestIdToPendingTransactionIds.Add(reqId, hashes);
                     _router.Tell(new JobExecutionRequest(reqId, req.ChainId, req.Transactions, Self, _router, req.CurrentBlockTime,
-                        req.DisambiguationHash, req.TransactionType, req.SkipFee));
+                        req.DisambiguationHash, req.SkipFee));
                     break;
                 case TransactionTraceMessage msg:
                     if (!_requestIdToTraces.TryGetValue(msg.RequestId, out var traces))
