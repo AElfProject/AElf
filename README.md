@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/AElfProject/AElf.svg?branch=dev)](https://travis-ci.org/AElfProject/AElf)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=Next,In%20Progress,Done)](https://waffle.io/AElfProject/AElf)
 [![codecov](https://codecov.io/gh/AElfProject/AElf/branch/dev/graph/badge.svg)](https://codecov.io/gh/AElfProject/AElf)
+[![Gitter](https://badges.gitter.im/aelfproject/community.svg)](https://gitter.im/aelfproject/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to 
 improve its quality and functionality.
