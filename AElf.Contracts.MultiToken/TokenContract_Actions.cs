@@ -214,7 +214,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty SetFeePoolAddress(Address address)
         {
             var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
-            Assert(notSet, "Not allowed to perform this action.");
+            Assert(notSet, "Fee pool address already set.");
             State.FeePoolAddress.Value = address;
             return new Empty();
         }
