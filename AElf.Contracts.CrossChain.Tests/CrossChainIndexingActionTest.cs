@@ -490,14 +490,13 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
-            var merklePathForFakeHash1 = binaryMerkleTree.GenerateMerklePath(1);
             var txRes = await ExecuteContractWithMiningAsync(
                 CrossChainContractAddress,
                 nameof(CrossChainContract.VerifyTransaction),
                 new VerifyTransactionInput()
                 {
-                    TransactionId = fakeHash1,
-                    MerklePath = merklePathForFakeHash1,
+                    TransactionId = txId,
+                    MerklePath = merklePath,
                     ParentChainHeight = parentChainHeight
                 });
             var verified = BoolValue.Parser.ParseFrom(txRes.ReturnValue).Value;
