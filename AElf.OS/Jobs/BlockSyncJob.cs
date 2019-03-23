@@ -28,7 +28,7 @@ namespace AElf.OS.Jobs
             var chain = await BlockchainService.GetChainAsync();
             try
             {
-                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.LongestChainHeight < 5)
+                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.BestChainHeight < 5)
                 {
                     var peerBlockHash = Hash.LoadHex(args.BlockHash);
                     var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
