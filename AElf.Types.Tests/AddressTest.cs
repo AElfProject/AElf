@@ -74,7 +74,7 @@ namespace AElf.Types.Tests
         public void Chain_Address()
         {
             var address = Address.Generate();
-            var chainId = ChainHelpers.GetRandomChainId();
+            var chainId = 2111;
             var chainAddress1 = new ChainAddress(address, chainId);
 
             string str = chainAddress1.GetFormatted();

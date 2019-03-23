@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -39,12 +40,24 @@ namespace AElf.Synchronization.Tests
 //        }
         
         /// <summary>
+        /// Get random chain Id
+        /// </summary>
+        /// <returns></returns>
+        public static int GetRandomChainId()
+        {
+            var random = new Random();
+            var chainId = ChainHelpers.GetChainId(random.Next(195112, 11316496));
+            return chainId;
+        }
+        
+        /// <summary>
         /// Builds the genesis block with AElfs builder.
         /// </summary>
         /// <returns></returns>
         public static Block GetGenesisBlock()
         {
-            var builder = new GenesisBlockBuilder().Build(ChainHelpers.GetRandomChainId());
+            var chainId = 2111;
+            var builder = new GenesisBlockBuilder().Build(chainId);
             return builder.Block;
         }
         

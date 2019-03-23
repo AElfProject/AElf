@@ -63,7 +63,20 @@ namespace AElf.CrossChain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<CrossChainTestHelper>();
             
+            context.Services.AddTransient(provider =>
+            {
+                var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
+                mockTransactionReadOnlyExecutionService
+                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
+                    .Returns<IChainContext, Transaction, DateTime>((chainContext, transaction, dateTime) =>
+                    {
+                        var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;                   
+                        return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));
+                    });
+                return mockTransactionReadOnlyExecutionService.Object;
+            });
         }
     }
 }
