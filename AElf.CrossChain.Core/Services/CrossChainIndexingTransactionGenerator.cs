@@ -18,7 +18,6 @@ using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
-    //TODO: Add cases to CrossChainIndexingTransactionGenerator [Case]
     public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ICrossChainService _crossChainService;
