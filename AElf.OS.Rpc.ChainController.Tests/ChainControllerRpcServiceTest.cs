@@ -370,7 +370,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var block = new Block
             {
                 Header = new BlockHeader(),
-                BlockHashToHex = "Test"
             };
             var blockHash = block.GetHash().ToHex();
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
@@ -389,7 +388,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var block = new Block
             {
                 Header = new BlockHeader(),
-                BlockHashToHex = "Test"
             };
             var blockHash = block.GetHash().ToHex();
             

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.CrossChain.Cache;
-using AElf.Kernel.Blockchain.Application;
 using AElf.TestBase;
 
 namespace AElf.CrossChain
@@ -38,5 +37,9 @@ namespace AElf.CrossChain
                 }
             }
         }
+    }
+
+    public class CrossChainWithChainTestBase : AElfIntegratedTest<CrossChainWithChainTestModule>
+    {
     }
 }

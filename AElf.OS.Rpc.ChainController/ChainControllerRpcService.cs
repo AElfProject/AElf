@@ -188,7 +188,7 @@ namespace AElf.OS.Rpc.ChainController
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
-                response["BlockHash"] = block.BlockHashToHex;
+                response["BlockHash"] = block.GetHash().ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -249,7 +249,7 @@ namespace AElf.OS.Rpc.ChainController
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
                     var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
-                    jObjectResult["BlockHash"] = block.BlockHashToHex;
+                    jObjectResult["BlockHash"] = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         jObjectResult["Error"] = transactionResult.Error;
@@ -332,7 +332,7 @@ namespace AElf.OS.Rpc.ChainController
                 var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new JObject
                     {
-                        ["BlockHash"] = block.BlockHashToHex,
+                        ["BlockHash"] = block.GetHash().ToHex(),
                         ["Height"] = block.Height,
                         ["PreviousBlockHash"] = block.Header.PreviousBlockHash.ToHex()
                     }
