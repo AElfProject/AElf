@@ -41,18 +41,5 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractExecutiveService.PutExecutiveAsync(Address.Genesis, mockExecutive.Object);
         }
 
-        [Fact]
-        public async Task Get_Executive_BySmartContractRegistration_ReturnExecutive()
-        {
-            var registration = new SmartContractRegistration
-            {
-                Category = KernelConstants.DefaultRunnerCategory,
-                Code = Hash.FromString("TestGetExecutive").ToByteString(),
-                CodeHash = Hash.FromString("TestGetExecutive")
-            };
-
-            var result = await _smartContractExecutiveService.GetExecutiveAsync(registration, Address.Zero);
-            result.ContractHash.ShouldBe(registration.CodeHash);
-        }
     }
 }

@@ -73,6 +73,7 @@ namespace AElf.Common
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
+            
             var hashes = new List<Hash>
             {
                 hash1, hash2

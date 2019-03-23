@@ -6,23 +6,17 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Types.SmartContract;
-using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Module = AElf.Kernel.ABI.Module;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Runtime.CSharp.Core;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.Reflection;
-using IHostSmartContractBridgeContext = AElf.Kernel.SmartContract.IHostSmartContractBridgeContext;
-using FileDescriptorSet = AElf.Runtime.CSharp.FileDescriptorSet;
 
 namespace AElf.Runtime.CSharp
 {
-    public class Executive3 : IExecutive
+    public class Executive : IExecutive
     {
         private readonly Assembly _contractAssembly;
         private readonly Type _contractType;
@@ -60,7 +54,7 @@ namespace AElf.Runtime.CSharp
             var ssd = methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
             return ssd.GetCallHandlers();
         }
-        public Executive3(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
+        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
             _contractAssembly = assembly;
             _executivePlugins = executivePlugins;
