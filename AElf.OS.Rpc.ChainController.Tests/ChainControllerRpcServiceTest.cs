@@ -91,15 +91,14 @@ namespace AElf.OS.Rpc.ChainController.Tests
         }
 
         [Fact]
-        public async Task Connect_Chain_Success()
+        public async Task Get_Chain_Information_Success()
         {
             var chainId = _blockchainService.GetChainId();
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
-            var response = await JsonCallAsJObject("/chain", "ConnectChain");
+            var response = await JsonCallAsJObject("/chain", "GetChainInformation");
 
-            var responseZeroContractAddress =
-                response["result"][SmartContract.GenesisSmartContractZeroAssemblyName].ToString();
+            var responseZeroContractAddress = response["result"]["GenesisContractAddress"].ToString();
             var responseChainId = ChainHelpers.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
 
             responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
