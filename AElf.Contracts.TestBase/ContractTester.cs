@@ -61,7 +61,11 @@ namespace AElf.Contracts.TestBase
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
-        public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
+        public ContractTester() : this(0, null)
+        {
+        }
+
+        public ContractTester(int chainId, ECKeyPair keyPair)
         {
             KeyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
 
