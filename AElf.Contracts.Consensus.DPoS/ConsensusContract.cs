@@ -182,45 +182,45 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
-            
-            if (!input.Round.CheckTimeSlots())
+
+            // Validate the time slots.
+            var timeSlotsCheckResult = input.Round.CheckTimeSlots();
+            if (!timeSlotsCheckResult.Success)
             {
-                return new ValidationResult {Success = false, Message = "Incorrect time slots."};
+                return timeSlotsCheckResult;
             }
 
             var behaviour = input.Behaviour;
 
-            var successToGetCurrentRound = currentRound != null;
+            // Try to get current round information (for further validation).
+            if (currentRound == null && behaviour != DPoSBehaviour.InitialConsensus)
+            {
+                return new ValidationResult
+                    {Success = false, Message = "Failed to get current round information."};
+            }
 
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
                     break;
                 case DPoSBehaviour.UpdateValue:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
+                    // Need to check round id when updating current round information.
+                    // This can tell the miner current block 
                     if (!RoundIdMatched(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
-                    if (!NewOutValueFilled(input.Round))
+                    // Only one Out Value should be filled.
+                    if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
+                    
+                    
 
                     break;
                 case DPoSBehaviour.NextRound:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
                     // None of in values should be filled.
                     if (!InValueIsNull(input.Round))
                     {
@@ -229,12 +229,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
                     break;
                 case DPoSBehaviour.NextTerm:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
                     break;
                 case DPoSBehaviour.Invalid:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour."};
@@ -247,10 +241,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
         {
-            if (!input.Round.CheckTimeSlots())
+            if (input.Behaviour != DPoSBehaviour.InitialConsensus && TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return new ValidationResult {Success = false, Message = "Incorrect time slots."};
+                if (Hash.FromMessage(input.Round) != Hash.FromMessage(currentRound))
+                {
+                    return new ValidationResult {Success = false, Message = "Invalid round information."};
+                }
             }
+
             return new ValidationResult {Success = true};
         }
 

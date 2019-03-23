@@ -616,24 +616,25 @@ namespace AElf.Consensus.DPoS
             };
         }
 
+        // TODO: Add test cases.
         /// <summary>
         /// Check the equality of time slots of miners.
         /// Also, the mining interval shouldn't be 0.
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
-        public static bool CheckTimeSlots(this Round round)
+        public static ValidationResult CheckTimeSlots(this Round round)
         {
             var miners = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
             if (miners.Count == 1)
             {
                 // No need to check single node.
-                return true;
+                return new ValidationResult {Success = true};
             }
 
             if (miners.Any(m => m.ExpectedMiningTime == null))
             {
-                return false;
+                return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
             }
 
             var baseMiningInterval =
@@ -642,7 +643,7 @@ namespace AElf.Consensus.DPoS
             
             if (baseMiningInterval <= 0)
             {
-                return false;
+                return new ValidationResult {Success = false, Message = "Mining interval must greater than 0."};
             }
             
             for (var i = 1; i < miners.Count - 1; i++)
@@ -650,13 +651,13 @@ namespace AElf.Consensus.DPoS
                 var miningInterval =
                     (miners[i + 1].ExpectedMiningTime.ToDateTime() - miners[i].ExpectedMiningTime.ToDateTime())
                     .TotalMilliseconds;
-                if (Math.Abs(miningInterval - baseMiningInterval) > 0)
+                if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
-                    return false;
+                    return new ValidationResult {Success = false, Message = "Time slots are so different."};
                 }
             }
 
-            return true;
+            return new ValidationResult {Success = true};
         }
 
         private static int GetAbsModulus(long longValue, int intValue)

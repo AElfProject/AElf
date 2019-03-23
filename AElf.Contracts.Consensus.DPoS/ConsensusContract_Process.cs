@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
@@ -318,13 +319,17 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private bool NewOutValueFilled(Round round)
+        /// <summary>
+        /// Check only one Out Value was filled during this updating.
+        /// </summary>
+        /// <param name="minersInformation"></param>
+        /// <returns></returns>
+        private bool NewOutValueFilled(IEnumerable<MinerInRound> minersInformation)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
+            if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return currentRoundInStateDatabase.RealTimeMinersInformation.Values.Count(info =>
-                           info.OutValue != null) + 1 ==
-                       round.RealTimeMinersInformation.Values.Count(info => info.OutValue != null);
+                return currentRound.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
+                       minersInformation.Count(info => info.OutValue != null);
             }
 
             return false;
