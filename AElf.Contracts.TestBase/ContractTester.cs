@@ -52,7 +52,7 @@ namespace AElf.Contracts.TestBase
     /// etc.
     /// </summary>
     /// <typeparam name="TContractTestAElfModule"></typeparam>
-    public class ContractTester<TContractTestAElfModule> : ITransientDependency
+    public class ContractTester<TContractTestAElfModule> : ITransactionExecutor, ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
         private IAbpApplicationWithInternalServiceProvider Application { get; }
@@ -520,6 +520,29 @@ namespace AElf.Contracts.TestBase
                     .Name);
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
+        }
+
+        public async Task ExecuteAsync(Transaction transaction)
+        {
+            await MineAsync(new List<Transaction> {transaction});
+        }
+
+        public async Task<ByteString> ReadAsync(Transaction transaction)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            var transactionReadOnlyExecutionService =
+                Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+                {
+                    BlockHash = preBlock.GetHash(),
+                    BlockHeight = preBlock.Height
+                },
+                transaction,
+                DateTime.UtcNow);
+
+            return transactionTrace.ReturnValue;
         }
     }
 }
