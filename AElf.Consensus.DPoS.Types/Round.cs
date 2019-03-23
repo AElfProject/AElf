@@ -18,26 +18,16 @@ namespace AElf.Consensus.DPoS
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)
         {
-            // TODO: Blacklist
             var minersInformation = new Dictionary<string, MinerInRound>();
             foreach (var minerInRound in RealTimeMinersInformation)
             {
-                // TODO: Commented fields need to be checked here.
-                var checkableMinerInRound = new MinerInRound
+                var checkableMinerInRound = minerInRound.Value.Clone();
+                checkableMinerInRound.ProducedBlocks = 0;
+                if (!isContainPreviousInValue)
                 {
-                    PublicKey = minerInRound.Value.PublicKey, 
-                    //OutValue = minerInRound.Value.OutValue,
-                    IsExtraBlockProducer = minerInRound.Value.IsExtraBlockProducer,
-                    //Signature = minerInRound.Value.Signature, Order = minerInRound.Value.Order,
-                    //ExpectedMiningTime = minerInRound.Value.ExpectedMiningTime, 
-                    PromisedTinyBlocks = minerInRound.Value.PromisedTinyBlocks,
-                    //OrderOfNextRound = minerInRound.Value.OrderOfNextRound,
-                    MissedTimeSlots = minerInRound.Value.MissedTimeSlots
-                };
-                if (isContainPreviousInValue)
-                {
-                    checkableMinerInRound.PreviousInValue = minerInRound.Value.PreviousInValue;
+                    checkableMinerInRound.PreviousInValue = Hash.Empty;
                 }
+
                 minersInformation.Add(minerInRound.Key, checkableMinerInRound);
             }
 

@@ -111,16 +111,14 @@ message MinerInRound {
     Hash Signature = 5;
     google.protobuf.Timestamp ExpectedMiningTime = 6;
     int64 ProducedBlocks = 7;
-    bool IsForked = 8;
-    int64 MissedTimeSlots = 9;
-    string PublicKey = 11;
-    bool IsMissed = 14;
-    int32 PromisedTinyBlocks = 16;
-    string Alias = 17;
-    Hash PreviousInValue = 18;
-    int32 OrderOfNextRound = 19;
-    int32 TuneOrderOfNextRound = 20;
-    google.protobuf.Timestamp ActualMiningTime = 21;// Miners must fill actual mining time when they do the mining.
+    int64 MissedTimeSlots = 8;
+    string PublicKey = 9;
+    int32 PromisedTinyBlocks = 10;
+    string Alias = 11;
+    Hash PreviousInValue = 12;
+    int32 OrderOfNextRound = 13;
+    int32 TuneOrderOfNextRound = 14;
+    google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
 }
 
 // The information of a candidate.

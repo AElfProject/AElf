@@ -319,14 +319,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {
-                    minerInformation.AppendLine($"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
+                    minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
 
-                minerInformation.AppendLine($"\nSig:\t {minerInRound.Signature?.ToHex()}");
-                minerInformation.AppendLine($"\nMine:\t {minerInRound.ProducedBlocks}");
-                minerInformation.AppendLine($"\nMiss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation.AppendLine($"\nProms:\t {minerInRound.PromisedTinyBlocks}");
-                minerInformation.AppendLine($"\nNOrder:\t {minerInRound.OrderOfNextRound}");
+                minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
+                minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
+                minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
+                minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
+                minerInformation.AppendLine($"NOrder:\t {minerInRound.OrderOfNextRound}");
 
                 logs.Append(minerInformation);
             }

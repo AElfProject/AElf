@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -315,35 +312,34 @@ namespace AElf.Contracts.Consensus.DPoS
                 return "";
             }
 
-            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
+            var logs = new StringBuilder($"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})");
             foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                var minerInformation = "\n";
-                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
-                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
-                minerInformation +=
-                    minerInRound.PublicKey == publicKey
-                        ? "(This Node)"
-                        : "";
-                minerInformation += $"\nOrder:\t {minerInRound.Order}";
-                minerInformation +=
-                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
-                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
+                var minerInformation = new StringBuilder("\n");
+                minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
+                minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
+                minerInformation.Append(minerInRound.PublicKey == publicKey
+                    ? "(This Node)"
+                    : "");
+                minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
+                minerInformation.AppendLine(
+                    $"Time:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {
-                    minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
+                    minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
 
-                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
-                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
-                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t {minerInRound.PromisedTinyBlocks}";
-                minerInformation += $"\nNOrder:\t {minerInRound.OrderOfNextRound}";
+                minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
+                minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
+                minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
+                minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
+                minerInformation.AppendLine($"NOrder:\t {minerInRound.OrderOfNextRound}");
 
-                logs += minerInformation;
+                logs.Append(minerInformation);
             }
 
-            return logs;
+            return logs.ToString();
         }
     }
 }
