@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -12,19 +14,20 @@ namespace AElf.Contracts.TestBase
 {
     public class TestMethodFactory : ITestMethodFactory, ITransientDependency
     {
-        public Address Self { get; set; }
-        public Address Sender { get; set; }
+        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
+
+        public Address ContractAddress { get; set; }
+
+        public Address Sender => Address.FromPublicKey(KeyPair.PublicKey);
 
         private readonly IRefBlockInfoProvider _refBlockInfoProvider;
-        private readonly IAccountService _accountService;
         private readonly ITransactionExecutor _transactionExecutor;
         private readonly ITransactionResultService _transactionResultService;
 
-        public TestMethodFactory(IRefBlockInfoProvider refBlockInfoProvider, IAccountService accountService,
-            ITransactionExecutor transactionExecutor, ITransactionResultService transactionResultService)
+        public TestMethodFactory(IRefBlockInfoProvider refBlockInfoProvider, ITransactionExecutor transactionExecutor,
+            ITransactionResultService transactionResultService)
         {
             _refBlockInfoProvider = refBlockInfoProvider;
-            _accountService = accountService;
             _transactionExecutor = transactionExecutor;
             _transactionResultService = transactionResultService;
         }
@@ -39,13 +42,14 @@ namespace AElf.Contracts.TestBase
                 var transaction = new Transaction()
                 {
                     From = Sender,
-                    To = Self,
+                    To = ContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input)),
                     RefBlockNumber = refBlockInfo.Height,
                     RefBlockPrefix = refBlockInfo.Prefix
                 };
-                var signature = await _accountService.SignAsync(transaction.GetHashBytes());
+                var signature = CryptoHelpers.SignWithPrivateKey(
+                    KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
                 transaction.Sigs.Add(ByteString.CopyFrom(signature));
                 await _transactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
@@ -62,7 +66,7 @@ namespace AElf.Contracts.TestBase
                 var transaction = new Transaction()
                 {
                     From = Sender,
-                    To = Self,
+                    To = ContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
                 };
