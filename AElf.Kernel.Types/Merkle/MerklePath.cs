@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
 using AElf.Common;
+using Google.Protobuf;
+
 namespace AElf.Kernel
 {
     public partial class MerklePath
@@ -14,7 +17,7 @@ namespace AElf.Kernel
             Hash hash = leaf.Clone();
             foreach (var node in Path)
             {
-                hash = Hash.FromTwoHashes(hash, node);
+                hash = BinaryMerkleTree.CalculateRootFromMultiHash(new[] {hash, node});
             }
             return hash;
         }

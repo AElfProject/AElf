@@ -256,6 +256,7 @@ namespace AElf.OS.Rpc.ChainController
 
                     jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
                     jObjectResult["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+                    jObjectResult["Status"] = transactionResult.Status.ToString();
                     response.Add(jObjectResult);
                 }
             }
