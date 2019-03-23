@@ -14,7 +14,7 @@ namespace AElf.Kernel
 //                return transaction.ExpiryBlockNumber;
 //            }
 
-            return transaction.RefBlockNumber + ChainConsts.ReferenceBlockValidPeriod;
+            return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
         public static int Size(this Transaction transaction)
         {
@@ -28,7 +28,7 @@ namespace AElf.Kernel
                 return false;
             }
 
-            if (tx.Sigs.Count == 1 && tx.Type != TransactionType.MsigTransaction)
+            if (tx.Sigs.Count == 1)
             {
                 var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
                     tx.GetHash().DumpByteArray(), out var pubKey);

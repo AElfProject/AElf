@@ -5,29 +5,53 @@ using Xunit;
 
 namespace AElf.OS.Jobs
 {
-    // todo more scenarios should be tested
     public sealed class ForkDownloadJobTest : NetWorkTestBase
     {
-        private IBlockchainService _blockChainService;
-        private ForkDownloadJob _job;
+        private readonly IBlockchainService _blockChainService;
+        private readonly BlockSyncJob _job;
 
         public ForkDownloadJobTest()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
-            _job = GetRequiredService<ForkDownloadJob>();
+            _job = GetRequiredService<BlockSyncJob>();
         }
 
-        // TODO: Should use real BlockchainExecutingService, and mock complete block
-        [Fact(Skip="Should mock complete block")]
+        [Fact]
         public async Task ExecSyncJob_ShouldSyncChain()
         {
-            var initialState = await _blockChainService.GetChainAsync();
-            var genHash = initialState.LongestChainHash;
-            
-            _job.Execute(new ForkDownloadJobArgs { BlockHash = genHash.ToHex(), BlockHeight = 3 });
-            
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
+
             var chain = await _blockChainService.GetChainAsync();
-            chain.LongestChainHeight.ShouldBe<long>(6);
+            chain.BestChainHeight.ShouldBe(15);
+        }
+
+        [Fact]
+        public async Task ExecSyncJob_QueryTooMuch_ShouldSyncChain()
+        {
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 25});
+
+            var chain = await _blockChainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(15);
+        }
+
+        [Fact]
+        public async Task ExecSyncJob_RexecutionOfJob_ShouldNotChangeHeight()
+        {
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 3});
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 3});
+
+            var chain = await _blockChainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(15);
+        }
+
+        [Fact]
+        public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
+        {
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 15});
+
+            var chain = await _blockChainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(15);
         }
     }
 }

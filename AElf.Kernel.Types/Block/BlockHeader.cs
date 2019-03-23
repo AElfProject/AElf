@@ -24,7 +24,12 @@ namespace AElf.Kernel
             return _blockHash;
         }
 
-        //TODO: Add case  GetHashBytes to cover '_blockHash == null' [Case]
+        public Hash GetHashWithoutCache()
+        {
+            _blockHash = null;
+            return GetHash();
+        }
+
         public byte[] GetHashBytes()
         {
             if (_blockHash == null)
@@ -45,7 +50,7 @@ namespace AElf.Kernel
                 Bloom = Bloom,
                 BlockExtraDatas = {BlockExtraDatas}
             };
-            if (Height > ChainConsts.GenesisBlockHeight)
+            if (Height > KernelConstants.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();

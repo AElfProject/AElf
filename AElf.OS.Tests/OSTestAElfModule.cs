@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.Token;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -31,7 +30,7 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(OSAElfModule),
-        typeof(OSCoreTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class OSTestAElfModule : AElfModule

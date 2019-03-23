@@ -75,7 +75,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void Init_Again_Test()
         {
             Init_Test();
-            Should.Throw<AssertionError>(() => { Contract.Initialize("ELF", "elf test token again", 1000000, 0); });
+            Should.Throw<AssertionException>(() => { Contract.Initialize("ELF", "elf test token again", 1000000, 0); });
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace AElf.Sdk.CSharp.Tests
             Contract.Transfer(AddressList[2], 100UL);
 
             SwitchOwner(AddressList[2]);
-            Should.Throw<AssertionError>(() => { Contract.Transfer(AddressList[3], 200UL); });
+            Should.Throw<AssertionException>(() => { Contract.Transfer(AddressList[3], 200UL); });
         }
 
         [Fact]
@@ -153,7 +153,7 @@ namespace AElf.Sdk.CSharp.Tests
             Init_Test();
             Contract.Approve(AddressList[2], 500UL);
             SwitchOwner(AddressList[2]);
-            Should.Throw<AssertionError>(() => { Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL); });
+            Should.Throw<AssertionException>(() => { Contract.TransferFrom(AddressList[1], AddressList[2], 1000UL); });
         }
 
         [Fact]
@@ -183,7 +183,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void Burn_Over_Token_Test()
         {
             Init_Test();
-            Should.Throw<AssertionError>(() => { Contract.Burn(100000000UL); });
+            Should.Throw<AssertionException>(() => { Contract.Burn(100000000UL); });
         }
 
         [Fact]

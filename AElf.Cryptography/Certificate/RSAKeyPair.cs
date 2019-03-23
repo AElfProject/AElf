@@ -22,6 +22,7 @@ namespace AElf.Cryptography.Certificate
             PrivateKey = privateKey;
         }
 
+        //TODO: Add GetEncodedPublicKey case [Case]
         public byte[] GetEncodedPublicKey(bool compressed = false)
         {
             AsymmetricKeyParameter keyParam = PublicKey;

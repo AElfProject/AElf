@@ -45,7 +45,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         public void LogDebug(Func<string> func)
         {
+#if DEBUG
             Logger.LogDebug(func());
+#endif
         }
 
         public async Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
@@ -54,7 +56,6 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
-        //TODO: Add test case UpdateContractAsync [Case]
         public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged, Hash name)
         {

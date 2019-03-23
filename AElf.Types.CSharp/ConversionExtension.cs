@@ -242,7 +242,6 @@ namespace AElf.Types.CSharp
         #endregion byte[]
 
         #region IMessage
-
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
             if (bytes.Length==0)
@@ -297,7 +296,6 @@ namespace AElf.Types.CSharp
         #endregion IMessage
 
         #region UserType
-
         public static T DeserializeToUserType<T>(this byte[] bytes) where T : UserType, new()
         {
             var obj = new T();

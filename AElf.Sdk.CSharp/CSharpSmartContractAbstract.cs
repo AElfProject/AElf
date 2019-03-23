@@ -1,7 +1,6 @@
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Sdk.CSharp
@@ -17,7 +16,7 @@ namespace AElf.Sdk.CSharp
         {
             if (!asserted)
             {
-                throw new AssertionError(message);
+                throw new AssertionException(message);
             }
         }
 

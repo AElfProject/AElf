@@ -49,7 +49,7 @@ namespace AElf.CrossChain
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
-            Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
+            //Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
             
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
@@ -79,10 +79,10 @@ namespace AElf.CrossChain
         /// <param name="refBlockNumber"></param>
         /// <param name=""></param>
         /// <param name="refBlockPrefix"></param> 
-        /// <param name="params"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
-            byte[] refBlockPrefix, params object[] @params)
+            byte[] refBlockPrefix, IMessage input)
         {
             return new Transaction
             {
@@ -92,8 +92,7 @@ namespace AElf.CrossChain
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(@params)),
-                Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                Params = input.ToByteString(),
             };
         }
     }

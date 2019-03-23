@@ -5,37 +5,38 @@ using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        [View]
-        public Round GetRoundInformation(long roundNumber)
+        public override Round GetRoundInformation(SInt64Value input)
         {
-            return TryToGetRoundInformation(roundNumber, out var roundInfo) ? roundInfo : null;
+            return TryToGetRoundInformation(input.Value, out var roundInfo) ? roundInfo : null;
         }
 
-        [View]
-        public long GetCurrentRoundNumber()
+        public override SInt64Value GetCurrentRoundNumber(Empty input)
         {
-            return State.CurrentRoundNumberField.Value;
+            return new SInt64Value() {Value = State.CurrentRoundNumberField.Value};
         }
 
-        [View]
-        public long GetCurrentTermNumber()
+        public override Round GetCurrentRoundInformation(Empty input)
         {
-            return State.CurrentTermNumberField.Value;
+            return TryToGetRoundNumber(out var roundNumber) ? State.RoundsMap[roundNumber.ToInt64Value()] : null;
         }
 
-        [View]
-        public bool IsCandidate(string publicKey)
+        public override SInt64Value GetCurrentTermNumber(Empty input)
         {
-            return State.CandidatesField.Value.PublicKeys.Contains(publicKey);
+            return new SInt64Value() {Value = State.CurrentTermNumberField.Value};
         }
 
-        [View]
-        public StringList GetCandidatesList()
+        public override BoolValue IsCandidate(PublicKey input)
+        {
+            return new BoolValue() {Value = State.CandidatesField.Value.PublicKeys.Contains(input.Hex)};
+        }
+
+        public override StringList GetCandidatesList(Empty input)
         {
             var list = new StringList
             {
@@ -44,25 +45,23 @@ namespace AElf.Contracts.Consensus.DPoS
             return list;
         }
 
-        public Candidates GetCandidates()
+        public override Candidates GetCandidates(Empty input)
         {
             return State.CandidatesField.Value;
         }
-        
-        [View]
-        public string GetCandidatesListToFriendlyString()
+
+        public override FriendlyString GetCandidatesListToFriendlyString(Empty input)
         {
-            return GetCandidatesList().ToString();
+            return new FriendlyString() {Value = GetCandidatesList(input).ToString()};
         }
 
-        [View]
-        public CandidateInHistory GetCandidateHistoryInformation(string publicKey)
+        public override CandidateInHistory GetCandidateHistoryInformation(PublicKey input)
         {
-            var historyInformation = State.HistoryMap[publicKey.ToStringValue()];
+            var historyInformation = State.HistoryMap[input.Hex.ToStringValue()];
 
             return historyInformation ?? new CandidateInHistory
             {
-                PublicKey = publicKey,
+                PublicKey = input.Hex,
                 ContinualAppointmentCount = 0,
                 MissedTimeSlots = 0,
                 ProducedBlocks = 0,
@@ -70,14 +69,12 @@ namespace AElf.Contracts.Consensus.DPoS
             };
         }
 
-        [View]
-        public string GetCandidateHistoryInfoToFriendlyString(string publicKey)
+        public override FriendlyString GetCandidateHistoryInfoToFriendlyString(PublicKey input)
         {
-            return GetCandidateHistoryInformation(publicKey).ToString();
+            return new FriendlyString() {Value = GetCandidateHistoryInformation(input).ToString()};
         }
 
-        [View]
-        public CandidateInHistoryDictionary GetCandidatesHistoryInfo()
+        public override CandidateInHistoryDictionary GetCandidatesHistoryInfo(Empty input)
         {
             var result = new CandidateInHistoryDictionary();
 
@@ -97,7 +94,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return result;
                 }
-                
+
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
             }
@@ -105,15 +102,15 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public string GetCandidatesHistoryInfoToFriendlyString()
+        public override FriendlyString GetCandidatesHistoryInfoToFriendlyString(Empty input)
         {
-            return GetCandidatesHistoryInfo().ToString();
+            return new FriendlyString() {Value = GetCandidatesHistoryInfo(input).ToString()};
         }
 
-        [View]
-        public CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(int startIndex, int length)
+        public override CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(PageInfo input)
         {
+            var startIndex = input.Start;
+            var length = input.Length;
             var result = new CandidateInHistoryDictionary();
 
             var candidates = State.CandidatesField.Value;
@@ -125,16 +122,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
                 if (historyInformation == null)
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
+                    result.Maps.Add(candidate, new CandidateInHistory());
                     return result;
                 }
 
-                var tickets = State.TicketsMap[candidate.ToStringValue()];
-                if (tickets == null)
+                var tickets = State.TicketsMap[candidate.ToStringValue()] ?? new Tickets
                 {
-                    result.Maps.Add(candidate, new CandidateInHistory {Remark = "Not found."});
-                    return result;
-                }
+                    PublicKey = candidate,
+                    ObtainedTickets = 0
+                };
 
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
@@ -143,14 +139,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public string GetPageableCandidatesHistoryInfoToFriendlyString(int startIndex, int length)
+        public override FriendlyString GetPageableCandidatesHistoryInfoToFriendlyString(PageInfo input)
         {
-            return GetPageableCandidatesHistoryInfo(startIndex, length).ToString();
+            return new FriendlyString() {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
         }
 
-        [View]
-        public Miners GetCurrentMiners()
+        public override Miners GetCurrentMiners(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumberField.Value;
             if (currentTermNumber == 0)
@@ -163,33 +157,30 @@ namespace AElf.Contracts.Consensus.DPoS
             return currentMiners;
         }
 
-        [View]
-        public string GetCurrentMinersToFriendlyString()
+        public override FriendlyString GetCurrentMinersToFriendlyString(Empty input)
         {
-            return GetCurrentMiners().ToString();
+            return new FriendlyString() {Value = GetCurrentMiners(input).ToString()};
         }
 
         // TODO: Add an API to get unexpired tickets info.
-        [View]
-        public Tickets GetTicketsInformation(string publicKey)
+        public override Tickets GetTicketsInformation(PublicKey input)
         {
-            var tickets = State.TicketsMap[publicKey.ToStringValue()];
+            var tickets = State.TicketsMap[input.Hex.ToStringValue()];
 
             if (tickets == null)
             {
                 return null;
             }
-            
+
             foreach (var transactionId in tickets.VoteToTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
                 if (votingRecord != null)
                 {
                     tickets.VotingRecords.Add(votingRecord);
-
                 }
             }
-                
+
             foreach (var transactionId in tickets.VoteFromTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
@@ -198,54 +189,56 @@ namespace AElf.Contracts.Consensus.DPoS
                     tickets.VotingRecords.Add(votingRecord);
                 }
             }
-                
+
             tickets.VotingRecordsCount = (long) tickets.VotingRecords.Count;
             return tickets;
         }
 
-        [View]
-        public string GetTicketsInformationToFriendlyString(string publicKey)
+        public override FriendlyString GetTicketsInformationToFriendlyString(PublicKey input)
         {
-            return GetTicketsInformation(publicKey).ToString();
+            return new FriendlyString() {Value = GetTicketsInformation(input).ToString()};
         }
 
-        [View]
-        public VotingRecord GetVotingRecord(Hash transactionId)
+        public override VotingRecord GetVotingRecord(Hash input)
         {
-            return State.VotingRecordsMap[transactionId];
+            var txId = input;
+            return State.VotingRecordsMap[txId];
         }
-        
-        [View]
-        public long QueryObtainedNotExpiredVotes(string publicKey)
+
+        public override SInt64Value QueryObtainedNotExpiredVotes(PublicKey input)
         {
-            var tickets = GetTicketsInformation(publicKey);
+            var tickets = GetTicketsInformation(input);
             if (!tickets.VotingRecords.Any())
             {
-                return 0;
+                return new SInt64Value();
             }
 
-            return tickets.VotingRecords
-                .Where(vr => vr.To == publicKey && !vr.IsExpired(State.AgeField.Value))
-                .Aggregate<VotingRecord, long>(0, (current, ticket) => current + ticket.Count);
+            return new SInt64Value()
+            {
+                Value = tickets.VotingRecords
+                    .Where(vr => vr.To == input.Hex && !vr.IsExpired(State.AgeField.Value))
+                    .Aggregate<VotingRecord, long>(0, (current, ticket) => current + ticket.Count)
+            };
         }
 
-        [View]
-        public long QueryObtainedVotes(string publicKey)
+        public override SInt64Value QueryObtainedVotes(PublicKey input)
         {
-            var tickets = GetTicketsInformation(publicKey);
+            var tickets = GetTicketsInformation(input);
             if (tickets.VotingRecords.Any())
             {
-                return tickets.ObtainedTickets;
+                return new SInt64Value() {Value = tickets.ObtainedTickets};
             }
 
-            return 0;
+            return new SInt64Value();
         }
 
-        [View]
-        public Tickets GetPageableTicketsInfo(string publicKey, int startIndex, int length)
+        public override Tickets GetPageableTicketsInfo(PageableTicketsInfoInput input)
         {
+            var startIndex = input.Start;
+            var length = input.Length;
+            var publicKey = new PublicKey(){Hex = input.PublicKey};
             var tickets = GetTicketsInformation(publicKey);
-            
+
             var count = tickets.VotingRecords.Count;
             var take = Math.Min(length - startIndex, count - startIndex);
 
@@ -256,7 +249,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -265,15 +257,16 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public string GetPageableTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
+        public override FriendlyString GetPageableTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
         {
-            return GetPageableTicketsInfo(publicKey, startIndex, length).ToString();
+            return new FriendlyString() {Value = GetPageableTicketsInfo(input).ToString()};
         }
 
-        [View]
-        public Tickets GetPageableNotWithdrawnTicketsInfo(string publicKey, int startIndex, int length)
+        public override Tickets GetPageableNotWithdrawnTicketsInfo(PageableTicketsInfoInput input)
         {
+            var publicKey = new PublicKey(){Hex = input.PublicKey};
+            var startIndex = input.Start;
+            var length = input.Length;
             var tickets = GetTicketsInformation(publicKey);
 
             var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
@@ -287,7 +280,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                Remark = tickets.Remark,
                 VotingRecordsCount = (long) count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
@@ -296,18 +288,19 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public string GetPageableNotWithdrawnTicketsInfoToFriendlyString(string publicKey, int startIndex, int length)
+        public override FriendlyString GetPageableNotWithdrawnTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
         {
-            return GetPageableNotWithdrawnTicketsInfo(publicKey, startIndex, length).ToString();
+            return new FriendlyString() {Value = GetPageableNotWithdrawnTicketsInfo(input).ToString()};
         }
 
-        [View]
-        public TicketsHistories GetPageableTicketsHistories(string publicKey, int startIndex, int length)
+        public override TicketsHistories GetPageableTicketsHistories(PageableTicketsInfoInput input)
         {
+            var publicKey = new PublicKey() {Hex = input.PublicKey};
+            var startIndex = input.Start;
+            var length = input.Length;
             var histories = new TicketsHistories();
             var result = new TicketsHistories();
-            
+
             var tickets = GetTicketsInformation(publicKey);
 
             foreach (var votingRecord in tickets.VotingRecords)
@@ -341,10 +334,9 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public string GetPageableTicketsHistoriesToFriendlyString(string publicKey, int startIndex, int length)
+        public override FriendlyString GetPageableTicketsHistoriesToFriendlyString(PageableTicketsInfoInput input)
         {
-            return GetPageableTicketsHistories(publicKey, startIndex, length).ToString();
+            return new FriendlyString() {Value = GetPageableTicketsHistories(input).ToString()};
         }
 
         /// <summary>
@@ -353,13 +345,13 @@ namespace AElf.Contracts.Consensus.DPoS
         /// 1 - Obtained votes ascending.
         /// 2 - Obtained votes descending.
         /// </summary>
-        /// <param name="startIndex"></param>
-        /// <param name="length"></param>
-        /// <param name="orderBy"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        [View]
-        public TicketsDictionary GetPageableElectionInfo(int startIndex, int length, int orderBy)
+        public override TicketsDictionary GetPageableElectionInfo(PageableElectionInfoInput input)
         {
+            var startIndex = input.Start;
+            var length = input.Length;
+            var orderBy = input.OrderBy;
             if (orderBy == 0)
             {
                 var publicKeys = State.CandidatesField.Value.PublicKeys;
@@ -382,7 +374,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 return new TicketsDictionary
                 {
                     Maps = {dict},
-                    
                 };
             }
 
@@ -407,7 +398,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderBy(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 
@@ -432,97 +427,99 @@ namespace AElf.Contracts.Consensus.DPoS
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
-                    Maps = {dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take).ToDictionary(p => p.Key, p => p.Value)}
+                    Maps =
+                    {
+                        dict.OrderByDescending(p => p.Value.ObtainedTickets).Skip(startIndex).Take(take)
+                            .ToDictionary(p => p.Key, p => p.Value)
+                    }
                 };
             }
 
-            return new TicketsDictionary
-            {
-                Remark = "Failed to get election information."
-            };
+            return new TicketsDictionary();
         }
 
-        [View]
-        public string GetPageableElectionInfoToFriendlyString(int startIndex, int length, int orderBy)
+        public override FriendlyString GetPageableElectionInfoToFriendlyString(PageableElectionInfoInput input)
         {
-            return GetPageableElectionInfo(startIndex, length, orderBy).ToString();
+            return new FriendlyString() {Value = GetPageableElectionInfo(input).ToString()};
         }
 
-        [View]
-        public long GetBlockchainAge()
+        public override SInt64Value GetBlockchainAge(Empty input)
         {
-            return State.AgeField.Value;
+            return new SInt64Value() {Value = State.AgeField.Value};
         }
 
-        [View]
-        public StringList GetCurrentVictories()
+        public override StringList GetCurrentVictories(Empty input)
         {
             return TryToGetVictories(out var victories)
                 ? new StringList {Values = {victories.PublicKeys}}
                 : new StringList();
         }
 
-        [View]
-        public string GetCurrentVictoriesToFriendlyString()
+        public override FriendlyString GetCurrentVictoriesToFriendlyString(Empty input)
         {
-            return GetCurrentVictories().ToString();
+            return new FriendlyString() {Value = GetCurrentVictories(input).ToString()};
         }
 
-        [View]
-        public TermSnapshot GetTermSnapshot(long termNumber)
+        public override TermSnapshot GetTermSnapshot(SInt64Value input)
         {
-            return State.SnapshotMap[termNumber.ToInt64Value()];
+            return State.SnapshotMap[input.Value.ToInt64Value()];
         }
 
-        [View]
-        public string GetTermSnapshotToFriendlyString(long termNumber)
+        public override FriendlyString GetTermSnapshotToFriendlyString(SInt64Value input)
         {
-            return GetTermSnapshot(termNumber).ToString();
+            return new FriendlyString() {Value = GetTermSnapshot(input).ToString()};
         }
 
-        [View]
-        public string QueryAlias(string publicKey)
+        public override Alias QueryAlias(PublicKey input)
         {
-            var alias = State.AliasesMap[publicKey.ToStringValue()];
-            return alias == null ? publicKey.Substring(0, DPoSContractConsts.AliasLimit) : alias.Value;
+            var aliasString = State.AliasesMap[input.Hex.ToStringValue()]?.Value;
+            var alias = aliasString ?? input.Hex.Substring(0, DPoSContractConsts.AliasLimit);
+            return new Alias(){Value = alias};
         }
 
-        [View]
-        public long GetTermNumberByRoundNumber(long roundNumber)
+        public override SInt64Value GetTermNumberByRoundNumber(SInt64Value input)
         {
             var map = State.TermNumberLookupField.Value.Map;
             Assert(map != null, "Term number not found.");
-            return map?.OrderBy(p => p.Key).Last(p => roundNumber >= p.Value).Key ?? (long) 0;
+            var roundNumber = map?.OrderBy(p => p.Key).Last(p => input.Value >= p.Value).Key ?? (long) 0;
+            return new SInt64Value(){Value = roundNumber};
         }
 
-        [View]
-        public long GetVotesCount()
+        public override SInt64Value GetVotesCount(Empty input)
         {
-            return State.VotesCountField.Value;
+            return new SInt64Value() {Value = State.VotesCountField.Value};
         }
 
-        [View]
-        public long GetTicketsCount()
+        public override SInt64Value GetTicketsCount(Empty input)
         {
-            return State.TicketsCountField.Value;
+            return new SInt64Value() {Value = State.TicketsCountField.Value};
         }
 
-        [View]
-        public long QueryCurrentDividendsForVoters()
+        public override SInt64Value QueryCurrentDividendsForVoters(Empty input)
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
-            return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
+            return new SInt64Value()
+                {Value = (long) (QueryCurrentDividends(input).Value * DPoSContractConsts.VotersRatio)};
         }
 
-        [View]
-        public long QueryCurrentDividends()
+        public override SInt64Value QueryCurrentDividends(Empty input)
         {
-            var minedBlocks = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()].GetMinedBlocks();
-            return minedBlocks * DPoSContractConsts.ElfTokenPerBlock;
+            var currentRoundNumber = GetCurrentRoundNumber(input);
+            if (currentRoundNumber.Value == 0)
+            {
+                return currentRoundNumber;
+            }
+
+            var round = State.RoundsMap[currentRoundNumber.Value.ToInt64Value()];
+            if (round == null)
+            {
+                return new SInt64Value();
+            }
+
+            var minedBlocks = round.GetMinedBlocks();
+            return new SInt64Value() {Value = minedBlocks * DPoSContractConsts.ElfTokenPerBlock};
         }
 
-        [View]
-        public StringList QueryAliasesInUse()
+        public override StringList QueryAliasesInUse(Empty input)
         {
             var candidates = State.CandidatesField.Value;
             var result = new StringList();
@@ -538,25 +535,23 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        [View]
-        public long QueryMinedBlockCountInCurrentTerm(string publicKey)
+        public override SInt64Value QueryMinedBlockCountInCurrentTerm(PublicKey input)
         {
-            var round = State.RoundsMap[GetCurrentRoundNumber().ToInt64Value()];
+            var round = State.RoundsMap[GetCurrentRoundNumber(new Empty()).Value.ToInt64Value()];
             if (round != null)
             {
-                if (round.RealTimeMinersInformation.ContainsKey(publicKey))
+                if (round.RealTimeMinersInformation.ContainsKey(input.Hex))
                 {
-                    return round.RealTimeMinersInformation[publicKey].ProducedBlocks;
+                    return new SInt64Value() {Value = round.RealTimeMinersInformation[input.Hex].ProducedBlocks};
                 }
             }
 
-            return 0;
+            return new SInt64Value();
         }
 
-        [View]
-        public string QueryAliasesInUseToFriendlyString()
+        public override FriendlyString QueryAliasesInUseToFriendlyString(Empty input)
         {
-            return QueryAliasesInUse().ToString();
+            return new FriendlyString() {Value = QueryAliasesInUse(input).ToString()};
         }
     }
 }

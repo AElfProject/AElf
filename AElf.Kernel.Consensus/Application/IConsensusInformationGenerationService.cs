@@ -1,7 +1,11 @@
+using AElf.Consensus.DPoS;
+using Google.Protobuf;
+
 namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusInformationGenerationService
     {
-        byte[] GetTriggerInformation();
+        DPoSTriggerInformation GetTriggerInformation();
+        IMessage ConvertBlockExtraData(byte[] blockExtraData);
     }
 }

@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private const int MinersCount = 17;
 
         private const int MiningInterval = 1;
-        
+
         public LIBFindingTest()
         {
             // The starter initial chain and tokens.
@@ -39,9 +39,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var offset = await Miners.AnyOne().GetLIBOffset();
                 offset.ShouldBe(0L);
             }
-            
-            var minimumCount = ((int) ((MinersCount * 2d) / 3)) + 1;
 
+            var minimumCount = ((int) ((MinersCount * 2d) / 3)) + 1;
 
             // Not enough for LIB, offset should be 0.
             {
@@ -51,60 +50,59 @@ namespace AElf.Contracts.Consensus.DPoS
                 offset.ShouldBe(0L);
             }
 
-
             // Not enough for LIB.
             {
                 var finalMiner = await Miners.ProduceNormalBlocks(1);
-                
+
                 var offset = await finalMiner.GetLIBOffset();
                 offset.ShouldBe(minimumCount);
             }
-            
+
             // Surpass the LIB.
             {
                 var finalMiner = await Miners.ProduceNormalBlocks(1);
-                
+
                 var offset = await finalMiner.GetLIBOffset();
                 offset.ShouldBe(minimumCount);
             }
-            
+
             // Run to next round.
             {
                 await Miners.ProduceNormalBlocks(MinersCount);
                 var extraBlockMiner = await Miners.ChangeRoundAsync();
-                
+
                 var offset = await extraBlockMiner.GetLIBOffset();
                 offset.ShouldBe(minimumCount);
             }
-            
+
             // Keep mining blocks.
             {
                 var finalMiner = await Miners.ProduceNormalBlocks(MinersCount / 2);
-                
+
                 var offset = await finalMiner.GetLIBOffset();
                 offset.ShouldBe(minimumCount);
             }
-            
+
             // Suddenly some miners become offline.
             {
                 var extraBlockMiner = await Miners.ChangeRoundAsync();
-                
+
                 var offset = await extraBlockMiner.GetLIBOffset();
                 offset.ShouldBe(0L);
             }
-            
+
             // Miners online but not enough for LIB.
             {
                 var finalMiner = await Miners.ProduceNormalBlocks(MinersCount / 2);
-                
+
                 var offset = await finalMiner.GetLIBOffset();
                 offset.ShouldBe(0L);
             }
-            
+
             // Miners online and enough for LIB.
             {
                 var finalMiner = await Miners.ProduceNormalBlocks(MinersCount / 2 + 1);
-                
+
                 var offset = await finalMiner.GetLIBOffset();
                 offset.ShouldBe(minimumCount);
             }

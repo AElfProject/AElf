@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <RootNamespace>AElf.OS</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+      <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+
+</Project>

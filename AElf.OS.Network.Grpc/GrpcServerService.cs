@@ -81,6 +81,7 @@ namespace AElf.OS.Network.Grpc
             if (!valid)
             {
                 await channel.ShutdownAsync();
+                Logger.LogDebug($"Failed to reach {grpcPeer}");
                 return new ConnectReply {Err = AuthError.WrongAuth};
             }
 
@@ -96,14 +97,11 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            await EventBus.PublishAsync(new TransactionsReceivedEvent()
-            {
-                Transactions = new List<Transaction> {tx}
-            });
+            _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
 
-            return new VoidReply();
+            return Task.FromResult(new VoidReply());
         }
 
         /// <summary>
@@ -113,11 +111,18 @@ namespace AElf.OS.Network.Grpc
         {
             if (an?.BlockHash == null)
             {
-                Logger.LogError($"Received null announcement or header from {context.Peer}.");
+                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.FromResult(new VoidReply());
             }
-            
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.Peer}.");
+
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            if (peerInPool != null)
+            {
+                peerInPool.CurrentBlockHash = an.BlockHash;
+                peerInPool.CurrentBlockHeight = an.BlockHeight;
+            }
+
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
             
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
 
@@ -131,22 +136,25 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null)
+            if (request == null || request.Hash == null) 
                 return new BlockReply();
             
-            Logger.LogDebug($"Peer {context.Peer} requested block {request.Hash}.");
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
+            
             var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
 
-
-            Logger.LogDebug($"Sending {block} to {context.Peer}.");
+            if (block == null)
+                Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
 
             return new BlockReply { Block = block };
         }
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null)
+            if (request == null || request.PreviousBlockHash == null) 
                 return new BlockList();
+            
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
 
             var blockList = new BlockList();
             
@@ -157,7 +165,9 @@ namespace AElf.OS.Network.Grpc
 
             blockList.Blocks.AddRange(blocks);
 
-            Logger.LogTrace($"Response {blockList.Blocks.Count} blocks for request {request}");
+            if (blockList.Blocks.Count != request.Count)
+                Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
+            
             return blockList;
         }
 
@@ -166,7 +176,10 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
-            await _peerPool.ProcessDisconnection(context.GetPublicKey());
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
+            
+            await _peerPool.RemovePeerAsync(context.GetPublicKey(), false);
+            
             return new VoidReply();
         }
     }

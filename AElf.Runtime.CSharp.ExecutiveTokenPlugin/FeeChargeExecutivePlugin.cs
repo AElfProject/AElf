@@ -6,6 +6,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.Types.SmartContract;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
@@ -20,8 +21,7 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
                 return;
             }
 
-            var fee = (ulong) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
-                
+            var fee = (long) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
                 new object[] {context.TransactionContext.Transaction.MethodName});
 
             context.TransactionContext.Trace.InlineTransactions.Add(new Transaction()
@@ -29,9 +29,9 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
                 From = context.TransactionContext.Transaction.From,
                 To = context.GetContractAddressByName(
                     TokenSmartContractAddressNameProvider.Name),
-                MethodName = nameof(ITokenContract.ChargeTransactionFees),
-                Params = ByteString.CopyFrom(
-                    ParamsPacker.Pack(fee))
+                MethodName =
+                    "ChargeTransactionFees", // TODO: Use `nameof`, maybe need to add a ref or an interface for token contract.
+                Params = new Int64Value {Value = fee}.ToByteString()
             });
         }
     }

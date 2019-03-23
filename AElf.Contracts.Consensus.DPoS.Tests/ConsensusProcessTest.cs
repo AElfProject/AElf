@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class ConsensusProcessTest : ContractTestBase<DPoSContractTestAElfModule>
     {
-        private int _miningInterval = 4000;
+        private const int MiningInterval = 4000;
 
         [Fact]
         public async Task Initial_GetConsensusCommand()
@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 IsBootMiner = true,
             };
             var bytes = await testers.SingleTester.CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetConsensusCommand, firstTriggerInformation.ToByteArray());
+                ConsensusConsts.GetConsensusCommand, firstTriggerInformation);
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
@@ -66,7 +66,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation.ToByteArray());
+                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
             var information = DPoSInformation.Parser.ParseFrom(bytes);
             var round = information.Round;
 
@@ -113,11 +113,12 @@ namespace AElf.Contracts.Consensus.DPoS
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
                 ConsensusConsts.GenerateConsensusTransactions,
-                stubInitialExtraInformation.ToByteArray());
+                stubInitialExtraInformation);
             var initialTransactions = TransactionList.Parser.ParseFrom(bytes);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(), initialTransactions.Transactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.InitialConsensus.ToString(),
+                initialTransactions.Transactions.First().MethodName);
             Assert.Equal(Address.FromPublicKey(testers.Testers[0].KeyPair.PublicKey),
                 initialTransactions.Transactions.First().From);
         }
@@ -155,7 +156,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.CountingMilliseconds != _miningInterval);
+            Assert.True(actual.CountingMilliseconds != MiningInterval);
         }
 
         [Fact]
@@ -175,7 +176,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
             // Act
-            var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformationAsync(stubExtraInformation);
+            var newConsensusInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(stubExtraInformation);
 
             // Assert
             Assert.NotNull(newConsensusInformation);
@@ -199,10 +201,11 @@ namespace AElf.Contracts.Consensus.DPoS
             var triggerInformationForNormalBlock =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
-            var newInformation = await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
+            var newInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
 
             // Act
-            var validationResult = await testers.Testers[0].ValidateConsensusAsync(newInformation);
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
 
             // Assert
             Assert.True(validationResult?.Success);
@@ -233,7 +236,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task ExtraBlock_GetConsensusCommand()
+        public async Task NextRound_GetConsensusCommand()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -244,16 +247,16 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 1).ToTimestamp();
-            var actual = await testers.Testers[0].GetConsensusCommandAsync(futureTime);
+            var command = await testers.Testers[0].GetConsensusCommandAsync(futureTime);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.CountingMilliseconds > 0);
-            Assert.Equal(4000, actual.TimeoutMilliseconds);
+            Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            Assert.True(command.CountingMilliseconds > 0);
+            Assert.Equal(4000, command.TimeoutMilliseconds);
         }
-        
+
         [Fact]
-        public async Task ExtraBlock_GetNewConsensusInformation()
+        public async Task NextRound_GetNewConsensusInformation()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -268,14 +271,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
-            var newConsensusInformation = await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
+            var newConsensusInformation =
+                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
-            Assert.Equal(2L,  newConsensusInformation.Round.RoundNumber);
+            Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
         }
-        
+
         [Fact]
-        public async Task ExtraBlock_GenerateConsensusTransactions()
+        public async Task NextRound_GenerateConsensusTransactions()
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
@@ -285,17 +289,158 @@ namespace AElf.Contracts.Consensus.DPoS
             await testers.Testers[0]
                 .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, testers.Testers[1]);
 
-            var chain = await testers.Testers[0].GetChainAsync();
-
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
                 GetTriggerInformationForNextRoundOrTerm(testers.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
-            var consensusTransactions = await testers.Testers[1].GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
+            var consensusTransactions = await testers.Testers[1]
+                .GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
-            Assert.Equal(DPoSBehaviour.NextRound.ToString(),  consensusTransactions.First().MethodName);
+            Assert.Equal(DPoSBehaviour.NextRound.ToString(), consensusTransactions.First().MethodName);
+        }
+
+        [Fact]
+        public async Task NextTerm_GetConsensusCommand()
+        {
+            const int minersCount = 3;
+
+            var starter = new ContractTester<DPoSContractTestAElfModule>();
+
+            var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            await starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval);
+
+            var miners = Enumerable.Range(0, minersCount)
+                .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
+
+            // Produce several blocks.
+            await miners.ProduceNormalBlocks(minersCount);
+
+            // Unable to change term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var timestamp = DateTime.UtcNow.AddMilliseconds(minersCount * MiningInterval + MiningInterval)
+                    .ToTimestamp();
+                var command = await extraBlockMiner.GetConsensusCommandAsync(timestamp);
+                Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            }
+
+            // Terminate current round then produce several blocks with fake timestamp.
+            await miners.ChangeRoundAsync();
+            await miners.ProduceNormalBlocks(minersCount,
+                DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1).ToTimestamp());
+
+            // Able to changer term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 2).ToTimestamp();
+                var command = await extraBlockMiner.GetConsensusCommandAsync(timestamp);
+                Assert.Equal(DPoSBehaviour.NextTerm, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
+            }
+        }
+
+        [Fact]
+        public async Task NextTerm_GetNewConsensusInformation_SameMiners()
+        {
+            const int minersCount = 3;
+
+            var starter = new ContractTester<DPoSContractTestAElfModule>();
+
+            var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            await starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval);
+
+            var miners = Enumerable.Range(0, minersCount)
+                .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
+
+            // Produce several blocks.
+            await miners.ProduceNormalBlocks(minersCount);
+
+            // Unable to change term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var timestamp = DateTime.UtcNow.AddMilliseconds(minersCount * MiningInterval + MiningInterval)
+                    .ToTimestamp();
+                var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
+                var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+                Assert.Equal(1L, consensusInformation.Round.TermNumber);
+            }
+
+            // Terminate current round then produce several blocks with fake timestamp.
+            await miners.ChangeRoundAsync();
+            await miners.ProduceNormalBlocks(minersCount,
+                DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1).ToTimestamp());
+
+            // Able to changer term.
+            {
+                var extraBlockMiner = miners.AnyOne();
+                var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 2).ToTimestamp();
+                var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
+                var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+                Assert.Equal(2L, consensusInformation.Round.TermNumber);
+            }
+        }
+
+        [Fact]
+        public async Task NextTerm_GetNewConsensusInformation_NewMiners()
+        {
+            const int minersCount = 3;
+
+            var starter = new ContractTester<DPoSContractTestAElfModule>();
+
+            var minersKeyPairs = Enumerable.Range(0, minersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            await starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval);
+
+            var initialMiners = Enumerable.Range(0, minersCount)
+                .Select(i => starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
+
+            var voter = (await starter.GenerateVotersAsync()).AnyOne();
+
+            var candidates = await starter.GenerateCandidatesAsync(minersCount);
+
+            // Vote to candidates.
+
+            var voteTxs = new List<Transaction>();
+            foreach (var candidate in candidates)
+            {
+                voteTxs.Add(await voter.GenerateTransactionAsync(
+                    starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.Vote),
+                    new VoteInput()
+                    {
+                        CandidatePublicKey = candidate.PublicKey,
+                        Amount = 1,
+                        LockTime = 100
+                    }));
+            }
+
+            await initialMiners.MineAsync(voteTxs);
+
+            await initialMiners.RunConsensusAsync(1, true);
+
+            // Check term number.
+            {
+                var round = await starter.GetCurrentRoundInformationAsync();
+                Assert.Equal(2L, round.TermNumber);
+            }
+
+            // Current term number is 2. So only if the blockchain age is in range (`DaysEachTerm` * 2, `DaysEachTerm` * 3],
+            // can one miner change term to 3rd term.
+            await initialMiners.ProduceNormalBlocks(minersCount,
+                DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 1).ToTimestamp());
+
+            var extraBlockMiner = initialMiners.AnyOne();
+            var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 2).ToTimestamp();
+            var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
+            var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+
+            // Term changed.
+            Assert.Equal(3L, consensusInformation.Round.TermNumber);
+
+            // Miners changed to candidates.
+            var miners = consensusInformation.Round.RealTimeMinersInformation.Keys.ToList().ToMiners();
+            Assert.Equal(candidates.Select(m => m.PublicKey).ToList().ToMiners().GetMinersHash(),
+                miners.GetMinersHash());
         }
 
         private DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
@@ -344,8 +489,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public List<ECKeyPair> MinersKeyPairs { get; set; } = new List<ECKeyPair>();
 
-        public List<ContractTester<DPoSContractTestAElfModule>> Testers { get; set; } = new List<ContractTester<DPoSContractTestAElfModule>>();
-        
+        public List<ContractTester<DPoSContractTestAElfModule>> Testers { get; set; } =
+            new List<ContractTester<DPoSContractTestAElfModule>>();
+
         public ContractTester<DPoSContractTestAElfModule> SingleTester { get; set; }
 
         public Address ConsensusContractAddress { get; set; }
@@ -365,7 +511,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }
-        
+
         public void InitialSingleTester()
         {
             SingleTester = new ContractTester<DPoSContractTestAElfModule>(ChainId, CryptoHelpers.GenerateKeyPair());

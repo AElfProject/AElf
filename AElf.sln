@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types", "AElf.K
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis.Tests", "AElf.Contracts.Genesis.Tests\AElf.Contracts.Genesis.Tests.csproj", "{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Token.Tests", "AElf.Contracts.Token.Tests\AElf.Contracts.Token.Tests.csproj", "{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution", "AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj", "{7ECFDC4C-4685-40AC-81D5-AB10461D299E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract", "AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj", "{05996EDC-D17E-4DC4-82C0-EDD4408E5F8A}"
@@ -56,8 +54,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestContract", "AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj", "{7B4C527E-B09B-430D-9D93-9C58D78078E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests", "AElf.Sdk.CSharp.Tests\AElf.Sdk.CSharp.Tests.csproj", "{F3F761B4-914A-4190-93B1-F874CEE9149E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core", "AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
 EndProject
@@ -101,8 +97,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS", "AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj", "{74FA5F2B-E691-483B-B19E-8DF288C1C04B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Test.Helpers", "AElf.Test.Helpers\AElf.Test.Helpers.csproj", "{6D1B3707-67D7-405E-A4D1-F1BA759E2087}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Token", "AElf.Contracts.Token\AElf.Contracts.Token.csproj", "{6BD45371-ABC0-41C5-B718-A8359712F5AE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
 ProjectSection(SolutionItems) = preProject
@@ -158,7 +152,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividends", "AElf.Contracts.Dividends\AElf.Contracts.Dividends.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend", "AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Rpc", "AElf.Test.Rpc", "{E4D6568F-622A-4685-B95B-0F2FF1315ECE}"
 EndProject
@@ -226,9 +220,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp3", "AElf.Runtime.CSharp3\AElf.Runtime.CSharp3.csproj", "{BED61A6F-A339-4F33-ADA6-D41DA8251615}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{BED61A6F-A339-4F33-ADA6-D41DA8251615}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp3.Tests.TestContract", "AElf.Runtime.CSharp3.Tests.TestContract\AElf.Runtime.CSharp3.Tests.TestContract.csproj", "{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.TestContract", "AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj", "{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken", "AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj", "{0597D9D4-D2BB-434C-92C4-76266509D021}"
 EndProject
@@ -247,6 +241,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.SideChain", "AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj", "{CB758566-4212-4ECB-8210-2934FAD44941}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Blockchains", "AElf.Blockchains", "{8EF44709-4B5E-489B-A945-EDCB2D1A69C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS.Tests", "AElf.Kernel.Consensus.DPoS.Tests\AElf.Kernel.Consensus.DPoS.Tests.csproj", "{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests", "AElf.CrossChain.Grpc.Tests\AElf.CrossChain.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -309,11 +311,7 @@ Global
 		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5D82773-C1DF-4CB8-BF0A-350251B6E38E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}.Release|Any CPU.Build.0 = Release|Any CPU\
 		{7ECFDC4C-4685-40AC-81D5-AB10461D299E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7ECFDC4C-4685-40AC-81D5-AB10461D299E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7ECFDC4C-4685-40AC-81D5-AB10461D299E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -354,10 +352,6 @@ Global
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3F761B4-914A-4190-93B1-F874CEE9149E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7E862D1-434D-4B88-BD8D-4EBCF6801B98}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -394,10 +388,6 @@ Global
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6BD45371-ABC0-41C5-B718-A8359712F5AE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -618,6 +608,22 @@ Global
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CB758566-4212-4ECB-8210-2934FAD44941}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3B93EF4-C324-44B1-BA33-8F4899131664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3B93EF4-C324-44B1-BA33-8F4899131664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3B93EF4-C324-44B1-BA33-8F4899131664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3B93EF4-C324-44B1-BA33-8F4899131664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -639,9 +645,7 @@ Global
 		{D3950CC9-808F-4ED8-946A-79A992F3F8EF} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{322850D0-CCBB-402D-AFFB-12EE43BCB09A} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
-		{C5D82773-C1DF-4CB8-BF0A-350251B6E38E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{F7017767-0BD0-4882-948D-E15C6FF7C15D} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
-		{6BD45371-ABC0-41C5-B718-A8359712F5AE} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{6D1B3707-67D7-405E-A4D1-F1BA759E2087} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{6127E436-97F1-4824-9FE3-E37A5E1CA916} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{74446502-51C1-48EE-BE10-F7B3551005A5} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
@@ -703,5 +707,9 @@ Global
 		{BAE34041-C603-4A7D-BE25-5DD48BD4391E} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 		{6D907620-FE59-4C55-86CD-8299278BC06A} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
 		{CB758566-4212-4ECB-8210-2934FAD44941} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
+		{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{F3B93EF4-C324-44B1-BA33-8F4899131664} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

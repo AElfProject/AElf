@@ -9,7 +9,7 @@ namespace AElf.Types.CSharp
 {
     public class ParamsPacker
     {
-        //TODO:  Add Pack to array type data case [Case]
+       
         public static byte[] Pack(params object[] objs)
         {
             if (objs.Length == 0)
@@ -34,7 +34,8 @@ namespace AElf.Types.CSharp
                         obj.WriteToStream(stream);
                         continue;
                     }
-                    
+
+                    //TODO:  Add Pack to array type data case [Case]
                     // object of array type
                     var array = (ICollection) obj;
                     // write array length
@@ -51,8 +52,6 @@ namespace AElf.Types.CSharp
                 return mm.ToArray();
             }
         }
-
-        public static byte[] Pack(List<object> objs) => Pack(objs.ToArray());
 
         public static object[] Unpack(byte[] bytes, Type[] types)
         {

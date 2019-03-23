@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
@@ -33,36 +32,41 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-
-            Logger.LogInformation(chainStateInfo.ToString());
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? ChainConsts.GenesisBlockHeight
+                ? KernelConstants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
-            var count = lastIrreversibleBlockHeight - firstHeightToMerge;
+            var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
+            if (mergeCount < 0)
+            {
+                Logger.LogWarning(
+                    $"Last merge height: {chainStateInfo.BlockHeight}, lib height: {lastIrreversibleBlockHeight}, needn't merge");
+                return;
+            }
 
-            var hashes = await _blockchainService.GetReversedBlockHashes(lastIrreversibleBlockHash, (int) count) ??
-                         new List<Hash>();
+            var hashes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
 
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
-            {
-                hashes.Add(chainStateInfo.MergingBlockHash);
-            }
+                hashes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
 
             hashes.Reverse();
 
-            hashes.Add(lastIrreversibleBlockHash);
+            hashes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
-            foreach (var (hash, height) in hashes.Select((x, i) => (x, i + firstHeightToMerge)))
+            Logger.LogTrace(
+                $"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {hashes.Count}");
+
+            foreach (var hash in hashes)
             {
                 try
                 {
-                    Logger.LogTrace(() => $"chain state info : {chainStateInfo}");
-                    Logger.LogInformation($"Merging state for block {hash} at height: {height}");
-                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash);
+                    Logger.LogDebug($"Merging state {chainStateInfo} for block {hash.Hash} at height {hash.Height}");
+                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash.Hash);
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError(e.Message);
+                    Logger.LogError(e,
+                        $"Exception while merge state {chainStateInfo} for block {hash.Hash} at height {hash.Height}");
+                    break;
                 }
             }
         }

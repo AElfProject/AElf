@@ -4,11 +4,12 @@ using Google.Protobuf.Collections;
 
 namespace AElf.Kernel.SmartContract
 {
-    //TODO: Add case SerializedCallGraph.Equals [Case]
     public sealed partial class SerializedCallGraph
     {
         bool IEquatable<SerializedCallGraph>.Equals(SerializedCallGraph other)
         {
+            if (other == null) return false;
+            
             var edges = new RepeatedField<GraphEdge>();
             edges.AddRange(Edges.OrderBy(e => e.Source).ThenBy(e => e.Target));
             var otherEdges = new RepeatedField<GraphEdge>();

@@ -21,8 +21,16 @@ message ToUpdate {
     Hash Signature = 2;// Calculated from current in value and signatures of previous round.
     int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
     int32 PromiseTinyBlocks = 4;// This value is 1 by default, except this miner wanna produce tiny blocks in one time slot.
-    Hash PreviousInValue = 5;// Publish previous in value for validating previous signature and previous out value.
-    repeated SplittedInValue SplittedInValues = 6;// For others to recover his in value of current round.
+    Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
+    google.protobuf.Timestamp ActualMiningTime = 6;
+    repeated SplittedInValue SplittedInValues = 7;// For others to recover his in value of current round.
+    int32 OrderOfNextRound = 8;
+    repeated ChangeOrderInformation ChangedOrders = 9;
+}
+
+message ChangeOrderInformation {
+    string PublickKey = 1;
+    int32 NewOrder = 2;
 }
 
 message SplittedInValue {
@@ -58,7 +66,6 @@ message Tickets {
     int64 VotedTickets = 4;
     int64 HistoryObtainedTickets = 5;
     int64 HistoryVotedTickets = 6;
-    string Remark = 7;
     repeated Hash VoteToTransactions = 8;
     repeated Hash VoteFromTransactions = 9;
     string PublicKey = 10;
@@ -87,7 +94,6 @@ message TermSnapshot {
     int64 TotalBlocks = 2;
     repeated CandidateInTerm CandidatesSnapshot = 3;
     int64 TermNumber = 4;
-    string Remark = 5;
 }
 
 // The information of a candidate of a specific term.
@@ -126,7 +132,8 @@ message MinerInRound {
     string Alias = 17;
     Hash PreviousInValue = 18;
     int32 OrderOfNextRound = 19;
-    google.protobuf.Timestamp ActualMiningTime = 20;// Miners must fill actual mining time when they do the mining.
+    int32 TuneOrderOfNextRound = 20;
+    google.protobuf.Timestamp ActualMiningTime = 21;// Miners must fill actual mining time when they do the mining.
 }
 
 // The information of a candidate.
@@ -140,26 +147,22 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     int64 CurrentVotesNumber = 9;
-    string Remark = 10;
     Address Address = 11;
     Hash AnnouncementTransactionId = 12;
 }
 
 message TicketsDictionary {
     map<string, Tickets> Maps = 1;
-    string Remark = 2;
 }
 
 message CandidateInHistoryDictionary {
     map<string, CandidateInHistory> Maps = 1;
-    string Remark = 2;
     int32 CandidatesNumber = 3;
 }
 
 message TicketsHistories {
     repeated TicketsHistory Values = 1;
     int64 HistoriesNumber = 2;
-    string Remark = 3;
 }
 
 message TicketsHistory {

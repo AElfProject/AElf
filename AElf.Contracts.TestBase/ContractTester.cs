@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.CrossChain;
@@ -34,6 +36,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.TestBase
 {
@@ -168,9 +171,9 @@ namespace AElf.Contracts.TestBase
 
         /// <summary>
         /// Initial a chain with given chain id (passed to ctor),
-        /// and produce the genesis block with provided contract types.
+        /// and produce the genesis block with provided smart contract configuration.
+        /// Will deploy consensus contract by default.
         /// </summary>
-        /// <param name="contractTypes"></param>
         /// <returns>Return contract addresses as the param order.</returns>
         public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
@@ -181,12 +184,19 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = 10 //10 means use default assembly loader context, for code coverage
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory 
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
+            
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
-            //dto.InitializationSmartContracts.AddGenesisSmartContracts(contractTypes);
 
             await osBlockchainNodeContextService.StartAsync(dto);
         }
@@ -262,15 +272,8 @@ namespace AElf.Contracts.TestBase
             return Address.FromPublicKey(KeyPair.PublicKey);
         }
 
-        /// <summary>
-        /// Generate a transaction and sign it.
-        /// </summary>
-        /// <param name="contractAddress"></param>
-        /// <param name="methodName"></param>
-        /// <param name="objects"></param>
-        /// <returns></returns>
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -279,7 +282,7 @@ namespace AElf.Contracts.TestBase
                 From = Address.FromPublicKey(KeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -296,11 +299,10 @@ namespace AElf.Contracts.TestBase
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="ecKeyPair"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            ECKeyPair ecKeyPair,
-            params object[] objects)
+            ECKeyPair ecKeyPair, IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -309,7 +311,7 @@ namespace AElf.Contracts.TestBase
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(objects)),
+                Params = input.ToByteString(),
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -361,12 +363,12 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             await MineAsync(new List<Transaction> {tx});
             var result = await GetTransactionResultAsync(tx.GetHash());
 
@@ -374,17 +376,16 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Generate a tx then package the new tx to a new block.
+        ///  Generate a tx then package the new tx to a new block.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName,
-            params object[] objects)
+            string methodName,IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
@@ -394,15 +395,15 @@ namespace AElf.Contracts.TestBase
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
-        /// <param name="objects"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         public async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            params object[] objects)
+            IMessage input)
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
                 Application.ServiceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, objects);
+            var tx = await GenerateTransactionAsync(contractAddress, methodName, input);
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
@@ -482,27 +483,43 @@ namespace AElf.Contracts.TestBase
         /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes()
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply, out long dividend, out long balanceOfStarter)
         {
+            totalSupply = 1000_000L;
+            dividend = 200_000L;
+            balanceOfStarter = 800_000L;
+            var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                Issuer = issuer,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply
+            });
+            callList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            {
+                Symbol = "ELF",
+                Amount = dividend,
+                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+            });
+            callList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = balanceOfStarter,
+                To = GetCallOwnerAddress()
+            });
             return list =>
             {
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<DividendsContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                //TODO: support initialize method, make the tester auto issue elf token
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, callList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
-            /*
-            return new List<Type>
-            {
-                typeof(TokenContract),
-                typeof(CrossChainContract),
-                typeof(AuthorizationContract),
-                typeof(ResourceContract),
-                typeof(DividendsContract),
-                typeof(FeeReceiverContract)
-            }*/
         }
     }
 }

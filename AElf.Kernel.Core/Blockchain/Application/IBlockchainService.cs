@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         Task<Chain> GetChainAsync();
 
-        Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count);
+        Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count);
 
         /// <summary>
         /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
@@ -210,6 +210,9 @@ namespace AElf.Kernel.Blockchain.Application
 
                 chainBranchBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
+
+                if (chainBlockLink == null)
+                    return null;
             }
         }
 
@@ -233,9 +236,6 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight,
             Hash irreversibleBlockHash)
         {
-            Logger.LogInformation(
-                $"SetIrreversibleBlockAsync Lib height: {irreversibleBlockHeight}, Lib Hash: {irreversibleBlockHash}");
-
             // Create before IChainManager.SetIrreversibleBlockAsync so that we can correctly get the previous LIB info
             var eventDataToPublish = new NewIrreversibleBlockFoundEvent()
             {
@@ -244,32 +244,35 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = irreversibleBlockHash,
                 BlockHeight = irreversibleBlockHeight
             };
+
+            // Clean last branches and not linked
+            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, chain.LastIrreversibleBlockHash,
+                chain.LastIrreversibleBlockHeight);
+            await RemoveBlocksAsync(toCleanBlocks);
+
             await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
-        public async Task<List<Hash>> GetReversedBlockHashes(Hash lastBlockHash, int count)
+        public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
         {
+            var hashes = new List<IBlockIndex>();
             if (count == 0)
-                return new List<Hash>();
-
-            var hashes = new List<Hash>();
+                return hashes;
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(lastBlockHash);
-
             if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
-                return null;
+                return hashes;
 
-            hashes.Add(chainBlockLink.PreviousBlockHash);
-
+            hashes.Add(new BlockIndex(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             for (var i = 0; i < count - 1; i++)
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-
                 if (chainBlockLink == null || chainBlockLink.PreviousBlockHash == Hash.Empty)
                     break;
 
-                hashes.Add(chainBlockLink.PreviousBlockHash);
+                hashes.Add(new BlockIndex(chainBlockLink.PreviousBlockHash, chainBlockLink.Height - 1));
             }
 
             return hashes;
@@ -377,6 +380,15 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Chain> GetChainAsync()
         {
             return await _chainManager.GetAsync();
+        }
+
+        private async Task RemoveBlocksAsync(List<Hash> blockHashs)
+        {
+            foreach (var blockHash in blockHashs)
+            {
+                await _chainManager.RemoveChainBlockLinkAsync(blockHash);
+                await _blockManager.RemoveBlockAsync(blockHash);
+            }
         }
     }
 }

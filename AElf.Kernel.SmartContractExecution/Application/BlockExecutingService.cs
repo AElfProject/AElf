@@ -19,15 +19,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
-        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IBlockGenerationService _blockGenerationService;
         
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
-            IBlockchainStateManager blockchainStateManager, IBlockGenerationService blockGenerationService)
+            IBlockGenerationService blockGenerationService)
         {
             _executingService = executingService;
             _blockManager = blockManager;
-            _blockchainStateManager = blockchainStateManager;
             _blockGenerationService = blockGenerationService;
         }
 
@@ -52,70 +50,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             };
-
-            var blockStateSet = new BlockStateSet()
-            {
-                BlockHeight = blockHeader.Height,
-                PreviousHash = blockHeader.PreviousBlockHash
-            };
             var nonCancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None);
+                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
             var cancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken);
-
-            foreach (var returnSet in nonCancellableReturnSets)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes[change.Key] = change.Value;
-                }
-            }
-
-            foreach (var returnSet in cancellableReturnSets)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes[change.Key] = change.Value;
-                }
-            }
+                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false);
+            var blockReturnSet = nonCancellableReturnSets.Concat(cancellableReturnSets);
 
             // TODO: Insert deferredTransactions to TxPool
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-            var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
-                merkleTreeRootOfWorldState);
-
-            blockStateSet.BlockHash = blockHeader.GetHash();
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+                blockReturnSet);
 
             return block;
-        }
-
-        private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
-        {
-            var keys = blockStateSet.Changes.Keys;
-            foreach (var k in new SortedSet<string>(keys))
-            {
-                yield return Encoding.UTF8.GetBytes(k);
-                yield return blockStateSet.Changes[k].ToByteArray();
-            }
-        }
-
-        private Hash ComputeHash(IEnumerable<byte[]> byteArrays)
-        {
-            using (var hashAlgorithm = SHA256.Create())
-            {
-                foreach (var bytes in byteArrays)
-                {
-                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-                }
-
-                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                return Hash.LoadByteArray(hashAlgorithm.Hash);
-            }
         }
     }
 }

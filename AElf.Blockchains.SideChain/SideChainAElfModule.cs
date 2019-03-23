@@ -1,10 +1,10 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.DPoS.SideChain;
-using AElf.Contracts.Dividends;
+using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
-using AElf.Contracts.Token;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
@@ -40,7 +40,7 @@ namespace AElf.Blockchains.SideChain
                 ConsensusSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendsContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);

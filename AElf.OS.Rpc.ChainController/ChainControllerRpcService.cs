@@ -34,8 +34,8 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
         public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
-        
         public ISmartContractAddressService SmartContractAddressService { get; set; }
+        //TODO: should not directly use BlockStateSets
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
@@ -61,13 +61,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("ConnectChain")]
         public Task<JObject> GetChainInfo()
         {
+
+            var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
             var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
             var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
             var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             var crossChainContractAddress =
-                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.Contracts.CrossChain.CrossChainContract")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
+                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.ContractNames.CrossChain")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
+            
             var response = new JObject
             {
                 [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
@@ -75,6 +79,7 @@ namespace AElf.OS.Rpc.ChainController
                 [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
                 [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
                 [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
+                [SmartContract.GenesisFeeReceiverContractAssemblyName] = feeReceiverContractAddress?.GetFormatted(),
                 [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
@@ -117,7 +122,6 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        //TODO: Add case CallReadOnly [Case]
         [JsonRpcMethod("Call", "rawTransaction")]
         public async Task<string> CallReadOnly(string rawTransaction)
         {
@@ -143,9 +147,9 @@ namespace AElf.OS.Rpc.ChainController
             {
                 return await this.GetFileDescriptorSetAsync(Address.Parse(address));
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                throw new JsonRpcServiceException(Error.NotFound, e.Message);
+                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
         }
 
@@ -185,19 +189,28 @@ namespace AElf.OS.Rpc.ChainController
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
-                response["BlockHash"] = block.BlockHashToHex;
+                response["BlockHash"] = block.GetHash().ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 response["Error"] = transactionResult.Error;
 
             response["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
-            response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+            var p = await this.GetTransactionParameters(transaction);
+            try
+            {
+                response["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(p);
+            }
+            catch
+            {
+                // Params is not structured but plain string
+                response["Transaction"]["Params"] = p;
+            }
+            
 
             return response;
         }
 
-        //TODO: Add test cases GetTransactionsResult to cover all logic [Case]
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
         public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {
@@ -237,7 +250,7 @@ namespace AElf.OS.Rpc.ChainController
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
                     var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
-                    jObjectResult["BlockHash"] = block.BlockHashToHex;
+                    jObjectResult["BlockHash"] = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         jObjectResult["Error"] = transactionResult.Error;
@@ -320,7 +333,7 @@ namespace AElf.OS.Rpc.ChainController
                 var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new JObject
                     {
-                        ["BlockHash"] = block.BlockHashToHex,
+                        ["BlockHash"] = block.GetHash().ToHex(),
                         ["Height"] = block.Height,
                         ["PreviousBlockHash"] = block.Header.PreviousBlockHash.ToHex()
                     }

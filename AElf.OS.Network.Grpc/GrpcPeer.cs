@@ -44,7 +44,8 @@ namespace AElf.OS.Network.Grpc
         {
             var blockRequest = new BlockRequest { Hash = hash };
             
-            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest));
+            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest), 
+                $"Block request for {hash} failed.");
             
             return blockReply?.Block;
         }
@@ -53,7 +54,8 @@ namespace AElf.OS.Network.Grpc
         {
             var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
             
-            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest));
+            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest), 
+                $"Get blocks for {{ first: {firstHash}, count: {count} }} failed.");
 
             if (list == null)
                 return new List<Block>();
@@ -63,16 +65,18 @@ namespace AElf.OS.Network.Grpc
 
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            await RequestAsync(_client, c => c.AnnounceAsync(header));
+            await RequestAsync(_client, c => c.AnnounceAsync(header), 
+                $"Bcast announce for {header.BlockHash} failed.");
         }
 
         public async Task SendTransactionAsync(Transaction tx)
         {
-            await RequestAsync(_client, c => c.SendTransactionAsync(tx));
+            await RequestAsync(_client, c => c.SendTransactionAsync(tx),
+                $"Bcast tx for {tx.GetHash()} failed.");
         }
         
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
-            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func)
+            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, string errorMessage)
         {
             try
             {
@@ -80,7 +84,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                HandleFailure(e);
+                HandleFailure(e, errorMessage);
             }
 
             return default(TResp);
@@ -90,7 +94,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private void HandleFailure(RpcException rpcException)
+        private void HandleFailure(RpcException rpcException, string errorMessage)
         {
             // If channel has been shutdown (unrecoverable state) remove it.
             if (_channel.State == ChannelState.Shutdown)
@@ -115,7 +119,7 @@ namespace AElf.OS.Network.Grpc
             }
             else
             {
-                throw new NetworkException("Call to peer failed", rpcException);
+                throw new NetworkException($"Failed request to {this}: {errorMessage}", rpcException);
             }
         }
 
@@ -134,6 +138,11 @@ namespace AElf.OS.Network.Grpc
         public async Task SendDisconnectAsync()
         {
             await _client.DisconnectAsync(new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown });
+        }
+
+        public override string ToString()
+        {
+            return $"{{ listening-port: {PeerIpAddress}, key: {PubKey.Substring(0, 45)}... }}";
         }
     }
 }

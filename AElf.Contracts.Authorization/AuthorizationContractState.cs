@@ -3,13 +3,14 @@ using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Authorization
 {
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public Func<ulong> GetCurrentRoundNumber { get; set; }
-        public Func<ulong, Round> GetRoundInfo { get; set; }
+        internal MethodReference<Empty,SInt64Value> GetCurrentRoundNumber { get; set; }
+        internal MethodReference<SInt64Value, Round> GetRoundInformation { get; set; }
     }
 
     public class AuthorizationContractState : ContractState

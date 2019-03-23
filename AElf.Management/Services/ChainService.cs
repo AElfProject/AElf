@@ -44,7 +44,6 @@ namespace AElf.Management.Services
                 new K8SAddRedisCommand(),
                 new K8SAddLauncherServiceCommand(),
                 new K8SAddAccountKeyCommand(),
-                new K8SAddConfigCommand(),
                 new K8SAddChainInfoCommand(),
                 new K8SGrpcKeyCommand(),
                 new K8SAddLighthouseCommand(),
@@ -74,8 +73,7 @@ namespace AElf.Management.Services
 
         private string GenerateChainId()
         {
-            // todo 
-            return SHA256.Create().ComputeHash(Guid.NewGuid().ToByteArray()).Take(GlobalConfig.ChainIdLength).ToArray().ToHex();
+            throw new NotImplementedException();
         }
     }
 }

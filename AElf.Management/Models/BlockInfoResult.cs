@@ -4,11 +4,6 @@ namespace AElf.Management.Models
 {
     public class BlockInfoResult
     {
-        public BlockInfoResultDetail Result { get; set; }
-    }
-
-    public class BlockInfoResultDetail
-    {
         public BlockInfoHeader Header { get; set; }
 
         public BlockInfoBody Body { get; set; }
