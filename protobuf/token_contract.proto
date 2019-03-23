@@ -37,6 +37,8 @@ service TokenContract {
     }
     rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
     }
+    rpc SetFeePoolAddress (Hash) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;

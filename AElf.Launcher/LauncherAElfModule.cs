@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
@@ -93,7 +95,7 @@ namespace AElf.Launcher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
+
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
                 new InitializeWithContractSystemNamesInput
@@ -122,7 +124,9 @@ namespace AElf.Launcher
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(zeroContractAddress));
+                TokenSmartContractAddressNameProvider.Name,
+                GenerateTokenInitializationCallList(zeroContractAddress,
+                    context.ServiceProvider.GetService<IOptions<DPoSOptions>>().Value.InitialMiners));
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
@@ -135,12 +139,14 @@ namespace AElf.Launcher
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer)
+        private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer,
+            List<string> tokenReceivers)
         {
+            const string symbol = "ELF";
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = "ELF",
+                Symbol = symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
@@ -149,16 +155,34 @@ namespace AElf.Launcher
                 Issuer = issuer,
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
-            
+
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
-                Symbol = "ELF",
+                Symbol = symbol,
                 Amount = 2_0000_0000,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
+
+            //TODO: Maybe should be removed after testing.
+            foreach (var tokenReceiver in tokenReceivers)
+            {
+                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = 8_0000_0000 / tokenReceivers.Count,
+                    To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
+                    Memo = "Set initial miner's balance.",
+                });
+            }
+
+            // Set fee pool address to dividend contract address.
+            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
+                DividendsSmartContractAddressNameProvider.Name);
+
             return tokenContractCallList;
         }
+
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
