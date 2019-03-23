@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using Xunit;
 using Shouldly;
-using Moq;
 using AElf.Sdk.CSharp.Tests.TestContract;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Sdk.CSharp.Tests
 {
