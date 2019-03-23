@@ -312,19 +312,28 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 while (true)
                 {
-                    if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
+                    if (chainBlockLink != null)
                     {
-                        toRemoveBlocksTemp.Clear();
+
+                        if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
+                        {
+                            toRemoveBlocksTemp.Clear();
+                            break;
+                        }
+
+                        if (chainBlockLink.IsIrreversibleBlock)
+                        {
+                            break;
+                        }
+
+                        toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
+                        chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                    }
+                    else
+                    {
+                        toCleanBranchKeys.Add(branch.Key);
                         break;
                     }
-
-                    if (chainBlockLink.IsIrreversibleBlock)
-                    {
-                        break;
-                    }
-
-                    toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
-                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                 }
 
                 if (toRemoveBlocksTemp.Count > 0)
@@ -337,6 +346,12 @@ namespace AElf.Kernel.Blockchain.Domain
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
                 var blockLink = await GetChainBlockLinkAsync(notLinkedBlock.Value);
+                if (blockLink == null)
+                {
+                    toCleanNotLinkedKeys.Add(notLinkedBlock.Key);
+                    continue;
+                }
+
                 if (blockLink.Height <= irreversibleBlockHeight)
                 {
                     toRemoveBlocks.Add(blockLink.BlockHash);
