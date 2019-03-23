@@ -65,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
+                ConsensusConsts.GetInformationToUpdateConsensus, triggerInformation);
             var information = DPoSHeaderInformation.Parser.ParseFrom(bytes);
             var round = information.Round;
 
@@ -88,7 +88,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var stubInitialInformation = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
 
             // Act
-            var information = await testers.Testers[0].GetNewConsensusInformationAsync(stubInitialInformation);
+            var information = await testers.Testers[0].GetInformationToUpdateConsensusAsync(stubInitialInformation);
             var round = information.Round;
 
             // Assert
@@ -176,7 +176,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var newConsensusInformation =
-                await testers.Testers[1].GetNewConsensusInformationAsync(stubExtraInformation);
+                await testers.Testers[1].GetInformationToUpdateConsensusAsync(stubExtraInformation);
 
             // Assert
             Assert.NotNull(newConsensusInformation);
@@ -201,7 +201,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
             var newInformation =
-                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
+                await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock);
 
             // Act
             var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
@@ -271,7 +271,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Act
             var newConsensusInformation =
-                await testers.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNextRoundOrTerm);
+                await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNextRoundOrTerm);
 
             // Assert
             Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
@@ -361,7 +361,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var timestamp = DateTime.UtcNow.AddMilliseconds(minersCount * MiningInterval + MiningInterval)
                     .ToTimestamp();
                 var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
-                var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+                var consensusInformation = await extraBlockMiner.GetInformationToUpdateConsensusAsync(triggerInformation);
                 Assert.Equal(1L, consensusInformation.Round.TermNumber);
             }
 
@@ -375,7 +375,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var extraBlockMiner = miners.AnyOne();
                 var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 2).ToTimestamp();
                 var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
-                var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+                var consensusInformation = await extraBlockMiner.GetInformationToUpdateConsensusAsync(triggerInformation);
                 Assert.Equal(2L, consensusInformation.Round.TermNumber);
             }
         }
@@ -431,7 +431,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var extraBlockMiner = initialMiners.AnyOne();
             var timestamp = DateTime.UtcNow.AddMinutes(ConsensusDPoSConsts.DaysEachTerm * 2 + 2).ToTimestamp();
             var triggerInformation = GetTriggerInformationForNextRoundOrTerm(extraBlockMiner.PublicKey, timestamp);
-            var consensusInformation = await extraBlockMiner.GetNewConsensusInformationAsync(triggerInformation);
+            var consensusInformation = await extraBlockMiner.GetInformationToUpdateConsensusAsync(triggerInformation);
 
             // Term changed.
             Assert.Equal(3L, consensusInformation.Round.TermNumber);

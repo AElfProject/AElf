@@ -246,7 +246,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
-                    return new ValidationResult {Success = false, Message = "Invalid round information."};
+                    // TODO: ExpectedMiningTime are still different
+                    return new ValidationResult {Success = false, Message = "Current round information is different with consensus extra data."};
                 }
             }
             
@@ -318,7 +319,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var minerInformation = new StringBuilder("\n");
                 minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
                 minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
-                minerInformation.Append(minerInRound.PublicKey == publicKey
+                minerInformation.AppendLine(minerInRound.PublicKey == publicKey
                     ? "(This Node)"
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");

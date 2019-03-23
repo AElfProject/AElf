@@ -47,12 +47,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 
-        public static async Task<DPoSHeaderInformation> GetNewConsensusInformationAsync(
+        public static async Task<DPoSHeaderInformation> GetInformationToUpdateConsensusAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
+                ConsensusConsts.GetInformationToUpdateConsensus, triggerInformation);
             return DPoSHeaderInformation.Parser.ParseFrom(bytes);
         }
 

@@ -310,7 +310,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 var minerInformation = new StringBuilder("\n");
                 minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
                 minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
-                minerInformation.Append(minerInRound.PublicKey == publicKey
+                minerInformation.AppendLine(minerInRound.PublicKey == publicKey
                     ? "(This Node)"
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");

@@ -90,7 +90,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext)
         {
-            return (await ExecuteContractAsync(chainContext, ConsensusConsts.GetNewConsensusInformation,
+            return (await ExecuteContractAsync(chainContext, ConsensusConsts.GetInformationToUpdateConsensus,
                 _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();
             ;
         }
