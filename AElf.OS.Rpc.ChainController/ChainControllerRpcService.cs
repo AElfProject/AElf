@@ -6,19 +6,13 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.SmartContractExecution.Domain;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Volo.Abp.EventBus.Local;
@@ -57,30 +51,14 @@ namespace AElf.OS.Rpc.ChainController
             return await Task.FromResult(commandArray);
         }
 
-        //TODO: should not hard code, from SmartContractAddressService
-        [JsonRpcMethod("ConnectChain")]
-        public Task<JObject> GetChainInfo()
+        [JsonRpcMethod("GetChainInformation")]
+        public Task<JObject> GetChainInformation()
         {
-
             var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
-            var tokenContractAddress = SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            var resourceContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceSmartContractAddressNameProvider.Name);
-            var dividendsContractAddress = SmartContractAddressService.GetAddressByContractName(DividendsSmartContractAddressNameProvider.Name);
-            var consensusContractAddress = SmartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            var feeReceiverContractAddress = SmartContractAddressService.GetAddressByContractName(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
-            var crossChainContractAddress =
-                SmartContractAddressService.GetAddressByContractName(Hash.FromString("AElf.ContractNames.CrossChain")); // todo: hard code for temporary, since ConsensusSmartContractAddressNameProvider in AElf.CrossChain.Core 
-            
             var response = new JObject
             {
-                [SmartContract.GenesisSmartContractZeroAssemblyName] = basicContractZero?.GetFormatted(),
-                [SmartContract.GenesisTokenContractAssemblyName] = tokenContractAddress?.GetFormatted(),
-                [SmartContract.GenesisResourceContractAssemblyName] = resourceContractAddress?.GetFormatted(),
-                [SmartContract.GenesisDividendsContractAssemblyName] = dividendsContractAddress?.GetFormatted(),
-                [SmartContract.GenesisConsensusContractAssemblyName] = consensusContractAddress?.GetFormatted(),
-                [SmartContract.GenesisFeeReceiverContractAssemblyName] = feeReceiverContractAddress?.GetFormatted(),
-                [SmartContract.CrossChainContractAssemblyName] = crossChainContractAddress?.GetFormatted(),
+                ["GenesisContractAddress"] = basicContractZero?.GetFormatted(),
                 ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
 

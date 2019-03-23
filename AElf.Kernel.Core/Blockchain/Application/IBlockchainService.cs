@@ -258,7 +258,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
         {
             var hashes = new List<IBlockIndex>();
-            if (count == 0)
+            if (count <= 0)
                 return hashes;
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(lastBlockHash);
