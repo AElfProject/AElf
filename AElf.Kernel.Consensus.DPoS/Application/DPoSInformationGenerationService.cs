@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
@@ -61,20 +62,20 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         IsBootMiner = _dpoSOptions.IsBootMiner,
                         MiningInterval = _dpoSOptions.MiningInterval
                     };
-                case DPoSBehaviour.UpdateValue:
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
+                    // First Round.
                     if (_inValue == null)
                     {
-                        // First Round.
                         _inValue = Hash.Generate();
-                        return new DPoSTriggerInformation
-                        {
-                            PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                            Timestamp = DateTime.UtcNow.ToTimestamp(),
-                            PreviousInValue = Hash.Empty,
-                            CurrentInValue = _inValue
-                        };
                     }
-
+                    return new DPoSTriggerInformation
+                    {
+                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
+                        Timestamp = DateTime.UtcNow.ToTimestamp(),
+                        PreviousInValue = Hash.Empty,
+                        CurrentInValue = _inValue
+                    };
+                case DPoSBehaviour.UpdateValue:
                     var previousInValue = _inValue;
                     _inValue = Hash.Generate();
                     return new DPoSTriggerInformation
@@ -103,9 +104,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
         }
 
-        public IMessage ConvertBlockExtraData(byte[] blockExtraData)
+        public IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)
         {
-            return DPoSTriggerInformation.Parser.ParseFrom(blockExtraData);
+            return DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
         }
     }
 }

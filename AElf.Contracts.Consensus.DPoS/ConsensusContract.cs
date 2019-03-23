@@ -55,6 +55,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Round = firstRound,
                         Behaviour = behaviour
                     };
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     Assert(input.CurrentInValue != null && input.CurrentInValue != null,
                         "Current in value should be valid.");
@@ -73,12 +74,13 @@ namespace AElf.Contracts.Consensus.DPoS
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey, previousInValue, outValue, signature,
+                        timestamp);
                     // To publish Out Value.
                     return new DPoSInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = round.ApplyNormalConsensusData(publicKey, previousInValue, outValue, signature,
-                            timestamp),
+                        Round = updatedRound,
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.NextRound:
@@ -133,6 +135,7 @@ namespace AElf.Contracts.Consensus.DPoS
                             GenerateTransaction(nameof(InitialConsensus), round)
                         }
                     };
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     return new TransactionList
                     {
@@ -203,6 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 case DPoSBehaviour.InitialConsensus:
                     break;
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     // Need to check round id when updating current round information.
                     // This can tell the miner current block 
@@ -216,8 +220,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
-                    
-                    
 
                     break;
                 case DPoSBehaviour.NextRound:
@@ -241,7 +243,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
         {
-            if (input.Behaviour != DPoSBehaviour.InitialConsensus && TryToGetCurrentRoundInformation(out var currentRound))
+            if (input.Behaviour != DPoSBehaviour.InitialConsensus &&
+                TryToGetCurrentRoundInformation(out var currentRound))
             {
                 if (Hash.FromMessage(input.Round) != Hash.FromMessage(currentRound))
                 {
@@ -277,7 +280,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             if (!round.IsTimeSlotPassed(publicKey, timestamp, out minerInRound) && minerInRound.OutValue == null)
             {
-                return minerInRound != null ? DPoSBehaviour.UpdateValue : DPoSBehaviour.Invalid;
+                return minerInRound != null
+                    ? (round.RoundNumber == 1
+                        ? DPoSBehaviour.UpdateValueWithoutPreviousInValue
+                        : DPoSBehaviour.UpdateValue)
+                    : DPoSBehaviour.Invalid;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,

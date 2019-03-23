@@ -30,6 +30,7 @@ namespace AElf.Consensus.DPoS
                             Behaviour = behaviour
                         }.ToByteString()
                     };
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
 
@@ -71,14 +72,22 @@ namespace AElf.Consensus.DPoS
                     return new ConsensusCommand
                     {
                         CountingMilliseconds = int.MaxValue,
-                        TimeoutMilliseconds = 0,
+                        TimeoutMilliseconds = int.MaxValue,
                         Hint = new DPoSHint
                         {
                             Behaviour = behaviour
                         }.ToByteString()
                     };
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return new ConsensusCommand
+                    {
+                        CountingMilliseconds = int.MaxValue,
+                        TimeoutMilliseconds = int.MaxValue,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.Invalid
+                        }.ToByteString()
+                    };
             }
         }
 

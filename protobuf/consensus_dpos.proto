@@ -195,6 +195,7 @@ enum DPoSBehaviour {
     NextRound = 2;
     NextTerm = 3;
     Invalid = 4;
+    UpdateValueWithoutPreviousInValue = 5;
 }
 
 message DPoSTriggerInformation {

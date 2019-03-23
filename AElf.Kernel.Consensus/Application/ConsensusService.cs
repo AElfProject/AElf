@@ -58,7 +58,6 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
             var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
-
             // Upload the consensus command.
             var commandBytes = await ExecuteContractAsync(address, chainContext, ConsensusConsts.GetConsensusCommand,
                 triggerInformation);
@@ -89,7 +88,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var validationResult = ValidationResult.Parser.ParseFrom(
                 await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
-                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
+                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData)));
 
             if (!validationResult.Success)
             {
@@ -111,7 +110,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var validationResult = ValidationResult.Parser.ParseFrom(
                 await ExecuteContractAsync(address, chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
-                    _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
+                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData)));
 
             if (!validationResult.Success)
             {
@@ -133,7 +132,7 @@ namespace AElf.Kernel.Consensus.Application
 
             return (await ExecuteContractAsync(address, chainContext,
                 ConsensusConsts.GetNewConsensusInformation,
-                _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();
+                _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();;
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync()
@@ -146,12 +145,13 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions =TransactionList.Parser.ParseFrom(
-                (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                    _consensusInformationGenerationService.GetTriggerInformation())))
+            var generatedTransactions = TransactionList.Parser.ParseFrom(
+                    await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
+                        _consensusInformationGenerationService.GetTriggerInformation()))
                 .Transactions
                 .ToList();
 
+            // Supply these transactions.
             foreach (var generatedTransaction in generatedTransactions)
             {
                 generatedTransaction.RefBlockNumber = chain.BestChainHeight;

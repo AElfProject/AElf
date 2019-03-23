@@ -6,6 +6,6 @@ namespace AElf.Kernel.Consensus.Application
     public interface IConsensusInformationGenerationService
     {
         DPoSTriggerInformation GetTriggerInformation();
-        IMessage ConvertBlockExtraData(byte[] blockExtraData);
+        IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation);
     }
 }

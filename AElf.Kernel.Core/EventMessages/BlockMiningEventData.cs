@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.EventMessages
 {
@@ -16,6 +17,8 @@ namespace AElf.Kernel.EventMessages
             PreviousBlockHash = previousBlockHash;
             PreviousBlockHeight = previousBlockHeight;
             TimeoutMilliseconds = timeoutMilliseconds;
+            Console.WriteLine(timeoutMilliseconds);
+            Console.WriteLine(DateTime.UtcNow.AddMilliseconds(TimeoutMilliseconds).ToTimestamp().ToString());
         }
     }
 }
