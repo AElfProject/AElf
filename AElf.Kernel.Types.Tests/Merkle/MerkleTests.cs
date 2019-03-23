@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using Xunit;
@@ -102,10 +101,7 @@ namespace AElf.Kernel.Types.Tests
             string hex4 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
             var hash4 = CreateLeafFromHex(hex4);
 
-            string hex5 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
-            var hash5 = CreateLeafFromHex(hex5);
-            
-            tree.AddNodes(new []{hash1, hash2, hash3, hash4, hash5});
+            tree.AddNodes(new []{hash1, hash2, hash3, hash4});
 
             //See if the hash of merkle tree is equal to the element’s hash.
             var root = tree.ComputeRootHash();
@@ -254,16 +250,16 @@ namespace AElf.Kernel.Types.Tests
             Assert.Null(path);
         }
 
-        
-        [Fact]
-        public void MerklePathTest()
+        [Theory]
+        [InlineData(16, 0)]
+        [InlineData(16, 15)]
+        [InlineData(9, 8)]
+        public void MerklePathTest(int leaveCount, int index)
         {
-            int leaveCount = new Random().Next(100) + 1;
             var hashes = CreateLeaves(leaveCount);
             var bmt = new BinaryMerkleTree();
             bmt.AddNodes(hashes);
             var root = bmt.ComputeRootHash();
-            int index = new Random().Next(leaveCount);
             var path = bmt.GenerateMerklePath(index);
             var calculatedRoot = path.ComputeRootWith(hashes[index]);
             Assert.Equal(root, calculatedRoot);

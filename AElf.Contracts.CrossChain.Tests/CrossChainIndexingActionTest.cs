@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.CrossChain;
@@ -7,6 +8,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
+using AElf.Types.CSharp.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -465,7 +467,9 @@ namespace AElf.Contract.CrossChain.Tests
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            var hash = Hash.FromTwoHashes(txId, Hash.FromString(TransactionResultStatus.Mined.ToString()));
+            var rawBytes = txId.DumpByteArray().Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString()))
+                .ToArray();
+            var hash = Hash.FromRawBytes(rawBytes);
             
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
@@ -557,8 +561,9 @@ namespace AElf.Contract.CrossChain.Tests
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            var hash = Hash.FromTwoHashes(tx.GetHash(), Hash.FromString(TransactionResultStatus.Mined.ToString()));
-            
+            var rawBytes = tx.GetHash().DumpByteArray()
+                .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString())).ToArray();
+            var hash = Hash.FromRawBytes(rawBytes);
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Common;
 using Google.Protobuf;
@@ -78,7 +79,10 @@ namespace AElf.Kernel.Blockchain.Application
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {
-            return Hash.FromTwoHashes(txId, Hash.FromString(executionReturnStatus.ToString()));
+            // combine tx result status
+            var rawBytes = txId.DumpByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
         
     }

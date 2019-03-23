@@ -1,7 +1,9 @@
+using System.Linq;
 using AElf.Common;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types.CSharp.Utils;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -30,17 +32,17 @@ namespace AElf.Contracts.CrossChain
         {
             var parentChainHeight = input.ParentChainHeight;
             var path = input.MerklePath;
-            var tx = input.TransactionId;
-            var key = new Int64Value {Value = parentChainHeight};
+            var txId = input.TransactionId;
             var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
+            var txResultStatusRawBytes =
+                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
             var rootCalculated =
-                path.ComputeRootWith(
-                    Hash.FromTwoHashes(input.TransactionId, Hash.FromString(TransactionResultStatus.Mined.ToString())));
+                path.ComputeRootWith(Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
             
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
-            return new BoolValue {Value =merkleTreeRoot.Equals(rootCalculated)};
+            return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
         
         public override SInt32Value GetChainStatus(SInt32Value input)
