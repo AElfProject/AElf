@@ -19,6 +19,7 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexTransaction = new Transaction { From = Address.Generate(), To = Address.Generate(), MethodName = "Test2" }
             };
             var transactionLog = EventExtension.FireEvent(transactionEvent);
+            transactionLog.Topics.Count.ShouldBe(2);
 
             var addressEvent = new AddressEvent 
             {
@@ -26,6 +27,7 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexAddress = Address.Generate()
             };
             var addressLog = EventExtension.FireEvent(addressEvent);
+            addressLog.Topics.Count.ShouldBe(2);
         }
 
         [Fact]
