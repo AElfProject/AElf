@@ -3,7 +3,7 @@ using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class Block : ICustomDiagnosticMessage, IBlock
+    public partial class Block : ICustomDiagnosticMessage, IBlock 
     {
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -31,15 +31,14 @@ namespace AElf.Kernel
             set { }
         }
 
-        public string BlockHashToHex
-        {
-            get => Header?.GetHash().ToHex() ?? Hash.Empty.ToHex();
-            set { }
-        }
-
         public Hash GetHash()
         {
             return Header.GetHash();
+        }
+
+        public Hash GetHashWithoutCache()
+        {
+            return Header.GetHashWithoutCache();
         }
 
         public byte[] GetHashBytes()

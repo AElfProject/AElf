@@ -82,8 +82,7 @@ namespace AElf.Kernel.Services
                     transactions, pending, cts.Token);
             }
 
-            Logger.LogInformation($"Generated block: {block.BlockHashToHex}, " +
-                                  $"height: {block.Header.Height}, " +
+            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                   $"previous: {block.Header.PreviousBlockHash}, " +
                                   $"transactions: {block.Body.TransactionsCount}");
 
