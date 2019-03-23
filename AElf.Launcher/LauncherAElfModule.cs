@@ -112,7 +112,7 @@ namespace AElf.Launcher
 
             if (chainOptions.IsSideChain)
             {
-                dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
+                //dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
             }
             else
                 dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);

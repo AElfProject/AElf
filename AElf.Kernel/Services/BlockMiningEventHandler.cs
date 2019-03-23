@@ -9,7 +9,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class BlockMiningEventHandler : ILocalEventHandler<BlockMiningEventData>, ITransientDependency
+    public class BlockMiningEventHandler : ILocalEventHandler<ConsensusRequestMiningEventData>, ITransientDependency
     {
         public readonly IMinerService _minerService;
         public ILogger<BlockMiningEventHandler> Logger { get; set; }
@@ -20,7 +20,7 @@ namespace AElf.Kernel.Miner.Application
             Logger = NullLogger<BlockMiningEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(BlockMiningEventData eventData)
+        public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
         {
             try
             {

@@ -28,8 +28,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var firstTriggerInformation = new DPoSTriggerInformation
             {
-                PublicKey = testers.SingleTester.KeyPair.PublicKey.ToHex(),
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                PublicKey = ByteString.CopyFrom(testers.SingleTester.KeyPair.PublicKey),
                 IsBootMiner = true,
             };
             var bytes = await testers.SingleTester.CallContractMethodAsync(testers.ConsensusContractAddress,
@@ -37,8 +36,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var actual = ConsensusCommand.Parser.ParseFrom(bytes);
 
             // Assert
-            Assert.True(8000 >= actual.CountingMilliseconds); //For now the 8000 is hard coded in contract code.
-            Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
+            Assert.True(8000 >= actual.NextBlockMiningLeftMilliseconds); //For now the 8000 is hard coded in contract code.
+            Assert.Equal(int.MaxValue, actual.LimitMillisecondsOfMiningBlock);
             Assert.Equal(DPoSBehaviour.InitialConsensus, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
 
@@ -51,8 +50,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var actual = await testers.SingleTester.GetConsensusCommandAsync();
 
             // Assert
-            Assert.True(8000 >= actual.CountingMilliseconds);
-            Assert.Equal(int.MaxValue, actual.TimeoutMilliseconds);
+            Assert.True(8000 >= actual.NextBlockMiningLeftMilliseconds);
+            Assert.Equal(int.MaxValue, actual.LimitMillisecondsOfMiningBlock);
             Assert.Equal(DPoSBehaviour.InitialConsensus, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
         }
 
@@ -67,11 +66,11 @@ namespace AElf.Contracts.Consensus.DPoS
             // Act
             var bytes = await testers.Testers[0].CallContractMethodAsync(testers.ConsensusContractAddress,
                 ConsensusConsts.GetNewConsensusInformation, triggerInformation);
-            var information = DPoSInformation.Parser.ParseFrom(bytes);
+            var information = DPoSHeaderInformation.Parser.ParseFrom(bytes);
             var round = information.Round;
 
             // Assert
-            Assert.Equal(testers.Testers[0].KeyPair.PublicKey.ToHex(), information.SenderPublicKey);
+            Assert.Equal(testers.Testers[0].KeyPair.PublicKey.ToHex(), information.SenderPublicKey.ToHex());
             Assert.Equal(DPoSBehaviour.InitialConsensus, information.Behaviour);
             // Check the basic information of first round.
             Assert.True(1 == round.RoundNumber);
@@ -93,7 +92,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var round = information.Round;
 
             // Assert
-            Assert.Equal(testers.Testers[0].KeyPair.PublicKey.ToHex(), information.SenderPublicKey);
+            Assert.Equal(testers.Testers[0].KeyPair.PublicKey.ToHex(), information.SenderPublicKey.ToHex());
             Assert.Equal(DPoSBehaviour.InitialConsensus, information.Behaviour);
             // Check the basic information of first round.
             Assert.True(1 == round.RoundNumber);
@@ -156,7 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.CountingMilliseconds != MiningInterval);
+            Assert.True(actual.NextBlockMiningLeftMilliseconds != MiningInterval);
         }
 
         [Fact]
@@ -251,8 +250,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
-            Assert.True(command.CountingMilliseconds > 0);
-            Assert.Equal(4000, command.TimeoutMilliseconds);
+            Assert.True(command.NextBlockMiningLeftMilliseconds > 0);
+            Assert.Equal(4000, command.LimitMillisecondsOfMiningBlock);
         }
 
         [Fact]
@@ -447,8 +446,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return new DPoSTriggerInformation
             {
-                PublicKey = stubMiners[0].PublicKey.ToHex(),
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                PublicKey = ByteString.CopyFrom(stubMiners[0].PublicKey),
                 Miners = {stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
                 MiningInterval = 4000,
             };
@@ -464,8 +462,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             return new DPoSTriggerInformation
             {
-                PublicKey = publicKey,
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
                 PreviousInValue = previousInValue,
                 CurrentInValue = currentInValue
             };
@@ -475,8 +472,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return new DPoSTriggerInformation
             {
-                PublicKey = publicKey,
-                Timestamp = timestamp
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
             };
         }
     }

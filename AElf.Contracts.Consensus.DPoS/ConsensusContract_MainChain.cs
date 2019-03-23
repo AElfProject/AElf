@@ -47,10 +47,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Empty();
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime dateTime,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
+            return currentRound.GenerateNextRoundInformation(dateTime, blockchainStartTimestamp, out nextRound);
         }
 
         private void InitialSettings(Round firstRound)
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus.DPoS
             SetRoundNumber(1);
             SetBlockAge(1);
             AddTermNumberToFirstRoundNumber(1, 1);
-            SetBlockchainStartTimestamp(firstRound.GetStartTime());
+            SetBlockchainStartTimestamp(firstRound.GetStartTime().ToTimestamp());
             var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners(1);
             miners.TermNumber = 1;
             SetMiners(miners);

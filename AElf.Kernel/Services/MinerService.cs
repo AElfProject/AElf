@@ -53,6 +53,8 @@ namespace AElf.Kernel.Services
             EventBus = NullLocalEventBus.Instance;
         }
 
+        // TODO: DateTime -> Timespan
+        // Add start mining time
         /// <inheritdoc />
         /// <summary>
         /// Mine process.
@@ -60,7 +62,6 @@ namespace AElf.Kernel.Services
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
         {
-            var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
             var transactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
 
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
@@ -75,6 +76,8 @@ namespace AElf.Kernel.Services
                                   $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
                                   $"best chain hash {previousBlockHash}.");
             }
+
+            var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
 
             using (var cts = new CancellationTokenSource())
             {

@@ -25,7 +25,7 @@ namespace AElf.Contracts.CrossChain
 
     public class ConsensusContractReferenceState : ContractReferenceState
     {
-        public MethodReference<DPoSInformation, Empty> UpdateMainChainConsensus { get; set; }
+        public MethodReference<DPoSHeaderInformation, Empty> UpdateMainChainConsensus { get; set; }
     }
 
     public class CrossChainContractState : ContractState

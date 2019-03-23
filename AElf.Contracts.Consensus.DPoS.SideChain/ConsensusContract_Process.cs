@@ -75,9 +75,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
 
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
-            
+
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
-            
+
             round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
 
             foreach (var changeOrderInformation in input.ChangedOrders)
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =
                     changeOrderInformation.NewOrder;
             }
-            
+
             // One cannot publish his in value sometime, like in his first round.
             if (input.PreviousInValue != Hash.Empty)
             {
@@ -313,13 +313,17 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-        private bool NewOutValueFilled(Round round)
+        /// <summary>
+        /// Check only one Out Value was filled during this updating.
+        /// </summary>
+        /// <param name="minersInformation"></param>
+        /// <returns></returns>
+        private bool NewOutValueFilled(IEnumerable<MinerInRound> minersInformation)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
+            if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return currentRoundInStateDatabase.RealTimeMinersInformation.Values.Count(info =>
-                           info.OutValue != null) + 1 ==
-                       round.RealTimeMinersInformation.Values.Count(info => info.OutValue != null);
+                return currentRound.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
+                       minersInformation.Count(info => info.OutValue != null);
             }
 
             return false;

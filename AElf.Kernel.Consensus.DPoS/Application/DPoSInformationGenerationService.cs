@@ -21,7 +21,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
         private readonly ConsensusControlInformation _controlInformation;
+        // TODO: Add RSAPublicKey, put in value to contract.
         private Hash _inValue;
+
+        public ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
         public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
@@ -37,15 +40,14 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
-        public DPoSTriggerInformation GetTriggerInformation()
+        public IMessage GetTriggerInformation()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
                 return new DPoSTriggerInformation
                 {
                     IsBootMiner = _dpoSOptions.IsBootMiner,
-                    PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                    Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
+                    PublicKey = PublicKey,
                     InitialTermNumber = _dpoSOptions.InitialTermNumber
                 };
             }
@@ -55,8 +57,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 case DPoSBehaviour.InitialConsensus:
                     return new DPoSTriggerInformation
                     {
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        Timestamp = DateTime.UtcNow.ToTimestamp(),
+                        PublicKey = PublicKey,
                         Miners = {_dpoSOptions.InitialMiners},
                         InitialTermNumber = _dpoSOptions.InitialTermNumber,
                         IsBootMiner = _dpoSOptions.IsBootMiner,
@@ -70,32 +71,32 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     }
                     return new DPoSTriggerInformation
                     {
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        Timestamp = DateTime.UtcNow.ToTimestamp(),
+                        PublicKey = PublicKey,
                         PreviousInValue = Hash.Empty,
                         CurrentInValue = _inValue
                     };
                 case DPoSBehaviour.UpdateValue:
+                    if (_inValue == null)
+                    {
+                        _inValue = Hash.Generate();
+                    }
                     var previousInValue = _inValue;
                     _inValue = Hash.Generate();
                     return new DPoSTriggerInformation
                     {
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        Timestamp = DateTime.UtcNow.ToTimestamp(),
+                        PublicKey = PublicKey,
                         PreviousInValue = previousInValue,
                         CurrentInValue = _inValue
                     };
                 case DPoSBehaviour.NextRound:
                     return new DPoSTriggerInformation
                     {
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        Timestamp = DateTime.UtcNow.ToTimestamp()
+                        PublicKey = PublicKey,
                     };
                 case DPoSBehaviour.NextTerm:
                     return new DPoSTriggerInformation
                     {
-                        PublicKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex(),
-                        Timestamp = DateTime.UtcNow.ToTimestamp()
+                        PublicKey = PublicKey,
                     };
                 case DPoSBehaviour.Invalid:
                     throw new InvalidOperationException();

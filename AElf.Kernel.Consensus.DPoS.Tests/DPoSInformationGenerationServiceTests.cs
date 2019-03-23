@@ -46,8 +46,9 @@ namespace AElf.Kernel.Consensus.DPoS
         [Fact]
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
-            var dPoSTriggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
-            dPoSTriggerInformation.PublicKey.ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
+            var dPoSTriggerInformation =
+                (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation();
+            dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
             dPoSTriggerInformation.IsBootMiner.ShouldBeTrue();
             dPoSTriggerInformation.Miners.Count.ShouldBe(0);
         }
@@ -58,7 +59,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.InitialConsensus);
             
-            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.Miners.Count.ShouldBeGreaterThanOrEqualTo(1);
             dPoSTriggerInformation.Miners[0].ShouldBe(_minerKeyPair.PublicKey.ToHex());
             dPoSTriggerInformation.MiningInterval.ShouldBe(2000);
@@ -70,11 +71,13 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
             
-            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = 
+                (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.CurrentInValue.ShouldNotBeNull();
             dPoSTriggerInformation.PreviousInValue.ShouldBe(Hash.Empty);
-            
-            var dPoSTriggerInformation1 = consensusInformationGenerationService.GetTriggerInformation();
+
+            var dPoSTriggerInformation1 =
+                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation1.PreviousInValue.ShouldBe(dPoSTriggerInformation.CurrentInValue);
         }
         
@@ -84,9 +87,9 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
             
-            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
-            dPoSTriggerInformation.PublicKey.ShouldBe(publicKey.ToHex());
+            dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
         
         [Fact]
@@ -95,9 +98,9 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
             
-            var dPoSTriggerInformation = consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
-            dPoSTriggerInformation.PublicKey.ShouldBe(publicKey.ToHex());
+            dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
 
         [Fact]

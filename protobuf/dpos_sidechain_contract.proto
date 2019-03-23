@@ -17,22 +17,22 @@ service ConsensusContract {
     }
     rpc NextRound (Round) returns (google.protobuf.Empty) {
     }
-    rpc UpdateMainChainConsensus (DPoSInformation) returns (google.protobuf.Empty) {
+    rpc UpdateMainChainConsensus (DPoSHeaderInformation) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
-    rpc GetNewConsensusInformation (DPoSTriggerInformation) returns (DPoSInformation) {
+    rpc GetInformationToUpdateConsensus (DPoSTriggerInformation) returns (DPoSHeaderInformation) {
         option (aelf.is_view) = true;
     }
     rpc GenerateConsensusTransactions (DPoSTriggerInformation) returns (TransactionList) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateConsensusBeforeExecution (DPoSInformation) returns (ValidationResult) {
+    rpc ValidateConsensusBeforeExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateConsensusAfterExecution (DPoSInformation) returns (ValidationResult) {
+    rpc ValidateConsensusAfterExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
 }

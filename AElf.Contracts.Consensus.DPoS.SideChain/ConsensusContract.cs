@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
@@ -19,42 +20,43 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         {
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Trigger information should contain public key.");
-            Assert(input.Timestamp != null, "Trigger information should contain timestamp.");
 
-            var publicKey = input.PublicKey;
-            var timestamp = input.Timestamp;
+            var publicKey = input.PublicKey.ToHex();
+            var currentBlockTime = Context.CurrentBlockTime;
 
             Context.LogDebug(() => GetLogStringForOneRound(publicKey));
 
-            var behaviour = GetBehaviour(publicKey, timestamp, out var round, out var minerInRound);
+            var behaviour = GetBehaviour(publicKey, currentBlockTime, out var round, out var minerInRound);
 
             TryToGetMiningInterval(out var miningInterval);
-            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, timestamp, input.IsBootMiner);
+            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, currentBlockTime,
+                input.IsBootMiner);
         }
 
-        public override DPoSInformation GetNewConsensusInformation(DPoSTriggerInformation input)
+        public override DPoSHeaderInformation GetInformationToUpdateConsensus(DPoSTriggerInformation input)
         {
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
-            Assert(input.Timestamp != null, "Data to request consensus information should contain timestamp.");
 
             var publicKey = input.PublicKey;
-            var timestamp = input.Timestamp;
+            var currentBlockTime = Context.CurrentBlockTime;
 
-            var behaviour = GetBehaviour(publicKey, timestamp, out var round, out _);
+            var behaviour = GetBehaviour(publicKey.ToHex(), currentBlockTime, out var round, out _);
 
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
                     var miningInterval = input.MiningInterval;
                     var initialMiners = input.Miners;
-                    var firstRound = initialMiners.ToList().ToMiners(1).GenerateFirstRoundOfNewTerm(miningInterval);
-                    return new DPoSInformation
+                    var firstRound = initialMiners.ToList().ToMiners(1)
+                        .GenerateFirstRoundOfNewTerm(miningInterval);
+                    return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = firstRound,
                         Behaviour = behaviour
                     };
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     Assert(input.CurrentInValue != null && input.CurrentInValue != null,
                         "Current in value should be valid.");
@@ -73,26 +75,37 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue, outValue,
+                        signature,
+                        currentBlockTime);
                     // To publish Out Value.
-                    return new DPoSInformation
+                    return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = round.ApplyNormalConsensusData(publicKey, previousInValue, outValue, signature,
-                            timestamp),
+                        Round = updatedRound,
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
-                    Assert(GenerateNextRoundInformation(round, timestamp, blockchainStartTimestamp, out var nextRound),
+                    Assert(
+                        GenerateNextRoundInformation(round, currentBlockTime, blockchainStartTimestamp,
+                            out var nextRound),
                         "Failed to generate next round information.");
-                    return new DPoSInformation
+                    return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = nextRound,
                         Behaviour = behaviour
                     };
+                case DPoSBehaviour.NextTerm:
+                    return new DPoSHeaderInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = GenerateFirstRoundOfNextTerm(),
+                        Behaviour = behaviour
+                    };
                 case DPoSBehaviour.Invalid:
-                    return new DPoSInformation
+                    return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Behaviour = behaviour
@@ -106,11 +119,10 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         {
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
-            Assert(input.Timestamp != null, "Data to request consensus information should contain timestamp.");
 
             var publicKey = input.PublicKey;
 
-            var consensusInformation = GetNewConsensusInformation(input);
+            var consensusInformation = GetInformationToUpdateConsensus(input);
 
             var round = consensusInformation.Round;
 
@@ -126,12 +138,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                             GenerateTransaction(nameof(InitialConsensus), round)
                         }
                     };
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(UpdateValue), round.GenerateToUpdate(publicKey))
+                            GenerateTransaction(nameof(UpdateValue),
+                                round.GenerateInformationToUpdateConsensus(publicKey.ToHex()))
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -149,56 +163,63 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             }
         }
 
-        public override ValidationResult ValidateConsensusBeforeExecution(DPoSInformation input)
+        public override ValidationResult ValidateConsensusBeforeExecution(DPoSHeaderInformation input)
         {
             var publicKey = input.SenderPublicKey;
 
             // Validate the sender.
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey.ToHex()))
             {
                 return new ValidationResult {Success = false, Message = "Sender is not a miner."};
             }
 
+            // Validate the time slots.
+            var timeSlotsCheckResult = input.Round.CheckTimeSlots();
+            if (!timeSlotsCheckResult.Success)
+            {
+                return timeSlotsCheckResult;
+            }
+
             var behaviour = input.Behaviour;
 
-            var successToGetCurrentRound = currentRound != null;
+            // Try to get current round information (for further validation).
+            if (currentRound == null && behaviour != DPoSBehaviour.InitialConsensus)
+            {
+                return new ValidationResult
+                    {Success = false, Message = "Failed to get current round information."};
+            }
 
             switch (behaviour)
             {
                 case DPoSBehaviour.InitialConsensus:
                     break;
+                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
+                    // Need to check round id when updating current round information.
+                    // This can tell the miner current block 
                     if (!RoundIdMatched(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
-                    if (!NewOutValueFilled(input.Round))
+                    // Only one Out Value should be filled.
+                    // TODO: Miner can only update his information.
+                    if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
 
                     break;
                 case DPoSBehaviour.NextRound:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
                     // None of in values should be filled.
                     if (!InValueIsNull(input.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
                     }
 
+                    break;
+                case DPoSBehaviour.NextTerm:
                     break;
                 case DPoSBehaviour.Invalid:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour."};
@@ -209,9 +230,20 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return new ValidationResult {Success = true};
         }
 
-        public override ValidationResult ValidateConsensusAfterExecution(DPoSInformation input)
+        public override ValidationResult ValidateConsensusAfterExecution(DPoSHeaderInformation input)
         {
-            // TODO: To implement.
+            if (input.Behaviour != DPoSBehaviour.InitialConsensus &&
+                TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                {
+                    return new ValidationResult {Success = false, Message = "Invalid round information."};
+                }
+            }
+
+            // TODO: Still need to check: ProducedBlocks, //
+
             return new ValidationResult {Success = true};
         }
 
@@ -220,11 +252,11 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// This method can be tested by testing GetConsensusCommand.
         /// </summary>
         /// <param name="publicKey"></param>
-        /// <param name="timestamp"></param>
+        /// <param name="dateTime"></param>
         /// <param name="round"></param>
         /// <param name="minerInRound"></param>
         /// <returns></returns>
-        private DPoSBehaviour GetBehaviour(string publicKey, Timestamp timestamp, out Round round,
+        private DPoSBehaviour GetBehaviour(string publicKey, DateTime dateTime, out Round round,
             out MinerInRound minerInRound)
         {
             round = null;
@@ -238,9 +270,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return DPoSBehaviour.InitialConsensus;
             }
 
-            if (!round.IsTimeSlotPassed(publicKey, timestamp, out minerInRound) && minerInRound.OutValue == null)
+            if (!round.IsTimeSlotPassed(publicKey, dateTime, out minerInRound) && minerInRound.OutValue == null)
             {
-                return minerInRound != null ? DPoSBehaviour.UpdateValue : DPoSBehaviour.Invalid;
+                return minerInRound != null
+                    ? (round.RoundNumber == 1
+                        ? DPoSBehaviour.UpdateValueWithoutPreviousInValue
+                        : DPoSBehaviour.UpdateValue)
+                    : DPoSBehaviour.Invalid;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
@@ -256,7 +292,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             }
 
             Assert(TryToGetPreviousRoundInformation(out var previousRound), "Failed to previous round information.");
-            return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber)
+            return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
                 ? DPoSBehaviour.NextTerm
                 : DPoSBehaviour.NextRound;
         }
@@ -268,35 +304,34 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return "";
             }
 
-            var logs = $"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})";
+            var logs = new StringBuilder($"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})");
             foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                var minerInformation = "\n";
-                minerInformation += $"[{minerInRound.PublicKey.Substring(0, 10)}]";
-                minerInformation += minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "";
-                minerInformation +=
-                    minerInRound.PublicKey == publicKey
-                        ? "(This Node)"
-                        : "";
-                minerInformation += $"\nOrder:\t {minerInRound.Order}";
-                minerInformation +=
-                    $"\nTime:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}";
-                minerInformation += $"\nOut:\t {minerInRound.OutValue?.ToHex()}";
+                var minerInformation = new StringBuilder("\n");
+                minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
+                minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
+                minerInformation.Append(minerInRound.PublicKey == publicKey
+                    ? "(This Node)"
+                    : "");
+                minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
+                minerInformation.AppendLine(
+                    $"Time:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {
-                    minerInformation += $"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}";
+                    minerInformation.AppendLine($"\nPreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
 
-                minerInformation += $"\nSig:\t {minerInRound.Signature?.ToHex()}";
-                minerInformation += $"\nMine:\t {minerInRound.ProducedBlocks}";
-                minerInformation += $"\nMiss:\t {minerInRound.MissedTimeSlots}";
-                minerInformation += $"\nProms:\t {minerInRound.PromisedTinyBlocks}";
-                minerInformation += $"\nNOrder:\t {minerInRound.OrderOfNextRound}";
+                minerInformation.AppendLine($"\nSig:\t {minerInRound.Signature?.ToHex()}");
+                minerInformation.AppendLine($"\nMine:\t {minerInRound.ProducedBlocks}");
+                minerInformation.AppendLine($"\nMiss:\t {minerInRound.MissedTimeSlots}");
+                minerInformation.AppendLine($"\nProms:\t {minerInRound.PromisedTinyBlocks}");
+                minerInformation.AppendLine($"\nNOrder:\t {minerInRound.OrderOfNextRound}");
 
-                logs += minerInformation;
+                logs.Append(minerInformation);
             }
 
-            return logs;
+            return logs.ToString();
         }
     }
 }

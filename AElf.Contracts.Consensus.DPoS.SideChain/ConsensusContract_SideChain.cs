@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
@@ -8,12 +9,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public partial class ConsensusContract
     {
-        public override Empty UpdateMainChainConsensus(DPoSInformation input)
+        public override Empty UpdateMainChainConsensus(DPoSHeaderInformation input)
         {
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.
             
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if(input == null || input == new DPoSInformation())
+            if(input == null || input == new DPoSHeaderInformation())
                 return new Empty();
             var consensusInformation = input;
             if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
@@ -25,13 +26,13 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return new Empty();
         }
         
-        private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime dateTime,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
             if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
                 State.CurrentMiners.Value.GetMinersHash())
             {
-                return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
+                return currentRound.GenerateNextRoundInformation(dateTime, blockchainStartTimestamp, out nextRound);
             }
 
             nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
@@ -44,7 +45,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // Do some initializations.
             State.CurrentRoundNumberField.Value = 1;
             State.AgeField.Value = 1;
-            State.BlockchainStartTimestamp.Value = firstRound.GetStartTime();
+            State.BlockchainStartTimestamp.Value = firstRound.GetStartTime().ToTimestamp();
             State.MiningIntervalField.Value = firstRound.GetMiningInterval();
             State.TermNumberFromMainChainField.Value = firstRound.TermNumber; // init term with main chain term number
         }

@@ -348,7 +348,7 @@ namespace AElf.Contracts.CrossChain
                 // send consensus data shared from main chain  
                 if (blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
                 {
-                    State.ConsensusContract.UpdateMainChainConsensus.Send(DPoSInformation.Parser.ParseFrom(bytes));
+                    State.ConsensusContract.UpdateMainChainConsensus.Send(DPoSHeaderInformation.Parser.ParseFrom(bytes));
                 }
 
                 State.CurrentParentChainHeight.Value = parentChainHeight;

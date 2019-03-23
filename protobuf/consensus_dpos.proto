@@ -6,16 +6,6 @@ import "common.proto";
 import "google/protobuf/timestamp.proto";
 
 // Just used as parameter of consensus contract method.
-message Term {
-    Miners Miners = 1;
-    Round FirstRound = 2;
-    Round SecondRound = 3;
-    int32 MiningInterval = 4;
-    int64 TermNumber = 5;
-    google.protobuf.Timestamp Timestamp = 6;
-}
-
-// Just used as parameter of consensus contract method.
 message ToUpdate {
     Hash OutValue = 1;// Calculated from current in value.
     Hash Signature = 2;// Calculated from current in value and signatures of previous round.
@@ -176,8 +166,8 @@ enum TicketsHistoryType {
     Vote = 2;
 }
 
-message DPoSInformation {
-    string SenderPublicKey = 1;
+message DPoSHeaderInformation {
+    bytes SenderPublicKey = 1;
     Round Round = 2;
     DPoSBehaviour Behaviour = 8;
 }
@@ -196,8 +186,7 @@ enum DPoSBehaviour {
 }
 
 message DPoSTriggerInformation {
-    string PublicKey = 1;// A must-have.
-    google.protobuf.Timestamp Timestamp = 2;// A must-have.
+    bytes PublicKey = 1;// A must-have.
     
     bool IsBootMiner = 3;// Only useful when initial one chain.
     int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).

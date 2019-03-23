@@ -37,8 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var triggerInformation = new DPoSTriggerInformation
             {
-                Timestamp = timestamp ?? DateTime.UtcNow.ToTimestamp(),
-                PublicKey = tester.KeyPair.PublicKey.ToHex(),
+                PublicKey = ByteString.CopyFrom(tester.KeyPair.PublicKey),
                 IsBootMiner = true,
             };
             var bytes = await tester.CallContractMethodAsync(
@@ -48,13 +47,13 @@ namespace AElf.Contracts.Consensus.DPoS
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
 
-        public static async Task<DPoSInformation> GetNewConsensusInformationAsync(
+        public static async Task<DPoSHeaderInformation> GetNewConsensusInformationAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.GetNewConsensusInformation, triggerInformation);
-            return DPoSInformation.Parser.ParseFrom(bytes);
+            return DPoSHeaderInformation.Parser.ParseFrom(bytes);
         }
 
         public static async Task<List<Transaction>> GenerateConsensusTransactionsAsync(
@@ -72,10 +71,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static async Task<ValidationResult> ValidateConsensusBeforeExecutionAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
-            DPoSInformation information)
+            DPoSHeaderInformation headerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.ValidateConsensusBeforeExecution, information);
+                ConsensusConsts.ValidateConsensusBeforeExecution, headerInformation);
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
@@ -319,7 +318,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
 
             var extraBlockProducer = round.GetExtraBlockProducerInformation();
-            round.GenerateNextRoundInformation(DateTime.UtcNow.ToTimestamp(), DateTime.UtcNow.ToTimestamp(),
+            round.GenerateNextRoundInformation(DateTime.UtcNow, DateTime.UtcNow.ToTimestamp(),
                 out var nextRound);
             var (extraBlock, extraTx) = await miners.First(m => m.PublicKey == extraBlockProducer.PublicKey)
                 .ExecuteConsensusContractMethodWithMiningReturnBlockAsync(nameof(ConsensusContract.NextRound),
