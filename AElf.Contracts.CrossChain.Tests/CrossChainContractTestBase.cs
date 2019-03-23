@@ -70,7 +70,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     ConsensusContractAddress = ConsensusContractAddress,
                     TokenContractAddress = TokenContractAddress,
-                    ParentChainId = parentChainId == 0 ? ChainHelpers.GetRandomChainId() : parentChainId
+                    ParentChainId = parentChainId == 0 ? 2111 : parentChainId
                 });
 
             await Tester.MineAsync(new List<Transaction> {tx});
