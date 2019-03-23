@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {

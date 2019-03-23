@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;

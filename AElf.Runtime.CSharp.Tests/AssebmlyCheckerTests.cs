@@ -1,5 +1,5 @@
 using System.IO;
-using AElf.Contracts.Token;
+using AElf.Contracts.MultiToken;
 using Shouldly;
 using Xunit;
 
