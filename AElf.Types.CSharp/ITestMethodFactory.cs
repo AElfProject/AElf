@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 
@@ -15,15 +16,26 @@ namespace AElf.Types.CSharp
         TOutput Output { get; }
     }
 
+    public class ExecutionTask : IExecutionTask
+    {
+        public Transaction Transaction { get; set; }
+        public TransactionResult TransactionResult { get; set; }
+    }
+
+    public class ExecutionResult<TOutput> : ExecutionTask, IExecutionResult<TOutput> where TOutput : IMessage<TOutput>
+    {
+        public TOutput Output { get; set; }
+    }
+
     public sealed class TestMethod<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
     {
-        public Func<TInput, IExecutionResult<TOutput>> Send { get; }
-        public Func<TInput, TOutput> Call { get; }
+        public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
+        public Func<TInput, Task<TOutput>> CallAsync { get; }
 
-        public TestMethod(Func<TInput, IExecutionResult<TOutput>> send, Func<TInput, TOutput> call)
+        public TestMethod(Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync, Func<TInput, Task<TOutput>> callAsync)
         {
-            Send = send;
-            Call = call;
+            SendAsync = sendAsync;
+            CallAsync = callAsync;
         }
     }
 
