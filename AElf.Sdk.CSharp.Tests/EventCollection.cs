@@ -49,19 +49,34 @@ namespace AElf.Sdk.CSharp
         public int NonIndexInt {get;set;}
     }
 
-    public class NotSupportEvent : Event
+    //Double event
+    public class NotSupportIndexDouble : Event
     {
-        [Indexed] public double IndexDouble {get;set;}
-        [Indexed] public float IndexFloat {get;set;}
-
-        public double NonIndexDouble {get;set;}
-        public float NonIndexFloat {get;set;}
+        public double IndexDouble { get; set; }
     }
 
-    public class ListEvent : Event
+    public class NotSupportDouble : Event
+    {
+        public double NonIndexDouble { get; set; }
+    }
+    
+    //Float event
+    public class NotSupportIndexFloat : Event
+    {
+        public double IndexFloat { get; set; }
+    }
+
+    public class NotSupportFloat : Event
+    {
+        public double NonIndexFloat { get; set; }
+    }
+    public class ListIndexEvent : Event
     {
         [Indexed] public List<Address> IndexAddressList { get; set; }
-        [Indexed] public int[] IndexIntArray { get; set; }
-        public List<long> NonIndexLongArray { get; set; }
+    }
+
+    public class ListNonIndexEvent : Event
+    {
+        public List<Address> AddressList { get; set; }
     }
 }

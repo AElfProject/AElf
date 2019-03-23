@@ -83,29 +83,63 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [Fact]
-        public void Parse_NotSupport_ListEvent()
+        public void Parse_NotSupport_ListIndexEvent()
         {
-            var listEvent = new ListEvent
+            var listIndexEvent = new ListIndexEvent
             {
                 IndexAddressList = new List<Address>(){Address.Zero, Address.Genesis, Address.Generate()},
-                IndexIntArray = new int[] {2, 5, 67, 13 },
-                NonIndexLongArray = new List<long>(){12,34,6,80}
+            };
+            Should.Throw<System.Exception>(()=> EventExtension.FireEvent(listIndexEvent));
+        }
+        
+        [Fact]
+        public void Parse_NotSupport_ListNonIndexEvent()
+        {
+            var listEvent = new ListNonIndexEvent
+            {
+                AddressList = new List<Address>(){Address.Zero, Address.Genesis, Address.Generate()},
             };
             Should.Throw<System.Exception>(()=> EventExtension.FireEvent(listEvent));
         }
 
         [Fact]
-        public void Parse_NotSupport_EventType() 
+        public void Parse_NotSupport_DoubleIndexEvent() 
         {
-            var notsupportEvent = new NotSupportEvent 
+            var doubleIndexEvent = new NotSupportIndexDouble() 
             {
-                IndexDouble = (double) 36,
-                IndexFloat = (float) 2.45,
-
-                NonIndexDouble = (double) 27,
-                NonIndexFloat = (float) 3.67
+                IndexDouble = (double) 36.6
             };
-            Should.Throw<System.Exception>(() => EventExtension.FireEvent(notsupportEvent));
+            Should.Throw<System.Exception>(() => EventExtension.FireEvent(doubleIndexEvent));
+        }
+        
+        [Fact]
+        public void Parse_NotSupport_DoubleEvent() 
+        {
+            var doubleEvent = new NotSupportDouble 
+            {
+                NonIndexDouble = (double) 36.4
+            };
+            Should.Throw<System.Exception>(() => EventExtension.FireEvent(doubleEvent));
+        }
+        
+        [Fact]
+        public void Parse_NotSupport_FloatIndexEvent()
+        {
+            var floatIndexEvent = new NotSupportIndexFloat
+            {
+                IndexFloat = (float) 36.56
+            };
+            Should.Throw<System.Exception>(() => EventExtension.FireEvent(floatIndexEvent));
+        }
+        
+        [Fact]
+        public void Parse_NotSupport_FloatEvent() 
+        {
+            var floatEvent = new NotSupportFloat()
+            {
+                NonIndexFloat = (float) 32.84
+            };
+            Should.Throw<System.Exception>(() => EventExtension.FireEvent(floatEvent));
         }
     }
 
