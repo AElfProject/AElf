@@ -56,7 +56,6 @@ namespace AElf.Kernel.Types.Tests
         {
             var block = CreateBlock(Hash.Generate(), 1234, 10);
             block.Height.ShouldBe(10u);
-            block.BlockHashToHex.ShouldNotBe(string.Empty);
 
             var hash = block.GetHash();
             hash.ShouldNotBe(null);

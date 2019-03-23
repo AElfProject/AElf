@@ -28,17 +28,22 @@ namespace AElf.OS.Jobs
             var chain = await BlockchainService.GetChainAsync();
             try
             {
-                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.LongestChainHeight < 5)
+                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.BestChainHeight < 5)
                 {
                     var peerBlockHash = Hash.LoadHex(args.BlockHash);
                     var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
                     if (peerBlock != null)
                     {
-                        Logger.LogDebug($"Block {peerBlockHash} already know.");
+                        Logger.LogDebug($"Block {peerBlock} already know.");
                         return;
                     }
 
                     peerBlock = await NetworkService.GetBlockByHashAsync(peerBlockHash);
+                    if (peerBlock == null)
+                    {
+                        Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
+                        return;
+                    }
                     var status = await AttachBlockToChain(peerBlock);
                     if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
                     {
@@ -75,6 +80,11 @@ namespace AElf.OS.Jobs
 
                     foreach (var block in blocks)
                     {
+                        if (block == null)
+                        {
+                            Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
+                            break;
+                        }
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                         await AttachBlockToChain(block);
                     }

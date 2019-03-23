@@ -129,7 +129,6 @@ namespace AElf.Sdk.CSharp.Tests
             //Block test
             var block = new Block
             {
-                BlockHashToHex = "test_hash",
                 Body = body,
                 Header = header,
                 Height = header.Height

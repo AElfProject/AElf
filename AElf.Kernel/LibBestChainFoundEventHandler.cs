@@ -6,7 +6,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -20,11 +19,10 @@ namespace AElf.Kernel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-
         private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
-
         public ILocalEventBus LocalEventBus { get; set; }
+        private readonly ByteString _libTopicFlag = ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray());
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -47,6 +45,8 @@ namespace AElf.Kernel
 
             foreach (var executedBlock in eventData.ExecutedBlocks)
             {
+                Logger.LogTrace($"Check event for block {executedBlock}" );
+
                 var block = await _blockchainService.GetBlockByHashAsync(executedBlock);
                 foreach (var transactionHash in block.Body.Transactions)
                 {
@@ -66,18 +66,17 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         var address = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-                        if (contractEvent.Address != address || !contractEvent.Topics.Contains(ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())))
+                        if (contractEvent.Address != address || !contractEvent.Topics.Contains(_libTopicFlag))
                             continue;
 
                         var offset = ExtractLibOffset(contractEvent);
-                        var libHeight = eventData.BlockHeight - offset;
+                        var libHeight = block.Height - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
-                        Logger.LogInformation($"Lib setting start, block: {block.BlockHashToHex}, height: {block.Height}, tx: {transactionHash}, offset: {offset}, lib height: {libHeight}, lib hash: {blockHash}");
+                        Logger.LogInformation($"Lib setting, block: {block}, tx: {transactionHash}, offset: {offset}");
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);
-                        Logger.LogInformation($"Lib setting finished.");
                     }
                 }
             }
