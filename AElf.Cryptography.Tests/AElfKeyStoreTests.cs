@@ -88,5 +88,17 @@ namespace AElf.Cryptography.Tests
             var errResult = await _keyStore.OpenAsync(addString, "123");
             errResult.ShouldBe(AElfKeyStore.Errors.AccountFileNotFound);
         }
+
+        [Fact]
+        public async Task Open_Account_WithTimeout()
+        {
+            var keyPair = await _keyStore.CreateAsync("123", "AELF");
+            var address = Address.FromPublicKey(keyPair.PublicKey);
+            var addString = address.GetFormatted();
+
+            //Open account
+            var errResult = await _keyStore.OpenAsync(addString, "123", false);
+            errResult.ShouldBe(AElfKeyStore.Errors.None);
+        }
     }
 }

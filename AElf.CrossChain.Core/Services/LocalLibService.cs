@@ -14,7 +14,6 @@ namespace AElf.CrossChain
             _blockchainService = blockchainService;
         }
 
-        //TODO: Add test case GetIrreversibleBlockByHeightAsync [Case]
         public async Task<Block> GetIrreversibleBlockByHeightAsync(long height)
         {
             var chain = await _blockchainService.GetChainAsync();
