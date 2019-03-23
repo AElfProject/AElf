@@ -1,4 +1,5 @@
-﻿using AElf.Common;
+﻿using System.Collections.Generic;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Types;
 using AElf.Types.CSharp;
@@ -58,5 +59,12 @@ namespace AElf.Sdk.CSharp
 
         public double NonIndexDouble {get;set;}
         public float NonIndexFloat {get;set;}
+    }
+
+    public class ListEvent : Event
+    {
+        [Indexed] public List<Address> IndexAddressList { get; set; }
+        [Indexed] public int[] IndexIntArray { get; set; }
+        public List<long> NonIndexLongArray { get; set; }
     }
 }

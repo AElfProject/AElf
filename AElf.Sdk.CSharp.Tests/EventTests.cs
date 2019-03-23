@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using AElf.Common;
 using AElf.Kernel;
@@ -81,6 +82,18 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var multiLog = EventExtension.FireEvent(multiEvent);
             multiLog.Topics.Count.ShouldBe(6);
+        }
+
+        [Fact]
+        public void Parse_NotSupport_ListEvent()
+        {
+            var listEvent = new ListEvent
+            {
+                IndexAddressList = new List<Address>(){Address.Zero, Address.Genesis, Address.Generate()},
+                IndexIntArray = new int[] {2, 5, 67, 13 },
+                NonIndexLongArray = new List<long>(){12,34,6,80}
+            };
+            Should.Throw<System.Exception>(()=> EventExtension.FireEvent(listEvent));
         }
 
         [Fact]
