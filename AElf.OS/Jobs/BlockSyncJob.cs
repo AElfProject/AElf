@@ -91,7 +91,7 @@ namespace AElf.OS.Jobs
 
                     chain = await BlockchainService.GetChainAsync();
                     peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
-                    if (chain.LongestChainHeight >= peerBestChainHeight)
+                    if (chain.BestChainHeight >= peerBestChainHeight)
                     {
                         break;
                     }
