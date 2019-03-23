@@ -556,13 +556,11 @@ namespace AElf.OS.Rpc.ChainController.Tests
             //Result empty
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = transaction.To.GetFormatted()});
-            //response["result"].ToString().ShouldBeEmpty();
+            response["result"].ToString().ShouldNotBeEmpty();
 
             var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response["result"].ToString()));
-            
-            //Result not empty
-            //TODO: Add logic to cover query with data case [Case] 
-            //BODY: Will complete this logic after contract changed to grpc style. 
+            set.ShouldNotBeNull();
+            set.File.Count.ShouldBeGreaterThanOrEqualTo(1);
         }
 
         [Fact]
