@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using AElf.Common;
 using AElf.Kernel;
@@ -20,6 +21,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var transactionLog = EventExtension.FireEvent(transactionEvent);
             transactionLog.Topics.Count.ShouldBe(2);
+            transactionLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(transactionEvent.NonIndexTransaction)));
 
             var addressEvent = new AddressEvent 
             {
@@ -28,6 +30,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
             var addressLog = EventExtension.FireEvent(addressEvent);
             addressLog.Topics.Count.ShouldBe(2);
+            addressLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(addressEvent.NonIndexAddress)));
         }
 
         [Fact]
@@ -39,6 +42,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexString = "test2"
             };
             var stringLog = EventExtension.FireEvent(stringEvent);
+            stringLog.Topics.Count.ShouldBe(2);
+            stringLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(stringEvent.NonIndexString)));
         }
 
         [Fact]
@@ -55,6 +60,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexLong = (long) 48
             };
             var dataLog = EventExtension.FireEvent(dataEvent);
+            dataLog.Topics.Count.ShouldBe(5);
+            dataLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(dataEvent.NonIndexInt, dataEvent.NonIndexLong)));
         }
 
         [Fact]
@@ -73,6 +80,7 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexInt = 48
             };
             var multiLog = EventExtension.FireEvent(multiEvent);
+            multiLog.Topics.Count.ShouldBe(6);
         }
 
         [Fact]
