@@ -275,7 +275,7 @@ namespace AElf.Consensus.DPoS
             {
                 return null;
             }
-            
+
             var changeOrders = new List<ChangeOrderInformation>();
             foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.TuneOrderOfNextRound != 0)
                 .ToDictionary(m => m.PublicKey, m => m.TuneOrderOfNextRound))
@@ -296,7 +296,7 @@ namespace AElf.Consensus.DPoS
                 ChangedOrders = {changeOrders}
             };
         }
-        
+
 
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
             Hash outValue, Hash signature, Timestamp timestamp)
@@ -540,6 +540,8 @@ namespace AElf.Consensus.DPoS
                 minerInRound.ExpectedMiningTime =
                     GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
                 minerInRound.PromisedTinyBlocks = 1;
+                // Should be careful during validation.
+                minerInRound.PreviousInValue = Hash.Empty;
 
                 round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
             }
@@ -649,12 +651,12 @@ namespace AElf.Consensus.DPoS
             var baseMiningInterval =
                 (miners[1].ExpectedMiningTime.ToDateTime() - miners[0].ExpectedMiningTime.ToDateTime())
                 .TotalMilliseconds;
-            
+
             if (baseMiningInterval <= 0)
             {
                 return new ValidationResult {Success = false, Message = "Mining interval must greater than 0."};
             }
-            
+
             for (var i = 1; i < miners.Count - 1; i++)
             {
                 var miningInterval =

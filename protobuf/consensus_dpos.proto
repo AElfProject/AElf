@@ -123,10 +123,7 @@ message MinerInRound {
     int64 ProducedBlocks = 7;
     bool IsForked = 8;
     int64 MissedTimeSlots = 9;
-    int64 RoundNumber = 10;
     string PublicKey = 11;
-    int64 PackagedTxsCount = 12;
-    int64 LatestMissedTimeSlots = 13;
     bool IsMissed = 14;
     int32 PromisedTinyBlocks = 16;
     string Alias = 17;

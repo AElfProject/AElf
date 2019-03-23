@@ -246,11 +246,14 @@ namespace AElf.Contracts.Consensus.DPoS
             if (input.Behaviour != DPoSBehaviour.InitialConsensus &&
                 TryToGetCurrentRoundInformation(out var currentRound))
             {
-                if (Hash.FromMessage(input.Round) != Hash.FromMessage(currentRound))
+                var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
                     return new ValidationResult {Success = false, Message = "Invalid round information."};
                 }
             }
+            
+            // TODO: Still need to check: ProducedBlocks, MissedTimeSlots
 
             return new ValidationResult {Success = true};
         }
