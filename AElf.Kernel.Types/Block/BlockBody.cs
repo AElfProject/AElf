@@ -20,7 +20,8 @@ namespace AElf.Kernel
             }.Aggregate(Hash.FromTwoHashes);
             return _blockBodyHash;
         }
-        
+
+        //TODO: Add GetHash test case [Case]
         /// <inheritdoc/>
         public Hash GetHash()
         {

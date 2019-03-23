@@ -6,6 +6,7 @@ using AElf.Sdk.CSharp.State;
 
 namespace AElf.Sdk.CSharp
 {
+    //TODO: AElf.Sdk.CSharp State neeed add test cases [Case]
     public static class ActionExtensions
     {
         public static readonly HashSet<Type> Actions = new HashSet<Type>()

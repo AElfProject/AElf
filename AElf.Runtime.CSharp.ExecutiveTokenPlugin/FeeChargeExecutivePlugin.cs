@@ -13,6 +13,7 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
 {
     public class FeeChargeExecutivePlugin : IExecutivePlugin, ITransientDependency
     {
+        //TODO: Add FeeChargeExecutivePlugin->AfterApply test case [Case]
         public void AfterApply(ISmartContract smartContract, IHostSmartContractBridgeContext context,
             Func<string, object[], object> executeReadOnlyHandler)
         {
