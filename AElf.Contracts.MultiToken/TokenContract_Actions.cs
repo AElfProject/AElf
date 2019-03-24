@@ -210,6 +210,16 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
+        
+        public override Empty SetFeePoolAddress(Hash dividendContractSystemName)
+        {
+            var dividendContractAddress =
+                State.BasicContractZero.GetContractAddressByName.Call(dividendContractSystemName);
+            var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
+            Assert(notSet, "Fee pool address already set.");
+            State.FeePoolAddress.Value = dividendContractAddress;
+            return new Empty();
+        }
 
         #region ForTests
 
