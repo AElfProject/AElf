@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
-using Volo.Abp.Threading;
 
-namespace AElf.Contracts.TestBase
+namespace AElf.Contracts.TestBase2
 {
     public interface ITransactionExecutor
     {

@@ -5,9 +5,8 @@ using System.Linq;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using Org.BouncyCastle.Crypto;
 
-namespace AElf.Contracts.TestBase
+namespace AElf.Contracts.TestBase2
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class SampleECKeyPairs

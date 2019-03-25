@@ -1,16 +1,17 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Contracts.TestBase
+namespace AElf.Contracts.TestBase2
 {
     public class TestMethodFactory : ITestMethodFactory, ITransientDependency
     {
@@ -24,12 +25,11 @@ namespace AElf.Contracts.TestBase
         private readonly ITransactionExecutor _transactionExecutor;
         private readonly ITransactionResultService _transactionResultService;
 
-        public TestMethodFactory(IRefBlockInfoProvider refBlockInfoProvider, ITransactionExecutor transactionExecutor,
-            ITransactionResultService transactionResultService)
+        public TestMethodFactory(IServiceProvider serviceProvider)
         {
-            _refBlockInfoProvider = refBlockInfoProvider;
-            _transactionExecutor = transactionExecutor;
-            _transactionResultService = transactionResultService;
+            _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
+            _transactionExecutor = serviceProvider.GetRequiredService<ITransactionExecutor>();
+            _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]

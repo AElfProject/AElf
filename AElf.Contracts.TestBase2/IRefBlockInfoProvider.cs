@@ -1,11 +1,10 @@
 using System.Linq;
-using System.Net.Mime;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.TestBase
+namespace AElf.Contracts.TestBase2
 {
     public sealed class RefBlockInfo
     {
