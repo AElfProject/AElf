@@ -112,13 +112,24 @@ namespace AElf.Launcher
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
+            int parentChainId = 0;
             if (chainOptions.IsSideChain)
             {
                 dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
+                var crosschainOption = context.ServiceProvider.GetService<IOptionsSnapshot<CrossChainConfigOption>>()
+                    .Value;
+                parentChainId = ChainHelpers.ConvertBase58ToChainId(crosschainOption.ParentChainId);
             }
             else
                 dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
 
+            var crossChainMethodCallList = new SystemTransactionMethodCallList();
+            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
+            {
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                ParentChainId = parentChainId
+            });
             var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
                 .GetZeroSmartContractAddress();
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
@@ -132,7 +143,7 @@ namespace AElf.Launcher
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
-                CrossChainSmartContractAddressNameProvider.Name);
+                CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
@@ -164,6 +175,11 @@ namespace AElf.Launcher
                 Memo = "Set dividends.",
             });
 
+            tokenContractCallList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
+            {
+                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
+            });
+            
             //TODO: Maybe should be removed after testing.
             foreach (var tokenReceiver in tokenReceivers)
             {
