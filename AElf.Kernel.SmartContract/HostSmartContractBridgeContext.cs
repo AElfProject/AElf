@@ -32,15 +32,6 @@ namespace AElf.Kernel.SmartContract
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
 
-        public void Initialize(IStateProvider stateProvider, ITransactionContext transactionContext,
-            ISmartContractContext smartContractContext)
-        {
-            this.StateProvider = stateProvider;
-            this.TransactionContext = transactionContext;
-            this.SmartContractContext = smartContractContext;
-
-        }
-
         public int ChainId => _smartContractBridgeService.GetChainId();
 
         public void LogDebug(Func<string> func)
@@ -146,8 +137,6 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
-
-        public IStateProvider StateProvider { get; set; }
 
         public Block GetPreviousBlock()
         {
