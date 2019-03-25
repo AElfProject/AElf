@@ -18,7 +18,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     // ReSharper disable once InconsistentNaming
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
-        private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
         private readonly ConsensusControlInformation _controlInformation;
         // TODO: Add RSAPublicKey, put in value to contract.
@@ -30,10 +29,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
+        public DPoSInformationGenerationService(IAccountService accountService,
             ConsensusControlInformation controlInformation)
         {
-            _dpoSOptions = consensusOptions.Value;
             _accountService = accountService;
             _controlInformation = controlInformation;
 
@@ -46,9 +44,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             {
                 return new DPoSTriggerInformation
                 {
-                    IsBootMiner = _dpoSOptions.IsBootMiner,
-                    PublicKey = PublicKey,
-                    InitialTermNumber = _dpoSOptions.InitialTermNumber
+                    PublicKey = PublicKey
                 };
             }
 
@@ -80,10 +76,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         CurrentInValue = _inValue
                     };
                 case DPoSBehaviour.NextRound:
-                    return new DPoSTriggerInformation
-                    {
-                        PublicKey = PublicKey,
-                    };
                 case DPoSBehaviour.NextTerm:
                     return new DPoSTriggerInformation
                     {

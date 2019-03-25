@@ -26,10 +26,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var testers = new ConsensusTesters();
             testers.InitialTesters();
 
-            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, testers.Testers[1]);
-
             // Act
             var actual = await testers.Testers[1].GetConsensusCommandAsync();
 
@@ -43,11 +39,6 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
-
-            var stubInitialExtraInformation = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(stubInitialExtraInformation, testers.Testers[1]);
 
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
@@ -71,11 +62,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var testers = new ConsensusTesters();
             testers.InitialTesters();
 
-            var stubInitialExtraInformation = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(stubInitialExtraInformation, testers.Testers[1]);
-
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
@@ -96,11 +82,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var testers = new ConsensusTesters();
             testers.InitialTesters();
 
-            var stubInitialExtraInformation = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(stubInitialExtraInformation, testers.Testers[1]);
-
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
@@ -120,10 +101,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var testers = new ConsensusTesters();
             testers.InitialTesters();
 
-            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, testers.Testers[1]);
-
             // Act
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 1).ToTimestamp();
             var command = await testers.Testers[0].GetConsensusCommandAsync(futureTime);
@@ -139,11 +116,6 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
-
-            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, testers.Testers[1]);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
@@ -162,11 +134,6 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
-
-            var triggerInformationForInitialTerm = GetTriggerInformationForInitialTerm(testers.MinersKeyPairs);
-
-            await testers.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, testers.Testers[1]);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
@@ -320,16 +287,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var miners = consensusInformation.Round.RealTimeMinersInformation.Keys.ToList().ToMiners();
             Assert.Equal(candidates.Select(m => m.PublicKey).ToList().ToMiners().GetMinersHash(),
                 miners.GetMinersHash());
-        }
-
-        private DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
-        {
-            return new DPoSTriggerInformation
-            {
-                PublicKey = ByteString.CopyFrom(stubMiners[0].PublicKey),
-                Miners = {stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
-                MiningInterval = 4000,
-            };
         }
 
         private DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash currentInValue,

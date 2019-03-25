@@ -38,7 +38,6 @@ namespace AElf.Contracts.Consensus.DPoS
             var triggerInformation = new DPoSTriggerInformation
             {
                 PublicKey = ByteString.CopyFrom(tester.KeyPair.PublicKey),
-                IsBootMiner = true,
             };
             var bytes = await tester.CallContractMethodAsync(
                 tester.GetConsensusContractAddress(), // Usually the second contract is consensus contract.

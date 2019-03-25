@@ -20,25 +20,14 @@ namespace AElf.Kernel.Consensus.DPoS
 {
     public class DPoSInformationGenerationServiceTests: DPoSConsensusTestBase
     {
-        private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly ECKeyPair _minerKeyPair;
         
         public DPoSInformationGenerationServiceTests()
         {
-
             _minerKeyPair = CryptoHelpers.GenerateKeyPair();
-            _dpoSOptions = new DPoSOptions()
-            {
-                InitialMiners = new List<string>()
-                {
-                    _minerKeyPair.PublicKey.ToHex()
-                },
-                InitialTermNumber = 1,
-                MiningInterval = 2000,
-                IsBootMiner = true
-            };
+
             _accountService = GetRequiredService<IAccountService>();
             _consensusInformationGenerationService = GetRequiredService<IConsensusInformationGenerationService>();
         }
@@ -49,8 +38,6 @@ namespace AElf.Kernel.Consensus.DPoS
             var dPoSTriggerInformation =
                 (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation();
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
-            dPoSTriggerInformation.IsBootMiner.ShouldBeTrue();
-            dPoSTriggerInformation.Miners.Count.ShouldBe(0);
         }
 
         [Fact]
@@ -112,8 +99,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 }
             };
             
-            var option = Options.Create(_dpoSOptions);
-            return new DPoSInformationGenerationService(option,  _accountService, information);
+            return new DPoSInformationGenerationService(_accountService, information);
         }
     }
 }

@@ -58,6 +58,7 @@ namespace AElf.Types.CSharp
             return response != null ? method.ResponseMarshaller.Serializer(response) : null;
         }
 
+        //TODO: Add ReturnBytesToObject and InputBytesToObject test case [Case]
         public object ReturnBytesToObject(byte[] returnBytes)
         {
             return method.ResponseMarshaller.Deserializer(returnBytes);

@@ -184,12 +184,7 @@ enum DPoSBehaviour {
 
 message DPoSTriggerInformation {
     bytes PublicKey = 1;// A must-have.
-    
-    bool IsBootMiner = 3;// Only useful when initial one chain.
-    int32 MiningInterval = 4;// For the boot miner to set mining interval, usually it's 4000 (ms).
-    repeated string Miners = 5;// For the boot miner or miner gonna commit to change term to set miners of new round.
-
-    Hash CurrentInValue = 6;// To calculate Out Value and generate hash chunks to other online miners.
-    Hash PreviousInValue = 7;// Publish In Value of previous round for validating the miner's signature.
-    int64 InitialTermNumber = 8;
+    Hash CurrentInValue = 2;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash PreviousInValue = 3;// Publish In Value of previous round for validating the miner's signature.
+    int64 InitialTermNumber = 4;
 }
