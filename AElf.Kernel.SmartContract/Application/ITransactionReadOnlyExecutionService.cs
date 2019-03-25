@@ -87,7 +87,7 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
-        internal TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService)
+        public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
         }

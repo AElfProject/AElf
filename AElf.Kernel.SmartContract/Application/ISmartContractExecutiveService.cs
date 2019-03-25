@@ -20,7 +20,10 @@ using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    internal interface ISmartContractExecutiveService
+    /// <summary>
+    /// a smart contract executive, don't use it out of AElf.Kernel.SmartContract
+    /// </summary>
+    public interface ISmartContractExecutiveService
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
@@ -42,10 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
-#if DEBUG
-        public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
-#endif
-
+        
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
