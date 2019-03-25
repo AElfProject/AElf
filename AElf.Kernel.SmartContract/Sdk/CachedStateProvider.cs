@@ -39,6 +39,7 @@ namespace AElf.Kernel.SmartContract.Sdk
             private readonly Dictionary<StatePath, byte[]> _data = 
                 new Dictionary<StatePath, byte[]>();
 
+            //TODO: Add TryGetValue and this[StatePath key] cases [Case]
             public bool TryGetValue(StatePath key, out byte[] value)
             {
                 return _data.TryGetValue(key, out value);

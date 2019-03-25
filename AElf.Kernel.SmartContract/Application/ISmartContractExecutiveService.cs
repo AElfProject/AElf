@@ -80,21 +80,40 @@ namespace AElf.Kernel.SmartContract.Application
             if (!pool.TryTake(out var executive))
             {
                 var reg = await GetSmartContractRegistrationAsync(chainContext, address);
-                // get runner
-                var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+                executive = await GetExecutiveAsync(address, reg);
 
-                // run smartcontract executive info and return executive
-                executive = await runner.RunAsync(reg);
-                executive.ContractHash = reg.CodeHash;
-                executive.ContractAddress = address;
-                executive.SetHostSmartContractBridgeContext(
-                    _hostSmartContractBridgeContextService.Create(
-                        new SmartContractContext() {ContractAddress = address}));
+                if (chainContext.BlockHeight > KernelConstants.GenesisBlockHeight && //already register zero to zero
+                    address == _defaultContractZeroCodeProvider.ContractZeroAddress &&
+                    !_addressSmartContractRegistrationMappingCache.ContainsKey(address) 
+                    )
+                {
+                    executive.SetStateProviderFactory(_stateProviderFactory);
+                    //executive's registration is from code, not from contract
+                    reg = await GetSmartContractRegistrationFromZeroAsync(executive, chainContext, address);
+                    _addressSmartContractRegistrationMappingCache.TryAdd(address, reg);
+                    executive = await GetExecutiveAsync(address, reg);
+                }
             }
 
             executive.SetStateProviderFactory(_stateProviderFactory);
             return executive;
         }
+
+        private async Task<IExecutive> GetExecutiveAsync(Address address, SmartContractRegistration reg)
+        {
+            // get runner
+            var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
+
+            // run smartcontract executive info and return executive
+            var executive = await runner.RunAsync(reg);
+            executive.ContractHash = reg.CodeHash;
+            executive.ContractAddress = address;
+            executive.SetHostSmartContractBridgeContext(
+                _hostSmartContractBridgeContextService.Create(
+                    new SmartContractContext() {ContractAddress = address}));
+            return executive;
+        }
+
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
@@ -133,14 +152,33 @@ namespace AElf.Kernel.SmartContract.Application
             else
             {
                 smartContractRegistration = await GetSmartContractRegistrationFromZeroAsync(chainContext, address);
+                _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
             }
 
-            _addressSmartContractRegistrationMappingCache.TryAdd(address, smartContractRegistration);
             return smartContractRegistration;
         }
 
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
+        {
+            IExecutive executiveZero = null;
+            try
+            {
+                executiveZero =
+                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
+                return await GetSmartContractRegistrationFromZeroAsync(executiveZero, chainContext, address);
+            }
+            finally
+            {
+                if (executiveZero != null)
+                {
+                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
+                }
+            }
+        }
+
+        private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
+            IExecutive executiveZero, IChainContext chainContext, Address address)
         {
             var transaction = new Transaction()
             {
@@ -163,33 +201,16 @@ namespace AElf.Kernel.SmartContract.Application
                 Trace = trace,
                 CallDepth = 0,
             };
-
-            var registration = _defaultContractZeroCodeProvider
-                .DefaultContractZeroRegistration;
-
-            IExecutive executiveZero = null;
-            SmartContractRegistration result = null;
-            try
+            executiveZero.SetDataCache(chainContext.StateCache);
+            await executiveZero.SetTransactionContext(txCtxt).Apply();
+            var returnBytes = txCtxt.Trace?.ReturnValue;
+            if (returnBytes != null && returnBytes != ByteString.Empty)
             {
-                executiveZero =
-                    await GetExecutiveAsync(chainContext, _defaultContractZeroCodeProvider.ContractZeroAddress);
-                executiveZero.SetDataCache(chainContext.StateCache);
-                await executiveZero.SetTransactionContext(txCtxt).Apply();
-                var returnBytes = txCtxt.Trace?.ReturnValue;
-                if (returnBytes != null && returnBytes != ByteString.Empty)
-                {
-                    result = SmartContractRegistration.Parser.ParseFrom(returnBytes);
-                }
-            }
-            finally
-            {
-                if (executiveZero != null)
-                {
-                    await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
-                }
+                return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
-            return result;
+            throw new InvalidOperationException(
+                $"failed to find registration from zero contract {txCtxt.Trace.StdErr}");
         }
 
         #endregion

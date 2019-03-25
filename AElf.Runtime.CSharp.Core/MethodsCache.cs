@@ -7,6 +7,7 @@ using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp.Core
 {
+    //TODO: Add MethodsCache test cases [Case]
     public class MethodsCache
     {
         private readonly object _contractInstance;

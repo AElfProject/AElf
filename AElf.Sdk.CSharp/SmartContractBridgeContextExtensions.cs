@@ -13,6 +13,7 @@ namespace AElf.Sdk.CSharp
             context.FireLogEvent(logEvent);
         }
 
+        //TODO: Add SmartContractBridgeContextExtensions test case [Case]
 
         public static T Call<T>(this ISmartContractBridgeContext context, IStateCache stateCache, Address address,
             string methodName, IMessage message)
