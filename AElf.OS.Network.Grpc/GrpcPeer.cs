@@ -40,6 +40,7 @@ namespace AElf.OS.Network.Grpc
             PubKey = pubKey;
         }
 
+        //TODO: Add RequestBlockAsync, GetBlocksAsync, AnnounceAsync, SendTransactionAsync, RequestAsync and  HandleFailure test cases [Case]
         public async Task<Block> RequestBlockAsync(Hash hash)
         {
             var blockRequest = new BlockRequest { Hash = hash };
