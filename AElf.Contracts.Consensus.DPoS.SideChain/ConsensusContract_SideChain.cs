@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             }
 
             nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
-                currentRound.RoundNumber, State.TermNumberFromMainChainField.Value);
+                Context.CurrentBlockTime, currentRound.RoundNumber, State.TermNumberFromMainChainField.Value);
             return true;
         }
 

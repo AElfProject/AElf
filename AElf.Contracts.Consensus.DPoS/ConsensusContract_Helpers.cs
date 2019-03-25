@@ -221,13 +221,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetVictories(out var victories) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return victories.GenerateFirstRoundOfNewTerm(miningInterval, roundNumber, termNumber);
+                return victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
+                    termNumber);
             }
 
             if (TryToGetCurrentRoundInformation(out var round))
             {
                 return round.RealTimeMinersInformation.Keys.ToList().ToMiners()
-                    .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), round.RoundNumber, termNumber);
+                    .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime, round.RoundNumber,
+                        termNumber);
             }
 
             return null;

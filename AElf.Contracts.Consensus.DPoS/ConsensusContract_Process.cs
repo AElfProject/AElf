@@ -29,6 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS
             input.BlockchainAge = 1;
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+
             return new Empty();
         }
 

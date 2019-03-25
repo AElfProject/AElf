@@ -54,15 +54,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
             switch (Hint.Behaviour)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    return new DPoSTriggerInformation
-                    {
-                        PublicKey = PublicKey,
-                        Miners = {_dpoSOptions.InitialMiners},
-                        InitialTermNumber = _dpoSOptions.InitialTermNumber,
-                        IsBootMiner = _dpoSOptions.IsBootMiner,
-                        MiningInterval = _dpoSOptions.MiningInterval
-                    };
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                     // First Round.
                     if (_inValue == null)

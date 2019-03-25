@@ -170,7 +170,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value ?? DateTime.UtcNow.ToTimestamp();
+            var blockchainStartTimestamp =
+                State.BlockchainStartTimestamp.Value ?? Context.CurrentBlockTime.ToTimestamp();
 
             var votingRecord = new VotingRecord
             {

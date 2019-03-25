@@ -25,6 +25,8 @@ namespace AElf.Kernel.Consensus.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         public ILogger<ConsensusService> Logger { get; set; }
 
+        private DateTime _nextMiningTime;
+
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IConsensusScheduler consensusScheduler, IBlockchainService blockchainService,
@@ -46,7 +48,7 @@ namespace AElf.Kernel.Consensus.Application
             var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
             // Upload the consensus command.
             var commandBytes = await ExecuteContractAsync(chainContext, ConsensusConsts.GetConsensusCommand,
-                triggerInformation);
+                triggerInformation, DateTime.UtcNow);
             _consensusControlInformation.ConsensusCommand =
                 ConsensusCommand.Parser.ParseFrom(commandBytes.ToByteArray());
 
@@ -56,6 +58,11 @@ namespace AElf.Kernel.Consensus.Application
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);
+
+            // Update next mining time, also block time of both getting consensus extra data and txs.
+            _nextMiningTime =
+                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand
+                    .NextBlockMiningLeftMilliseconds);
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
@@ -63,7 +70,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             var validationResult = ValidationResult.Parser.ParseFrom(
                 await ExecuteContractAsync(chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
-                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData)));
+                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData), DateTime.UtcNow));
 
             if (!validationResult.Success)
             {
@@ -78,7 +85,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             var validationResult = ValidationResult.Parser.ParseFrom(
                 await ExecuteContractAsync(chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
-                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData)));
+                    _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData), DateTime.UtcNow));
 
             if (!validationResult.Success)
             {
@@ -91,7 +98,7 @@ namespace AElf.Kernel.Consensus.Application
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext)
         {
             return (await ExecuteContractAsync(chainContext, ConsensusConsts.GetInformationToUpdateConsensus,
-                _consensusInformationGenerationService.GetTriggerInformation())).ToByteArray();
+                _consensusInformationGenerationService.GetTriggerInformation(), _nextMiningTime)).ToByteArray();
             ;
         }
 
@@ -99,7 +106,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             var generatedTransactions = TransactionList.Parser.ParseFrom(
                     await ExecuteContractAsync(chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                        _consensusInformationGenerationService.GetTriggerInformation()))
+                        _consensusInformationGenerationService.GetTriggerInformation(), _nextMiningTime))
                 .Transactions
                 .ToList();
 
@@ -115,7 +122,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         private async Task<ByteString> ExecuteContractAsync(IChainContext chainContext, string consensusMethodName,
-            IMessage input)
+            IMessage input, DateTime dateTime)
         {
             var tx = new Transaction
             {
@@ -127,7 +134,7 @@ namespace AElf.Kernel.Consensus.Application
             };
 
             var transactionTrace =
-                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, dateTime);
             return transactionTrace.ReturnValue;
         }
     }

@@ -29,8 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var behaviour = GetBehaviour(publicKey, currentBlockTime, out var round, out var minerInRound);
 
             TryToGetMiningInterval(out var miningInterval);
-            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, currentBlockTime,
-                input.IsBootMiner);
+            return behaviour.GetConsensusCommand(round, minerInRound, miningInterval, currentBlockTime);
         }
 
         public override DPoSHeaderInformation GetInformationToUpdateConsensus(DPoSTriggerInformation input)
@@ -45,17 +44,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    var miningInterval = input.MiningInterval;
-                    var initialMiners = input.Miners;
-                    var firstRound = initialMiners.ToList().ToMiners(1)
-                        .GenerateFirstRoundOfNewTerm(miningInterval);
-                    return new DPoSHeaderInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = firstRound,
-                        Behaviour = behaviour
-                    };
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     Assert(input.CurrentInValue != null && input.CurrentInValue != null,
@@ -130,14 +118,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction(nameof(InitialConsensus), round)
-                        }
-                    };
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     return new TransactionList
@@ -184,7 +164,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             var behaviour = input.Behaviour;
 
             // Try to get current round information (for further validation).
-            if (currentRound == null && behaviour != DPoSBehaviour.InitialConsensus)
+            if (currentRound == null)
             {
                 return new ValidationResult
                     {Success = false, Message = "Failed to get current round information."};
@@ -192,8 +172,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    break;
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     // Need to check round id when updating current round information.
@@ -232,8 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
         public override ValidationResult ValidateConsensusAfterExecution(DPoSHeaderInformation input)
         {
-            if (input.Behaviour != DPoSBehaviour.InitialConsensus &&
-                TryToGetCurrentRoundInformation(out var currentRound))
+            if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
@@ -267,7 +244,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             // And to initial DPoS information, we need to generate the information of first round, at least.
             if (!TryToGetCurrentRoundInformation(out round))
             {
-                return DPoSBehaviour.InitialConsensus;
+                return DPoSBehaviour.Invalid;
             }
 
             if (!round.IsTimeSlotPassed(publicKey, dateTime, out minerInRound) && minerInRound.OutValue == null)

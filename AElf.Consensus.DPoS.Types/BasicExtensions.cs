@@ -11,25 +11,10 @@ namespace AElf.Consensus.DPoS
     public static class BasicExtensions
     {
         public static ConsensusCommand GetConsensusCommand(this DPoSBehaviour behaviour, Round round,
-            MinerInRound minerInRound, int miningInterval, DateTime dateTime, bool isBootMiner)
+            MinerInRound minerInRound, int miningInterval, DateTime dateTime)
         {
             switch (behaviour)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    return new ConsensusCommand
-                    {
-                        // For now, only if one node configured himself as a boot miner can he actually create the first block,
-                        // which block height is 2.
-                        NextBlockMiningLeftMilliseconds = isBootMiner
-                            ? 8000
-                            : int.MaxValue,
-                        // No need to limit the mining time for the first block a chain.
-                        LimitMillisecondsOfMiningBlock = int.MaxValue,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
                     var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
@@ -505,7 +490,7 @@ namespace AElf.Consensus.DPoS
         }
 
         public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval,
-            long currentRoundNumber = 0, long currentTermNumber = 0)
+            DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
 
@@ -538,7 +523,7 @@ namespace AElf.Consensus.DPoS
                 // Signatures totally randomized.
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
+                    currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
                 minerInRound.PromisedTinyBlocks = 1;
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
@@ -674,17 +659,6 @@ namespace AElf.Consensus.DPoS
         private static int GetAbsModulus(long longValue, int intValue)
         {
             return Math.Abs((int) longValue % intValue);
-        }
-
-        /// <summary>
-        /// Get local time
-        /// </summary>
-        /// <param name="offset">minutes</param>
-        /// <returns></returns>
-        private static Timestamp GetTimestampOfUtcNow(int offset = 0)
-        {
-            var now = Timestamp.FromDateTime(DateTime.UtcNow.AddMilliseconds(offset));
-            return now;
         }
     }
 }

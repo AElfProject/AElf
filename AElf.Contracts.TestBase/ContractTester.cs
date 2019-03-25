@@ -28,6 +28,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
+using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -175,7 +176,7 @@ namespace AElf.Contracts.TestBase
         /// Will deploy consensus contract by default.
         /// </summary>
         /// <returns>Return contract addresses as the param order.</returns>
-        public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        public async Task<OsBlockchainNodeContext> InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
@@ -198,7 +199,7 @@ namespace AElf.Contracts.TestBase
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
-            await osBlockchainNodeContextService.StartAsync(dto);
+            return await osBlockchainNodeContextService.StartAsync(dto);
         }
 
         /// <summary>

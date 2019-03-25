@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -93,14 +94,8 @@ namespace AElf.Launcher
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
-                });
+
+            var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
 
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
@@ -112,10 +107,11 @@ namespace AElf.Launcher
 
             if (chainOptions.IsSideChain)
             {
-                //dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
+                dto.InitializationSmartContracts.AddConsensusSmartContract<SideChain.ConsensusContract>();
             }
             else
-                dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
+                dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+                    GenerateConsensusInitializationCallList(dposOptions));
 
             var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
                 .GetZeroSmartContractAddress();
@@ -133,6 +129,21 @@ namespace AElf.Launcher
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
+        }
+
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        {
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
+                dposOptions.InitialMiners.ToMiners()
+                    .GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval, DateTime.UtcNow));
+            return consensusMethodCallList;
         }
 
         private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer)

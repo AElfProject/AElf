@@ -175,12 +175,11 @@ message DPoSHint {
 }
 
 enum DPoSBehaviour {
-    InitialConsensus = 0;
-    UpdateValue = 1;
-    NextRound = 2;
-    NextTerm = 3;
-    Invalid = 4;
-    UpdateValueWithoutPreviousInValue = 5;
+    UpdateValue = 0;
+    NextRound = 1;
+    NextTerm = 2;
+    Invalid = 3;
+    UpdateValueWithoutPreviousInValue = 4;
 }
 
 message DPoSTriggerInformation {

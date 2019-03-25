@@ -54,18 +54,6 @@ namespace AElf.Kernel.Consensus.DPoS
         }
 
         [Fact]
-        public void GetTriggerInformation__ConsensusCommand_InitialConsensus()
-        {
-            var consensusInformationGenerationService =
-                GetConsensusInformationGenerationService(DPoSBehaviour.InitialConsensus);
-            
-            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
-            dPoSTriggerInformation.Miners.Count.ShouldBeGreaterThanOrEqualTo(1);
-            dPoSTriggerInformation.Miners[0].ShouldBe(_minerKeyPair.PublicKey.ToHex());
-            dPoSTriggerInformation.MiningInterval.ShouldBe(2000);
-        }
-
-        [Fact]
         public void GetTriggerInformation__ConsensusCommand_UpdateValue()
         {
             var consensusInformationGenerationService =
