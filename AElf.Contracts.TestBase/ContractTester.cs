@@ -521,5 +521,10 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
         }
+
+        public Task<TResult> InitialChainAndTokenAsync<TResult>()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
