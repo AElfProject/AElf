@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AElf.Contracts.TestBase2
 {
     public class ContractTestBase2<TContractTestAElfModule> : AElfIntegratedTest<TContractTestAElfModule>
-        where TContractTestAElfModule : AElfModule
+        where TContractTestAElfModule : ContractTestAElfModule2
     {
         public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractTesterBase, new()
         {
