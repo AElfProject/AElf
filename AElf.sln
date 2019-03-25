@@ -252,6 +252,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Test", "AElf.Contracts.MultiToken.Test\AElf.Contracts.MultiToken.Test.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain.Tests", "AElf.Contracts.Consensus.DPoS.SideChain.Tests\AElf.Contracts.Consensus.DPoS.SideChain.Tests.csproj", "{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver.Tests", "AElf.Contracts.Resource.FeeReceiver.Tests\AElf.Contracts.Resource.FeeReceiver.Tests.csproj", "{85188AEE-3DCE-4535-850D-B3E69BF84CA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend.Tests", "AElf.Contracts.Dividend.Tests\AElf.Contracts.Dividend.Tests.csproj", "{20F01527-7A2B-428B-A96D-5C7052A32830}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -630,6 +638,22 @@ Global
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85188AEE-3DCE-4535-850D-B3E69BF84CA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85188AEE-3DCE-4535-850D-B3E69BF84CA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85188AEE-3DCE-4535-850D-B3E69BF84CA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85188AEE-3DCE-4535-850D-B3E69BF84CA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20F01527-7A2B-428B-A96D-5C7052A32830}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20F01527-7A2B-428B-A96D-5C7052A32830}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20F01527-7A2B-428B-A96D-5C7052A32830}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20F01527-7A2B-428B-A96D-5C7052A32830}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -718,5 +742,9 @@ Global
 		{BB775A9A-6822-439F-8D03-23F6B6FCF5DA} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{85188AEE-3DCE-4535-850D-B3E69BF84CA7} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{20F01527-7A2B-428B-A96D-5C7052A32830} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
