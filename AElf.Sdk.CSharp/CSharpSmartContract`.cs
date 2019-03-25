@@ -18,15 +18,10 @@ namespace AElf.Sdk.CSharp
             private set
             {
                 _context = value;
-                SetContractAddress(_context.Self);
             }
         }
 
         public TContractState State { get; internal set; }
 
-        public CSharpSmartContract()
-        {
-            State = new TContractState();
-        }
     }
 }
