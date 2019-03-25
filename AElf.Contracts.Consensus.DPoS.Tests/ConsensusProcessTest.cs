@@ -289,7 +289,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 miners.GetMinersHash());
         }
 
-        private DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash currentInValue,
+        private DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
             Hash previousInValue = null)
         {
             if (previousInValue == null)
@@ -301,7 +301,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
                 PreviousInValue = previousInValue,
-                CurrentInValue = currentInValue
+                RandomHash = randomHash
             };
         }
 

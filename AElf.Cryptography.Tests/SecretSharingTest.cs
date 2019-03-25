@@ -25,7 +25,8 @@ namespace AElf.Cryptography.Tests
             var parts = SecretSharingHelper.EncodeSecret(str, threshold, totalParts);
             Assert.Equal(totalParts, parts.Count);
 
-            var result = SecretSharingHelper.DecodeSecret(parts.Take(threshold).ToList(), threshold);
+            var result = SecretSharingHelper.DecodeSecret(parts.Take(threshold).ToList(),
+                Enumerable.Range(1, 12).ToList(), threshold);
             Assert.Equal(str, result);
         }
     }

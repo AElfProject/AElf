@@ -283,14 +283,15 @@ namespace AElf.Consensus.DPoS
         }
 
 
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
-            Hash outValue, Hash signature, DateTime dateTime)
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature,
+            DateTime dateTime)
         {
             round.ClearTuneOrderOfNextRound();
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 round.RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
-                round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
+                // TODO: Recover in value from secret sharing pieces.
+                //round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
                 round.RealTimeMinersInformation[publicKey].OutValue = outValue;
                 if (round.RoundNumber != 1)
                 {

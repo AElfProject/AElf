@@ -42,12 +42,10 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
-                    Assert(input.CurrentInValue != null && input.CurrentInValue != null,
+                    Assert(input.RandomHash != null && input.RandomHash != null,
                         "Current in value should be valid.");
 
-                    var previousInValue = input.PreviousInValue;
-
-                    var inValue = input.CurrentInValue;
+                    var inValue = Hash.FromTwoHashes(Context.PreviousBlockHash, input.RandomHash);
 
                     var outValue = Hash.FromMessage(inValue);
 
@@ -59,7 +57,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
-                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue, outValue, signature,
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), outValue, signature,
                         currentBlockTime);
                     // To publish Out Value.
                     return new DPoSHeaderInformation

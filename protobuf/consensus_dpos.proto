@@ -184,7 +184,7 @@ enum DPoSBehaviour {
 
 message DPoSTriggerInformation {
     bytes PublicKey = 1;// A must-have.
-    Hash CurrentInValue = 2;// To calculate Out Value and generate hash chunks to other online miners.
+    Hash RandomHash = 2;// To calculate In Value.
     Hash PreviousInValue = 3;// Publish In Value of previous round for validating the miner's signature.
     int64 InitialTermNumber = 4;
 }

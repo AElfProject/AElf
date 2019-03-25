@@ -41,7 +41,7 @@ namespace AElf.Cryptography.SecretSharing
         }
 
         // The shared parts must be sent in order.
-        public static string DecodeSecret(List<string> sharedParts, int threshold)
+        public static string DecodeSecret(List<string> sharedParts, List<int> orders, int threshold)
         {
             var result = BigInteger.Zero;
             
@@ -56,14 +56,8 @@ namespace AElf.Cryptography.SecretSharing
                         continue;
                     }
 
-                    (numerator, denominator) = MultiplyRational(numerator, denominator, j + 1, j - i);
-//                    var numeratorRhs = j + 1;
-//                    var denominatorRhs = Math.Abs(j - i);
-//                    numerator = (numerator * numeratorRhs) % SecretSharingConsts.FieldPrime;
-//                    denominator = (denominator * denominatorRhs) % SecretSharingConsts.FieldPrime;
-//                    var gcd = GCD(numerator, denominator);
-//                    numerator /= gcd;
-//                    denominator /= gcd;
+                    (numerator, denominator) =
+                        MultiplyRational(numerator, denominator, orders[j], orders[j] - orders[i]);
                 }
 
                 result += RationalToWhole(numerator, denominator);

@@ -20,12 +20,20 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     {
         private readonly IAccountService _accountService;
         private readonly ConsensusControlInformation _controlInformation;
-        // TODO: Add RSAPublicKey, put in value to contract.
-        private Hash _inValue;
 
-        public ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
+        private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
-        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
+        private DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
+        
+        private Hash RandomHash
+        {
+            get
+            {
+                var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds.DumpByteArray());
+                var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
+                return Hash.FromRawBytes(bytes);
+            }
+        }
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
@@ -51,29 +59,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             switch (Hint.Behaviour)
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
-                    // First Round.
-                    if (_inValue == null)
-                    {
-                        _inValue = Hash.Generate();
-                    }
-                    return new DPoSTriggerInformation
-                    {
-                        PublicKey = PublicKey,
-                        PreviousInValue = Hash.Empty,
-                        CurrentInValue = _inValue
-                    };
                 case DPoSBehaviour.UpdateValue:
-                    if (_inValue == null)
-                    {
-                        _inValue = Hash.Generate();
-                    }
-                    var previousInValue = _inValue;
-                    _inValue = Hash.Generate();
                     return new DPoSTriggerInformation
                     {
                         PublicKey = PublicKey,
-                        PreviousInValue = previousInValue,
-                        CurrentInValue = _inValue
+                        RandomHash = RandomHash
                     };
                 case DPoSBehaviour.NextRound:
                 case DPoSBehaviour.NextTerm:
