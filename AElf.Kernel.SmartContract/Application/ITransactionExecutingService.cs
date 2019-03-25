@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
-        public TransactionExecutingService(ITransactionResultService transactionResultService,
+        internal TransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _transactionResultService = transactionResultService;
