@@ -27,7 +27,7 @@ service TestContract {
     }
     rpc TestComplex2State(Complex2Input) returns (Complex2Output) {
     }
-    rpc TestMappedState(BoolInput) returns (ProtobufListOutput) {
+    rpc TestMappedState(ProtobufInput) returns (ProtobufListOutput) {
     }
 }
 

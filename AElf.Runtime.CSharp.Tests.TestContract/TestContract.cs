@@ -3,7 +3,7 @@ using Google.Protobuf;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {
-    public class ContractApi : TestContractContainer.TestContractBase
+    public class TestContract : TestContractContainer.TestContractBase
     {
         public override BoolOutput TestBoolState(BoolInput input)
         {
@@ -52,6 +52,9 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
         public override StringOutput TestStringState(StringInput input)
         {
+            if(string.IsNullOrEmpty(State.StringInfo.Value))
+                State.StringInfo.Value = string.Empty;
+            
             State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
             return new StringOutput()
             {
@@ -104,6 +107,28 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
                 BoolData = new BoolOutput(){ BoolValue = State.BoolInfo.Value },
                 Int32Data = new Int32Output() { Int32Value = State.Int32Info.Value }
             };
+        }
+
+        public override ProtobufListOutput TestMappedState(ProtobufInput input)
+        {
+            var protobufMessage = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
+            if(protobufMessage == null)
+            {    State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] = new ProtobufMessage()
+                {
+                    BoolValue = true,
+                    Int64Value = input.ProtobufValue.Int64Value,
+                    StringValue = input.ProtobufValue.StringValue
+                };
+            }
+            else
+            {
+                State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue].Int64Value =
+                    input.ProtobufValue.Int64Value;
+            }
+
+          return new ProtobufListOutput()
+          {
+          };
         }
     }
 }

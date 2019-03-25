@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
@@ -14,6 +13,6 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public BytesState BytesInfo { get; set; }
         public ProtobufState<ProtobufMessage> ProtoInfo { get; set; }
         
-        public MappedState<int, string, ProtobufMessage> Complex3Info { get; set; }
+        public MappedState<long, string, ProtobufMessage> Complex3Info { get; set; }
     }
 }
