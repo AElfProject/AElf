@@ -29,6 +29,9 @@ namespace AElf.Kernel.SmartContract
                 return mockSmartContractRunner.Object;
             });
 
+            services.AddTransient<ISmartContractBridgeService, SmartContractBridgeService>();
+            services.AddTransient<ISmartContractExecutiveService, SmartContractExecutiveService>();
+            services.AddTransient<IHostSmartContractBridgeContext, HostSmartContractBridgeContext>();
         }
     }
 }
