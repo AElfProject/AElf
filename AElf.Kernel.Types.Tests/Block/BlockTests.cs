@@ -73,7 +73,7 @@ namespace AElf.Kernel.Types.Tests
         {
             var blockHeader = new BlockHeader
             {
-                ChainId = ChainHelpers.GetRandomChainId(),
+                ChainId = 2111,
                 Height = 10,
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfTransactions = Hash.Generate(),

@@ -109,7 +109,6 @@ namespace AElf.Cryptography
             }
         }
 
-        //TODO: Add RandomFill test case [Case]
         /// <summary>
         /// Returns a byte array of the specified length, filled with random bytes.
         /// </summary>

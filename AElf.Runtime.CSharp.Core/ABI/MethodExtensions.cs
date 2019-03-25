@@ -6,6 +6,7 @@ using Method = AElf.Kernel.ABI.Method;
 
 namespace AElf.Runtime.CSharp.Core.ABI
 {
+    //TODO: Add MethodExtensions test cases [Case]
     public static class MethodExtensions
     {
         public static byte[] SerializeParams(this Method method, IEnumerable<string> args)

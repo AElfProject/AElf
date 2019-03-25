@@ -21,6 +21,7 @@ namespace AElf.OS.Jobs
         public INetworkService NetworkService { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
 
+        //TODO: Add ExecuteAsync case [Case]
         protected override async Task ExecuteAsync(BlockSyncJobArgs args)
         {
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
@@ -28,7 +29,7 @@ namespace AElf.OS.Jobs
             var chain = await BlockchainService.GetChainAsync();
             try
             {
-                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.LongestChainHeight < 5)
+                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.BestChainHeight < 5)
                 {
                     var peerBlockHash = Hash.LoadHex(args.BlockHash);
                     var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
@@ -91,7 +92,7 @@ namespace AElf.OS.Jobs
 
                     chain = await BlockchainService.GetChainAsync();
                     peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
-                    if (chain.LongestChainHeight >= peerBestChainHeight)
+                    if (chain.BestChainHeight >= peerBestChainHeight)
                     {
                         break;
                     }

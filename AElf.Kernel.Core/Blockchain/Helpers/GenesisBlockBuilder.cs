@@ -4,6 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Helpers
 {
+    //TODO: Add GenesisBlockBuilder test case [Case]
     public class GenesisBlockBuilder
     {
         public Block Block { get; set; }

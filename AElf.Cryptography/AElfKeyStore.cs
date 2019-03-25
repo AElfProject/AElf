@@ -88,6 +88,7 @@ namespace AElf.Cryptography
             return Errors.None;
         }
 
+        //TODO: Add CloseAccount test case [Case]
         private void CloseAccount(object accountObject)
         {
             if (!(accountObject is OpenAccount openAccount))

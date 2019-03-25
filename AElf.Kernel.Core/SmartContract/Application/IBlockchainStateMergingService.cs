@@ -43,29 +43,37 @@ namespace AElf.Kernel.SmartContract.Application
                 return;
             }
 
-            var hashes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
-
+            var blockIndexes = new List<IBlockIndex>();
+            // ChainStateInfo.MergingBlockHash is the next block hash and not merged (state change not remove)
+            // Redo merge if status is merging/merged, so ignore the block
             if (chainStateInfo.Status != ChainStateMergingStatus.Common)
-                hashes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
+            {
+                blockIndexes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
+                mergeCount -= 1;
+            }
 
-            hashes.Reverse();
+            var reversedBlockIndexes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
 
-            hashes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
+            blockIndexes.AddRange(reversedBlockIndexes);
+
+            blockIndexes.Reverse();
+
+            blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
             Logger.LogTrace(
-                $"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {hashes.Count}");
+                $"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
 
-            foreach (var hash in hashes)
+            foreach (var blockIndex in blockIndexes)
             {
                 try
                 {
-                    Logger.LogDebug($"Merging state {chainStateInfo} for block {hash.Hash} at height {hash.Height}");
-                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, hash.Hash);
+                    Logger.LogDebug($"Merging state {chainStateInfo} for block {blockIndex}");
+                    await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, blockIndex.Hash);
                 }
                 catch (Exception e)
                 {
                     Logger.LogError(e,
-                        $"Exception while merge state {chainStateInfo} for block {hash.Hash} at height {hash.Height}");
+                        $"Exception while merge state {chainStateInfo} for block {blockIndex}");
                     break;
                 }
             }

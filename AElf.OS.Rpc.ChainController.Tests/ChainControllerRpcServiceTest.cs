@@ -91,15 +91,14 @@ namespace AElf.OS.Rpc.ChainController.Tests
         }
 
         [Fact]
-        public async Task Connect_Chain_Success()
+        public async Task Get_Chain_Information_Success()
         {
             var chainId = _blockchainService.GetChainId();
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
-            var response = await JsonCallAsJObject("/chain", "ConnectChain");
+            var response = await JsonCallAsJObject("/chain", "GetChainInformation");
 
-            var responseZeroContractAddress =
-                response["result"][SmartContract.GenesisSmartContractZeroAssemblyName].ToString();
+            var responseZeroContractAddress = response["result"]["GenesisContractAddress"].ToString();
             var responseChainId = ChainHelpers.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
 
             responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
@@ -556,13 +555,11 @@ namespace AElf.OS.Rpc.ChainController.Tests
             //Result empty
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = transaction.To.GetFormatted()});
-            //response["result"].ToString().ShouldBeEmpty();
+            response["result"].ToString().ShouldNotBeEmpty();
 
             var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response["result"].ToString()));
-            
-            //Result not empty
-            //TODO: Add logic to cover query with data case [Case] 
-            //BODY: Will complete this logic after contract changed to grpc style. 
+            set.ShouldNotBeNull();
+            set.File.Count.ShouldBeGreaterThanOrEqualTo(1);
         }
 
         [Fact]

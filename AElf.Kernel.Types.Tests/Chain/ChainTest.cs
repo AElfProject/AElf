@@ -11,7 +11,8 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void Basic_ChainTest()
         {
-            var chain = new Chain(ChainHelpers.GetRandomChainId(), Hash.Empty);
+            var chainId = 2111;
+            var chain = new Chain(chainId, Hash.Empty);
             var serializeData = chain.Serialize();
         }
 

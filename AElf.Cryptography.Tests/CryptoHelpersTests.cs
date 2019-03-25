@@ -46,5 +46,12 @@ namespace AElf.Cryptography.Tests
             Assert.True(recoverResult2);
             Assert.False(publicKey2.BytesEqual(keyPair.PublicKey));
         }
+
+        [Fact]
+        public void Test_RandomByteArrayGenerate()
+        {
+            var byteArray1 = CryptoHelpers.RandomFill(30);
+            byteArray1.Length.ShouldBe(30);
+        }
     }
 }
