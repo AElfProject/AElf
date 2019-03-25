@@ -16,18 +16,6 @@ namespace AElf.Sdk.CSharp
             State.Provider = stateProvider;
         }
 
-        internal override void SetContractAddress(Address address)
-        {
-            if (address == null)
-            {
-                throw new Exception($"Input {nameof(address)} is null.");
-            }
-
-            var path = new StatePath();
-            path.Path.Add(ByteString.CopyFromUtf8(address.GetFormatted()));
-            State.Path = path;
-        }
-
         internal override TransactionExecutingStateSet GetChanges()
         {
             return State.GetChanges();
@@ -42,9 +30,13 @@ namespace AElf.Sdk.CSharp
         {
             if(Context!=null)
                 throw new InvalidOperationException();
-            
+            State = new TContractState();
+
             Context = bridgeContext;
             State.Context = bridgeContext;
+            var path = new StatePath();
+            path.Path.Add(ByteString.CopyFromUtf8(bridgeContext. Self.GetFormatted()));
+            State.Path = path;
         }
     }
 }
