@@ -103,33 +103,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseChainId.ShouldBe(chainId);
         }
 
-
-        [Fact]
-        public async Task Get_ContractAbi_ReturnInvalidAddress()
-        {
-            var invalidAddress = "InvalidAddress";
-            var response = await JsonCallAsJObject("/chain", "GetContractAbi",
-                new {address = invalidAddress});
-            var responseCode = (long) response["error"]["code"];
-            var responseMessage = response["error"]["message"].ToString();
-
-            responseCode.ShouldBe(Error.InvalidAddress);
-            responseMessage.ShouldBe(Error.Message[Error.InvalidAddress]);
-        }
-
-        [Fact]
-        public async Task Get_ContractAbi_ReturnNotFound()
-        {
-            var notFoundAddress = Address.FromString("NotFound").GetFormatted();
-            var response = await JsonCallAsJObject("/chain", "GetContractAbi",
-                new {address = notFoundAddress});
-            var responseCode = (long) response["error"]["code"];
-            var responseMessage = response["error"]["message"].ToString();
-
-            responseCode.ShouldBe(Error.NotFound);
-            responseMessage.ShouldBe(Error.Message[Error.NotFound]);
-        }
-
         [Fact]
         public async Task Broadcast_Transaction_Success()
         {
