@@ -40,7 +40,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
         public ILogger<ChainControllerRpcServiceServerTest> Logger { get; set; }
         private readonly IBlockchainService _blockchainService;
         private readonly ITxHub _txHub;
-        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly IAccountService _accountService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly OSTestHelper _osTestHelper;
@@ -54,7 +53,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
             _blockchainService = GetRequiredService<IBlockchainService>();
             _txHub = GetRequiredService<ITxHub>();
-            _smartContractExecutiveService = GetRequiredService<ISmartContractExecutiveService>();
             _accountService = GetRequiredService<IAccountService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
@@ -105,45 +103,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseChainId.ShouldBe(chainId);
         }
 
-        [Fact]
-        public async Task Get_ContractAbi_Success()
-        {
-            // Deploy a new contact and mined
-            var chain = await _blockchainService.GetChainAsync();
-            var accountAddress = await _accountService.GetAccountAsync();
-            var transaction = _osTestHelper.GenerateTransaction(accountAddress,
-                _smartContractAddressService.GetZeroSmartContractAddress(),
-                nameof(ISmartContractZero.DeploySmartContract),
-                new ContractDeploymentInput
-                {
-                    Category = DefaultCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicContractZero).Assembly.Location))
-                });
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
-
-            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction});
-            await _osTestHelper.MinedOneBlock();
-
-            // Get abi
-            chain = await _blockchainService.GetChainAsync();
-            var newContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
-            var chainContext = new ChainContext
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-            var abi = await _smartContractExecutiveService.GetAbiAsync(chainContext, newContractAddress);
-
-            // Get abi from rpc
-            var response = await JsonCallAsJObject("/chain", "GetContractAbi",
-                new {address = newContractAddress.GetFormatted()});
-            var responseAddress = response["result"]["Address"].ToString();
-            var responseAbi = response["result"]["Abi"].ToString();
-
-            responseAddress.ShouldBe(newContractAddress.GetFormatted());
-            responseAbi.ShouldBe(abi.ToByteArray().ToHex());
-        }
 
         [Fact]
         public async Task Get_ContractAbi_ReturnInvalidAddress()
