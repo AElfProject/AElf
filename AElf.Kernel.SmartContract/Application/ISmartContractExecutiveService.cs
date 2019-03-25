@@ -29,7 +29,6 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address);
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -130,12 +129,6 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        public async Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address)
-        {
-            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
-            var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
-            return runner.GetAbi(smartContractRegistration);
-        }
 
         #region private methods
 
