@@ -20,6 +20,9 @@ using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    /// <summary>
+    /// a smart contract executive, don't use it out of AElf.Kernel.SmartContract
+    /// </summary>
     public interface ISmartContractExecutiveService
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
@@ -42,10 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
-#if DEBUG
-        public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
-#endif
-
+        
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -84,8 +84,8 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (chainContext.BlockHeight > KernelConstants.GenesisBlockHeight && //already register zero to zero
                     address == _defaultContractZeroCodeProvider.ContractZeroAddress &&
-                    !_addressSmartContractRegistrationMappingCache.ContainsKey(address) 
-                    )
+                    !_addressSmartContractRegistrationMappingCache.ContainsKey(address)
+                )
                 {
                     executive.SetStateProviderFactory(_stateProviderFactory);
                     //executive's registration is from code, not from contract
@@ -108,9 +108,9 @@ namespace AElf.Kernel.SmartContract.Application
             var executive = await runner.RunAsync(reg);
             executive.ContractHash = reg.CodeHash;
             executive.ContractAddress = address;
-            executive.SetHostSmartContractBridgeContext(
-                _hostSmartContractBridgeContextService.Create(
-                    new SmartContractContext() {ContractAddress = address}));
+            var context =
+                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address});
+            executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
 
