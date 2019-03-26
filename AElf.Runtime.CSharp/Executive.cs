@@ -77,14 +77,6 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-
-        public IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory)
-        {
-            _stateProvider = new CachedStateProvider(stateProviderFactory.CreateStateProvider());
-            _smartContractProxy.SetStateProvider(_stateProvider);
-            return this;
-        }
-
         public void SetDataCache(IStateCache cache)
         {
             _stateProvider.Cache = cache ?? new NullStateCache();

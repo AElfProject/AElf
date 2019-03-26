@@ -31,7 +31,7 @@ namespace AElf.Sdk.CSharp.Tests
                     ContractAddress = AddressList[0],
                 });
             Contract.InternalInitialize(BridgeContext);
-            Contract.SetStateProvider(StateProvider);
+            //Contract.SetStateProvider(StateProvider);
 
 
             var transactionContext = new TransactionContext()
