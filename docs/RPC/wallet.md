@@ -1,7 +1,7 @@
 ### 1 List accounts
-| Verb   | URL                          | Method name  |
-| :------| :---------------------------:| :------------|
-| POST   | http://localhost:5000/wallet | ListAccounts |
+| Method name  | Verb   | URL                          | 
+| :------------|:-------| :----------------------------| 
+| ListAccounts | POST   | http://{host}:{port}/wallet  |
 
 * request
   ```
