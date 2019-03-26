@@ -64,9 +64,6 @@ namespace AElf.Runtime.CSharp
             _callHandlers = GetHandlers(assembly);
         }
 
-        public Hash ContractHash { get; set; }
-        public Address ContractAddress { get; set; }
-
         public IExecutive SetMaxCallDepth(int maxCallDepth)
         {
             _maxCallDepth = maxCallDepth;

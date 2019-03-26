@@ -9,7 +9,10 @@ namespace AElf.Sdk.CSharp.State
 {
     public class StructuredState : StateBase
     {
-        internal Dictionary<string, PropertyInfo> PropertyInfos;
+        private Dictionary<string, PropertyInfo> _propertyInfos;
+
+        //private Dictionary<string, StateBase> _states;
+         
 
         public StructuredState()
         {
@@ -19,15 +22,26 @@ namespace AElf.Sdk.CSharp.State
 
         private void DetectPropertyInfos()
         {
-            PropertyInfos = this.GetType()
+            _propertyInfos = this.GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
                 .ToDictionary(x => x.Name, x => x);
+            /*_states = this.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
+                .ToDictionary(x => x.Name, x =>
+                {
+                    var method = x.GetGetMethod();
+                    var func = (Func<StateBase>) Delegate.CreateDelegate(typeof(Func<StateBase>),
+                        this,
+                        x.GetGetMethod());
+                    return func();
+                });*/
         }
 
         private void InitializeProperties()
         {
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 var type = propertyInfo.PropertyType;
@@ -38,7 +52,7 @@ namespace AElf.Sdk.CSharp.State
 
         internal override void OnPathSet()
         {
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 var path = this.Path.Clone();
@@ -51,7 +65,7 @@ namespace AElf.Sdk.CSharp.State
 
         internal override void OnContextSet()
         {
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 ((StateBase) propertyInfo.GetValue(this)).Context = Context;
@@ -62,7 +76,7 @@ namespace AElf.Sdk.CSharp.State
 
         internal override void OnProviderSet()
         {
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 ((StateBase) propertyInfo.GetValue(this)).Provider = this.Provider;
@@ -73,7 +87,7 @@ namespace AElf.Sdk.CSharp.State
 
         internal override void Clear()
         {
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 ((StateBase) propertyInfo.GetValue(this)).Clear();
@@ -83,7 +97,7 @@ namespace AElf.Sdk.CSharp.State
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
-            foreach (var kv in PropertyInfos)
+            foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
                 var propertyValue = (StateBase) propertyInfo.GetValue(this);
