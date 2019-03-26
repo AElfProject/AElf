@@ -82,6 +82,9 @@ namespace AElf.Contracts.Consensus.DPoS
             
             round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
 
+            round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
+            round.RealTimeMinersInformation[publicKey].DecryptedInValues.Add(input.DecryptedInValues);
+
             foreach (var changeOrderInformation in input.ChangedOrders)
             {
                 round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =

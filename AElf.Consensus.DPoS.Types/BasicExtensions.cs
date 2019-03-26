@@ -280,13 +280,15 @@ namespace AElf.Consensus.DPoS
                 PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTime,
                 OrderOfNextRound = minerInRound.OrderOfNextRound,
-                ChangedOrders = {changeOrders}
+                ChangedOrders = {changeOrders},
+                EncryptedInValues = {minerInRound.EncryptedInValues},
+                DecryptedInValues = {minerInRound.DecryptedInValues}
             };
         }
 
 
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash inValue, Hash outValue,
-            Hash signature, DateTime dateTime)
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature,
+            DateTime dateTime)
         {
             round.ClearTuneOrderOfNextRound();
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
@@ -337,8 +339,6 @@ namespace AElf.Consensus.DPoS
 
             return round;
         }
-
-
 
         private static void ClearTuneOrderOfNextRound(this Round round)
         {

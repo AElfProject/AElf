@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
-                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), inValue, outValue, signature,
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), outValue, signature,
                         currentBlockTime);
                     ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
                     // To publish Out Value.

@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     var outValue = Hash.FromMessage(inValue);
 
                     var signature = Hash.Empty;
-                    Round previousRound = null;
+                    Round previousRound;
                     if (round.RoundNumber != 1)
                     {
                         Assert(TryToGetPreviousRoundInformation(out previousRound),
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
-                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(),inValue, outValue, signature,
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), outValue, signature,
                         currentBlockTime);
                     // To publish Out Value.
                     return new DPoSHeaderInformation
