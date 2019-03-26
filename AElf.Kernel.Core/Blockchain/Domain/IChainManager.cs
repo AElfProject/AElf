@@ -337,6 +337,7 @@ namespace AElf.Kernel.Blockchain.Domain
                             break;
                         }
 
+                        // TODO: ChainBlockLink can be overwritten. Need to fix it.
                         // Use the height and hash alternatives to ChainBlockLink to verify,
                         // because ChainBlockLink is not correct now.
                         // and need to figure out how to fix it
