@@ -3,6 +3,8 @@
 * [Introduction](Introduction/main.md)
     * [What is AElf](Introduction/aelf-intro.md)
     * [Getting started](Introduction/quickstart.md)
+* [Contract development](Contracts/contracts.md)
+    * [Getting started](Contracts/quickstrt.md)
 * [Advanced](Advanced/advanced.md)
     * [About DPoS](Advanced/CONSENSUS.md)
     * [Scheduling](Advanced/SCHEDULER.md)
