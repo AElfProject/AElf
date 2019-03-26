@@ -303,3 +303,26 @@ This method will return the list of available commands exposed by the nodes RPC 
     }
   }
   ```
+
+  ## GetFileDescriptorSet 
+Returns the protobuf definitions related to a contract.
+
+| Method name | Parameters | Verb    | URL                           | 
+| :-----------|:-----------|:--------| :----------------------------:| 
+| GetFileDescriptorSet | contract address       | POST    | http://{host}:{port}/chain    |
+
+***request***
+  ```
+  {
+    "jsonrpc":"2.0",
+    "method":"GetFileDescriptorSet",
+    "params":{},
+    "id": 1
+  }
+  ```
+***response***
+  ```
+  {
+    "result": "CpMBCgxjb21tb24ucHJvdG8iGAoHQWRkcmVzcxINCgVWYWx..."
+  }
+  ```
