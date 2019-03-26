@@ -20,13 +20,15 @@ using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+    /// <summary>
+    /// a smart contract executive, don't use it out of AElf.Kernel.SmartContract
+    /// </summary>
     public interface ISmartContractExecutiveService
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address);
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -42,10 +44,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
-#if DEBUG
-        public ILogger<ISmartContractContext> SmartContractContextLogger { get; set; }
-#endif
-
+        
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -84,8 +83,8 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (chainContext.BlockHeight > KernelConstants.GenesisBlockHeight && //already register zero to zero
                     address == _defaultContractZeroCodeProvider.ContractZeroAddress &&
-                    !_addressSmartContractRegistrationMappingCache.ContainsKey(address) 
-                    )
+                    !_addressSmartContractRegistrationMappingCache.ContainsKey(address)
+                )
                 {
                     executive.SetStateProviderFactory(_stateProviderFactory);
                     //executive's registration is from code, not from contract
@@ -106,11 +105,11 @@ namespace AElf.Kernel.SmartContract.Application
 
             // run smartcontract executive info and return executive
             var executive = await runner.RunAsync(reg);
-            executive.ContractHash = reg.CodeHash;
-            executive.ContractAddress = address;
-            executive.SetHostSmartContractBridgeContext(
-                _hostSmartContractBridgeContextService.Create(
-                    new SmartContractContext() {ContractAddress = address}));
+            //executive.ContractHash = reg.CodeHash;
+            //executive.ContractAddress = address;
+            var context =
+                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address});
+            executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
 
@@ -130,12 +129,6 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        public async Task<IMessage> GetAbiAsync(IChainContext chainContext, Address address)
-        {
-            var smartContractRegistration = await GetSmartContractRegistrationAsync(chainContext, address);
-            var runner = _smartContractRunnerContainer.GetRunner(smartContractRegistration.Category);
-            return runner.GetAbi(smartContractRegistration);
-        }
 
         #region private methods
 
