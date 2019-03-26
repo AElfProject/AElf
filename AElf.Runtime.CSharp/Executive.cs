@@ -96,7 +96,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public async Task Apply()
+        public async Task ApplyAsync()
         {
             await ExecuteMainTransaction();
 //            MaybeInsertFeeTransaction();
