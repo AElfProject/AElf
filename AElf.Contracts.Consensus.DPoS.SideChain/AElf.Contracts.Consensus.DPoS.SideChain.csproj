@@ -29,7 +29,7 @@
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_code.bat dpos_sidechain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_code.bat dpos_sidechain_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
