@@ -1,4 +1,4 @@
-using AElf.Contracts.TestBase;
+using AElf.Contracts.TestKit;
 
 namespace AElf.Contracts.Genesis
 {

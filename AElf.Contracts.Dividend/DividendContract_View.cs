@@ -103,7 +103,11 @@ namespace AElf.Contracts.Dividend
 
         public override SInt64Value GetAllAvailableDividends(PublicKey input)
         {
-            var ticketsInformation = State.ConsensusContract.GetTicketsInformation.Call(input);
+            var ticketsInformation = State.ConsensusContract.GetTicketsInformation.Call(
+                new Consensus.DPoS.PublicKey()
+                {
+                    Hex = input.Hex
+                });
             if (ticketsInformation == null || !ticketsInformation.VotingRecords.Any())
             {
                 return new SInt64Value();
