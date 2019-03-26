@@ -137,6 +137,12 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
 
+            var existChainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.BlockHash);
+            if (existChainBlockLink != null)
+            {
+                return status;
+            }
+
             while (true)
             {
                 var previousHash = chainBlockLink.PreviousBlockHash.ToStorageKey();
