@@ -3,7 +3,10 @@ using System.Linq;
 using System.Text;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Cryptography;
+using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
+using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -59,14 +62,14 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
 
                     var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), inValue, outValue, signature,
-                        currentBlockTime, input.PrivateKey.ToHex());
-                    updatedRound.TryToRecoverInValues(previousRound);
+                        currentBlockTime);
+                    ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
                     // To publish Out Value.
                     return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = updatedRound,
-                        Behaviour = behaviour
+                        Behaviour = behaviour,
                     };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
@@ -95,6 +98,51 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
+        {
+            var minersCount = round.RealTimeMinersInformation.Count;
+            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+
+            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
+            foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
+            {
+                var key = pair.Key;
+                if (key == publicKey)
+                {
+                    continue;
+                }
+
+                // Encrypt every secret share with other miner's public key, then fill own EncryptedInValues field.
+                var encryptedInValue = Context.EncryptMessage(ByteArrayHelpers.FromHexString(key),
+                    ByteString.FromBase64(secretShares[pair.Value.Order - 1])
+                        .ToByteArray()); //CryptoHelpers.EncryptMessage(ByteArrayHelpers.FromHexString(privateKey), , );
+                round.RealTimeMinersInformation[publicKey].EncryptedInValues
+                    .Add(key, ByteString.CopyFrom(encryptedInValue));
+
+                if (previousRound == null || round.RoundNumber != previousRound.RoundNumber ||
+                    pair.Value.DecryptedInValues.Count < minimumCount)
+                {
+                    continue;
+                }
+
+                // Decrypt every miner's secret share then add a result to other miner's DecryptedInValues field.
+                var decryptedInValue = Context.DecryptMessage(ByteArrayHelpers.FromHexString(key),
+                    pair.Value.EncryptedInValues[publicKey].ToByteArray());
+                round.RealTimeMinersInformation[pair.Key].DecryptedInValues
+                    .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
+                
+                // Try to recover others' previous in value.
+                var orders = pair.Value.DecryptedInValues.Select((t, i) =>
+                    previousRound.RealTimeMinersInformation.Values
+                        .First(m => m.PublicKey == pair.Value.DecryptedInValues.Keys.ToList()[i]).Order).ToList();
+
+                var previousInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
+                    pair.Value.DecryptedInValues.Values.ToList().Select(s => s.ToByteArray().ToHex()).ToList(),
+                    orders, minimumCount));
+                round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
         }
 

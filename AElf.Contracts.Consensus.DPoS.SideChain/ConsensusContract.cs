@@ -65,9 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     }
 
                     var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(),inValue, outValue, signature,
-                        currentBlockTime, input.PrivateKey.ToHex());
-
-                    updatedRound.TryToRecoverInValues(previousRound);
+                        currentBlockTime);
                     // To publish Out Value.
                     return new DPoSHeaderInformation
                     {

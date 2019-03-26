@@ -22,6 +22,8 @@ namespace AElf.Kernel.Consensus.DPoS
     {
         private readonly IAccountService _accountService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ECKeyPair _minerKeyPair;
         
         public DPoSInformationGenerationServiceTests()
@@ -30,6 +32,8 @@ namespace AElf.Kernel.Consensus.DPoS
 
             _accountService = GetRequiredService<IAccountService>();
             _consensusInformationGenerationService = GetRequiredService<IConsensusInformationGenerationService>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
+            _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
         }
 
         [Fact]
@@ -98,8 +102,9 @@ namespace AElf.Kernel.Consensus.DPoS
                     }.ToByteArray()) 
                 }
             };
-            
-            return new DPoSInformationGenerationService(_accountService, information);
+
+            return new DPoSInformationGenerationService(_accountService, information, _smartContractAddressService,
+                _transactionReadOnlyExecutionService);
         }
     }
 }

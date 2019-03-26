@@ -185,5 +185,4 @@ message DPoSTriggerInformation {
     Hash RandomHash = 2;// To calculate In Value.
     Hash PreviousInValue = 3;// Publish In Value of previous round for validating the miner's signature.
     int64 InitialTermNumber = 4;
-    bytes PrivateKey = 5;// For secret sharing.
 }

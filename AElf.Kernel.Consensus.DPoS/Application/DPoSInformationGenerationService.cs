@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
@@ -9,10 +7,8 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
@@ -71,7 +67,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     return new DPoSTriggerInformation
                     {
                         PublicKey = PublicKey,
-                        RandomHash = RandomHash
+                        RandomHash = RandomHash,
                     };
                 case DPoSBehaviour.NextRound:
                 case DPoSBehaviour.NextTerm:

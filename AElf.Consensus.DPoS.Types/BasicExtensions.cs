@@ -286,8 +286,7 @@ namespace AElf.Consensus.DPoS
 
 
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash inValue, Hash outValue,
-            Hash signature,
-            DateTime dateTime, string privateKey)
+            Hash signature, DateTime dateTime)
         {
             round.ClearTuneOrderOfNextRound();
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
@@ -336,61 +335,10 @@ namespace AElf.Consensus.DPoS
 
             round.RealTimeMinersInformation[publicKey].OrderOfNextRound = orderOfNextRound;
 
-            var minimumCount = ((int) ((round.RealTimeMinersInformation.Count * 2d) / 3)) + 1;
-
-            var secrets = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
-            foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
-            {
-                var key = pair.Key;
-                if (key == publicKey)
-                {
-                    continue;
-                }
-
-                var encryptedInValue = CryptoHelpers.EncryptMessage(ByteArrayHelpers.FromHexString(privateKey),
-                    ByteArrayHelpers.FromHexString(key),
-                    ByteString.FromBase64(secrets[pair.Value.Order - 1]).ToByteArray());
-                round.RealTimeMinersInformation[publicKey].EncryptedInValues
-                    .Add(key, ByteString.CopyFrom(encryptedInValue));
-
-                var decryptedInValue = CryptoHelpers.DecryptMessage(ByteArrayHelpers.FromHexString(key),
-                    ByteArrayHelpers.FromHexString(privateKey), pair.Value.EncryptedInValues[publicKey].ToByteArray());
-
-                round.RealTimeMinersInformation[pair.Key].DecryptedInValues
-                    .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
-            }
-
             return round;
         }
 
-        public static bool TryToRecoverInValues(this Round round, Round previousRound)
-        {
-            if (previousRound == null)
-            {
-                return false;
-            }
 
-            var minimumCount = ((int) ((round.RealTimeMinersInformation.Count * 2d) / 3)) + 1;
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
-            {
-                if (minerInRound.DecryptedInValues.Count < minimumCount)
-                {
-                    return false;
-                }
-
-                var orders = minerInRound.DecryptedInValues.Select((t, i) =>
-                    previousRound.RealTimeMinersInformation.Values
-                        .First(m => m.PublicKey == minerInRound.DecryptedInValues.Keys.ToList()[i]).Order).ToList();
-
-                var inValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
-                    minerInRound.DecryptedInValues.Values.ToList().Select(s => s.ToByteArray().ToHex()).ToList(),
-                    orders,
-                    minimumCount));
-                round.RealTimeMinersInformation[minerInRound.PublicKey].PreviousInValue = inValue;
-            }
-
-            return true;
-        }
 
         private static void ClearTuneOrderOfNextRound(this Round round)
         {

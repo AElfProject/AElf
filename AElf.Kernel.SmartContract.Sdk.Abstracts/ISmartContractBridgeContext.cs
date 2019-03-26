@@ -59,8 +59,12 @@ namespace AElf.Kernel.SmartContract.Sdk
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
 
         Address GetZeroSmartContractAddress();
-        
+
         IStateProvider StateProvider { get; }
+
+        byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
+
+        byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
     }
 
     [Serializable]
