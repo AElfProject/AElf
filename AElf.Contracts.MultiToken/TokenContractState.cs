@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
 
@@ -19,6 +20,6 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-        public BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }

@@ -16,22 +16,22 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void CodeCheck_WithoutPrivilege()
         {
-            var code = ReadCode(typeof(TokenContract).Assembly.Location);
+            var code = ReadCode(typeof(TestContract.TestContract).Assembly.Location);
             Should.NotThrow(()=>_checker.CodeCheck(code, false));
         }
 
         [Fact]
         public void CodeCheck_WithPrivilege()
         {
-            var code = ReadCode(typeof(TokenContract).Assembly.Location);
+            var code = ReadCode(typeof(TestContract.TestContract).Assembly.Location);
             Should.NotThrow(()=>_checker.CodeCheck(code, true));
         }
 
         [Fact]
         public void CodeCheck_WithBlackList()
         {
-            _checker = new AssemblyChecker(new []{"System.Linq"}, null);
-            var code = ReadCode(typeof(TokenContract).Assembly.Location);
+            _checker = new AssemblyChecker(new []{"Google.Protobuf"}, null);
+            var code = ReadCode(typeof(TestContract.TestContract).Assembly.Location);
             Should.Throw<InvalidCodeException>(()=>_checker.CodeCheck(code, true));
         }
 
