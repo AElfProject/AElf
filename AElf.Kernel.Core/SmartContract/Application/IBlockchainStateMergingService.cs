@@ -29,6 +29,7 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<BlockchainStateMergingService>.Instance;
         }
 
+        // TODO: Add MergeBlockStateAsync test case [Case]
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
@@ -44,19 +45,15 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             var blockIndexes = new List<IBlockIndex>();
-            // ChainStateInfo.MergingBlockHash is the next block hash and not merged (state change not remove)
-            // Redo merge if status is merging/merged, so ignore the block
-            if (chainStateInfo.Status != ChainStateMergingStatus.Common)
+            if (chainStateInfo.Status == ChainStateMergingStatus.Merged)
             {
                 blockIndexes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
-                mergeCount -= 1;
             }
 
             var reversedBlockIndexes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
-
+            reversedBlockIndexes.Reverse();
+            
             blockIndexes.AddRange(reversedBlockIndexes);
-
-            blockIndexes.Reverse();
 
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 

@@ -53,6 +53,7 @@ namespace AElf.Contracts.TestBase
     /// etc.
     /// </summary>
     /// <typeparam name="TContractTestAElfModule"></typeparam>
+    [Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
@@ -62,7 +63,11 @@ namespace AElf.Contracts.TestBase
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
-        public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
+        public ContractTester() : this(0, null)
+        {
+        }
+
+        public ContractTester(int chainId, ECKeyPair keyPair)
         {
             KeyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
 

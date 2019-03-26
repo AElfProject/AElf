@@ -30,18 +30,41 @@ namespace AElf.Cryptography
         private static readonly VirgilCrypto Crypto = new VirgilCrypto(KeyPairType.RSA_2048);
 
         // ReaderWriterLock for thread-safe with Secp256k1 APIs
-        private static readonly ReaderWriterLock secpLock = new ReaderWriterLock();
+        private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
 
         static CryptoHelpers()
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
         }
 
+        public static ECKeyPair FromPrivateKey(byte[] privateKey)
+        {
+            if (privateKey == null || privateKey.Length != 32)
+            {
+                throw new ArgumentException("Private key has to have length of 32.");
+            }
+
+            try
+            {
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var secp256K1PubKey = new byte[64];
+
+                Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey);
+                var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
+                return new ECKeyPair(privateKey, pubKey);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
+        }
+
         public static ECKeyPair GenerateKeyPair()
         {
             try
             {
-                secpLock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(Timeout.Infinite);
                 var privateKey = new byte[32];
                 var secp256K1PubKey = new byte[64];
 
@@ -59,7 +82,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                secpLock.ReleaseWriterLock();
+                Lock.ReleaseWriterLock();
             }
         }
 
@@ -67,7 +90,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                secpLock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(Timeout.Infinite);
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 Secp256K1.SignRecoverable(recSig, hash, privateKey);
@@ -77,7 +100,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                secpLock.ReleaseWriterLock();
+                Lock.ReleaseWriterLock();
             }
         }
 
@@ -88,7 +111,7 @@ namespace AElf.Cryptography
             {
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
                     return false;
-                secpLock.AcquireWriterLock(Timeout.Infinite);
+                Lock.AcquireWriterLock(Timeout.Infinite);
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
                 var recSig = new byte[65];
@@ -100,7 +123,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                secpLock.ReleaseWriterLock();
+                Lock.ReleaseWriterLock();
             }
         }
 

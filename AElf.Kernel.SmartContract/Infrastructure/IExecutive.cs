@@ -7,9 +7,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public interface IExecutive
     {
-        Hash ContractHash { get; set; }
-        Address ContractAddress { get; set; }
-        
         IExecutive SetMaxCallDepth(int maxCallDepth);
  
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
