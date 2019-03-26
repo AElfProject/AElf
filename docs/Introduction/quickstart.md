@@ -1,3 +1,3 @@
 # QuickStart
 
-Launching a node.
+Launching a node
