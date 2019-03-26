@@ -5,13 +5,8 @@ namespace AElf.Kernel.SmartContract.Sdk
 {
     public class CachedStateProvider : IStateProvider
     {
-        public ITransactionContext TransactionContext
-        {
-            get => _inner.TransactionContext;
-            set => _inner.TransactionContext = value;
-        }
 
-        private IStateProvider _inner;
+        private readonly IStateProvider _inner;
 
         public CachedStateProvider(IStateProvider inner)
         {

@@ -11,10 +11,6 @@ namespace AElf.Sdk.CSharp
 {
     public partial class CSharpSmartContract<TContractState> : CSharpSmartContractAbstract
     {
-        internal override void SetStateProvider(IStateProvider stateProvider)
-        {
-            State.Provider = stateProvider;
-        }
 
         internal override TransactionExecutingStateSet GetChanges()
         {
@@ -37,6 +33,8 @@ namespace AElf.Sdk.CSharp
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8(bridgeContext. Self.GetFormatted()));
             State.Path = path;
+
+            State.Provider = bridgeContext.StateProvider;
         }
     }
 }
