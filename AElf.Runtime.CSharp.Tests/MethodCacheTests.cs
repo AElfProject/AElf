@@ -1,21 +1,12 @@
-using System;
 using System.IO;
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.ABI;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp.Core;
 using AElf.Runtime.CSharp.Core.ABI;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Runtime.CSharp.Tests
 {
-    //TODO: should not use Token contract to do test. should create a new contract to test. 
-    //BODY: token may be changed in the future, but the tests do not need to be changed.
-    /*
     public class MethodCacheTests: CSharpRuntimeTestBase
     {
         private Module Module { get; set; }
@@ -23,20 +14,21 @@ namespace AElf.Runtime.CSharp.Tests
 
         public MethodCacheTests()
         {
-            var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+            var contractCode = File.ReadAllBytes(typeof(TestContract.TestContract).Assembly.Location);
             Module = Generator.GetABIModule(contractCode);
-            var instance = new TokenContract();
+            var instance = new TestContract.TestContract();
             Cache = new MethodsCache(Module, instance);
         }
 
         [Fact]
         public void Get_Exist_MethodAbi()
         {
-            var method = Cache.GetMethodAbi(nameof(TokenContract.Transfer));
+            var method = Cache.GetMethodAbi(nameof(TestContract.TestContract.TestBoolState));
             method.ShouldNotBeNull();
-            method.Name.ShouldBe(nameof(TokenContract.Transfer));
-            method.Params.Count.ShouldBe(2);
-            method.ReturnType.ShouldBe("void");
+            method.Name.ShouldBe(nameof(TestContract.TestContract.TestBoolState));
+            method.Params.Count.ShouldBe(1);
+            method.Params[0].Type.ShouldBe("AElf.Runtime.CSharp.Tests.TestContract.BoolInput");
+            method.ReturnType.ShouldBe("AElf.Runtime.CSharp.Tests.TestContract.BoolOutput");
         }
 
         [Fact]
@@ -48,7 +40,7 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void Get_ExistHandler()
         {
-            var handler = Cache.GetHandler(nameof(TokenContract.TransferFrom));
+            var handler = Cache.GetHandler(nameof(TestContract.TestContract.TestStringState));
             handler.ShouldNotBe(null);
         }
 
@@ -57,23 +49,5 @@ namespace AElf.Runtime.CSharp.Tests
         {
             Should.Throw<InvalidMethodNameException>(() => Cache.GetHandler("TestMethod"));
         }
-
-        [Fact]
-        public void Serialize_Method_Parameter()
-        {
-            var address = Address.Generate().GetFormatted();
-            var transferArgs = new[] { address, "1000" };
-            var method = Cache.GetMethodAbi(nameof(TokenContract.Transfer));
-            var parameterArray = method.SerializeParams(transferArgs);
-            parameterArray.ShouldNotBeNull();
-        }
-
-        [Fact]
-        public void Serialize_Method_Parameter_WithNotCorrect_Count()
-        {
-            var methodArgs = new[] { "test1", "test2" };
-            var method = Cache.GetMethodAbi(nameof(TokenContract.TransferFrom));
-            Should.Throw<InvalidInputException>(()=> method.SerializeParams(methodArgs));
-        }
-    }*/
+    }
 }
