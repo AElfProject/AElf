@@ -7,7 +7,6 @@ namespace AElf.Sdk.CSharp
 {
     public abstract class CSharpSmartContractAbstract : CSharpSmartContract
     {
-        internal abstract void SetStateProvider(IStateProvider stateProvider);
         internal abstract TransactionExecutingStateSet GetChanges();
         internal abstract void Cleanup();
 

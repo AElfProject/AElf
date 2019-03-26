@@ -42,20 +42,6 @@ namespace AElf.Runtime.CSharp.Tests
 
             executive.SetMaxCallDepth(3);
         }
-
-        //TODO: SmartContractRunner get method list with duplicate.
-        [Fact(Skip = "Return method list have many duplicate.")]
-        public void Get_AbiModule()
-        {
-            var message = Runner.GetAbi(Reg) as Module;
-            message.ShouldNotBe(null);
-            
-            var methodList = message.Methods.Select(o=>o.Name).ToList();
-            methodList.Count.ShouldBe(11);
-            methodList.Contains("TestBoolState").ShouldBeTrue();
-            methodList.Contains("TestInt32State").ShouldBeTrue();
-            methodList.Contains("TestUInt32State").ShouldBeTrue();
-        }
         
         //TODO: GetJsonStringOfParameters cannot deserialize Protobuf to string message correctly. Please refer below two test cases result.
         [Fact(Skip = "Not passed due to convert json string with some special string value.")]
