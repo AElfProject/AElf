@@ -19,7 +19,6 @@ namespace AElf.Kernel.SmartContract
             services.AddTransient<ISmartContractRunner>(p =>
             {
                 var mockExecutive = new Mock<IExecutive>();
-                mockExecutive.SetupProperty(e => e.ContractHash);
 
                 var mockSmartContractRunner = new Mock<ISmartContractRunner>();
                 mockSmartContractRunner.SetupGet(m => m.Category).Returns(KernelConstants.DefaultRunnerCategory);
