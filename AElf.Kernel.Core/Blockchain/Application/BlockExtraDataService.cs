@@ -33,6 +33,8 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
+            if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+                return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;

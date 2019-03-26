@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AElf.Common;
+using Google.Protobuf;
 using Xunit;
 
 namespace AElf.Kernel.Types.Tests
@@ -101,14 +103,25 @@ namespace AElf.Kernel.Types.Tests
             string hex4 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
             var hash4 = CreateLeafFromHex(hex4);
 
-            tree.AddNodes(new []{hash1, hash2, hash3, hash4});
+            string hex5 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
+            var hash5 = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(hex5)
+                .Concat(Encoding.UTF8.GetBytes(TransactionResultStatus.Mined.ToString())).ToArray());
+            tree.AddNodes(new []{hash1, hash2, hash3, hash4, hash5});
 
             //See if the hash of merkle tree is equal to the element’s hash.
             var root = tree.ComputeRootHash();
-            var path = tree.GenerateMerklePath(3);
-            var calculatedRoot = path.ComputeRootWith(hash4);
-            Assert.Contains(hash3, path.Path);
+            var path = tree.GenerateMerklePath(4);
+            var calculatedRoot = path.ComputeRootWith(hash5);
+            //Assert.Contains(hash3, path.Path);
             Assert.Equal(root, calculatedRoot);
+        }
+
+        [Fact]
+        public void Test()
+        {
+            string base64 ="CiBbTv9+r6QF+6wdIX6uzCHiZBIjYtU7mhP0ybyLGYgUKQ==";
+            var hash = Hash.Parser.ParseFrom(ByteString.FromBase64(base64));
+            ;
         }
 
         [Fact]
