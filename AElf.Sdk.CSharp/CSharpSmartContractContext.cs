@@ -32,8 +32,6 @@ namespace AElf.Sdk.CSharp
 
         public Hash TransactionId => _smartContractBridgeContextImplementation.TransactionId;
 
-        public Transaction Transaction => _smartContractBridgeContextImplementation.Transaction;
-
         public Address Sender => _smartContractBridgeContextImplementation.Sender;
 
         public Address Self => _smartContractBridgeContextImplementation.Self;

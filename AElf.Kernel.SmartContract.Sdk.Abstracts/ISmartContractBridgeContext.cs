@@ -19,8 +19,6 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         Hash TransactionId { get; }
 
-        // TODO: Remove Transaction
-        Transaction Transaction { get; }
         Address Sender { get; }
 
         Address Self { get; }
