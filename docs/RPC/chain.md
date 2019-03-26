@@ -1,14 +1,14 @@
 Reference of commands exposed in the Chain namespace.
 
-# Get commands 
+## GetCommands 
 
-This method will return the list of available commands exposed by the node.
+This method will return the list of available commands exposed by the nodes RPC endpoint.
 
-| Method name  | Verb   | URL                           | 
-| :------------|:-------| :----------------------------:| 
-| GetCommands | POST   | http://{host}:{port}/chain    |
+| Method name | Parameters | Verb    | URL                           | 
+| :-----------|:-----------|:--------| :----------------------------:| 
+| GetCommands | none       | POST    | http://{host}:{port}/chain    |
 
-* request
+***request***
   ```
   {
     "jsonrpc":"2.0",
@@ -17,7 +17,7 @@ This method will return the list of available commands exposed by the node.
     "id": 1
   }
   ```
-* response
+***response***
   ```
   {
     "jsonrpc": "2.0",
