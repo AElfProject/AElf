@@ -115,6 +115,14 @@ namespace AElf.Management.Services
             var fields = new Dictionary<string, object> {{"count", count}};
             await _influxDatabase.Set(chainId, "block_invalid", fields, null, time);
         }
+        
+        public async Task RecordGetCurrentChainStatus(string chainId, DateTime time)
+        {
+            var count = await GetCurrentChainStatus(chainId);
+
+            var fields = new Dictionary<string, object> {{"LastIrrever", count.LastIrreversibleBlockHeight},{"Longest", count.LongestChainHeight},{"Best", count.BestChainHeight}};
+            await _influxDatabase.Set(chainId, "block_status", fields, null, time);
+        }
 
         public async Task RecordRollBackTimes(string chainId, DateTime time)
         {
@@ -170,6 +178,18 @@ namespace AElf.Management.Services
 
             var height =
                 await HttpRequestHelper.Request<JsonRpcResult<int>>(
+                    _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
+
+            return height.Result;
+        } 
+         
+        private async Task<ChainStatusResult> GetCurrentChainStatus(string chainId)
+        {
+            var jsonRpcArg = new JsonRpcArg();
+            jsonRpcArg.Method = "GetChainStatus";
+
+            var height =
+                await HttpRequestHelper.Request<JsonRpcResult<ChainStatusResult>>(
                     _managementOptions.ServiceUrls[chainId].RpcAddress + "/chain", jsonRpcArg);
 
             return height.Result;
