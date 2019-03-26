@@ -1,6 +1,7 @@
 using System;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
@@ -9,31 +10,13 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
-    public class AuthorizationContractReferenceState : ContractReferenceState
-    {
-        internal MethodReference<Proposal,Hash> Propose { get; set; }
-        internal MethodReference<Address, Kernel.Authorization> GetAuthorization { get; set; }
-    }
-
-    public class TokenContractReferenceState : ContractReferenceState
-    {
-        internal MethodReference<TransferInput,Empty> Transfer { get; set; }
-        internal MethodReference<TransferFromInput,Empty> TransferFrom { get; set; }
-        
-        internal MethodReference<GetBalanceInput, GetBalanceOutput> GetBalance { get; set; }
-    }
-
-    public class ConsensusContractReferenceState : ContractReferenceState
-    {
-        public MethodReference<DPoSInformation, Empty> UpdateMainChainConsensus { get; set; }
-    }
 
     public class CrossChainContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
-        public TokenContractReferenceState TokenContract { get; set; }
-        public ConsensusContractReferenceState ConsensusContract { get; set; }
+        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
+        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         public Int64State SideChainSerialNumber { get; set; }
         
         public MappedState<long, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }

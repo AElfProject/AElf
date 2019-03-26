@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -21,6 +22,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.TestBase
 {
+    [Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
