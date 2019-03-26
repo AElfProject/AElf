@@ -193,7 +193,7 @@ namespace AElf.Kernel.SmartContract.Application
                 CallDepth = 0,
             };
             executiveZero.SetDataCache(chainContext.StateCache);
-            await executiveZero.SetTransactionContext(txCtxt).Apply();
+            await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {

@@ -27,6 +27,7 @@ namespace AElf.Common
             ApplicationHelper.AppDataPath.ShouldBe(path2);
             
             //Recover to default.
+            Directory.Delete(path2, true);
             ApplicationHelper.AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "aelf");
         }
     }
