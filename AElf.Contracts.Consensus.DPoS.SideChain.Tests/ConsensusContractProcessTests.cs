@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
+using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -76,7 +77,7 @@ namespace AElf.Contracts.DPoS.SideChain
                     nameof(ConsensusContract.UpdateValue), input);
             
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Round Id not matched.").ShouldBeTrue();
+                transactionResult.Error.Contains("Round information not found.").ShouldBeTrue();
             }
             
             //round information not found
@@ -88,7 +89,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 
                 var input = new ToUpdate
                 {
-                    RoundId = 1,
+                    RoundId = 2,
                     ActualMiningTime = DateTime.UtcNow.ToTimestamp(),
                     OutValue = Hash.Generate()
                 };
@@ -96,8 +97,37 @@ namespace AElf.Contracts.DPoS.SideChain
                     nameof(ConsensusContract.UpdateValue), input);
             
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Round information not found.").ShouldBeTrue();
+                transactionResult.Error.Contains("Round Id not matched.").ShouldBeTrue();
             }
+        }
+
+        //TODO: No View method for SideChain Contract
+        [Fact(Skip = "Cannot get current round info")]
+        public async Task UpdateValue_Success()
+        {
+            TesterManager.InitialTesters();
+            
+            //init round info 
+            var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+            await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), roundInput);
+                
+            //query current round info
+            var result = await TesterManager.Testers[0].CallContractMethodAsync(TesterManager.Testers[0].GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetCurrentRoundInformation), new Empty());
+            var roundInfo = result.DeserializeToPbMessage<Round>();
+            
+            var input = new ToUpdate
+            {
+                RoundId = roundInfo.RoundId,
+                ActualMiningTime = DateTime.UtcNow.ToTimestamp(),
+                OutValue = Hash.Generate()
+            };
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.UpdateValue), input);
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
         
         [Fact]
