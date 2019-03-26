@@ -11,15 +11,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Protobuf" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="..\protobuf\aelf_options.proto">
-        <Link>Protobuf/aelf_options.proto</Link>
+        <Link>Protobuf/proto/aelf_options.proto</Link>
+      </Content>
+      <Content Include="..\protobuf\common.proto">
+        <Link>Protobuf/proto/common.proto</Link>
       </Content>
       <Content Include="..\protobuf\test_contract.proto">
-        <Link>Protobuf/test_contract.proto</Link>
+        <Link>Protobuf/proto/test_contract.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
