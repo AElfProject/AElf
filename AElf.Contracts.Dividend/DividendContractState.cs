@@ -1,33 +1,17 @@
-using System;
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
 {
-    public class ConsensusContractReferenceState : ContractReferenceState
-    {
-        internal MethodReference<Empty,SInt64Value> GetCurrentTermNumber { get; set; }
-        internal MethodReference<SInt64Value, Round> GetRoundInformation { get; set; }
-        internal MethodReference<PublicKey, Tickets> GetTicketsInformation { get; set; }
-        internal MethodReference<Empty,SInt64Value> GetBlockchainAge { get; set; }
-    }
-
-    public class TokenContractReferenceState : ContractReferenceState
-    {
-        public MethodReference<TransferInput, Empty> Transfer { get; set; }
-    }
-
     public class DividendsContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        public ConsensusContractReferenceState ConsensusContract { get; set; }
-        public TokenContractReferenceState TokenContract { get; set; }
-        public BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
+        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
+        internal  BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         // Term Number -> Dividends Amount
         public MappedState<long, long> DividendsMap { get; set; }
