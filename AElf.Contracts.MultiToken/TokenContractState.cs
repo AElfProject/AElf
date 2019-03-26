@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
@@ -22,6 +23,7 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         public CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }

@@ -26,7 +26,6 @@ namespace AElf.Sdk.CSharp.Tests
             services.AddTransient<ISmartContractRunner>(p =>
             {
                 var mockExecutive = new Mock<IExecutive>();
-                mockExecutive.SetupProperty(e => e.ContractHash);
                 
                 var mockSmartContractRunner = new Mock<ISmartContractRunner>();
                 mockSmartContractRunner.SetupGet(m => m.Category).Returns(0);

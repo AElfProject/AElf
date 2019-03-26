@@ -27,7 +27,6 @@ namespace AElf.OS.Rpc.ChainController
         public ITransactionReadOnlyExecutionService TransactionReadOnlyExecutionService { get; set; }
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
-        public ISmartContractExecutiveService SmartContractExecutiveService { get; set; }
         public ISmartContractAddressService SmartContractAddressService { get; set; }
         //TODO: should not directly use BlockStateSets
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
@@ -63,41 +62,6 @@ namespace AElf.OS.Rpc.ChainController
             };
 
             return Task.FromResult(response);
-        }
-
-        [JsonRpcMethod("GetContractAbi", "address")]
-        public async Task<JObject> GetContractAbi(string address)
-        {
-            Address addressHash;
-            try
-            {
-                addressHash = Address.Parse(address);
-            }
-            catch
-            {
-                throw new JsonRpcServiceException(Error.InvalidAddress, Error.Message[Error.InvalidAddress]);
-            }
-
-            IMessage abi;
-            try
-            {
-                abi = await this.GetContractAbi(addressHash);
-            }
-            catch
-            {
-                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            }
-
-            if (abi == null)
-            {
-                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            }
-
-            return new JObject
-            {
-                ["Address"] = address,
-                ["Abi"] = abi.ToByteArray().ToHex()
-            };
         }
 
         [JsonRpcMethod("Call", "rawTransaction")]

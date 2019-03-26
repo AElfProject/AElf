@@ -18,6 +18,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AElf.OS.Rpc.ChainController
 {
+    //TODO: remove this extensions
     internal static class ServiceExtensions
     {
         public static async Task<string[]> PublishTransactionsAsync(this ChainControllerRpcService s,
@@ -174,19 +175,6 @@ namespace AElf.OS.Rpc.ChainController
             return contracts;
         }
 
-        internal static async Task<IMessage> GetContractAbi(this ChainControllerRpcService s, 
-            Address address)
-        {
-            var chain = await s.BlockchainService.GetChainAsync();
-            var chainContext = new ChainContext()
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-
-            return await s.SmartContractExecutiveService.GetAbiAsync(chainContext, address);
-        }
-
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
             Hash txHash)
         {
@@ -218,31 +206,17 @@ namespace AElf.OS.Rpc.ChainController
 
         internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, Transaction tx)
         {
-            var address = tx.To;
-            IExecutive executive = null;
-            var output = tx.Params.ToBase64();
+            string output = null;
             try
             {
-                var chain = await s.BlockchainService.GetChainAsync();
-                var chainContext = new ChainContext()
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                };
+                var chainContext = await s.GetChainContextAsync();
 
-                executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainContext, address);
-                output = executive.GetJsonStringOfParameters(tx.MethodName, tx.Params.ToByteArray());
+                output = await s.TransactionReadOnlyExecutionService.GetTransactionParametersAsync(
+                    chainContext, tx);
             }
             catch (InvalidCastException ex)
             {
                 s.Logger.LogWarning($"Unsupported type conversion error： {ex}");
-            }
-            finally
-            {
-                if (executive != null)
-                {
-                    await s.SmartContractExecutiveService.PutExecutiveAsync(address, executive);
-                }
             }
 
             return output;
@@ -269,41 +243,25 @@ namespace AElf.OS.Rpc.ChainController
 
         internal static async Task<byte[]> CallReadOnly(this ChainControllerRpcService s, Transaction tx)
         {
-            var trace = new TransactionTrace
-            {
-                TransactionId = tx.GetHash()
-            };
+            var chainContext = await s.GetChainContextAsync();
 
+            var trace = await s.TransactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.Now);
+
+            if (!string.IsNullOrEmpty(trace.StdErr))
+                throw new Exception(trace.StdErr);
+
+            return trace.ReturnValue.ToByteArray();
+        }
+
+        private static async Task<ChainContext> GetChainContextAsync(this ChainControllerRpcService s)
+        {
             var chain = await s.BlockchainService.GetChainAsync();
             var chainContext = new ChainContext()
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-
-            var txContext = new TransactionContext
-            {
-                PreviousBlockHash = chain.BestChainHash,
-                Transaction = tx,
-                Trace = trace,
-                BlockHeight = chain.BestChainHeight
-            };
-
-            var executive = await s.SmartContractExecutiveService.GetExecutiveAsync(chainContext, tx.To);
-
-            try
-            {
-                await executive.SetTransactionContext(txContext).Apply();
-            }
-            finally
-            {
-                await s.SmartContractExecutiveService.PutExecutiveAsync(tx.To, executive);
-            }
-
-            if (!string.IsNullOrEmpty(trace.StdErr))
-                throw new Exception(trace.StdErr);
-
-            return trace.ReturnValue.ToByteArray();
+            return chainContext;
         }
 
         internal static async Task<byte[]> GetFileDescriptorSetAsync(this ChainControllerRpcService s, Address address)
