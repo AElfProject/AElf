@@ -1,9 +1,21 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
+using AElf.Common;
+using AElf.Cryptography.Certificate;
 using AElf.Cryptography.ECDSA;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Agreement;
+using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.OpenSsl;
 using Secp256k1Net;
+using Virgil.Crypto;
 
 namespace AElf.Cryptography
 {
@@ -11,8 +23,10 @@ namespace AElf.Cryptography
     {
         private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
+        private static readonly VirgilCrypto Crypto = new VirgilCrypto(KeyPairType.RSA_2048);
+
         // ReaderWriterLock for thread-safe with Secp256k1 APIs
-        private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
+        private static readonly ReaderWriterLock secpLock = new ReaderWriterLock();
 
         static CryptoHelpers()
         {
@@ -23,7 +37,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                secpLock.AcquireWriterLock(Timeout.Infinite);
                 var privateKey = new byte[32];
                 var secp256K1PubKey = new byte[64];
 
@@ -41,7 +55,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                secpLock.ReleaseWriterLock();
             }
         }
 
@@ -49,7 +63,7 @@ namespace AElf.Cryptography
         {
             try
             {
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                secpLock.AcquireWriterLock(Timeout.Infinite);
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 Secp256K1.SignRecoverable(recSig, hash, privateKey);
@@ -59,7 +73,7 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                secpLock.ReleaseWriterLock();
             }
         }
 
@@ -70,7 +84,7 @@ namespace AElf.Cryptography
             {
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
                     return false;
-                Lock.AcquireWriterLock(Timeout.Infinite);
+                secpLock.AcquireWriterLock(Timeout.Infinite);
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
                 var recSig = new byte[65];
@@ -82,8 +96,33 @@ namespace AElf.Cryptography
             }
             finally
             {
-                Lock.ReleaseWriterLock();
+                secpLock.ReleaseWriterLock();
             }
+        }
+
+        public static byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainText)
+        {
+            return Crypto.Encrypt(plainText, Crypto.ImportPublicKey(receiverPublicKey));
+        }
+
+        public static byte[] DecryptMessage(byte[] receiverPrivateKey, byte[] cipherText)
+        {
+            return Crypto.Decrypt(cipherText, Crypto.ImportPrivateKey(receiverPrivateKey));
+        }
+
+        public static KeyPair GenerateRsaKeyPair()
+        {
+            return Crypto.GenerateKeys();
+        }
+
+        public static byte[] ExportPublicKey(PublicKey publicKey)
+        {
+            return Crypto.ExportPublicKey(publicKey);
+        }
+        
+        public static byte[] ExportPrivateKey(PrivateKey privateKey, string password = null)
+        {
+            return Crypto.ExportPrivateKey(privateKey, password);
         }
 
         /// <summary>
