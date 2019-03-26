@@ -28,7 +28,7 @@ namespace AElf.Sdk.CSharp
                 throw new InvalidOperationException();
             State = new TContractState();
 
-            Context = bridgeContext;
+            Context = new CSharpSmartContractContext(bridgeContext);
             State.Context = bridgeContext;
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8(bridgeContext. Self.GetFormatted()));

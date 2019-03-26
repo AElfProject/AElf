@@ -51,7 +51,9 @@ namespace AElf.Kernel.SmartContract.Sdk
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
+        
         T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args);
+        
         void SendInline(Address toAddress, string methodName, ByteString args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
@@ -61,8 +63,11 @@ namespace AElf.Kernel.SmartContract.Sdk
         Address GetZeroSmartContractAddress();
         
         IStateProvider StateProvider { get; }
-        
+    }
 
+    public interface ILimitedSmartContractContext
+    {
+        
     }
 
     [Serializable]
