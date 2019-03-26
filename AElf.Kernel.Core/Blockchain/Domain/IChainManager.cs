@@ -197,6 +197,39 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
             }
 
+            #if DEBUG
+            // TODO: Check wrong branch problem.
+            var newBlockLinkKey = chainBlockLink.BlockHash.ToStorageKey();
+            if (chain.Branches.ContainsKey(newBlockLinkKey))
+            {
+                foreach (var branch in chain.Branches)
+                {
+                    if (branch.Key == newBlockLinkKey)
+                    {
+                        continue;
+                    }
+
+                    var branchBlockLink = await GetChainBlockLinkAsync(branch.Key);
+                    while (true)
+                    {
+                        if (branchBlockLink.Height < chainBlockLink.Height)
+                        {
+                            break;
+                        }
+
+                        if (branchBlockLink.BlockHash == chainBlockLink.BlockHash)
+                        {
+                            Logger.LogDebug($"Chain Info: {chain}");
+                            throw new Exception($"Block: {chainBlockLink} already in branch: {branch.Key}");
+                        }
+
+                        branchBlockLink = await GetChainBlockLinkAsync(branchBlockLink.PreviousBlockHash);
+                    }
+                }
+            }
+
+            #endif
+
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
