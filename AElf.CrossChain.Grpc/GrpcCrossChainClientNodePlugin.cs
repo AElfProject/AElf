@@ -44,10 +44,11 @@ namespace AElf.CrossChain.Grpc
 
         public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
         {
-            return _crossChainGrpcClientController.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
-                LoadCertificate(
-                    ((GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto)
-                    .CertificateFileName));
+            GrpcCrossChainCommunicationContext grpcCrossChainCommunicationContext =
+                (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto;
+            grpcCrossChainCommunicationContext.LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort;
+            return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext,
+                LoadCertificate(grpcCrossChainCommunicationContext.CertificateFileName));
         }
         public Task HandleEventAsync(BestChainFoundEventData eventData)
         {

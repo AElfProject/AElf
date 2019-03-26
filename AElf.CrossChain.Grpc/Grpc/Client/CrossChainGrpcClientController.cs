@@ -44,6 +44,8 @@ namespace AElf.CrossChain.Grpc
 
         public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext, string certificate)
         {
+            if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationContext.RemoteChainId))
+                return;
             if (crossChainCommunicationContext.RemoteIsSideChain && 
                 !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
@@ -93,7 +95,7 @@ namespace AElf.CrossChain.Grpc
             {
                 return await requestFunc(client);
             }
-            catch (Exception e) when (e is ChainCacheNotFoundException || e is RpcException)
+            catch (Exception e) //when (e is ChainCacheNotFoundException || e is RpcException)
             {
                 Logger.LogWarning(e.Message);
                 return default(T);

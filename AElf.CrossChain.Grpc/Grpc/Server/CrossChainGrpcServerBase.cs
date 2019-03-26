@@ -172,7 +172,7 @@ namespace AElf.CrossChain.Grpc
                     CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.ChainId)
                 }
             });
-            Logger.LogWarning($"Hand shake from chain {request.ChainId}");
+            Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");
             return Task.FromResult(new IndexingHandShakeReply{Result = true});
         }
 

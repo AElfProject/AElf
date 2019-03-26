@@ -166,5 +166,12 @@ namespace AElf.Contracts.CrossChain
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
             return State.ConsensusContract.GetCurrentMiners.Call(new Empty());
         }
+
+        // only for side chain
+        private void UpdateCurrentMiners(ByteString bytes)
+        {
+            ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
+            State.ConsensusContract.UpdateMainChainConsensus.Send(DPoSInformation.Parser.ParseFrom(bytes));
+        }
     }
 }

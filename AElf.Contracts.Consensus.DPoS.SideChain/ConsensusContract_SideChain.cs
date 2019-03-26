@@ -28,15 +28,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
-                State.CurrentMiners.Value.GetMinersHash())
-            {
-                return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
-            }
-
-            nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
-                currentRound.RoundNumber, State.TermNumberFromMainChainField.Value);
-            return true;
+            return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
         }
 
         private void InitialSettings(Round firstRound)
