@@ -1,10 +1,12 @@
+Reference of commands exposed in the Chain namespace.
+
 # Get commands 
 
 This method will return the list of available commands exposed by the node.
 
 | Method name  | Verb   | URL                           | 
 | :------------|:-------| :----------------------------:| 
-| ListAccounts | POST   | http://{host}:{port}/chain    |
+| GetCommands | POST   | http://{host}:{port}/chain    |
 
 * request
   ```
