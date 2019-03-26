@@ -16,6 +16,8 @@ namespace AElf.Management.Interfaces
         Task<List<NodeStateHistory>> GetHistoryState(string chainId);
 
         Task RecordBlockInfo(string chainId);
+        
+        Task RecordGetCurrentChainStatus(string chainId, DateTime time);
 
         Task RecordInvalidBlockCount(string chainId, DateTime time);
 
