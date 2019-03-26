@@ -33,7 +33,6 @@ namespace AElf.Contracts.DPoS.SideChain
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
                 "UpdateMainChainConsensus", dposInformation);
-            
             //Assert
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

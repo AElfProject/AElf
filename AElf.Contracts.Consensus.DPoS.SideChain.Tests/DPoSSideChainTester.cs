@@ -37,7 +37,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 var tester = new ContractTester<DPoSSideChainTestAElfModule>(ChainId, keyPair);
 
                 AsyncHelper.RunSync(
-                    () => tester.InitialChainAsync());
+                    () => tester.InitialSideChainAsync());
                 Testers.Add(tester);
             }
 
@@ -48,7 +48,7 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             SingleTester = new ContractTester<DPoSSideChainTestAElfModule>(ChainId, CryptoHelpers.GenerateKeyPair());
             AsyncHelper.RunSync(
-                () => SingleTester.InitialChainAsync());
+                () => SingleTester.InitialSideChainAsync());
             DPoSSideChainContractAddress = SingleTester.GetConsensusContractAddress();
         }
         

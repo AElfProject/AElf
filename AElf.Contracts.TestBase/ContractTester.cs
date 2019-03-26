@@ -205,6 +205,24 @@ namespace AElf.Contracts.TestBase
 
             await osBlockchainNodeContextService.StartAsync(dto);
         }
+        
+        public async Task InitialSideChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory 
+            };
+            
+            dto.InitializationSmartContracts.AddConsensusSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>();
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+
+            await osBlockchainNodeContextService.StartAsync(dto);
+        }
 
         /// <summary>
         /// Use randomized ECKeyPair.
