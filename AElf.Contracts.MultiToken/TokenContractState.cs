@@ -26,14 +26,7 @@ namespace AElf.Contracts.MultiToken
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
-        public CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
+        internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
         public SingletonState<Hash> CrossChainContractSystemName { get; set; }
-        public BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
-    
-    public class CrossChainContractReferenceState : ContractReferenceState
-    {
-        internal MethodReference<VerifyTransactionInput, BoolValue> VerifyTransaction { get; set; }
-    }
-    
 }

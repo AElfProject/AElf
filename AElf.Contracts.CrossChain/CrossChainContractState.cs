@@ -1,12 +1,9 @@
 using System;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS.SideChain;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -14,9 +11,6 @@ namespace AElf.Contracts.CrossChain
     {
         public BoolState Initialized { get; set; }
         //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
-        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
-        
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
         public Int64State SideChainSerialNumber { get; set; }
