@@ -310,16 +310,21 @@ namespace AElf.Kernel.Blockchain.Domain
                 var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
                 
-                // Special case: remove wrong branch
+                #if DEBUG
+                // Special case: remove wrong branch. 
+                // TODO: It shouldn't happen. Find out why
+                // The block should be on the best chain and should not be branched
                 if (chainBlockLink != null)
                 {
                     var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                     if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                     {
+                        Logger.LogDebug($"Remove wrong branch: {branch.Key}");
                         toCleanBranchKeys.Add(branch.Key);
                         continue;
                     }
                 }
+                #endif
 
                 while (true)
                 {
@@ -339,7 +344,7 @@ namespace AElf.Kernel.Blockchain.Domain
                         //{
                         //    break;
                         //}
-                        if (chainBlockLink.Height < irreversibleBlockHeight)
+                        if (chainBlockLink.Height <= irreversibleBlockHeight)
                         {
                             var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                             if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
