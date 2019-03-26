@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.Infrastructure;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;
@@ -36,11 +37,13 @@ namespace AElf.Runtime.CSharp
             var types = assembly.GetTypes();
             return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
         }
+
         private Type FindContractBaseType(Assembly assembly)
         {
             var types = assembly.GetTypes();
             return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
         }
+
         private Type FindContractContainer(Assembly assembly)
         {
             var contractBase = FindContractBaseType(assembly);
@@ -54,6 +57,7 @@ namespace AElf.Runtime.CSharp
             var ssd = methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
             return ssd.GetCallHandlers();
         }
+
         public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
             _contractAssembly = assembly;
@@ -122,7 +126,8 @@ namespace AElf.Runtime.CSharp
             {
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
-                    throw new RuntimeException($"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
+                    throw new RuntimeException(
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
                 }
 
                 try
@@ -155,6 +160,20 @@ namespace AElf.Runtime.CSharp
 
                 if (!handler.IsView() && CurrentTransactionContext.Trace.IsSuccessful())
                 {
+                    var changes = _smartContractProxy.GetChanges();
+
+                    var stateSet = new TransactionExecutingStateSet();
+                    var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
+                    foreach (var (key, value) in changes.Writes)
+                    {
+                        stateSet.Writes[StateKeyHelper.ToStorageKey(address, key)] = value;
+                    }
+
+                    foreach (var (key, value) in changes.Reads)
+                    {
+                        stateSet.Reads[StateKeyHelper.ToStorageKey(address, key)] = value;
+                    }
+
                     CurrentTransactionContext.Trace.StateSet = _smartContractProxy.GetChanges();
                 }
                 else

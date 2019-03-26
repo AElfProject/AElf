@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)
         {
-            return _blockchainStateManager.GetStateAsync(contractAddress.Value.ToStorageKey() + key, blockHeight,
+            return _blockchainStateManager.GetStateAsync(StateKeyHelper.ToStorageKey(contractAddress.ToStorageKey(), key), blockHeight,
                 blockHash);
         }
     }
