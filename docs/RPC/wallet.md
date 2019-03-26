@@ -1,4 +1,4 @@
-## List accounts
+# List accounts
 
 | Method name  | Verb   | URL                           | 
 | :------------|:-------| :----------------------------:| 
