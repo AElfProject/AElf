@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.TestBase;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;

@@ -329,12 +329,13 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var paramInfo = input == null ? ByteString.Empty : input.ToByteString(); //Add input parameter is null situation
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = input.ToByteString(),
+                Params = paramInfo,
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };

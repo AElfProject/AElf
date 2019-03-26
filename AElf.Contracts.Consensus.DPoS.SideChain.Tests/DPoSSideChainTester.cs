@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
@@ -15,6 +13,7 @@ namespace AElf.Contracts.DPoS.SideChain
 {
     public class DPoSSideChainTester
     {
+        public const int MiningInterval = 4000;
         public int MinersCount { get; set; } = 3;
 
         public int ChainId { get; set; } = ChainHelpers.ConvertBase58ToChainId("AELF");

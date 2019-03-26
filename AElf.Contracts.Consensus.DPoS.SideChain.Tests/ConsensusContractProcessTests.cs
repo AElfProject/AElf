@@ -1,16 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.TestBase;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -19,7 +13,6 @@ namespace AElf.Contracts.DPoS.SideChain
 {
     public class ConsensusContractProcessTests : DPoSSideChainTestBase
     {
-        private const int MiningInterval = 4000;
         private readonly DPoSSideChainTester TesterManager;
         
         public ConsensusContractProcessTests()
@@ -38,9 +31,8 @@ namespace AElf.Contracts.DPoS.SideChain
             {
                 RoundNumber = 2
             };
-            var transactionResult = await TesterManager.SingleTester.ExecuteContractWithMiningAsync(
-                TesterManager.DPoSSideChainContractAddress,
-                "InitialConsensus", input);
+            var transactionResult = await TesterManager.SingleTester.ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Incorrect round information: invalid round number.").ShouldBeTrue();
             
@@ -49,9 +41,8 @@ namespace AElf.Contracts.DPoS.SideChain
             {
                 RoundNumber = 1
             };
-            transactionResult = await TesterManager.SingleTester.ExecuteContractWithMiningAsync(
-                TesterManager.DPoSSideChainContractAddress,
-                "InitialConsensus", input);
+            transactionResult = await TesterManager.SingleTester.ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Incorrect round information: no miner.").ShouldBeTrue();
         }
@@ -63,12 +54,50 @@ namespace AElf.Contracts.DPoS.SideChain
             
             // Act
             var input = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
-                .GenerateFirstRoundOfNewTerm(MiningInterval);
-            var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
-                TesterManager.DPoSSideChainContractAddress,
-                "InitialConsensus", input);
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), input);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task UpdateValue_WithError()
+        {
+            TesterManager.InitialTesters();
+            
+            //Id not match
+            {
+                var input = new ToUpdate
+                {
+                    RoundId = 10
+                };
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.UpdateValue), input);
+            
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Round Id not matched.").ShouldBeTrue();
+            }
+            
+            //round information not found
+            {
+                var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                    .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+                await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.InitialConsensus), roundInput);
+                
+                var input = new ToUpdate
+                {
+                    RoundId = 1,
+                    ActualMiningTime = DateTime.UtcNow.ToTimestamp(),
+                    OutValue = Hash.Generate()
+                };
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.UpdateValue), input);
+            
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Round information not found.").ShouldBeTrue();
+            }
         }
         
         [Fact]
@@ -85,7 +114,7 @@ namespace AElf.Contracts.DPoS.SideChain
 
             // Assert
             Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.CountingMilliseconds != MiningInterval);
+            Assert.True(actual.CountingMilliseconds != DPoSSideChainTester.MiningInterval);
         }
 
         [Fact]
