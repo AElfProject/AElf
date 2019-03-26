@@ -86,7 +86,6 @@ namespace AElf.Kernel.SmartContract.Application
                     !_addressSmartContractRegistrationMappingCache.ContainsKey(address)
                 )
                 {
-                    executive.SetStateProviderFactory(_stateProviderFactory);
                     //executive's registration is from code, not from contract
                     reg = await GetSmartContractRegistrationFromZeroAsync(executive, chainContext, address);
                     _addressSmartContractRegistrationMappingCache.TryAdd(address, reg);
@@ -94,7 +93,6 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            executive.SetStateProviderFactory(_stateProviderFactory);
             return executive;
         }
 
@@ -195,7 +193,7 @@ namespace AElf.Kernel.SmartContract.Application
                 CallDepth = 0,
             };
             executiveZero.SetDataCache(chainContext.StateCache);
-            await executiveZero.SetTransactionContext(txCtxt).Apply();
+            await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {

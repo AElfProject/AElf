@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure
 {
@@ -21,6 +23,22 @@ namespace AElf.Kernel.Infrastructure
         public static string ToStorageKey(this Hash hash)
         {
             return hash?.ToHex();
+        }
+        
+        public static string ToStorageKey(this ByteString byteString)
+        {
+            return byteString?.ToHex();
+        }
+        
+        public static string ToStorageKey(this Address byteString)
+        {
+            return byteString?.GetFormatted();
+        }
+        
+        
+        public static string ToStorageKey(this StatePath statePath)
+        {
+            return string.Join("/", statePath.Path.Select(x => x.ToStringUtf8()));
         }
     }
 }

@@ -9,6 +9,7 @@
         <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
@@ -34,8 +35,8 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
         <PackageReference Include="Moq" Version="4.10.1" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.14.0" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.15.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.frameworks.autofac" Version="0.1.0" />

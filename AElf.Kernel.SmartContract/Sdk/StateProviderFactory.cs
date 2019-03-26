@@ -15,7 +15,6 @@ namespace AElf.Kernel.SmartContract.Sdk
         {
             return new StateProvider()
             {
-                BlockchainStateManager = _blockchainStateManager
             };
         }
 

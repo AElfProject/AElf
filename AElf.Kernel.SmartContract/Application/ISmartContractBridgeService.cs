@@ -2,8 +2,12 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Domain;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Linq;
+using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -23,6 +27,8 @@ namespace AElf.Kernel.SmartContract.Application
         Address GetAddressByContractName(Hash contractName);
 
         Address GetZeroSmartContractAddress();
+
+        Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
     }
 
     public class SmartContractBridgeService : ISmartContractBridgeService
@@ -30,15 +36,18 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractService _smartContractService;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public ILogger<SmartContractBridgeService> Logger { get; set; }
 
         public SmartContractBridgeService(ISmartContractService smartContractService,
-            IBlockchainService blockchainService, ISmartContractAddressService smartContractAddressService)
+            IBlockchainService blockchainService, ISmartContractAddressService smartContractAddressService,
+            IBlockchainStateManager blockchainStateManager)
         {
             _smartContractService = smartContractService;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
+            _blockchainStateManager = blockchainStateManager;
             Logger = NullLogger<SmartContractBridgeService>.Instance;
         }
 
@@ -80,6 +89,16 @@ namespace AElf.Kernel.SmartContract.Application
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
+        public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)
+        {
+            var address = contractAddress.GetFormatted();
+            if(!key.StartsWith(address))
+                throw new InvalidOperationException("a contract cannot access other contracts data");
+            
+            return _blockchainStateManager.GetStateAsync(key, blockHeight,
+                blockHash);
         }
     }
 }
