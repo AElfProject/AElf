@@ -26,7 +26,6 @@ namespace AElf.Runtime.CSharp
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
-        private CachedStateProvider _stateProvider;
         private int _maxCallDepth = 4;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
@@ -83,13 +82,12 @@ namespace AElf.Runtime.CSharp
 
         public void SetDataCache(IStateCache cache)
         {
-            _stateProvider.Cache = cache ?? new NullStateCache();
+            _hostSmartContractBridgeContext.StateProvider.Cache = cache ?? new NullStateCache();
         }
 
         public IExecutive SetTransactionContext(ITransactionContext transactionContext)
         {
             _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            //_stateProvider.TransactionContext = transactionContext;
             return this;
         }
 

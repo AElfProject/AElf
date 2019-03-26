@@ -24,6 +24,11 @@ namespace AElf.Kernel.SmartContract
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            
+            _lazyStateProvider = new Lazy<IStateProvider>(
+                () => new CachedStateProvider(
+                    new StateProvider() {HostSmartContractBridgeContext = this}),
+                LazyThreadSafetyMode.PublicationOnly);
         }
 
         public ITransactionContext TransactionContext { get; set; }
@@ -44,10 +49,6 @@ namespace AElf.Kernel.SmartContract
             TransactionContext = transactionContext;
             SmartContractContext = smartContractContext;
 
-            _lazyStateProvider = new Lazy<IStateProvider>(
-                () => new CachedStateProvider(
-                    new StateProvider() {HostSmartContractBridgeContext = this}),
-                LazyThreadSafetyMode.PublicationOnly);
         }
 
         public async Task<ByteString> GetStateAsync(string key)
