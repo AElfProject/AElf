@@ -44,7 +44,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
 
             BridgeContext.TransactionContext = transactionContext;
-            StateProvider.TransactionContext = transactionContext;
+            //StateProvider.TransactionContext = transactionContext;
         }
 
         [Fact]
@@ -212,7 +212,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
 
             BridgeContext.TransactionContext = transactionContext;
-            StateProvider.TransactionContext = transactionContext;
+            //StateProvider.TransactionContext = transactionContext;
         }
     }
 }

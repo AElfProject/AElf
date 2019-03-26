@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.SmartContract.Application;
@@ -16,7 +18,7 @@ namespace AElf.Kernel.SmartContract
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        
+
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
@@ -27,17 +29,31 @@ namespace AElf.Kernel.SmartContract
         public ITransactionContext TransactionContext { get; set; }
         public ISmartContractContext SmartContractContext { get; set; }
 
+        
+        private Lazy<IStateProvider> _lazyStateProvider;
+
+        public IStateProvider StateProvider => _lazyStateProvider.Value;
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
 
-        public void Initialize( ITransactionContext transactionContext,
+        public void Initialize(ITransactionContext transactionContext,
             ISmartContractContext smartContractContext)
         {
             TransactionContext = transactionContext;
             SmartContractContext = smartContractContext;
 
+            _lazyStateProvider = new Lazy<IStateProvider>(
+                () => new CachedStateProvider(
+                    new StateProvider() {HostSmartContractBridgeContext = this}),
+                LazyThreadSafetyMode.PublicationOnly);
+        }
+
+        public async Task<ByteString> GetStateAsync(string key)
+        {
+            return await _smartContractBridgeService.GetStateAsync(
+                Self, key, CurrentHeight - 1, PreviousBlockHash);
         }
 
         public int ChainId => _smartContractBridgeService.GetChainId();
@@ -145,11 +161,7 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
-        
-        Lazy<IStateProvider> _lazyStateProvider = new Lazy<IStateProvider>(
-            () => new CachedStateProvider(new StateProvider()) ,LazyThreadSafetyMode.PublicationOnly);
 
-        public IStateProvider StateProvider => _lazyStateProvider.Value;
 
         public Block GetPreviousBlock()
         {

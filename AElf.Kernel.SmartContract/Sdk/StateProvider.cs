@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 
@@ -22,22 +23,12 @@ namespace AElf.Kernel.SmartContract.Sdk
 
     internal class StateProvider : IStateProvider
     {
-        public ISmartContractBridgeService SmartContractBridgeService { get; set; }
-        
-        public IChainContext ChainContext { get; set; }
+        public IHostSmartContractBridgeContext HostSmartContractBridgeContext { get; set; }
         public IStateCache Cache { get; set; } = new NullStateCache();
 
         public async Task<byte[]> GetAsync(StatePath path)
         {
-            
-            
-            // TODO: StatePath (string)
-            var byteString = await BlockchainStateManager.GetStateAsync(
-                string.Join("/", path.Path.Select(x => x.ToStringUtf8())),
-                TransactionContext.BlockHeight - 1,
-                TransactionContext.PreviousBlockHash
-            );
-//            byteString = byteString ?? ByteString.Empty;
+            var byteString = await HostSmartContractBridgeContext.GetStateAsync(path.ToStorageKey());
             return byteString?.ToByteArray();
         }
     }

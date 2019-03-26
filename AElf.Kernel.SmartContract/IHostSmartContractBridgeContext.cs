@@ -1,5 +1,7 @@
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Sdk;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract
 {
@@ -11,6 +13,7 @@ namespace AElf.Kernel.SmartContract
         Address GetContractAddressByName(Hash hash);
 
         void Initialize(ITransactionContext transactionContext, ISmartContractContext smartContractContext);
-
+        
+        Task<ByteString> GetStateAsync(string key);
     }
 }

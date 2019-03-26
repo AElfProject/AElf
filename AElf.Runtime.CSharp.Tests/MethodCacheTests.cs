@@ -5,7 +5,6 @@ using AElf.Kernel;
 using AElf.Kernel.ABI;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp.Core;
-using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Shouldly;

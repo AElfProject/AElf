@@ -28,7 +28,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Address GetZeroSmartContractAddress();
 
-        Task<ByteString> GetStateAsync(Hash contractAddress, string key, long blockHeight, Hash blockHash);
+        Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
     }
 
     public class SmartContractBridgeService : ISmartContractBridgeService
@@ -91,9 +91,10 @@ namespace AElf.Kernel.SmartContract.Application
             return _smartContractAddressService.GetZeroSmartContractAddress();
         }
 
-        public Task<ByteString> GetStateAsync(Hash contractAddress, string key, long blockHeight, Hash blockHash)
+        public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)
         {
-            return _blockchainStateManager.GetStateAsync(contractAddress.ToStorageKey() + key, blockHeight, blockHash);
+            return _blockchainStateManager.GetStateAsync(contractAddress.Value.ToStorageKey() + key, blockHeight,
+                blockHash);
         }
     }
 }

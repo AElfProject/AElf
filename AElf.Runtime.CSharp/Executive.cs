@@ -93,7 +93,7 @@ namespace AElf.Runtime.CSharp
         public IExecutive SetTransactionContext(ITransactionContext transactionContext)
         {
             _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            _stateProvider.TransactionContext = transactionContext;
+            //_stateProvider.TransactionContext = transactionContext;
             return this;
         }
 
