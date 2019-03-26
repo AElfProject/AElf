@@ -1,6 +1,8 @@
 ### 1 List accounts
-* method: post
-* url: http://localhost:5000/wallet
+| Verb   | URL                          | Method name  |
+| :------| :---------------------------:| :------------|
+| POST   | http://localhost:5000/wallet | ListAccounts |
+
 * request
   ```
   {
