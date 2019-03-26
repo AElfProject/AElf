@@ -315,6 +315,14 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
+                
+                // Special case: remove wrong branch
+                var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                {
+                    toCleanBranchKeys.Add(branch.Key);
+                    continue;
+                }
 
                 while (true)
                 {
@@ -327,9 +335,20 @@ namespace AElf.Kernel.Blockchain.Domain
                             break;
                         }
 
-                        if (chainBlockLink.IsIrreversibleBlock)
+                        // Use the height and hash alternatives to ChainBlockLink to verify,
+                        // because ChainBlockLink is not correct now.
+                        // and need to figure out how to fix it
+                        //if (chainBlockLink.IsIrreversibleBlock)
+                        //{
+                        //    break;
+                        //}
+                        if (chainBlockLink.Height < irreversibleBlockHeight)
                         {
-                            break;
+                            chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                            if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                            {
+                                break;
+                            }
                         }
 
                         toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
