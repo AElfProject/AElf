@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
-using AElf.Contracts.TestBase2;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
@@ -16,7 +16,7 @@ using Xunit;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZeroTest : ContractTestBase2<BasicContractZeroTestAElfModule>
+    public class BasicContractZeroTest : ContractTestBase<BasicContractZeroTestAElfModule>
     {
         private ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();

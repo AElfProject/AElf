@@ -1,8 +1,8 @@
-using AElf.Contracts.TestBase2;
+using AElf.Contracts.TestKit;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZeroTestBase : ContractTestBase2<BasicContractZeroTestAElfModule>
+    public class BasicContractZeroTestBase : ContractTestBase<BasicContractZeroTestAElfModule>
     {
         
     }

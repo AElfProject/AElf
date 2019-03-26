@@ -16,7 +16,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
@@ -24,7 +24,7 @@ namespace AElf.Contracts.TestBase2
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)
     )]
-    public class ContractTestAElfModule2 : AElfModule
+    public class ContractTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

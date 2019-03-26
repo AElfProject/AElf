@@ -1,4 +1,4 @@
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public static class SmartContractTestConstants
     {

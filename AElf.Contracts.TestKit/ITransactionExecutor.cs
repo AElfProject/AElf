@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public interface ITransactionExecutor
     {

@@ -250,7 +250,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase2", "AElf.Contracts.TestBase2\AElf.Contracts.TestBase2.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Test", "AElf.Contracts.MultiToken.Test\AElf.Contracts.MultiToken.Test.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject

@@ -6,7 +6,7 @@ using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class SampleECKeyPairs

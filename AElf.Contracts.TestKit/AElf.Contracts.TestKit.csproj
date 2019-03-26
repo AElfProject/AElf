@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <RootNamespace>AElf.Contracts.TestBase2</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj" />

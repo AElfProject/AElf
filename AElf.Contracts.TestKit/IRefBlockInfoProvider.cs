@@ -4,7 +4,7 @@ using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public sealed class RefBlockInfo
     {

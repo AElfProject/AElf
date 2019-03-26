@@ -1,12 +1,12 @@
-using AElf.Contracts.TestBase2;
+using AElf.Contracts.TestKit;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Genesis
 {
     [DependsOn(
-        typeof(ContractTestAElfModule2)
+        typeof(ContractTestModule)
     )]
-    public class BasicContractZeroTestAElfModule : ContractTestAElfModule2
+    public class BasicContractZeroTestAElfModule : ContractTestModule
     {
     }
 }

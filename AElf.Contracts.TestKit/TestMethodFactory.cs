@@ -11,7 +11,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public class TestMethodFactory : ITestMethodFactory, ITransientDependency
     {

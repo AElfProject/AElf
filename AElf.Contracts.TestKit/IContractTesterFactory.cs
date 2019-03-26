@@ -4,7 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Types.CSharp;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public interface IContractTesterFactory
     {

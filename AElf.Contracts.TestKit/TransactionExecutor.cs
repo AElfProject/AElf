@@ -9,7 +9,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AElf.Contracts.TestBase2
+namespace AElf.Contracts.TestKit
 {
     public class TransactionExecutor : ITransactionExecutor
     {
