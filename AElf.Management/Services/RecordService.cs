@@ -52,6 +52,7 @@ namespace AElf.Management.Services
                         _transactionService.RecordPoolSize(chainId, time);
                         //_nodeService.RecordPoolState(chainId, time);
                         _nodeService.RecordBlockInfo(chainId);
+                        _nodeService.RecordGetCurrentChainStatus(chainId, time);
                         //_nodeService.RecordInvalidBlockCount(chainId, time);
                         //_nodeService.RecordRollBackTimes(chainId, time);
                     }
