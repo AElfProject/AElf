@@ -16,7 +16,6 @@ namespace AElf.Kernel.SmartContract.Application
             StateCache = stateCache;
         }
 
-        public int ChainId { get; set; }
         public long BlockHeight { get; set; }
         public Hash BlockHash { get; set; }
 
