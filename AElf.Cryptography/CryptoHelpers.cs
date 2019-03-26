@@ -19,6 +19,29 @@ namespace AElf.Cryptography
             AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
         }
 
+        public static ECKeyPair FromPrivateKey(byte[] privateKey)
+        {
+            if (privateKey == null || privateKey.Length != 32)
+            {
+                throw new ArgumentException("Private key has to have length of 32.");
+            }
+
+            try
+            {
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var secp256K1PubKey = new byte[64];
+
+                Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey);
+                var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
+                return new ECKeyPair(privateKey, pubKey);
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
+        }
+
         public static ECKeyPair GenerateKeyPair()
         {
             try
