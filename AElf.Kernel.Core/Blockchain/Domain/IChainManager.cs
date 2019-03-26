@@ -319,9 +319,8 @@ namespace AElf.Kernel.Blockchain.Domain
                     var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                     if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                     {
-                        Logger.LogError($"Remove wrong branch: {branch.Key}");
-                        toCleanBranchKeys.Add(branch.Key);
-                        continue;
+                        Logger.LogDebug($"Chain Info: {chain}");
+                        throw new Exception($"Remove wrong branch: {branch.Key}");
                     }
                 }
                 #endif
