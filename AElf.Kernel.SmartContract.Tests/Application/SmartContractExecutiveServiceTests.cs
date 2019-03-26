@@ -31,12 +31,9 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
             var mockExecutive = new Mock<IExecutive>();
-            mockExecutive.SetupProperty(e => e.ContractHash);
             mockExecutive.Setup(e => e.SetTransactionContext(It.IsAny<TransactionContext>()))
                 .Returns(mockExecutive.Object);
             mockExecutive.Setup(e => e.SetDataCache(It.IsAny<IStateCache>()));
-
-            mockExecutive.Object.ContractHash = registration.CodeHash;
 
             await _smartContractExecutiveService.PutExecutiveAsync(Address.Genesis, mockExecutive.Object);
         }
