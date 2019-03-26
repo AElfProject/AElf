@@ -10,7 +10,7 @@ namespace AElf.Kernel.SmartContract
 
         Address GetContractAddressByName(Hash hash);
 
-        void Initialize(IStateProvider stateProvider, ITransactionContext transactionContext, ISmartContractContext smartContractContext);
+        void Initialize(ITransactionContext transactionContext, ISmartContractContext smartContractContext);
 
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.SmartContract.Application;
@@ -15,8 +16,7 @@ namespace AElf.Kernel.SmartContract
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-
-
+        
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
@@ -32,12 +32,11 @@ namespace AElf.Kernel.SmartContract
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
 
-        public void Initialize(IStateProvider stateProvider, ITransactionContext transactionContext,
+        public void Initialize( ITransactionContext transactionContext,
             ISmartContractContext smartContractContext)
         {
-            this.StateProvider = stateProvider;
-            this.TransactionContext = transactionContext;
-            this.SmartContractContext = smartContractContext;
+            TransactionContext = transactionContext;
+            SmartContractContext = smartContractContext;
 
         }
 
@@ -146,8 +145,11 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
+        
+        Lazy<IStateProvider> _lazyStateProvider = new Lazy<IStateProvider>(
+            () => new CachedStateProvider(new StateProvider()) ,LazyThreadSafetyMode.PublicationOnly);
 
-        public IStateProvider StateProvider { get; set; }
+        public IStateProvider StateProvider => _lazyStateProvider.Value;
 
         public Block GetPreviousBlock()
         {
