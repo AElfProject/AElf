@@ -14,16 +14,17 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
     public class FeeChargeExecutivePlugin : IExecutivePlugin, ITransientDependency
     {
         //TODO: Add FeeChargeExecutivePlugin->AfterApply test case [Case]
-        public void AfterApply(ISmartContract smartContract, IHostSmartContractBridgeContext context,
-            Func<string, object[], object> executeReadOnlyHandler)
+        public void AfterApply(IHostSmartContractBridgeContext context,
+            Func<string, IMessage, IMessage> executeReadOnlyHandler)
         {
-            if (!(smartContract is IFeeChargedContract) || context.TransactionContext.CallDepth > 0)
+            /*if (!(smartContract is IFeeChargedContract) || context.TransactionContext.CallDepth > 0)
             {
                 return;
-            }
+            }*/
 
-            var fee = (long) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
-                new object[] {context.TransactionContext.Transaction.MethodName});
+            var fee = (Int64Value) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
+                new StringValue() {Value = context.TransactionContext.Transaction.MethodName});
+
 
             context.TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
@@ -32,7 +33,7 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
                     TokenSmartContractAddressNameProvider.Name),
                 MethodName =
                     "ChargeTransactionFees", // TODO: Use `nameof`, maybe need to add a ref or an interface for token contract.
-                Params = new Int64Value {Value = fee}.ToByteString()
+                Params = fee.ToByteString()
             });
         }
     }
