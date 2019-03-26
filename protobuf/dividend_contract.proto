@@ -101,5 +101,5 @@ message CheckDividendsInput {
 }
 
 message FriendlyString {
-    string value = 1;
+    string Value = 1;
 }

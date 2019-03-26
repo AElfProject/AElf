@@ -50,15 +50,17 @@ namespace AElf.Contracts.Consensus.DPoS
                     var outValue = Hash.FromMessage(inValue);
 
                     var signature = Hash.Empty;
+                    Round previousRound = null;
                     if (round.RoundNumber != 1)
                     {
-                        Assert(TryToGetPreviousRoundInformation(out var previousRound),
+                        Assert(TryToGetPreviousRoundInformation(out previousRound),
                             "Failed to get previous round information.");
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
-                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), outValue, signature,
-                        currentBlockTime);
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), inValue, outValue, signature,
+                        currentBlockTime, input.PrivateKey.ToHex());
+                    updatedRound.TryToRecoverInValues(previousRound);
                     // To publish Out Value.
                     return new DPoSHeaderInformation
                     {
@@ -68,7 +70,9 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));
-                    Assert(GenerateNextRoundInformation(round, currentBlockTime, blockchainStartTimestamp, out var nextRound),
+                    Assert(
+                        GenerateNextRoundInformation(round, currentBlockTime, blockchainStartTimestamp,
+                            out var nextRound),
                         "Failed to generate next round information.");
                     return new DPoSHeaderInformation
                     {
@@ -222,12 +226,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
-                    // TODO: ExpectedMiningTime are still different
-                    return new ValidationResult {Success = false, Message = "Current round information is different with consensus extra data."};
+                    return new ValidationResult
+                    {
+                        Success = false, Message = "Current round information is different with consensus extra data."
+                    };
                 }
             }
-            
-            // TODO: Still need to check: ProducedBlocks, //
+
+            // TODO: Still need to check: ProducedBlocks,
 
             return new ValidationResult {Success = true};
         }

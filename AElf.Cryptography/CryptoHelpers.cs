@@ -13,9 +13,13 @@ using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
 using Secp256k1Net;
 using Virgil.Crypto;
+using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
 
 namespace AElf.Cryptography
 {
@@ -100,29 +104,29 @@ namespace AElf.Cryptography
             }
         }
 
-        public static byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainText)
+        public static byte[] EncryptMessage(byte[] senderPrivateKey, byte[] receiverPublicKey, byte[] plainText)
         {
-            return Crypto.Encrypt(plainText, Crypto.ImportPublicKey(receiverPublicKey));
+            var crypto = new VirgilCrypto(KeyPairType.EC_SECP256K1);
+            var ecdhKey = Ecdh(senderPrivateKey, receiverPublicKey);
+            var newKeyPair = crypto.GenerateKeys(KeyPairType.EC_SECP256K1, ecdhKey);
+            return crypto.Encrypt(plainText, newKeyPair.PublicKey);
         }
 
-        public static byte[] DecryptMessage(byte[] receiverPrivateKey, byte[] cipherText)
+        public static byte[] DecryptMessage(byte[] senderPublicKey, byte[] receiverPrivateKey, byte[] cipherText)
         {
-            return Crypto.Decrypt(cipherText, Crypto.ImportPrivateKey(receiverPrivateKey));
+            var crypto = new VirgilCrypto(KeyPairType.EC_SECP256K1);
+            var ecdhKey = Ecdh(receiverPrivateKey, senderPublicKey);
+            var newKeyPair = crypto.GenerateKeys(KeyPairType.EC_SECP256K1, ecdhKey);
+            return crypto.Decrypt(cipherText, newKeyPair.PrivateKey);
         }
 
-        public static KeyPair GenerateRsaKeyPair()
+        public static byte[] Ecdh(byte[] privateKey, byte[] publicKey)
         {
-            return Crypto.GenerateKeys();
-        }
-
-        public static byte[] ExportPublicKey(PublicKey publicKey)
-        {
-            return Crypto.ExportPublicKey(publicKey);
-        }
-        
-        public static byte[] ExportPrivateKey(PrivateKey privateKey, string password = null)
-        {
-            return Crypto.ExportPrivateKey(privateKey, password);
+            var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+            Secp256K1.PublicKeyParse(usablePublicKey, publicKey);
+            var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
+            Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey);
+            return ecdhKey;
         }
 
         /// <summary>

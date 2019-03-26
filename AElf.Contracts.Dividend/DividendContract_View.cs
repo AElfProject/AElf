@@ -169,7 +169,7 @@ namespace AElf.Contracts.Dividend
 
         public override FriendlyString CheckDividendsOfPreviousTermToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = CheckDividendsOfPreviousTerm(input).ToString()};
+            return new FriendlyString {Value = CheckDividendsOfPreviousTerm(input).ToString()};
         }
     }
 }
