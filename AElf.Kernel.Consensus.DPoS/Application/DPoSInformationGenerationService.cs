@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -19,12 +21,15 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly IAccountService _accountService;
-        private readonly ConsensusControlInformation _controlInformation;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
         private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
         private DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
         
+        private readonly ConsensusControlInformation _controlInformation;
+
         private Hash RandomHash
         {
             get
@@ -38,10 +43,13 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
         public DPoSInformationGenerationService(IAccountService accountService,
-            ConsensusControlInformation controlInformation)
+            ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _accountService = accountService;
             _controlInformation = controlInformation;
+            _smartContractAddressService = smartContractAddressService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
 
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
@@ -81,6 +89,29 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         public IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)
         {
             return DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
+        }
+        
+        public async Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,
+            IMessage input, DateTime dateTime) where T : class, IMessage<T>, new()
+        {
+            var tx = new Transaction
+            {
+                From = Address.Generate(),
+                To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
+                    .Name),
+                MethodName = consensusMethodName,
+                Params = input?.ToByteString() ?? ByteString.Empty
+            };
+
+            return await _transactionReadOnlyExecutionService.ExecuteAsync<T>(chainContext, tx, dateTime);
+        }
+
+        public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext,
+            DateTime nextMiningTime)
+        {
+            return (await ExecuteContractAsync<DPoSHeaderInformation>(chainContext,
+                ConsensusConsts.GetInformationToUpdateConsensus,
+                GetTriggerInformation(), nextMiningTime)).ToByteArray();
         }
     }
 }
