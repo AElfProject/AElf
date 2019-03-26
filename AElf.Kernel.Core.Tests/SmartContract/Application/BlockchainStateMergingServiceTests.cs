@@ -46,19 +46,54 @@ namespace AElf.Kernel.SmartContract.Application
         [Fact]
         public async Task BlockState_MergeBlock_Normal()
         {
-            var blockStateSet = new BlockStateSet()
+            var blockStateSet1 = new BlockStateSet()
             {
                 BlockHeight = 1,
                 BlockHash = Hash.Generate(),
                 PreviousHash = Hash.Empty
             };
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+            var blockStateSet2 = new BlockStateSet()
+            {
+                BlockHeight = 2,
+                BlockHash = Hash.Generate(),
+                PreviousHash = blockStateSet1.BlockHash
+            };
+            var blockStateSet3 = new BlockStateSet()
+            {
+                BlockHeight = 3,
+                BlockHash = Hash.Generate(),
+                PreviousHash = blockStateSet2.BlockHash
+            };
             
-            await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet.BlockHeight, blockStateSet.BlockHash);
+            //test merge block height 1
+            {
+                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet1);
             
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-            chainStateInfo.BlockHeight.ShouldBe(1);
-            chainStateInfo.BlockHash.ShouldBe(blockStateSet.BlockHash);
+                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet1.BlockHeight, blockStateSet1.BlockHash);
+            
+                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                chainStateInfo.BlockHeight.ShouldBe(1);
+                chainStateInfo.BlockHash.ShouldBe(blockStateSet1.BlockHash);
+            }
+            
+            //test merge block height 2
+            {
+                await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet2);
+                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet2.BlockHeight, blockStateSet2.BlockHash);
+            
+                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                chainStateInfo.BlockHeight.ShouldBe(2);
+                chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
+            }
+            
+            //test merge height 3 without block state set before
+            {
+                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet3.BlockHeight, blockStateSet3.BlockHash);
+            
+                var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+                chainStateInfo.BlockHeight.ShouldBe(2);
+                chainStateInfo.BlockHash.ShouldBe(blockStateSet2.BlockHash);
+            }
         }
     }
 }
