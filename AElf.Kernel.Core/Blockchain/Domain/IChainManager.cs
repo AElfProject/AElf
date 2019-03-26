@@ -317,11 +317,14 @@ namespace AElf.Kernel.Blockchain.Domain
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
                 
                 // Special case: remove wrong branch
-                var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
-                if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                if (chainBlockLink != null)
                 {
-                    toCleanBranchKeys.Add(branch.Key);
-                    continue;
+                    var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                    if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                    {
+                        toCleanBranchKeys.Add(branch.Key);
+                        continue;
+                    }
                 }
 
                 while (true)
@@ -344,7 +347,7 @@ namespace AElf.Kernel.Blockchain.Domain
                         //}
                         if (chainBlockLink.Height < irreversibleBlockHeight)
                         {
-                            chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                            var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                             if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                             {
                                 break;
