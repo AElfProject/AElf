@@ -160,19 +160,6 @@ namespace AElf.Runtime.CSharp
                 {
                     var changes = _smartContractProxy.GetChanges();
 
-
-                    /*var stateSet = new TransactionExecutingStateSet();
-                    var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
-                    foreach (var (key, value) in changes.Writes)
-                    {
-                        stateSet.Writes[StateKeyHelper.ToStorageKey(address, key)] = value;
-                    }
-
-                    foreach (var (key, value) in changes.Reads)
-                    {
-                        stateSet.Reads[StateKeyHelper.ToStorageKey(address, key)] = value;
-                    }*/
-
                     var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
                     foreach (var (key, value) in changes.Writes)
                     {
@@ -222,15 +209,15 @@ namespace AElf.Runtime.CSharp
             return handler.InputBytesToString(paramsBytes);
         }
 
-        public object GetReturnValue(string methodName, byte[] bytes)
-        {
-            if (!_callHandlers.TryGetValue(methodName, out var handler))
-            {
-                return null;
-            }
-
-            return handler.ReturnBytesToObject(bytes);
-        }
+//        public object GetReturnValue(string methodName, byte[] bytes)
+//        {
+//            if (!_callHandlers.TryGetValue(methodName, out var handler))
+//            {
+//                return null;
+//            }
+//
+//            return handler.ReturnBytesToObject(bytes);
+//        }
 
         private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
             HashSet<string> known = null)
