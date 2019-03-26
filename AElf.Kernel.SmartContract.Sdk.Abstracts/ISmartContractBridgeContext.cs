@@ -61,6 +61,8 @@ namespace AElf.Kernel.SmartContract.Sdk
         Address GetZeroSmartContractAddress();
         
         IStateProvider StateProvider { get; }
+        
+
     }
 
     [Serializable]
