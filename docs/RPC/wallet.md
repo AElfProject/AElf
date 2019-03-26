@@ -1,7 +1,8 @@
-### 1 List accounts
-| Method name  | Verb   | URL                          | 
-| :------------|:-------| :----------------------------| 
-| ListAccounts | POST   | http://{host}:{port}/wallet  |
+## List accounts
+
+| Method name  | Verb   | URL                           | 
+| :------------|:-------| :----------------------------:| 
+| ListAccounts | POST   | http://{host}:{port}/wallet   |
 
 * request
   ```
