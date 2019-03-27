@@ -309,6 +309,20 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
+                
+                // Remove incorrect branch.
+                // When an existing block is attached, will generate an incorrect branch.
+                // and only clean up the branch, not clean the block in the branch.
+                if (chainBlockLink != null)
+                {
+                    var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                    if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                    {
+                        Logger.LogDebug($"Remove incorrect branch: {branch.Key}");
+                        toCleanBranchKeys.Add(branch.Key);
+                        continue;
+                    }
+                }
 
                 while (true)
                 {
@@ -321,9 +335,15 @@ namespace AElf.Kernel.Blockchain.Domain
                             break;
                         }
 
-                        if (chainBlockLink.IsIrreversibleBlock)
+                        // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
+                        // because ChainBlockLink can be overwrite 
+                        if (chainBlockLink.Height < irreversibleBlockHeight)
                         {
-                            break;
+                            var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                            if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                            {
+                                break;
+                            }
                         }
 
                         toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);

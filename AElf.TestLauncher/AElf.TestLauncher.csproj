@@ -8,6 +8,7 @@
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
@@ -18,7 +19,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0-dev-00024" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.14.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
     <ItemGroup>
