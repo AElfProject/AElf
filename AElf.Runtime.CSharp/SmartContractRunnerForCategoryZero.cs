@@ -33,7 +33,7 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins,
@@ -56,7 +56,7 @@ namespace AElf.Runtime.CSharp
             return new ContractCodeLoadContext(_sdkStreamManager);
         }
 
-        public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
+        public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             // TODO: Maybe input arguments can be simplified
 
