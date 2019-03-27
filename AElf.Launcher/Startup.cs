@@ -37,7 +37,7 @@ namespace AElf.Launcher
                     AddApplication<SideChainAElfModule>(services);
                     break;
                 default:
-                    AddApplication<SideChainAElfModule>(services);
+                    AddApplication<MainChainAElfModule>(services);
                     break;
             }
 
