@@ -76,6 +76,7 @@ ProjectSection(SolutionItems) = preProject
 	scripts\install_protobuf.sh = scripts\install_protobuf.sh
 	scripts\download_chakracore.sh = scripts\download_chakracore.sh
 	scripts\test.sh = scripts\test.sh
+	scripts\upload_coverage.sh = scripts\upload_coverage.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
