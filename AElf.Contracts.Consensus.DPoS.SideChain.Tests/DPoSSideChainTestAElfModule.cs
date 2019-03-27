@@ -11,7 +11,7 @@ namespace AElf.Contracts.DPoS.SideChain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            //context.Services.AddAssemblyOf<DPoSSideChainTestAElfModule>();
+            context.Services.AddAssemblyOf<DPoSSideChainTestAElfModule>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
         }
     }
