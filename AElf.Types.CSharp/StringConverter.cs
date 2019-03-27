@@ -76,7 +76,6 @@ namespace AElf.Types.CSharp
             return types.Distinct().ToDictionary(t => t.FullName.ToShorterName(), t => t);
         }
 
-        //TODO: Add GetTypeParser test case [Case]
         public static Func<string, object> GetTypeParser(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
@@ -106,7 +105,7 @@ namespace AElf.Types.CSharp
             throw new Exception($"Not Found parser for type {typeName}");
         }
 
-        //TODO: Add GetTypeFormatter test case [Case]
+        //TODO: No call reference, need in future or not?
         public static Func<object, string> GetTypeFormatter(string typeName, IEnumerable<Type> types = null)
         {
             if (_nameToType.TryGetValue(typeName, out var type))
