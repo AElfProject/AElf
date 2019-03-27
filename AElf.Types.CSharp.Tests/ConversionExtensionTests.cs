@@ -201,7 +201,7 @@ namespace AElf.Types.CSharp.Tests
             userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
         }
         
-        [Fact]
+        [Fact(Skip = "User type will be not used anymore.")]
         public void UserType_ToPbMessage_Test()
         {
             var personalData = new PersonalData
