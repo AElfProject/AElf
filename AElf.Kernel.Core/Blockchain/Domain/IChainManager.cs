@@ -310,21 +310,19 @@ namespace AElf.Kernel.Blockchain.Domain
                 var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
                 
-                #if DEBUG
-                // Special case: remove wrong branch. 
-                // TODO: It shouldn't happen. Find out why
-                // The block should be on the best chain and should not be branched
+                // Remove incorrect branch.
+                // When an existing block is attached, will generate an incorrect branch.
+                // and only clean up the branch, not clean the block in the branch.
                 if (chainBlockLink != null)
                 {
                     var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                     if (chainBlockIndex != null && chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
                     {
-                        Logger.LogError($"Remove wrong branch: {branch.Key}");
+                        Logger.LogDebug($"Remove incorrect branch: {branch.Key}");
                         toCleanBranchKeys.Add(branch.Key);
                         continue;
                     }
                 }
-                #endif
 
                 while (true)
                 {
@@ -337,15 +335,9 @@ namespace AElf.Kernel.Blockchain.Domain
                             break;
                         }
 
-                        // TODO: ChainBlockLink can be overwritten. Need to fix it.
-                        // Use the height and hash alternatives to ChainBlockLink to verify,
-                        // because ChainBlockLink is not correct now.
-                        // and need to figure out how to fix it
-                        //if (chainBlockLink.IsIrreversibleBlock)
-                        //{
-                        //    break;
-                        //}
-                        if (chainBlockLink.Height <= irreversibleBlockHeight)
+                        // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
+                        // because ChainBlockLink can be overwrite 
+                        if (chainBlockLink.Height < irreversibleBlockHeight)
                         {
                             var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
                             if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
