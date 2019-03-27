@@ -55,7 +55,6 @@ message Candidates {
     repeated string PublicKeys = 1;
     repeated Address Addresses = 2;
     bool IsInitialMiners = 3;
-    Hash AnnouncementTransactionId = 4;
 }
 
 // The ticket / voting information for one user.

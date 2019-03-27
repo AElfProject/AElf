@@ -47,6 +47,101 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
+        public async Task Get_RoundInformation()
+        {
+            //query return null
+            {
+                var input = new SInt64Value
+                {
+                    Value = 2
+                };
+                var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetRoundInformation), input);
+                var round = roundInformation.DeserializeToPbMessage<Round>();
+                round.ShouldBeNull();
+            }
+            
+            //query with result
+            {
+                var input = new SInt64Value
+                {
+                    Value = 1
+                };
+                var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+                    nameof(ConsensusContract.GetRoundInformation), input);
+                var round = roundInformation.DeserializeToPbMessage<Round>();
+                round.ShouldNotBeNull();
+                round.RoundNumber.ShouldBe(1);
+                round.RealTimeMinersInformation.Count.ShouldBe(3);
+            }
+        }
+        
+        [Fact]
+        public async Task Get_CurrentRoundInformation()
+        {
+            var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
+                nameof(ConsensusContract.GetCurrentRoundNumber), new Empty());
+            var roundNumber = roundInformation.DeserializeToPbMessage<SInt64Value>();
+            roundNumber.ShouldNotBeNull();
+            roundNumber.Value.ShouldBe(1);
+        }
+
+        [Fact]
+        public async Task GetCandidateList_Success()
+        {
+            //no candidate
+            {
+                var candidates = await Starter.GetCandidatesListAsync();
+                candidates.Values.Count.ShouldBe(0);
+            }
+            
+            //with candidate
+            {
+                var candidateInformation = Starter.GenerateNewUser();
+                await Starter.TransferTokenAsync(candidateInformation, DPoSContractConsts.LockTokenForElection);
+                var balance = await Starter.GetBalanceAsync(candidateInformation);
+                Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
+
+                // The candidate announce election.
+                var candidate = Starter.CreateNewContractTester(candidateInformation);
+                await candidate.AnnounceElectionAsync("AElfin");
+                
+                //Assert
+                var candidatesList = await candidate.GetCandidatesListAsync();
+                candidatesList.Values.Count.ShouldBe(1);
+            }
+        }
+
+        [Fact]
+        public async Task GetCandidates_Success()
+        {
+            //no candidate
+            {
+                var candidates = await Starter.GetCandidatesAsync();
+                candidates.PublicKeys.Count.ShouldBe(0);
+                candidates.Addresses.Count.ShouldBe(0);
+            }
+            
+            //with candidate
+            {
+                var candidateInformation = Starter.GenerateNewUser();
+                await Starter.TransferTokenAsync(candidateInformation, DPoSContractConsts.LockTokenForElection);
+                var balance = await Starter.GetBalanceAsync(candidateInformation);
+                Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
+
+                // The candidate announce election.
+                var candidate = Starter.CreateNewContractTester(candidateInformation);
+                await candidate.AnnounceElectionAsync("AElfin");
+                
+                //Assert
+                var candidates = await candidate.GetCandidatesAsync();
+                candidates.PublicKeys.Count.ShouldBe(1);
+                candidates.Addresses.Count.ShouldBe(1);
+                candidates.IsInitialMiners.ShouldBeFalse();
+            }
+        }
+        
+        [Fact]
         public async Task Query_Tickets_Info()
         {
             await Vote();
