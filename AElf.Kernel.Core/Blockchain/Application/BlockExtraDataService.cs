@@ -75,7 +75,8 @@ namespace AElf.Kernel.Blockchain.Application
         /// <exception cref="IndexOutOfRangeException">The size of header extra data is incorrect.</exception>
         public ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader)
         {
-            return blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count];
+            var index = blockHeader.Height == KernelConstants.GenesisBlockHeight ? 0 : _blockExtraDataProviders.Count;
+            return blockHeader.BlockExtraDatas[index];
         }
 
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
@@ -86,6 +87,5 @@ namespace AElf.Kernel.Blockchain.Application
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
         }
-        
     }
 }

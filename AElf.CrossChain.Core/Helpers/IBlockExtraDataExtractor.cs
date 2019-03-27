@@ -30,8 +30,7 @@ namespace AElf.CrossChain
 
         public Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header)
         {
-            return Hash.LoadByteArray(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header)
-                .ToByteArray());
+            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
 
         public ByteString ExtractOtherExtraData(string symbol, BlockHeader header)

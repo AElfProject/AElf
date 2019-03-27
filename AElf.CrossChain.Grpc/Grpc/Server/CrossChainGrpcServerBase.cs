@@ -47,117 +47,6 @@ namespace AElf.CrossChain.Grpc
             await WriteResponseStream(request, responseStream, true);
         }
 
-//        /// <summary>
-//        /// Response to recording request from side chain node.
-//        /// Many requests to many responses.
-//        /// </summary>
-//        /// <param name="requestStream"></param>
-//        /// <param name="responseStream"></param>
-//        /// <param name="context"></param>
-//        /// <returns></returns>
-//        public override async Task RequestParentChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
-//            IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
-//        {
-//            Logger.LogDebug("Parent Chain Server received IndexedInfo message.");
-//
-////            while (await requestStream.MoveNext())
-////            {
-////                var requestInfo = requestStream.Current;
-////                var requestedHeight = requestInfo.NextHeight;
-////                var sideChainId = requestInfo.RemoteChainId;
-////                
-////                var block = await GetIrreversibleBlock(requestedHeight);
-////                if (block == null)
-////                {
-////                    await responseStream.WriteAsync(new ResponseParentChainBlockData
-////                    {
-////                        Success = false
-////                    });
-////                    continue;
-////                }
-////
-////                var res = await CreateParentChainResponse(block, sideChainId);
-////                
-////                await responseStream.WriteAsync(res);
-////            }
-//        }
-//        
-//        /// <summary>
-//        /// Response to indexing request from main chain node.
-//        /// Many requests to many responses.
-//        /// </summary>
-//        /// <param name="requestStream"></param>
-//        /// <param name="responseStream"></param>
-//        /// <param name="context"></param>
-//        /// <returns></returns>
-//        public override async Task RequestSideChainDuplexStreaming(IAsyncStreamReader<RequestCrossChainBlockData> requestStream, 
-//            IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
-//        {
-//            Logger.LogDebug("Side Chain Server received IndexedInfo message.");
-
-//            try
-//            {
-//                while (await requestStream.MoveNext())
-//                {
-//                    var requestInfo = requestStream.Current;
-//                    var requestedHeight = requestInfo.NextHeight;
-//                    
-//                    var block = await GetIrreversibleBlock(
-//                        requestedHeight);
-//                    if (block == null)
-//                    {
-//                        await responseStream.WriteAsync(new ResponseSideChainBlockData
-//                        {
-//                            Success = false
-//                        });
-//                        continue;
-//                    }
-//                    
-//                    var blockHeader = block.Header;
-//                    var res = new ResponseSideChainBlockData
-//                    {
-//                        Success = blockHeader != null,
-//                        BlockData = blockHeader == null ? null : new SideChainBlockData
-//                        {
-//                            SideChainHeight = requestedHeight,
-//                            BlockHeaderHash = blockHeader.GetHash(),
-//                            TransactionMKRoot = blockHeader.MerkleTreeRootOfTransactions,
-//                            SideChainId = blockHeader.ChainId
-//                        }
-//                    };
-//                    
-//                    await responseStream.WriteAsync(res);
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                Logger.LogError(e, "Side chain server out of service with exception.");
-//            }
-//        }
-
-//        /// <summary>
-//        /// Rpc interface for new chain connection.
-//        /// </summary>
-//        /// <param name="request"></param>
-//        /// <param name="context"></param>
-//        /// <returns></returns>
-//        public override Task<IndexingRequestResult> RequestIndexing(IndexingRequestMessage request, ServerCallContext context)
-//        {
-//            var splitRes = context.Peer.Split(':');
-//            LocalEventBus.PublishAsync(new GrpcServeNewChainReceivedEvent
-//            {
-//                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
-//                {
-//                    TargetIp = splitRes[1],
-//                    TargetPort = request.ListeningPort,
-//                    RemoteChainId = request.SideChainId,
-//                    RemoteIsSideChain = true,
-//                    CertificateFileName = request.CertificateFileName
-//                }
-//            });
-//            return Task.FromResult(new IndexingRequestResult{Result = true});
-//        }
-
         public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
         {
             var splitRes = context.Peer.Split(':');
@@ -246,6 +135,7 @@ namespace AElf.CrossChain.Grpc
 
         private IResponseIndexingMessage CreateSideChainBlockData(Block block, int sideChainId)
         {
+            var transactionStatusMerkleRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new ResponseSideChainBlockData
             {
                 Success = block.Header != null,
@@ -253,7 +143,7 @@ namespace AElf.CrossChain.Grpc
                 {
                     SideChainHeight = block.Height,
                     BlockHeaderHash = block.GetHash(),
-                    TransactionMerkleTreeRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header),
+                    TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
                     SideChainId = sideChainId
                 }
             };
