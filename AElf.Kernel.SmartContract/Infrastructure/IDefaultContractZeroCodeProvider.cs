@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             var code = File.ReadAllBytes(defaultZero.Assembly.Location);
             DefaultContractZeroRegistration = new SmartContractRegistration()
             {
-                Category = KernelConstants.DefaultRunnerCategory,
+                Category = KernelConstants.CodeCoverageRunnerCategory,
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
