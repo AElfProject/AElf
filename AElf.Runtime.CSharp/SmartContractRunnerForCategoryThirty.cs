@@ -26,8 +26,6 @@ namespace AElf.Runtime.CSharp
 
         public override async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
-            // TODO: Maybe input arguments can be simplified
-
             var code = reg.Code.ToByteArray();
 
             var loadContext = GetLoadContext();
