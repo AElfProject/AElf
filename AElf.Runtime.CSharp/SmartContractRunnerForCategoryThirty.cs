@@ -12,5 +12,10 @@ namespace AElf.Runtime.CSharp
         {
             Category = KernelConstants.CodeCoverageRunnerCategory;
         }
+
+        protected override AssemblyLoadContext GetLoadContext()
+        {
+            return AssemblyLoadContext.Default;
+        }
     }
 }
