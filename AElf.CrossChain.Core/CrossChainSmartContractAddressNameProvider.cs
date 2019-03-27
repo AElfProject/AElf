@@ -1,5 +1,4 @@
 using AElf.Common;
-using AElf.Contracts.CrossChain;
 using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 

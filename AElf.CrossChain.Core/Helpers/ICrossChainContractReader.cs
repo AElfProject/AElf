@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -63,15 +62,17 @@ namespace AElf.CrossChain
         public async Task<long> GetParentChainCurrentHeightAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
-                nameof(CrossChainContract.GetParentChainHeight),
+                nameof(CrossChainContractMethodNames.GetParentChainHeight),
                 new Empty());
             return (await ReadByTransactionAsync<SInt64Value>(readOnlyTransaction, blockHash, blockHeight))?.Value ?? 0;
         }
 
+        
+
         public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
-                nameof(CrossChainContract.GetSideChainHeight),
+                nameof(CrossChainContractMethodNames.GetSideChainHeight),
                 new SInt32Value()
                 {
                     Value = sideChainId
@@ -82,7 +83,7 @@ namespace AElf.CrossChain
         public async Task<int> GetParentChainIdAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
-                nameof(CrossChainContract.GetParentChainId),
+                nameof(CrossChainContractMethodNames.GetParentChainId),
                 new Empty());
             return (await ReadByTransactionAsync<SInt32Value>(readOnlyTransaction, blockHash, blockHeight))?.Value ?? 0;
         }
@@ -90,7 +91,7 @@ namespace AElf.CrossChain
         public async Task<Dictionary<int, long>> GetSideChainIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
-                nameof(CrossChainContract.GetSideChainIdAndHeight),
+                nameof(CrossChainContractMethodNames.GetSideChainIdAndHeight),
                 new Empty());
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
             return new Dictionary<int, long>(dict.IdHeightDict);
@@ -99,7 +100,7 @@ namespace AElf.CrossChain
         public async Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
-                nameof(CrossChainContract.GetAllChainsIdAndHeight),
+                nameof(CrossChainContractMethodNames.GetAllChainsIdAndHeight),
                 new Empty());
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
             return dict == null ? null : new Dictionary<int, long>(dict.IdHeightDict);
@@ -109,7 +110,7 @@ namespace AElf.CrossChain
         {
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(
-                    nameof(CrossChainContract.GetIndexedCrossChainBlockDataByHeight),
+                    nameof(CrossChainContractMethodNames.GetIndexedCrossChainBlockDataByHeight),
                     new SInt64Value(){Value = blockHeight});
             return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, blockHash, blockHeight);
         }
@@ -154,5 +155,16 @@ namespace AElf.CrossChain
             };
             return chainContext;
         }
+    }
+    
+    public enum CrossChainContractMethodNames
+    {
+        GetParentChainHeight,
+        GetSideChainHeight,
+        GetParentChainId,
+        GetSideChainIdAndHeight,
+        GetAllChainsIdAndHeight,
+        GetIndexedCrossChainBlockDataByHeight,
+            
     }
 }
