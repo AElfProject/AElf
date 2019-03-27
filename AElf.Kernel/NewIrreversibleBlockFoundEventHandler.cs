@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,18 +12,18 @@ namespace AElf.Kernel
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency
     {
-        public IBackgroundJobManager BackgroundJobManager { get; set; }
-
+        private readonly IBackgroundJobManager _backgroundJobManager;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
-        public NewIrreversibleBlockFoundEventHandler()
+        public NewIrreversibleBlockFoundEventHandler(IBackgroundJobManager backgroundJobManager)
         {
+            _backgroundJobManager = backgroundJobManager;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await BackgroundJobManager.EnqueueAsync(new MergeBlockStateJobArgs
+            await _backgroundJobManager.EnqueueAsync(new MergeBlockStateJobArgs
             {
                 LastIrreversibleBlockHash = eventData.BlockHash.ToHex(),
                 LastIrreversibleBlockHeight = eventData.BlockHeight

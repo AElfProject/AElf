@@ -7,11 +7,16 @@ namespace AElf.Kernel
 {
     public class MergeBlockStateJob : AsyncBackgroundJob<MergeBlockStateJobArgs>, ITransientDependency
     {
-        public IBlockchainStateMergingService BlockchainStateMergingService { get; set; }
+        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+
+        public MergeBlockStateJob(IBlockchainStateMergingService blockchainStateMergingService)
+        {
+            _blockchainStateMergingService = blockchainStateMergingService;
+        }
 
         protected override async Task ExecuteAsync(MergeBlockStateJobArgs args)
         {
-            await BlockchainStateMergingService.MergeBlockStateAsync(args.LastIrreversibleBlockHeight,
+            await _blockchainStateMergingService.MergeBlockStateAsync(args.LastIrreversibleBlockHeight,
                 Hash.LoadHex(args.LastIrreversibleBlockHash));
         }
     }
