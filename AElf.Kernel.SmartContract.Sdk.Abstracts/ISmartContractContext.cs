@@ -5,5 +5,6 @@ namespace AElf.Kernel.SmartContract.Sdk
     public interface ISmartContractContext
     {
         Address ContractAddress { get; }
+        int RunnerCategory { get; }
     }
 }
