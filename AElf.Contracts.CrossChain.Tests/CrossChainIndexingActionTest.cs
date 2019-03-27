@@ -496,15 +496,16 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             var block = await MineAsync(new List<Transaction> {indexingTx});
             
+            var verificationInput =new VerifyTransactionInput()
+            {
+                TransactionId = txId,
+                ParentChainHeight = parentChainHeight
+            };
+            verificationInput.Path.AddRange(merklePath.Path);
             var txRes = await ExecuteContractWithMiningAsync(
                 CrossChainContractAddress,
-                nameof(CrossChainContract.VerifyTransaction),
-                new VerifyTransactionInput()
-                {
-                    TransactionId = txId,
-                    MerklePath = merklePath,
-                    ParentChainHeight = parentChainHeight
-                });
+                nameof(CrossChainContract.VerifyTransaction), verificationInput);
+                
             var verified = BoolValue.Parser.ParseFrom(txRes.ReturnValue).Value;
             Assert.True(verified);
         }

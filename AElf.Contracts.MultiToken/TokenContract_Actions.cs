@@ -136,9 +136,14 @@ namespace AElf.Contracts.MultiToken
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
+            var verificationInput = new VerifyTransactionInput
+            {
+                TransactionId = transferTransactionHash,
+                ParentChainHeight = input.ParentChainHeight
+            };
+            verificationInput.Path.AddRange(input.MerklePath.Path);
             var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction.Call(new VerifyTransactionInput{TransactionId = transferTransactionHash, 
-                    MerklePath = input.MerklePath, ParentChainHeight = input.ParentChainHeight});
+                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
             State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];

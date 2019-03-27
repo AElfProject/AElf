@@ -86,6 +86,6 @@ message RechargeInput {
 
 message VerifyTransactionInput {
     Hash transactionId = 1;
-    MerklePath merklePath = 2;
+    repeated Hash Path = 2;
     sint64 parentChainHeight = 3;
 }
