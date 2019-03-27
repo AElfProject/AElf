@@ -1,8 +1,8 @@
 # Summary
 
-* [Introduction](Introduction/main.md)
+* [Getting started](Introduction/main.md)
     * [What is AElf](Introduction/aelf-intro.md)
-    * [Getting started](Introduction/quickstart.md)
+    * [Running a node](Introduction/quickstart.md)
 * [Contract development](Contracts/contracts.md)
     * [Getting started](Contracts/quickstrt.md)
 * [Advanced](Advanced/advanced.md)
