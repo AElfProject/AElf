@@ -300,7 +300,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
                 minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
-                minerInformation.AppendLine($"NOrder:\t {minerInRound.OrderOfNextRound}");
+                minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
 
                 logs.Append(minerInformation);
             }

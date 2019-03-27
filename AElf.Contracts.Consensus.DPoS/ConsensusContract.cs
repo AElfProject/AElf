@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
         {
             var minersCount = round.RealTimeMinersInformation.Count;
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var minimumCount = (int) (minersCount * 2d / 3);
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
             foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
@@ -181,11 +181,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 case DPoSBehaviour.NextTerm:
                     Assert(TryToGetRoundNumber(out var roundNumber), "Failed to get current round number.");
                     Assert(TryToGetTermNumber(out var termNumber), "Failed to get current term number.");
+                    var nextTermTx = GenerateTransaction("NextTerm", round);
+                    if (State.DividendContract.Value == null)
+                    {
+                        // If dividend contract not deployed.
+                        return new TransactionList {Transactions = {nextTermTx}};
+                    }
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            GenerateTransaction("NextTerm", round),
+                            nextTermTx,
                             GenerateTransaction("SnapshotForMiners",
                                 new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
                             GenerateTransaction("SnapshotForTerm",
@@ -374,7 +380,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
                 minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
-                minerInformation.AppendLine($"NOrder:\t {minerInRound.OrderOfNextRound}");
+                minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
 
                 logs.Append(minerInformation);
             }

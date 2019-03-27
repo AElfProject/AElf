@@ -13,7 +13,7 @@ message ToUpdate {
     int32 PromiseTinyBlocks = 4;// This value is 1 by default, except this miner wanna produce tiny blocks in one time slot.
     Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp ActualMiningTime = 6;
-    int32 OrderOfNextRound = 7;
+    int32 SupposedOrderOfNextRound = 7;
     repeated ChangeOrderInformation ChangedOrders = 8;
     map<string, bytes> EncryptedInValues = 9;// For others to recover his in value of current round.
     map<string, bytes> DecryptedInValues = 10;
@@ -111,8 +111,8 @@ message MinerInRound {
     int32 PromisedTinyBlocks = 10;
     string Alias = 11;
     Hash PreviousInValue = 12;
-    int32 OrderOfNextRound = 13;
-    int32 TuneOrderOfNextRound = 14;
+    int32 SupposedOrderOfNextRound = 13;
+    int32 FinalOrderOfNextRound = 14;
     google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
     map<string, bytes> EncryptedInValues = 16;
     map<string, bytes> DecryptedInValues = 17;

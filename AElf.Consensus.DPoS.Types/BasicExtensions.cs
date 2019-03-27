@@ -272,6 +272,13 @@ namespace AElf.Consensus.DPoS
                 .AddMilliseconds(miningInterval);
         }
 
+        /// <summary>
+        /// Maybe tune other miners' supposed order of next round,
+        /// will record this purpose to their FinalOrderOfNextRound field.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <param name="publicKey"></param>
+        /// <returns></returns>
         public static ToUpdate GenerateInformationToUpdateConsensus(this Round round, string publicKey)
         {
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
@@ -279,11 +286,11 @@ namespace AElf.Consensus.DPoS
                 return null;
             }
 
-            var changeOrders = new List<ChangeOrderInformation>();
-            foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.TuneOrderOfNextRound != 0)
-                .ToDictionary(m => m.PublicKey, m => m.TuneOrderOfNextRound))
+            var tuneOtherMinersOrders = new List<ChangeOrderInformation>();
+            foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound != 0)
+                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound))
             {
-                changeOrders.Add(new ChangeOrderInformation {PublickKey = tune.Key, NewOrder = tune.Value});
+                tuneOtherMinersOrders.Add(new ChangeOrderInformation {PublickKey = tune.Key, NewOrder = tune.Value});
             }
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
@@ -295,8 +302,8 @@ namespace AElf.Consensus.DPoS
                 RoundId = round.RoundId,
                 PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTime,
-                OrderOfNextRound = minerInRound.OrderOfNextRound,
-                ChangedOrders = {changeOrders},
+                SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
+                ChangedOrders = {tuneOtherMinersOrders},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
                 DecryptedInValues = {minerInRound.DecryptedInValues}
             };
@@ -306,7 +313,6 @@ namespace AElf.Consensus.DPoS
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature,
             DateTime dateTime)
         {
-            round.ClearTuneOrderOfNextRound();
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 return round;
@@ -321,12 +327,12 @@ namespace AElf.Consensus.DPoS
                 BitConverter.ToInt64(
                     BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
                     0);
-            var orderOfNextRound = GetAbsModulus(sigNum, minersCount) + 1;
+            var supposedOrderOfNextRound = GetAbsModulus(sigNum, minersCount) + 1;
 
             // Check the existence of conflicts about OrderOfNextRound.
             // If so, modify others'.
             var conflicts = round.RealTimeMinersInformation.Values
-                .Where(i => i.OrderOfNextRound == orderOfNextRound).ToList();
+                .Where(i => i.FinalOrderOfNextRound == supposedOrderOfNextRound).ToList();
 
             foreach (var minerInRound in conflicts)
             {
@@ -336,25 +342,19 @@ namespace AElf.Consensus.DPoS
                 {
                     var maybeNewOrder = i % minersCount + 1;
                     if (round.RealTimeMinersInformation.Values.All(m =>
-                        m.OrderOfNextRound != maybeNewOrder && m.TuneOrderOfNextRound != maybeNewOrder))
+                        m.SupposedOrderOfNextRound != maybeNewOrder && m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        round.RealTimeMinersInformation[minerInRound.PublicKey].TuneOrderOfNextRound =
+                        round.RealTimeMinersInformation[minerInRound.PublicKey].FinalOrderOfNextRound =
                             maybeNewOrder;
                     }
                 }
             }
 
-            round.RealTimeMinersInformation[publicKey].OrderOfNextRound = orderOfNextRound;
+            round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = supposedOrderOfNextRound;
+            // Initialize FinalOrderOfNextRound as the value of SupposedOrderOfNextRound
+            round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = supposedOrderOfNextRound;
 
             return round;
-        }
-
-        private static void ClearTuneOrderOfNextRound(this Round round)
-        {
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
-            {
-                minerInRound.TuneOrderOfNextRound = 0;
-            }
         }
 
         public static bool GenerateNextRoundInformation(this Round round, DateTime dateTime,
@@ -364,7 +364,7 @@ namespace AElf.Consensus.DPoS
 
             // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
             var minersMinedCurrentRound =
-                round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound != 0).ToList();
+                round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
             if (minersMinedCurrentRound.Any(m => m.Signature == null))
             {
                 return false;
@@ -379,10 +379,10 @@ namespace AElf.Consensus.DPoS
                 (long) (dateTime - blockchainStartTimestamp.ToDateTime())
                 .TotalMinutes; // TODO: Change to TotalDays after testing.
 
-            // Set next round miners' information of miners successfully mined during this round.
-            foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.OrderOfNextRound))
+            // Set next round miners' information of miners who successfully mined during this round.
+            foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.FinalOrderOfNextRound))
             {
-                var order = minerInRound.OrderOfNextRound;
+                var order = minerInRound.FinalOrderOfNextRound;
                 nextRound.RealTimeMinersInformation[minerInRound.PublicKey] = new MinerInRound
                 {
                     PublicKey = minerInRound.PublicKey,
@@ -394,9 +394,9 @@ namespace AElf.Consensus.DPoS
 
             // Set miners' information of miners missed their time slot in current round.
             var minersNotMinedCurrentRound =
-                round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound == 0).ToList();
+                round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound == 0).ToList();
             var minersCount = round.RealTimeMinersInformation.Count;
-            var occupiedOrders = round.RealTimeMinersInformation.Values.Select(m => m.OrderOfNextRound).ToList();
+            var occupiedOrders = round.RealTimeMinersInformation.Values.Select(m => m.FinalOrderOfNextRound).ToList();
             var ableOrders = Enumerable.Range(1, minersCount).Where(i => !occupiedOrders.Contains(i)).ToList();
             for (var i = 0; i < minersNotMinedCurrentRound.Count; i++)
             {

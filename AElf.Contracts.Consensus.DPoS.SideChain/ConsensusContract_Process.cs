@@ -78,11 +78,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
 
-            round.RealTimeMinersInformation[publicKey].OrderOfNextRound = input.OrderOfNextRound;
+            round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
+            round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
             foreach (var changeOrderInformation in input.ChangedOrders)
             {
-                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].OrderOfNextRound =
+                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].FinalOrderOfNextRound =
                     changeOrderInformation.NewOrder;
             }
 
