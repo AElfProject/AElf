@@ -52,12 +52,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
                     var outValue = Hash.FromMessage(inValue);
 
-                    var signature = Hash.Empty;
-                    Round previousRound = null;
-                    if (round.RoundNumber != 1)
+                    var signature = Hash.FromTwoHashes(outValue, input.RandomHash);
+
+                    TryToGetPreviousRoundInformation(out var previousRound);
+                    if (previousRound.RoundId != 0 && previousRound.TermNumber == round.TermNumber)
                     {
-                        Assert(TryToGetPreviousRoundInformation(out previousRound),
-                            "Failed to get previous round information.");
                         signature = previousRound.CalculateSignature(inValue);
                     }
 
@@ -122,7 +121,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 round.RealTimeMinersInformation[publicKey].EncryptedInValues
                     .Add(key, ByteString.CopyFrom(encryptedInValue));
 
-                if (previousRound == null || round.RoundNumber != previousRound.RoundNumber ||
+                if (previousRound.RoundId == 0 || round.TermNumber != previousRound.TermNumber ||
                     pair.Value.DecryptedInValues.Count < minimumCount)
                 {
                     continue;
@@ -307,10 +306,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 return DPoSBehaviour.Invalid;
             }
 
+            TryToGetPreviousRoundInformation(out var previousRound);
+
             if (!round.IsTimeSlotPassed(publicKey, dateTime, out minerInRound) && minerInRound.OutValue == null)
             {
                 return minerInRound != null
-                    ? (round.RoundNumber == 1
+                    ? (previousRound.RoundId == 0 || previousRound.TermNumber != round.TermNumber
                         ? DPoSBehaviour.UpdateValueWithoutPreviousInValue
                         : DPoSBehaviour.UpdateValue)
                     : DPoSBehaviour.Invalid;
@@ -319,16 +320,24 @@ namespace AElf.Contracts.Consensus.DPoS
             // If this node missed his time slot, a command of terminating current round will be fired,
             // and the terminate time will based on the order of this node (to avoid conflicts).
 
-            // Calculate the approvals and make the judgement of changing term.
-            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
-                "Failed to get blockchain start timestamp.");
+
+            // Means the chain just started.
+            if (previousRound.RoundId == 0 && minerInRound.Signature == null)
+            {
+                return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+            }
+
             Assert(TryToGetTermNumber(out var termNumber), "Failed to get term number.");
             if (round.RoundNumber == 1)
             {
                 return DPoSBehaviour.NextRound;
             }
 
-            Assert(TryToGetPreviousRoundInformation(out var previousRound), "Failed to previous round information.");
+            // Calculate the approvals and make the judgement of changing term.
+            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
+                "Failed to get blockchain start timestamp.");
+
+            Assert(previousRound.RoundId != 0, "Failed to previous round information.");
             return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
                 ? DPoSBehaviour.NextTerm
                 : DPoSBehaviour.NextRound;
@@ -352,7 +361,9 @@ namespace AElf.Contracts.Consensus.DPoS
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
                 minerInformation.AppendLine(
-                    $"Time:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                    $"Time:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine(
+                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {

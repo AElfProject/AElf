@@ -38,11 +38,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override StringList GetCandidatesList(Empty input)
         {
-            var list = new StringList
-            {
-                Values = {State.CandidatesField.Value.PublicKeys.ToList()}
-            };
-            return list;
+            var candidates = State.CandidatesField.Value;
+            return candidates == null ? new StringList() : new StringList {Values = {candidates.PublicKeys.ToList()}};
         }
 
         public override Candidates GetCandidates(Empty input)

@@ -29,6 +29,7 @@ using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -143,8 +144,8 @@ namespace AElf.Launcher
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                dposOptions.InitialMiners.ToMiners()
-                    .GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval, DateTime.UtcNow));
+                dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
+                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
             return consensusMethodCallList;
         }
 

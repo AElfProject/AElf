@@ -18,6 +18,16 @@ namespace AElf.Consensus.DPoS
             switch (behaviour)
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
+                    return new ConsensusCommand
+                    {
+                        NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval,
+                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                        Hint = new DPoSHint
+                        {
+                            Behaviour = behaviour
+                        }.ToByteString()
+                    };
+                
                 case DPoSBehaviour.UpdateValue:
                     var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
 
@@ -212,6 +222,12 @@ namespace AElf.Consensus.DPoS
                 miningInterval = round.GetMiningInterval();
             }
 
+            if (round.RoundNumber == 1)
+            {
+                return dateTime.AddMilliseconds(round.RealTimeMinersInformation.Count * miningInterval)
+                    .ToTimestamp();
+            }
+
             if (!round.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
             {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
@@ -298,14 +314,7 @@ namespace AElf.Consensus.DPoS
 
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
             round.RealTimeMinersInformation[publicKey].OutValue = outValue;
-            if (round.RoundNumber != 1)
-            {
-                round.RealTimeMinersInformation[publicKey].Signature = signature;
-            }
-            else
-            {
-                signature = round.RealTimeMinersInformation[publicKey].Signature;
-            }
+            round.RealTimeMinersInformation[publicKey].Signature = signature;
 
             var minersCount = round.RealTimeMinersInformation.Count;
             var sigNum =
@@ -420,7 +429,7 @@ namespace AElf.Consensus.DPoS
 
         private static Timestamp GetArrangedTimestamp(this Timestamp timestamp, int order, int miningInterval)
         {
-            return GetTimestampWithOffset(timestamp, miningInterval * order);
+            return timestamp.ToDateTime().AddMilliseconds(miningInterval * order).ToTimestamp();
         }
 
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
@@ -438,11 +447,6 @@ namespace AElf.Consensus.DPoS
             var blockProducerCount = round.RealTimeMinersInformation.Count;
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;
-        }
-
-        private static Timestamp GetTimestampWithOffset(Timestamp origin, int offset)
-        {
-            return Timestamp.FromDateTime(origin.ToDateTime().AddMilliseconds(offset));
         }
 
         /// <summary>
@@ -511,14 +515,12 @@ namespace AElf.Consensus.DPoS
 
             var round = new Round();
 
-            // The extra block producer of first round is totally randomized.
-            var selected = new Random().Next(0, miners.PublicKeys.Count);
-
             for (var i = 0; i < sortedMiners.Count; i++)
             {
                 var minerInRound = new MinerInRound();
 
-                if (i == selected)
+                // The first miner will be the extra block producer of first round of each term.
+                if (i == 0)
                 {
                     minerInRound.IsExtraBlockProducer = true;
                 }
@@ -526,7 +528,7 @@ namespace AElf.Consensus.DPoS
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 // Signatures totally randomized.
-                minerInRound.Signature = Hash.Generate();
+                //minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
                 minerInRound.PromisedTinyBlocks = 1;

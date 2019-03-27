@@ -60,7 +60,6 @@ namespace AElf.Contracts.Consensus.DPoS
             SetRoundNumber(1);
             SetBlockAge(1);
             AddTermNumberToFirstRoundNumber(1, 1);
-            SetBlockchainStartTimestamp(firstRound.GetStartTime().ToTimestamp());
             var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners(1);
             miners.TermNumber = 1;
             SetMiners(miners);

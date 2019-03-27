@@ -49,17 +49,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     Assert(input.RandomHash != null && input.RandomHash != null,
                         "Current in value should be valid.");
 
-                    var previousInValue = input.PreviousInValue;
-
                     var inValue = Hash.FromTwoHashes(Context.PreviousBlockHash, input.RandomHash);
 
                     var outValue = Hash.FromMessage(inValue);
 
                     var signature = Hash.Empty;
-                    Round previousRound;
                     if (round.RoundNumber != 1)
                     {
-                        Assert(TryToGetPreviousRoundInformation(out previousRound),
+                        Assert(TryToGetPreviousRoundInformation(out var previousRound),
                             "Failed to get previous round information.");
                         signature = previousRound.CalculateSignature(inValue);
                     }

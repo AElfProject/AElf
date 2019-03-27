@@ -60,17 +60,19 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override Empty UpdateValue(ToUpdate input)
         {
-            Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   input.RoundId == currentRound.RoundId, "Round Id not matched.");
-
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+
+            Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            if (round.RoundNumber != 1)
+            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].Order == 1)
             {
-                round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
+                SetBlockchainStartTimestamp(input.ActualMiningTime.ToDateTime()
+                    .AddMilliseconds(-round.GetMiningInterval()).ToTimestamp());
             }
+
+            round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
 
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
 
