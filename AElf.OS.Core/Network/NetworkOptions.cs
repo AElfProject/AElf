@@ -32,6 +32,11 @@ namespace AElf.OS.Network
         /// <summary>
         /// Maximum amount of values used when synchronizing a fork.
         /// </summary>
-        public int BlockIdRequestCount { get; set; } = NetworkConsts.DefaultBlockIdRequestCount;
+        public int BlockIdRequestCount { get; set; } = NetworkConsts.DefaultBlockRequestCount;
+
+        /// <summary>
+        /// Indicates if this node will compress blocks when a peer requests blocks.
+        /// </summary>
+        public bool CompressBlocksOnRequest { get; set; } = NetworkConsts.DefaultCompressBlocks;
     }
 }

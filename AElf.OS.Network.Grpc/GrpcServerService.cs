@@ -12,8 +12,10 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -25,6 +27,7 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase
     {
+        private readonly NetworkOptions _netOpts;
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
@@ -33,8 +36,9 @@ namespace AElf.OS.Network.Grpc
 
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
+        public GrpcServerService(IOptionsSnapshot<NetworkOptions> netOpts, IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
         {
+            _netOpts = netOpts.Value;
             _peerPool = peerPool;
             _blockChainService = blockChainService;
             _accountService = accountService;
@@ -168,6 +172,12 @@ namespace AElf.OS.Network.Grpc
 
             if (blockList.Blocks.Count != request.Count)
                 Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
+
+            if (_netOpts.CompressBlocksOnRequest)
+            {
+                var headers = new Metadata{new Metadata.Entry(GrpcConsts.GrpcRequestCompressKey, GrpcConsts.GrpcGzipConst)};
+                await context.WriteResponseHeadersAsync(headers);
+            }
             
             return blockList;
         }
