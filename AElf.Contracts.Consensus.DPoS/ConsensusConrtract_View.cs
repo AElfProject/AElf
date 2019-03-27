@@ -144,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new FriendlyString() {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
         }
 
-        public override Miners GetCurrentMiners(Empty input)
+        public override MinerList GetCurrentMiners(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumberField.Value;
             if (currentTermNumber == 0)
@@ -154,7 +154,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var currentMiners = State.MinersMap[currentTermNumber.ToInt64Value()];
 
-            return currentMiners;
+            var minerList = new MinerList
+            {
+                TermNumber = currentMiners.TermNumber
+            };
+            minerList.Addresses.AddRange(currentMiners.Addresses);
+            minerList.PublicKeys.AddRange(currentMiners.PublicKeys);
+            return minerList;
         }
 
         public override FriendlyString GetCurrentMinersToFriendlyString(Empty input)

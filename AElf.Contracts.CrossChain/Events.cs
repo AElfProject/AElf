@@ -1,7 +1,5 @@
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.CrossChain;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.CrossChain

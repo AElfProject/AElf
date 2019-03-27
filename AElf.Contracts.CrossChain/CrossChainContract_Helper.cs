@@ -1,11 +1,12 @@
 using AElf.Common;
-using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using MinerList = AElf.CrossChain.MinerList;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -174,7 +175,7 @@ namespace AElf.Contracts.CrossChain
         private void UpdateCurrentMiners(ByteString bytes)
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
-            State.ConsensusContract.UpdateMainChainConsensus.Send(DPoSInformation.Parser.ParseFrom(bytes));
+            State.ConsensusContract.UpdateMainChainConsensus.Send(ConsensusInformation.Parser.ParseFrom(bytes));
         }
     }
 }
