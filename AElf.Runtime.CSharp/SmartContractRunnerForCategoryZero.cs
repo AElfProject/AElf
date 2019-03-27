@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -32,7 +33,7 @@ namespace AElf.Runtime.CSharp
         private readonly string _sdkDir;
         private readonly AssemblyChecker _assemblyChecker;
 
-        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins,
@@ -49,16 +50,14 @@ namespace AElf.Runtime.CSharp
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
-        private ContractCodeLoadContext GetLoadContext()
+        protected virtual AssemblyLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
             return new ContractCodeLoadContext(_sdkStreamManager);
         }
 
-        public async Task<IExecutive> RunAsync(SmartContractRegistration reg)
+        public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
-            // TODO: Maybe input arguments can be simplified
-
             var code = reg.Code.ToByteArray();
 
             var loadContext = GetLoadContext();

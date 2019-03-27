@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -46,7 +45,7 @@ namespace AElf.CrossChain
 
         private byte[] CreateFakeReturnValue(TransactionTrace trace, Transaction transaction, string methodName)
         {
-            if (methodName == nameof(CrossChainContract.GetParentChainId))
+            if (methodName == nameof(CrossChainContractMethodNames.GetParentChainId))
             {
                 var parentChainId = _parentChainIdHeight.Keys.FirstOrDefault();
                 if (parentChainId != 0)
@@ -55,14 +54,14 @@ namespace AElf.CrossChain
                 return null;
             }
             
-            if (methodName == nameof(CrossChainContract.GetParentChainHeight))
+            if (methodName == nameof(CrossChainContractMethodNames.GetParentChainHeight))
             {
                 return _parentChainIdHeight.Count == 0
                     ? null
                     : new SInt64Value {Value = _parentChainIdHeight.Values.First()}.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContract.GetSideChainHeight))
+            if (methodName == nameof(CrossChainContractMethodNames.GetSideChainHeight))
             {
                 int sideChainId = SInt32Value.Parser.ParseFrom(transaction.Params).Value;
                 var exist = _sideChainIdHeights.TryGetValue(sideChainId, out var sideChainHeight);
@@ -72,7 +71,7 @@ namespace AElf.CrossChain
                 return new SInt64Value().ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContract.GetAllChainsIdAndHeight))
+            if (methodName == nameof(CrossChainContractMethodNames.GetAllChainsIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
@@ -80,14 +79,14 @@ namespace AElf.CrossChain
                 return dict.ToByteArray();
             }
 
-            if (methodName == nameof(CrossChainContract.GetSideChainIdAndHeight))
+            if (methodName == nameof(CrossChainContractMethodNames.GetSideChainIdAndHeight))
             {
                 var dict = new SideChainIdAndHeightDict();
                 dict.IdHeighDict.Add(_sideChainIdHeights);
                 return dict.ToByteArray();
             }
             
-            if (methodName == nameof(CrossChainContract.GetIndexedCrossChainBlockDataByHeight))
+            if (methodName == nameof(CrossChainContractMethodNames.GetIndexedCrossChainBlockDataByHeight))
             {
                 long height = SInt64Value.Parser.ParseFrom(transaction.Params).Value;
                 if (_indexedCrossChainBlockData.TryGetValue(height, out var crossChainBlockData))
