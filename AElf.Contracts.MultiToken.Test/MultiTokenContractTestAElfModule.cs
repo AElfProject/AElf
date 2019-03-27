@@ -9,7 +9,7 @@ namespace AElf.Contracts.MultiToken
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<MultiTokenContractTestAElfModule>();
+            //context.Services.AddAssemblyOf<MultiTokenContractTestAElfModule>();
         }
     }
 }

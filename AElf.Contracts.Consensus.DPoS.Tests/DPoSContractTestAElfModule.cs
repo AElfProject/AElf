@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<DPoSContractTestAElfModule>();
+            //context.Services.AddAssemblyOf<DPoSContractTestAElfModule>();
 
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
         }
