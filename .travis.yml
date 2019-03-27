@@ -21,7 +21,7 @@ script:
   - bash scripts/build.sh
   - bash scripts/test.sh
 after_script:
-  - bash scripts/upload_coverage.sh $CODECOV_TOKEN
+  - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then bash scripts/upload_coverage.sh $CODECOV_TOKEN; fi'
 deploy:
   - provider: script
     script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
