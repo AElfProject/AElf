@@ -23,7 +23,7 @@ namespace AElf.Consensus.DPoS
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.ProducedBlocks = 0;
-                checkableMinerInRound.DecryptedInValues.Clear();
+                checkableMinerInRound.DecryptedPreviousInValues.Clear();
                 checkableMinerInRound.EncryptedInValues.Clear();
                 if (!isContainPreviousInValue)
                 {

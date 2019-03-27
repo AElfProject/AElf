@@ -69,7 +69,7 @@ namespace AElf.Contracts.Dividend
         /// <summary>
         /// Transfer dividends to miners.
         /// </summary>
-        /// <param name="votingRecord"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
         public override SInt64Value TransferDividends(VotingRecord input)

@@ -286,12 +286,9 @@ namespace AElf.Consensus.DPoS
                 return null;
             }
 
-            var tuneOtherMinersOrders = new List<ChangeOrderInformation>();
-            foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound != 0)
-                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound))
-            {
-                tuneOtherMinersOrders.Add(new ChangeOrderInformation {PublickKey = tune.Key, NewOrder = tune.Value});
-            }
+            var tuneOrderInformation = round.RealTimeMinersInformation.Values
+                .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
+                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             return new ToUpdate
@@ -303,12 +300,11 @@ namespace AElf.Consensus.DPoS
                 PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTime,
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
-                ChangedOrders = {tuneOtherMinersOrders},
+                TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
-                DecryptedInValues = {minerInRound.DecryptedInValues}
+                DecryptedPreviousInValues = {minerInRound.DecryptedPreviousInValues}
             };
         }
-
 
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature,
             DateTime dateTime)
@@ -334,18 +330,20 @@ namespace AElf.Consensus.DPoS
             var conflicts = round.RealTimeMinersInformation.Values
                 .Where(i => i.FinalOrderOfNextRound == supposedOrderOfNextRound).ToList();
 
-            foreach (var minerInRound in conflicts)
+            foreach (var orderConflictedMiner in conflicts)
             {
+                Console.WriteLine("Detected conflict miner: " + orderConflictedMiner.PublicKey);
                 // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
 
-                for (var i = minerInRound.Order + 1; i < minersCount * 2 + 1; i++)
+                for (var i = supposedOrderOfNextRound + 1; i < minersCount * 2; i++)
                 {
-                    var maybeNewOrder = i % minersCount + 1;
-                    if (round.RealTimeMinersInformation.Values.All(m =>
-                        m.SupposedOrderOfNextRound != maybeNewOrder && m.FinalOrderOfNextRound != maybeNewOrder))
+                    var maybeNewOrder = i > minersCount ? i % minersCount : i;
+                    if (round.RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        round.RealTimeMinersInformation[minerInRound.PublicKey].FinalOrderOfNextRound =
+                        Console.WriteLine($"Try to tune order from {round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound} to {maybeNewOrder}");
+                        round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
                             maybeNewOrder;
+                        break;
                     }
                 }
             }
@@ -646,7 +644,7 @@ namespace AElf.Consensus.DPoS
 
             if (baseMiningInterval <= 0)
             {
-                return new ValidationResult {Success = false, Message = "Mining interval must greater than 0."};
+                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{round}"};
             }
 
             for (var i = 1; i < miners.Count - 1; i++)

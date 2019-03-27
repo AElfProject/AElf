@@ -289,7 +289,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
                 minerInformation.AppendLine(
-                    $"Time:\t {minerInRound.ExpectedMiningTime.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                    $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine(
+                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {

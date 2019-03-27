@@ -73,27 +73,21 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
-
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
-
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
-
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
-            
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
-            
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
-
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
-            round.RealTimeMinersInformation[publicKey].DecryptedInValues.Add(input.DecryptedInValues);
+            round.RealTimeMinersInformation[publicKey].DecryptedPreviousInValues.Add(input.DecryptedPreviousInValues);
 
-            foreach (var changeOrderInformation in input.ChangedOrders)
+            foreach (var tuneOrder in input.TuneOrderInformation)
             {
-                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].FinalOrderOfNextRound =
-                    changeOrderInformation.NewOrder;
+                Context.LogDebug(() => $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
+                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
-            
+
             // One cannot publish his in value sometime, like in his first round.
             if (input.PreviousInValue != Hash.Empty)
             {

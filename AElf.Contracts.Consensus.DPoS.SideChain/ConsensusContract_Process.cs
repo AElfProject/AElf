@@ -81,10 +81,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
-            foreach (var changeOrderInformation in input.ChangedOrders)
+            foreach (var tuneOrder in input.TuneOrderInformation)
             {
-                round.RealTimeMinersInformation[changeOrderInformation.PublickKey].FinalOrderOfNextRound =
-                    changeOrderInformation.NewOrder;
+                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
             // One cannot publish his in value sometime, like in his first round.

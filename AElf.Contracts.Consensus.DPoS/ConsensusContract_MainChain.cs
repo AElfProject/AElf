@@ -69,8 +69,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // TODO: This judgement can be removed with `Initialize` method.
             if (State.DividendContract.Value == null)
             {
-                State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+                State.DividendContract.Value = Context.GetContractAddressByName()
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
