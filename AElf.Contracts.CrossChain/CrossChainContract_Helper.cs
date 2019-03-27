@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -161,10 +157,17 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
-        private Miners GetCurrentMiners()
+        private MinerList GetCurrentMiners()
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
-            return State.ConsensusContract.GetCurrentMiners.Call(new Empty());
+            var miners = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
+            var minerList = new MinerList
+            {
+                TermNumber = miners.TermNumber
+            };
+            minerList.Addresses.AddRange(miners.Addresses);
+            minerList.PublicKeys.AddRange(miners.PublicKeys);
+            return minerList;
         }
 
         // only for side chain

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Consensus.DPoS";
+
+service ConsensusContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.SideChain.DPoSContractState";
+    // Actions
+    rpc UpdateMainChainConsensus (DPoSInformation) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
+        option (aelf.is_view) = true;
+    }
+}
+message DPoSInformation {
+    string SenderPublicKey = 1;
+    Round Round = 2;
+    DPoSBehaviour Behaviour = 8;
+}
+
+message Miners {
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}
+
+enum DPoSBehaviour {
+    InitialConsensus = 0;
+    UpdateValue = 1;
+    NextRound = 2;
+    NextTerm = 3;
+    Invalid = 4;
+}
+
+message Round {
+    int64 RoundNumber = 1;
+    map<string, MinerInRound> RealTimeMinersInformation = 2;
+    int64 BlockchainAge = 4;
+    string ExtraBlockProducerOfPreviousRound = 7;
+    int64 TermNumber = 8;
+}
+
+// The information of a miner in a specific round.
+message MinerInRound {
+    int32 Order = 1;
+    bool IsExtraBlockProducer = 2;
+    Hash InValue = 3;
+    Hash OutValue = 4;
+    Hash Signature = 5;
+    google.protobuf.Timestamp ExpectedMiningTime = 6;
+    int64 ProducedBlocks = 7;
+    bool IsForked = 8;
+    int64 MissedTimeSlots = 9;
+    int64 RoundNumber = 10;
+    string PublicKey = 11;
+    int64 PackagedTxsCount = 12;
+    int64 LatestMissedTimeSlots = 13;
+    bool IsMissed = 14;
+    int32 PromisedTinyBlocks = 16;
+    string Alias = 17;
+    Hash PreviousInValue = 18;
+    int32 OrderOfNextRound = 19;
+    int32 TuneOrderOfNextRound = 20;
+    google.protobuf.Timestamp ActualMiningTime = 21;// Miners must fill actual mining time when they do the mining.
+}

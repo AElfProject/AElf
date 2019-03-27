@@ -78,3 +78,9 @@ message CrossChainMerkleProofContext{
     int64 BoundParentChainHeight = 1;
     MerklePath MerklePathForParentChainRoot = 2;
 }
+
+message MinerList{
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}

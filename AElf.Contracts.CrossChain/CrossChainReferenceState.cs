@@ -1,4 +1,4 @@
-using AElf.Contracts.Consensus.DPoS.SideChain;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 

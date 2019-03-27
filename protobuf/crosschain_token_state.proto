@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+import "aelf_options.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.CrossChain";
+
+service CrossChainContract {
+    option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
+    // Views
+    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message VerifyTransactionInput {
+    Hash transactionId = 1;
+    repeated Hash Path = 2;
+    sint64 parentChainHeight = 3;
+}

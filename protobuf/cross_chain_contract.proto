@@ -2,8 +2,6 @@ syntax = "proto3";
 
 import "common.proto";
 import "kernel.proto";
-import "consensus.proto";
-import "consensus_dpos.proto";
 import "aelf_options.proto";
 import "crosschain.proto";
 import "google/protobuf/empty.proto";
