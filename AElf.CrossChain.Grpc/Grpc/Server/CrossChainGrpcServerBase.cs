@@ -61,7 +61,7 @@ namespace AElf.CrossChain.Grpc
                     CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.ChainId)
                 }
             });
-            Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");
+            //Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");
             return Task.FromResult(new IndexingHandShakeReply{Result = true});
         }
 
@@ -69,6 +69,7 @@ namespace AElf.CrossChain.Grpc
         {
             var crossChainBlockData =
                 await _crossChainService.GetCrossChainBlockDataIndexedInStateAsync(block.GetHash(), block.Height);
+            //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
             return crossChainBlockData.SideChainBlockData;
         }
 
@@ -94,11 +95,11 @@ namespace AElf.CrossChain.Grpc
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                 merklepathList.Add((info.Height, merklePath));
             }
-
+            //Logger.LogTrace($"Got merkle path list size {merklepathList.Count}");
             return merklepathList;
         }
         
-        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int parentChain)
+        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int remoteSideChainId)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
             {
@@ -125,7 +126,7 @@ namespace AElf.CrossChain.Grpc
             
             responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
-            var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, parentChain);
+            var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
             {
                 responseParentChainBlockData.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
@@ -133,7 +134,7 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        private IResponseIndexingMessage CreateSideChainBlockData(Block block, int sideChainId)
+        private IResponseIndexingMessage CreateSideChainBlockData(Block block)
         {
             var transactionStatusMerkleRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new ResponseSideChainBlockData
@@ -144,7 +145,7 @@ namespace AElf.CrossChain.Grpc
                     SideChainHeight = block.Height,
                     BlockHeaderHash = block.GetHash(),
                     TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
-                    SideChainId = sideChainId
+                    SideChainId = block.Header.ChainId
                 }
             };
         }
@@ -153,14 +154,14 @@ namespace AElf.CrossChain.Grpc
             IServerStreamWriter<T> responseStream, bool requestSideChain) where T : IResponseIndexingMessage
         {
             var requestedHeight = request.NextHeight;
-            var remoteChainId = request.RemoteChainId;
+            var remoteChainId = request.FromChainId;
             while (true)
             {
                 var block = await GetIrreversibleBlock(requestedHeight);
                 if (block == null)
                     return;
                 var res = requestSideChain
-                    ? CreateSideChainBlockData(block, remoteChainId)
+                    ? CreateSideChainBlockData(block)
                     : await CreateParentChainResponse(block, remoteChainId);
                 await responseStream.WriteAsync((T) res);
                 requestedHeight++;
