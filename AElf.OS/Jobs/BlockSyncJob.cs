@@ -39,7 +39,7 @@ namespace AElf.OS.Jobs
                         return;
                     }
 
-                    peerBlock = await NetworkService.GetBlockByHashAsync(peerBlockHash);
+                    peerBlock = await NetworkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
                     if (peerBlock == null)
                     {
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");

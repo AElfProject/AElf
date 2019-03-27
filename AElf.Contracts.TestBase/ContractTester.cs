@@ -52,6 +52,7 @@ namespace AElf.Contracts.TestBase
     /// etc.
     /// </summary>
     /// <typeparam name="TContractTestAElfModule"></typeparam>
+    //[Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
@@ -61,7 +62,11 @@ namespace AElf.Contracts.TestBase
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
-        public ContractTester(int chainId = 0, ECKeyPair keyPair = null)
+        public ContractTester() : this(0, null)
+        {
+        }
+
+        public ContractTester(int chainId, ECKeyPair keyPair)
         {
             KeyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
 
@@ -200,6 +205,24 @@ namespace AElf.Contracts.TestBase
 
             await osBlockchainNodeContextService.StartAsync(dto);
         }
+        
+        public async Task InitialSideChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory 
+            };
+            
+            dto.InitializationSmartContracts.AddConsensusSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>();
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+
+            await osBlockchainNodeContextService.StartAsync(dto);
+        }
 
         /// <summary>
         /// Use randomized ECKeyPair.
@@ -306,12 +329,13 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var paramInfo = input == null ? ByteString.Empty : input.ToByteString(); //Add input parameter is null situation
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
                 To = contractAddress,
                 MethodName = methodName,
-                Params = input.ToByteString(),
+                Params = paramInfo,
                 RefBlockNumber = refBlock.Height,
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
@@ -520,6 +544,11 @@ namespace AElf.Contracts.TestBase
                     .Name);
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
             };
+        }
+
+        public Task<TResult> InitialChainAndTokenAsync<TResult>()
+        {
+            throw new NotImplementedException();
         }
     }
 }

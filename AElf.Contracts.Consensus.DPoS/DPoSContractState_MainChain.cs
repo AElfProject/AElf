@@ -1,9 +1,13 @@
+using AElf.Contracts.Dividend;
+using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken.Messages;
+
 namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class DPoSContractState
     {
-        public DividendContractReferenceState DividendContract { get; set; }
-        public TokenContractReferenceState TokenContract { get; set; }
-        public BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal DividendContractContainer.DividendContractReferenceState DividendContract { get; set; }
+        internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }
