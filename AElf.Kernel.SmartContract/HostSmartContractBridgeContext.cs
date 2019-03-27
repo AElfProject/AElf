@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
@@ -18,30 +21,42 @@ namespace AElf.Kernel.SmartContract
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
 
-
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+            _lazyStateProvider = new Lazy<IStateProvider>(
+                () => new CachedStateProvider(
+                    new StateProvider() {HostSmartContractBridgeContext = this}),
+                LazyThreadSafetyMode.PublicationOnly);
         }
 
         public ITransactionContext TransactionContext { get; set; }
         public ISmartContractContext SmartContractContext { get; set; }
 
+        
+        private Lazy<IStateProvider> _lazyStateProvider;
+
+        public IStateProvider StateProvider => _lazyStateProvider.Value;
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
 
-        public void Initialize(IStateProvider stateProvider, ITransactionContext transactionContext,
+        public void Initialize(ITransactionContext transactionContext,
             ISmartContractContext smartContractContext)
         {
-            this.StateProvider = stateProvider;
-            this.TransactionContext = transactionContext;
-            this.SmartContractContext = smartContractContext;
+            TransactionContext = transactionContext;
+            SmartContractContext = smartContractContext;
 
+        }
+
+        public async Task<ByteString> GetStateAsync(string key)
+        {
+            return await _smartContractBridgeService.GetStateAsync(
+                Self, key, CurrentHeight - 1, PreviousBlockHash);
         }
 
         public int ChainId => _smartContractBridgeService.GetChainId();
@@ -58,7 +73,6 @@ namespace AElf.Kernel.SmartContract
         {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
-
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
@@ -160,7 +174,6 @@ namespace AElf.Kernel.SmartContract
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
 
-        public IStateProvider StateProvider { get; set; }
 
         public Block GetPreviousBlock()
         {

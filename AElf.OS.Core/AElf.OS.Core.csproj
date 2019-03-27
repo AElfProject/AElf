@@ -11,11 +11,10 @@
     <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.14.0" />
-    <PackageReference Include="Volo.Abp.Core" Version="0.14.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.14.0" />
+    <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services" />

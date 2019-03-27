@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract.Application
             try
             {
                 executive.SetDataCache(chainContext.StateCache);
-                await executive.SetTransactionContext(transactionContext).Apply();
+                await executive.SetTransactionContext(transactionContext).ApplyAsync();
             }
             finally
             {

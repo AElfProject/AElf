@@ -19,8 +19,6 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         Hash TransactionId { get; }
 
-        // TODO: Remove Transaction
-        Transaction Transaction { get; }
         Address Sender { get; }
 
         Address Self { get; }
@@ -51,7 +49,9 @@ namespace AElf.Kernel.SmartContract.Sdk
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
+        
         T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args);
+        
         void SendInline(Address toAddress, string methodName, ByteString args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
@@ -65,6 +65,11 @@ namespace AElf.Kernel.SmartContract.Sdk
         byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
 
         byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
+    }
+
+    public interface ILimitedSmartContractContext
+    {
+        
     }
 
     [Serializable]

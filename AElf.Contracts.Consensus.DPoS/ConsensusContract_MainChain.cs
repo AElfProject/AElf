@@ -65,11 +65,11 @@ namespace AElf.Contracts.Consensus.DPoS
             SetMiners(miners);
             SetMiningInterval(firstRound.GetMiningInterval());
 
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             // TODO: This judgement can be removed with `Initialize` method.
             if (State.DividendContract.Value == null)
             {
-                State.DividendContract.Value = Context.GetContractAddressByName()
+                State.DividendContract.Value = 
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }

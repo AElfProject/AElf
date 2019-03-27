@@ -11,9 +11,8 @@ namespace AElf.Kernel.SmartContract.Infrastructure
  
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
         IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        IExecutive SetStateProviderFactory(IStateProviderFactory stateProviderFactory);
         void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
-        Task Apply();
+        Task ApplyAsync();
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         byte[] GetFileDescriptorSet();
 

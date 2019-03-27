@@ -7,7 +7,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         int Category { get; }
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
-        IMessage GetAbi(SmartContractRegistration reg);
         void CodeCheck(byte[] code, bool isPrivileged = false);
         ContractMetadataTemplate ExtractMetadata(System.Type contractType);
     }

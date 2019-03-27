@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Runtime.CSharp.Core.ABI;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
@@ -79,19 +78,7 @@ namespace AElf.Runtime.CSharp
 
             return await Task.FromResult(executive);
         }
-
-        private Module GetAbiModule(SmartContractRegistration reg)
-        {
-            var code = reg.Code.ToByteArray();
-            var abiModule = Generator.GetABIModule(code);
-            return abiModule;
-        }
-
-        public IMessage GetAbi(SmartContractRegistration reg)
-        {
-            return GetAbiModule(reg);
-        }
-
+        
         /// <summary>
         /// Performs code checks.
         /// </summary>
