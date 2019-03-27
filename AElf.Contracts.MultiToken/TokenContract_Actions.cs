@@ -221,7 +221,7 @@ namespace AElf.Contracts.MultiToken
             var existingBalance = State.Balances[Context.Sender][input.Symbol];
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
-            tokenInfo.TotalSupply = tokenInfo.TotalSupply.Sub(input.Amount);
+            tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
             Context.FireEvent(new Burned()
             {
                 Burner = Context.Sender,

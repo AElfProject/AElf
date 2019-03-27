@@ -7,7 +7,7 @@ namespace AElf.Sdk.CSharp
 {
     public static class SmartContractBridgeContextExtensions
     {
-        public static void FireEvent<TEvent>(this ISmartContractBridgeContext context, TEvent e) where TEvent : Event
+        public static void FireEvent<TEvent>(this CSharpSmartContractContext context, TEvent e) where TEvent : Event
         {
             var logEvent = EventParser<TEvent>.ToLogEvent(e, context.Self);
             context.FireLogEvent(logEvent);
@@ -28,6 +28,25 @@ namespace AElf.Sdk.CSharp
         }
 
         public static void SendVirtualInline(this ISmartContractBridgeContext context, Hash fromVirtualAddress,
+            Address toAddress, string methodName, IMessage message)
+        {
+            context.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
+                ConvertToByteString(message));
+        }
+        
+        public static T Call<T>(this CSharpSmartContractContext context, IStateCache stateCache, Address address,
+            string methodName, IMessage message)
+        {
+            return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
+        }
+
+        public static void SendInline(this CSharpSmartContractContext context, Address toAddress, string methodName,
+            IMessage message)
+        {
+            context.SendInline(toAddress, methodName, ConvertToByteString(message));
+        }
+
+        public static void SendVirtualInline(this CSharpSmartContractContext context, Hash fromVirtualAddress,
             Address toAddress, string methodName, IMessage message)
         {
             context.SendVirtualInline(fromVirtualAddress, toAddress, methodName,

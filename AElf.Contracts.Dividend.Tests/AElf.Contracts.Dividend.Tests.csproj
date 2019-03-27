@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>true</IsPackable>
+        <RootNamespace>AElf.Contratcs.Dividend</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+    </ItemGroup>
+</Project>
