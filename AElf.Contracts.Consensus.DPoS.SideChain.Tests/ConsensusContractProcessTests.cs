@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -101,8 +101,7 @@ namespace AElf.Contracts.DPoS.SideChain
             }
         }
 
-        //TODO: No View method for SideChain Contract
-        [Fact(Skip = "Cannot get current round info")]
+        [Fact]
         public async Task UpdateValue_Success()
         {
             TesterManager.InitialTesters();
@@ -114,9 +113,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 nameof(ConsensusContract.InitialConsensus), roundInput);
                 
             //query current round info
-            var result = await TesterManager.Testers[0].CallContractMethodAsync(TesterManager.Testers[0].GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentRoundInformation), new Empty());
-            var roundInfo = result.DeserializeToPbMessage<Round>();
+            var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();
             
             var input = new ToUpdate
             {
@@ -126,8 +123,59 @@ namespace AElf.Contracts.DPoS.SideChain
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.UpdateValue), input);
-            
+            //Assert
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var queryRound = await TesterManager.Testers[0].GetCurrentRoundInformation();
+            queryRound.RealTimeMinersInformation[TesterManager.Testers[0].PublicKey].OutValue.ShouldBe(input.OutValue);
+            queryRound.RealTimeMinersInformation[TesterManager.Testers[0].PublicKey].ActualMiningTime.ShouldBe(input.ActualMiningTime);
+        }
+
+        [Fact]
+        public async Task NextRound_Failed()
+        {
+            TesterManager.InitialTesters();
+            
+            var input = new Round
+            {
+                RoundNumber = -1
+            };
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Incorrect round number for next round.").ShouldBeTrue();
+            
+            input = new Round
+            {
+                RoundNumber = 2,
+                BlockchainAge = 1
+            };
+            transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Failed to get current round information.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task NextRound_Success()
+        {
+            TesterManager.InitialTesters();
+            
+            var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+            await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), roundInput);
+            var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();
+
+            roundInfo.RoundNumber = 2;
+            roundInfo.BlockchainAge = 14;
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), roundInfo);
+            
+            //Assert
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var queryRound = await TesterManager.Testers[0].GetCurrentRoundInformation();
+            queryRound.RoundNumber.ShouldBe(2);
+            queryRound.BlockchainAge.ShouldBe(14);
         }
         
         [Fact]
