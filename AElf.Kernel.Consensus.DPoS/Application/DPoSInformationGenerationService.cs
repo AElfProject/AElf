@@ -23,18 +23,21 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
         private DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
-        
+
         private readonly ConsensusControlInformation _controlInformation;
 
         private Hash RandomHash
         {
             get
             {
-                var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds.DumpByteArray());
+                var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds
+                    .DumpByteArray());
                 var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
                 return Hash.FromRawBytes(bytes);
             }
         }
+
+        private Hash _latestRandomHash = Hash.Empty;
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
@@ -64,13 +67,20 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
+                    if (_latestRandomHash == Hash.Empty)
+                    {
+                        _latestRandomHash = RandomHash;
+                    }
+
                     return new DPoSTriggerInformation
                     {
                         PublicKey = PublicKey,
                         RandomHash = RandomHash,
+                        PreviousRandomHash = _latestRandomHash
                     };
                 case DPoSBehaviour.NextRound:
                 case DPoSBehaviour.NextTerm:
+                    _latestRandomHash = Hash.Empty;
                     return new DPoSTriggerInformation
                     {
                         PublicKey = PublicKey,
@@ -86,7 +96,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             return DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
         }
-        
+
         public async Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,
             IMessage input, DateTime dateTime) where T : class, IMessage<T>, new()
         {

@@ -74,13 +74,19 @@ namespace AElf.Contracts.Consensus.DPoS
 
             round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
-            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
+            
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
+
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
-            round.RealTimeMinersInformation[publicKey].DecryptedPreviousInValues.Add(input.DecryptedPreviousInValues);
+            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
+            {
+                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
+                    .Add(decryptedPreviousInValue.Key, decryptedPreviousInValue.Value);
+            }
 
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
@@ -88,7 +94,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
-            // One cannot publish his in value sometime, like in his first round.
+            // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = input.PreviousInValue;

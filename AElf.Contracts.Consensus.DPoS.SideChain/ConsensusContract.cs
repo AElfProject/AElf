@@ -46,29 +46,34 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
                 case DPoSBehaviour.UpdateValue:
-                    Assert(input.RandomHash != null && input.RandomHash != null,
-                        "Current in value should be valid.");
+                    Assert(input.RandomHash != null, "Random hash should not be null.");
 
-                    var inValue = Hash.FromTwoHashes(Context.PreviousBlockHash, input.RandomHash);
+                    var inValue = Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = round.RoundId}),
+                        input.RandomHash);
 
                     var outValue = Hash.FromMessage(inValue);
 
-                    var signature = Hash.Empty;
-                    if (round.RoundNumber != 1)
+                    var signature = Hash.FromTwoHashes(outValue, input.RandomHash);
+
+                    var previousInValue = Hash.Empty;
+
+                    TryToGetPreviousRoundInformation(out var previousRound);
+                    if (previousRound.RoundId != 0 && previousRound.TermNumber == round.TermNumber)
                     {
-                        Assert(TryToGetPreviousRoundInformation(out var previousRound),
-                            "Failed to get previous round information.");
                         signature = previousRound.CalculateSignature(inValue);
+                        previousInValue =
+                            Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = previousRound.RoundId}),
+                                input.PreviousRandomHash);
                     }
 
-                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), outValue, signature,
+                    var updatedRound = round.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue, outValue, signature,
                         currentBlockTime);
                     // To publish Out Value.
                     return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = updatedRound,
-                        Behaviour = behaviour
+                        Behaviour = behaviour,
                     };
                 case DPoSBehaviour.NextRound:
                     Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp));

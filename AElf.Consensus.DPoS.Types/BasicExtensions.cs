@@ -29,8 +29,25 @@ namespace AElf.Consensus.DPoS
                     };
                 
                 case DPoSBehaviour.UpdateValue:
+                    // If miner of previous order didn't produce block, skip this time slot.
+                    var myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
+                    if (myOrder != 1 && round.RealTimeMinersInformation.Values.First(m => m.Order == myOrder - 1).OutValue == null)
+                    {
+                        return new ConsensusCommand
+                        {
+                            NextBlockMiningLeftMilliseconds =
+                                (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey,
+                                               round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval),
+                                               round.GetMiningInterval())
+                                           .ToDateTime() - dateTime).TotalMilliseconds,
+                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                            Hint = new DPoSHint
+                            {
+                                Behaviour = DPoSBehaviour.NextRound
+                            }.ToByteString()
+                        };
+                    }
                     var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
-
                     return new ConsensusCommand
                     {
                         NextBlockMiningLeftMilliseconds = (int) (expectedMiningTime.ToDateTime() - dateTime)
@@ -306,8 +323,8 @@ namespace AElf.Consensus.DPoS
             };
         }
 
-        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash outValue, Hash signature,
-            DateTime dateTime)
+        public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
+            Hash outValue, Hash signature, DateTime dateTime)
         {
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
@@ -317,6 +334,10 @@ namespace AElf.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
             round.RealTimeMinersInformation[publicKey].OutValue = outValue;
             round.RealTimeMinersInformation[publicKey].Signature = signature;
+            if (previousInValue != Hash.Empty)
+            {
+                round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
+            }
 
             var minersCount = round.RealTimeMinersInformation.Count;
             var sigNum =
@@ -340,7 +361,8 @@ namespace AElf.Consensus.DPoS
                     var maybeNewOrder = i > minersCount ? i % minersCount : i;
                     if (round.RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        Console.WriteLine($"Try to tune order from {round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound} to {maybeNewOrder}");
+                        Console.WriteLine(
+                            $"Try to tune order from {round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound} to {maybeNewOrder}");
                         round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
                             maybeNewOrder;
                         break;

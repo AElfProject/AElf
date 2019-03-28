@@ -53,17 +53,17 @@ namespace AElf.Contracts.DPoS.SideChain
         }
 
         public DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
-            Hash previousInValue = null)
+            Hash previousRandomHash = null)
         {
-            if (previousInValue == null)
+            if (previousRandomHash == null)
             {
-                previousInValue = Hash.Empty;
+                previousRandomHash = Hash.Empty;
             }
 
             return new DPoSTriggerInformation
             {
                 PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
-                PreviousInValue = previousInValue,
+                PreviousRandomHash = previousRandomHash,
                 RandomHash = randomHash
             };
         }
