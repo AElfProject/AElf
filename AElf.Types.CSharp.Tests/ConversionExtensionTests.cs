@@ -10,20 +10,73 @@ namespace AElf.Types.CSharp.Tests
 {
     public class ConversionExtensionTests
     {
-        [Fact(Skip = "Not passed due to some reason.")]
-        public void Deserialize_To_Bool()
+        [Fact]
+        public void Deserialize_From_ByteString_To_Bool()
         {
-            var message = true.ToPbMessage();
-            var bs = ByteString.FromStream(new MemoryStream(message.ToByteArray()));
-            var boolValue = (bool)bs.DeserializeToType(typeof(bool));
-            boolValue.ShouldBeTrue();
-            
-            var message1 = false.ToPbMessage();
-            var bs1 = ByteString.FromStream(new MemoryStream(message1.ToByteArray()));
-            var boolValue1 = (bool)bs1.DeserializeToType(typeof(bool));
-            boolValue1.ShouldBeFalse();
+            var boolValue = true;
+            var encoder = ReturnTypeHelper.GetEncoder<bool>();
+            var bs = ByteString.CopyFrom(encoder(boolValue));
+            var returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeTrue();
+
+            boolValue = false;
+            bs = ByteString.CopyFrom(encoder(boolValue));
+            returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeFalse();
         }
 
+        [Fact]
+        public void Deserialize_From_ByteString_To_BoolPbMessage()
+        {
+            var boolValue = new BoolValue(){ Value = true };
+            var bs = boolValue.ToByteString();
+            var returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeTrue();
+
+            boolValue.Value = false;
+            bs = boolValue.ToByteString();
+            returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public void Deserialize_From_ByteString_To_Int()
+        {
+            var intValue = 36;
+            var encoder = ReturnTypeHelper.GetEncoder<int>();
+            var bs = ByteString.CopyFrom(encoder(intValue));
+            var returnObj = (int)bs.DeserializeToType(typeof(int));
+            returnObj.ShouldBe(intValue);
+        }
+        
+        [Fact]
+        public void Deserialize_From_ByteString_To_IntPbMessage()
+        {
+            var intValue = new IntValue() { Value = 36 };
+            var bs = intValue.ToByteString();
+            var returnObj = (IntValue)bs.DeserializeToType(typeof(IntValue));
+            returnObj.ShouldBe(intValue);
+        }
+
+        [Fact]
+        public void Deserialize_From_ByteString_To_String()
+        {
+            var stringValue = "test info";
+            var encoder = ReturnTypeHelper.GetEncoder<string>();
+            var bs = ByteString.CopyFrom(encoder(stringValue));
+            var returnObj = (string)bs.DeserializeToType(typeof(string));
+            returnObj.ShouldBe(stringValue);
+        }
+        
+        [Fact]
+        public void Deserialize_From_ByteString_To_StringPbMessage()
+        {
+            var stringValue = new StringValue() { Value = "test info" };
+            var bs = stringValue.ToByteString();
+            var returnObj = (StringValue)bs.DeserializeToType(typeof(StringValue));
+            returnObj.ShouldBe(stringValue);
+        }
+        
         [Fact]
         public void Deserialize_BoolAny()
         {
@@ -183,7 +236,7 @@ namespace AElf.Types.CSharp.Tests
             userTypeHolder.Equals(newUserTypeHolder).ShouldBeTrue();
         }
         
-        [Fact]
+        [Fact(Skip = "User type will be not used anymore.")]
         public void UserType_ToPbMessage_Test()
         {
             var personalData = new PersonalData

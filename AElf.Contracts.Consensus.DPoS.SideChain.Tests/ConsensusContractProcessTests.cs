@@ -3,9 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -15,7 +14,7 @@ namespace AElf.Contracts.DPoS.SideChain
     public class ConsensusContractProcessTests : DPoSSideChainTestBase
     {
         private readonly DPoSSideChainTester TesterManager;
-        
+
         public ConsensusContractProcessTests()
         {
             TesterManager = new DPoSSideChainTester();
@@ -26,7 +25,7 @@ namespace AElf.Contracts.DPoS.SideChain
         public async Task InitialConsensus_WithException()
         {
             TesterManager.InitialTesters();
-            
+
             //Incorrect round number at beginning.
             var input = new Round
             {
@@ -36,7 +35,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 nameof(ConsensusContract.InitialConsensus), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Incorrect round information: invalid round number.").ShouldBeTrue();
-            
+
             //Correct round number
             input = new Round
             {
@@ -52,13 +51,13 @@ namespace AElf.Contracts.DPoS.SideChain
         public async Task InitialConsensus_Success()
         {
             TesterManager.InitialTesters();
-            
+
             // Act
             var input = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
                 .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.InitialConsensus), input);
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -66,7 +65,7 @@ namespace AElf.Contracts.DPoS.SideChain
         public async Task UpdateValue_WithError()
         {
             TesterManager.InitialTesters();
-            
+
             //Id not match
             {
                 var input = new ToUpdate
@@ -75,18 +74,18 @@ namespace AElf.Contracts.DPoS.SideChain
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                     nameof(ConsensusContract.UpdateValue), input);
-            
+
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Round information not found.").ShouldBeTrue();
             }
-            
+
             //round information not found
             {
                 var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
                     .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
                 await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                     nameof(ConsensusContract.InitialConsensus), roundInput);
-                
+
                 var input = new ToUpdate
                 {
                     RoundId = 2,
@@ -95,29 +94,26 @@ namespace AElf.Contracts.DPoS.SideChain
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                     nameof(ConsensusContract.UpdateValue), input);
-            
+
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Round Id not matched.").ShouldBeTrue();
             }
         }
 
-        //TODO: No View method for SideChain Contract
-        [Fact(Skip = "Cannot get current round info")]
+        [Fact]
         public async Task UpdateValue_Success()
         {
             TesterManager.InitialTesters();
-            
+
             //init round info 
             var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
                 .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
             await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.InitialConsensus), roundInput);
-                
+
             //query current round info
-            var result = await TesterManager.Testers[0].CallContractMethodAsync(TesterManager.Testers[0].GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentRoundInformation), new Empty());
-            var roundInfo = result.DeserializeToPbMessage<Round>();
-            
+            var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();
+
             var input = new ToUpdate
             {
                 RoundId = roundInfo.RoundId,
@@ -126,18 +122,82 @@ namespace AElf.Contracts.DPoS.SideChain
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.UpdateValue), input);
-            
+            //Assert
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var queryRound = await TesterManager.Testers[0].GetCurrentRoundInformation();
+            queryRound.RealTimeMinersInformation[TesterManager.Testers[0].PublicKey].OutValue.ShouldBe(input.OutValue);
+            queryRound.RealTimeMinersInformation[TesterManager.Testers[0].PublicKey].ActualMiningTime
+                .ShouldBe(input.ActualMiningTime);
         }
-        
+
+        [Fact]
+        public async Task NextRound_Failed_With_Incorrect_RoundNumber()
+        {
+            TesterManager.InitialTesters();
+
+            var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+            await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), roundInput);
+            var input = new Round
+            {
+                RoundNumber = -1
+            };
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Incorrect round number for next round.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task NextRound_Failed_With_Incorrect_RoundInformation()
+        {
+            TesterManager.InitialTesters();
+
+            var input = new Round
+            {
+                RoundNumber = 2,
+                BlockchainAge = 1
+            };
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Failed to get current round information.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task NextRound_Success()
+        {
+            TesterManager.InitialTesters();
+
+            var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+            await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.InitialConsensus), roundInput);
+            var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();
+
+            roundInfo.RoundNumber = 2;
+            roundInfo.BlockchainAge = 14;
+            var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.NextRound), roundInfo);
+
+            //Assert
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var queryRound = await TesterManager.Testers[0].GetCurrentRoundInformation();
+            queryRound.RoundNumber.ShouldBe(2);
+            queryRound.BlockchainAge.ShouldBe(14);
+        }
+
         [Fact]
         public async Task NormalBlock_GetConsensusCommand()
         {
             TesterManager.InitialTesters();
 
-            var triggerInformationForInitialTerm = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var triggerInformationForInitialTerm =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
             await TesterManager.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, TesterManager.Testers[1]);
+                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm,
+                    TesterManager.Testers[1]);
 
             // Act
             var actual = await TesterManager.Testers[1].GetConsensusCommandAsync();
@@ -152,7 +212,8 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
 
-            var stubInitialExtraInformation = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var stubInitialExtraInformation =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
 
             await TesterManager.Testers[0]
                 .GenerateConsensusTransactionsAndMineABlockAsync(stubInitialExtraInformation, TesterManager.Testers[1]);
@@ -160,7 +221,8 @@ namespace AElf.Contracts.DPoS.SideChain
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
             var stubExtraInformation =
-                TesterManager.GetTriggerInformationForNormalBlock(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
+                TesterManager.GetTriggerInformationForNormalBlock(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(),
+                    inValue);
 
             // Act
             var newConsensusInformation =
@@ -178,14 +240,16 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
 
-            var stubInitialExtraInformation = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var stubInitialExtraInformation =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
 
             await TesterManager.Testers[0]
                 .GenerateConsensusTransactionsAndMineABlockAsync(stubInitialExtraInformation, TesterManager.Testers[1]);
 
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
-                TesterManager.GetTriggerInformationForNormalBlock(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
+                TesterManager.GetTriggerInformationForNormalBlock(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(),
+                    inValue);
 
             // Act
             var consensusTransactions =
@@ -201,9 +265,11 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
 
-            var triggerInformationForInitialTerm = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var triggerInformationForInitialTerm =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
             await TesterManager.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, TesterManager.Testers[1]);
+                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm,
+                    TesterManager.Testers[1]);
 
             // Act
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * TesterManager.MinersCount + 1).ToTimestamp();
@@ -220,14 +286,17 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
 
-            var triggerInformationForInitialTerm = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var triggerInformationForInitialTerm =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
 
             await TesterManager.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, TesterManager.Testers[1]);
+                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm,
+                    TesterManager.Testers[1]);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * TesterManager.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
-                TesterManager.GetTriggerInformationForNextRoundOrTerm(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
+                TesterManager.GetTriggerInformationForNextRoundOrTerm(
+                    TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
             var newConsensusInformation =
@@ -242,14 +311,17 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
 
-            var triggerInformationForInitialTerm = TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
+            var triggerInformationForInitialTerm =
+                TesterManager.GetTriggerInformationForInitialTerm(TesterManager.MinersKeyPairs);
 
             await TesterManager.Testers[0]
-                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm, TesterManager.Testers[1]);
+                .GenerateConsensusTransactionsAndMineABlockAsync(triggerInformationForInitialTerm,
+                    TesterManager.Testers[1]);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * TesterManager.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
-                TesterManager.GetTriggerInformationForNextRoundOrTerm(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
+                TesterManager.GetTriggerInformationForNextRoundOrTerm(
+                    TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), futureTime);
 
             // Act
             var consensusTransactions = await TesterManager.Testers[1]

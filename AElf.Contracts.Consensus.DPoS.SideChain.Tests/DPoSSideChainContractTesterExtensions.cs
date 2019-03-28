@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.TestBase;
-using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
@@ -84,11 +84,29 @@ namespace AElf.Contracts.DPoS.SideChain
             return ValidationResult.Parser.ParseFrom(bytes);
         }
         
+        public static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
+            this ContractTester<DPoSSideChainTestAElfModule> tester,
+            DPoSInformation information)
+        {
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
+                ConsensusConsts.ValidateConsensusAfterExecution, information);
+            return ValidationResult.Parser.ParseFrom(bytes);
+        }
+        
         public static async Task<TransactionResult> ExecuteConsensusContractMethodWithMiningAsync(
             this ContractTester<DPoSSideChainTestAElfModule> contractTester, string methodName, IMessage input)
         {
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetConsensusContractAddress(),
                 methodName, input);
+        }
+
+        public static async Task<Round> GetCurrentRoundInformation(
+            this ContractTester<DPoSSideChainTestAElfModule> contractTester
+        )
+        {
+            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.GetCurrentRoundInformation
+                ), new Empty());
+            return Round.Parser.ParseFrom(result.ReturnValue);
         }
     }
 }
