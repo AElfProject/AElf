@@ -23,12 +23,14 @@ using AElf.WebApp.Application.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AElf.WebApp.Web
 {
     [DependsOn(
-        typeof(ChainApplicationWebAppAElfModule), 
-        typeof(NetApplicationWebAppAElfModule), 
+        typeof(ChainApplicationWebAppAElfModule),
+        typeof(NetApplicationWebAppAElfModule),
         typeof(AbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
@@ -39,6 +41,14 @@ namespace AElf.WebApp.Web
 
             ConfigureAutoApiControllers();
             ConfigureSwaggerServices(context.Services);
+
+
+            context.Services.Configure<MvcOptions>(options => { });
+
+            context.Services.AddMvc().AddJsonOptions(options =>
+            {
+                options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
+            });
 
 
             /*services.Configure<MvcOptions>(options =>
@@ -52,13 +62,12 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-
                 options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly, settings =>
                 {
                     settings.RootPath = "chain";
                     settings.ApiVersions.Add(new ApiVersion(1, 0));
                 });
-                
+
                 options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly, settings =>
                 {
                     settings.RootPath = "net";
@@ -101,7 +110,16 @@ namespace AElf.WebApp.Web
             app.UseSwaggerUI(options => { options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore API"); });
 
 
-            app.UseMvc(routes => { });
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "defaultWithArea",
+                    template: "{area}/{controller=Home}/{action=Index}/{id?}");
+
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 
@@ -175,4 +193,61 @@ namespace AElf.WebApp.Web
             return response.Body.WriteAsync(serialized, 0, serialized.Length);
         }
     }*/
+
+
+    //Thanks to https://medium.com/google-cloud/making-newtonsoft-json-and-protocol-buffers-play-nicely-together-fe92079cc91c
+    /// <summary>
+    /// Lets Newtonsoft.Json and Protobuf's json converters play nicely
+    /// together.  The default Netwtonsoft.Json Deserialize method will
+    /// not correctly deserialize proto messages.
+    /// </summary>
+    class ProtoMessageConverter : JsonConverter
+    {
+        /// <summary>
+        /// Called by NewtonSoft.Json's method to ask if this object can serialize
+        /// an object of a given type.
+        /// </summary>
+        /// <returns>True if the objectType is a Protocol Message.</returns>
+        public override bool CanConvert(System.Type objectType)
+        {
+            return typeof(Google.Protobuf.IMessage)
+                .IsAssignableFrom(objectType);
+        }
+
+        /// <summary>
+        /// Reads the json representation of a Protocol Message and reconstructs
+        /// the Protocol Message.
+        /// </summary>
+        /// <param name="objectType">The Protocol Message type.</param>
+        /// <returns>An instance of objectType.</returns>
+        public override object ReadJson(JsonReader reader,
+            System.Type objectType, object existingValue,
+            JsonSerializer serializer)
+        {
+            // The only way to find where this json object begins and ends is by
+            // reading it in as a generic ExpandoObject.
+            // Read an entire object from the reader.
+            var converter = new ExpandoObjectConverter();
+            object o = converter.ReadJson(reader, objectType, existingValue,
+                serializer);
+            // Convert it back to json text.
+            string text = JsonConvert.SerializeObject(o);
+            // And let protobuf's parser parse the text.
+            IMessage message = (IMessage) Activator
+                .CreateInstance(objectType);
+            return Google.Protobuf.JsonParser.Default.Parse(text,
+                message.Descriptor);
+        }
+
+        /// <summary>
+        /// Writes the json representation of a Protocol Message.
+        /// </summary>
+        public override void WriteJson(JsonWriter writer, object value,
+            JsonSerializer serializer)
+        {
+            // Let Protobuf's JsonFormatter do all the work.
+            writer.WriteRawValue(Google.Protobuf.JsonFormatter.Default
+                .Format((IMessage) value));
+        }
+    }
 }
