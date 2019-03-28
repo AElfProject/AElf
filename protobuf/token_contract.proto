@@ -12,7 +12,7 @@ service TokenContract {
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeWithContractSystemNames(TokenContractInitializeInput) returns(google.protobuf.Empty){
+    rpc InitializeWithContractSystemNames (TokenContractInitializeInput) returns (google.protobuf.Empty) {
     }
     rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
     }
@@ -40,9 +40,9 @@ service TokenContract {
     }
     rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
     }
-    rpc CrossChainTransfer(CrossChainTransferInput) returns(google.protobuf.Empty){
+    rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
-    rpc CrossChainReceiveToken(CrossChainReceiveTokenInput) returns (google.protobuf.Empty){
+    rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeePoolAddress (Hash) returns (google.protobuf.Empty) {
     }
@@ -210,16 +210,52 @@ message GetAllowanceOutput {
 message TokenContractInitializeInput {
     Hash crossChainContractSystemName = 1;
 }
-message CrossChainTransferInput{
+
+message CrossChainTransferInput {
     Address to = 1;
     string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
     int32 toChainId = 5;
 }
-message CrossChainReceiveTokenInput{
+
+message CrossChainReceiveTokenInput {
     int32 fromChainId = 1;
     int64 ParentChainHeight = 2;
     bytes TransferTransactionBytes = 3;
     MerklePath MerklePath = 4;
+}
+
+// Events
+message Transferred {
+    option (aelf.is_event) = true;
+    Address from = 1 [(aelf.is_indexed) = true];
+    Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+    string memo = 5;
+}
+
+message Approved {
+    option (aelf.is_event) = true;
+    Address owner = 1 [(aelf.is_indexed) = true];
+    Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+}
+
+message UnApproved {
+    option (aelf.is_event) = true;
+    Address owner = 1 [(aelf.is_indexed) = true];
+    Address spender = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4;
+}
+
+message Burned
+{
+    option (aelf.is_event) = true;
+    Address burner = 1 [(aelf.is_indexed) = true];
+    string symbol = 2 [(aelf.is_indexed) = true];
+    sint64 amount = 3;
 }
